@@ -6,18 +6,34 @@ import { openDB, type IDBPDatabase } from 'idb';
 import type {
   CampaignProgress,
   DailyRecord,
+  DailyRecordV2,
+  DailyStats,
   HistoryEntry,
+  PassportState,
   PersonalBests,
   RepublicCondition,
   ScenarioId,
   Settings,
 } from '@/engine/types';
 
-export type StoreName = 'settings' | 'republic' | 'bests' | 'history' | 'daily' | 'session' | 'meta';
-export const STORE_NAMES: readonly StoreName[] = ['settings', 'republic', 'bests', 'history', 'daily', 'session', 'meta'] as const;
+export type StoreName = 'settings' | 'republic' | 'bests' | 'history' | 'daily' | 'session' | 'meta' | 'dailyV2' | 'passport' | 'community' | 'outbox';
+export const STORE_NAMES: readonly StoreName[] = [
+  'settings',
+  'republic',
+  'bests',
+  'history',
+  'daily',
+  'session',
+  'meta',
+  'dailyV2',
+  'passport',
+  'community',
+  'outbox',
+] as const;
 
 const DB_NAME = 'vande';
-const DB_VERSION = 1;
+/** v2 (daily quick play): adds dailyV2, passport, community (stats cache) and outbox (queued submissions). */
+const DB_VERSION = 2;
 const KEY = 'current';
 const LS_PREFIX = 'vande:';
 
@@ -46,7 +62,24 @@ export interface MetaRecord {
   introDone?: boolean;
   createdAt?: string;
   lastSeenVersion?: string;
+  /** Locally generated anonymous installation id (UUID); rotated on request. Never sent raw. */
+  installId?: string;
+  installIdRotatedAt?: string;
+  /** True once legacy daily records were migrated into dailyV2. */
+  dailyMigratedV2?: boolean;
+  /** Last UTC day the app was opened (for coarse return-gap analytics). */
+  lastOpenDay?: string;
 }
+
+/** A queued community submission (payload is opaque to persistence). */
+export interface OutboxItem {
+  id: string;
+  createdAt: string;
+  payload: unknown;
+  attempts: number;
+}
+
+export type CommunityCache = Record<string, DailyStats & { fetchedAt: string }>;
 
 interface Backend {
   readonly kind: 'idb' | 'memory';
@@ -227,6 +260,14 @@ export const storage = {
   setHistory: (v: HistoryEntry[]) => set('history', v),
   getDaily: () => get<DailyRecord[]>('daily'),
   setDaily: (v: DailyRecord[]) => set('daily', v),
+  getDailyV2: () => get<DailyRecordV2[]>('dailyV2'),
+  setDailyV2: (v: DailyRecordV2[]) => set('dailyV2', v),
+  getPassport: () => get<PassportState>('passport'),
+  setPassport: (v: PassportState) => set('passport', v),
+  getCommunityCache: () => get<CommunityCache>('community'),
+  setCommunityCache: (v: CommunityCache) => set('community', v),
+  getOutbox: () => get<OutboxItem[]>('outbox'),
+  setOutbox: (v: OutboxItem[]) => set('outbox', v),
   getSession: () => get<SessionRecord>('session'),
   setSession: (v: SessionRecord) => set('session', v),
   clearSession: () => del('session'),

@@ -401,8 +401,14 @@ export interface OpponentPlay {
 // Scenario (static content)
 // ---------------------------------------------------------------------------
 
-export type ScenarioId = 'examination-crisis' | 'electoral-dispute' | 'information-storm';
-export const SCENARIO_IDS: readonly ScenarioId[] = ['examination-crisis', 'electoral-dispute', 'information-storm'] as const;
+export type CampaignScenarioId = 'examination-crisis' | 'electoral-dispute' | 'information-storm';
+/** Compiled daily crises are addressed as `daily:<dayId>` (see DailyCrisis). */
+export type DailyScenarioId = `daily:${string}`;
+export type ScenarioId = CampaignScenarioId | DailyScenarioId;
+export const SCENARIO_IDS: readonly CampaignScenarioId[] = ['examination-crisis', 'electoral-dispute', 'information-storm'] as const;
+export function isDailyScenarioId(id: string): id is DailyScenarioId {
+  return id.startsWith('daily:');
+}
 
 export type DistrictKind = 'campus' | 'civic' | 'market' | 'transit' | 'media' | 'records' | 'residential' | 'industrial' | 'hospital';
 
@@ -811,6 +817,152 @@ export interface DailySpec {
   simulatedBand: { low: number; high: number; typical: number };
 }
 
+
+// ---------------------------------------------------------------------------
+// Daily Quick Play (v2): canonical daily ids, authored daily crises, official/practice records
+// ---------------------------------------------------------------------------
+
+/** Canonical daily id: the UTC calendar date `YYYY-MM-DD`. A new crisis starts at 00:00 UTC. */
+export type DailyId = string;
+
+/** Content version of the daily pool; bumped whenever a published day changes in a way that alters play. */
+export type DailyContentVersion = string;
+
+export type PublicMood = 'calm' | 'tense' | 'volatile' | 'hopeful';
+
+/**
+ * A compact, fully authored daily crisis. The daily compiler expands it into a playable `Scenario`
+ * (shared city, standard crowd events, opponent plays generated from the referenced items) so that each
+ * day stays coherent while the boilerplate is shared. Target: 4–5 decisions, 4–6 clues, one rights moment,
+ * one timed complication, ~110 ticks (2–3 minutes in Simple style).
+ */
+export interface DailyCrisis {
+  id: string; // 'd001'
+  version: number;
+  title: string;
+  subtitle: string;
+  /** Identity of the central dilemma; must not repeat within any 30-day window of the schedule. */
+  dilemmaKey: string;
+  themeTags: string[];
+  /** District where the crisis centres and the institution under pressure (a district with an institution). */
+  focus: string;
+  institution: string;
+  mood: PublicMood;
+  startingScores?: Partial<Scores>;
+  opponents: OpponentId[];
+  /** 3 short lines for the skippable cold open (≤ 60 chars each). */
+  coldOpen: string[];
+  briefing: {
+    grievance: string;
+    knownFacts: string[];
+    unverifiedClaims: string[];
+    responsibility: string;
+    objective: string;
+  };
+  evidence: ScenarioEvidence[];
+  decisions: ScenarioDecision[];
+  rightsMoments: RightsMoment[];
+  /** Extra authored events (crowd/service/institution). Standard opening events are generated. */
+  events?: ScenarioEvent[];
+  /** The timed complication: a play-only event fired by `opponent`, optionally opening a bait decision. */
+  complication: { opponent: OpponentId; earliest: number; latest: number; eventId: string; baitDecisionId?: string };
+  resolution: Scenario['resolution'];
+  duration?: number;
+  simple?: SimpleScenario & { coldOpen?: string[] };
+}
+
+/** Deterministic schedule: pinned dates stay reproducible after content updates; other dates rotate. */
+export interface DailySchedule {
+  contentVersion: DailyContentVersion;
+  /** First UTC date of the rotation. */
+  epoch: DailyId;
+  /** Day ids in rotation order (≥ 30, no dilemmaKey repeats inside any 30-entry window). */
+  order: string[];
+  /** Explicit date → day id assignments that must never change once published. */
+  pinned: Record<DailyId, string>;
+}
+
+/** Resolved daily challenge for a canonical id. */
+export interface DailyResolution {
+  dailyId: DailyId;
+  dayId: string;
+  seed: number;
+  opponents: OpponentId[];
+  difficulty: Difficulty;
+  contentVersion: DailyContentVersion;
+  /** ISO time when the next daily becomes available (00:00 UTC of the following day). */
+  nextAt: string;
+}
+
+/**
+ * Compact, spoiler-free strategy fingerprint: one letter per decision in order —
+ * D dialogue/transparency, E evidence/legal process, S services/relief/protection,
+ * P proportionate enforcement, X suppressive or disproportionate action, W waited or let it expire.
+ */
+export type FingerprintCode = 'D' | 'E' | 'S' | 'P' | 'X' | 'W';
+
+export interface DailyAttemptResult {
+  score: number;
+  outcome: RepublicOutcome;
+  fingerprint: string;
+  completedAt: string;
+  contentVersion: DailyContentVersion;
+  mode: PlayStyle;
+  /** Six dimensions at the end, rounded. */
+  scores: Scores;
+}
+
+/** One record per canonical daily id. The first completed attempt is the immutable official result. */
+export interface DailyRecordV2 {
+  v: 2;
+  dailyId: DailyId;
+  dayId?: string;
+  official?: DailyAttemptResult;
+  practice?: { best: DailyAttemptResult; attempts: number };
+  /** Set when an attempt was started but not completed (never locks the official result). */
+  startedAt?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Civic Passport (ethical, behaviour-based accomplishments)
+// ---------------------------------------------------------------------------
+
+export interface PassportAccomplishment {
+  id: string;
+  earnedAt: string;
+  /** Plain explanation of why it was earned, generated at award time. */
+  reason: string;
+  dailyId?: DailyId;
+  scenarioId?: ScenarioId;
+}
+
+export interface PassportState {
+  v: 1;
+  earned: PassportAccomplishment[];
+}
+
+// ---------------------------------------------------------------------------
+// Community (anonymous aggregates) — client-side types mirrored by backend/src/contract.ts
+// ---------------------------------------------------------------------------
+
+export type ScoreBand = '0-39' | '40-54' | '55-69' | '70-84' | '85-100';
+
+export interface DailyStats {
+  dailyId: DailyId;
+  contentVersion: DailyContentVersion;
+  /** Number of accepted official results. */
+  count: number;
+  /** Percentages are only present when `count >= minCohort`. */
+  minCohort: number;
+  ready: boolean;
+  asOf: string;
+  scoreBands?: Record<ScoreBand, number>;
+  outcomes?: Partial<Record<RepublicOutcome, number>>;
+  /** Share of results whose fingerprint is mostly D/E/S (restraint) vs contains X (force) etc. */
+  strategyMix?: Record<string, number>;
+  median?: number;
+}
+
 // ---------------------------------------------------------------------------
 // Persistence (local only)
 // ---------------------------------------------------------------------------
@@ -834,6 +986,14 @@ export interface Settings {
   playStyle: PlayStyle;
   /** Pause the clock whenever a new decision or rights moment appears, until the player answers. */
   autoPauseOnDecision: boolean;
+  /** Anonymous result sharing with the community aggregates: asked once after the first official result. */
+  communitySharing: 'unset' | 'on' | 'off';
+  /** Product analytics opt-out (analytics are also off until a provider is configured). */
+  analyticsOptOut: boolean;
+  /** Optional local reminder for the daily crisis (off by default). */
+  remindersEnabled: boolean;
+  /** Local hour (0–23) for the reminder. */
+  reminderHour: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -848,6 +1008,10 @@ export const DEFAULT_SETTINGS: Settings = {
   colourBlindSafe: false,
   playStyle: 'simple',
   autoPauseOnDecision: true,
+  communitySharing: 'unset',
+  analyticsOptOut: false,
+  remindersEnabled: false,
+  reminderHour: 19,
 };
 
 /** Long-term Republic condition, updated after every completed campaign or chapter. 0..100 each. */

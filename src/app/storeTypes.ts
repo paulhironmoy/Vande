@@ -7,13 +7,19 @@ import type {
   CampaignResult,
   ChapterResult,
   ChallengeSpec,
+  DailyAttemptResult,
+  DailyId,
   DailyRecord,
+  DailyRecordV2,
+  DailyResolution,
   DailySpec,
   Difficulty,
   GameState,
   HistoryEntry,
   MapState,
   OpponentId,
+  PassportAccomplishment,
+  PassportState,
   PersonalBests,
   PlayerAction,
   Pulse,
@@ -34,6 +40,10 @@ export type Screen =
   | { name: 'chapter-result' }
   | { name: 'final-result'; resultId?: string }
   | { name: 'daily' }
+  /** Skippable cold open shown right before a daily attempt starts. */
+  | { name: 'daily-open' }
+  | { name: 'calendar' }
+  | { name: 'passport' }
   | { name: 'challenge'; code: string }
   | { name: 'republic' }
   | { name: 'history'; entryId?: string }
@@ -45,6 +55,12 @@ export type ScreenName = Screen['name'];
 /** What the player is setting up on the opponent screen. */
 export interface PendingIntent {
   kind: 'campaign' | 'daily' | 'challenge';
+  /** Daily quick play: the resolved canonical daily and whether this attempt will be official. */
+  dailyId?: DailyId;
+  dailyResolution?: DailyResolution;
+  official?: boolean;
+  /** Daily challenge from a friend: hidden until completion. */
+  friend?: { score: number; fingerprint: string; outcome?: string };
   seed: number;
   difficulty: Difficulty;
   opponents: OpponentId[];
@@ -76,6 +92,10 @@ export interface SessionSlice {
   lastCampaign?: CampaignResult;
   /** Chapter result awaiting the player's "continue". */
   intent?: PendingIntent;
+  /** Set after a daily attempt completes: which record it produced and whether it was official. */
+  lastDaily?: { dailyId: DailyId; official: boolean; result: DailyAttemptResult; record: DailyRecordV2; friend?: PendingIntent['friend'] };
+  /** Accomplishments awarded by the most recent completion (for the result screen). */
+  newAccomplishments: PassportAccomplishment[];
 }
 
 export interface UiSlice {
@@ -104,7 +124,13 @@ export interface DataSlice {
   republic: RepublicCondition;
   bests: PersonalBests;
   history: HistoryEntry[];
+  /** Legacy v1 records (local-date keyed); kept read-only after migration. */
   daily: DailyRecord[];
+  /** Daily Quick Play records keyed by canonical UTC daily id. */
+  dailyV2: DailyRecordV2[];
+  passport: PassportState;
+  /** Locally generated, rotatable anonymous installation id (never sent raw). */
+  installId: string;
 }
 
 export interface Actions {
@@ -115,7 +141,13 @@ export interface Actions {
   completeIntro(): void;
   // setup
   beginCampaignSetup(): void; // -> opponents screen with campaign intent
-  beginDailySetup(): void; // -> briefing directly (daily uses fixed opponents)
+  beginDailySetup(): void; // legacy entry: now equivalent to startDailyQuickPlay()
+  /** Daily Quick Play: resolve today's canonical daily, prepare the session, show the cold open. No opponent setup. */
+  startDailyQuickPlay(): void;
+  /** Daily Quick Play for a specific canonical id (challenge links, calendar replays); practice when an official result exists. */
+  startDailyById(dailyId: DailyId, opts?: { friend?: PendingIntent['friend'] }): boolean;
+  /** From the cold open (or its skip) → running game. */
+  beginDailyPlay(): void;
   beginChallenge(code: string): boolean; // -> briefing; false if code invalid
   setIntentOpponents(opponents: OpponentId[]): void;
   setIntentDifficulty(d: Difficulty): void;
@@ -142,6 +174,12 @@ export interface Actions {
   updateSettings(patch: Partial<Settings>): void;
   /** Switches play style and applies its defaults (pace, auto-pause). */
   setPlayStyle(style: Settings['playStyle']): void;
+  setCommunitySharing(value: 'on' | 'off'): void;
+  setReminders(enabled: boolean, hour?: number): void;
+  /** Replaces the anonymous installation id with a fresh one. */
+  rotateInstallId(): Promise<void>;
+  /** Persists newly earned accomplishments (ids already present are ignored). */
+  awardAccomplishments(items: PassportAccomplishment[]): void;
   resetRepublic(): Promise<void>;
   exportData(): Promise<string>; // JSON string of all local data
   deleteAllData(): Promise<void>;

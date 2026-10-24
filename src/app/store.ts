@@ -11,6 +11,8 @@ import {
   type CampaignResult,
   type ChapterResult,
   type DailyRecord,
+  type DailyRecordV2,
+  type PassportState,
   type GameConfig,
   type GameMode,
   type GameState,
@@ -42,6 +44,7 @@ import {
   updateRepublic,
 } from '@/engine';
 import type { AppState, PendingIntent, Screen, ScreenName, Toast } from './storeTypes';
+import { track } from '@/analytics';
 import { storage, type MetaRecord, type SessionPlan, type SessionRecord } from './persistence';
 import { currentLocationScreen } from './routes';
 import { resolveReducedMotion } from './motion';
@@ -68,6 +71,45 @@ const MAX_TOASTS = 3;
 
 let metaRecord: MetaRecord = {};
 let hydratePromise: Promise<void> | null = null;
+
+/** UTC calendar day `YYYY-MM-DD` (the canonical daily id). */
+export function utcDayKey(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function newInstallId(): string {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  } catch {
+    /* fall through */
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+/**
+ * Migrates legacy daily records (one per local date, best score kept) into v2 records.
+ * The legacy completion becomes the immutable official result; v2 rows that already exist win.
+ */
+export function migrateDailyRecords(legacy: DailyRecord[], existing: DailyRecordV2[]): DailyRecordV2[] {
+  const byId = new Map(existing.map((r) => [r.dailyId, r] as const));
+  for (const row of legacy) {
+    if (!row || typeof row.date !== 'string' || byId.has(row.date)) continue;
+    byId.set(row.date, {
+      v: 2,
+      dailyId: row.date,
+      official: {
+        score: row.score,
+        outcome: row.outcome,
+        fingerprint: 'legacy',
+        completedAt: row.completedAt,
+        contentVersion: 'v1-campaign',
+        mode: 'full',
+        scores: { freedom: 0, grievance: 0, safety: 0, evidence: 0, trust: 0, economy: 0 },
+      },
+    });
+  }
+  return [...byId.values()].sort((a, b) => (a.dailyId < b.dailyId ? 1 : -1));
+}
 let persistTimer: number | undefined;
 let toastCounter = 0;
 
@@ -309,6 +351,11 @@ type DataFields = Pick<
   | 'isNative'
   | 'online'
   | 'autoPaused'
+  | 'lastDaily'
+  | 'newAccomplishments'
+  | 'dailyV2'
+  | 'passport'
+  | 'installId'
   | 'settings'
   | 'republic'
   | 'bests'
@@ -341,6 +388,11 @@ function initialFields(): DataFields {
     isNative: false,
     online: typeof navigator === 'undefined' ? true : navigator.onLine !== false,
     autoPaused: false,
+    lastDaily: undefined,
+    newAccomplishments: [],
+    dailyV2: [],
+    passport: { v: 1, earned: [] },
+    installId: '',
     settings: { ...DEFAULT_SETTINGS },
     republic: defaultRepublic(),
     bests: defaultBests(),
@@ -742,6 +794,36 @@ export const useApp = create<State>()((set, get) => ({
   },
 
   // --- data -------------------------------------------------------------------
+  // --- daily quick play (lead implements fully; stubs keep the contract compiling) ------------
+  startDailyQuickPlay() {
+    get().beginDailySetup();
+  },
+  startDailyById(_dailyId, _opts) {
+    return false;
+  },
+  beginDailyPlay() {
+    get().startChapter();
+  },
+  setCommunitySharing(value) {
+    get().updateSettings({ communitySharing: value });
+  },
+  setReminders(enabled, hour) {
+    get().updateSettings({ remindersEnabled: enabled, ...(hour !== undefined ? { reminderHour: hour } : {}) });
+  },
+  async rotateInstallId() {
+    metaRecord = { ...metaRecord, installId: newInstallId(), installIdRotatedAt: nowIso() };
+    set({ installId: metaRecord.installId ?? '' });
+    await storage.setMeta(metaRecord).catch(() => undefined);
+    get().toast({ text: 'Your anonymous id was replaced with a new one.', kind: 'success', duration: 3500 });
+  },
+  awardAccomplishments(items) {
+    const { passport } = get();
+    const known = new Set(passport.earned.map((e) => e.id));
+    const fresh = items.filter((i) => !known.has(i.id));
+    if (!fresh.length) return;
+    set({ passport: { v: 1, earned: [...passport.earned, ...fresh] }, newAccomplishments: fresh });
+  },
+
   setPlayStyle(style) {
     const simple = style === 'simple';
     get().updateSettings({ playStyle: style, autoPauseOnDecision: simple, timerPace: simple ? 'relaxed' : 'standard' });
@@ -777,7 +859,9 @@ export const useApp = create<State>()((set, get) => ({
       persistTimer = undefined;
     }
     await storage.clearAll().catch(() => undefined);
-    metaRecord = {};
+    // A fresh anonymous id: nothing from the previous installation can be linked to the new one.
+    metaRecord = { installId: newInstallId(), installIdRotatedAt: nowIso(), dailyMigratedV2: true };
+    void storage.setMeta(metaRecord).catch(() => undefined);
     const { screen, stack, isNative, online, reducedMotion } = get();
     set({
       ...initialFields(),
@@ -789,6 +873,7 @@ export const useApp = create<State>()((set, get) => ({
       online,
       reducedMotion,
       settings: { ...DEFAULT_SETTINGS },
+      installId: metaRecord.installId ?? '',
       toasts: [],
     });
     get().toast({ text: 'All local progress and settings were deleted.', kind: 'success', duration: 4000 });
@@ -805,7 +890,7 @@ export const useApp = create<State>()((set, get) => ({
         isNative = false;
       }
       setHapticsNative(isNative);
-      const [settings, republic, bests, history, daily, session, meta] = await Promise.all([
+      const [settings, republic, bests, history, daily, session, meta, dailyV2Stored, passportStored] = await Promise.all([
         storage.getSettings().catch(() => undefined),
         storage.getRepublic().catch(() => undefined),
         storage.getBests().catch(() => undefined),
@@ -813,9 +898,40 @@ export const useApp = create<State>()((set, get) => ({
         storage.getDaily().catch(() => undefined),
         storage.getSession().catch(() => undefined),
         storage.getMeta().catch(() => undefined),
+        storage.getDailyV2().catch(() => undefined),
+        storage.getPassport().catch(() => undefined),
       ]);
       metaRecord = meta ?? {};
       const firstRun = !metaRecord.introDone;
+      // Anonymous installation id: generated locally, rotatable, never sent raw.
+      let metaDirty = false;
+      if (!metaRecord.installId) {
+        metaRecord = { ...metaRecord, installId: newInstallId(), installIdRotatedAt: nowIso() };
+        metaDirty = true;
+      }
+      // Daily records v1 (local-date keyed) → v2 (official = first completion). Legacy rows are kept untouched.
+      const legacyDaily = Array.isArray(daily) ? daily : [];
+      let dailyV2: DailyRecordV2[] = Array.isArray(dailyV2Stored) ? dailyV2Stored.filter((r) => r && r.v === 2 && typeof r.dailyId === 'string') : [];
+      if (!metaRecord.dailyMigratedV2) {
+        dailyV2 = migrateDailyRecords(legacyDaily, dailyV2);
+        metaRecord = { ...metaRecord, dailyMigratedV2: true };
+        metaDirty = true;
+        void storage.setDailyV2(dailyV2).catch(() => undefined);
+      }
+      const passport: PassportState = passportStored && passportStored.v === 1 && Array.isArray(passportStored.earned) ? passportStored : { v: 1, earned: [] };
+      // Coarse return tracking (UTC day granularity only).
+      const today = utcDayKey(new Date());
+      const lastOpen = metaRecord.lastOpenDay;
+      if (lastOpen && lastOpen !== today) {
+        const gap = Math.max(1, Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${lastOpen}T00:00:00Z`)) / 86400000));
+        track('subsequent_day_return', { returnGap: gap === 1 ? '1' : gap === 2 ? '2' : gap <= 6 ? '3-6' : '7+' });
+      }
+      if (lastOpen !== today) {
+        metaRecord = { ...metaRecord, lastOpenDay: today };
+        metaDirty = true;
+      }
+      if (metaDirty) void storage.setMeta(metaRecord).catch(() => undefined);
+      track('app_opened', { platform: isNative ? 'android' : 'web' });
       const mergedSettings: Settings = { ...DEFAULT_SETTINGS, ...(settings ?? {}) };
       const restored = restoreSession(session);
       const safeHistory = Array.isArray(history) ? history : [];
@@ -830,7 +946,10 @@ export const useApp = create<State>()((set, get) => ({
         republic: republic ?? defaultRepublic(),
         bests: bests ?? defaultBests(),
         history: safeHistory,
-        daily: Array.isArray(daily) ? daily : [],
+        daily: legacyDaily,
+        dailyV2,
+        passport,
+        installId: metaRecord.installId ?? '',
         campaign: restored?.campaign,
         plan: restored?.plan,
         game: restored?.game,
