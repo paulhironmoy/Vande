@@ -64,3 +64,13 @@ three challenge events; Simple vs Full completion by `mode`.
 * `daily_completed` carries `elapsedBucket` measured from `daily_started` and `state: 'completed'`.
 * `platform` is `android` in the Capacitor app, `pwa` when the web app runs in standalone display mode, otherwise `web`.
 * Rotating the anonymous id in Settings reconfigures analytics immediately; the distinct id changes at once.
+
+## Lite (gamified Chapter 1) events
+
+| Event | When | Properties |
+| --- | --- | --- |
+| `lite_completed` | A Lite run reaches its result card | `mode`, `elapsedBucket`, `state: 'completed'` |
+| `lite_shared` | The player shares a Lite challenge | `shareMethod` |
+| `lite_challenge_opened` | A `/lite/<code>` challenge link is opened | none |
+
+Lite challenge codes (`L1-…`) contain only a seed, a points total and a star count; no identifiers.

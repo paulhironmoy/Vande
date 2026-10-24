@@ -1022,11 +1022,12 @@ export const useApp = create<State>()((set, get) => ({
     get().navigate({ name: 'play' });
   },
 
-  startLite() {
-    const plan: SessionPlan = { scenarioIds: ['examination-crisis'] };
+  startLite(opts) {
+    const plan: SessionPlan = { scenarioIds: ['examination-crisis'], lite: true };
+    const seed = opts?.seed !== undefined && Number.isFinite(opts.seed) ? opts.seed >>> 0 : newSeed() >>> 0;
     const progress: CampaignProgress = {
       id: uid(),
-      config: { seed: newSeed() >>> 0, difficulty: 'standard', opponents: [...DEFAULT_OPPONENTS], mode: 'campaign' },
+      config: { seed, difficulty: 'standard', opponents: [...DEFAULT_OPPONENTS], mode: 'campaign' },
       chapterIndex: 0,
       completed: [],
       startedAt: nowIso(),
@@ -1049,7 +1050,8 @@ export const useApp = create<State>()((set, get) => ({
       autoPaused: false,
     });
     void persistNow();
-    get().navigate({ name: 'lite' });
+    const cur = get().screen;
+    if (cur.name !== 'lite') get().navigate({ name: 'lite' });
   },
 
   setCommunitySharing(value) {

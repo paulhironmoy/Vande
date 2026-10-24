@@ -42,6 +42,8 @@ export interface SessionPlan {
   scenarioIds: ScenarioId[];
   challengeCode?: string;
   dailyDate?: string;
+  /** A Lite run (gamified Chapter 1); never confused with a campaign's chapter 1. */
+  lite?: boolean;
 }
 
 /** Gameplay UI context preserved across refresh, rotation and layout changes. */

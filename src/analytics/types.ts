@@ -17,7 +17,10 @@ export type AnalyticsEvent =
   | 'passport_viewed'
   | 'reminder_enabled'
   | 'reminder_disabled'
-  | 'subsequent_day_return';
+  | 'subsequent_day_return'
+  | 'lite_completed'
+  | 'lite_shared'
+  | 'lite_challenge_opened';
 
 export type ElapsedBucket = '<10s' | '10-30s' | '30-60s' | '1-2m' | '2-3m' | '3-5m' | '>5m';
 
