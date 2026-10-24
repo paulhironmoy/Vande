@@ -21,7 +21,8 @@ describe('EvidenceList', () => {
     expect(screen.getByText(/No evidence yet/)).toBeTruthy();
     rerender(<EvidenceList entries={[mk('a', 5), mk('b', 9)]} newIds={new Set(['b'])} onOpen={() => {}} />);
     expect(screen.getByTestId('evidence-card-a')).toBeTruthy();
-    expect(screen.getByTestId('evidence-card-b').getAttribute('aria-label')).toMatch(/New\./);
+    expect(screen.getByTestId('evidence-card-b').textContent).toMatch(/New/);
+    expect(screen.getByTestId('evidence-card-b').getAttribute('aria-label')).toBeNull();
     expect(screen.getByText(/2 items/)).toBeTruthy();
   });
 });
