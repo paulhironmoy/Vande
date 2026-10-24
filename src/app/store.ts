@@ -45,6 +45,7 @@ import {
 } from '@/engine';
 import type { AppState, PendingIntent, Screen, ScreenName, Toast } from './storeTypes';
 import { track } from '@/analytics';
+import { applyAnalyticsOptOut, startCommunityAndAnalytics, wipeCommunityData } from './communityBridge';
 import { storage, type MetaRecord, type SessionPlan, type SessionRecord } from './persistence';
 import { currentLocationScreen } from './routes';
 import { resolveReducedMotion } from './motion';
@@ -833,6 +834,7 @@ export const useApp = create<State>()((set, get) => ({
     const settings: Settings = { ...get().settings, ...patch };
     set({ settings, reducedMotion: resolveReducedMotion(settings) });
     void storage.setSettings(settings).catch(() => undefined);
+    if ('analyticsOptOut' in patch) applyAnalyticsOptOut(settings.analyticsOptOut);
   },
 
   async resetRepublic() {
@@ -859,6 +861,7 @@ export const useApp = create<State>()((set, get) => ({
       persistTimer = undefined;
     }
     await storage.clearAll().catch(() => undefined);
+    await wipeCommunityData();
     // A fresh anonymous id: nothing from the previous installation can be linked to the new one.
     metaRecord = { installId: newInstallId(), installIdRotatedAt: nowIso(), dailyMigratedV2: true };
     void storage.setMeta(metaRecord).catch(() => undefined);
@@ -931,7 +934,6 @@ export const useApp = create<State>()((set, get) => ({
         metaDirty = true;
       }
       if (metaDirty) void storage.setMeta(metaRecord).catch(() => undefined);
-      track('app_opened', { platform: isNative ? 'android' : 'web' });
       const mergedSettings: Settings = { ...DEFAULT_SETTINGS, ...(settings ?? {}) };
       const restored = restoreSession(session);
       const safeHistory = Array.isArray(history) ? history : [];
@@ -968,6 +970,13 @@ export const useApp = create<State>()((set, get) => ({
         void storage.clearSession().catch(() => undefined);
         get().toast({ text: 'A saved game from an older version could not be restored and was cleared.', kind: 'warning', duration: 6000 });
       }
+      // Network features start after local state is ready; they never block or affect gameplay.
+      void startCommunityAndAnalytics({
+        installId: metaRecord.installId ?? '',
+        appVersion: typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev',
+        isNative,
+        settings: mergedSettings,
+      }).then(() => track('app_opened', { platform: isNative ? 'android' : 'web' }));
     })();
     return hydratePromise;
   },
