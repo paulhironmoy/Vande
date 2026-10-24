@@ -7,7 +7,7 @@ Release date: 2026-10-24 · versionCode 1 · Source: `main` on https://github.co
 | Deliverable | Location | Status |
 | --- | --- | --- |
 | Public web game (PWA, offline) | https://paulhironmoy.github.io/Vande/ | Live (GitHub Pages, `gh-pages` branch) |
-| Android release APK (testing) | `release/vande-1.0.0-1-release.apk` (6.6 MB) | Installed and launched on emulator |
+| Android release APK (testing) | `release/vande-1.0.0-1-release.apk` (6.7 MB) | Installed and launched on emulator, Simple first-run flow verified |
 | Android App Bundle (Play upload) | `release/vande-1.0.0-1-release.aab` (6.5 MB) | Signed with the upload key |
 | Checksums | `release/SHA256SUMS-1.0.0-1.txt` | — |
 | Release / rollback / Android guides | `docs/RELEASE.md`, `docs/ROLLBACK.md`, `docs/ANDROID.md` | — |
@@ -48,8 +48,8 @@ Keystore and passwords live only in `android/keystore/` and `android/keystore.pr
 | Check | Result |
 | --- | --- |
 | TypeScript (app + node configs) | clean |
-| Vitest unit tests | 115 passed (engine determinism, scoring, evidence, opponents, persistence, share card, balance) |
-| Playwright e2e (production build) | 38 passed: full campaign, opponents, challenge reproduction, daily, share, controls, persistence/refresh, offline, 7 viewports, keyboard, axe WCAG 2.2 AA, reduced motion, settings modes, redirects, navigation |
+| Vitest unit tests | 131 passed (engine determinism, scoring, evidence, opponents, persistence, share card, balance, simple vocabulary, map captions) |
+| Playwright e2e (production build) | 43 passed: full campaign in Simple and Full styles, opponents, challenge reproduction, daily, share, controls, wait-for-me auto-pause, persistence/refresh, offline, 7 viewports in both styles, keyboard, axe WCAG 2.2 AA, reduced motion, settings modes, redirects, navigation |
 | Cross-strategy balance | principled 76–86 (Resilient), suppressive 15–19, inaction 29–32, reckless 33–59 |
 | Lighthouse (mobile, slow 4G, 4× CPU) | Performance 96 (`/`) / 94 (`/home`), Accessibility 100, Best practices 100, CLS 0, TBT ≤ 10 ms |
 | Lighthouse (desktop) | 100 / 100 / 100 |
