@@ -24,6 +24,10 @@ test('Simple style is the default: kid copy, the clock waits for each decision, 
   await expect(page.getByTestId('style-simple')).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByTestId('style-full')).toHaveAttribute('aria-checked', 'false');
   await page.getByTestId('intro-begin').click();
+  await expect(page.getByTestId('daily-open-screen')).toBeVisible({ timeout: 15_000 });
+  await page.goto('/home');
+  await expect(page.getByTestId('home-screen')).toBeVisible({ timeout: 15_000 });
+  await page.getByTestId('home-start-campaign').click();
 
   const opponents = page.getByTestId('opponents-screen');
   await expect(opponents).toBeVisible();
@@ -144,6 +148,10 @@ test.describe('Simple style on a 390×844 phone', () => {
     await page.goto('/');
     await expect(page.getByTestId('intro-screen')).toBeVisible({ timeout: 15_000 });
     await page.getByTestId('intro-begin').click();
+    await expect(page.getByTestId('daily-open-screen')).toBeVisible({ timeout: 15_000 });
+    await page.goto('/home');
+    await expect(page.getByTestId('home-screen')).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId('home-start-campaign').click();
     await page.getByTestId('opponents-confirm').click();
     await page.getByTestId('briefing-start').click();
     await expect(page.getByTestId('play-screen')).toBeVisible({ timeout: 20_000 });

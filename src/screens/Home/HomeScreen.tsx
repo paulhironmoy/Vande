@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useApp } from '@/app/store';
-import { SIMPLE_OPPONENTS, SIMPLE_OUTCOMES, SIMPLE_UI, scenarioTitle, simpleCondition, useSimple } from '@/app/simple';
-import { OPPONENTS, OUTCOME_LABELS, describeCondition, getDailySpec, getScenario } from '@/engine';
+import { SIMPLE_OUTCOMES, SIMPLE_UI, scenarioTitle, simpleCondition, useSimple } from '@/app/simple';
+import { OUTCOME_LABELS, describeCondition, getScenario } from '@/engine';
 import { Logo } from '@/components/brand/Logo';
 import { Button, Card, CardButton, Chip, Dialog, Icon, IconButton, ScreenShell } from '@/components/ui';
+import { dailyStateFor } from '@/progression/dailyState';
+import { utcDailyId } from '@/progression/dailyTime';
 import { ConditionRing } from './ConditionRing';
 import s from './HomeScreen.module.css';
 
@@ -20,25 +22,23 @@ export function HomeScreen() {
   const plan = useApp((st) => st.plan);
   const republic = useApp((st) => st.republic);
   const bests = useApp((st) => st.bests);
-  const daily = useApp((st) => st.daily);
+  const dailyV2 = useApp((st) => st.dailyV2);
+  const passport = useApp((st) => st.passport);
   const beginCampaignSetup = useApp((st) => st.beginCampaignSetup);
   const continueCampaign = useApp((st) => st.continueCampaign);
   const abandonCampaign = useApp((st) => st.abandonCampaign);
+  const startDailyQuickPlay = useApp((st) => st.startDailyQuickPlay);
   const simple = useSimple();
   const [confirmNew, setConfirmNew] = useState(false);
 
-  const dailySpec = useMemo(() => getDailySpec(new Date()), []);
-  const dailyScenario = useMemo(() => {
-    try {
-      return getScenario(dailySpec.scenarioId);
-    } catch {
-      return undefined;
-    }
-  }, [dailySpec.scenarioId]);
-  const dailyDone = daily.find((d) => d.date === dailySpec.date);
+  const todayId = utcDailyId();
+  const dailyInProgress = Boolean(plan?.dailyDate === todayId && game);
+  const dailyState = dailyStateFor(todayId, dailyV2, dailyInProgress, simple);
   const condition = simpleCondition(describeCondition(republic), simple);
   // A campaign record exists only while a run is in progress (it is cleared when the run finishes or is abandoned).
-  const hasCampaign = Boolean(campaign && plan);
+  // A daily attempt in progress is handled by the daily button, not the campaign tile.
+  const hasCampaign = Boolean(campaign && plan && !plan.dailyDate);
+  const playToday = () => (dailyState.status === 'in-progress' ? continueCampaign() : startDailyQuickPlay());
 
   const continueCaption = (() => {
     if (!campaign || !plan) return '';
@@ -56,8 +56,6 @@ export function HomeScreen() {
     else beginCampaignSetup();
   };
 
-  const dailyTitle = simple ? `Today: ${scenarioTitle(dailyScenario, true) || dailySpec.title}` : dailySpec.title;
-  const dailyOpponents = dailySpec.opponents.map((o) => (simple ? SIMPLE_OPPONENTS[o].nickname : OPPONENTS[o].name)).join(' + ');
   const bestOutcome = bests.campaign ? (simple ? SIMPLE_OUTCOMES[bests.campaign.outcome].label : OUTCOME_LABELS[bests.campaign.outcome]) : '';
 
   return (
@@ -77,14 +75,11 @@ export function HomeScreen() {
         <IconButton icon="settings" label="Settings" onClick={() => navigate({ name: 'settings' })} data-testid="home-settings" />
       </div>
 
-      {simple && <h1 className={s.greeting}>Ready to help your city?</h1>}
-
       <Card className={s.hero} data-testid="home-condition" aria-label={simple ? 'How your city is doing' : 'Your Republic condition'}>
         <ConditionRing condition={republic} className={s.ring} />
         <div className={s.heroText}>
           <div className={s.eyebrow}>{simple ? 'Your city' : 'Your Republic'}</div>
           <div className={s.condition}>{condition.label}</div>
-          <p className={s.summary}>{condition.summary}</p>
           <div className={s.meta}>
             <Chip icon="history" tone="neutral">
               {simple
@@ -109,39 +104,59 @@ export function HomeScreen() {
       </Card>
 
       <div className={s.primary}>
+        <Button variant="primary" size="lg" block icon="play" onClick={playToday} data-testid="daily-play-today">
+          {dailyState.cta}
+        </Button>
+        <p className={s.primaryCaption} data-testid="daily-state-line">
+          {dailyState.line}
+        </p>
         {hasCampaign ? (
-          <>
-            <Button variant="primary" size="lg" block icon="play" onClick={continueCampaign} data-testid="home-continue">
-              {simple ? SIMPLE_UI.continue : 'Continue campaign'}
-            </Button>
-            <p className={s.primaryCaption}>{continueCaption}</p>
-            <Button variant="ghost" size="sm" onClick={startNew} data-testid="home-start-campaign">
-              {simple ? 'Start a new story instead' : 'Start a new campaign instead'}
-            </Button>
-          </>
+          <Button variant="secondary" size="md" block icon="play" onClick={continueCampaign} data-testid="home-continue">
+            {simple ? SIMPLE_UI.continue : 'Continue campaign'} · {continueCaption}
+          </Button>
         ) : (
-          <>
-            <Button variant="primary" size="lg" block icon="play" onClick={startNew} data-testid="home-start-campaign">
-              {simple ? SIMPLE_UI.startCampaign : 'Start the 10-minute campaign'}
-            </Button>
-            <p className={s.primaryCaption}>{simple ? 'Three chapters · pause any time' : 'Three chapters · choose 1–5 opponents · pause any time'}</p>
-          </>
+          <Button variant="secondary" size="md" block onClick={startNew} data-testid="home-start-campaign">
+            {simple ? SIMPLE_UI.startCampaign : 'Start the 10-minute campaign'}
+          </Button>
+        )}
+        {hasCampaign && (
+          <Button variant="ghost" size="sm" onClick={startNew} data-testid="home-start-campaign">
+            {simple ? 'Start a new story instead' : 'Start a new campaign instead'}
+          </Button>
         )}
       </div>
 
       <div className={s.grid}>
         <CardButton className={s.tile} onClick={() => navigate({ name: 'daily' })} data-testid="home-daily">
           <div className={s.tileHead}>
-            <span className={s.eyebrow}>{simple ? SIMPLE_UI.daily : "Today's Republic Crisis"}</span>
+            <span className={s.eyebrow}>{simple ? SIMPLE_UI.daily : "Today's Crisis"}</span>
             <Icon name="clock" size={18} />
           </div>
-          <div className={s.tileTitle}>{dailyTitle}</div>
-          <div className={s.tileText}>3 minutes · {dailyOpponents}</div>
+          <div className={s.tileTitle}>{dailyState.status === 'official' ? `${dailyState.record?.official?.score}` : dailyState.status === 'in-progress' ? 'In progress' : 'Not played yet'}</div>
+          <div className={s.tileText}>{simple ? '3 minutes · same for everyone today' : '3 minutes · the same crisis for everyone today'}</div>
           <div className={s.tileFoot}>
-            <span>{dailyDone ? (simple ? `Your score: ${dailyDone.score}` : `Your result: ${dailyDone.score}`) : 'Not played yet'}</span>
+            <span>{simple ? 'Details and past days' : 'Details and calendar'}</span>
             <Icon name="forward" size={18} />
           </div>
         </CardButton>
+
+        <CardButton className={s.tile} onClick={() => navigate({ name: 'calendar' })} data-testid="home-calendar">
+          <div className={s.tileHead}>
+            <span className={s.eyebrow}>{simple ? 'Your days' : 'Calendar'}</span>
+            <Icon name="history" size={18} />
+          </div>
+          <div className={s.tileTitle}>
+            {dailyV2.filter((d) => d.official).length === 1 ? '1 day' : `${dailyV2.filter((d) => d.official).length} days`} · {passport.earned.length === 1 ? '1 stamp' : `${passport.earned.length} stamps`}
+          </div>
+          <div className={s.tileText}>{simple ? 'Days played and stamps earned.' : 'Completion calendar and Civic Passport.'}</div>
+          <div className={s.tileFoot}>
+            <span>{simple ? 'Open your days' : 'Open calendar'}</span>
+            <Icon name="forward" size={18} />
+          </div>
+        </CardButton>
+        <Button variant="link" size="sm" onClick={() => navigate({ name: 'passport' })} data-testid="home-passport" icon="sparkle">
+          {simple ? 'Your stamps' : 'Civic Passport'}
+        </Button>
 
         <CardButton className={s.tile} onClick={() => navigate({ name: 'republic' })} data-testid="home-republic">
           <div className={s.tileHead}>
@@ -161,22 +176,10 @@ export function HomeScreen() {
             <span className={s.eyebrow}>{simple ? 'Best score' : 'Personal best'}</span>
             <Icon name="sparkle" size={18} />
           </div>
-          {bests.campaign ? (
-            <>
-              <div className={s.best}>
-                <span className="tabular">{bests.campaign.score}</span>
-                <span className="muted text-sm"> / 100</span>
-              </div>
-              <div className={s.tileText}>{bestOutcome}</div>
-            </>
-          ) : (
-            <>
-              <div className={s.tileTitle}>{simple ? 'No story finished yet' : 'No campaign yet'}</div>
-              <div className={s.tileText}>{simple ? 'Finish the story to get your first score.' : 'Finish the campaign to set your first Republic score.'}</div>
-            </>
-          )}
+          <div className={s.tileTitle}>{bests.campaign ? <span className="tabular">{bests.campaign.score}</span> : simple ? 'No story yet' : 'No campaign yet'}</div>
+          <div className={s.tileText}>{bests.campaign ? bestOutcome : simple ? 'Finish the story for a score.' : 'Finish the campaign for a score.'}</div>
           <div className={s.tileFoot}>
-            <span>{simple ? 'See earlier games' : 'Review past crises'}</span>
+            <span>{simple ? 'Earlier games' : 'History'}</span>
             <Icon name="forward" size={18} />
           </div>
         </CardButton>

@@ -4,7 +4,7 @@ test('the daily launcher is deterministic for the UTC day, shows reset timing an
   await page.clock.install({ time: new Date('2026-10-24T10:00:00Z') });
   await page.goto('/daily');
   await expect(page.getByTestId('daily-screen')).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByTestId('daily-date')).toContainText(/2026/);
+  await expect(page.getByTestId('daily-date')).toHaveAttribute('datetime', /^2026-/);
   const text1 = await page.getByTestId('daily-screen').innerText();
   expect(text1).not.toMatch(/Simulated range/);
   // Community numbers only come from real submissions; with the API disabled the slot says so.
