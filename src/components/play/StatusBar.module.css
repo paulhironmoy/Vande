@@ -67,9 +67,13 @@
   .sepPhase {
     display: none;
   }
-  .mood,
-  .sepMood {
+  .mood {
     display: inline;
+  }
+  /* With the mood word in the kicker there is no room for "Chapter N" too; the title keeps the context. */
+  .kicker:has(.mood) .chapter,
+  .kicker:has(.mood) .sepMood {
+    display: none;
   }
 }
 .title {
