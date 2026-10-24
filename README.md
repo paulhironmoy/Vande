@@ -33,6 +33,10 @@ evidence and covert manipulation, never people.
 Also included: a deterministic **daily challenge**, **friend challenges** that reproduce the identical game from a URL
 (no backend), locally generated **share cards**, and a **persistent Republic** that evolves across sessions.
 
+Two play styles share the same simulation. **Simple** (the default for new players) uses plain words an eight-year-old
+can read, bigger buttons, a clock that waits whenever something new needs an answer, and star ratings. **Full** keeps the
+complete strategist presentation with legal references and a real-time clock. Switch any time in Settings.
+
 ## Stack
 
 React 19 · TypeScript · Vite 8 · PixiJS 8 (animated city) · Zustand · IndexedDB (`idb`) · Workbox service worker ·
