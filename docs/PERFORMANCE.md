@@ -93,3 +93,11 @@ renders (briefing screen); `PlayScreen-*.js` 19 kB; every other screen 2–5 kB.
    `import()` it when the briefing mounts) so the first chapter opens with no network wait on 4G (~19 kB).
 5. **Precache trimming** (`vite.config.ts` glob, only if the 1.3 MB offline footprint matters): the 50 kB of
    non-Latin Manrope subsets could be excluded from the precache since the UI is English-only.
+
+## Update: Daily Quick Play content (2026-10-24)
+
+The 30-day daily pool ships eagerly in the entry bundle so that today's crisis is always playable offline after the first
+visit without a second fetch. Measured after the upgrade: initial transfer **430.6 kB gzip** (was 238.7 kB; budget 2048 kB),
+offline precache 1.43 MB. The remaining recommendation is to lazy-load day files (one ≈ 7 kB chunk per day, precached by
+Workbox) behind an async `loadDailyScenario(dailyId)`; the design is in `docs/CONTENT-DAILY.md`. Expected gain on slow
+4G: roughly −0.5 s LCP on first visit; no change for repeat visits (service worker cache).
