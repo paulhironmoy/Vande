@@ -16,7 +16,7 @@ mkdir -p "$OUT"
 "$ADB" start-server >/dev/null
 if ! "$ADB" devices | tail -n +2 | grep -qE "^(emulator-[0-9]+|[0-9A-Za-z._:-]+)[[:space:]]+(device|offline)"; then
   echo "▶ Booting emulator $AVD (headless)…"
-  nohup "$EMU" -avd "$AVD" -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot-save \
+  nohup "$EMU" -avd "$AVD" -no-window -no-audio -no-boot-anim -gpu "${EMU_GPU:-swiftshader_indirect}" -no-snapshot-save \
     > "$OUT/emulator.log" 2>&1 &
   echo $! > "$OUT/emulator.pid"
 fi
