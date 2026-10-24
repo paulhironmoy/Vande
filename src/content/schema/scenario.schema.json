@@ -4,110 +4,452 @@
   "title": "VANDE scenario",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "chapter", "title", "subtitle", "duration", "briefing", "startingScores", "districts", "roads", "evidence", "decisions", "rightsMoments", "events", "opponentPlays", "resolution"],
+  "required": [
+    "id",
+    "chapter",
+    "title",
+    "subtitle",
+    "duration",
+    "briefing",
+    "startingScores",
+    "districts",
+    "roads",
+    "evidence",
+    "decisions",
+    "rightsMoments",
+    "events",
+    "opponentPlays",
+    "resolution"
+  ],
   "properties": {
-    "id": { "enum": ["examination-crisis", "electoral-dispute", "information-storm"] },
-    "chapter": { "enum": [1, 2, 3] },
-    "title": { "$ref": "#/definitions/text" },
-    "subtitle": { "$ref": "#/definitions/text" },
-    "duration": { "type": "integer", "minimum": 60, "maximum": 600 },
+    "id": {
+      "enum": [
+        "examination-crisis",
+        "electoral-dispute",
+        "information-storm"
+      ]
+    },
+    "chapter": {
+      "enum": [
+        1,
+        2,
+        3
+      ]
+    },
+    "title": {
+      "$ref": "#/definitions/text"
+    },
+    "subtitle": {
+      "$ref": "#/definitions/text"
+    },
+    "duration": {
+      "type": "integer",
+      "minimum": 60,
+      "maximum": 600
+    },
     "briefing": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["grievance", "knownFacts", "unverifiedClaims", "responsibility", "objective", "lines"],
+      "required": [
+        "grievance",
+        "knownFacts",
+        "unverifiedClaims",
+        "responsibility",
+        "objective",
+        "lines"
+      ],
       "properties": {
-        "grievance": { "$ref": "#/definitions/text" },
-        "knownFacts": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/text" } },
-        "unverifiedClaims": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/text" } },
-        "responsibility": { "$ref": "#/definitions/text" },
-        "objective": { "$ref": "#/definitions/text" },
-        "lines": { "type": "array", "minItems": 2, "maxItems": 6, "items": { "$ref": "#/definitions/text" } }
+        "grievance": {
+          "$ref": "#/definitions/text"
+        },
+        "knownFacts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/text"
+          }
+        },
+        "unverifiedClaims": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/text"
+          }
+        },
+        "responsibility": {
+          "$ref": "#/definitions/text"
+        },
+        "objective": {
+          "$ref": "#/definitions/text"
+        },
+        "lines": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/definitions/text"
+          }
+        }
       }
     },
-    "startingScores": { "$ref": "#/definitions/scores" },
-    "districts": { "type": "array", "minItems": 3, "items": { "$ref": "#/definitions/district" } },
-    "roads": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/road" } },
-    "evidence": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/evidence" } },
-    "decisions": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/decision" } },
-    "rightsMoments": { "type": "array", "items": { "$ref": "#/definitions/rightsMoment" } },
-    "events": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/event" } },
-    "opponentPlays": { "type": "array", "items": { "$ref": "#/definitions/opponentPlay" } },
+    "startingScores": {
+      "$ref": "#/definitions/scores"
+    },
+    "districts": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "$ref": "#/definitions/district"
+      }
+    },
+    "roads": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/road"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/evidence"
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/decision"
+      }
+    },
+    "rightsMoments": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/rightsMoment"
+      }
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/event"
+      }
+    },
+    "opponentPlays": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/opponentPlay"
+      }
+    },
     "resolution": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["resolved", "unresolved", "rightsProtected", "rightsHarmed", "improvements", "closing"],
+      "required": [
+        "resolved",
+        "unresolved",
+        "rightsProtected",
+        "rightsHarmed",
+        "improvements",
+        "closing"
+      ],
       "properties": {
-        "resolved": { "$ref": "#/definitions/rules" },
-        "unresolved": { "$ref": "#/definitions/rules" },
-        "rightsProtected": { "$ref": "#/definitions/rules" },
-        "rightsHarmed": { "$ref": "#/definitions/rules" },
-        "improvements": { "$ref": "#/definitions/rules" },
+        "resolved": {
+          "$ref": "#/definitions/rules"
+        },
+        "unresolved": {
+          "$ref": "#/definitions/rules"
+        },
+        "rightsProtected": {
+          "$ref": "#/definitions/rules"
+        },
+        "rightsHarmed": {
+          "$ref": "#/definitions/rules"
+        },
+        "improvements": {
+          "$ref": "#/definitions/rules"
+        },
         "closing": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["good", "mixed", "poor"],
+          "required": [
+            "good",
+            "mixed",
+            "poor"
+          ],
           "properties": {
-            "good": { "$ref": "#/definitions/text" },
-            "mixed": { "$ref": "#/definitions/text" },
-            "poor": { "$ref": "#/definitions/text" }
+            "good": {
+              "$ref": "#/definitions/text"
+            },
+            "mixed": {
+              "$ref": "#/definitions/text"
+            },
+            "poor": {
+              "$ref": "#/definitions/text"
+            }
+          }
+        }
+      }
+    },
+    "simple": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subtitle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "briefing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "grievance",
+            "responsibility",
+            "objective"
+          ],
+          "properties": {
+            "grievance": {
+              "type": "string",
+              "minLength": 1
+            },
+            "knownFacts": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "unverifiedClaims": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "responsibility": {
+              "type": "string",
+              "minLength": 1
+            },
+            "objective": {
+              "type": "string",
+              "minLength": 1
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "closing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "good",
+            "mixed",
+            "poor"
+          ],
+          "properties": {
+            "good": {
+              "type": "string"
+            },
+            "mixed": {
+              "type": "string"
+            },
+            "poor": {
+              "type": "string"
+            }
           }
         }
       }
     }
   },
   "definitions": {
-    "text": { "type": "string", "minLength": 1 },
-    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
-    "dimension": { "enum": ["freedom", "grievance", "safety", "evidence", "trust", "economy"] },
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "dimension": {
+      "enum": [
+        "freedom",
+        "grievance",
+        "safety",
+        "evidence",
+        "trust",
+        "economy"
+      ]
+    },
     "scores": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["freedom", "grievance", "safety", "evidence", "trust", "economy"],
+      "required": [
+        "freedom",
+        "grievance",
+        "safety",
+        "evidence",
+        "trust",
+        "economy"
+      ],
       "properties": {
-        "freedom": { "type": "number", "minimum": 0, "maximum": 100 },
-        "grievance": { "type": "number", "minimum": 0, "maximum": 100 },
-        "safety": { "type": "number", "minimum": 0, "maximum": 100 },
-        "evidence": { "type": "number", "minimum": 0, "maximum": 100 },
-        "trust": { "type": "number", "minimum": 0, "maximum": 100 },
-        "economy": { "type": "number", "minimum": 0, "maximum": 100 }
+        "freedom": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "grievance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "safety": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "evidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "trust": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "economy": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
       }
     },
     "scoreDelta": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "freedom": { "type": "number" },
-        "grievance": { "type": "number" },
-        "safety": { "type": "number" },
-        "evidence": { "type": "number" },
-        "trust": { "type": "number" },
-        "economy": { "type": "number" }
+        "freedom": {
+          "type": "number"
+        },
+        "grievance": {
+          "type": "number"
+        },
+        "safety": {
+          "type": "number"
+        },
+        "evidence": {
+          "type": "number"
+        },
+        "trust": {
+          "type": "number"
+        },
+        "economy": {
+          "type": "number"
+        }
       }
     },
-    "opponentId": { "enum": ["exploiter", "provocateur", "disinfo", "sabotage", "overreaction"] },
-    "difficulty": { "enum": ["measured", "standard", "severe"] },
-    "confidenceState": { "enum": ["verified", "corroborated", "unverified", "manipulated", "unknown"] },
+    "opponentId": {
+      "enum": [
+        "exploiter",
+        "provocateur",
+        "disinfo",
+        "sabotage",
+        "overreaction"
+      ]
+    },
+    "difficulty": {
+      "enum": [
+        "measured",
+        "standard",
+        "severe"
+      ]
+    },
+    "confidenceState": {
+      "enum": [
+        "verified",
+        "corroborated",
+        "unverified",
+        "manipulated",
+        "unknown"
+      ]
+    },
     "actionTag": {
-      "enum": ["proportionate", "disproportionate", "suppressive", "force", "detention", "accusation", "transparent", "investigative", "dialogue", "service", "communication", "legal-process", "protect-press", "protect-assembly", "wait", "censorship", "relief"]
+      "enum": [
+        "proportionate",
+        "disproportionate",
+        "suppressive",
+        "force",
+        "detention",
+        "accusation",
+        "transparent",
+        "investigative",
+        "dialogue",
+        "service",
+        "communication",
+        "legal-process",
+        "protect-press",
+        "protect-assembly",
+        "wait",
+        "censorship",
+        "relief"
+      ]
     },
     "condition": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "flag": { "$ref": "#/definitions/text" },
-        "notFlag": { "$ref": "#/definitions/text" },
-        "anyFlag": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/text" } },
-        "minScore": { "$ref": "#/definitions/scoreDelta" },
-        "maxScore": { "$ref": "#/definitions/scoreDelta" },
-        "opponent": { "$ref": "#/definitions/opponentId" },
-        "notOpponent": { "$ref": "#/definitions/opponentId" },
+        "flag": {
+          "$ref": "#/definitions/text"
+        },
+        "notFlag": {
+          "$ref": "#/definitions/text"
+        },
+        "anyFlag": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/text"
+          }
+        },
+        "minScore": {
+          "$ref": "#/definitions/scoreDelta"
+        },
+        "maxScore": {
+          "$ref": "#/definitions/scoreDelta"
+        },
+        "opponent": {
+          "$ref": "#/definitions/opponentId"
+        },
+        "notOpponent": {
+          "$ref": "#/definitions/opponentId"
+        },
         "evidence": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["id", "states"],
+          "required": [
+            "id",
+            "states"
+          ],
           "properties": {
-            "id": { "$ref": "#/definitions/id" },
-            "states": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/confidenceState" } }
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "states": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/confidenceState"
+              }
+            }
           }
         }
       }
@@ -115,40 +457,153 @@
     "mapEffect": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind"],
+      "required": [
+        "kind"
+      ],
       "properties": {
-        "kind": { "enum": ["crowd", "mood", "road", "institution", "service", "signal", "incident", "trust", "action"] },
-        "district": { "$ref": "#/definitions/id" },
-        "road": { "$ref": "#/definitions/id" },
-        "from": { "$ref": "#/definitions/id" },
-        "to": { "$ref": "#/definitions/id" },
-        "magnitude": { "type": "number" },
-        "mood": { "enum": ["calm", "tense", "volatile", "hopeful"] },
-        "status": { "enum": ["open", "congested", "closed"] },
-        "signal": { "enum": ["rumor", "manipulated", "verified", "official"] },
-        "incident": { "enum": ["vandalism", "clash", "fire", "outage", "intimidation", null] },
-        "action": { "enum": ["deploy", "dialogue", "announce", "investigate", "restore", "protect", "relief", "legal"] }
+        "kind": {
+          "enum": [
+            "crowd",
+            "mood",
+            "road",
+            "institution",
+            "service",
+            "signal",
+            "incident",
+            "trust",
+            "action"
+          ]
+        },
+        "district": {
+          "$ref": "#/definitions/id"
+        },
+        "road": {
+          "$ref": "#/definitions/id"
+        },
+        "from": {
+          "$ref": "#/definitions/id"
+        },
+        "to": {
+          "$ref": "#/definitions/id"
+        },
+        "magnitude": {
+          "type": "number"
+        },
+        "mood": {
+          "enum": [
+            "calm",
+            "tense",
+            "volatile",
+            "hopeful"
+          ]
+        },
+        "status": {
+          "enum": [
+            "open",
+            "congested",
+            "closed"
+          ]
+        },
+        "signal": {
+          "enum": [
+            "rumor",
+            "manipulated",
+            "verified",
+            "official"
+          ]
+        },
+        "incident": {
+          "enum": [
+            "vandalism",
+            "clash",
+            "fire",
+            "outage",
+            "intimidation",
+            null
+          ]
+        },
+        "action": {
+          "enum": [
+            "deploy",
+            "dialogue",
+            "announce",
+            "investigate",
+            "restore",
+            "protect",
+            "relief",
+            "legal"
+          ]
+        }
       }
     },
     "district": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name", "kind", "x", "y", "baseline"],
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "x",
+        "y",
+        "baseline"
+      ],
       "properties": {
-        "id": { "$ref": "#/definitions/id" },
-        "name": { "$ref": "#/definitions/text" },
-        "kind": { "enum": ["campus", "civic", "market", "transit", "media", "records", "residential", "industrial", "hospital"] },
-        "x": { "type": "number", "minimum": 0, "maximum": 1 },
-        "y": { "type": "number", "minimum": 0, "maximum": 1 },
-        "institution": { "$ref": "#/definitions/text" },
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "name": {
+          "$ref": "#/definitions/text"
+        },
+        "kind": {
+          "enum": [
+            "campus",
+            "civic",
+            "market",
+            "transit",
+            "media",
+            "records",
+            "residential",
+            "industrial",
+            "hospital"
+          ]
+        },
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "institution": {
+          "$ref": "#/definitions/text"
+        },
         "baseline": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["crowd", "trust", "services"],
+          "required": [
+            "crowd",
+            "trust",
+            "services"
+          ],
           "properties": {
-            "crowd": { "type": "number", "minimum": 0, "maximum": 1 },
-            "trust": { "type": "number", "minimum": 0, "maximum": 1 },
-            "services": { "type": "number", "minimum": 0, "maximum": 1 }
+            "crowd": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "trust": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "services": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
           }
         }
       }
@@ -156,122 +611,451 @@
     "road": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "from", "to"],
+      "required": [
+        "id",
+        "from",
+        "to"
+      ],
       "properties": {
-        "id": { "$ref": "#/definitions/id" },
-        "from": { "$ref": "#/definitions/id" },
-        "to": { "$ref": "#/definitions/id" }
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "from": {
+          "$ref": "#/definitions/id"
+        },
+        "to": {
+          "$ref": "#/definitions/id"
+        }
       }
     },
     "evidence": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "title", "source", "sourceType", "time", "claim", "initialState", "truth", "resolvedState", "metadata", "visual", "resolutionNote"],
+      "required": [
+        "id",
+        "title",
+        "source",
+        "sourceType",
+        "time",
+        "claim",
+        "initialState",
+        "truth",
+        "resolvedState",
+        "metadata",
+        "visual",
+        "resolutionNote"
+      ],
       "properties": {
-        "id": { "$ref": "#/definitions/id" },
-        "title": { "$ref": "#/definitions/text" },
-        "source": { "$ref": "#/definitions/text" },
-        "sourceType": { "enum": ["official", "institution", "press", "organizer", "citizen", "anonymous", "leak", "business", "emergency"] },
-        "time": { "$ref": "#/definitions/text" },
-        "claim": { "type": "string", "minLength": 1, "maxLength": 260 },
-        "initialState": { "$ref": "#/definitions/confidenceState" },
-        "truth": { "enum": ["true", "false", "misleading", "unknowable"] },
-        "resolvedState": { "$ref": "#/definitions/confidenceState" },
-        "availableAt": { "type": "integer", "minimum": 0 },
-        "injectedBy": { "$ref": "#/definitions/opponentId" },
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "title": {
+          "$ref": "#/definitions/text"
+        },
+        "source": {
+          "$ref": "#/definitions/text"
+        },
+        "sourceType": {
+          "enum": [
+            "official",
+            "institution",
+            "press",
+            "organizer",
+            "citizen",
+            "anonymous",
+            "leak",
+            "business",
+            "emergency"
+          ]
+        },
+        "time": {
+          "$ref": "#/definitions/text"
+        },
+        "claim": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 260
+        },
+        "initialState": {
+          "$ref": "#/definitions/confidenceState"
+        },
+        "truth": {
+          "enum": [
+            "true",
+            "false",
+            "misleading",
+            "unknowable"
+          ]
+        },
+        "resolvedState": {
+          "$ref": "#/definitions/confidenceState"
+        },
+        "availableAt": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "injectedBy": {
+          "$ref": "#/definitions/opponentId"
+        },
         "metadata": {
           "type": "array",
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["label", "value"],
+            "required": [
+              "label",
+              "value"
+            ],
             "properties": {
-              "label": { "$ref": "#/definitions/text" },
-              "value": { "type": "string" },
-              "anomaly": { "type": "boolean" }
+              "label": {
+                "$ref": "#/definitions/text"
+              },
+              "value": {
+                "type": "string"
+              },
+              "anomaly": {
+                "type": "boolean"
+              }
             }
           }
         },
-        "corroboratedBy": { "type": "array", "items": { "$ref": "#/definitions/id" } },
-        "contradictedBy": { "type": "array", "items": { "$ref": "#/definitions/id" } },
+        "corroboratedBy": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        },
+        "contradictedBy": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        },
         "visual": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["type", "caption"],
+          "required": [
+            "type",
+            "caption"
+          ],
           "properties": {
-            "type": { "enum": ["photo", "document", "recording", "message", "chart", "map", "ledger", "video"] },
-            "caption": { "$ref": "#/definitions/text" }
+            "type": {
+              "enum": [
+                "photo",
+                "document",
+                "recording",
+                "message",
+                "chart",
+                "map",
+                "ledger",
+                "video"
+              ]
+            },
+            "caption": {
+              "$ref": "#/definitions/text"
+            }
           }
         },
-        "district": { "$ref": "#/definitions/id" },
-        "setsFlagsOnResolve": { "type": "array", "items": { "$ref": "#/definitions/text" } },
-        "perishable": { "type": "boolean" },
-        "resolutionNote": { "$ref": "#/definitions/text" }
+        "district": {
+          "$ref": "#/definitions/id"
+        },
+        "setsFlagsOnResolve": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/text"
+          }
+        },
+        "perishable": {
+          "type": "boolean"
+        },
+        "resolutionNote": {
+          "$ref": "#/definitions/text"
+        },
+        "simple": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "claim"
+          ],
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "claim": {
+              "type": "string",
+              "minLength": 1
+            },
+            "resolutionNote": {
+              "type": "string",
+              "minLength": 1
+            },
+            "caption": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
       }
     },
     "delayedEffect": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["afterTicks", "effects", "message"],
+      "required": [
+        "afterTicks",
+        "effects",
+        "message"
+      ],
       "properties": {
-        "afterTicks": { "type": "integer", "minimum": 1 },
-        "effects": { "$ref": "#/definitions/scoreDelta" },
-        "message": { "$ref": "#/definitions/text" },
-        "condition": { "$ref": "#/definitions/condition" },
-        "mapEffects": { "type": "array", "items": { "$ref": "#/definitions/mapEffect" } },
-        "setsFlags": { "type": "array", "items": { "$ref": "#/definitions/text" } }
+        "afterTicks": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "effects": {
+          "$ref": "#/definitions/scoreDelta"
+        },
+        "message": {
+          "$ref": "#/definitions/text"
+        },
+        "condition": {
+          "$ref": "#/definitions/condition"
+        },
+        "mapEffects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/mapEffect"
+          }
+        },
+        "setsFlags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/text"
+          }
+        }
       }
     },
     "decisionOption": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "title", "preview", "authority", "tags", "effects", "consequence"],
+      "required": [
+        "id",
+        "title",
+        "preview",
+        "authority",
+        "tags",
+        "effects",
+        "consequence"
+      ],
       "properties": {
-        "id": { "$ref": "#/definitions/id" },
-        "title": { "type": "string", "minLength": 1, "maxLength": 80 },
-        "preview": { "type": "string", "minLength": 1, "maxLength": 200 },
-        "authority": { "$ref": "#/definitions/text" },
-        "tags": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/actionTag" } },
-        "requiresEvidence": { "type": "array", "items": { "$ref": "#/definitions/id" } },
-        "effects": { "$ref": "#/definitions/scoreDelta" },
-        "falseAccusationEffects": { "$ref": "#/definitions/scoreDelta" },
-        "proportionateIf": { "$ref": "#/definitions/condition" },
-        "disproportionateEffects": { "$ref": "#/definitions/scoreDelta" },
-        "delayed": { "type": "array", "items": { "$ref": "#/definitions/delayedEffect" } },
-        "mapEffects": { "type": "array", "items": { "$ref": "#/definitions/mapEffect" } },
-        "consequence": { "type": "string", "minLength": 1, "maxLength": 260 },
-        "undoTicks": { "type": "integer", "minimum": 1, "maximum": 30 },
-        "unlocksEvidence": { "type": "array", "items": { "$ref": "#/definitions/id" } },
-        "setsFlags": { "type": "array", "items": { "$ref": "#/definitions/text" } },
-        "clearsFlags": { "type": "array", "items": { "$ref": "#/definitions/text" } }
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "preview": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "authority": {
+          "$ref": "#/definitions/text"
+        },
+        "tags": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/actionTag"
+          }
+        },
+        "requiresEvidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        },
+        "effects": {
+          "$ref": "#/definitions/scoreDelta"
+        },
+        "falseAccusationEffects": {
+          "$ref": "#/definitions/scoreDelta"
+        },
+        "proportionateIf": {
+          "$ref": "#/definitions/condition"
+        },
+        "disproportionateEffects": {
+          "$ref": "#/definitions/scoreDelta"
+        },
+        "delayed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/delayedEffect"
+          }
+        },
+        "mapEffects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/mapEffect"
+          }
+        },
+        "consequence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 260
+        },
+        "undoTicks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 30
+        },
+        "unlocksEvidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        },
+        "setsFlags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/text"
+          }
+        },
+        "clearsFlags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/text"
+          }
+        }
       }
     },
     "decision": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "title", "situation", "expiresAfter", "defaultOption", "urgency", "options"],
+      "required": [
+        "id",
+        "title",
+        "situation",
+        "expiresAfter",
+        "defaultOption",
+        "urgency",
+        "options"
+      ],
       "properties": {
-        "id": { "$ref": "#/definitions/id" },
-        "title": { "$ref": "#/definitions/text" },
-        "situation": { "$ref": "#/definitions/text" },
-        "district": { "$ref": "#/definitions/id" },
-        "triggerAt": { "type": "integer", "minimum": 0 },
-        "triggerFlag": { "$ref": "#/definitions/text" },
-        "condition": { "$ref": "#/definitions/condition" },
-        "expiresAfter": { "type": "integer", "minimum": 5, "maximum": 120 },
-        "defaultOption": { "$ref": "#/definitions/id" },
-        "urgency": { "enum": ["low", "medium", "high"] },
-        "options": { "type": "array", "minItems": 2, "maxItems": 4, "items": { "$ref": "#/definitions/decisionOption" } },
-        "rightsMomentId": { "$ref": "#/definitions/id" }
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "title": {
+          "$ref": "#/definitions/text"
+        },
+        "situation": {
+          "$ref": "#/definitions/text"
+        },
+        "district": {
+          "$ref": "#/definitions/id"
+        },
+        "triggerAt": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "triggerFlag": {
+          "$ref": "#/definitions/text"
+        },
+        "condition": {
+          "$ref": "#/definitions/condition"
+        },
+        "expiresAfter": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 120
+        },
+        "defaultOption": {
+          "$ref": "#/definitions/id"
+        },
+        "urgency": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/definitions/decisionOption"
+          }
+        },
+        "rightsMomentId": {
+          "$ref": "#/definitions/id"
+        },
+        "simple": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "situation",
+            "options"
+          ],
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "situation": {
+              "type": "string",
+              "minLength": 1
+            },
+            "options": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "title",
+                  "preview"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "preview": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "consequence": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "rightsMoment": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "question", "options", "principle", "why", "contentDate"],
+      "required": [
+        "id",
+        "question",
+        "options",
+        "principle",
+        "why",
+        "contentDate"
+      ],
       "properties": {
-        "id": { "$ref": "#/definitions/id" },
-        "question": { "$ref": "#/definitions/text" },
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "question": {
+          "$ref": "#/definitions/text"
+        },
         "options": {
           "type": "array",
           "minItems": 2,
@@ -279,61 +1063,217 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["id", "text", "correct", "feedback"],
+            "required": [
+              "id",
+              "text",
+              "correct",
+              "feedback"
+            ],
             "properties": {
-              "id": { "$ref": "#/definitions/id" },
-              "text": { "$ref": "#/definitions/text" },
-              "correct": { "type": "boolean" },
-              "feedback": { "$ref": "#/definitions/text" }
+              "id": {
+                "$ref": "#/definitions/id"
+              },
+              "text": {
+                "$ref": "#/definitions/text"
+              },
+              "correct": {
+                "type": "boolean"
+              },
+              "feedback": {
+                "$ref": "#/definitions/text"
+              }
             }
           }
         },
-        "principle": { "$ref": "#/definitions/text" },
-        "why": { "$ref": "#/definitions/text" },
+        "principle": {
+          "$ref": "#/definitions/text"
+        },
+        "why": {
+          "$ref": "#/definitions/text"
+        },
         "source": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["label", "url"],
+          "required": [
+            "label",
+            "url"
+          ],
           "properties": {
-            "label": { "$ref": "#/definitions/text" },
-            "url": { "type": "string", "pattern": "^https://" }
+            "label": {
+              "$ref": "#/definitions/text"
+            },
+            "url": {
+              "type": "string",
+              "pattern": "^https://"
+            }
           }
         },
-        "contentDate": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
+        "contentDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "simple": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "question",
+            "options",
+            "principle",
+            "why"
+          ],
+          "properties": {
+            "question": {
+              "type": "string",
+              "minLength": 1
+            },
+            "options": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "feedback": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "principle": {
+              "type": "string",
+              "minLength": 1
+            },
+            "why": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
       }
     },
     "event": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "at", "kind", "message"],
+      "required": [
+        "id",
+        "at",
+        "kind",
+        "message"
+      ],
       "properties": {
-        "id": { "$ref": "#/definitions/id" },
-        "at": { "type": "integer", "minimum": -1 },
-        "kind": { "enum": ["crowd", "rumor", "service", "road", "institution", "news", "incident", "relief"] },
-        "message": { "type": "string", "minLength": 1, "maxLength": 240 },
-        "condition": { "$ref": "#/definitions/condition" },
-        "effects": { "$ref": "#/definitions/scoreDelta" },
-        "mapEffects": { "type": "array", "items": { "$ref": "#/definitions/mapEffect" } },
-        "setsFlags": { "type": "array", "items": { "$ref": "#/definitions/text" } },
-        "clearsFlags": { "type": "array", "items": { "$ref": "#/definitions/text" } }
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "at": {
+          "type": "integer",
+          "minimum": -1
+        },
+        "kind": {
+          "enum": [
+            "crowd",
+            "rumor",
+            "service",
+            "road",
+            "institution",
+            "news",
+            "incident",
+            "relief"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "condition": {
+          "$ref": "#/definitions/condition"
+        },
+        "effects": {
+          "$ref": "#/definitions/scoreDelta"
+        },
+        "mapEffects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/mapEffect"
+          }
+        },
+        "setsFlags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/text"
+          }
+        },
+        "clearsFlags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/text"
+          }
+        },
+        "simple": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "opponentPlay": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "opponent", "kind", "target", "earliest", "latest"],
+      "required": [
+        "id",
+        "opponent",
+        "kind",
+        "target",
+        "earliest",
+        "latest"
+      ],
       "properties": {
-        "id": { "$ref": "#/definitions/id" },
-        "opponent": { "$ref": "#/definitions/opponentId" },
-        "kind": { "enum": ["inject-evidence", "event", "decision", "destroy-evidence"] },
-        "target": { "$ref": "#/definitions/id" },
-        "earliest": { "type": "integer", "minimum": 0 },
-        "latest": { "type": "integer", "minimum": 0 },
-        "weight": { "type": "number", "exclusiveMinimum": 0 },
-        "respondsTo": { "type": "array", "items": { "$ref": "#/definitions/actionTag" } },
-        "minDifficulty": { "$ref": "#/definitions/difficulty" },
-        "condition": { "$ref": "#/definitions/condition" },
-        "message": { "type": "string", "minLength": 1, "maxLength": 240 }
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "opponent": {
+          "$ref": "#/definitions/opponentId"
+        },
+        "kind": {
+          "enum": [
+            "inject-evidence",
+            "event",
+            "decision",
+            "destroy-evidence"
+          ]
+        },
+        "target": {
+          "$ref": "#/definitions/id"
+        },
+        "earliest": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "latest": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "weight": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "respondsTo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/actionTag"
+          }
+        },
+        "minDifficulty": {
+          "$ref": "#/definitions/difficulty"
+        },
+        "condition": {
+          "$ref": "#/definitions/condition"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        }
       }
     },
     "rules": {
@@ -342,10 +1282,21 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["condition", "text"],
+        "required": [
+          "condition",
+          "text"
+        ],
         "properties": {
-          "condition": { "$ref": "#/definitions/condition" },
-          "text": { "$ref": "#/definitions/text" }
+          "condition": {
+            "$ref": "#/definitions/condition"
+          },
+          "text": {
+            "$ref": "#/definitions/text"
+          },
+          "simple": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     }

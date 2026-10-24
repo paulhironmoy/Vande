@@ -52,6 +52,56 @@ export interface OpponentMeta {
   exploits: ActionTag[];
 }
 
+
+// ---------------------------------------------------------------------------
+// Simple-language layer (optional, used by the "Simple" play style for young or new players)
+// ---------------------------------------------------------------------------
+
+/** Plain-language versions of a decision option. Short sentences, common words, no jargon. */
+export interface SimpleOption {
+  title: string;
+  preview: string;
+  consequence?: string;
+}
+
+export interface SimpleDecision {
+  title: string;
+  situation: string;
+  /** Keyed by option id. */
+  options: Record<string, SimpleOption>;
+}
+
+export interface SimpleEvidence {
+  title: string;
+  claim: string;
+  resolutionNote?: string;
+  caption?: string;
+}
+
+export interface SimpleRightsMoment {
+  question: string;
+  /** Keyed by option id. */
+  options: Record<string, string>;
+  /** Keyed by option id. */
+  feedback?: Record<string, string>;
+  principle: string;
+  why: string;
+}
+
+export interface SimpleScenario {
+  title?: string;
+  subtitle?: string;
+  briefing?: {
+    grievance: string;
+    knownFacts?: string[];
+    unverifiedClaims?: string[];
+    responsibility: string;
+    objective: string;
+    lines?: string[];
+  };
+  closing?: { good: string; mixed: string; poor: string };
+}
+
 // ---------------------------------------------------------------------------
 // Evidence
 // ---------------------------------------------------------------------------
@@ -102,6 +152,8 @@ export interface ScenarioEvidence {
   perishable?: boolean;
   /** Short plain-language note shown once resolved. */
   resolutionNote: string;
+  /** Simple-language layer. */
+  simple?: SimpleEvidence;
 }
 
 export interface EvidenceState {
@@ -246,6 +298,8 @@ export interface ScenarioDecision {
   options: DecisionOption[];
   /** Optional in-flow rights moment shown after this decision resolves. */
   rightsMomentId?: string;
+  /** Simple-language layer. */
+  simple?: SimpleDecision;
 }
 
 export interface DecisionState {
@@ -288,6 +342,8 @@ export interface RightsMoment {
   source?: { label: string; url: string };
   /** ISO date of the content review. */
   contentDate: string;
+  /** Simple-language layer. */
+  simple?: SimpleRightsMoment;
 }
 
 export interface RightsMomentState {
@@ -310,6 +366,8 @@ export interface ScenarioEvent {
   kind: EventKind;
   /** Feed line shown to the player (max ~120 chars). */
   message: string;
+  /** Simple-language feed line. */
+  simple?: string;
   condition?: Condition;
   effects?: ScoreDelta;
   mapEffects?: MapEffect[];
@@ -370,6 +428,8 @@ export interface ScenarioRoad {
 export interface ResolutionRule {
   condition: Condition;
   text: string;
+  /** Simple-language version of `text`. */
+  simple?: string;
 }
 
 export interface Scenario {
@@ -406,6 +466,8 @@ export interface Scenario {
     /** Closing line variants by outcome band. */
     closing: { good: string; mixed: string; poor: string };
   };
+  /** Simple-language layer for titles, briefing and closing lines. */
+  simple?: SimpleScenario;
 }
 
 // ---------------------------------------------------------------------------
@@ -755,6 +817,8 @@ export interface DailySpec {
 
 export type TimerPace = 'standard' | 'relaxed' | 'extended';
 export type TextScale = 1 | 1.25 | 1.5 | 2;
+/** 'simple' = plain words, bigger controls, the clock waits for you; 'full' = the complete strategist presentation. */
+export type PlayStyle = 'simple' | 'full';
 
 export interface Settings {
   reducedMotion: 'system' | 'on' | 'off';
@@ -767,6 +831,9 @@ export interface Settings {
   /** Show numeric values on the Pulse without hover. */
   alwaysShowValues: boolean;
   colourBlindSafe: boolean;
+  playStyle: PlayStyle;
+  /** Pause the clock whenever a new decision or rights moment appears, until the player answers. */
+  autoPauseOnDecision: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -779,6 +846,8 @@ export const DEFAULT_SETTINGS: Settings = {
   timerPace: 'standard',
   alwaysShowValues: false,
   colourBlindSafe: false,
+  playStyle: 'simple',
+  autoPauseOnDecision: true,
 };
 
 /** Long-term Republic condition, updated after every completed campaign or chapter. 0..100 each. */

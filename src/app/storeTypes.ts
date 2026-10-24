@@ -95,6 +95,8 @@ export interface UiSlice {
   reducedMotion: boolean;
   isNative: boolean;
   online: boolean;
+  /** True while the clock is paused automatically for a new decision (Simple play style). */
+  autoPaused: boolean;
 }
 
 export interface DataSlice {
@@ -138,6 +140,8 @@ export interface Actions {
   setUpdateAvailable(v: boolean): void;
   // data
   updateSettings(patch: Partial<Settings>): void;
+  /** Switches play style and applies its defaults (pace, auto-pause). */
+  setPlayStyle(style: Settings['playStyle']): void;
   resetRepublic(): Promise<void>;
   exportData(): Promise<string>; // JSON string of all local data
   deleteAllData(): Promise<void>;

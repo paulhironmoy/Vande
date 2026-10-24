@@ -308,6 +308,7 @@ type DataFields = Pick<
   | 'reducedMotion'
   | 'isNative'
   | 'online'
+  | 'autoPaused'
   | 'settings'
   | 'republic'
   | 'bests'
@@ -339,6 +340,7 @@ function initialFields(): DataFields {
     reducedMotion: false,
     isNative: false,
     online: typeof navigator === 'undefined' ? true : navigator.onLine !== false,
+    autoPaused: false,
     settings: { ...DEFAULT_SETTINGS },
     republic: defaultRepublic(),
     bests: defaultBests(),
@@ -518,6 +520,16 @@ export const useApp = create<State>()((set, get) => ({
     if (next === game) return;
     set({ game: next, ...views(next, scenario, s.focusDistrict) });
     cueFor(action, game, next);
+    if (action.type === 'resume' || action.type === 'pause') set({ autoPaused: action.type === 'pause' ? s.autoPaused : false });
+    // An automatic pause ends as soon as the player has answered what triggered it.
+    if (s.autoPaused && (action.type === 'decide' || action.type === 'rights' || action.type === 'undo') && next.status === 'paused') {
+      const stillWaiting = next.pendingRightsIds.length > 0;
+      if (!stillWaiting) {
+        set({ autoPaused: false });
+        get().dispatch({ type: 'resume', tick: next.tick });
+        return;
+      }
+    }
     if (action.type === 'start' || action.type === 'decide' || action.type === 'undo' || action.type === 'rights' || action.type === 'pause' || action.type === 'resume')
       void persistNow();
     else persistSoon();
@@ -533,7 +545,16 @@ export const useApp = create<State>()((set, get) => ({
     if (next.status === 'ended') {
       playCue('chapterEnd');
       void persistNow();
-    } else persistSoon();
+      return;
+    }
+    // Simple play style: the clock waits whenever something new needs an answer.
+    const grew = next.pendingDecisionIds.length > game.pendingDecisionIds.length || next.pendingRightsIds.length > game.pendingRightsIds.length;
+    if (grew && s.settings.autoPauseOnDecision && next.status === 'running') {
+      set({ autoPaused: true });
+      get().dispatch({ type: 'pause', tick: next.tick });
+      return;
+    }
+    persistSoon();
   },
 
   pauseGame() {
@@ -721,6 +742,11 @@ export const useApp = create<State>()((set, get) => ({
   },
 
   // --- data -------------------------------------------------------------------
+  setPlayStyle(style) {
+    const simple = style === 'simple';
+    get().updateSettings({ playStyle: style, autoPauseOnDecision: simple, timerPace: simple ? 'relaxed' : 'standard' });
+  },
+
   updateSettings(patch) {
     const settings: Settings = { ...get().settings, ...patch };
     set({ settings, reducedMotion: resolveReducedMotion(settings) });

@@ -197,3 +197,13 @@
   --ev-verified: #26c6da;
   --ev-corroborated: #3b82f6;
 }
+
+/* Simple play style: roomier controls and softer corners for young or new players. */
+:root[data-style='simple'] {
+  --tap: 52px;
+  --r-md: 18px;
+  --r-lg: 24px;
+  --r-xl: 30px;
+  --text-sm: 0.9375rem;
+  --leading-normal: 1.55;
+}

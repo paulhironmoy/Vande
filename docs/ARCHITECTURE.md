@@ -240,3 +240,22 @@ host). `?screen=daily` opens the daily screen (PWA shortcut). `BASE_PATH` (e.g. 
 export function Logo(props: { size?: number; animated?: boolean; variant?: 'dark' | 'light' | 'mono'; title?: string; className?: string }): JSX.Element;
 export function Wordmark(props: { compact?: boolean; className?: string }): JSX.Element; // "VANDE" / "VANDE//REPUBLIC"
 ```
+
+## 11. Simple play style (plain-language layer)
+
+`Settings.playStyle` is `'simple'` (default for new players) or `'full'`. The simulation, seeds and challenge codes are
+identical in both; only presentation and pacing change.
+
+* Vocabulary for the UI lives in `src/app/simple.ts` (`useSimple()`, `pick()`, `SIMPLE_DIMENSIONS`, `SIMPLE_STATES`,
+  `SIMPLE_VERBS`, `SIMPLE_OPPONENTS`, `SIMPLE_OUTCOMES`, `cityMood()`, `starsFor()`, `SIMPLE_UI`). Target reading level:
+  a confident eight-year-old — sentences of at most 12 words, common words, no legal or policy jargon.
+* Scenario copy carries an optional `simple` layer (see `SimpleDecision`, `SimpleEvidence`, `SimpleRightsMoment`,
+  `SimpleScenario` in `src/engine/types.ts`, plus `simple` strings on events and resolution rules). The validator requires
+  every option id to be covered when a decision or rights moment has a `simple` block. Screens always fall back to the
+  full text when a `simple` field is missing.
+* `Settings.autoPauseOnDecision` ("Wait for me", default on): `tickGame` pauses the clock whenever a new decision or
+  rights moment appears and sets `autoPaused`; the store resumes automatically when the player answers. Switching play
+  style through `setPlayStyle()` sets auto-pause (simple → on) and timer pace (simple → relaxed).
+* `html[data-style="simple"]` enlarges tap targets, radii and the base font (settingsEffects adds a 6.25 % boost that
+  composes with the text-size setting). Test ids never change between styles; a few exact strings are kept in both
+  ("Educational content—not legal advice", "Simulated range — not real players", "I held the Republic together. Can you?").

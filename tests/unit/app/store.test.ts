@@ -49,6 +49,7 @@ describe('app store', () => {
   });
 
   it('runs the campaign setup flow: intro → opponents → briefing → play, and ticks deterministically', async () => {
+    useApp.getState().updateSettings({ autoPauseOnDecision: false });
     const s = useApp.getState();
     s.completeIntro();
     s.beginCampaignSetup();
@@ -250,6 +251,7 @@ describe('app store', () => {
   });
 
   it('leaves a paused chapter resumable: back from play pauses, back again goes home, continue returns to play', () => {
+    useApp.getState().updateSettings({ autoPauseOnDecision: false });
     const s = useApp.getState();
     s.completeIntro();
     s.beginCampaignSetup();

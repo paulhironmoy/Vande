@@ -489,5 +489,54 @@ export function validateScenario(json: unknown): { ok: boolean; errors: string[]
   }
 
   void decisionIds;
+    // Simple-language layer (optional): plain-words copy must reference real option ids.
+  const simpleObj = (v: unknown): v is Obj => isObj(v);
+  if (s.simple !== undefined && !simpleObj(s.simple)) err('simple', 'must be an object');
+  if (Array.isArray(s.decisions)) {
+    s.decisions.forEach((d: unknown, i: number) => {
+      if (!isObj(d) || d.simple === undefined) return;
+      const path = `decisions[${i}].simple`;
+      if (!simpleObj(d.simple)) return err(path, 'must be an object');
+      str(d.simple, 'title', path);
+      str(d.simple, 'situation', path);
+      const ids = new Set(Array.isArray(d.options) ? d.options.map((o: unknown) => (isObj(o) ? String(o.id) : '')) : []);
+      const so = d.simple.options;
+      if (!simpleObj(so)) return err(`${path}.options`, 'missing');
+      for (const id of ids) if (!(id in so)) err(`${path}.options.${id}`, 'missing simple copy');
+      for (const [id, o] of Object.entries(so)) {
+        if (!ids.has(id)) err(`${path}.options.${id}`, 'unknown option id');
+        if (!simpleObj(o)) {
+          err(`${path}.options.${id}`, 'must be an object');
+          continue;
+        }
+        str(o, 'title', `${path}.options.${id}`);
+        str(o, 'preview', `${path}.options.${id}`);
+      }
+    });
+  }
+  if (Array.isArray(s.rightsMoments)) {
+    s.rightsMoments.forEach((r: unknown, i: number) => {
+      if (!isObj(r) || r.simple === undefined) return;
+      const path = `rightsMoments[${i}].simple`;
+      if (!simpleObj(r.simple)) return err(path, 'must be an object');
+      str(r.simple, 'question', path);
+      str(r.simple, 'principle', path);
+      str(r.simple, 'why', path);
+      const ids = new Set(Array.isArray(r.options) ? r.options.map((o: unknown) => (isObj(o) ? String(o.id) : '')) : []);
+      const so = r.simple.options;
+      if (!simpleObj(so)) return err(`${path}.options`, 'missing');
+      for (const id of ids) if (!(id in so)) err(`${path}.options.${id}`, 'missing simple copy');
+      for (const id of Object.keys(so)) if (!ids.has(id)) err(`${path}.options.${id}`, 'unknown option id');
+    });
+  }
+  if (Array.isArray(s.evidence)) {
+    s.evidence.forEach((e: unknown, i: number) => {
+      if (!isObj(e) || e.simple === undefined) return;
+      const path = `evidence[${i}].simple`;
+      if (!simpleObj(e.simple)) return err(path, 'must be an object');
+      str(e.simple, 'title', path);
+      str(e.simple, 'claim', path);
+    });
+  }
   return { ok: errors.length === 0, errors };
 }

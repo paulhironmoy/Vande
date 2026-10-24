@@ -23,7 +23,11 @@ export function applySettingsToDocument(settings: Settings, systemReduced = syst
   else html.removeAttribute('data-cb');
   html.setAttribute('data-text-scale', String(settings.textScale));
   // Percentages scale the user's own browser default (often 16px) instead of overriding it.
-  html.style.fontSize = settings.textScale === 1 ? '' : `${Math.round(settings.textScale * 100)}%`;
+  html.setAttribute('data-style', settings.playStyle);
+  // Simple style reads a touch larger by default; explicit text-size choices scale on top of it.
+  const styleBoost = settings.playStyle === 'simple' ? 1.0625 : 1;
+  const scale = settings.textScale * styleBoost;
+  html.style.fontSize = scale === 1 ? '' : `${Math.round(scale * 100)}%`;
   const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   if (meta) meta.content = settings.highContrast ? '#050b14' : '#07111F';
   setSoundEnabled(settings.sound);
