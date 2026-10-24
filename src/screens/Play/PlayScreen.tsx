@@ -15,6 +15,8 @@ import {
 import { SIMPLE_UI, cityMood, pick, useSimple } from '@/app/simple';
 import { SIMPLE_TEXT, makeFeedSimplifier } from '@/components/play/simpleCopy';
 import { DecisionArea } from './DecisionArea';
+import { RulesButton } from '@/components/daily/RulesButton';
+import { RulesCard } from '@/components/daily/RulesCard';
 import { EvidencePanel } from './EvidencePanel';
 import styles from './PlayScreen.module.css';
 
@@ -43,6 +45,7 @@ export function PlayScreen() {
 
   const isDesktop = useIsDesktop();
   const [pulseOpen, setPulseOpen] = useState(false);
+  const [rulesOpen, setRulesOpen] = useState(false);
   const [evidenceOpenDesktop, setEvidenceOpenDesktop] = useState(true);
   const [seenEvidence, setSeenEvidence] = useState<Set<string>>(() => new Set());
   const [requestedDecision, setRequestedDecision] = useState<string | undefined>(undefined);
@@ -228,6 +231,7 @@ export function PlayScreen() {
           <section className={styles.mapArea} aria-label="City map">
             {mapNode}
             {district ? <DistrictCard district={district} onClose={() => setFocusDistrict(undefined)} onShowDecision={pendingHere ? showDecisionHere : undefined} onShowEvidence={district.openEvidence > 0 ? showEvidenceHere : undefined} className={styles.districtCard} simple={simple} /> : null}
+            <RulesButton onClick={() => setRulesOpen(true)} />
             {endedOverlay}
             {briefingOverlay}
           </section>
@@ -289,6 +293,7 @@ export function PlayScreen() {
             <span className={styles.trayCount} aria-hidden="true" data-count={visibleEvidenceIds.length} />
             {newEvidenceIds.size > 0 ? <span className={styles.trayNew} aria-hidden="true" data-count={newEvidenceIds.size > 9 ? '9+' : newEvidenceIds.size} /> : null}
           </button>
+          <RulesButton onClick={() => setRulesOpen(true)} />
           {endedOverlay}
           {briefingOverlay}
         </section>
@@ -312,6 +317,10 @@ export function PlayScreen() {
         tall
       >
         <EvidencePanel game={game} scenario={scenario} newIds={newEvidenceIds} onSeen={markSeen} />
+      </PlaySheet>
+
+      <PlaySheet open={rulesOpen} onClose={() => setRulesOpen(false)} title={simple ? 'Rules' : 'Rules at a glance'} testId="rules-sheet">
+        <RulesCard compact hideHeading />
       </PlaySheet>
 
       <PlaySheet open={pulseOpen} onClose={() => setPulseOpen(false)} title={simple ? SIMPLE_TEXT.pulseSheetTitle : 'Republic Pulse'} testId="pulse-sheet">

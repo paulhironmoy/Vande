@@ -117,7 +117,9 @@ test.describe('daily quick play', () => {
     await page.getByTestId('daily-open-rules').click();
     await expect(page.getByTestId('rules-card').last()).toBeVisible();
     await page.keyboard.press('Escape');
-    await page.getByTestId('daily-open-start').click();
+    // The cold open auto-starts after a few seconds; start explicitly only if it is still showing.
+    const start = page.getByTestId('daily-open-start');
+    if (await start.isVisible().catch(() => false)) await start.click({ timeout: 5_000 }).catch(() => undefined);
     await expect(page.getByTestId('play-screen')).toBeVisible({ timeout: 20_000 });
     await page.getByTestId('rules-button').click();
     await expect(page.getByTestId('rules-sheet')).toBeVisible();
