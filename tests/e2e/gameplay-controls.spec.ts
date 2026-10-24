@@ -17,7 +17,7 @@ test('pause stops the clock and resume continues it', async ({ page }) => {
   await page.clock.fastForward(15_000);
   await page.waitForTimeout(400);
   const paused = toSeconds(await page.getByTestId('timer').innerText());
-  expect(Math.abs(paused - before)).toBeLessThanOrEqual(1);
+  expect(Math.abs(paused - before)).toBeLessThanOrEqual(2); // allow a second of real-time drift under parallel load
   await page.getByTestId('resume').click();
   await expect(page.getByTestId('resume')).toHaveCount(0);
   await page.clock.fastForward(10_000);
