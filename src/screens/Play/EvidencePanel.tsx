@@ -3,6 +3,7 @@ import { useApp } from '@/app/store';
 import { evidenceActions } from '@/engine';
 import type { EvidenceVerb, GameState, Scenario } from '@/engine/types';
 import { EvidenceDetail, EvidenceList, cue, type EvidenceEntry } from '@/components/play';
+import { useSimple } from '@/app/simple';
 import { cueFor } from './cueFor';
 
 export interface EvidencePanelProps {
@@ -21,6 +22,9 @@ export function EvidencePanel({ game, scenario, newIds, onSeen, districtFilter }
   const openEvidenceId = useApp((s) => s.openEvidenceId);
   const setOpenEvidence = useApp((s) => s.setOpenEvidence);
   const dispatch = useApp((s) => s.dispatch);
+  const autoPaused = useApp((s) => s.autoPaused);
+  const simple = useSimple();
+  const simpleTitles = useMemo(() => Object.fromEntries(scenario.evidence.map((e) => [e.id, e.simple?.title ?? e.title])), [scenario.evidence]);
 
   const entries = useMemo<EvidenceEntry[]>(() => {
     const out: EvidenceEntry[] = [];
@@ -69,10 +73,12 @@ export function EvidencePanel({ game, scenario, newIds, onSeen, districtFilter }
         actions={actions}
         onAction={onAction}
         onBack={() => setOpenEvidence(undefined)}
-        disabled={game.status !== 'running'}
+        disabled={game.status !== 'running' && !(autoPaused && game.status === 'paused')}
         districtName={districtName}
+        simple={simple}
+        simpleTitles={simpleTitles}
       />
     );
   }
-  return <EvidenceList entries={entries} newIds={newIds} onOpen={(id) => setOpenEvidence(id)} />;
+  return <EvidenceList entries={entries} newIds={newIds} onOpen={(id) => setOpenEvidence(id)} simple={simple} />;
 }

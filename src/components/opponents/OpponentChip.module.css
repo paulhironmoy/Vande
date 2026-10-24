@@ -19,3 +19,9 @@
   font-size: var(--text-md);
   padding-right: 0.9rem;
 }
+
+.simpleName small {
+  font-size: 0.85em;
+  color: var(--t-tertiary);
+  font-weight: var(--weight-medium);
+}

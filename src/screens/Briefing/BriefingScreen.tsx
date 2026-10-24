@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { PACE_MS } from '@/engine';
+import { SIMPLE_UI, scenarioSubtitle, scenarioTitle, useSimple } from '@/app/simple';
 import { Button, CityMap, ScreenShell, useApp } from '@/components/results/deps';
 import layout from '@/components/results/layout.module.css';
 import { formatMinutes } from '@/components/results/format';
@@ -22,6 +23,7 @@ export function BriefingScreen() {
   const startChapter = useApp((s) => s.startChapter);
   const back = useApp((s) => s.back);
   const navigate = useApp((s) => s.navigate);
+  const simple = useSimple();
 
   const [step, setStep] = useState(reducedMotion ? STEPS.length - 1 : 0);
   const [elapsed, setElapsed] = useState(0);
@@ -56,8 +58,8 @@ export function BriefingScreen() {
       <ScreenShell title="Briefing" onBack={() => back()} testId="briefing-screen">
         <div className={`${layout.page} ${layout.narrow}`}>
           <div className={`${layout.card} ${layout.emptyState}`}>
-            <h1 className={layout.h2}>No chapter is ready to brief.</h1>
-            <p className={layout.body}>Start a campaign, today&apos;s crisis or a friend challenge from the home screen.</p>
+            <h1 className={layout.h2}>{simple ? 'Nothing to play yet.' : 'No chapter is ready to brief.'}</h1>
+            <p className={layout.body}>{simple ? "Start the story, today's challenge or a friend game from the home screen." : "Start a campaign, today's crisis or a friend challenge from the home screen."}</p>
             <Button variant="primary" onClick={() => navigate({ name: 'home' }, { replace: true })}>
               Go home
             </Button>
@@ -67,13 +69,32 @@ export function BriefingScreen() {
     );
   }
 
-  const chapterLabel =
-    mode === 'daily' ? "Today's Republic Crisis" : mode === 'challenge' ? 'Friend challenge' : `Chapter ${scenario.chapter} of 3`;
+  const chapterLabel = simple
+    ? mode === 'daily'
+      ? "Today's challenge"
+      : mode === 'challenge'
+        ? 'Friend game'
+        : `Chapter ${scenario.chapter} of 3`
+    : mode === 'daily'
+      ? "Today's Republic Crisis"
+      : mode === 'challenge'
+        ? 'Friend challenge'
+        : `Chapter ${scenario.chapter} of 3`;
   const cls = (n: number) => `${styles.step} ${step >= n ? styles.shown : styles.pending}`;
   const complete = step >= STEPS.length - 1;
+  const sb = simple ? scenario.simple?.briefing : undefined;
+  const brief = {
+    grievance: sb?.grievance ?? scenario.briefing.grievance,
+    knownFacts: sb?.knownFacts ?? scenario.briefing.knownFacts,
+    unverifiedClaims: sb?.unverifiedClaims ?? scenario.briefing.unverifiedClaims,
+    responsibility: sb?.responsibility ?? scenario.briefing.responsibility,
+    objective: sb?.objective ?? scenario.briefing.objective,
+    lines: sb?.lines ?? scenario.briefing.lines,
+  };
+  const minutes = Math.max(1, Math.round(durationMs / 60000));
 
   return (
-    <ScreenShell title="Briefing" onBack={() => back()} testId="briefing-screen">
+    <ScreenShell title={simple ? 'Get ready' : 'Briefing'} onBack={() => back()} testId="briefing-screen">
       <div className={styles.root}>
         <div className={styles.bg} aria-hidden="true" inert>
           {map && (
@@ -97,37 +118,37 @@ export function BriefingScreen() {
           <div className={styles.top}>
             <header className={cls(0)}>
               <p className={styles.chapter}>{chapterLabel}</p>
-              <h1 className={styles.title}>{scenario.title}</h1>
-              <p className={styles.subtitle}>{scenario.subtitle}</p>
+              <h1 className={styles.title}>{scenarioTitle(scenario, simple)}</h1>
+              <p className={styles.subtitle}>{scenarioSubtitle(scenario, simple)}</p>
             </header>
             <Button variant="ghost" size="sm" onClick={() => startChapter()} data-testid="briefing-skip">
-              Skip briefing
+              {simple ? SIMPLE_UI.skipBriefing : 'Skip briefing'}
             </Button>
           </div>
 
           <section className={`${layout.card} ${cls(1)}`} aria-labelledby="brief-grievance">
             <h2 className={layout.sectionTitle} id="brief-grievance">
-              The legitimate grievance
+              {simple ? 'The problem' : 'The legitimate grievance'}
             </h2>
             <ul className={styles.lines}>
-              {scenario.briefing.lines.slice(0, 3).map((line, i) => (
+              {brief.lines.slice(0, 3).map((line, i) => (
                 <li key={i} className={styles.line}>
                   {line}
                 </li>
               ))}
             </ul>
             <p className={layout.body} style={{ marginTop: 'var(--s-3)' }}>
-              {scenario.briefing.grievance}
+              {brief.grievance}
             </p>
           </section>
 
           <div className={styles.columns}>
             <section className={`${layout.card} ${cls(2)}`} aria-labelledby="brief-facts">
               <h2 className={layout.sectionTitle} id="brief-facts">
-                Known facts
+                {simple ? 'What we know' : 'Known facts'}
               </h2>
               <ul className={styles.list}>
-                {scenario.briefing.knownFacts.map((f, i) => (
+                {brief.knownFacts.map((f, i) => (
                   <li key={i} className={`${styles.item} ${styles.fact}`}>
                     <span className={styles.mark}>
                       <StatusIcon kind="resolved" size={18} title="Known" />
@@ -140,10 +161,10 @@ export function BriefingScreen() {
 
             <section className={`${layout.card} ${cls(3)}`} aria-labelledby="brief-claims">
               <h2 className={layout.sectionTitle} id="brief-claims">
-                Unverified claims
+                {simple ? 'What people are saying (not checked)' : 'Unverified claims'}
               </h2>
               <ul className={styles.list}>
-                {scenario.briefing.unverifiedClaims.map((c, i) => (
+                {brief.unverifiedClaims.map((c, i) => (
                   <li key={i} className={`${styles.item} ${styles.claim}`}>
                     <span className={styles.mark}>
                       <StatusIcon kind="unresolved" size={18} title="Unverified" />
@@ -157,14 +178,14 @@ export function BriefingScreen() {
 
           <section className={`${layout.card} ${cls(4)}`} aria-labelledby="brief-role">
             <h2 className={layout.sectionTitle} id="brief-role">
-              Your responsibility
+              {simple ? 'Your job' : 'Your responsibility'}
             </h2>
-            <p className={layout.lead}>{scenario.briefing.responsibility}</p>
+            <p className={layout.lead}>{brief.responsibility}</p>
           </section>
 
           <section className={`${layout.card} ${cls(5)}`} aria-labelledby="brief-opponents">
             <h2 className={layout.sectionTitle} id="brief-opponents">
-              Working against you
+              {simple ? 'Trouble makers' : 'Working against you'}
             </h2>
             {opponents.length > 0 ? (
               <div className={layout.chips}>
@@ -173,28 +194,38 @@ export function BriefingScreen() {
                 ))}
               </div>
             ) : (
-              <p className={layout.body}>No simulated opponents this time — only the situation itself.</p>
+              <p className={layout.body}>{simple ? 'No trouble makers this time. Just the problem itself.' : 'No simulated opponents this time — only the situation itself.'}</p>
             )}
           </section>
 
           <section className={`${layout.card} ${cls(6)}`} aria-labelledby="brief-objective">
             <h2 className={layout.sectionTitle} id="brief-objective">
-              Objective
+              {simple ? `You have about ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}` : 'Objective'}
             </h2>
             <div className={styles.objective}>
-              <p className={layout.lead}>{scenario.briefing.objective}</p>
+              <p className={layout.lead}>{brief.objective}</p>
               <span className={styles.timerChip} aria-label={`Time available ${timerLabel}`}>
                 <ClockIcon size={20} />
                 {timerLabel}
-                <small>{settings.timerPace === 'standard' ? 'standard pace' : settings.timerPace === 'relaxed' ? 'relaxed pace' : 'extended pace'}</small>
+                <small>
+                  {simple
+                    ? settings.autoPauseOnDecision
+                      ? 'the clock waits for you'
+                      : 'on the clock'
+                    : settings.timerPace === 'standard'
+                      ? 'standard pace'
+                      : settings.timerPace === 'relaxed'
+                        ? 'relaxed pace'
+                        : 'extended pace'}
+                </small>
               </span>
             </div>
           </section>
 
           <div className={layout.actionBar}>
-            <span className={layout.muted}>You can pause at any time. Nothing is decided until you act.</span>
+            <span className={layout.muted}>{simple ? 'You can pause any time.' : 'You can pause at any time. Nothing is decided until you act.'}</span>
             <Button variant="primary" size="lg" onClick={() => startChapter()} data-testid="briefing-start" className={complete && !reducedMotion ? styles.pulseCta : undefined}>
-              Take command
+              {simple ? SIMPLE_UI.takeCommand : 'Take command'}
             </Button>
           </div>
         </div>

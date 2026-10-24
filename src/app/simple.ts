@@ -108,3 +108,109 @@ export const SIMPLE_UI = {
   undo: 'Undo',
   newClue: 'New clue',
 } as const;
+
+// ---------------------------------------------------------------------------
+// Additional vocabulary used by the setup, result and progress screens
+// ---------------------------------------------------------------------------
+import type { Difficulty, HistoryEntry, KeyDecision, ResolutionRule, Scenario, TimerPace } from '@/engine/types';
+
+/** Plain-words version of describeCondition() labels (keyed by the full label). */
+export const SIMPLE_CONDITIONS: Record<string, { label: string; summary: string }> = {
+  Untested: { label: 'New city', summary: 'Your city has not faced a problem yet.' },
+  Resilient: { label: 'Strong and fair', summary: 'People trust you and the streets are calm.' },
+  Steady: { label: 'Doing well', summary: 'Your city is holding together.' },
+  Strained: { label: 'A bit wobbly', summary: 'Things work, but some cracks are showing.' },
+  Fragile: { label: 'Needs help', summary: 'One more problem could tip it over.' },
+  'In crisis': { label: 'In trouble', summary: 'Your city is struggling. It needs you.' },
+};
+
+export function simpleCondition(full: { label: string; summary: string }, simple: boolean): { label: string; summary: string } {
+  if (!simple) return full;
+  return SIMPLE_CONDITIONS[full.label] ?? full;
+}
+
+export const SIMPLE_DIFFICULTY: Record<Difficulty, { label: string; description: string }> = {
+  measured: { label: 'Gentle', description: 'Trouble makers go easy on you.' },
+  standard: { label: 'Normal', description: 'A fair fight.' },
+  severe: { label: 'Tough', description: 'They try their hardest.' },
+};
+
+export const SIMPLE_PACE: Record<TimerPace, { label: string; description: string }> = {
+  standard: { label: 'Normal', description: '3 minutes a chapter' },
+  relaxed: { label: 'Slow', description: '4½ minutes a chapter' },
+  extended: { label: 'Slowest', description: '6 minutes a chapter' },
+};
+
+export const SIMPLE_FLAGS: Record<KeyDecision['flags'][number], string> = {
+  'false-accusation': 'Blamed someone without proof',
+  disproportionate: 'Too harsh',
+  'unverified-basis': 'Acted before checking',
+  auto: 'The clock decided',
+};
+
+export const SIMPLE_HISTORY_KIND: Record<HistoryEntry['kind'], string> = {
+  campaign: 'Story',
+  daily: 'Daily',
+  challenge: 'Friend game',
+  chapter: 'Chapter',
+};
+
+/** The five long-term city measures. */
+export const SIMPLE_MEASURES: Record<'freedom' | 'safety' | 'trust' | 'economy' | 'legitimacy', string> = {
+  freedom: 'Freedom',
+  safety: 'Safety',
+  trust: 'Trust',
+  economy: 'Shops and jobs',
+  legitimacy: 'Fairness',
+};
+
+/** Plain-words versions of the "values protected" strings produced by the engine. */
+export const SIMPLE_VALUES: Record<string, string> = {
+  'Peaceful assembly and free expression': 'People could speak and gather',
+  'Evidence over rumour': 'Facts beat rumours',
+  'Public trust in institutions': 'People trusted their city',
+};
+
+export function simpleValue(full: string, simple: boolean): string {
+  return simple ? (SIMPLE_VALUES[full] ?? full) : full;
+}
+
+/** Scenario title/subtitle with the simple layer applied. */
+export function scenarioTitle(scenario: Pick<Scenario, 'title' | 'simple'> | undefined, simple: boolean): string {
+  if (!scenario) return '';
+  return pick(simple, scenario.title, scenario.simple?.title);
+}
+
+export function scenarioSubtitle(scenario: Pick<Scenario, 'subtitle' | 'simple'> | undefined, simple: boolean): string {
+  if (!scenario) return '';
+  return pick(simple, scenario.subtitle, scenario.simple?.subtitle);
+}
+
+/** Looks up the simple version of a resolution text produced by the engine (matched by its full text). */
+export function simpleRuleText(rules: ResolutionRule[] | undefined, text: string, simple: boolean): string {
+  if (!simple || !rules) return text;
+  const rule = rules.find((r) => r.text === text);
+  return rule?.simple ?? text;
+}
+
+/** Simple closing line: finds which band the engine used and returns the simple version. */
+export function simpleClosing(scenario: Scenario | undefined, closing: string, simple: boolean): string {
+  if (!simple || !scenario?.simple?.closing) return closing;
+  const bands = ['good', 'mixed', 'poor'] as const;
+  for (const b of bands) if (scenario.resolution.closing[b] === closing) return scenario.simple.closing[b] || closing;
+  return closing;
+}
+
+/** Simple mode label for a run ("The whole story", "Today's challenge", "Friend game", "Replay"). */
+export function simpleModeLabel(mode: 'campaign' | 'daily' | 'challenge' | 'replay', chapters: number): string {
+  switch (mode) {
+    case 'daily':
+      return "Today's challenge";
+    case 'challenge':
+      return 'Friend game';
+    case 'replay':
+      return 'Played again';
+    default:
+      return chapters > 1 ? `The whole story · ${chapters} chapters` : 'Story';
+  }
+}

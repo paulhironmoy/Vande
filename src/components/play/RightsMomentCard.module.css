@@ -170,3 +170,17 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+.simple .question {
+  font-size: var(--text-xl);
+  line-height: var(--leading-snug);
+}
+.simple .option {
+  min-height: 56px;
+  font-size: var(--text-md);
+  border-radius: var(--r-lg);
+}
+.simple .feedback,
+.simple .explain dd {
+  font-size: var(--text-md);
+}

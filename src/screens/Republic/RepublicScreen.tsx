@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { HistoryEntry, RepublicOutcome } from '@/engine/types';
 import { OUTCOME_LABELS } from '@/engine/types';
 import { describeCondition } from '@/engine';
+import { SIMPLE_MEASURES, SIMPLE_OUTCOMES, simpleCondition, useSimple } from '@/app/simple';
 import { Button, Dialog, ScreenShell, useApp } from '@/components/results/deps';
 import layout from '@/components/results/layout.module.css';
 import { Checklist, type ChecklistItem } from '@/components/results/Checklist';
@@ -17,7 +18,7 @@ const TRACKED: { key: 'freedom' | 'safety' | 'trust' | 'economy' | 'legitimacy';
   { key: 'legitimacy', label: 'Legitimacy' },
 ];
 
-function trendItems(history: HistoryEntry[]): ChecklistItem[] {
+function trendItems(history: HistoryEntry[], simple = false): ChecklistItem[] {
   const runs = history
     .filter((h) => h.campaign)
     .sort((a, b) => (a.completedAt < b.completedAt ? -1 : 1))
@@ -30,10 +31,16 @@ function trendItems(history: HistoryEntry[]): ChecklistItem[] {
   return TRACKED.map((t) => {
     const delta = Math.round(value(last, t.key) - value(first, t.key));
     const kind = delta > 2 ? 'up' : delta < -2 ? 'down' : 'flat';
+    const label = simple ? SIMPLE_MEASURES[t.key] : t.label;
+    const span = simple ? `your last ${pluralize(runs.length, 'story', 'stories')}` : `your last ${pluralize(runs.length, 'campaign', 'campaigns')}`;
     const text =
       kind === 'flat'
-        ? `${t.label} has held steady across your last ${pluralize(runs.length, 'campaign', 'campaigns')}.`
-        : `${t.label} ${kind === 'up' ? 'rose' : 'fell'} ${Math.abs(delta)} points across your last ${pluralize(runs.length, 'campaign', 'campaigns')}.`;
+        ? simple
+          ? `${label} stayed about the same over ${span}.`
+          : `${label} has held steady across ${span}.`
+        : simple
+          ? `${label} went ${kind === 'up' ? 'up' : 'down'} ${Math.abs(delta)} points over ${span}.`
+          : `${label} ${kind === 'up' ? 'rose' : 'fell'} ${Math.abs(delta)} points across ${span}.`;
     return { id: t.key, kind, text } satisfies ChecklistItem;
   });
 }
@@ -51,9 +58,11 @@ export function RepublicScreen() {
   const toast = useApp((s) => s.toast);
   const [confirm, setConfirm] = useState<'reset' | 'delete' | null>(null);
   const [busy, setBusy] = useState(false);
+  const simple = useSimple();
 
-  const condition = useMemo(() => describeCondition(republic), [republic]);
-  const trends = useMemo(() => trendItems(history), [history]);
+  const condition = useMemo(() => simpleCondition(describeCondition(republic), simple), [republic, simple]);
+  const trends = useMemo(() => trendItems(history, simple), [history, simple]);
+  const outcomeName = (o: RepublicOutcome) => (simple ? SIMPLE_OUTCOMES[o].label : OUTCOME_LABELS[o]);
   const outcomes = useMemo(() => {
     const counts = new Map<RepublicOutcome, number>();
     for (const h of history) if (h.outcome) counts.set(h.outcome, (counts.get(h.outcome) ?? 0) + 1);
@@ -93,52 +102,52 @@ export function RepublicScreen() {
   };
 
   return (
-    <ScreenShell title="Your Republic" onBack={() => back()} testId="republic-screen">
+    <ScreenShell title={simple ? 'Your city so far' : 'Your Republic'} onBack={() => back()} testId="republic-screen">
       <div className={layout.page}>
         <header className={layout.stack}>
-          <p className={layout.kicker}>Persistent Republic</p>
-          <h1 className={layout.h1}>The city you are building, crisis by crisis</h1>
-          <p className={layout.lead}>Every campaign and daily crisis leaves a lasting mark on five measures. Stored only on this device.</p>
+          <p className={layout.kicker}>{simple ? 'Your city' : 'Persistent Republic'}</p>
+          <h1 className={layout.h1}>{simple ? 'The city you are building' : 'The city you are building, crisis by crisis'}</h1>
+          <p className={layout.lead}>{simple ? 'Every game you play changes your city a little. Saved only on this device.' : 'Every campaign and daily crisis leaves a lasting mark on five measures. Stored only on this device.'}</p>
         </header>
 
-        <LivingCity condition={republic} label={condition.label} summary={condition.summary} animated={!reducedMotion} />
+        <LivingCity condition={republic} label={condition.label} summary={condition.summary} animated={!reducedMotion} labels={simple ? SIMPLE_MEASURES : undefined} />
 
         <div className={styles.stats} aria-label="Totals">
           <div className={styles.stat}>
             <span className={styles.statValue}>{republic.campaigns}</span>
-            <span className={styles.statLabel}>{republic.campaigns === 1 ? 'Campaign completed' : 'Campaigns completed'}</span>
+            <span className={styles.statLabel}>{simple ? (republic.campaigns === 1 ? 'Story finished' : 'Stories finished') : republic.campaigns === 1 ? 'Campaign completed' : 'Campaigns completed'}</span>
           </div>
           <div className={styles.stat}>
             <span className={styles.statValue}>{republic.crises}</span>
-            <span className={styles.statLabel}>{republic.crises === 1 ? 'Crisis handled' : 'Crises handled'}</span>
+            <span className={styles.statLabel}>{simple ? (republic.crises === 1 ? 'Problem handled' : 'Problems handled') : republic.crises === 1 ? 'Crisis handled' : 'Crises handled'}</span>
           </div>
           <div className={styles.stat}>
             <span className={styles.statValue}>{bests.campaign ? Math.round(bests.campaign.score) : '—'}</span>
-            <span className={styles.statLabel}>{bests.campaign ? `Personal best · ${OUTCOME_LABELS[bests.campaign.outcome]}` : 'No campaign finished yet'}</span>
+            <span className={styles.statLabel}>{bests.campaign ? `${simple ? 'Best score' : 'Personal best'} · ${outcomeName(bests.campaign.outcome)}` : simple ? 'No story finished yet' : 'No campaign finished yet'}</span>
           </div>
         </div>
 
         <div className={layout.grid2}>
           <section className={layout.card} aria-labelledby="rep-trends">
             <h2 className={layout.sectionTitle} id="rep-trends">
-              Long-term consequences
+              {simple ? "What's changing" : 'Long-term consequences'}
             </h2>
-            <Checklist items={trends} emptyText="Finish two campaigns and the long-term trends of your Republic will appear here." />
+            <Checklist items={trends} emptyText={simple ? 'Finish two stories and you will see how your city is changing.' : 'Finish two campaigns and the long-term trends of your Republic will appear here.'} />
           </section>
           <section className={layout.card} aria-labelledby="rep-outcomes">
             <h2 className={layout.sectionTitle} id="rep-outcomes">
-              Outcomes reached
+              {simple ? 'Endings you reached' : 'Outcomes reached'}
             </h2>
             {outcomes.length > 0 ? (
               <div className={layout.chips}>
                 {outcomes.map(([o, n]) => (
                   <span key={o} className={`${layout.chip} ${o === 'resilient' ? layout.chipGood : ''}`}>
-                    {OUTCOME_LABELS[o]} × {n}
+                    {outcomeName(o)} × {n}
                   </span>
                 ))}
               </div>
             ) : (
-              <p className={layout.body}>No outcomes yet. Your first result will appear here.</p>
+              <p className={layout.body}>{simple ? 'No endings yet. Your first one will show up here.' : 'No outcomes yet. Your first result will appear here.'}</p>
             )}
             {republic.updatedAt && <p className={layout.muted} style={{ marginTop: 'var(--s-3)' }}>Last updated {formatDateShort(republic.updatedAt)}.</p>}
           </section>
@@ -148,12 +157,12 @@ export function RepublicScreen() {
           <div className={`${layout.row} ${layout.spread}`}>
             <div>
               <h2 className={layout.sectionTitle} id="rep-review" style={{ marginBottom: '0.2rem' }}>
-                Earlier crises
+                {simple ? 'Earlier games' : 'Earlier crises'}
               </h2>
-              <p className={layout.body}>{history.length > 0 ? `${pluralize(history.length, 'entry', 'entries')} in your local history.` : 'Nothing recorded yet.'}</p>
+              <p className={layout.body}>{history.length > 0 ? (simple ? `${pluralize(history.length, 'game', 'games')} saved on this device.` : `${pluralize(history.length, 'entry', 'entries')} in your local history.`) : simple ? 'No games saved yet.' : 'Nothing recorded yet.'}</p>
             </div>
             <Button variant="secondary" onClick={() => navigate({ name: 'history' })} data-testid="republic-history">
-              Review earlier crises
+              {simple ? 'See earlier games' : 'Review earlier crises'}
             </Button>
           </div>
         </section>
@@ -165,8 +174,8 @@ export function RepublicScreen() {
           <div className={styles.manage}>
             <div className={styles.manageRow}>
               <div className={styles.manageText}>
-                <strong>Export local progress</strong>
-                <span>Download everything stored on this device as a JSON file.</span>
+                <strong>{simple ? 'Save a copy of my progress' : 'Export local progress'}</strong>
+                <span>{simple ? 'Download a file with everything saved on this device.' : 'Download everything stored on this device as a JSON file.'}</span>
               </div>
               <Button variant="secondary" onClick={onExport} disabled={busy} data-testid="republic-export">
                 Export
@@ -174,8 +183,8 @@ export function RepublicScreen() {
             </div>
             <div className={styles.manageRow}>
               <div className={styles.manageText}>
-                <strong>Reset the Republic</strong>
-                <span>Start the living city again. Your history and settings stay.</span>
+                <strong>{simple ? 'Start my city again' : 'Reset the Republic'}</strong>
+                <span>{simple ? 'Your city starts fresh. Your earlier games and settings stay.' : 'Start the living city again. Your history and settings stay.'}</span>
               </div>
               <Button variant="secondary" onClick={() => setConfirm('reset')} disabled={busy} data-testid="republic-reset">
                 Reset
@@ -183,8 +192,8 @@ export function RepublicScreen() {
             </div>
             <div className={styles.manageRow}>
               <div className={styles.manageText}>
-                <strong>Delete all local progress</strong>
-                <span>Removes the Republic, history, bests and saved games from this device. Cannot be undone.</span>
+                <strong>{simple ? 'Delete everything' : 'Delete all local progress'}</strong>
+                <span>{simple ? 'Removes your city, games and scores from this device. This cannot be undone.' : 'Removes the Republic, history, bests and saved games from this device. Cannot be undone.'}</span>
               </div>
               <Button variant="danger" onClick={() => setConfirm('delete')} disabled={busy} data-testid="republic-delete">
                 Delete

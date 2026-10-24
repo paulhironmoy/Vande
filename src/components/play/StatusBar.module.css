@@ -120,3 +120,15 @@
     font-size: var(--text-2xl);
   }
 }
+
+.timer[data-waiting='true'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  color: var(--t-secondary);
+  border-color: rgba(98, 214, 255, 0.35);
+}
+.waitGlyph {
+  color: var(--c-cyan);
+}

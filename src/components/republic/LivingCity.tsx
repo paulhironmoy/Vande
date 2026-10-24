@@ -7,6 +7,8 @@ interface LivingCityProps {
   label: string;
   summary: string;
   animated?: boolean;
+  /** Override measure labels (Simple play style). */
+  labels?: Partial<Record<'freedom' | 'safety' | 'trust' | 'economy' | 'legitimacy', string>>;
 }
 
 const MEASURES: { key: keyof Pick<RepublicCondition, 'freedom' | 'safety' | 'trust' | 'economy' | 'legitimacy'>; label: string; tone: string }[] = [
@@ -18,7 +20,7 @@ const MEASURES: { key: keyof Pick<RepublicCondition, 'freedom' | 'safety' | 'tru
 ];
 
 /** The persistent Republic as a living city plus five measures. */
-export function LivingCity({ condition, label, summary, animated = true }: LivingCityProps) {
+export function LivingCity({ condition, label, summary, animated = true, labels }: LivingCityProps) {
   const detail = Math.max(0, Math.min(1, 0.3 + condition.crises * 0.07));
   const scene = sceneFromCondition(condition);
   return (
@@ -35,10 +37,11 @@ export function LivingCity({ condition, label, summary, animated = true }: Livin
       <ul className={styles.measures} aria-label="Republic measures" style={{ marginTop: 'var(--s-3)' }}>
         {MEASURES.map((m) => {
           const v = Math.round(condition[m.key]);
+          const name = labels?.[m.key] ?? m.label;
           return (
-            <li key={m.key} className={styles.measure} style={{ ['--tone' as string]: m.tone }} aria-label={`${m.label} ${v} out of 100`}>
+            <li key={m.key} className={styles.measure} style={{ ['--tone' as string]: m.tone }} aria-label={`${name} ${v} out of 100`}>
               <div className={styles.measureHead} aria-hidden="true">
-                <span>{m.label}</span>
+                <span>{name}</span>
               </div>
               <span className={styles.measureValue} aria-hidden="true">
                 {v}

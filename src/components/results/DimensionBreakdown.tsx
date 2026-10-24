@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Scores } from '@/engine/types';
+import type { Dimension, Scores } from '@/engine/types';
 import { DIMENSIONS, DIMENSION_LABELS } from '@/engine/types';
 import styles from './DimensionBreakdown.module.css';
 import { DimensionIcon, StatusIcon } from './icons';
@@ -12,9 +12,12 @@ interface DimensionBreakdownProps {
   columns?: 1 | 2;
   animated?: boolean;
   ariaLabel?: string;
+  /** Override labels (e.g. the Simple play style vocabulary). */
+  labels?: Record<Dimension, string>;
 }
 
-export function DimensionBreakdown({ scores, startScores, columns = 1, animated = true, ariaLabel = 'Six-dimension breakdown' }: DimensionBreakdownProps) {
+export function DimensionBreakdown({ scores, startScores, columns = 1, animated = true, ariaLabel = 'Six-dimension breakdown', labels }: DimensionBreakdownProps) {
+  const labelOf = (dim: Dimension) => labels?.[dim] ?? DIMENSION_LABELS[dim];
   const [ready, setReady] = useState(!animated);
   useEffect(() => {
     if (!animated) return;
@@ -34,13 +37,13 @@ export function DimensionBreakdown({ scores, startScores, columns = 1, animated 
             key={dim}
             className={styles.row}
             style={{ ['--dim-color' as string]: dimensionColorVar(dim) }}
-            aria-label={`${DIMENSION_LABELS[dim]}: ${value} out of 100${delta !== undefined ? `, ${deltaText} since the start` : ''}`}
+            aria-label={`${labelOf(dim)}: ${value} out of 100${delta !== undefined ? `, ${deltaText} since the start` : ''}`}
           >
             <span className={styles.icon}>
               <DimensionIcon dim={dim} size={20} />
             </span>
             <span className={styles.label} aria-hidden="true">
-              {DIMENSION_LABELS[dim]}
+              {labelOf(dim)}
             </span>
             <span className={styles.value} aria-hidden="true">
               {direction && (

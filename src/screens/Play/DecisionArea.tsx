@@ -3,6 +3,8 @@ import { useApp } from '@/app/store';
 import { confidenceWarning } from '@/engine';
 import type { DecisionOption, GameState, Scenario } from '@/engine/types';
 import { DecisionCard, FeedbackStrip, PlayButton, PlayIcon, RightsMomentCard, cue, type OptionWarning } from '@/components/play';
+import { SIMPLE_UI, useSimple } from '@/app/simple';
+import { SIMPLE_TEXT, simpleChoiceOf, simpleReview } from '@/components/play/simpleCopy';
 import styles from './DecisionArea.module.css';
 
 export interface DecisionAreaProps {
@@ -21,6 +23,8 @@ export interface DecisionAreaProps {
 
 export function DecisionArea({ game, scenario, layout, requestedDecisionId, onRequestHandled, unexaminedEvidence, onOpenEvidence, sheetOpen }: DecisionAreaProps) {
   const dispatch = useApp((s) => s.dispatch);
+  const autoPaused = useApp((s) => s.autoPaused);
+  const simple = useSimple();
   const [activeIdx, setActiveIdx] = useState(0);
   const [answered, setAnswered] = useState<{ id: string; optionId: string } | null>(null);
   const [dismissedKey, setDismissedKey] = useState<string | null>(null);
@@ -92,16 +96,39 @@ export function DecisionArea({ game, scenario, layout, requestedDecisionId, onRe
   const showFeedback = Boolean(feedback && feedbackKey !== dismissedKey && game.tick - feedback.tick <= 15);
   const undoInfo = game.undo && game.undo.expiresAt > game.tick ? { left: game.undo.expiresAt - game.tick, total: Math.max(1, game.undo.expiresAt - (game.decisions[game.undo.decisionId]?.decidedAt ?? game.tick)) } : undefined;
 
-  const disabled = game.status !== 'running';
+  // While the clock waits for the player (automatic pause) choices stay enabled; the store resumes after the answer.
+  const waiting = autoPaused && game.status === 'paused';
+  const disabled = game.status !== 'running' && !waiting;
   const activeRights = answered ? scenario.rightsMoments.find((m) => m.id === answered.id) : pendingRights[0] ? scenario.rightsMoments.find((m) => m.id === pendingRights[0]) : undefined;
+
+  // Plain-language consequence for the feedback strip (matched by the option that produced it).
+  const feedbackSimple = (() => {
+    if (!simple || !feedback) return undefined;
+    for (const d of scenario.decisions) {
+      const opt = d.options.find((o) => o.title === feedback.title || o.consequence === feedback.text);
+      if (opt) {
+        const so = d.simple?.options[opt.id];
+        return so ? { title: so.title, text: so.consequence ?? so.preview } : undefined;
+      }
+    }
+    return undefined;
+  })();
 
   const visible = layout === 'pager' ? pending.slice(Math.min(activeIdx, Math.max(0, pending.length - 1)), Math.min(activeIdx, Math.max(0, pending.length - 1)) + 1) : pending;
 
   return (
-    <div className={styles.root} data-layout={layout}>
+    <div className={styles.root} data-layout={layout} data-simple={simple ? 'true' : undefined}>
+      {waiting ? (
+        <p className={styles.waiting} data-testid="clock-waiting" role="status">
+          <PlayIcon name="pause" size={16} />
+          <span>{SIMPLE_UI.clockWaiting}</span>
+        </p>
+      ) : null}
       {showFeedback && feedback ? (
         <FeedbackStrip
           feedback={feedback}
+          simple={simple}
+          simpleOverride={feedbackSimple}
           undo={undoInfo}
           onUndo={() => {
             dispatch({ type: 'undo', tick: game.tick });
@@ -118,15 +145,16 @@ export function DecisionArea({ game, scenario, layout, requestedDecisionId, onRe
           onChoose={(optionId) => chooseRights(activeRights.id, optionId)}
           onContinue={() => setAnswered(null)}
           disabled={disabled && !answered}
+          simple={simple}
         />
       ) : null}
 
       {pending.length > 0 ? (
         <div className={styles.decisions}>
           {layout === 'pager' && pending.length > 1 ? (
-            <nav className={styles.pager} aria-label="Pending decisions">
+            <nav className={styles.pager} aria-label={simple ? 'Your choices' : 'Pending decisions'}>
               <span className={styles.pagerText}>
-                Decision {Math.min(activeIdx, pending.length - 1) + 1} of {pending.length}
+                {simple ? simpleChoiceOf(Math.min(activeIdx, pending.length - 1) + 1, pending.length) : `Decision ${Math.min(activeIdx, pending.length - 1) + 1} of ${pending.length}`}
               </span>
               <div className={styles.dots}>
                 {pending.map((p, i) => (
@@ -134,17 +162,17 @@ export function DecisionArea({ game, scenario, layout, requestedDecisionId, onRe
                     key={p.decision.id}
                     type="button"
                     className={styles.dot}
-                    aria-label={`Show decision ${i + 1}: ${p.decision.title}`}
+                    aria-label={`${simple ? 'Show choice' : 'Show decision'} ${i + 1}: ${(simple && p.decision.simple?.title) || p.decision.title}`}
                     aria-current={i === Math.min(activeIdx, pending.length - 1) ? 'true' : undefined}
                     onClick={() => setActiveIdx(i)}
                   />
                 ))}
               </div>
               <div className={styles.pagerBtns}>
-                <button type="button" className={styles.pagerBtn} aria-label="Previous decision" disabled={activeIdx <= 0} onClick={() => setActiveIdx((i) => Math.max(0, i - 1))}>
+                <button type="button" className={styles.pagerBtn} aria-label={simple ? 'Previous choice' : 'Previous decision'} disabled={activeIdx <= 0} onClick={() => setActiveIdx((i) => Math.max(0, i - 1))}>
                   <PlayIcon name="chevronLeft" size={18} />
                 </button>
-                <button type="button" className={styles.pagerBtn} aria-label="Next decision" disabled={activeIdx >= pending.length - 1} onClick={() => setActiveIdx((i) => Math.min(pending.length - 1, i + 1))}>
+                <button type="button" className={styles.pagerBtn} aria-label={simple ? 'Next choice' : 'Next decision'} disabled={activeIdx >= pending.length - 1} onClick={() => setActiveIdx((i) => Math.min(pending.length - 1, i + 1))}>
                   <PlayIcon name="chevronRight" size={18} />
                 </button>
               </div>
@@ -161,6 +189,7 @@ export function DecisionArea({ game, scenario, layout, requestedDecisionId, onRe
               onChoose={(optionId) => choose(p.decision.id, optionId)}
               autoFocus={!sheetOpen && !activeRights && newIds.includes(p.decision.id)}
               disabled={disabled}
+              simple={simple}
             />
           ))}
         </div>
@@ -170,12 +199,14 @@ export function DecisionArea({ game, scenario, layout, requestedDecisionId, onRe
             <PlayIcon name="eye" size={20} />
           </span>
           <div className={styles.emptyText}>
-            <p className={styles.emptyTitle}>{game.status === 'ended' ? 'Chapter complete' : 'Monitoring the city'}</p>
-            <p className={styles.emptyBody}>{game.status === 'ended' ? 'Compiling what was resolved and what remains.' : 'Decisions appear here as the situation develops. Use the time to examine evidence.'}</p>
+            <p className={styles.emptyTitle}>{game.status === 'ended' ? (simple ? SIMPLE_UI.chapterDone : 'Chapter complete') : simple ? SIMPLE_TEXT.monitoringTitle : 'Monitoring the city'}</p>
+            <p className={styles.emptyBody}>
+              {game.status === 'ended' ? (simple ? SIMPLE_TEXT.chapterDoneBody : 'Compiling what was resolved and what remains.') : simple ? SIMPLE_TEXT.monitoringBody : 'Decisions appear here as the situation develops. Use the time to examine evidence.'}
+            </p>
           </div>
           {unexaminedEvidence > 0 && game.status !== 'ended' ? (
             <PlayButton variant="secondary" icon="evidence" onClick={onOpenEvidence}>
-              Review {unexaminedEvidence} item{unexaminedEvidence === 1 ? '' : 's'}
+              {simple ? simpleReview(unexaminedEvidence) : `Review ${unexaminedEvidence} item${unexaminedEvidence === 1 ? '' : 's'}`}
             </PlayButton>
           ) : null}
         </div>

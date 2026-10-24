@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import type { CampaignResult } from '@/engine/types';
 import { OUTCOME_LABELS } from '@/engine/types';
 import { getDailySpec, getScenario } from '@/engine';
+import { SIMPLE_DIMENSIONS, SIMPLE_OUTCOMES, scenarioTitle, simpleModeLabel, simpleValue, starsFor, useSimple } from '@/app/simple';
+import { Stars } from '@/components/results/Stars';
 import { Button, ScreenShell, useApp } from '@/components/results/deps';
 import layout from '@/components/results/layout.module.css';
 import { ScoreDisplay } from '@/components/results/ScoreDisplay';
@@ -20,6 +22,14 @@ function keyHeading(scenarioId: CampaignResult['chapters'][number]['scenarioId']
     return `Most consequential decision · Chapter ${getScenario(scenarioId).chapter}`;
   } catch {
     return 'Most consequential decision';
+  }
+}
+
+function missedTitle(scenarioId: CampaignResult['chapters'][number]['scenarioId'], id: string, title: string): string {
+  try {
+    return getScenario(scenarioId).evidence.find((e) => e.id === id)?.simple?.title ?? title;
+  } catch {
+    return title;
   }
 }
 
@@ -46,6 +56,7 @@ export function FinalResultScreen() {
   const navigate = useApp((s) => s.navigate);
   const replayLast = useApp((s) => s.replayLast);
   const toast = useApp((s) => s.toast);
+  const simple = useSimple();
   const [shareOpen, setShareOpen] = useState(false);
 
   const resultId = screen.name === 'final-result' ? screen.resultId : undefined;
@@ -59,11 +70,11 @@ export function FinalResultScreen() {
 
   if (!result) {
     return (
-      <ScreenShell title="Republic result" onBack={() => navigate({ name: 'home' }, { replace: true })} testId="final-result-screen">
+      <ScreenShell title={simple ? 'How your city did' : 'Republic result'} onBack={() => navigate({ name: 'home' }, { replace: true })} testId="final-result-screen">
         <div className={`${layout.page} ${layout.narrow}`}>
           <div className={`${layout.card} ${layout.emptyState}`}>
-            <h1 className={layout.h2}>No Republic result yet.</h1>
-            <p className={layout.body}>Complete a campaign, a daily crisis or a friend challenge to see how your Republic held up.</p>
+            <h1 className={layout.h2}>{simple ? 'No result yet.' : 'No Republic result yet.'}</h1>
+            <p className={layout.body}>{simple ? "Finish the story, today's challenge or a friend game to see how your city did." : 'Complete a campaign, a daily crisis or a friend challenge to see how your Republic held up.'}</p>
             <Button variant="primary" onClick={() => navigate({ name: 'home' }, { replace: true })} data-testid="final-home">
               Go home
             </Button>
@@ -83,7 +94,14 @@ export function FinalResultScreen() {
     (isDaily
       ? (bestEntry as { date?: string }).date === localDateKey(result.completedAt) && bestEntry.score === result.score
       : (bestEntry as { at?: string }).at === result.completedAt && bestEntry.score === result.score);
-  const bestLine = !bestEntry || isNewBest ? (bestEntry && bestEntry.score === result.score && !isNewBest ? 'Matches your personal best' : 'New personal best') : `Personal best: ${Math.round(bestEntry.score)}`;
+  const bestLine = !bestEntry || isNewBest
+    ? bestEntry && bestEntry.score === result.score && !isNewBest
+      ? simple ? 'Same as your best score' : 'Matches your personal best'
+      : simple ? 'New best score!' : 'New personal best'
+    : simple ? `Best score: ${Math.round(bestEntry.score)}` : `Personal best: ${Math.round(bestEntry.score)}`;
+  const outcomeLabel = simple ? SIMPLE_OUTCOMES[result.outcome].label : OUTCOME_LABELS[result.outcome];
+  const outcomeText = simple ? SIMPLE_OUTCOMES[result.outcome].summary : OUTCOME_DESCRIPTIONS[result.outcome];
+  const simpleLabels = Object.fromEntries(Object.entries(SIMPLE_DIMENSIONS).map(([k, v]) => [k, v.label])) as Record<keyof typeof SIMPLE_DIMENSIONS, string>;
 
   const challengerScore = result.mode === 'challenge' ? intent?.challenge?.score : undefined;
   const dailySpec = isDaily ? intent?.daily ?? getDailySpec(dateFromKey(localDateKey(result.completedAt))) : undefined;
@@ -94,19 +112,20 @@ export function FinalResultScreen() {
   };
 
   return (
-    <ScreenShell title="Republic result" onBack={() => navigate({ name: 'home' })} testId="final-result-screen">
+    <ScreenShell title={simple ? 'How your city did' : 'Republic result'} onBack={() => navigate({ name: 'home' })} testId="final-result-screen">
       <div className={layout.page}>
         <section className={styles.hero} aria-labelledby="final-outcome-heading">
-          <CityScene {...scene} animated={!reducedMotion} title={`Your Republic after the crisis: ${OUTCOME_LABELS[result.outcome]}`} className={styles.scene} />
+          <CityScene {...scene} animated={!reducedMotion} title={`Your Republic after the crisis: ${outcomeLabel}`} className={styles.scene} />
           <div className={[styles.shade, tone === 'poor' ? styles.shadePoor : ''].join(' ')} aria-hidden="true" />
           <div className={styles.heroContent}>
-            <ScoreDisplay score={result.score} label="Republic score" size="11rem" testId="final-score" animated={!reducedMotion} />
+            <ScoreDisplay score={result.score} label={simple ? 'Your score' : 'Republic score'} size="11rem" testId="final-score" animated={!reducedMotion} />
             <div className={styles.heroText}>
-              <p className={layout.kicker}>{modeLabel(result)}</p>
+              <p className={layout.kicker}>{simple ? simpleModeLabel(result.mode, result.chapters.length) : modeLabel(result)}</p>
               <h1 className={styles.outcome} id="final-outcome-heading" data-testid="final-outcome" data-outcome={result.outcome}>
-                {OUTCOME_LABELS[result.outcome]}
+                {outcomeLabel}
               </h1>
-              <p className={layout.lead}>{OUTCOME_DESCRIPTIONS[result.outcome]}</p>
+              {simple && <Stars count={starsFor(result.score)} size={34} />}
+              <p className={layout.lead}>{outcomeText}</p>
               <span className={[styles.best, isNewBest ? styles.bestNew : ''].join(' ')} data-testid="final-best">
                 {bestLine}
               </span>
@@ -118,13 +137,13 @@ export function FinalResultScreen() {
           <Button variant="primary" size="lg" onClick={() => setShareOpen(true)} data-testid="final-challenge">
             <span className={styles.btnInner}>
               <ShareIcon size={18} />
-              Challenge friends
+              {simple ? 'Challenge a friend' : 'Challenge friends'}
             </span>
           </Button>
           <Button variant="secondary" size="lg" onClick={() => replayLast()} data-testid="final-replay">
             <span className={styles.btnInner}>
               <ReplayIcon size={18} />
-              Replay same challenge
+              {simple ? 'Play it again' : 'Replay same challenge'}
             </span>
           </Button>
           <Button variant="ghost" size="lg" onClick={() => navigate({ name: 'home' })} data-testid="final-home">
@@ -138,18 +157,24 @@ export function FinalResultScreen() {
         {challengerScore !== undefined && (
           <section className={layout.card} aria-labelledby="final-compare">
             <h2 className={layout.sectionTitle} id="final-compare">
-              Against the challenger
+              {simple ? 'You vs your friend' : 'Against the challenger'}
             </h2>
             <div className={styles.compare}>
               <p className={styles.compareLine}>
-                You {Math.round(result.score)} · Challenger {Math.round(challengerScore)}
+                You {Math.round(result.score)} · {simple ? 'Friend' : 'Challenger'} {Math.round(challengerScore)}
               </p>
               <p className={layout.body}>
-                {result.score > challengerScore
-                  ? 'You held the Republic together better. Send it back and see if they can answer.'
-                  : result.score < challengerScore
-                    ? 'The challenger held firmer this time. Same seed, same events — try again.'
-                    : 'An exact tie. The same seed, the same events, the same balance.'}
+                {simple
+                  ? result.score > challengerScore
+                    ? 'You did better! Send it back and see if they can catch up.'
+                    : result.score < challengerScore
+                      ? 'Your friend did better this time. Same game — try again!'
+                      : 'A tie! Exactly the same score.'
+                  : result.score > challengerScore
+                    ? 'You held the Republic together better. Send it back and see if they can answer.'
+                    : result.score < challengerScore
+                      ? 'The challenger held firmer this time. Same seed, same events — try again.'
+                      : 'An exact tie. The same seed, the same events, the same balance.'}
               </p>
             </div>
           </section>
@@ -157,27 +182,27 @@ export function FinalResultScreen() {
 
         <section className={layout.card} aria-labelledby="final-dims">
           <h2 className={layout.sectionTitle} id="final-dims">
-            Six dimensions
+            {simple ? 'How your city did' : 'Six dimensions'}
           </h2>
-          <DimensionBreakdown scores={result.finalScores} columns={2} animated={!reducedMotion} />
+          <DimensionBreakdown scores={result.finalScores} columns={2} animated={!reducedMotion} labels={simple ? simpleLabels : undefined} />
         </section>
 
         <div className={layout.grid2}>
           {result.mostConsequential ? (
-            <KeyDecisionCard decision={result.mostConsequential} heading={keyHeading(result.mostConsequential.scenarioId)} />
+            <KeyDecisionCard decision={result.mostConsequential} heading={simple ? 'Your biggest choice' : keyHeading(result.mostConsequential.scenarioId)} simple={simple} />
           ) : (
             <section className={layout.card}>
-              <h2 className={layout.sectionTitle}>Most consequential decision</h2>
-              <p className={layout.body}>No single decision dominated this result.</p>
+              <h2 className={layout.sectionTitle}>{simple ? 'Your biggest choice' : 'Most consequential decision'}</h2>
+              <p className={layout.body}>{simple ? 'No single choice stood out this time.' : 'No single decision dominated this result.'}</p>
             </section>
           )}
           <section className={layout.card} aria-labelledby="final-missed">
             <h2 className={layout.sectionTitle} id="final-missed">
-              Missed evidence
+              {simple ? 'Clues you missed' : 'Missed evidence'}
             </h2>
             <Checklist
-              items={result.missedEvidence.map((m) => ({ id: `${m.scenarioId}-${m.id}`, kind: 'missed', text: <strong>{m.title}</strong>, meta: m.note }))}
-              emptyText="You resolved every piece of evidence that mattered."
+              items={result.missedEvidence.map((m) => ({ id: `${m.scenarioId}-${m.id}`, kind: 'missed', text: <strong>{simple ? missedTitle(m.scenarioId, m.id, m.title) : m.title}</strong>, meta: simple ? undefined : m.note }))}
+              emptyText={simple ? 'You checked every clue that mattered. Great job!' : 'You resolved every piece of evidence that mattered.'}
             />
           </section>
         </div>
@@ -191,7 +216,7 @@ export function FinalResultScreen() {
               {result.chapters.map((c) => {
                 let title = `Chapter ${c.chapter}`;
                 try {
-                  title = getScenario(c.scenarioId).title;
+                  title = scenarioTitle(getScenario(c.scenarioId), simple);
                 } catch {
                   /* keep fallback */
                 }
@@ -213,25 +238,25 @@ export function FinalResultScreen() {
 
         <section className={layout.card} aria-labelledby="final-values">
           <h2 className={layout.sectionTitle} id="final-values">
-            Values protected
+            {simple ? 'What you protected' : 'Values protected'}
           </h2>
           {result.valuesProtected.length > 0 ? (
             <div className={layout.chips}>
               {result.valuesProtected.map((v) => (
                 <span key={v} className={`${layout.chip} ${layout.chipGood}`}>
-                  {v}
+                  {simpleValue(v, simple)}
                 </span>
               ))}
             </div>
           ) : (
-            <p className={layout.body}>No value was clearly protected this time. Next time, start with the grievance and the evidence.</p>
+            <p className={layout.body}>{simple ? 'Nothing was clearly protected this time. Next time, start by listening and checking the clues.' : 'No value was clearly protected this time. Next time, start with the grievance and the evidence.'}</p>
           )}
         </section>
 
         {dailySpec && (
           <section className={layout.card} aria-labelledby="final-band">
             <h2 className={layout.sectionTitle} id="final-band">
-              Today&apos;s comparison
+              {simple ? "Today's range" : "Today's comparison"}
             </h2>
             <SimulatedBand band={dailySpec.simulatedBand} mine={result.score} />
           </section>
@@ -241,7 +266,7 @@ export function FinalResultScreen() {
           <div className={`${layout.row} ${layout.spread}`}>
             <div>
               <h2 className={layout.sectionTitle} id="final-code" style={{ marginBottom: '0.2rem' }}>
-                Challenge code
+                {simple ? 'Code for friends' : 'Challenge code'}
               </h2>
               <span className={styles.codeInline}>{result.challengeCode}</span>
             </div>

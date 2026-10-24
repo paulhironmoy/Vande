@@ -108,6 +108,12 @@ function Accessibility() {
         <li>An adjustable timer pace, and pause and resume at any moment. The pace never changes your score.</li>
         <li>Plain-language explanations throughout, with no required audio.</li>
       </ul>
+      <h2>Simple play style</h2>
+      <p>
+        The Simple play style (the default for new players) uses plain words, bigger buttons and a clock that pauses whenever a new
+        decision appears, so younger or first-time players can take their time. The simulation, scoring and challenge codes are
+        identical in both styles; switch any time under Settings.
+      </p>
       <h2>Known limitations</h2>
       <ul>
         <li>

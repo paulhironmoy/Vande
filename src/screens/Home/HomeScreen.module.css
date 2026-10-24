@@ -153,3 +153,10 @@
     height: 7.5rem;
   }
 }
+
+.greeting {
+  margin: var(--s-2) 0 var(--s-4);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+}

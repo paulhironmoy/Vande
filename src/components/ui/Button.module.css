@@ -134,3 +134,13 @@
   height: 3.25rem;
   min-height: 3.25rem;
 }
+
+/* Simple play style: larger primary actions and no small text. */
+:global(:root[data-style='simple']) .lg {
+  min-height: 3.5rem;
+  font-size: var(--text-xl);
+}
+:global(:root[data-style='simple']) .sm {
+  font-size: 0.9375rem;
+  min-height: var(--tap);
+}

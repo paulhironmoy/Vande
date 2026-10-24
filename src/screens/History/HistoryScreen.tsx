@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { HistoryEntry } from '@/engine/types';
 import { OUTCOME_LABELS } from '@/engine/types';
 import { getScenario } from '@/engine';
+import { SIMPLE_HISTORY_KIND, SIMPLE_OUTCOMES, scenarioTitle, useSimple } from '@/app/simple';
 import { Button, ScreenShell, useApp } from '@/components/results/deps';
 import layout from '@/components/results/layout.module.css';
 import { ResultsSheet } from '@/components/results/ResultsSheet';
@@ -29,17 +30,19 @@ const TONE: Record<ReturnType<typeof scoreBand>, string> = {
   critical: 'var(--o-danger)',
 };
 
-function EntryDetail({ entry, onReplay }: { entry: HistoryEntry; onReplay?: (code: string) => void }) {
+function EntryDetail({ entry, onReplay, simple = false }: { entry: HistoryEntry; onReplay?: (code: string) => void; simple?: boolean }) {
   const code = entry.challengeCode ?? entry.campaign?.challengeCode;
   const scores = entry.campaign?.finalScores ?? entry.chapter?.scores;
+  const kindLabel = simple ? SIMPLE_HISTORY_KIND[entry.kind] : KIND_LABEL[entry.kind];
+  const outcomeName = entry.outcome ? (simple ? SIMPLE_OUTCOMES[entry.outcome].label : OUTCOME_LABELS[entry.outcome]) : entry.title;
   return (
     <div className={styles.detail}>
       <div className={styles.detailHead}>
-        <ScoreDisplay score={entry.score} label={entry.campaign ? 'Republic' : 'Chapter'} size="6.5rem" animated={false} />
+        <ScoreDisplay score={entry.score} label={simple ? 'Score' : entry.campaign ? 'Republic' : 'Chapter'} size="6.5rem" animated={false} />
         <div>
-          <h3 className={styles.detailTitle}>{entry.outcome ? OUTCOME_LABELS[entry.outcome] : entry.title}</h3>
+          <h3 className={styles.detailTitle}>{outcomeName}</h3>
           <p className={layout.muted}>
-            {KIND_LABEL[entry.kind]} · {formatDateTime(entry.completedAt)}
+            {kindLabel} · {formatDateTime(entry.completedAt)}
           </p>
         </div>
       </div>
@@ -57,36 +60,36 @@ function EntryDetail({ entry, onReplay }: { entry: HistoryEntry; onReplay?: (cod
             items={entry.campaign.chapters.map((c) => {
               let title = `Chapter ${c.chapter}`;
               try {
-                title = getScenario(c.scenarioId).title;
+                title = scenarioTitle(getScenario(c.scenarioId), simple);
               } catch {
                 /* fallback */
               }
-              return { id: c.scenarioId, kind: c.score >= 55 ? 'resolved' : 'unresolved', text: <strong>{title}</strong>, meta: `Chapter score ${Math.round(c.score)}` };
+              return { id: c.scenarioId, kind: c.score >= 55 ? 'resolved' : 'unresolved', text: <strong>{title}</strong>, meta: `${simple ? 'Score' : 'Chapter score'} ${Math.round(c.score)}` };
             })}
             emptyText=""
           />
         </section>
       )}
 
-      {entry.campaign?.mostConsequential && <KeyDecisionCard decision={entry.campaign.mostConsequential} heading="Most consequential decision" />}
-      {entry.chapter?.keyDecision && <KeyDecisionCard decision={entry.chapter.keyDecision} heading="Most consequential decision" />}
+      {entry.campaign?.mostConsequential && <KeyDecisionCard decision={entry.campaign.mostConsequential} heading={simple ? 'Your biggest choice' : 'Most consequential decision'} simple={simple} />}
+      {entry.chapter?.keyDecision && <KeyDecisionCard decision={entry.chapter.keyDecision} heading={simple ? 'Your biggest choice' : 'Most consequential decision'} simple={simple} />}
 
       {entry.chapter && (
         <div className={layout.grid2}>
           <section>
-            <h4 className={layout.sectionTitle}>Resolved</h4>
-            <Checklist items={entry.chapter.resolved.map((t, i) => ({ id: `r${i}`, kind: 'resolved', text: t }))} emptyText="Nothing fully resolved." />
+            <h4 className={layout.sectionTitle}>{simple ? 'You fixed' : 'Resolved'}</h4>
+            <Checklist items={entry.chapter.resolved.map((t, i) => ({ id: `r${i}`, kind: 'resolved', text: t }))} emptyText={simple ? 'Nothing fully fixed.' : 'Nothing fully resolved.'} />
           </section>
           <section>
-            <h4 className={layout.sectionTitle}>Unresolved</h4>
-            <Checklist items={entry.chapter.unresolved.map((t, i) => ({ id: `u${i}`, kind: 'unresolved', text: t }))} emptyText="Nothing left open." />
+            <h4 className={layout.sectionTitle}>{simple ? 'Still to fix' : 'Unresolved'}</h4>
+            <Checklist items={entry.chapter.unresolved.map((t, i) => ({ id: `u${i}`, kind: 'unresolved', text: t }))} emptyText={simple ? 'Nothing left.' : 'Nothing left open.'} />
           </section>
         </div>
       )}
 
       {(entry.campaign?.missedEvidence?.length ?? entry.chapter?.missedEvidence?.length ?? 0) > 0 && (
         <section>
-          <h4 className={layout.sectionTitle}>Missed evidence</h4>
+          <h4 className={layout.sectionTitle}>{simple ? 'Clues you missed' : 'Missed evidence'}</h4>
           <Checklist
             items={(entry.campaign?.missedEvidence ?? entry.chapter?.missedEvidence ?? []).map((m, i) => ({ id: `${m.id}-${i}`, kind: 'missed', text: <strong>{m.title}</strong>, meta: m.note }))}
             emptyText=""
@@ -99,7 +102,7 @@ function EntryDetail({ entry, onReplay }: { entry: HistoryEntry; onReplay?: (cod
           <Button variant="primary" onClick={() => onReplay(code)}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
               <ReplayIcon size={18} />
-              Replay this crisis
+              {simple ? 'Play this again' : 'Replay this crisis'}
             </span>
           </Button>
           <span className={layout.muted}>Code {code}</span>
@@ -116,6 +119,7 @@ export function HistoryScreen() {
   const navigate = useApp((s) => s.navigate);
   const beginChallenge = useApp((s) => s.beginChallenge);
   const toast = useApp((s) => s.toast);
+  const simple = useSimple();
   const [filter, setFilter] = useState<Filter>('all');
   const [openId, setOpenId] = useState<string | undefined>(screen.name === 'history' ? screen.entryId : undefined);
 
@@ -132,24 +136,24 @@ export function HistoryScreen() {
   const replay = (code: string) => {
     setOpenId(undefined);
     const ok = beginChallenge(code);
-    if (!ok) toast({ text: 'This crisis could not be replayed.', kind: 'warning', duration: 2800 });
+    if (!ok) toast({ text: simple ? 'This game could not be played again.' : 'This crisis could not be replayed.', kind: 'warning', duration: 2800 });
   };
 
   const kinds: Filter[] = ['all', 'campaign', 'daily', 'challenge', 'chapter'];
 
   return (
-    <ScreenShell title="Earlier crises" onBack={() => back()} testId="history-screen">
+    <ScreenShell title={simple ? 'Earlier games' : 'Earlier crises'} onBack={() => back()} testId="history-screen">
       <div className={`${layout.page} ${layout.narrow}`}>
         <header className={layout.stack}>
-          <h1 className={layout.h1}>Earlier crises</h1>
-          <p className={layout.lead}>Every result stored on this device. Open one to review what happened or replay it with the same seed.</p>
+          <h1 className={layout.h1}>{simple ? 'Earlier games' : 'Earlier crises'}</h1>
+          <p className={layout.lead}>{simple ? 'Every game saved on this device. Tap one to see what happened or play it again.' : 'Every result stored on this device. Open one to review what happened or replay it with the same seed.'}</p>
         </header>
 
         {history.length > 0 && (
           <div className={styles.filters} role="group" aria-label="Filter by kind">
             {kinds.map((k) => (
               <button key={k} type="button" className={styles.filter} aria-pressed={filter === k} onClick={() => setFilter(k)}>
-                {k === 'all' ? 'All' : KIND_LABEL[k]}
+                {k === 'all' ? 'All' : simple ? SIMPLE_HISTORY_KIND[k] : KIND_LABEL[k]}
               </button>
             ))}
           </div>
@@ -157,8 +161,8 @@ export function HistoryScreen() {
 
         {entries.length === 0 ? (
           <div className={`${layout.card} ${layout.emptyState}`}>
-            <h2 className={layout.h2}>{history.length === 0 ? 'No crises recorded yet' : 'Nothing matches this filter'}</h2>
-            <p className={layout.body}>{history.length === 0 ? 'Finish a chapter, a daily crisis or a campaign and it will be listed here.' : 'Try another filter.'}</p>
+            <h2 className={layout.h2}>{history.length === 0 ? (simple ? 'No games yet' : 'No crises recorded yet') : 'Nothing matches this filter'}</h2>
+            <p className={layout.body}>{history.length === 0 ? (simple ? 'Finish a chapter, a daily challenge or the story and it will show up here.' : 'Finish a chapter, a daily crisis or a campaign and it will be listed here.') : 'Try another filter.'}</p>
             {history.length === 0 && (
               <Button variant="primary" onClick={() => navigate({ name: 'home' })}>
                 Go home
@@ -174,9 +178,9 @@ export function HistoryScreen() {
                     {Math.round(h.score)}
                   </span>
                   <span className={styles.text}>
-                    <span className={styles.title}>{h.outcome ? OUTCOME_LABELS[h.outcome] : h.title}</span>
+                    <span className={styles.title}>{h.outcome ? (simple ? SIMPLE_OUTCOMES[h.outcome].label : OUTCOME_LABELS[h.outcome]) : h.title}</span>
                     <span className={styles.meta}>
-                      <span className={styles.kind}>{KIND_LABEL[h.kind]}</span>
+                      <span className={styles.kind}>{simple ? SIMPLE_HISTORY_KIND[h.kind] : KIND_LABEL[h.kind]}</span>
                       {h.outcome ? h.title : ''} {h.outcome ? '· ' : ''}
                       {formatDateTime(h.completedAt)}
                     </span>
@@ -190,7 +194,7 @@ export function HistoryScreen() {
       </div>
 
       <ResultsSheet open={!!open} onClose={() => setOpenId(undefined)} title={open?.title ?? 'Crisis'} testId="history-detail">
-        {open && <EntryDetail entry={open} onReplay={replay} />}
+        {open && <EntryDetail entry={open} onReplay={replay} simple={simple} />}
       </ResultsSheet>
     </ScreenShell>
   );

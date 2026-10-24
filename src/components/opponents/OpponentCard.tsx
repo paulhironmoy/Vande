@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import type { OpponentMeta } from '@/engine/types';
+import { SIMPLE_OPPONENTS } from '@/app/simple';
 import styles from './OpponentCard.module.css';
 import { SignalGlyph } from './SignalGlyph';
 import { OPPONENT_TONE } from './tones';
@@ -11,14 +12,17 @@ interface OpponentCardProps {
   animated?: boolean;
   /** Difficulty label adjusted for the chosen difficulty (defaults to the base difficulty). */
   difficultyLabel?: string;
+  /** Simple play style: nickname first, plain-words behaviour. */
+  simple?: boolean;
 }
 
 const DOTS: Record<OpponentMeta['baseDifficulty'], number> = { Low: 1, Medium: 2, High: 3 };
 
-export function OpponentCard({ opponent, selected, onToggle, animated = true, difficultyLabel }: OpponentCardProps) {
+export function OpponentCard({ opponent, selected, onToggle, animated = true, difficultyLabel, simple = false }: OpponentCardProps) {
   const nameId = useId();
   const descId = useId();
   const dots = DOTS[opponent.baseDifficulty];
+  const easy = SIMPLE_OPPONENTS[opponent.id];
   return (
     <article
       className={[styles.card, selected ? styles.selected : ''].join(' ')}
@@ -31,7 +35,8 @@ export function OpponentCard({ opponent, selected, onToggle, animated = true, di
       </div>
       <div className={styles.head}>
         <h3 className={styles.name} id={nameId}>
-          {opponent.name}
+          {simple ? easy.nickname : opponent.name}
+          {simple && <span className={styles.officialName}>{opponent.name}</span>}
         </h3>
         <span className={styles.difficulty} aria-label={`Difficulty ${difficultyLabel ?? opponent.baseDifficulty}`}>
           <span className={styles.dots} aria-hidden="true">
@@ -43,16 +48,24 @@ export function OpponentCard({ opponent, selected, onToggle, animated = true, di
         </span>
       </div>
       <div className={styles.body} id={descId}>
-        <p className={styles.behavior}>{opponent.behavior}</p>
+        <p className={styles.behavior}>{simple ? easy.behavior : opponent.behavior}</p>
         <p className={styles.pressure}>
-          <strong>Pressures you by</strong> {opponent.pressure.charAt(0).toLowerCase() + opponent.pressure.slice(1)}
+          {simple ? (
+            <>
+              <strong>Your move:</strong> {easy.pressure}
+            </>
+          ) : (
+            <>
+              <strong>Pressures you by</strong> {opponent.pressure.charAt(0).toLowerCase() + opponent.pressure.slice(1)}
+            </>
+          )}
         </p>
       </div>
       <button
         type="button"
         className={styles.toggle}
         aria-pressed={selected}
-        aria-label={`${selected ? 'Selected' : 'Add opponent'} — ${opponent.name}`}
+        aria-label={`${selected ? (simple ? 'Added' : 'Selected') : (simple ? 'Add' : 'Add opponent')} — ${opponent.name}`}
         aria-describedby={descId}
         onClick={onToggle}
         data-testid={`opponent-toggle-${opponent.id}`}
@@ -64,7 +77,7 @@ export function OpponentCard({ opponent, selected, onToggle, animated = true, di
             </svg>
           )}
         </span>
-        {selected ? 'Selected' : 'Add opponent'}
+        {selected ? (simple ? 'Added' : 'Selected') : simple ? 'Add' : 'Add opponent'}
       </button>
     </article>
   );

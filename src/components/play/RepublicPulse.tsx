@@ -4,6 +4,7 @@ import { DIMENSIONS, DIMENSION_LABELS } from '@/engine/types';
 import { DIMENSION_ICON, PlayIcon, type PlayIconName } from './icons';
 import { balanceWord, instabilityWord, pulseSummary, trendOf, trendWord, type Trend } from './format';
 import { useSmoothedScores } from './hooks';
+import { SIMPLE_DIMENSIONS, SIMPLE_UI, cityMood, weakestDimension } from '@/app/simple';
 import styles from './RepublicPulse.module.css';
 
 export interface RepublicPulseProps {
@@ -17,6 +18,17 @@ export interface RepublicPulseProps {
   testId?: string;
   valuesTestId?: string;
   className?: string;
+  /** Simple play style: a plain mood word and friendly dimension names. */
+  simple?: boolean;
+}
+
+const SIMPLE_TREND: Record<Trend, string> = { rising: 'getting better', falling: 'getting worse', steady: 'steady' };
+
+/** Plain-language summary for the Simple style (used as the accessible name). */
+export function simplePulseSummary(pulse: Pulse, scores: Scores): string {
+  const mood = cityMood(scores);
+  const parts = DIMENSIONS.map((d: Dimension) => `${SIMPLE_DIMENSIONS[d].label} ${Math.round(scores[d])} out of 100, ${SIMPLE_TREND[trendOf(pulse.momentum[d])]}`);
+  return `How is the city doing? ${mood.label}. Weakest: ${SIMPLE_DIMENSIONS[weakestDimension(scores)].label}. ${parts.join('. ')}.`;
 }
 
 const CX = 120;
@@ -39,9 +51,10 @@ function radiusFor(value: number): number {
 const TREND_ICON: Record<Trend, PlayIconName> = { rising: 'up', falling: 'down', steady: 'steady' };
 const TREND_LABEL: Record<Trend, string> = { rising: 'Rising', falling: 'Falling', steady: 'Steady' };
 
-export function PulseValues({ pulse, scores, testId = 'pulse-values', id }: { pulse: Pulse; scores: Scores; testId?: string; id?: string }) {
+export function PulseValues({ pulse, scores, testId = 'pulse-values', id, simple }: { pulse: Pulse; scores: Scores; testId?: string; id?: string; simple?: boolean }) {
+  const mood = simple ? cityMood(scores) : undefined;
   return (
-    <div className={styles.values} data-testid={testId} id={id}>
+    <div className={[styles.values, simple ? styles.valuesSimple : ''].filter(Boolean).join(' ')} data-testid={testId} id={id}>
       <dl className={styles.valueList}>
         {DIMENSIONS.map((d: Dimension) => {
           const t = trendOf(pulse.momentum[d]);
@@ -49,44 +62,60 @@ export function PulseValues({ pulse, scores, testId = 'pulse-values', id }: { pu
             <div className={styles.row} key={d} data-dim={d}>
               <dt className={styles.dt}>
                 <PlayIcon name={DIMENSION_ICON[d]} size={16} className={styles.dimIcon} style={{ color: `var(--o-${d})` }} />
-                <span>{DIMENSION_LABELS[d]}</span>
+                <span>
+                  {simple ? SIMPLE_DIMENSIONS[d].label : DIMENSION_LABELS[d]}
+                  {simple ? <small className={styles.help}>{SIMPLE_DIMENSIONS[d].help}</small> : null}
+                </span>
               </dt>
               <dd className={styles.num}>{Math.round(scores[d])}</dd>
               <dd className={styles.trend} data-trend={t}>
                 <PlayIcon name={TREND_ICON[t]} size={14} />
-                <span>{trendWord(t)}</span>
+                <span>{simple ? SIMPLE_TREND[t] : trendWord(t)}</span>
               </dd>
             </div>
           );
         })}
       </dl>
-      <p className={styles.meta}>
-        <span>
-          Balance: <strong>{balanceWord(pulse.balance)}</strong>
-        </span>
-        <span aria-hidden="true">·</span>
-        <span>
-          Instability: <strong>{instabilityWord(pulse.instability)}</strong>
-        </span>
-        <span aria-hidden="true">·</span>
-        <span>
-          Weakest: <strong>{DIMENSION_LABELS[pulse.weakest]}</strong>
-        </span>
-      </p>
+      {simple && mood ? (
+        <p className={styles.meta}>
+          <span>
+            The city is <strong>{mood.label.toLowerCase()}</strong>. {mood.help}
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>
+            Weakest: <strong>{SIMPLE_DIMENSIONS[weakestDimension(scores)].label}</strong>
+          </span>
+        </p>
+      ) : (
+        <p className={styles.meta}>
+          <span>
+            Balance: <strong>{balanceWord(pulse.balance)}</strong>
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>
+            Instability: <strong>{instabilityWord(pulse.instability)}</strong>
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>
+            Weakest: <strong>{DIMENSION_LABELS[pulse.weakest]}</strong>
+          </span>
+        </p>
+      )}
     </div>
   );
 }
 
-export function RepublicPulse({ pulse, scores, variant = 'full', reducedMotion = false, alwaysShowValues = false, onExpand, testId = 'pulse', valuesTestId = 'pulse-values', className }: RepublicPulseProps) {
+export function RepublicPulse({ pulse, scores, variant = 'full', reducedMotion = false, alwaysShowValues = false, onExpand, testId = 'pulse', valuesTestId = 'pulse-values', className, simple = false }: RepublicPulseProps) {
   const shown = useSmoothedScores(scores, !reducedMotion);
   const [pinned, setPinned] = useState(false);
   const [hover, setHover] = useState(false);
   const [focus, setFocus] = useState(false);
   const panelId = useId();
   const gradId = useId();
-  const summary = useMemo(() => pulseSummary(pulse, scores), [pulse, scores]);
+  const summary = useMemo(() => (simple ? simplePulseSummary(pulse, scores) : pulseSummary(pulse, scores)), [pulse, scores, simple]);
   const mean = Math.round(pulse.mean);
   const direction: Trend = pulse.direction;
+  const mood = simple ? cityMood(scores) : undefined;
 
   const geometry = useMemo(() => {
     const tips = DIMENSIONS.map((d, i) => ({ d, i, r: radiusFor(shown[d]), ...polar(radiusFor(shown[d]), i) }));
@@ -122,12 +151,20 @@ export function RepublicPulse({ pulse, scores, variant = 'full', reducedMotion =
           <polygon points={geometry.area} className={styles.area} />
           <polygon points={geometry.ring} className={styles.ring} style={{ strokeDasharray: `${dashOn} ${dashOff}` }} />
         </svg>
-        <span className={styles.compactText} aria-hidden="true">
-          <span className={styles.compactMean}>{mean}</span>
-          <span className={styles.compactTrend} data-trend={direction}>
-            <PlayIcon name={TREND_ICON[direction]} size={14} />
+        {mood ? (
+          <span className={styles.compactText} aria-hidden="true">
+            <span className={styles.compactMood} data-tone={mood.tone}>
+              {mood.label}
+            </span>
           </span>
-        </span>
+        ) : (
+          <span className={styles.compactText} aria-hidden="true">
+            <span className={styles.compactMean}>{mean}</span>
+            <span className={styles.compactTrend} data-trend={direction}>
+              <PlayIcon name={TREND_ICON[direction]} size={14} />
+            </span>
+          </span>
+        )}
       </button>
     );
   }
@@ -139,14 +176,20 @@ export function RepublicPulse({ pulse, scores, variant = 'full', reducedMotion =
   const onPointerLeave = () => setHover(false);
 
   return (
-    <div className={[styles.root, className ?? ''].filter(Boolean).join(' ')}>
+    <div className={[styles.root, simple ? styles.rootSimple : '', className ?? ''].filter(Boolean).join(' ')}>
+      {mood ? (
+        <p className={styles.moodLabel} data-tone={mood.tone} data-testid="pulse-mood">
+          <span className={styles.moodWord}>{mood.label}</span>
+          <span className={styles.moodHelp}>{mood.help}</span>
+        </p>
+      ) : null}
       <button
         type="button"
         className={styles.figure}
         data-testid={testId}
         aria-expanded={showPanel}
         aria-controls={panelId}
-        aria-label={`${mean} ${TREND_LABEL[direction]}. ${showPanel ? 'Hide' : 'Show'} Republic Pulse values`}
+        aria-label={`${mean} ${TREND_LABEL[direction]}. ${showPanel ? 'Hide' : 'Show'} ${simple ? SIMPLE_UI.pulseHeading : 'Republic Pulse values'}`}
         onClick={() => setPinned((p) => !p)}
         onPointerEnter={onPointerEnter}
         onPointerLeave={onPointerLeave}
@@ -224,7 +267,7 @@ export function RepublicPulse({ pulse, scores, variant = 'full', reducedMotion =
           </g>
         </svg>
       </button>
-      {showPanel ? <PulseValues pulse={pulse} scores={scores} testId={valuesTestId} id={panelId} /> : <div id={panelId} hidden />}
+      {showPanel ? <PulseValues pulse={pulse} scores={scores} testId={valuesTestId} id={panelId} simple={simple} /> : <div id={panelId} hidden />}
     </div>
   );
 }

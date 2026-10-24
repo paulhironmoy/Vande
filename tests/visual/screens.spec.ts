@@ -5,9 +5,11 @@ import { test, expect, type Page } from '@playwright/test';
  * Run: VISUAL=1 npx playwright test --project=visual
  */
 const SIZES = [
-  { name: 'phone', width: 390, height: 844 },
-  { name: 'desktop', width: 1440, height: 900 },
-];
+  { name: 'phone-simple', width: 390, height: 844, style: 'simple' },
+  { name: 'desktop-simple', width: 1440, height: 900, style: 'simple' },
+  { name: 'phone-full', width: 390, height: 844, style: 'full' },
+  { name: 'desktop-full', width: 1440, height: 900, style: 'full' },
+] as const;
 
 async function shot(page: Page, name: string, size: string) {
   await page.waitForTimeout(350);
@@ -49,6 +51,8 @@ for (const size of SIZES) {
       if (await page.getByTestId('launch-screen').isVisible().catch(() => false)) await shot(page, '01-launch', size.name);
       await expect(page.getByTestId('intro-screen')).toBeVisible({ timeout: 15_000 });
       await shot(page, '02-intro', size.name);
+      const chooser = page.getByTestId(`style-${size.style}`);
+      if (await chooser.isVisible().catch(() => false)) await chooser.click();
       await page.getByTestId('intro-begin').click();
       await expect(page.getByTestId('opponents-screen')).toBeVisible();
       await shot(page, '03-opponents', size.name);

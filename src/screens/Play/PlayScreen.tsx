@@ -12,6 +12,8 @@ import {
   StatusBar,
   useIsDesktop,
 } from '@/components/play';
+import { SIMPLE_UI, pick, useSimple } from '@/app/simple';
+import { SIMPLE_TEXT, makeFeedSimplifier } from '@/components/play/simpleCopy';
 import { DecisionArea } from './DecisionArea';
 import { EvidencePanel } from './EvidencePanel';
 import styles from './PlayScreen.module.css';
@@ -35,6 +37,9 @@ export function PlayScreen() {
   const endChapter = useApp((s) => s.endChapter);
   const abandonCampaign = useApp((s) => s.abandonCampaign);
   const navigate = useApp((s) => s.navigate);
+  const autoPaused = useApp((s) => s.autoPaused);
+  const simple = useSimple();
+  const simplifyFeed = useMemo(() => (scenario ? makeFeedSimplifier(scenario) : (t: string) => t), [scenario]);
 
   const isDesktop = useIsDesktop();
   const [pulseOpen, setPulseOpen] = useState(false);
@@ -117,8 +122,12 @@ export function PlayScreen() {
 
   const chapter = scenario.chapter;
   const district = focusDistrict ? map?.districts.find((d) => d.id === focusDistrict) : undefined;
-  const sheetOpen = trayOpen || pulseOpen || game.status === 'paused';
   const paused = game.status === 'paused';
+  // An automatic pause (the clock waiting for a decision) never opens the pause sheet.
+  const waiting = paused && autoPaused;
+  const manualPaused = paused && !autoPaused;
+  const sheetOpen = trayOpen || pulseOpen || manualPaused;
+  const title = pick(simple, scenario.title, scenario.simple?.title);
   const pendingHere = district ? game.pendingDecisionIds.find((id) => scenario.decisions.find((d) => d.id === id)?.district === district.id) : undefined;
 
   const showDecisionHere = () => {
@@ -168,13 +177,15 @@ export function PlayScreen() {
   const statusBar = (
     <StatusBar
       chapter={chapter}
-      title={scenario.title}
+      title={title}
       tick={game.tick}
       duration={game.duration}
       status={game.status}
       onPause={() => (paused ? resumeGame() : pauseGame())}
       className={styles.statusBar}
-      pulseSlot={!isDesktop && pulse ? <RepublicPulse variant="compact" pulse={pulse} scores={game.scores} reducedMotion={reducedMotion} onExpand={() => setPulseOpen(true)} /> : undefined}
+      simple={simple}
+      waiting={waiting}
+      pulseSlot={!isDesktop && pulse ? <RepublicPulse variant="compact" pulse={pulse} scores={game.scores} reducedMotion={reducedMotion} onExpand={() => setPulseOpen(true)} simple={simple} /> : undefined}
     />
   );
 
@@ -183,10 +194,10 @@ export function PlayScreen() {
       <div className={styles.ended} role="status">
         <div className={styles.endedCard}>
           <PlayIcon name="check" size={22} />
-          <p className={styles.endedTitle}>Chapter complete</p>
-          <p className={styles.endedText}>Compiling what was resolved and what remains.</p>
+          <p className={styles.endedTitle}>{simple ? SIMPLE_UI.chapterDone : 'Chapter complete'}</p>
+          <p className={styles.endedText}>{simple ? SIMPLE_TEXT.chapterDoneBody : 'Compiling what was resolved and what remains.'}</p>
           <PlayButton variant="primary" onClick={() => endChapter()} data-testid="chapter-ended-continue">
-            See the resolution
+            {simple ? SIMPLE_TEXT.seeResult : 'See the resolution'}
           </PlayButton>
         </div>
       </div>
@@ -197,36 +208,37 @@ export function PlayScreen() {
       <div className={styles.ended} role="status">
         <div className={styles.endedCard}>
           <PlayIcon name="play" size={22} />
-          <p className={styles.endedTitle}>Ready when you are</p>
-          <p className={styles.endedText}>The clock starts when you begin.</p>
+          <p className={styles.endedTitle}>{simple ? SIMPLE_TEXT.readyTitle : 'Ready when you are'}</p>
+          <p className={styles.endedText}>{simple ? SIMPLE_TEXT.readyBody : 'The clock starts when you begin.'}</p>
           <PlayButton variant="primary" onClick={() => startChapter()} data-testid="play-start">
-            Begin
+            {simple ? SIMPLE_TEXT.begin : 'Begin'}
           </PlayButton>
         </div>
       </div>
     ) : null;
+  const chapterLabel = `Chapter ${chapter} · ${title}`;
 
   if (isDesktop) {
     return (
-      <main className={styles.screen} data-testid="play-screen" data-layout="desktop">
+      <main className={styles.screen} data-testid="play-screen" data-layout="desktop" data-simple={simple ? 'true' : undefined}>
         {statusBar}
         <div className={styles.body}>
           <section className={styles.mapArea} aria-label="City map">
             {mapNode}
-            {district ? <DistrictCard district={district} onClose={() => setFocusDistrict(undefined)} onShowDecision={pendingHere ? showDecisionHere : undefined} onShowEvidence={district.openEvidence > 0 ? showEvidenceHere : undefined} className={styles.districtCard} /> : null}
+            {district ? <DistrictCard district={district} onClose={() => setFocusDistrict(undefined)} onShowDecision={pendingHere ? showDecisionHere : undefined} onShowEvidence={district.openEvidence > 0 ? showEvidenceHere : undefined} className={styles.districtCard} simple={simple} /> : null}
             {endedOverlay}
             {briefingOverlay}
           </section>
-          <aside className={styles.rail} aria-label="Republic status, decisions and evidence">
+          <aside className={styles.rail} aria-label={simple ? 'City, choices and clues' : 'Republic status, decisions and evidence'}>
             <section className={styles.railSection} aria-labelledby="rail-pulse-h">
               <h2 id="rail-pulse-h" className={styles.railHeading}>
-                Republic Pulse
+                {simple ? SIMPLE_UI.pulseHeading : 'Republic Pulse'}
               </h2>
-              {pulse ? <RepublicPulse pulse={pulse} scores={game.scores} reducedMotion={reducedMotion} alwaysShowValues={settings.alwaysShowValues} /> : null}
+              {pulse ? <RepublicPulse pulse={pulse} scores={game.scores} reducedMotion={reducedMotion} alwaysShowValues={settings.alwaysShowValues} simple={simple} /> : null}
             </section>
             <section className={styles.railSection} aria-labelledby="rail-decisions-h">
               <h2 id="rail-decisions-h" className={styles.railHeading}>
-                Decisions
+                {simple ? SIMPLE_UI.decisionsHeading : 'Decisions'}
                 {game.pendingDecisionIds.length > 0 ? <span className={styles.count}>{game.pendingDecisionIds.length}</span> : null}
               </h2>
               <DecisionArea game={game} scenario={scenario} layout="stack" requestedDecisionId={requestedDecision} onRequestHandled={clearRequestedDecision} unexaminedEvidence={unexamined} onOpenEvidence={openEvidenceUi} sheetOpen={sheetOpen} />
@@ -234,8 +246,8 @@ export function PlayScreen() {
             <section className={styles.railSection} aria-labelledby="rail-evidence-h" id="rail-evidence">
               <h2 className={styles.railHeading} id="rail-evidence-h">
                 <button type="button" className={styles.disclosure} aria-expanded={evidenceOpenDesktop} aria-controls="rail-evidence-body" onClick={() => setEvidenceOpenDesktop((v) => !v)} data-testid="evidence-tray-toggle">
-                  <span>Evidence</span>
-                  <span className={styles.count} aria-label={`${visibleEvidenceIds.length} items`}>
+                  <span>{simple ? SIMPLE_UI.evidenceHeading : 'Evidence'}</span>
+                  <span className={styles.count} aria-label={`${visibleEvidenceIds.length} ${simple ? 'clues' : 'items'}`}>
                     {visibleEvidenceIds.length}
                   </span>
                   {newEvidenceIds.size > 0 ? <span className={styles.newBadge}>{newEvidenceIds.size} new</span> : null}
@@ -246,18 +258,18 @@ export function PlayScreen() {
                 {evidenceOpenDesktop ? <EvidencePanel game={game} scenario={scenario} newIds={newEvidenceIds} onSeen={markSeen} /> : null}
               </div>
             </section>
-            <section className={styles.railSection} aria-label="Recent events">
-              <ConsequenceFeed items={game.feed} limit={6} />
+            <section className={styles.railSection} aria-label={simple ? SIMPLE_UI.happeningNow : 'Recent events'}>
+              <ConsequenceFeed items={game.feed} limit={6} simple={simple} simplify={simplifyFeed} />
             </section>
           </aside>
         </div>
-        <PauseSheet open={paused} pace={settings.timerPace} chapterTitle={`Chapter ${chapter} · ${scenario.title}`} onResume={resumeGame} onAbandon={onAbandon} onOpenSettings={() => navigate({ name: 'settings' })} />
+        <PauseSheet open={manualPaused} pace={settings.timerPace} chapterTitle={chapterLabel} onResume={resumeGame} onAbandon={onAbandon} onOpenSettings={() => navigate({ name: 'settings' })} simple={simple} />
       </main>
     );
   }
 
   return (
-    <main className={styles.screen} data-testid="play-screen" data-layout="mobile">
+    <main className={styles.screen} data-testid="play-screen" data-layout="mobile" data-simple={simple ? 'true' : undefined}>
       {statusBar}
       <div className={styles.body}>
         <section className={styles.mapArea} aria-label="City map">
@@ -267,24 +279,24 @@ export function PlayScreen() {
             className={styles.trayToggle}
             data-testid="evidence-tray-toggle"
             aria-expanded={trayOpen}
-            aria-label={`Evidence, ${visibleEvidenceIds.length} items${newEvidenceIds.size > 0 ? `, ${newEvidenceIds.size} new` : ''}`}
+            aria-label={`${simple ? 'Clues' : 'Evidence'}, ${visibleEvidenceIds.length} ${simple ? 'clues' : 'items'}${newEvidenceIds.size > 0 ? `, ${newEvidenceIds.size} new` : ''}`}
             onClick={() => setTrayOpen(true)}
           >
             <PlayIcon name="tray" size={20} />
-            <span className={styles.trayLabel}>Evidence</span>
+            <span className={styles.trayLabel}>{simple ? SIMPLE_UI.evidenceHeading : 'Evidence'}</span>
             <span className={styles.trayCount} aria-hidden="true" data-count={visibleEvidenceIds.length} />
             {newEvidenceIds.size > 0 ? <span className={styles.trayNew} aria-hidden="true" data-count={newEvidenceIds.size > 9 ? '9+' : newEvidenceIds.size} /> : null}
           </button>
           {endedOverlay}
           {briefingOverlay}
         </section>
-        <section className={styles.dock} aria-label="Decisions">
+        <section className={styles.dock} aria-label={simple ? SIMPLE_UI.decisionsHeading : 'Decisions'}>
           {district ? (
             <div ref={districtDockRef}>
-              <DistrictCard district={district} onClose={() => setFocusDistrict(undefined)} onShowDecision={pendingHere ? showDecisionHere : undefined} onShowEvidence={district.openEvidence > 0 ? showEvidenceHere : undefined} className={styles.districtDock} />
+              <DistrictCard district={district} onClose={() => setFocusDistrict(undefined)} onShowDecision={pendingHere ? showDecisionHere : undefined} onShowEvidence={district.openEvidence > 0 ? showEvidenceHere : undefined} className={styles.districtDock} simple={simple} />
             </div>
           ) : null}
-          <ConsequenceFeed items={game.feed} limit={6} collapsible />
+          <ConsequenceFeed items={game.feed} limit={6} collapsible simple={simple} simplify={simplifyFeed} />
           <DecisionArea game={game} scenario={scenario} layout="pager" requestedDecisionId={requestedDecision} onRequestHandled={clearRequestedDecision} unexaminedEvidence={unexamined} onOpenEvidence={openEvidenceUi} sheetOpen={sheetOpen} />
         </section>
       </div>
@@ -292,7 +304,7 @@ export function PlayScreen() {
       <PlaySheet
         open={trayOpen}
         onClose={() => setTrayOpen(false)}
-        title={openEvidenceId ? 'Evidence detail' : 'Evidence'}
+        title={openEvidenceId ? (simple ? SIMPLE_TEXT.clueDetailTitle : 'Evidence detail') : simple ? SIMPLE_TEXT.clueSheetTitle : 'Evidence'}
         hideTitle={Boolean(openEvidenceId)}
         testId="evidence-tray"
         tall
@@ -300,15 +312,15 @@ export function PlayScreen() {
         <EvidencePanel game={game} scenario={scenario} newIds={newEvidenceIds} onSeen={markSeen} />
       </PlaySheet>
 
-      <PlaySheet open={pulseOpen} onClose={() => setPulseOpen(false)} title="Republic Pulse" testId="pulse-sheet">
+      <PlaySheet open={pulseOpen} onClose={() => setPulseOpen(false)} title={simple ? SIMPLE_TEXT.pulseSheetTitle : 'Republic Pulse'} testId="pulse-sheet">
         {pulse ? (
           <div className={styles.pulseSheet}>
-            <RepublicPulse pulse={pulse} scores={game.scores} reducedMotion={reducedMotion} alwaysShowValues testId="pulse-large" valuesTestId="pulse-values" />
+            <RepublicPulse pulse={pulse} scores={game.scores} reducedMotion={reducedMotion} alwaysShowValues testId="pulse-large" valuesTestId="pulse-values" simple={simple} />
           </div>
         ) : null}
       </PlaySheet>
 
-      <PauseSheet open={paused} pace={settings.timerPace} chapterTitle={`Chapter ${chapter} · ${scenario.title}`} onResume={resumeGame} onAbandon={onAbandon} onOpenSettings={() => navigate({ name: 'settings' })} />
+      <PauseSheet open={manualPaused} pace={settings.timerPace} chapterTitle={chapterLabel} onResume={resumeGame} onAbandon={onAbandon} onOpenSettings={() => navigate({ name: 'settings' })} simple={simple} />
     </main>
   );
 }

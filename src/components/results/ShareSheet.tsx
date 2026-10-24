@@ -8,6 +8,7 @@ import { copyText, downloadBlob } from './format';
 import { DownloadIcon, LinkIcon, ShareIcon } from './icons';
 import { ResultsSheet } from './ResultsSheet';
 import styles from './ShareSheet.module.css';
+import { useSimple } from '@/app/simple';
 
 interface ShareSheetProps {
   open: boolean;
@@ -24,6 +25,7 @@ const OUTCOME_TOAST: Record<ShareOutcome, { text: string; kind: 'success' | 'inf
 };
 
 export function ShareSheet({ open, onClose, result }: ShareSheetProps) {
+  const simple = useSimple();
   const toast = useApp((s) => s.toast);
   const [size, setSize] = useState<CardSize>('landscape');
   const [preview, setPreview] = useState<{ url: string; blob: Blob } | null>(null);
@@ -82,11 +84,11 @@ export function ShareSheet({ open, onClose, result }: ShareSheetProps) {
   };
 
   return (
-    <ResultsSheet open={open} onClose={onClose} title="Challenge friends" testId="share-sheet">
+    <ResultsSheet open={open} onClose={onClose} title={simple ? 'Challenge a friend' : 'Challenge friends'} testId="share-sheet">
       <div className={layout.stack}>
         <p className={styles.tagline}>{model.tagline}</p>
         <div className={layout.row} style={{ justifyContent: 'space-between' }}>
-          <span className={layout.muted}>Generated on this device. Nothing is uploaded.</span>
+          <span className={layout.muted}>{simple ? 'Made on this device. Nothing is sent anywhere until you share it.' : 'Generated on this device. Nothing is uploaded.'}</span>
           <div className={styles.sizeToggle} role="radiogroup" aria-label="Card format">
             {(['landscape', 'portrait'] as CardSize[]).map((s) => (
               <button key={s} type="button" role="radio" aria-checked={size === s} className={styles.sizeOption} onClick={() => setSize(s)}>

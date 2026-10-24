@@ -1,7 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import type { GameStatus } from '@/engine/types';
 import { PlayIconButton } from './PlayButton';
+import { PlayIcon } from './icons';
 import { formatClock, phaseLabel } from './format';
+import { SIMPLE_UI } from '@/app/simple';
+import { simplePhase } from './simpleCopy';
 import styles from './StatusBar.module.css';
 
 export interface StatusBarProps {
@@ -14,11 +17,15 @@ export interface StatusBarProps {
   /** Slot for the compact Republic Pulse (mobile). */
   pulseSlot?: ReactNode;
   className?: string;
+  /** Simple play style: plain phase words. */
+  simple?: boolean;
+  /** The clock is paused automatically for a new decision (Simple style). */
+  waiting?: boolean;
 }
 
-export function StatusBar({ chapter, title, tick, duration, status, onPause, pulseSlot, className }: StatusBarProps) {
+export function StatusBar({ chapter, title, tick, duration, status, onPause, pulseSlot, className, simple, waiting }: StatusBarProps) {
   const left = Math.max(0, duration - tick);
-  const urgent = left <= 20 && status !== 'ended';
+  const urgent = left <= 20 && status !== 'ended' && !waiting;
   const [announce, setAnnounce] = useState('');
   useEffect(() => {
     if (left === 30 && status === 'running') {
@@ -36,17 +43,34 @@ export function StatusBar({ chapter, title, tick, duration, status, onPause, pul
         <p className={styles.kicker}>
           <span className={styles.chapter}>Chapter {chapter}</span>
           <span aria-hidden="true">·</span>
-          <span className={styles.phase}>{phaseLabel(tick, duration)}</span>
+          <span className={styles.phase}>{simple ? simplePhase(tick, duration) : phaseLabel(tick, duration)}</span>
         </p>
         <h1 className={styles.title}>{title}</h1>
       </div>
       <div className={styles.right}>
         <div className={styles.clockGroup}>
-          <span className={styles.timer} role="timer" aria-live="off" aria-label={`Time left ${formatClock(left)}`} data-testid="timer" data-urgent={urgent ? 'true' : undefined} data-status={status}>
+          <span
+            className={styles.timer}
+            role="timer"
+            aria-live="off"
+            aria-label={`${simple ? SIMPLE_UI.timeLeft : 'Time left'} ${formatClock(left)}${waiting ? ', clock waiting for you' : ''}`}
+            data-testid="timer"
+            data-urgent={urgent ? 'true' : undefined}
+            data-status={status}
+            data-waiting={waiting ? 'true' : undefined}
+          >
+            {waiting ? <PlayIcon name="pause" size={14} className={styles.waitGlyph} /> : null}
             {formatClock(left)}
           </span>
         </div>
-        <PlayIconButton icon={status === 'paused' ? 'play' : 'pause'} label={status === 'paused' ? 'Resume' : 'Pause'} onClick={onPause} data-testid="pause" variant="solid" disabled={status === 'ended'} />
+        <PlayIconButton
+          icon={status === 'paused' ? 'play' : 'pause'}
+          label={status === 'paused' ? (simple ? SIMPLE_UI.resume : 'Resume') : SIMPLE_UI.pause}
+          onClick={onPause}
+          data-testid="pause"
+          variant="solid"
+          disabled={status === 'ended'}
+        />
       </div>
       <span className={styles.srOnly} aria-live="polite">
         {announce}

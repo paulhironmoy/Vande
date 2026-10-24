@@ -1,0 +1,45 @@
+.wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+.row {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+.star {
+  display: block;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.on {
+  fill: var(--a-saffron);
+  stroke: color-mix(in srgb, var(--a-saffron) 70%, white);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--a-saffron) 55%, transparent));
+  animation: pop var(--dur-scene) var(--ease-spring) both;
+  animation-delay: calc(var(--i, 1) * 120ms);
+}
+.off {
+  fill: rgba(170, 182, 200, 0.12);
+  stroke: rgba(170, 182, 200, 0.4);
+}
+.caption {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--t-secondary);
+}
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+:global(:root[data-contrast='high']) .off {
+  fill: transparent;
+  stroke: #ffffff;
+}

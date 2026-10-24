@@ -1,6 +1,7 @@
 import type { EvidenceState, ScenarioEvidence } from '@/engine/types';
 import { EvidenceCard } from './EvidenceCard';
 import { PlayIcon } from './icons';
+import { SIMPLE_TEXT, simpleItems } from './simpleCopy';
 import styles from './EvidenceList.module.css';
 
 export interface EvidenceEntry {
@@ -15,13 +16,13 @@ export function sortEvidence(entries: EvidenceEntry[]): EvidenceEntry[] {
   });
 }
 
-export function EvidenceList({ entries, newIds, onOpen }: { entries: EvidenceEntry[]; newIds?: Set<string>; onOpen: (id: string) => void }) {
+export function EvidenceList({ entries, newIds, onOpen, simple }: { entries: EvidenceEntry[]; newIds?: Set<string>; onOpen: (id: string) => void; simple?: boolean }) {
   const sorted = sortEvidence(entries);
   if (sorted.length === 0) {
     return (
       <div className={styles.empty}>
         <PlayIcon name="evidence" size={28} />
-        <p>No evidence yet. Reports, records and recordings arrive here as the situation develops.</p>
+        <p>{simple ? SIMPLE_TEXT.noClues : 'No evidence yet. Reports, records and recordings arrive here as the situation develops.'}</p>
       </div>
     );
   }
@@ -29,12 +30,11 @@ export function EvidenceList({ entries, newIds, onOpen }: { entries: EvidenceEnt
   return (
     <div className={styles.root}>
       <p className={styles.summary}>
-        {sorted.length} item{sorted.length === 1 ? '' : 's'}
-        {open > 0 ? ` · ${open} not yet examined` : ' · all examined'}
+        {simple ? simpleItems(sorted.length, open) : `${sorted.length} item${sorted.length === 1 ? '' : 's'}${open > 0 ? ` · ${open} not yet examined` : ' · all examined'}`}
       </p>
       <ul className={styles.list}>
         {sorted.map((e) => (
-          <EvidenceCard key={e.item.id} item={e.item} state={e.state} onOpen={onOpen} isNew={newIds?.has(e.item.id)} />
+          <EvidenceCard key={e.item.id} item={e.item} state={e.state} onOpen={onOpen} isNew={newIds?.has(e.item.id)} simple={simple} />
         ))}
       </ul>
     </div>

@@ -258,3 +258,57 @@
 .compactTrend[data-trend='falling'] {
   color: var(--o-danger);
 }
+
+/* Simple play style */
+.moodLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  margin: 0 0 var(--s-2);
+  text-align: center;
+}
+.moodWord {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.01em;
+  color: var(--t-primary);
+}
+.moodHelp {
+  font-size: var(--text-sm);
+  color: var(--t-secondary);
+}
+.moodLabel[data-tone='great'] .moodWord,
+.compactMood[data-tone='great'] {
+  color: var(--o-safety);
+}
+.moodLabel[data-tone='good'] .moodWord,
+.compactMood[data-tone='good'] {
+  color: var(--o-freedom);
+}
+.moodLabel[data-tone='shaky'] .moodWord,
+.compactMood[data-tone='shaky'] {
+  color: var(--a-saffron);
+}
+.moodLabel[data-tone='trouble'] .moodWord,
+.compactMood[data-tone='trouble'] {
+  color: var(--o-danger);
+}
+.compactMood {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  line-height: 1.1;
+  max-width: 5.5rem;
+  white-space: normal;
+}
+.help {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  color: var(--t-tertiary);
+  line-height: 1.3;
+}
+.valuesSimple .dt span {
+  display: flex;
+  flex-direction: column;
+}
