@@ -18,6 +18,7 @@ const DailyScreen = lazy(() => import('@/screens/Daily/DailyScreen').then((m) =>
 const DailyOpenScreen = lazy(() => import('@/screens/Daily/DailyOpenScreen').then((m) => ({ default: m.DailyOpenScreen })));
 const CalendarScreen = lazy(() => import('@/screens/Calendar/CalendarScreen').then((m) => ({ default: m.CalendarScreen })));
 const PassportScreen = lazy(() => import('@/screens/Passport/PassportScreen').then((m) => ({ default: m.PassportScreen })));
+const LitePlayScreen = lazy(() => import('@/screens/Lite/LitePlayScreen').then((m) => ({ default: m.LitePlayScreen })));
 const ChallengeScreen = lazy(() => import('@/screens/Challenge/ChallengeScreen').then((m) => ({ default: m.ChallengeScreen })));
 const RepublicScreen = lazy(() => import('@/screens/Republic/RepublicScreen').then((m) => ({ default: m.RepublicScreen })));
 const HistoryScreen = lazy(() => import('@/screens/History/HistoryScreen').then((m) => ({ default: m.HistoryScreen })));
@@ -54,6 +55,8 @@ function CurrentScreen() {
       return <CalendarScreen />;
     case 'passport':
       return <PassportScreen />;
+    case 'lite':
+      return <LitePlayScreen />;
     case 'challenge':
       return <ChallengeScreen />;
     case 'republic':

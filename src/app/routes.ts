@@ -48,6 +48,8 @@ export function screenToPath(screen: Screen): string {
       return '/calendar';
     case 'passport':
       return '/passport';
+    case 'lite':
+      return '/lite';
     case 'challenge':
       return `/c/${encodeURIComponent(screen.code)}`;
     case 'republic':
@@ -109,6 +111,8 @@ export function pathToScreen(pathname: string, search = ''): Screen | null {
       return { name: 'calendar' };
     case 'passport':
       return { name: 'passport' };
+    case 'lite':
+      return { name: 'lite' };
     case 'c':
       return tail ? { name: 'challenge', code: decodeURIComponent(tail) } : { name: 'home' };
     case 'challenge':

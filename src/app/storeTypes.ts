@@ -44,6 +44,8 @@ export type Screen =
   | { name: 'daily-open' }
   | { name: 'calendar' }
   | { name: 'passport' }
+  /** Lite: the simplest possible presentation of Chapter 1 (review prototype). */
+  | { name: 'lite' }
   | { name: 'challenge'; code: string }
   | { name: 'republic' }
   | { name: 'history'; entryId?: string }
@@ -156,6 +158,8 @@ export interface Actions {
   startDailyById(dailyId: DailyId, opts?: { friend?: PendingIntent['friend'] }): boolean;
   /** From the cold open (or its skip) → running game. */
   beginDailyPlay(): void;
+  /** Starts Chapter 1 as a self-paced Lite run (no setup, default opponents). */
+  startLite(): void;
   beginChallenge(code: string): boolean; // -> briefing; false if code invalid
   setIntentOpponents(opponents: OpponentId[]): void;
   setIntentDifficulty(d: Difficulty): void;

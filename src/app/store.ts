@@ -1022,6 +1022,36 @@ export const useApp = create<State>()((set, get) => ({
     get().navigate({ name: 'play' });
   },
 
+  startLite() {
+    const plan: SessionPlan = { scenarioIds: ['examination-crisis'] };
+    const progress: CampaignProgress = {
+      id: uid(),
+      config: { seed: newSeed() >>> 0, difficulty: 'standard', opponents: [...DEFAULT_OPPONENTS], mode: 'campaign' },
+      chapterIndex: 0,
+      completed: [],
+      startedAt: nowIso(),
+      updatedAt: nowIso(),
+    };
+    const made = makeChapterGame(progress, plan, 0);
+    const started = reduce(made.game, { type: 'start', tick: made.game.tick }, made.scenario);
+    set({
+      campaign: progress,
+      plan,
+      scenario: made.scenario,
+      game: started,
+      ...views(started, made.scenario),
+      lastChapter: undefined,
+      openEvidenceId: undefined,
+      trayOpen: false,
+      focusDistrict: undefined,
+      replayOf: undefined,
+      intent: undefined,
+      autoPaused: false,
+    });
+    void persistNow();
+    get().navigate({ name: 'lite' });
+  },
+
   setCommunitySharing(value) {
     get().updateSettings({ communitySharing: value });
   },
