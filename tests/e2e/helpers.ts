@@ -21,9 +21,34 @@ export async function gotoApp(page: Page, path = '/') {
   await page.goto(path);
 }
 
-/** From a fresh profile: launch → intro → begin → opponents. */
-export async function passIntro(page: Page) {
+export type PlayStyle = 'simple' | 'full';
+
+/**
+ * Picks a play style. On the intro screen this uses the first-run chooser; anywhere else it goes through Settings
+ * (and waits for the persisted write), leaving the page on /settings — navigate afterwards.
+ * Simple (the default) uses plain words and pauses the clock whenever a decision appears; Full keeps the real-time clock.
+ */
+export async function chooseStyle(page: Page, style: PlayStyle) {
+  if (await page.getByTestId('intro-screen').isVisible().catch(() => false)) {
+    const chooser = page.getByTestId(`style-${style}`);
+    await chooser.click();
+    await expect(chooser).toHaveAttribute('aria-checked', 'true');
+    await expect.poll(() => page.evaluate(() => document.documentElement.getAttribute('data-style'))).toBe(style);
+    return;
+  }
+  await page.goto('/settings');
+  await expect(page.getByTestId('settings-screen')).toBeVisible({ timeout: 15_000 });
+  const radio = page.getByTestId('setting-playStyle').getByRole('radio', { name: style === 'full' ? /^full$/i : /^simple$/i });
+  await radio.click();
+  await expect(radio).toHaveAttribute('aria-checked', 'true');
+  await expect.poll(() => page.evaluate(() => document.documentElement.getAttribute('data-style'))).toBe(style);
+  await page.waitForTimeout(450); // let the IndexedDB write commit before a full navigation
+}
+
+/** From a fresh profile: launch → intro → (optional style choice) → begin → opponents. */
+export async function passIntro(page: Page, style?: PlayStyle) {
   await expect(page.getByTestId('intro-screen')).toBeVisible({ timeout: 15_000 });
+  if (style) await chooseStyle(page, style);
   await page.getByTestId('intro-begin').click();
   await expect(page.getByTestId('opponents-screen')).toBeVisible();
 }
@@ -42,11 +67,16 @@ export async function confirmOpponentsAndStart(page: Page) {
   await expect(page.getByTestId('play-screen')).toBeVisible({ timeout: 20_000 });
 }
 
-/** Fresh profile all the way into gameplay. */
-export async function enterGameplayFresh(page: Page) {
+/** Fresh profile all the way into gameplay (Simple style unless a style is given). */
+export async function enterGameplayFresh(page: Page, style?: PlayStyle) {
   await gotoApp(page);
-  await passIntro(page);
+  await passIntro(page, style);
   await confirmOpponentsAndStart(page);
+}
+
+/** True while the Simple style has paused the clock for a new decision or rights moment. */
+export async function clockIsWaiting(page: Page): Promise<boolean> {
+  return page.getByTestId('clock-waiting').isVisible().catch(() => false);
 }
 
 /** Opens the evidence tray/rail section if it is not already visible (desktop rail is open by default). */
@@ -116,6 +146,14 @@ export async function playChapterToEnd(page: Page, opts: { pickOption?: (titles:
       continue;
     }
 
+    if (await clockIsWaiting(page)) {
+      // The clock only waits when something needs an answer; give the card a moment to render, then fail loudly.
+      await page.waitForTimeout(300);
+      const pending = (await page.locator('[data-testid^="decision-option-"]:visible').count()) + (await page.locator('[data-testid^="rights-option-"]:visible').count());
+      if (pending === 0 && !(await page.getByTestId('rights-continue').isVisible().catch(() => false)))
+        throw new Error('The clock is waiting but no decision or rights option is visible');
+      continue;
+    }
     await page.clock.fastForward(stepMs);
     await page.waitForTimeout(30);
   }
@@ -130,12 +168,13 @@ export async function readNumber(page: Page, testId: string): Promise<number> {
   return Number(m[0]);
 }
 
-/** Fast-forwards game time without taking any decision until a result screen is visible. */
+/** Fast-forwards game time without taking any decision until a result screen is visible (Full style only). */
 export async function fastForwardChapterToEnd(page: Page, stepMs = 20_000) {
   const deadline = Date.now() + 120_000;
   while (Date.now() < deadline) {
     if (await page.getByTestId('chapter-result-screen').isVisible().catch(() => false)) return;
     if (await page.getByTestId('final-result-screen').isVisible().catch(() => false)) return;
+    if (await clockIsWaiting(page)) throw new Error('fastForwardChapterToEnd needs the Full style: in Simple the clock waits for every decision');
     await page.clock.fastForward(stepMs);
     await page.waitForTimeout(60);
   }

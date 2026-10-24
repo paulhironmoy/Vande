@@ -11,7 +11,18 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   line-height: 1.3;
-  white-space: nowrap;
+  max-width: 100%;
+  min-width: 0;
+}
+.simpleName {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.simpleName small {
+  display: block;
+  white-space: normal;
 }
 
 .lg {

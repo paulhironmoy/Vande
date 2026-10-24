@@ -39,5 +39,7 @@ test('export and delete local progress from settings', async ({ page }) => {
   await installClock(page);
   await page.goto('/settings');
   await expect(page.getByTestId('settings-screen')).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByTestId('republic-export').or(page.getByRole('button', { name: /export/i })).first()).toBeVisible();
+  await expect(page.getByTestId('settings-export')).toBeVisible();
+  await expect(page.getByTestId('settings-delete')).toBeVisible();
+  await expect(page.getByTestId('settings-export')).toContainText(/Save a copy of my progress|Export local progress/);
 });

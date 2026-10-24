@@ -27,6 +27,10 @@ captures every screen at phone and desktop sizes into `test-results-visual/` for
 | Static-host deep-link fallback (`404.html` → `sessionStorage.vandeRedirect`) | `tests/e2e/redirect.spec.ts` |
 | Android back navigation | `tests/e2e/navigation.spec.ts` exercises the shared `back()` path through browser history; the Capacitor `backButton` listener calls the same function (`src/app/navigation.ts`). Device check: `docs/ANDROID.md` §Smoke test |
 | Scenario content validity | `tests/unit/engine/scenarios.test.ts` (engine validator + JSON schema for all three files, full deterministic run) |
+| Simple play style (default): intro chooser pre-selects Simple, kid copy on opponents ("Who is making trouble?", nicknames with the official name), `clock-waiting` banner pauses the timer until the answer, simple decision copy taken from the scenario JSON, no legal jargon on cards, "Clues" tray with "Not checked yet" chips, "Fair play moment" with the exact disclaimer and the "Read the real rule (for grown-ups)" link | `tests/e2e/simple-style.spec.ts` |
+| Play-style switch: Full removes `data-style="simple"`, sets Standard pace and turns "Wait for me" off; Simple restores Slow pace and "Wait for me" | `tests/e2e/simple-style.spec.ts` |
+| Simple style accessibility (axe WCAG 2.2 AA on home, opponents, play) and phone ergonomics at 390×844 (no overflow, ≥56 px option buttons, no text under 15 px in the decision area) | `tests/e2e/simple-style.spec.ts` |
+| Full style still fits the narrowest phone (360×800: opponents, briefing, play) | `tests/e2e/viewports.spec.ts` ("viewport 360x800 · Full style") |
 | Console errors | `tests/e2e/journey.spec.ts` fails on any uncaught page error or console error during the full campaign |
 
 ## Running
@@ -39,3 +43,15 @@ VISUAL=1 npx playwright test --project=visual   # screenshots for design review
 
 Playwright uses `page.clock` to fast-forward game time deterministically; the game loop is driven by window timers for
 exactly this reason (see `docs/ARCHITECTURE.md` §6).
+
+### Play styles in tests
+
+New profiles start in the **Simple** style, where the clock pauses whenever a decision or rights moment appears
+("Wait for me"). Specs that need continuous game time or strategist copy switch to **Full** with the helper
+`chooseStyle(page, 'full')` from `tests/e2e/helpers.ts` (it uses the intro chooser when on the intro, otherwise the
+Settings radio group, and waits for the persisted write). `enterGameplayFresh(page, 'full')` and `passIntro(page, 'full')`
+accept the same argument. Specs switched to Full: challenge reproduction (`challenge.spec.ts`, first test — the outcome must
+depend only on the seed), `share.spec.ts` (asserts the strategist briefing copy after replay) and the pause/resume timing
+test in `gameplay-controls.spec.ts` (a manual pause is only measurable when the clock runs by itself). `playChapterToEnd`
+answers decisions and rights moments in either style and fails loudly if the clock is waiting with nothing to answer;
+`fastForwardChapterToEnd` refuses to run in Simple.

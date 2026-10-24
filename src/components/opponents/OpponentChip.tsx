@@ -14,7 +14,8 @@ export function OpponentChip({ id, size = 'md', animated = false }: { id: Oppone
       <SignalGlyph kind={meta.signal} size={size === 'lg' ? 24 : 20} animated={animated} title="" />
       {simple ? (
         <span className={styles.simpleName}>
-          {SIMPLE_OPPONENTS[id].nickname} <small>({meta.name})</small>
+          {SIMPLE_OPPONENTS[id].nickname}
+          <small>{meta.name}</small>
         </span>
       ) : (
         meta.name

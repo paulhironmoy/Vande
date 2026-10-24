@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { VIEWPORTS, assertControlsReachable, assertNoHorizontalOverflow, installClock, openEvidenceTray } from './helpers';
+import { VIEWPORTS, assertControlsReachable, assertNoHorizontalOverflow, chooseStyle, installClock, openEvidenceTray } from './helpers';
 
 for (const vp of VIEWPORTS) {
   test.describe(`viewport ${vp.name}`, () => {
@@ -52,3 +52,27 @@ for (const vp of VIEWPORTS) {
     });
   });
 }
+
+// The Full (strategist) presentation must also fit the narrowest phone.
+test.describe('viewport 360x800 · Full style', () => {
+  test.use({ viewport: { width: 360, height: 800 } });
+
+  test('opponents, briefing and play fit without overflow', async ({ page }) => {
+    await installClock(page);
+    await page.goto('/');
+    await expect(page.getByTestId('intro-screen')).toBeVisible({ timeout: 15_000 });
+    await chooseStyle(page, 'full');
+    await page.getByTestId('intro-begin').click();
+    await expect(page.getByTestId('opponents-screen')).toBeVisible();
+    await assertNoHorizontalOverflow(page);
+    await page.getByTestId('opponents-confirm').click();
+    await expect(page.getByTestId('briefing-screen')).toBeVisible();
+    await assertNoHorizontalOverflow(page);
+    await page.getByTestId('briefing-start').click();
+    await expect(page.getByTestId('play-screen')).toBeVisible({ timeout: 20_000 });
+    await page.clock.fastForward(12_000);
+    await expect(page.locator('[data-testid^="decision-card-"]').first()).toBeVisible({ timeout: 10_000 });
+    await assertNoHorizontalOverflow(page);
+    await assertControlsReachable(page, ['timer', 'pulse', 'map', 'pause', 'evidence-tray-toggle']);
+  });
+});

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { decodeChallenge, encodeChallenge } from '../../src/engine/challenge';
-import { continueToFinalResult, fastForwardChapterToEnd, installClock, readNumber, startChallenge } from './helpers';
+import { chooseStyle, continueToFinalResult, fastForwardChapterToEnd, installClock, readNumber } from './helpers';
 
 const CODE = encodeChallenge({
   v: 1,
@@ -11,6 +11,7 @@ const CODE = encodeChallenge({
   score: 70,
 });
 
+// Runs in the Full style: the outcome must depend only on the seed, so the clock has to run without waiting for answers.
 test('a challenge link shows the terms and reproduces the identical game twice', async ({ browser }) => {
   test.setTimeout(240_000);
   const finals: number[] = [];
@@ -19,6 +20,7 @@ test('a challenge link shows the terms and reproduces the identical game twice',
     const context = await browser.newContext({ colorScheme: 'dark' });
     const page = await context.newPage();
     await installClock(page);
+    await chooseStyle(page, 'full');
     await page.goto(`/?c=${encodeURIComponent(CODE)}`);
     const screen = page.getByTestId('challenge-screen');
     await expect(screen).toBeVisible({ timeout: 15_000 });
@@ -51,18 +53,23 @@ test('a challenge link shows the terms and reproduces the identical game twice',
   if (chapters.length === 2) expect(chapters[0]).toBe(chapters[1]);
 });
 
+// Default (Simple) style: plain-words copy on the challenge screen.
 test('an invalid code shows a clear error and a valid code can be entered manually', async ({ page }) => {
   await installClock(page);
   await page.goto('/c/NOT-A-REAL-CODE');
   const screen = page.getByTestId('challenge-screen');
   await expect(screen).toBeVisible({ timeout: 15_000 });
-  await expect(screen.getByRole('alert')).toContainText(/not valid/i);
+  await expect(screen.getByRole('alert')).toContainText('That code does not work');
+  await expect(screen.getByRole('alert')).toContainText('could not be read');
   await expect(page.getByTestId('challenge-accept')).toHaveCount(0);
 
   await page.getByTestId('challenge-input').fill(CODE);
   await page.getByTestId('challenge-open').click();
   await expect(page.getByTestId('challenge-accept')).toBeVisible();
-  await expect(screen).toContainText(/Score to beat:\s*70/);
+  await expect(screen).toContainText(/Beat your friend's score:\s*70/);
+  await expect(screen).toContainText('The Exam Leak');
+  await expect(screen).toContainText('The Rumour Bug');
+  await expect(screen).toContainText('Disinformation Cell');
   const spec = decodeChallenge(CODE);
   expect(spec?.scenario).toBe('examination-crisis');
   expect(spec?.seed).toBe(12345);

@@ -843,7 +843,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sound: true,
   haptics: true,
   captions: true,
-  timerPace: 'standard',
+  timerPace: 'relaxed',
   alwaysShowValues: false,
   colourBlindSafe: false,
   playStyle: 'simple',

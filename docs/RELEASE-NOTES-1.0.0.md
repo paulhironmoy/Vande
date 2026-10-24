@@ -33,6 +33,16 @@ Keystore and passwords live only in `android/keystore/` and `android/keystore.pr
 * Settings: reduced motion, high contrast, text size to 200 %, colour-blind-safe palette, sound, haptics, captions,
   timer pace, always-show values. Pause/resume at any time.
 
+## Play styles
+
+* **Simple** (default for new players): plain words a confident eight-year-old can read, kid-friendly names for the
+  five opponents (The Anger Stirrer, The Trouble Starter, The Rumour Bug, The Wrecker, The Big Hammer), "Clues" instead
+  of evidence with states True / Backed up / Not checked yet / Fake / Can't tell, a city-mood label on the Pulse, bigger
+  buttons (56 px) and text (nothing under 15 px), a slower clock that **waits whenever something new needs an answer**,
+  "Fair play moments" instead of legal citations (official-source links are kept "for grown-ups"), and star ratings.
+* **Full**: the complete strategist presentation with legal references and a real-time clock. Chosen on the intro
+  screen or in Settings; the simulation, seeds and challenge codes are identical in both styles.
+
 ## Verification summary
 
 | Check | Result |

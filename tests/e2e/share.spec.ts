@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { decodeChallenge, encodeChallenge } from '../../src/engine/challenge';
-import { continueToFinalResult, installClock, playChapterToEnd, startChallenge } from './helpers';
+import { chooseStyle, continueToFinalResult, installClock, playChapterToEnd, startChallenge } from './helpers';
 
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
@@ -9,6 +9,7 @@ const CODE = encodeChallenge({ v: 1, scenario: 'examination-crisis', seed: 777, 
 test('result card is generated locally, the challenge link copies and decodes, and replay restores the same conditions', async ({ page }) => {
   test.setTimeout(240_000);
   await installClock(page);
+  await chooseStyle(page, 'full'); // strategist copy is asserted on the replay briefing below
   await startChallenge(page, CODE);
   await playChapterToEnd(page);
   await continueToFinalResult(page);

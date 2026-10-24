@@ -6,9 +6,10 @@ const toSeconds = (t: string) => {
   return m * 60 + s;
 };
 
+// Full style: the clock must run continuously for a manual pause to be measurable (Simple pauses by itself).
 test('pause stops the clock and resume continues it', async ({ page }) => {
   await installClock(page);
-  await enterGameplayFresh(page);
+  await enterGameplayFresh(page, 'full');
   await page.clock.fastForward(5_000);
   await page.waitForTimeout(300);
   const before = toSeconds(await page.getByTestId('timer').innerText());
@@ -29,7 +30,7 @@ test('pause stops the clock and resume continues it', async ({ page }) => {
 test('a reversible communication can be undone within its window', async ({ page }) => {
   await installClock(page);
   await enterGameplayFresh(page);
-  await page.clock.fastForward(9_000);
+  await page.clock.fastForward(15_000); // relaxed pace in Simple: tick 8 arrives after 12 s
   const card = page.getByTestId('decision-card-d-first-response');
   await expect(card).toBeVisible({ timeout: 10_000 });
   await page.getByTestId('decision-option-o-board-statement').click();

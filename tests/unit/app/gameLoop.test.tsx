@@ -29,6 +29,7 @@ describe('game loop', () => {
   });
 
   it('advances whole ticks at the configured pace, never double-ticks on a pace change and never catches up paused time', () => {
+    useApp.getState().updateSettings({ timerPace: 'standard', autoPauseOnDecision: false });
     const hook = renderHook(() => useGameLoop());
     act(() => {
       vi.advanceTimersByTime(3000);
