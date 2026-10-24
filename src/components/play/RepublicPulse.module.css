@@ -295,11 +295,34 @@
   color: var(--o-danger);
 }
 .compactMood {
-  font-size: var(--text-sm);
+  font-size: 0.875rem;
   font-weight: var(--weight-bold);
   line-height: 1.1;
   max-width: 5.5rem;
   white-space: normal;
+  text-align: left;
+}
+/* Narrow phones: the hexagon carries the mood tone and the status bar kicker shows the word. */
+@media (max-width: 439px) {
+  .compactMood {
+    display: none;
+  }
+}
+.compact[data-tone='great'] .ring,
+.compact[data-tone='great'] .area {
+  stroke: var(--o-safety);
+}
+.compact[data-tone='good'] .ring,
+.compact[data-tone='good'] .area {
+  stroke: var(--o-freedom);
+}
+.compact[data-tone='shaky'] .ring,
+.compact[data-tone='shaky'] .area {
+  stroke: var(--a-saffron);
+}
+.compact[data-tone='trouble'] .ring,
+.compact[data-tone='trouble'] .area {
+  stroke: var(--o-danger);
 }
 .help {
   display: block;

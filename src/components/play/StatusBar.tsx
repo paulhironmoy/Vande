@@ -21,9 +21,11 @@ export interface StatusBarProps {
   simple?: boolean;
   /** The clock is paused automatically for a new decision (Simple style). */
   waiting?: boolean;
+  /** Simple style: city mood shown in the kicker on narrow phones (where the compact pulse hides its label). */
+  mood?: { label: string; tone: 'great' | 'good' | 'shaky' | 'trouble' };
 }
 
-export function StatusBar({ chapter, title, tick, duration, status, onPause, pulseSlot, className, simple, waiting }: StatusBarProps) {
+export function StatusBar({ chapter, title, tick, duration, status, onPause, pulseSlot, className, simple, waiting, mood }: StatusBarProps) {
   const left = Math.max(0, duration - tick);
   const urgent = left <= 20 && status !== 'ended' && !waiting;
   const [announce, setAnnounce] = useState('');
@@ -42,8 +44,20 @@ export function StatusBar({ chapter, title, tick, duration, status, onPause, pul
       <div className={styles.titles}>
         <p className={styles.kicker}>
           <span className={styles.chapter}>Chapter {chapter}</span>
-          <span aria-hidden="true">·</span>
+          <span aria-hidden="true" className={styles.sepPhase}>
+            ·
+          </span>
           <span className={styles.phase}>{simple ? simplePhase(tick, duration) : phaseLabel(tick, duration)}</span>
+          {mood ? (
+            <>
+              <span aria-hidden="true" className={styles.sepMood}>
+                ·
+              </span>
+              <span className={styles.mood} data-tone={mood.tone}>
+                {mood.label}
+              </span>
+            </>
+          ) : null}
         </p>
         <h1 className={styles.title}>{title}</h1>
       </div>

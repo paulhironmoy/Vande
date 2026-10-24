@@ -12,7 +12,7 @@ import {
   StatusBar,
   useIsDesktop,
 } from '@/components/play';
-import { SIMPLE_UI, pick, useSimple } from '@/app/simple';
+import { SIMPLE_UI, cityMood, pick, useSimple } from '@/app/simple';
 import { SIMPLE_TEXT, makeFeedSimplifier } from '@/components/play/simpleCopy';
 import { DecisionArea } from './DecisionArea';
 import { EvidencePanel } from './EvidencePanel';
@@ -185,6 +185,7 @@ export function PlayScreen() {
       className={styles.statusBar}
       simple={simple}
       waiting={waiting}
+      mood={simple && !isDesktop && pulse ? cityMood(game.scores) : undefined}
       pulseSlot={!isDesktop && pulse ? <RepublicPulse variant="compact" pulse={pulse} scores={game.scores} reducedMotion={reducedMotion} onExpand={() => setPulseOpen(true)} simple={simple} /> : undefined}
     />
   );

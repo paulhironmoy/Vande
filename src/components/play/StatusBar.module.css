@@ -37,10 +37,39 @@
 .chapter {
   flex: none;
 }
-@media (max-width: 419px) {
+/* Simple style on phones: the city mood word takes the phase's place in the kicker (the compact pulse hides its label). */
+.mood,
+.sepMood {
+  display: none;
+}
+.mood {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0;
+  text-transform: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mood[data-tone='great'] {
+  color: var(--o-safety);
+}
+.mood[data-tone='good'] {
+  color: var(--o-freedom);
+}
+.mood[data-tone='shaky'] {
+  color: var(--a-saffron);
+}
+.mood[data-tone='trouble'] {
+  color: var(--o-danger);
+}
+@media (max-width: 439px) {
   .phase,
-  .kicker > [aria-hidden] {
+  .sepPhase {
     display: none;
+  }
+  .mood,
+  .sepMood {
+    display: inline;
   }
 }
 .title {

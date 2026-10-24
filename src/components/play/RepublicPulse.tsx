@@ -140,6 +140,7 @@ export function RepublicPulse({ pulse, scores, variant = 'full', reducedMotion =
         type="button"
         className={[styles.compact, className ?? ''].filter(Boolean).join(' ')}
         data-testid={testId}
+        data-tone={mood?.tone}
         onClick={onExpand}
         aria-label={`${summary} Show details.`}
       >
