@@ -1,0 +1,97 @@
+.banner {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--s-4) + var(--safe-bottom));
+  transform: translateX(-50%);
+  z-index: var(--z-toast);
+  width: min(calc(100vw - 2 * var(--gutter)), 34rem);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-lg);
+  background: var(--surface-glass);
+  border: var(--edge-line);
+  box-shadow: var(--shadow-2), var(--edge-light);
+  color: var(--t-primary);
+  font-family: var(--font-sans);
+  animation: update-in var(--dur-panel) var(--ease-out) both;
+}
+@supports (backdrop-filter: blur(1px)) {
+  .banner {
+    backdrop-filter: blur(14px) saturate(1.2);
+  }
+}
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 14rem;
+}
+.title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+.sub {
+  font-size: var(--text-sm);
+  color: var(--t-secondary);
+}
+.actions {
+  display: flex;
+  gap: var(--s-2);
+  flex: none;
+}
+.primary,
+.secondary {
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: 0 var(--s-4);
+  border-radius: var(--r-pill);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition:
+    background var(--dur-control) var(--ease-out),
+    transform var(--dur-control) var(--ease-out);
+}
+.primary {
+  border: 0;
+  background: var(--c-blue);
+  color: var(--t-primary);
+}
+.primary:hover {
+  background: var(--c-electric);
+}
+.secondary {
+  border: var(--edge-line-strong);
+  background: transparent;
+  color: var(--t-secondary);
+}
+.primary:active,
+.secondary:active {
+  transform: scale(0.97);
+}
+.primary:focus-visible,
+.secondary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.primary[disabled],
+.secondary[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+@keyframes update-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}

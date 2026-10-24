@@ -1,0 +1,164 @@
+.hero {
+  position: relative;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  border: var(--edge-line);
+  box-shadow: var(--edge-light), var(--shadow-2);
+  background: var(--c-ink-700);
+  isolation: isolate;
+}
+
+.scene {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(7, 17, 31, 0.05) 0%, rgba(7, 17, 31, 0.3) 50%, rgba(7, 17, 31, 0.92) 100%);
+  pointer-events: none;
+}
+
+.shadePoor {
+  background: linear-gradient(180deg, rgba(74, 31, 46, 0.1) 0%, rgba(7, 17, 31, 0.35) 50%, rgba(7, 17, 31, 0.92) 100%);
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  margin-top: -5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-4);
+  padding: 0 var(--s-5) var(--s-5);
+  align-items: end;
+}
+
+@media (min-width: 640px) {
+  .heroContent {
+    grid-template-columns: auto minmax(0, 1fr);
+    margin-top: -7rem;
+  }
+}
+
+.heroText {
+  min-width: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.outcome {
+  margin: 0;
+  font-size: var(--text-4xl);
+  line-height: 1.05;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+  color: var(--t-primary);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 479px) {
+  .outcome {
+    font-size: var(--text-3xl);
+  }
+}
+
+.best {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  margin-top: 0.25rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--r-pill);
+  border: 1px solid rgba(98, 214, 255, 0.4);
+  background: rgba(98, 214, 255, 0.08);
+  color: var(--c-cyan);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.bestNew {
+  border-color: rgba(46, 211, 196, 0.55);
+  background: rgba(46, 211, 196, 0.1);
+  color: var(--o-safety);
+}
+
+.chapters {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+
+@media (min-width: 768px) {
+  .chapters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.chapterRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s-2);
+  align-items: center;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  border: var(--edge-line);
+  background: var(--surface-sunken);
+}
+
+.chapterName {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.chapterName strong {
+  font-size: var(--text-md);
+  color: var(--t-primary);
+  overflow-wrap: anywhere;
+}
+
+.chapterName span {
+  font-size: var(--text-sm);
+  color: var(--t-tertiary);
+}
+
+.chapterScore {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--t-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.compare {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.compareLine {
+  margin: 0;
+  font-size: var(--text-lg);
+  color: var(--t-primary);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.btnInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.codeInline {
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+  color: var(--t-primary);
+  font-variant-numeric: tabular-nums;
+  user-select: all;
+}

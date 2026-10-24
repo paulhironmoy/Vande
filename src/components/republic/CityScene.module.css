@@ -1,0 +1,118 @@
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: inherit;
+}
+
+.cloud {
+  animation: drift 48s ease-in-out infinite alternate;
+}
+
+.cloud2 {
+  animation-duration: 64s;
+  animation-direction: alternate-reverse;
+}
+
+.flicker {
+  animation: flicker 6s ease-in-out infinite;
+}
+
+.domeGlow {
+  animation: breathe 5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.tense {
+  animation: jitter 0.9s steps(3) infinite;
+}
+
+.balance {
+  transition: transform var(--dur-scene) var(--ease-out);
+}
+
+.fragment {
+  animation: fall 4s ease-in infinite;
+}
+
+@keyframes drift {
+  from {
+    transform: translateX(-18px);
+  }
+  to {
+    transform: translateX(18px);
+  }
+}
+
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  48% {
+    opacity: 0.85;
+  }
+  52% {
+    opacity: 0.3;
+  }
+  56% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes jitter {
+  0% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(1.2px, -0.8px);
+  }
+  66% {
+    transform: translate(-1px, 0.8px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(0);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(:root:not([data-motion='full'])) .cloud,
+  :global(:root:not([data-motion='full'])) .flicker,
+  :global(:root:not([data-motion='full'])) .domeGlow,
+  :global(:root:not([data-motion='full'])) .tense,
+  :global(:root:not([data-motion='full'])) .fragment {
+    animation: none;
+  }
+}
+
+:global(:root[data-motion='reduced']) .cloud,
+:global(:root[data-motion='reduced']) .flicker,
+:global(:root[data-motion='reduced']) .domeGlow,
+:global(:root[data-motion='reduced']) .tense,
+:global(:root[data-motion='reduced']) .fragment {
+  animation: none;
+}

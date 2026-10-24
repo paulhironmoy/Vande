@@ -1,0 +1,42 @@
+.section {
+  margin-top: var(--s-5);
+  padding: 0 var(--s-5);
+}
+.sectionTitle {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--t-tertiary);
+  padding-top: var(--s-4);
+}
+.intro {
+  color: var(--t-secondary);
+  margin-top: var(--s-2);
+}
+.actions {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-4) 0;
+}
+@media (min-width: 560px) {
+  .actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  padding: var(--s-3) 0 var(--s-4);
+}
+.version {
+  padding: var(--s-4) 0 var(--s-2);
+  color: var(--t-tertiary);
+  font-size: var(--text-sm);
+}
+.hint {
+  margin-top: var(--s-2);
+  font-size: var(--text-sm);
+  color: var(--t-tertiary);
+}

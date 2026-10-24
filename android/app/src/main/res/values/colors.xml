@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#136EF6</color>
+    <color name="colorPrimaryDark">#07111F</color>
+    <color name="colorAccent">#62D6FF</color>
+    <color name="vandeMidnight">#07111F</color>
+</resources>

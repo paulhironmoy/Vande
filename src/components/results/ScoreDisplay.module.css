@@ -1,0 +1,92 @@
+.wrap {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: var(--score-size, 11rem);
+  height: var(--score-size, 11rem);
+  flex: none;
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.track {
+  fill: none;
+  stroke: rgba(170, 182, 200, 0.14);
+  stroke-width: 6;
+}
+
+.progress {
+  fill: none;
+  stroke: var(--score-color, var(--c-electric));
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--dur-scene) var(--ease-out);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--score-color, var(--c-electric)) 55%, transparent));
+}
+
+.inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  text-align: center;
+  animation: settle var(--dur-scene) var(--ease-out) both;
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.value {
+  font-size: calc(var(--score-size, 11rem) * 0.36);
+  line-height: 1;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.03em;
+  color: var(--t-primary);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+.outOf {
+  font-size: var(--text-sm);
+  color: var(--t-tertiary);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-medium);
+}
+
+.caption {
+  margin-top: 0.15rem;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--t-tertiary);
+}
+
+.strong {
+  --score-color: var(--o-safety);
+}
+.steady {
+  --score-color: var(--c-electric);
+}
+.strained {
+  --score-color: var(--a-saffron);
+}
+.critical {
+  --score-color: var(--o-danger);
+}

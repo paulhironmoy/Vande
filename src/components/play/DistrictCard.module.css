@@ -1,0 +1,110 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  width: min(22rem, 100%);
+  padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4);
+  border-radius: var(--r-lg);
+  border: var(--edge-line);
+  background: var(--surface-glass);
+  box-shadow: var(--shadow-2), var(--edge-light);
+  animation: pop var(--dur-panel) var(--ease-out) both;
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .card {
+    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+    backdrop-filter: blur(14px) saturate(1.15);
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.kind {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  border-radius: var(--r-sm);
+  background: rgba(98, 214, 255, 0.12);
+  color: var(--c-cyan);
+}
+.titles {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.name {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-snug);
+}
+.institution {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--t-tertiary);
+}
+.incident {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--o-danger);
+}
+.facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem var(--s-3);
+}
+.facts dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--t-tertiary);
+}
+.facts dd {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+.facts dd[data-mood='volatile'] {
+  color: var(--o-danger);
+}
+.facts dd[data-mood='tense'] {
+  color: var(--a-saffron);
+}
+.facts dd[data-mood='hopeful'] {
+  color: var(--o-safety);
+}
+.note {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--text-sm);
+  color: var(--o-legitimacy);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: 0.25rem;
+}

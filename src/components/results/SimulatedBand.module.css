@@ -1,0 +1,111 @@
+.figure {
+  margin: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+
+.track {
+  position: relative;
+  height: 0.9rem;
+  border-radius: var(--r-pill);
+  background: rgba(170, 182, 200, 0.12);
+  margin: 0.75rem 0 0.25rem;
+}
+
+.range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--low);
+  width: calc(var(--high) - var(--low));
+  border-radius: var(--r-pill);
+  background: repeating-linear-gradient(135deg, rgba(98, 214, 255, 0.35) 0 6px, rgba(98, 214, 255, 0.15) 6px 12px);
+  border: 1px solid rgba(98, 214, 255, 0.45);
+}
+
+.typical {
+  position: absolute;
+  top: -0.3rem;
+  bottom: -0.3rem;
+  left: var(--typical);
+  width: 2px;
+  margin-left: -1px;
+  background: var(--c-cyan);
+}
+
+.mine {
+  position: absolute;
+  top: -0.55rem;
+  left: var(--mine);
+  width: 1.3rem;
+  height: 1.3rem;
+  margin-left: -0.65rem;
+  border-radius: 50%;
+  background: var(--c-paper);
+  color: var(--t-on-accent);
+  border: 2px solid var(--c-electric);
+  box-shadow: var(--glow-blue);
+  display: grid;
+  place-items: center;
+  font-size: 0.6rem;
+  font-weight: var(--weight-bold);
+  top: -0.2rem;
+}
+
+.scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  color: var(--t-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  font-size: var(--text-sm);
+  color: var(--t-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.legend strong {
+  color: var(--t-primary);
+  font-weight: var(--weight-semibold);
+}
+
+.swatchRange,
+.swatchTypical,
+.swatchMine {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 3px;
+  vertical-align: -0.15rem;
+  margin-right: 0.35rem;
+}
+.swatchRange {
+  background: repeating-linear-gradient(135deg, rgba(98, 214, 255, 0.5) 0 3px, rgba(98, 214, 255, 0.2) 3px 6px);
+  border: 1px solid rgba(98, 214, 255, 0.5);
+}
+.swatchTypical {
+  width: 2px;
+  background: var(--c-cyan);
+  border-radius: 0;
+  margin-right: 0.6rem;
+}
+.swatchMine {
+  border-radius: 50%;
+  background: var(--c-paper);
+  border: 2px solid var(--c-electric);
+}
+
+.caption {
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--t-tertiary);
+}
+
+.caption strong {
+  color: var(--t-secondary);
+}

@@ -1,0 +1,173 @@
+.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: var(--s-2) var(--s-4);
+  padding: var(--s-4);
+  border-radius: var(--r-lg);
+  border: var(--edge-line);
+  background: var(--surface-1);
+  box-shadow: var(--edge-light), var(--shadow-1);
+  min-width: 0;
+  transition: border-color var(--dur-control) var(--ease-out), box-shadow var(--dur-control) var(--ease-out), transform var(--dur-control) var(--ease-out), background var(--dur-control) var(--ease-out);
+  --glyph: var(--tone);
+}
+
+.card:has(.toggle:active) {
+  transform: scale(0.98);
+}
+
+.card:has(.toggle:focus-visible) {
+  box-shadow: var(--focus-ring), var(--shadow-1);
+}
+
+.selected {
+  border-color: color-mix(in srgb, var(--tone) 70%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tone) 12%, rgba(20, 42, 77, 0.7)), rgba(11, 29, 54, 0.9));
+  box-shadow: var(--edge-light), 0 0 0 1px color-mix(in srgb, var(--tone) 35%, transparent), 0 0 28px color-mix(in srgb, var(--tone) 22%, transparent), var(--shadow-1);
+}
+
+.glyphWrap {
+  grid-row: 1 / span 2;
+  width: 4rem;
+  height: 4rem;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-md);
+  background: var(--surface-sunken);
+  border: 1px solid color-mix(in srgb, var(--tone) 30%, transparent);
+  color: var(--tone);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-1) var(--s-3);
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+  color: var(--t-primary);
+  overflow-wrap: anywhere;
+}
+
+.difficulty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--text-sm);
+  color: var(--t-tertiary);
+  white-space: nowrap;
+}
+
+.dots {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(170, 182, 200, 0.25);
+}
+
+.dotOn {
+  background: var(--tone);
+}
+
+.body {
+  min-width: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.behavior {
+  margin: 0;
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+  color: var(--t-secondary);
+}
+
+.pressure {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--t-tertiary);
+}
+
+.pressure strong {
+  color: var(--t-secondary);
+  font-weight: var(--weight-semibold);
+}
+
+.toggle {
+  grid-column: 1 / -1;
+  justify-self: start;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--tap);
+  padding: 0 1rem 0 0.75rem;
+  border-radius: var(--r-pill);
+  border: var(--edge-line-strong);
+  background: var(--surface-sunken);
+  color: var(--t-primary);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: background var(--dur-control) var(--ease-out), border-color var(--dur-control) var(--ease-out), color var(--dur-control) var(--ease-out);
+}
+
+/* Stretch the whole card as the hit area (the button remains the accessible control). */
+.toggle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.toggle:focus-visible {
+  outline: none;
+}
+
+.toggle[aria-pressed='true'] {
+  background: var(--tone);
+  border-color: var(--tone);
+  color: var(--t-on-accent);
+}
+
+.check {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.check svg {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+@media (hover: hover) {
+  .card:hover {
+    border-color: rgba(170, 182, 200, 0.35);
+  }
+}
+
+:global(:root[data-contrast='high']) .toggle[aria-pressed='true'] {
+  outline: 2px solid var(--c-paper);
+  outline-offset: 2px;
+}

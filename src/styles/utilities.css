@@ -1,0 +1,70 @@
+/* Small layout helpers. Keep this file tiny; prefer CSS Modules. */
+.stack > * + * {
+  margin-top: var(--s-4);
+}
+.stack-sm > * + * {
+  margin-top: var(--s-2);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.row-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+.spread {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.center {
+  text-align: center;
+}
+.muted {
+  color: var(--t-tertiary);
+}
+.secondary {
+  color: var(--t-secondary);
+}
+.text-sm {
+  font-size: var(--text-sm);
+}
+.text-xs {
+  font-size: var(--text-xs);
+}
+.caps {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--t-tertiary);
+}
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mt-2 {
+  margin-top: var(--s-2);
+}
+.mt-4 {
+  margin-top: var(--s-4);
+}
+.mt-6 {
+  margin-top: var(--s-6);
+}
+.mb-2 {
+  margin-bottom: var(--s-2);
+}
+.mb-4 {
+  margin-bottom: var(--s-4);
+}

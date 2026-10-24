@@ -1,0 +1,34 @@
+.chip {
+  --chip: var(--ev-unverified);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem 0.2rem 0.4rem;
+  border-radius: var(--r-pill);
+  border: 1px solid color-mix(in srgb, var(--chip) 45%, transparent);
+  background: color-mix(in srgb, var(--chip) 14%, transparent);
+  color: var(--chip);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.sm {
+  font-size: var(--text-xs);
+  padding: 0.1rem 0.45rem 0.1rem 0.3rem;
+}
+.chip[data-state='verified'] {
+  --chip: var(--ev-verified);
+}
+.chip[data-state='corroborated'] {
+  --chip: var(--ev-corroborated);
+}
+.chip[data-state='unverified'] {
+  --chip: var(--ev-unverified);
+}
+.chip[data-state='manipulated'] {
+  --chip: var(--ev-manipulated);
+}
+.chip[data-state='unknown'] {
+  --chip: var(--ev-unknown);
+}

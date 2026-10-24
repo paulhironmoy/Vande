@@ -1,0 +1,3540 @@
+{
+  "id": "electoral-dispute",
+  "chapter": 2,
+  "title": "Electoral Dispute",
+  "subtitle": "Two tallies, one city, and the records in between",
+  "duration": 180,
+  "briefing": {
+    "grievance": "After last night's count, the trailing candidate's agents allege that the Ward 9 figure in the consolidated table does not match the signed station sheets. The margin is 311 votes. They want it checked today, in the open.",
+    "knownFacts": [
+      "The count finished at 06:40 with both candidates' agents present and signing.",
+      "A written objection naming station 9/14 was filed at the Records Office at 07:25.",
+      "Thirty-eight sealed boxes were moved from the transit depot to the Records Office at 23:40 under escort, with two observers.",
+      "Supporters of both candidates are gathering: one camp at the Records Office, the other at Civic Square."
+    ],
+    "unverifiedClaims": [
+      "A viral clip says ballot boxes were moved 'in secret at 2 AM'.",
+      "A message claims a counting clerk 'changed Ward 9 for a fee'.",
+      "A forwarded note says the agents plan to storm the Records Office at noon.",
+      "Shop owners say a shutdown call is spreading on Market Street."
+    ],
+    "responsibility": "You are the district election officer, with a police liaison beside you. Decide objections openly, protect records and workers, publish what can be checked, keep both camps' assemblies lawful and equal, and stop intimidation without silencing criticism.",
+    "objective": "In three minutes: settle the Ward 9 question with evidence, keep two rival assemblies peaceful and equal, and declare a result people can check.",
+    "lines": [
+      "06:40. The count is done. The margin is 311.",
+      "07:25. An objection: station 9/14 does not match the table.",
+      "Two camps are gathering. One wants a recount, one wants a result.",
+      "Somewhere online, a clip says the boxes moved at 2 AM.",
+      "The records are in your office. So is the answer."
+    ]
+  },
+  "startingScores": {
+    "freedom": 62,
+    "grievance": 42,
+    "safety": 58,
+    "evidence": 55,
+    "trust": 48,
+    "economy": 62
+  },
+  "districts": [
+    {
+      "id": "campus",
+      "name": "University Quarter",
+      "kind": "campus",
+      "x": 0.18,
+      "y": 0.3,
+      "baseline": {
+        "crowd": 0.06,
+        "trust": 0.55,
+        "services": 0.95
+      },
+      "institution": "University Registrar"
+    },
+    {
+      "id": "hospital",
+      "name": "Civil Hospital",
+      "kind": "hospital",
+      "x": 0.58,
+      "y": 0.12,
+      "baseline": {
+        "crowd": 0.04,
+        "trust": 0.65,
+        "services": 0.95
+      },
+      "institution": "Civil Hospital"
+    },
+    {
+      "id": "civic",
+      "name": "Civic Square",
+      "kind": "civic",
+      "x": 0.5,
+      "y": 0.44,
+      "baseline": {
+        "crowd": 0.22,
+        "trust": 0.5,
+        "services": 0.9
+      },
+      "institution": "District Collectorate"
+    },
+    {
+      "id": "market",
+      "name": "Market Street",
+      "kind": "market",
+      "x": 0.8,
+      "y": 0.34,
+      "baseline": {
+        "crowd": 0.14,
+        "trust": 0.5,
+        "services": 0.9
+      }
+    },
+    {
+      "id": "records",
+      "name": "Records Office",
+      "kind": "records",
+      "x": 0.22,
+      "y": 0.7,
+      "baseline": {
+        "crowd": 0.3,
+        "trust": 0.4,
+        "services": 0.85
+      },
+      "institution": "Election Records Office"
+    },
+    {
+      "id": "transit",
+      "name": "Central Transit Hub",
+      "kind": "transit",
+      "x": 0.48,
+      "y": 0.78,
+      "baseline": {
+        "crowd": 0.18,
+        "trust": 0.5,
+        "services": 0.9
+      },
+      "institution": "Transit Authority"
+    },
+    {
+      "id": "media",
+      "name": "Press Enclave",
+      "kind": "media",
+      "x": 0.82,
+      "y": 0.7,
+      "baseline": {
+        "crowd": 0.1,
+        "trust": 0.55,
+        "services": 0.95
+      },
+      "institution": "Press Club"
+    }
+  ],
+  "roads": [
+    {
+      "id": "r-campus-civic",
+      "from": "campus",
+      "to": "civic"
+    },
+    {
+      "id": "r-civic-market",
+      "from": "civic",
+      "to": "market"
+    },
+    {
+      "id": "r-civic-transit",
+      "from": "civic",
+      "to": "transit"
+    },
+    {
+      "id": "r-transit-media",
+      "from": "transit",
+      "to": "media"
+    },
+    {
+      "id": "r-market-media",
+      "from": "market",
+      "to": "media"
+    },
+    {
+      "id": "r-campus-records",
+      "from": "campus",
+      "to": "records"
+    },
+    {
+      "id": "r-records-transit",
+      "from": "records",
+      "to": "transit"
+    },
+    {
+      "id": "r-civic-hospital",
+      "from": "civic",
+      "to": "hospital"
+    },
+    {
+      "id": "r-market-hospital",
+      "from": "market",
+      "to": "hospital"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-consolidated-result",
+      "title": "Consolidated result table",
+      "source": "Returning Officer, counting hall",
+      "sourceType": "official",
+      "time": "06:40",
+      "claim": "The consolidated table gives a citywide margin of 311 votes. Its Ward 9 entry for the leading candidate reads 1,423.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 4,
+      "metadata": [
+        {
+          "label": "Issued",
+          "value": "06:40, signed by the Returning Officer"
+        },
+        {
+          "label": "Entry method",
+          "value": "Typed from the station sheets by a two-person tabulation team"
+        },
+        {
+          "label": "Present at entry",
+          "value": "Both candidates' agents"
+        },
+        {
+          "label": "Ward 9 entry",
+          "value": "1,423 for the leading candidate"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-tally-sheets"
+      ],
+      "visual": {
+        "type": "chart",
+        "caption": "Ward-by-ward table. The agents have circled Ward 9."
+      },
+      "district": "records",
+      "setsFlagsOnResolve": [
+        "transposition-found"
+      ],
+      "resolutionNote": "The table is genuine, and it contains an error: station 9/14's 1,243 was typed as 1,423. The digits were transposed in the open hall."
+    },
+    {
+      "id": "ev-tally-sheets",
+      "title": "Ward 9 station tally sheets",
+      "source": "Counting hall record, 14 scanned sheets",
+      "sourceType": "official",
+      "time": "07:02",
+      "claim": "Fourteen signed station sheets for Ward 9. Station 9/14 records 1,243 for the leading candidate.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 6,
+      "metadata": [
+        {
+          "label": "Sheets",
+          "value": "14 of 14 stations, scanned at 07:02"
+        },
+        {
+          "label": "Signatures",
+          "value": "Presiding officer plus both candidates' agents on every sheet"
+        },
+        {
+          "label": "Seals",
+          "value": "Seal numbers listed on each sheet"
+        },
+        {
+          "label": "Station 9/14",
+          "value": "1,243 for the leading candidate"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-consolidated-result"
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "Handwritten station sheets, each countersigned by both agents."
+      },
+      "district": "records",
+      "setsFlagsOnResolve": [
+        "transposition-found"
+      ],
+      "perishable": true,
+      "resolutionNote": "The sheets are genuine. Station 9/14 shows 1,243; the consolidated table shows 1,423. The error is a transposition, not a different count."
+    },
+    {
+      "id": "ev-agents-objection",
+      "title": "Written objection from the agents",
+      "source": "Election agents of the trailing candidate",
+      "sourceType": "organizer",
+      "time": "07:25",
+      "claim": "The agents object in writing: the Ward 9 table entry does not match station 9/14's signed sheet. They ask for a review today.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 10,
+      "metadata": [
+        {
+          "label": "Filed",
+          "value": "07:25 at the Records Office counter, receipt issued"
+        },
+        {
+          "label": "Signatories",
+          "value": "Both election agents of the trailing candidate"
+        },
+        {
+          "label": "Specifics",
+          "value": "Names station 9/14 and both figures"
+        },
+        {
+          "label": "Remedy requested",
+          "value": "Review of the Ward 9 entries with observers present"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-tally-sheets"
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "Two typed pages with a receipt stamp in the corner."
+      },
+      "district": "records",
+      "setsFlagsOnResolve": [
+        "objection-substantiated"
+      ],
+      "resolutionNote": "The objection is specific and accurate. It was filed through the proper channel and names exactly the figure that turns out to be wrong."
+    },
+    {
+      "id": "ev-worker-threats",
+      "title": "Counting supervisor reports threats",
+      "source": "Counting supervisor, via the officers' helpline",
+      "sourceType": "official",
+      "time": "08:05",
+      "claim": "The counting supervisor reports two threatening calls and says a crowd blocked her car at the Records Office gate.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "availableAt": 22,
+      "metadata": [
+        {
+          "label": "Reported",
+          "value": "08:05, by text and call to the helpline"
+        },
+        {
+          "label": "Calls",
+          "value": "Two, from withheld numbers, at 07:40 and 07:52"
+        },
+        {
+          "label": "Location",
+          "value": "Records Office main gate"
+        },
+        {
+          "label": "Witnesses",
+          "value": "Two colleagues in the car"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-press-gate-report"
+      ],
+      "visual": {
+        "type": "message",
+        "caption": "Helpline thread with two call-log screenshots."
+      },
+      "district": "records",
+      "setsFlagsOnResolve": [
+        "intimidation-corroborated"
+      ],
+      "resolutionNote": "An independent report from the gate confirms the obstruction and the threats. Protecting the workers is justified; dispersing everyone is not."
+    },
+    {
+      "id": "ev-press-gate-report",
+      "title": "Reporter's dispatch from the gate",
+      "source": "Press Enclave correspondent, on site",
+      "sourceType": "press",
+      "time": "08:20",
+      "claim": "At the gate: staff cars held up for about 15 minutes, loud chanting, no violence. Inside, the agents are filing papers.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "availableAt": 26,
+      "metadata": [
+        {
+          "label": "Filed",
+          "value": "08:20; reporter present since 07:30"
+        },
+        {
+          "label": "Photos",
+          "value": "Six, location-tagged at the gate"
+        },
+        {
+          "label": "Violence observed",
+          "value": "None"
+        },
+        {
+          "label": "Agents' conduct",
+          "value": "Filing the objection inside; not at the gate"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-worker-threats"
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "A stopped car, a dozen people and a camera crew at the gate."
+      },
+      "district": "records",
+      "resolutionNote": "The dispatch matches the supervisor's account: obstruction and threats, not violence, with the agents themselves acting lawfully."
+    },
+    {
+      "id": "ev-transfer-log",
+      "title": "Sealed-transfer log, depot to Records Office",
+      "source": "Election Records Office transfer register",
+      "sourceType": "official",
+      "time": "23:40 (last night)",
+      "claim": "Thirty-eight sealed boxes moved from the transit depot to the Records Office, 23:40 to 00:15, under escort with two observers.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 34,
+      "metadata": [
+        {
+          "label": "Departure",
+          "value": "23:40 from the transit depot strong room"
+        },
+        {
+          "label": "Arrival",
+          "value": "00:15 at the Records Office"
+        },
+        {
+          "label": "Boxes",
+          "value": "38; seal numbers listed and matched on arrival"
+        },
+        {
+          "label": "Observers",
+          "value": "One for each candidate; both signed"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-cctv-depot"
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "Transfer register with seal numbers and two signatures."
+      },
+      "district": "transit",
+      "setsFlagsOnResolve": [
+        "transfer-verified"
+      ],
+      "resolutionNote": "The night move was routine and observed. Seal numbers match the counting-hall list. Nothing was moved in secret."
+    },
+    {
+      "id": "ev-cctv-depot",
+      "title": "Transit depot camera, 23:30 to 00:20",
+      "source": "Transit Authority, loading bay camera",
+      "sourceType": "institution",
+      "time": "23:38 (last night)",
+      "claim": "Loading-bay footage shows boxes carried to the van at 23:40 under escort, with two observers standing by.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 40,
+      "metadata": [
+        {
+          "label": "Camera",
+          "value": "Loading bay 2, continuous recording"
+        },
+        {
+          "label": "Clock",
+          "value": "Synchronised to network time"
+        },
+        {
+          "label": "Retention",
+          "value": "Overwritten after 36 hours unless copied"
+        },
+        {
+          "label": "Lighting",
+          "value": "Bay floodlights on; faces and seals visible"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-transfer-log"
+      ],
+      "visual": {
+        "type": "video",
+        "caption": "Timestamped bay footage: van, boxes, escort, two observers."
+      },
+      "district": "transit",
+      "perishable": true,
+      "resolutionNote": "The footage matches the transfer log minute by minute. The move was open and watched."
+    },
+    {
+      "id": "ev-review-order",
+      "title": "Your review order and the hall entry log",
+      "source": "District Election Officer (you)",
+      "sourceType": "official",
+      "time": "On your order",
+      "claim": "The Ward 9 review is open with observers from both candidates. The entry log shows who typed the table and who watched.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 180,
+      "metadata": [
+        {
+          "label": "Reference",
+          "value": "Current-year format, serial issued today"
+        },
+        {
+          "label": "Observers",
+          "value": "One per candidate plus an independent observer"
+        },
+        {
+          "label": "Who typed the table",
+          "value": "Two tabulation officers, with both agents present throughout"
+        },
+        {
+          "label": "Other staff",
+          "value": "No other staff handled the Ward 9 entries"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "The order on current letterhead, with the entry log attached."
+      },
+      "district": "records",
+      "resolutionNote": "Your own order, on the current letterhead, with the entry log attached. It settles who did what in the hall."
+    },
+    {
+      "id": "ev-boxes-clip",
+      "title": "Viral clip: 'boxes moved at 2 AM'",
+      "source": "Anonymous account, forwarded widely",
+      "sourceType": "anonymous",
+      "time": "02:17 (overlay)",
+      "claim": "A night clip shows boxes loaded into a van. The time overlay reads 02:17. Caption: 'the count was fixed in the dark'.",
+      "initialState": "unverified",
+      "truth": "misleading",
+      "resolvedState": "manipulated",
+      "injectedBy": "disinfo",
+      "metadata": [
+        {
+          "label": "Overlay time",
+          "value": "02:17, in a font the depot cameras do not use",
+          "anomaly": true
+        },
+        {
+          "label": "File created",
+          "value": "23:41, according to the embedded data",
+          "anomaly": true
+        },
+        {
+          "label": "Location",
+          "value": "Transit depot, loading bay 2"
+        },
+        {
+          "label": "First posted",
+          "value": "06:55, by an account created three days ago",
+          "anomaly": true
+        }
+      ],
+      "contradictedBy": [
+        "ev-transfer-log",
+        "ev-cctv-depot"
+      ],
+      "visual": {
+        "type": "video",
+        "caption": "Night loading bay, a van, boxes, and a time overlay in a different font."
+      },
+      "district": "transit",
+      "setsFlagsOnResolve": [
+        "clip-exposed"
+      ],
+      "resolutionNote": "The footage is real but the time was added. The move happened at 23:40 under two observers' signatures, as the log and the depot camera show."
+    },
+    {
+      "id": "ev-cancel-notice",
+      "title": "Circulating notice: 'review cancelled'",
+      "source": "Forwarded as a leaked official notice",
+      "sourceType": "leak",
+      "time": "10:05",
+      "claim": "A notice on official-looking letterhead says the Ward 9 review is cancelled by order and the result is final.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "injectedBy": "disinfo",
+      "metadata": [
+        {
+          "label": "Letterhead",
+          "value": "District format retired last year",
+          "anomaly": true
+        },
+        {
+          "label": "Reference number",
+          "value": "Does not follow this year's serial format",
+          "anomaly": true
+        },
+        {
+          "label": "Signature block",
+          "value": "An officer not posted in this district",
+          "anomaly": true
+        },
+        {
+          "label": "Spread",
+          "value": "About 1,200 forwards in 20 minutes"
+        }
+      ],
+      "contradictedBy": [
+        "ev-review-order"
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A one-page notice with a seal that is slightly the wrong shape."
+      },
+      "district": "records",
+      "setsFlagsOnResolve": [
+        "notice-exposed"
+      ],
+      "resolutionNote": "The notice is forged: wrong letterhead, wrong reference format, wrong signatory. No review has been cancelled."
+    },
+    {
+      "id": "ev-clerk-chat",
+      "title": "Screenshots: 'clerk paid to fix Ward 9'",
+      "source": "Anonymous account, shared in local groups",
+      "sourceType": "anonymous",
+      "time": "09:12",
+      "claim": "Chat screenshots show a 'Records Office clerk' agreeing to 'fix Ward 9 for a fee'. A staff member is named.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "injectedBy": "exploiter",
+      "metadata": [
+        {
+          "label": "Phone interface",
+          "value": "Two different app versions in one screen",
+          "anomaly": true
+        },
+        {
+          "label": "Message times",
+          "value": "Out of sequence; a reply precedes its question",
+          "anomaly": true
+        },
+        {
+          "label": "Posting account",
+          "value": "Created yesterday, no other history",
+          "anomaly": true
+        },
+        {
+          "label": "Named staff member",
+          "value": "Works in the annex, not in tabulation"
+        }
+      ],
+      "contradictedBy": [
+        "ev-review-order"
+      ],
+      "visual": {
+        "type": "message",
+        "caption": "Three screenshots of a chat, cropped tightly."
+      },
+      "district": "records",
+      "setsFlagsOnResolve": [
+        "chat-exposed"
+      ],
+      "resolutionNote": "The screenshots are assembled, not captured: mismatched app screens and impossible timings. The named clerk never touched the table."
+    },
+    {
+      "id": "ev-storm-note",
+      "title": "Note: 'agents will storm the office at noon'",
+      "source": "Unsigned note, forwarded to the liaison",
+      "sourceType": "anonymous",
+      "time": "10:40",
+      "claim": "An unsigned note says the trailing candidate's agents plan to storm the Records Office at noon and 'seize the sheets'.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "injectedBy": "overreaction",
+      "metadata": [
+        {
+          "label": "Author",
+          "value": "None; forwarded about 400 times before reaching the liaison",
+          "anomaly": true
+        },
+        {
+          "label": "Detail",
+          "value": "No names, no numbers, no source",
+          "anomaly": true
+        },
+        {
+          "label": "Timing",
+          "value": "Arrived minutes after the agents' objection was accepted for review"
+        },
+        {
+          "label": "What observers see",
+          "value": "Agents at the counting-hall table, filing papers"
+        }
+      ],
+      "contradictedBy": [
+        "ev-press-gate-report"
+      ],
+      "visual": {
+        "type": "message",
+        "caption": "A forwarded message with no sender and a red exclamation mark."
+      },
+      "district": "records",
+      "setsFlagsOnResolve": [
+        "storm-note-exposed"
+      ],
+      "resolutionNote": "No author, no detail, and the reporter at the gate watched the agents filing papers. The note was bait for a crackdown."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d-objection",
+      "title": "Agents demand a review at the gate",
+      "situation": "The trailing candidate's agents have filed a written objection naming station 9/14 and want the Ward 9 entries checked today. Across town, the leading candidate's supporters want the result declared now.",
+      "district": "records",
+      "triggerAt": 8,
+      "expiresAfter": 25,
+      "defaultOption": "o-wait-objection",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-open-review",
+          "title": "Open a transparent Ward 9 review",
+          "preview": "A time-bound review begins today with observers from both candidates and an independent observer.",
+          "authority": "Returning officer's duty to decide objections openly; fair-process norms",
+          "tags": [
+            "transparent",
+            "legal-process",
+            "investigative"
+          ],
+          "effects": {
+            "grievance": 10,
+            "trust": 5,
+            "evidence": 4,
+            "freedom": 2,
+            "safety": 2
+          },
+          "delayed": [
+            {
+              "afterTicks": 40,
+              "effects": {
+                "trust": 4,
+                "grievance": 4
+              },
+              "message": "Observers from both camps confirm the review is running in the open.",
+              "condition": {
+                "flag": "review-opened"
+              },
+              "mapEffects": [
+                {
+                  "kind": "trust",
+                  "district": "records",
+                  "magnitude": 0.1
+                }
+              ]
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "institution",
+              "district": "records"
+            },
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "investigate"
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "hopeful"
+            },
+            {
+              "kind": "crowd",
+              "district": "records",
+              "magnitude": -0.08
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "civic",
+              "signal": "official"
+            }
+          ],
+          "consequence": "Both camps' observers are invited into the hall. The Ward 9 sheets are pulled for comparison.",
+          "unlocksEvidence": [
+            "ev-review-order"
+          ],
+          "setsFlags": [
+            "review-opened",
+            "review-observers"
+          ]
+        },
+        {
+          "id": "o-acknowledge-schedule",
+          "title": "Acknowledge; schedule the review for tomorrow",
+          "preview": "The agents get a receipt and a date. Both crowds wait overnight with the question open.",
+          "authority": "Returning officer's discretion over timing; duty to respond",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 3,
+            "trust": -2,
+            "safety": -2,
+            "economy": -1
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "dialogue"
+            }
+          ],
+          "consequence": "A receipt is issued and a date is set. Outside, the wait begins.",
+          "undoTicks": 5,
+          "setsFlags": [
+            "review-delayed"
+          ]
+        },
+        {
+          "id": "o-declare-now",
+          "title": "Reject the objection; declare the result",
+          "preview": "A result tonight, review or not. One camp celebrates; the other digs in at the gate.",
+          "authority": "Returning officer's power to declare; objections must still be decided",
+          "tags": [
+            "communication"
+          ],
+          "effects": {
+            "grievance": -10,
+            "trust": -8,
+            "freedom": -2,
+            "safety": -4,
+            "economy": 3
+          },
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "safety": -6,
+                "trust": -4
+              },
+              "message": "The Records Office crowd refuses to leave. 'They declared it without looking.'",
+              "condition": {
+                "notFlag": "review-opened"
+              },
+              "mapEffects": [
+                {
+                  "kind": "crowd",
+                  "district": "records",
+                  "magnitude": 0.25
+                },
+                {
+                  "kind": "mood",
+                  "district": "records",
+                  "mood": "volatile"
+                }
+              ]
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "hopeful"
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "volatile"
+            }
+          ],
+          "consequence": "The result is declared. The objection is filed. The Records Office crowd grows louder.",
+          "setsFlags": [
+            "winner-declared-early"
+          ]
+        },
+        {
+          "id": "o-wait-objection",
+          "title": "Wait for the full report",
+          "preview": "No decision yet. The gate crowd and the question both grow.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -3,
+            "safety": -2,
+            "trust": -2
+          },
+          "consequence": "No answer at the gate. Rumours fill the space where a decision should be."
+        }
+      ]
+    },
+    {
+      "id": "d-gate-threats",
+      "title": "Threats at the gate, footage on a 36-hour loop",
+      "situation": "The counting supervisor reports two threatening calls and a crowd blocking her car. The depot camera that recorded last night's transfer overwrites itself within hours. Inside, the agents are filing papers peacefully.",
+      "district": "records",
+      "triggerAt": 24,
+      "expiresAfter": 25,
+      "defaultOption": "o-wait-gate",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-protect-and-seal",
+          "title": "Escort staff; seal the room; copy the footage",
+          "preview": "Officers escort workers through a side gate; the strong room is sealed; footage is copied. The assembly stays.",
+          "authority": "Duty to protect election workers and records; Article 19(1)(b) assembly kept intact",
+          "tags": [
+            "proportionate",
+            "protect-assembly",
+            "investigative",
+            "service"
+          ],
+          "effects": {
+            "safety": 7,
+            "evidence": 6,
+            "trust": 4,
+            "freedom": 2
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "protect"
+            },
+            {
+              "kind": "institution",
+              "district": "records"
+            },
+            {
+              "kind": "institution",
+              "district": "transit"
+            },
+            {
+              "kind": "crowd",
+              "district": "records",
+              "magnitude": -0.04
+            }
+          ],
+          "consequence": "Staff enter by the side gate under escort. Seals go on with both agents watching; the footage is copied twice.",
+          "setsFlags": [
+            "workers-protected",
+            "records-secured"
+          ]
+        },
+        {
+          "id": "o-trace-calls",
+          "title": "Register the threats; trace the calls",
+          "preview": "A specific complaint is lodged and the calls are traced. No action is taken against the crowd as a whole.",
+          "authority": "Specific complaint for specific acts; no collective measures",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "safety": 3,
+            "evidence": 3,
+            "trust": 2,
+            "freedom": 1
+          },
+          "delayed": [
+            {
+              "afterTicks": 50,
+              "effects": {
+                "safety": 3,
+                "trust": 3
+              },
+              "message": "Two callers are identified from phone records. A named complaint proceeds.",
+              "condition": {
+                "flag": "threats-investigated"
+              }
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "legal"
+            }
+          ],
+          "consequence": "A named complaint is lodged and the trace begins. The forecourt is left as it is.",
+          "setsFlags": [
+            "threats-investigated"
+          ]
+        },
+        {
+          "id": "o-clear-gate-all",
+          "title": "Clear everyone from the gate",
+          "preview": "Police push the whole crowd back 200 metres, agents and bystanders alike. Every shove is filmed.",
+          "authority": "Powers to prevent obstruction must be targeted and proportionate",
+          "tags": [
+            "force",
+            "disproportionate",
+            "suppressive"
+          ],
+          "effects": {
+            "safety": 4,
+            "freedom": -10,
+            "trust": -8,
+            "grievance": -4
+          },
+          "proportionateIf": {
+            "flag": "widespread-violence"
+          },
+          "disproportionateEffects": {
+            "freedom": -6,
+            "trust": -5,
+            "safety": -3
+          },
+          "delayed": [
+            {
+              "afterTicks": 25,
+              "effects": {
+                "safety": -5,
+                "trust": -3
+              },
+              "message": "Pushed-back supporters regroup at Civic Square. Both camps now share one square.",
+              "condition": {
+                "flag": "gate-cleared-by-force"
+              },
+              "mapEffects": [
+                {
+                  "kind": "crowd",
+                  "district": "civic",
+                  "magnitude": 0.2
+                },
+                {
+                  "kind": "mood",
+                  "district": "civic",
+                  "mood": "volatile"
+                }
+              ]
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "deploy"
+            },
+            {
+              "kind": "crowd",
+              "district": "records",
+              "magnitude": -0.3
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "volatile"
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "civic",
+              "signal": "rumor"
+            }
+          ],
+          "consequence": "The forecourt is emptied in minutes, agents and bystanders alike. Phones record every shove.",
+          "setsFlags": [
+            "gate-cleared-by-force"
+          ]
+        },
+        {
+          "id": "o-wait-gate",
+          "title": "Watch from a distance",
+          "preview": "Officers observe. The supervisor waits in her car. The camera loop keeps running.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "safety": -4,
+            "trust": -2,
+            "evidence": -1
+          },
+          "consequence": "Officers watch. The supervisor waits in her car. The camera loop keeps running."
+        }
+      ]
+    },
+    {
+      "id": "d-rival-assembly",
+      "title": "The second camp fills Civic Square",
+      "situation": "The leading candidate's supporters fill Civic Square demanding the result and chanting at 'the losers'. Their agent asks permission to march to the Records Office, where the other camp is waiting.",
+      "district": "civic",
+      "triggerAt": 56,
+      "expiresAfter": 25,
+      "defaultOption": "o-wait-civic",
+      "urgency": "medium",
+      "rightsMomentId": "rm-equal-assembly",
+      "options": [
+        {
+          "id": "o-equal-rules",
+          "title": "Same written terms for both assemblies",
+          "preview": "Same hours, same noise limits, separate routes; marshals from each camp sign the same page.",
+          "authority": "Article 14 equal treatment; Article 19(1)(b) peaceful assembly with reasonable conditions",
+          "tags": [
+            "protect-assembly",
+            "proportionate",
+            "dialogue"
+          ],
+          "effects": {
+            "freedom": 8,
+            "trust": 6,
+            "safety": 2,
+            "grievance": 2
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "dialogue"
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "calm"
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "Both camps receive the same terms: hours, routes, noise, marshals. The marshals swap phone numbers.",
+          "setsFlags": [
+            "both-camps-equal"
+          ]
+        },
+        {
+          "id": "o-permit-march",
+          "title": "Permit the march to the Records Office",
+          "preview": "A second crowd arrives where the first is waiting. Two camps, one gate.",
+          "authority": "Assembly is protected; route conditions are a reasonable restriction",
+          "tags": [
+            "protect-assembly"
+          ],
+          "effects": {
+            "freedom": 3,
+            "safety": -8,
+            "trust": -2
+          },
+          "mapEffects": [
+            {
+              "kind": "road",
+              "road": "r-civic-transit",
+              "status": "congested"
+            },
+            {
+              "kind": "road",
+              "road": "r-records-transit",
+              "status": "congested"
+            },
+            {
+              "kind": "crowd",
+              "district": "records",
+              "magnitude": 0.3
+            },
+            {
+              "kind": "crowd",
+              "district": "civic",
+              "magnitude": -0.15
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "volatile"
+            }
+          ],
+          "consequence": "The march sets off. Within the hour both camps share one forecourt and one gate.",
+          "setsFlags": [
+            "camps-converged"
+          ]
+        },
+        {
+          "id": "o-ban-second-camp",
+          "title": "Refuse the second camp; clear the square",
+          "preview": "One camp may assemble; the other may not. Police lines empty the square.",
+          "authority": "Restrictions must be necessary and equal for rival groups",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -10,
+            "trust": -8,
+            "safety": 2,
+            "grievance": -2
+          },
+          "proportionateIf": {
+            "flag": "widespread-violence"
+          },
+          "disproportionateEffects": {
+            "freedom": -4,
+            "trust": -3
+          },
+          "delayed": [
+            {
+              "afterTicks": 30,
+              "effects": {
+                "trust": -5,
+                "safety": -3
+              },
+              "message": "'The administration picks sides.' The refused camp's claim travels faster than any notice.",
+              "condition": {
+                "flag": "one-camp-favoured"
+              },
+              "mapEffects": [
+                {
+                  "kind": "signal",
+                  "from": "civic",
+                  "to": "market",
+                  "signal": "rumor"
+                },
+                {
+                  "kind": "signal",
+                  "from": "civic",
+                  "to": "media",
+                  "signal": "rumor"
+                }
+              ]
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "deploy"
+            },
+            {
+              "kind": "crowd",
+              "district": "civic",
+              "magnitude": -0.25
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "volatile"
+            }
+          ],
+          "consequence": "Police lines move the second camp out. Their candidate calls it bias on camera.",
+          "setsFlags": [
+            "one-camp-favoured"
+          ]
+        },
+        {
+          "id": "o-wait-civic",
+          "title": "Wait for the square to empty itself",
+          "preview": "No terms, no marshals, no answer. The square fills further.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "safety": -3,
+            "trust": -2
+          },
+          "consequence": "The square fills further. No terms, no marshals, no answer."
+        }
+      ]
+    },
+    {
+      "id": "d-publish-reconciliation",
+      "title": "Publish what can be checked",
+      "situation": "Journalists and both camps are asking for numbers. You hold the seal list, the station sheets and the transfer log. Publishing them invites scrutiny; withholding them invites invention.",
+      "district": "records",
+      "triggerAt": 76,
+      "expiresAfter": 30,
+      "defaultOption": "o-wait-publish",
+      "urgency": "high",
+      "rightsMomentId": "rm-review-transparency",
+      "options": [
+        {
+          "id": "o-publish-reconciliation",
+          "title": "Publish seal numbers and the station table",
+          "preview": "Every station's figure and every seal number go on the notice board and the district website.",
+          "authority": "Public interest in a verifiable count; openness of election records",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 7,
+            "evidence": 5,
+            "grievance": 5,
+            "freedom": 2
+          },
+          "delayed": [
+            {
+              "afterTicks": 30,
+              "effects": {
+                "trust": 3,
+                "economy": 3
+              },
+              "message": "Shop owners read the table for themselves and shelve the shutdown call for now.",
+              "condition": {
+                "flag": "reconciliation-published"
+              },
+              "mapEffects": [
+                {
+                  "kind": "mood",
+                  "district": "market",
+                  "mood": "calm"
+                }
+              ]
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "announce"
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "media",
+              "signal": "official"
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "civic",
+              "signal": "official"
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "market",
+              "signal": "official"
+            },
+            {
+              "kind": "trust",
+              "district": "records",
+              "magnitude": 0.1
+            }
+          ],
+          "consequence": "The full table goes up at 11:00, on the board and online. Journalists photograph every page.",
+          "setsFlags": [
+            "reconciliation-published"
+          ]
+        },
+        {
+          "id": "o-publish-summary",
+          "title": "Publish one line: 'the process was sound'",
+          "preview": "Reassurance without numbers. The reply is a question: what are you hiding?",
+          "authority": "Official communication with no record attached",
+          "tags": [
+            "communication"
+          ],
+          "effects": {
+            "trust": -3,
+            "grievance": -2
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            }
+          ],
+          "consequence": "The line goes out. The reply is a question: where are the numbers?",
+          "undoTicks": 5,
+          "setsFlags": [
+            "summary-only"
+          ]
+        },
+        {
+          "id": "o-wait-publish",
+          "title": "Hold everything until the review ends",
+          "preview": "Nothing is published. Other people's numbers fill the vacuum.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "trust": -4,
+            "grievance": -3,
+            "economy": -2
+          },
+          "consequence": "Nothing is published. The vacuum fills with other people's numbers."
+        }
+      ]
+    },
+    {
+      "id": "d-announce-correction",
+      "title": "A transposition error is confirmed in Ward 9",
+      "situation": "Station 9/14's sheet reads 1,243; the table reads 1,423. The margin narrows from 311 to 131 votes. The winner does not change. How the correction is made decides whether this reads as a mistake or a cover-up.",
+      "district": "records",
+      "triggerFlag": "transposition-found",
+      "expiresAfter": 35,
+      "defaultOption": "o-wait-correction",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-correct-publicly",
+          "title": "Correct the table publicly; explain the error",
+          "preview": "The corrected table, the original sheet and the entry log are published side by side, with observers present.",
+          "authority": "Duty to correct the record; transparency as the remedy for distrust",
+          "tags": [
+            "transparent",
+            "legal-process",
+            "communication"
+          ],
+          "effects": {
+            "trust": 8,
+            "evidence": 8,
+            "grievance": 8,
+            "freedom": 2,
+            "safety": 3
+          },
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "safety": 4,
+                "economy": 4
+              },
+              "message": "Both camps' observers sign the corrected table. The forecourt thins.",
+              "condition": {
+                "flag": "transposition-corrected"
+              },
+              "mapEffects": [
+                {
+                  "kind": "crowd",
+                  "district": "records",
+                  "magnitude": -0.1
+                },
+                {
+                  "kind": "crowd",
+                  "district": "civic",
+                  "magnitude": -0.1
+                },
+                {
+                  "kind": "mood",
+                  "district": "civic",
+                  "mood": "calm"
+                }
+              ]
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "announce"
+            },
+            {
+              "kind": "institution",
+              "district": "records"
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "hopeful"
+            },
+            {
+              "kind": "crowd",
+              "district": "records",
+              "magnitude": -0.15
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "civic",
+              "signal": "official"
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "media",
+              "signal": "official"
+            }
+          ],
+          "consequence": "The corrected figure is read aloud with both agents present: a mistake, named as a mistake, with the sheet beside it.",
+          "setsFlags": [
+            "transposition-corrected"
+          ]
+        },
+        {
+          "id": "o-correct-quietly",
+          "title": "Correct the figure quietly",
+          "preview": "The record is fixed. Nobody is told why the number changed.",
+          "authority": "Record maintenance without public notice",
+          "tags": [
+            "communication"
+          ],
+          "effects": {
+            "evidence": 2,
+            "trust": -6,
+            "grievance": -2
+          },
+          "delayed": [
+            {
+              "afterTicks": 25,
+              "effects": {
+                "trust": -6,
+                "safety": -2
+              },
+              "message": "A supporter spots the changed figure. 'They altered it again, in secret.'",
+              "condition": {
+                "flag": "quiet-correction"
+              },
+              "mapEffects": [
+                {
+                  "kind": "signal",
+                  "from": "records",
+                  "to": "media",
+                  "signal": "rumor"
+                },
+                {
+                  "kind": "signal",
+                  "from": "records",
+                  "to": "civic",
+                  "signal": "rumor"
+                },
+                {
+                  "kind": "mood",
+                  "district": "records",
+                  "mood": "volatile"
+                }
+              ]
+            }
+          ],
+          "consequence": "The table is quietly updated. The change is noticed within the hour.",
+          "setsFlags": [
+            "quiet-correction"
+          ]
+        },
+        {
+          "id": "o-suspend-clerk-publicly",
+          "title": "Name and suspend the entry clerk for fraud",
+          "preview": "A staff member is publicly blamed before anyone has established intent.",
+          "authority": "Due process for public servants; presumption of innocence",
+          "tags": [
+            "accusation",
+            "disproportionate"
+          ],
+          "requiresEvidence": [
+            "ev-clerk-chat"
+          ],
+          "effects": {
+            "trust": -4,
+            "grievance": 2,
+            "evidence": -4,
+            "freedom": -4
+          },
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -14,
+            "evidence": -10,
+            "grievance": -2
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "legal"
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "volatile"
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "media",
+              "signal": "rumor"
+            }
+          ],
+          "consequence": "A name is read out and the screenshots are cited. The staff association walks out of the hall.",
+          "setsFlags": [
+            "clerk-accused"
+          ]
+        },
+        {
+          "id": "o-wait-correction",
+          "title": "Wait before correcting",
+          "preview": "The wrong number stays on the board for now.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "trust": -3,
+            "grievance": -2
+          },
+          "consequence": "The wrong number stays on the board for now."
+        }
+      ]
+    },
+    {
+      "id": "d-candidate-speech",
+      "title": "A candidate calls the count 'stolen' on air",
+      "situation": "The trailing candidate tells a live bulletin the count was 'stolen' and asks supporters to 'stay on the streets until it is undone'. Your police liaison asks whether to restrict the statements.",
+      "district": "media",
+      "triggerAt": 112,
+      "expiresAfter": 25,
+      "defaultOption": "o-wait-speech",
+      "urgency": "medium",
+      "rightsMomentId": "rm-political-speech",
+      "options": [
+        {
+          "id": "o-respond-with-facts",
+          "title": "Answer with the record, not a restriction",
+          "preview": "A point-by-point reply using seal numbers and the entry log. No restriction on the candidate.",
+          "authority": "Article 19(1)(a) political speech; restrictions only on narrow Article 19(2) grounds",
+          "tags": [
+            "protect-press",
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "freedom": 8,
+            "trust": 5,
+            "evidence": 3
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "announce"
+            },
+            {
+              "kind": "signal",
+              "from": "media",
+              "to": "civic",
+              "signal": "official"
+            },
+            {
+              "kind": "signal",
+              "from": "media",
+              "to": "campus",
+              "signal": "official"
+            }
+          ],
+          "consequence": "Your point-by-point reply runs beside the candidate's claim. Viewers can compare both.",
+          "setsFlags": [
+            "speech-protected"
+          ]
+        },
+        {
+          "id": "o-warn-incitement",
+          "title": "Issue a narrow notice on calls to violence",
+          "preview": "A two-line notice: criticism is free; a call to attack the office is not. The statement stands.",
+          "authority": "Incitement to an offence may be restricted; criticism may not",
+          "tags": [
+            "legal-process",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 3,
+            "safety": 4,
+            "trust": 2
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "legal"
+            }
+          ],
+          "consequence": "A two-line notice: criticise freely; do not call for attacks on the office. The statement stands.",
+          "setsFlags": [
+            "narrow-notice"
+          ]
+        },
+        {
+          "id": "o-restrict-candidate",
+          "title": "Bar the candidate from statements for 48 hours",
+          "preview": "A gag order. The claim becomes 'the truth they silenced'.",
+          "authority": "No power to pre-censor political speech",
+          "tags": [
+            "censorship",
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -16,
+            "trust": -10,
+            "safety": -2
+          },
+          "proportionateIf": {
+            "flag": "incitement-verified"
+          },
+          "disproportionateEffects": {
+            "freedom": -4,
+            "trust": -4
+          },
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "trust": -5,
+                "grievance": -4,
+                "safety": -2
+              },
+              "message": "The gag order is the story now. Clips of the order outrun clips of the count.",
+              "condition": {
+                "flag": "criticism-suppressed"
+              },
+              "mapEffects": [
+                {
+                  "kind": "signal",
+                  "from": "media",
+                  "to": "market",
+                  "signal": "rumor"
+                },
+                {
+                  "kind": "signal",
+                  "from": "media",
+                  "to": "transit",
+                  "signal": "rumor"
+                },
+                {
+                  "kind": "signal",
+                  "from": "media",
+                  "to": "campus",
+                  "signal": "rumor"
+                }
+              ]
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "legal"
+            },
+            {
+              "kind": "mood",
+              "district": "media",
+              "mood": "volatile"
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "volatile"
+            }
+          ],
+          "consequence": "The order is served. The candidate reads it aloud on camera.",
+          "setsFlags": [
+            "criticism-suppressed"
+          ]
+        },
+        {
+          "id": "o-wait-speech",
+          "title": "Say nothing",
+          "preview": "The claim runs unanswered through the evening bulletins.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "trust": -3,
+            "grievance": -2,
+            "safety": -1
+          },
+          "consequence": "The claim runs unanswered through the evening bulletins."
+        }
+      ]
+    },
+    {
+      "id": "d-market-shutdown",
+      "title": "Market Street weighs a shutdown",
+      "situation": "The shop-owner association says half the shops will close tomorrow unless they know the streets will stay calm. The Transit Authority reports commuters avoiding the hub.",
+      "district": "market",
+      "triggerAt": 132,
+      "expiresAfter": 25,
+      "defaultOption": "o-wait-market",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-reassure-market",
+          "title": "Meet the association; publish the policing plan",
+          "preview": "Shop owners hear the plan for both camps' routes and hours. Shutters stay up.",
+          "authority": "Economic continuity; duty to inform affected businesses",
+          "tags": [
+            "dialogue",
+            "service",
+            "communication"
+          ],
+          "effects": {
+            "economy": 8,
+            "trust": 3,
+            "safety": 2
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "dialogue"
+            },
+            {
+              "kind": "service",
+              "district": "market",
+              "magnitude": 0.1
+            },
+            {
+              "kind": "mood",
+              "district": "market",
+              "mood": "calm"
+            }
+          ],
+          "consequence": "Owners agree to open. The policing plan for both camps' routes is pinned at the market gate.",
+          "setsFlags": [
+            "shops-reassured",
+            "bandh-averted"
+          ]
+        },
+        {
+          "id": "o-restore-transit",
+          "title": "Keep transit running with a visible presence",
+          "preview": "Buses keep moving; officers stand at the hub, not in the squares.",
+          "authority": "Essential services; presence at the hub rather than at the assemblies",
+          "tags": [
+            "service",
+            "proportionate"
+          ],
+          "effects": {
+            "economy": 5,
+            "safety": 3
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "restore"
+            },
+            {
+              "kind": "service",
+              "district": "transit",
+              "magnitude": 0.1
+            },
+            {
+              "kind": "road",
+              "road": "r-civic-transit",
+              "status": "open"
+            },
+            {
+              "kind": "road",
+              "road": "r-records-transit",
+              "status": "open"
+            }
+          ],
+          "consequence": "Buses keep moving and officers stand at the hub. The city keeps moving.",
+          "setsFlags": [
+            "transit-kept-open"
+          ]
+        },
+        {
+          "id": "o-order-shops-open",
+          "title": "Order all shops to stay open",
+          "preview": "An order nobody can enforce. Owners resent being told, and some close in protest.",
+          "authority": "No lawful basis to compel trading",
+          "tags": [
+            "disproportionate",
+            "suppressive"
+          ],
+          "effects": {
+            "economy": -4,
+            "trust": -5,
+            "freedom": -4
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "announce"
+            },
+            {
+              "kind": "mood",
+              "district": "market",
+              "mood": "tense"
+            },
+            {
+              "kind": "service",
+              "district": "market",
+              "magnitude": -0.1
+            }
+          ],
+          "consequence": "The order goes out. Several shutters come down anyway, now in protest.",
+          "setsFlags": [
+            "shops-ordered"
+          ]
+        },
+        {
+          "id": "o-wait-market",
+          "title": "Let the market decide for itself",
+          "preview": "No plan reaches the market. Owners hedge and close early.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "economy": -6,
+            "trust": -1
+          },
+          "mapEffects": [
+            {
+              "kind": "service",
+              "district": "market",
+              "magnitude": -0.15
+            },
+            {
+              "kind": "mood",
+              "district": "market",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "No plan reaches the market. Owners hedge and close early.",
+          "setsFlags": [
+            "bandh-risk"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d-final-declaration",
+      "title": "Declare the result",
+      "situation": "Evening. Both camps are waiting for a declaration. What you attach to it decides whether it ends the argument or restarts it.",
+      "district": "records",
+      "triggerAt": 152,
+      "expiresAfter": 25,
+      "defaultOption": "o-postpone",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-declare-with-record",
+          "title": "Declare with the full reconciliation attached",
+          "preview": "The declaration cites every station, every seal and the correction. Observers from both camps sign it.",
+          "authority": "Returning officer's duty to declare; transparency of the record",
+          "tags": [
+            "transparent",
+            "legal-process",
+            "communication"
+          ],
+          "effects": {
+            "trust": 7,
+            "grievance": 8,
+            "safety": 4,
+            "freedom": 2,
+            "economy": 3
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            },
+            {
+              "kind": "institution",
+              "district": "records"
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "hopeful"
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "hopeful"
+            },
+            {
+              "kind": "crowd",
+              "district": "civic",
+              "magnitude": -0.2
+            },
+            {
+              "kind": "crowd",
+              "district": "records",
+              "magnitude": -0.2
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "civic",
+              "signal": "official"
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "media",
+              "signal": "official"
+            },
+            {
+              "kind": "incident",
+              "district": "records",
+              "incident": null
+            }
+          ],
+          "consequence": "The declaration is read with both agents and the independent observer beside you: every station, every seal, the correction.",
+          "setsFlags": [
+            "result-declared-after-review"
+          ]
+        },
+        {
+          "id": "o-declare-bare",
+          "title": "Declare the result without the record",
+          "preview": "A declaration without the numbers reopens every question asked today.",
+          "authority": "Returning officer's power to declare",
+          "tags": [
+            "communication"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -5,
+            "safety": -2,
+            "economy": 2
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "volatile"
+            }
+          ],
+          "consequence": "The result is declared. The questions remain exactly where they were this morning.",
+          "setsFlags": [
+            "bare-declaration"
+          ]
+        },
+        {
+          "id": "o-postpone",
+          "title": "Postpone the declaration to tomorrow",
+          "preview": "Another day of waiting. Both camps settle in for the night.",
+          "authority": "Returning officer's discretion over timing",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -5,
+            "trust": -3,
+            "economy": -4,
+            "safety": -2
+          },
+          "mapEffects": [
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "tense"
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "Another day of waiting. Both camps settle in for the night.",
+          "setsFlags": [
+            "declaration-postponed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d-bait-announce-winner",
+      "title": "'End it now: announce the winner'",
+      "situation": "An adviser urges you to end the standoff by announcing the final result tonight, review or not. 'Certainty calms crowds,' he says. The review has not finished.",
+      "district": "civic",
+      "expiresAfter": 20,
+      "defaultOption": "o-bait-wait-announce",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-bait-announce",
+          "title": "Announce the final result tonight",
+          "preview": "A result without the review. One camp celebrates; the other digs in.",
+          "authority": "Power to declare; objections still undecided",
+          "tags": [
+            "communication"
+          ],
+          "effects": {
+            "safety": 2,
+            "economy": 3,
+            "grievance": -10,
+            "trust": -8,
+            "evidence": -4
+          },
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "safety": -6,
+                "trust": -4
+              },
+              "message": "The Records Office crowd doubles: 'they declared it without looking'.",
+              "condition": {
+                "notFlag": "transposition-corrected"
+              },
+              "mapEffects": [
+                {
+                  "kind": "crowd",
+                  "district": "records",
+                  "magnitude": 0.25
+                },
+                {
+                  "kind": "mood",
+                  "district": "records",
+                  "mood": "volatile"
+                }
+              ]
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "hopeful"
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "volatile"
+            }
+          ],
+          "consequence": "The announcement is made. Celebration in one square; anger in the other.",
+          "setsFlags": [
+            "winner-declared-early"
+          ]
+        },
+        {
+          "id": "o-bait-hold-line",
+          "title": "Hold: result follows the review, on a timetable",
+          "preview": "A clock everyone can see: review ends at 15:00, declaration at 16:00.",
+          "authority": "Objections decided before declaration; openness about timing",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 5,
+            "grievance": 4,
+            "safety": 1
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "announce"
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "civic",
+              "signal": "official"
+            }
+          ],
+          "consequence": "A timetable goes on the board: review ends 15:00, declaration 16:00. Waiting with a clock is different from waiting.",
+          "undoTicks": 5,
+          "setsFlags": [
+            "timetable-published"
+          ]
+        },
+        {
+          "id": "o-bait-wait-announce",
+          "title": "Give no answer for now",
+          "preview": "No answer. The adviser's suggestion leaks to a reporter.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "trust": -2,
+            "grievance": -2
+          },
+          "consequence": "No answer. The adviser's suggestion leaks to a reporter."
+        }
+      ]
+    },
+    {
+      "id": "d-bait-clear-both",
+      "title": "A scuffle at the gate: clear both camps?",
+      "situation": "A few supporters from each camp are throwing punches at the Records Office gate. Most people have stepped back. The liaison asks whether to cordon the forecourt and clear everyone.",
+      "district": "records",
+      "triggerFlag": "scuffle-active",
+      "expiresAfter": 15,
+      "defaultOption": "o-bait-wait-scuffle",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-bait-separate-detain",
+          "title": "Separate the camps; detain those who attacked",
+          "preview": "Officers split the forecourt. The few seen attacking are detained on named complaints. Everyone else stays.",
+          "authority": "Lawful arrest for specific acts; minimum necessary force",
+          "tags": [
+            "force",
+            "detention",
+            "proportionate",
+            "legal-process"
+          ],
+          "effects": {
+            "safety": 9,
+            "trust": 3,
+            "freedom": -1
+          },
+          "proportionateIf": {
+            "flag": "scuffle-active"
+          },
+          "disproportionateEffects": {
+            "freedom": -6,
+            "trust": -4
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "deploy"
+            },
+            {
+              "kind": "incident",
+              "district": "records",
+              "incident": null
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "Four named detentions for specific acts. The two camps are now forty metres apart, both still present.",
+          "setsFlags": [
+            "scuffle-contained"
+          ],
+          "clearsFlags": [
+            "scuffle-active"
+          ]
+        },
+        {
+          "id": "o-bait-clear-both",
+          "title": "Cordon and clear both groups entirely",
+          "preview": "Everyone goes, including the peaceful majority. Clips of the clearance travel farther than clips of the fight.",
+          "authority": "Force must be targeted at those using violence, not at everyone present",
+          "tags": [
+            "force",
+            "disproportionate",
+            "suppressive"
+          ],
+          "effects": {
+            "safety": 5,
+            "freedom": -8,
+            "trust": -6,
+            "grievance": -3
+          },
+          "proportionateIf": {
+            "flag": "widespread-violence"
+          },
+          "disproportionateEffects": {
+            "freedom": -8,
+            "trust": -6,
+            "safety": -2
+          },
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "safety": -5,
+                "trust": -4,
+                "economy": -2
+              },
+              "message": "The cleared camps reassemble at the Transit Hub and block the concourse.",
+              "condition": {
+                "flag": "forecourt-cleared"
+              },
+              "mapEffects": [
+                {
+                  "kind": "crowd",
+                  "district": "transit",
+                  "magnitude": 0.3
+                },
+                {
+                  "kind": "service",
+                  "district": "transit",
+                  "magnitude": -0.2
+                },
+                {
+                  "kind": "mood",
+                  "district": "transit",
+                  "mood": "volatile"
+                },
+                {
+                  "kind": "road",
+                  "road": "r-civic-transit",
+                  "status": "congested"
+                }
+              ]
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "deploy"
+            },
+            {
+              "kind": "crowd",
+              "district": "records",
+              "magnitude": -0.45
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "volatile"
+            },
+            {
+              "kind": "incident",
+              "district": "records",
+              "incident": null
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "civic",
+              "signal": "rumor"
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "media",
+              "signal": "rumor"
+            }
+          ],
+          "consequence": "The forecourt is empty in six minutes. The fight is over; so is the goodwill.",
+          "setsFlags": [
+            "forecourt-cleared"
+          ],
+          "clearsFlags": [
+            "scuffle-active"
+          ]
+        },
+        {
+          "id": "o-bait-wait-scuffle",
+          "title": "Hold the line and observe",
+          "preview": "Officers hold their line. Punches continue by the gate.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "safety": -7,
+            "trust": -3
+          },
+          "delayed": [
+            {
+              "afterTicks": 15,
+              "effects": {
+                "safety": -5,
+                "economy": -2
+              },
+              "message": "Without separation, the fighting flares again by the gate.",
+              "condition": {
+                "flag": "scuffle-active"
+              },
+              "mapEffects": [
+                {
+                  "kind": "incident",
+                  "district": "records",
+                  "incident": "clash"
+                },
+                {
+                  "kind": "mood",
+                  "district": "records",
+                  "mood": "volatile"
+                }
+              ]
+            }
+          ],
+          "consequence": "Officers hold their line. Punches continue by the gate."
+        }
+      ]
+    },
+    {
+      "id": "d-bait-preempt-storm",
+      "title": "'They will storm the office at noon'",
+      "situation": "A forwarded note claims the trailing candidate's agents plan to storm the Records Office at noon. The liaison proposes detaining the agents now and banning all gatherings for 48 hours.",
+      "district": "records",
+      "expiresAfter": 20,
+      "defaultOption": "o-bait-wait-storm",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-bait-verify-first",
+          "title": "Check the note; brief both camps' marshals",
+          "preview": "The note is checked against the gate reporter's account and your observers. Marshals hear where the line is.",
+          "authority": "Verify before acting; assembly remains lawful until there is specific cause",
+          "tags": [
+            "investigative",
+            "dialogue",
+            "proportionate"
+          ],
+          "effects": {
+            "evidence": 6,
+            "trust": 4,
+            "safety": 3,
+            "freedom": 2
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "investigate"
+            },
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "dialogue"
+            }
+          ],
+          "consequence": "The note has no author and no detail. The marshals confirm nobody is planning anything except waiting.",
+          "setsFlags": [
+            "storm-note-checked"
+          ]
+        },
+        {
+          "id": "o-bait-detain-agents",
+          "title": "Detain the agents for rumour-mongering",
+          "preview": "The people who filed the lawful objection are taken away. The objection becomes a martyrdom.",
+          "authority": "Arrest needs specific grounds; filing an objection and criticising a count are lawful",
+          "tags": [
+            "detention",
+            "force",
+            "accusation",
+            "disproportionate",
+            "suppressive"
+          ],
+          "requiresEvidence": [
+            "ev-storm-note"
+          ],
+          "effects": {
+            "safety": 1,
+            "freedom": -8,
+            "trust": -6,
+            "grievance": -5
+          },
+          "falseAccusationEffects": {
+            "freedom": -16,
+            "trust": -14,
+            "evidence": -10,
+            "grievance": -6,
+            "safety": -2
+          },
+          "proportionateIf": {
+            "flag": "incitement-verified"
+          },
+          "disproportionateEffects": {
+            "freedom": -6,
+            "trust": -5
+          },
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "safety": -6,
+                "economy": -3,
+                "trust": -4
+              },
+              "message": "Students join the Records Office crowd: 'they arrest the people who asked for a recount'.",
+              "condition": {
+                "flag": "agents-detained"
+              },
+              "mapEffects": [
+                {
+                  "kind": "crowd",
+                  "district": "campus",
+                  "magnitude": 0.2
+                },
+                {
+                  "kind": "crowd",
+                  "district": "records",
+                  "magnitude": 0.15
+                },
+                {
+                  "kind": "mood",
+                  "district": "campus",
+                  "mood": "tense"
+                }
+              ]
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "deploy"
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "volatile"
+            },
+            {
+              "kind": "crowd",
+              "district": "records",
+              "magnitude": 0.2
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "media",
+              "signal": "rumor"
+            },
+            {
+              "kind": "signal",
+              "from": "records",
+              "to": "campus",
+              "signal": "rumor"
+            }
+          ],
+          "consequence": "Three agents are led from the hall in front of cameras. The hall falls silent, then erupts.",
+          "setsFlags": [
+            "agents-detained"
+          ]
+        },
+        {
+          "id": "o-bait-ban-gatherings",
+          "title": "Ban all gatherings citywide for 48 hours",
+          "preview": "Both camps, the market association and a student society all become unlawful assemblies at once.",
+          "authority": "Restrictions on assembly must be necessary and proportionate, never blanket",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -18,
+            "trust": -10,
+            "safety": -3,
+            "economy": -4,
+            "grievance": -4
+          },
+          "proportionateIf": {
+            "flag": "widespread-violence"
+          },
+          "disproportionateEffects": {
+            "freedom": -6,
+            "trust": -4
+          },
+          "delayed": [
+            {
+              "afterTicks": 25,
+              "effects": {
+                "safety": -5,
+                "trust": -5,
+                "economy": -3
+              },
+              "message": "Gatherings continue in defiance. Every dispersal is filmed. The market closes early.",
+              "condition": {
+                "flag": "assembly-banned"
+              },
+              "mapEffects": [
+                {
+                  "kind": "crowd",
+                  "district": "civic",
+                  "magnitude": 0.1
+                },
+                {
+                  "kind": "service",
+                  "district": "market",
+                  "magnitude": -0.2
+                },
+                {
+                  "kind": "mood",
+                  "district": "market",
+                  "mood": "tense"
+                }
+              ]
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "deploy"
+            },
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "deploy"
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "volatile"
+            },
+            {
+              "kind": "mood",
+              "district": "records",
+              "mood": "volatile"
+            },
+            {
+              "kind": "mood",
+              "district": "campus",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "Loudspeakers announce the ban. Nobody at either square goes home.",
+          "setsFlags": [
+            "assembly-banned"
+          ]
+        },
+        {
+          "id": "o-bait-wait-storm",
+          "title": "Ignore the note",
+          "preview": "The note is filed. Noon passes without a storm.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "evidence": -2,
+            "safety": -1
+          },
+          "consequence": "The note is filed. Noon passes without a storm."
+        }
+      ]
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-equal-assembly",
+      "question": "Two rival groups want to assemble today, one at Civic Square and one at the Records Office. Both are peaceful so far. What rules may you set?",
+      "options": [
+        {
+          "id": "ra-same",
+          "text": "The same reasonable conditions for both: hours, routes and marshals, decided by one standard.",
+          "correct": true,
+          "feedback": "Right. Equal treatment means equal rules, not equal outcomes. Conditions must be reasonable and the same for both."
+        },
+        {
+          "id": "ra-favour",
+          "text": "Allow the group whose candidate is leading; refuse the other to avoid trouble.",
+          "correct": false,
+          "feedback": "Picking a side is unequal treatment. It also tends to make the refused group's claim of bias look true."
+        },
+        {
+          "id": "ra-refuse",
+          "text": "Refuse both to keep the city calm.",
+          "correct": false,
+          "feedback": "A blanket refusal restricts everyone for the acts of nobody. Restrictions must be necessary and proportionate."
+        }
+      ],
+      "principle": "Article 14 guarantees equality before the law. Article 19(1)(b) protects peaceful assembly, subject only to reasonable restrictions. Rival groups must be judged by the same standard.",
+      "why": "In a disputed count, the administration's even-handedness is itself evidence. The moment one camp is treated differently, the dispute stops being about numbers.",
+      "source": {
+        "label": "Constitution of India, Articles 14 and 19 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-23"
+    },
+    {
+      "id": "rm-review-transparency",
+      "question": "A candidate's agents say the Ward 9 figures do not match the station sheets. What is the right response to a specific, written objection?",
+      "options": [
+        {
+          "id": "rr-open",
+          "text": "Examine the specific records openly, with observers from each side present, and publish what the comparison shows.",
+          "correct": true,
+          "feedback": "Right. A specific objection deserves a specific, observable check. Transparency is the remedy for distrust."
+        },
+        {
+          "id": "rr-court",
+          "text": "Declare the result anyway; objections can go to court later.",
+          "correct": false,
+          "feedback": "Courts are a remedy, but refusing to look at a specific, documented objection on the day erodes trust and invites escalation."
+        },
+        {
+          "id": "rr-closed",
+          "text": "Hold a full citywide recount behind closed doors to be safe.",
+          "correct": false,
+          "feedback": "A closed-door process, however thorough, cannot be seen to be fair. Observers and published records make a review credible."
+        }
+      ],
+      "principle": "Election procedures provide for objections to be heard and decided openly, with candidates' agents present. The record of the count is meant to be checkable.",
+      "why": "Both the real transposition error and the false fraud story were settled by the same act: comparing station sheets with the table in front of observers and publishing the result.",
+      "source": {
+        "label": "Election Commission of India: procedures and guidance",
+        "url": "https://www.eci.gov.in/"
+      },
+      "contentDate": "2026-10-23"
+    },
+    {
+      "id": "rm-political-speech",
+      "question": "A trailing candidate calls the count 'stolen' on live television. Can you order the candidate to stop making public statements?",
+      "options": [
+        {
+          "id": "rs-no",
+          "text": "No. Harsh criticism of officials is protected speech. Only narrow grounds such as incitement to violence allow restriction, and only as much as necessary.",
+          "correct": true,
+          "feedback": "Right. The answer to a false claim about the count is the published record, not a gag order."
+        },
+        {
+          "id": "rs-false",
+          "text": "Yes, if the claim is false; false statements are not protected.",
+          "correct": false,
+          "feedback": "Being wrong about a count is not a ground for restriction. Officials correct the record; they do not pre-censor political speech."
+        },
+        {
+          "id": "rs-approval",
+          "text": "Yes. During an election dispute all public statements need prior approval.",
+          "correct": false,
+          "feedback": "Prior approval of political speech is exactly the kind of restriction Article 19(1)(a) is designed to prevent."
+        }
+      ],
+      "principle": "Article 19(1)(a) protects freedom of speech and expression. Article 19(2) allows only narrow, reasonable restrictions, such as against incitement to an offence. Courts have held that such restrictions must be proportionate and not vague.",
+      "why": "A gag order would have turned a losing claim into a story of silenced truth. Answering with seal numbers and the entry log let viewers compare both.",
+      "source": {
+        "label": "Supreme Court of India: judgments",
+        "url": "https://main.sci.gov.in/"
+      },
+      "contentDate": "2026-10-23"
+    }
+  ],
+  "events": [
+    {
+      "id": "e-open",
+      "at": 2,
+      "kind": "crowd",
+      "message": "Two camps form: agents and supporters at the Records Office gate; the leading candidate's supporters at Civic Square.",
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "records",
+          "magnitude": 0.15
+        },
+        {
+          "kind": "mood",
+          "district": "records",
+          "mood": "tense"
+        },
+        {
+          "kind": "crowd",
+          "district": "civic",
+          "magnitude": 0.15
+        },
+        {
+          "kind": "mood",
+          "district": "civic",
+          "mood": "tense"
+        },
+        {
+          "kind": "road",
+          "road": "r-civic-transit",
+          "status": "congested"
+        }
+      ]
+    },
+    {
+      "id": "e-first-rumor",
+      "at": 14,
+      "kind": "rumor",
+      "message": "A message spreads: 'the Ward 9 numbers were changed overnight'.",
+      "effects": {
+        "trust": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "signal",
+          "from": "records",
+          "to": "civic",
+          "signal": "rumor"
+        },
+        {
+          "kind": "signal",
+          "from": "records",
+          "to": "market",
+          "signal": "rumor"
+        }
+      ]
+    },
+    {
+      "id": "e-noon-crowd",
+      "at": 70,
+      "kind": "crowd",
+      "message": "No review has begun. The Records Office crowd doubles over lunch.",
+      "condition": {
+        "notFlag": "review-opened"
+      },
+      "effects": {
+        "safety": -4,
+        "grievance": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "records",
+          "magnitude": 0.25
+        },
+        {
+          "kind": "mood",
+          "district": "records",
+          "mood": "volatile"
+        }
+      ]
+    },
+    {
+      "id": "e-break-in",
+      "at": 98,
+      "kind": "incident",
+      "message": "Someone forces a rear window at the Records Office annex. A guard raises the alarm; it is not clear what was touched.",
+      "condition": {
+        "notFlag": "records-secured"
+      },
+      "effects": {
+        "safety": -5,
+        "evidence": -4,
+        "trust": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "records",
+          "incident": "vandalism"
+        },
+        {
+          "kind": "mood",
+          "district": "records",
+          "mood": "volatile"
+        }
+      ],
+      "setsFlags": [
+        "break-in-attempt"
+      ]
+    },
+    {
+      "id": "e-market-worry",
+      "at": 104,
+      "kind": "news",
+      "message": "Market Street's association warns of a shutdown tomorrow unless the dispute calms. Buses run half empty.",
+      "effects": {
+        "economy": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "mood",
+          "district": "market",
+          "mood": "tense"
+        },
+        {
+          "kind": "service",
+          "district": "market",
+          "magnitude": -0.05
+        },
+        {
+          "kind": "service",
+          "district": "transit",
+          "magnitude": -0.1
+        }
+      ]
+    },
+    {
+      "id": "e-widespread",
+      "at": 125,
+      "kind": "incident",
+      "message": "With the camps never separated, fighting spreads from the gate across the forecourt.",
+      "condition": {
+        "flag": "scuffle-active"
+      },
+      "effects": {
+        "safety": -8,
+        "economy": -3,
+        "trust": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "records",
+          "incident": "clash"
+        },
+        {
+          "kind": "crowd",
+          "district": "records",
+          "magnitude": 0.1
+        },
+        {
+          "kind": "mood",
+          "district": "records",
+          "mood": "volatile"
+        }
+      ],
+      "setsFlags": [
+        "widespread-violence"
+      ]
+    },
+    {
+      "id": "e-bulletin-table",
+      "at": 140,
+      "kind": "news",
+      "message": "Evening bulletins run the station-by-station table. Two anchors read seal numbers aloud.",
+      "condition": {
+        "flag": "reconciliation-published"
+      },
+      "effects": {
+        "trust": 3,
+        "evidence": 2
+      },
+      "mapEffects": [
+        {
+          "kind": "signal",
+          "from": "media",
+          "to": "civic",
+          "signal": "official"
+        },
+        {
+          "kind": "signal",
+          "from": "media",
+          "to": "records",
+          "signal": "official"
+        }
+      ]
+    },
+    {
+      "id": "e-bulletin-vacuum",
+      "at": 140,
+      "kind": "rumor",
+      "message": "With no published table, the bulletins run the viral clip and the fraud claim unanswered.",
+      "condition": {
+        "notFlag": "reconciliation-published"
+      },
+      "effects": {
+        "trust": -4,
+        "evidence": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "signal",
+          "from": "media",
+          "to": "civic",
+          "signal": "rumor"
+        },
+        {
+          "kind": "signal",
+          "from": "media",
+          "to": "campus",
+          "signal": "rumor"
+        }
+      ]
+    },
+    {
+      "id": "e-close-settled",
+      "at": 172,
+      "kind": "relief",
+      "message": "Both camps' marshals shake hands at the gate. The forecourt empties by nightfall.",
+      "condition": {
+        "flag": "result-declared-after-review"
+      },
+      "effects": {
+        "safety": 3,
+        "economy": 2
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "records",
+          "magnitude": -0.2
+        },
+        {
+          "kind": "crowd",
+          "district": "civic",
+          "magnitude": -0.2
+        },
+        {
+          "kind": "mood",
+          "district": "records",
+          "mood": "calm"
+        },
+        {
+          "kind": "mood",
+          "district": "civic",
+          "mood": "calm"
+        },
+        {
+          "kind": "service",
+          "district": "transit",
+          "magnitude": 0.1
+        },
+        {
+          "kind": "incident",
+          "district": "records",
+          "incident": null
+        }
+      ]
+    },
+    {
+      "id": "e-close-open",
+      "at": 172,
+      "kind": "crowd",
+      "message": "Night falls on two squares still full, and a count still disputed.",
+      "condition": {
+        "notFlag": "result-declared-after-review"
+      },
+      "effects": {
+        "grievance": -3,
+        "safety": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "mood",
+          "district": "records",
+          "mood": "volatile"
+        },
+        {
+          "kind": "mood",
+          "district": "civic",
+          "mood": "tense"
+        }
+      ]
+    },
+    {
+      "id": "e-coverup-rumor",
+      "at": -1,
+      "kind": "rumor",
+      "message": "'The review is a cover-up': a message claims the observers were hand-picked and the sheets already swapped.",
+      "condition": {
+        "opponent": "exploiter"
+      },
+      "effects": {
+        "trust": -4,
+        "grievance": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "signal",
+          "from": "records",
+          "to": "civic",
+          "signal": "rumor"
+        },
+        {
+          "kind": "signal",
+          "from": "records",
+          "to": "media",
+          "signal": "rumor"
+        },
+        {
+          "kind": "mood",
+          "district": "records",
+          "mood": "tense"
+        }
+      ]
+    },
+    {
+      "id": "e-fake-marshal",
+      "at": -1,
+      "kind": "crowd",
+      "message": "A man in a marshal's armband urges Civic Square to 'march on the office now'. The real marshals say he is not theirs.",
+      "condition": {
+        "opponent": "provocateur"
+      },
+      "effects": {
+        "safety": -3,
+        "trust": -1
+      },
+      "mapEffects": [
+        {
+          "kind": "mood",
+          "district": "civic",
+          "mood": "volatile"
+        },
+        {
+          "kind": "crowd",
+          "district": "civic",
+          "magnitude": 0.1
+        },
+        {
+          "kind": "signal",
+          "from": "civic",
+          "to": "records",
+          "signal": "manipulated"
+        }
+      ]
+    },
+    {
+      "id": "e-scuffle",
+      "at": -1,
+      "kind": "incident",
+      "message": "A scuffle breaks out at the Records Office gate between a few supporters of each camp. Most people step back.",
+      "condition": {
+        "opponent": "provocateur"
+      },
+      "effects": {
+        "safety": -6,
+        "trust": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "records",
+          "incident": "clash"
+        },
+        {
+          "kind": "mood",
+          "district": "records",
+          "mood": "volatile"
+        }
+      ],
+      "setsFlags": [
+        "scuffle-active"
+      ]
+    },
+    {
+      "id": "e-outage",
+      "at": -1,
+      "kind": "service",
+      "message": "Power fails at the Records Office; the hall goes dark mid-review. Backup power takes twenty minutes.",
+      "condition": {
+        "opponent": "sabotage"
+      },
+      "effects": {
+        "safety": -2,
+        "evidence": -2,
+        "trust": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "records",
+          "incident": "outage"
+        },
+        {
+          "kind": "service",
+          "district": "records",
+          "magnitude": -0.3
+        },
+        {
+          "kind": "institution",
+          "district": "records"
+        }
+      ],
+      "setsFlags": [
+        "records-outage"
+      ]
+    }
+  ],
+  "opponentPlays": [
+    {
+      "id": "p-exp-coverup",
+      "opponent": "exploiter",
+      "kind": "event",
+      "target": "e-coverup-rumor",
+      "earliest": 40,
+      "latest": 90,
+      "respondsTo": [
+        "wait"
+      ]
+    },
+    {
+      "id": "p-exp-announce",
+      "opponent": "exploiter",
+      "kind": "decision",
+      "target": "d-bait-announce-winner",
+      "earliest": 30,
+      "latest": 70,
+      "condition": {
+        "notFlag": "result-declared-after-review"
+      },
+      "respondsTo": [
+        "wait"
+      ]
+    },
+    {
+      "id": "p-exp-clerk-chat",
+      "opponent": "exploiter",
+      "kind": "inject-evidence",
+      "target": "ev-clerk-chat",
+      "earliest": 50,
+      "latest": 95,
+      "respondsTo": [
+        "wait",
+        "communication"
+      ]
+    },
+    {
+      "id": "p-prov-marshal",
+      "opponent": "provocateur",
+      "kind": "event",
+      "target": "e-fake-marshal",
+      "earliest": 40,
+      "latest": 75,
+      "respondsTo": [
+        "wait",
+        "force"
+      ]
+    },
+    {
+      "id": "p-prov-scuffle",
+      "opponent": "provocateur",
+      "kind": "event",
+      "target": "e-scuffle",
+      "earliest": 78,
+      "latest": 105,
+      "weight": 1.5,
+      "respondsTo": [
+        "force",
+        "wait"
+      ]
+    },
+    {
+      "id": "p-dis-clip",
+      "opponent": "disinfo",
+      "kind": "inject-evidence",
+      "target": "ev-boxes-clip",
+      "earliest": 18,
+      "latest": 40,
+      "weight": 1.5
+    },
+    {
+      "id": "p-dis-notice",
+      "opponent": "disinfo",
+      "kind": "inject-evidence",
+      "target": "ev-cancel-notice",
+      "earliest": 62,
+      "latest": 100,
+      "respondsTo": [
+        "communication",
+        "accusation"
+      ]
+    },
+    {
+      "id": "p-sab-cctv",
+      "opponent": "sabotage",
+      "kind": "destroy-evidence",
+      "target": "ev-cctv-depot",
+      "earliest": 52,
+      "latest": 92,
+      "condition": {
+        "notFlag": "records-secured"
+      },
+      "respondsTo": [
+        "wait"
+      ],
+      "message": "Depot footage from last night has been overwritten. The loop ran out before anyone copied it."
+    },
+    {
+      "id": "p-sab-outage",
+      "opponent": "sabotage",
+      "kind": "event",
+      "target": "e-outage",
+      "earliest": 66,
+      "latest": 120,
+      "respondsTo": [
+        "wait",
+        "service"
+      ]
+    },
+    {
+      "id": "p-sab-sheets",
+      "opponent": "sabotage",
+      "kind": "destroy-evidence",
+      "target": "ev-tally-sheets",
+      "earliest": 100,
+      "latest": 140,
+      "condition": {
+        "notFlag": "records-secured"
+      },
+      "minDifficulty": "standard",
+      "respondsTo": [
+        "wait"
+      ],
+      "message": "Pages of the Ward 9 station sheets are missing from the annex. Only copies remain, if anyone made them."
+    },
+    {
+      "id": "p-ovr-note",
+      "opponent": "overreaction",
+      "kind": "inject-evidence",
+      "target": "ev-storm-note",
+      "earliest": 58,
+      "latest": 82,
+      "weight": 1.5
+    },
+    {
+      "id": "p-ovr-preempt",
+      "opponent": "overreaction",
+      "kind": "decision",
+      "target": "d-bait-preempt-storm",
+      "earliest": 84,
+      "latest": 104,
+      "respondsTo": [
+        "force",
+        "detention",
+        "suppressive"
+      ]
+    }
+  ],
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "review-opened"
+        },
+        "text": "A transparent Ward 9 review was opened with observers from both camps."
+      },
+      {
+        "condition": {
+          "flag": "transposition-corrected"
+        },
+        "text": "The transposition error in Ward 9 was found, corrected and explained in public: a mistake, named as a mistake."
+      },
+      {
+        "condition": {
+          "flag": "reconciliation-published"
+        },
+        "text": "Seal numbers and the station-by-station table were published for anyone to check."
+      },
+      {
+        "condition": {
+          "flag": "workers-protected"
+        },
+        "text": "Election workers were escorted and protected without dispersing the assembly."
+      },
+      {
+        "condition": {
+          "flag": "result-declared-after-review"
+        },
+        "text": "The result was declared with the full record attached and signed by observers."
+      },
+      {
+        "condition": {
+          "flag": "bandh-averted"
+        },
+        "text": "Market Street stayed open after hearing the policing plan."
+      },
+      {
+        "condition": {
+          "evidence": {
+            "id": "ev-boxes-clip",
+            "states": [
+              "manipulated"
+            ]
+          }
+        },
+        "text": "The 'boxes moved at 2 AM' clip was exposed: a time overlay added to footage of an observed transfer."
+      },
+      {
+        "condition": {
+          "evidence": {
+            "id": "ev-cancel-notice",
+            "states": [
+              "manipulated"
+            ]
+          }
+        },
+        "text": "The forged 'review cancelled' notice was exposed before it could empty the hall."
+      },
+      {
+        "condition": {
+          "evidence": {
+            "id": "ev-clerk-chat",
+            "states": [
+              "manipulated"
+            ]
+          }
+        },
+        "text": "The 'clerk paid to fix Ward 9' screenshots were exposed as assembled fakes."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "notFlag": "review-opened"
+        },
+        "text": "No transparent review was opened. The objection was never examined in the open."
+      },
+      {
+        "condition": {
+          "notFlag": "transposition-corrected"
+        },
+        "text": "The Ward 9 entry error was never publicly corrected. The wrong figure is still on the board."
+      },
+      {
+        "condition": {
+          "notFlag": "reconciliation-published"
+        },
+        "text": "The seal numbers and station table were never published. The city argued over numbers it could not see."
+      },
+      {
+        "condition": {
+          "flag": "break-in-attempt"
+        },
+        "text": "The Records Office annex was breached while the records were unsecured."
+      },
+      {
+        "condition": {
+          "notFlag": "result-declared-after-review"
+        },
+        "text": "The result was not declared on the strength of a public record."
+      },
+      {
+        "condition": {
+          "flag": "bandh-risk"
+        },
+        "text": "Market Street closed early without a plan from the administration."
+      },
+      {
+        "condition": {
+          "flag": "winner-declared-early"
+        },
+        "text": "The result was announced before the objection had been examined."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "both-camps-equal"
+        },
+        "text": "Both camps assembled under the same written terms (Article 14; Article 19(1)(b))."
+      },
+      {
+        "condition": {
+          "flag": "speech-protected"
+        },
+        "text": "The candidate's criticism of the count was answered with the record, not a gag order (Article 19(1)(a))."
+      },
+      {
+        "condition": {
+          "flag": "workers-protected"
+        },
+        "text": "Election workers' safety was secured without clearing the forecourt."
+      },
+      {
+        "condition": {
+          "flag": "storm-note-checked"
+        },
+        "text": "An unsourced 'storm' note was checked before anyone was detained."
+      },
+      {
+        "condition": {
+          "flag": "narrow-notice"
+        },
+        "text": "Only calls to violence were restricted; criticism was left alone."
+      },
+      {
+        "condition": {
+          "flag": "scuffle-contained"
+        },
+        "text": "Force was used only against those who attacked; both assemblies remained."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "assembly-banned"
+        },
+        "text": "A blanket citywide ban treated every assembly as a threat (Article 19(1)(b))."
+      },
+      {
+        "condition": {
+          "flag": "criticism-suppressed"
+        },
+        "text": "A candidate was barred from speaking for 48 hours (Article 19(1)(a))."
+      },
+      {
+        "condition": {
+          "flag": "agents-detained"
+        },
+        "text": "The agents who filed a lawful objection were detained on an unsourced note."
+      },
+      {
+        "condition": {
+          "flag": "one-camp-favoured"
+        },
+        "text": "One camp was allowed to assemble and the other refused (Article 14)."
+      },
+      {
+        "condition": {
+          "flag": "gate-cleared-by-force"
+        },
+        "text": "The whole forecourt was cleared by force to deal with a handful of threats."
+      },
+      {
+        "condition": {
+          "flag": "forecourt-cleared"
+        },
+        "text": "Both camps were cleared entirely after a scuffle involving a few people."
+      },
+      {
+        "condition": {
+          "flag": "clerk-accused"
+        },
+        "text": "A staff member was publicly named for fraud before intent was established."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "review-opened"
+        },
+        "text": "Open a time-bound, observed review the moment a specific written objection arrives. Delay is what rumours feed on."
+      },
+      {
+        "condition": {
+          "flag": "agents-detained"
+        },
+        "text": "Treat unsourced 'intelligence' as a claim to verify, not a reason to detain. The gate reporter and your own observers could see the hall."
+      },
+      {
+        "condition": {
+          "flag": "criticism-suppressed"
+        },
+        "text": "Answer a false claim with the record. A gag order makes the claim the story."
+      },
+      {
+        "condition": {
+          "anyFlag": [
+            "gate-cleared-by-force",
+            "forecourt-cleared",
+            "assembly-banned",
+            "one-camp-favoured"
+          ]
+        },
+        "text": "Aim enforcement at the specific people threatening or fighting. Clearing everyone punishes the peaceful majority and moves the crowd rather than ending it."
+      },
+      {
+        "condition": {
+          "notFlag": "reconciliation-published"
+        },
+        "text": "Publish seal numbers and station-by-station figures early. People stop guessing when they can check."
+      },
+      {
+        "condition": {
+          "flag": "quiet-correction"
+        },
+        "text": "Correct errors out loud. A quiet change to a disputed figure looks like a second alteration."
+      },
+      {
+        "condition": {
+          "notFlag": "records-secured"
+        },
+        "text": "Seal the records and copy perishable footage at the first sign of dispute. Evidence that disappears cannot settle anything."
+      },
+      {
+        "condition": {
+          "flag": "camps-converged"
+        },
+        "text": "Give rival assemblies separate routes and spaces. Two camps at one gate is a scuffle waiting to happen."
+      },
+      {
+        "condition": {},
+        "text": "Keep the observers in the hall until the last page is signed. The review's credibility outlives the result."
+      }
+    ],
+    "closing": {
+      "good": "The count was questioned, checked in the open and corrected where it was wrong. Both camps went home with the same numbers.",
+      "mixed": "The dispute ended, but not everyone saw how. Some numbers were published, some rights were bent, and the city will remember both.",
+      "poor": "The result stands, but trust in the office that declared it does not. Next time, the objection will not be filed in writing."
+    }
+  }
+}

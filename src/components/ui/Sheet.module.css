@@ -1,0 +1,162 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+  background: rgba(3, 8, 16, 0.6);
+  animation: fade var(--dur-panel) var(--ease-out) both;
+}
+.backdrop[data-closing='true'] {
+  animation: fadeOut var(--dur-panel) var(--ease-out) both;
+}
+.panel {
+  position: fixed;
+  z-index: calc(var(--z-sheet) + 1);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-glass);
+  border: var(--edge-line-strong);
+  box-shadow: var(--edge-light), var(--shadow-3);
+  color: var(--t-primary);
+  outline: none;
+  overscroll-behavior: contain;
+  /* bottom sheet (mobile/tablet) */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: min(88dvh, 100dvh - var(--safe-top) - 1rem);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  border-bottom: 0;
+  padding-bottom: var(--safe-bottom);
+  animation: slideUp var(--dur-panel) var(--ease-out) both;
+  will-change: transform;
+}
+.panel[data-closing='true'] {
+  animation: slideDown var(--dur-panel) var(--ease-in-out) both;
+}
+.panel[data-dragging='true'] {
+  animation: none;
+  transition: none;
+}
+.panel[data-settling='true'] {
+  transition: transform var(--dur-panel) var(--ease-spring);
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .panel {
+    -webkit-backdrop-filter: blur(18px) saturate(1.25);
+    backdrop-filter: blur(18px) saturate(1.25);
+  }
+}
+.handleArea {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  padding: 0.625rem 0 0.25rem;
+  touch-action: none;
+  cursor: grab;
+}
+.handle {
+  width: 2.75rem;
+  height: 0.3rem;
+  border-radius: var(--r-pill);
+  background: rgba(170, 182, 200, 0.45);
+}
+.header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-4) var(--s-3) var(--s-5);
+}
+.title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+}
+.body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 var(--s-5) var(--s-5);
+}
+.footer {
+  flex: none;
+  padding: var(--s-3) var(--s-5) var(--s-4);
+  border-top: var(--edge-line);
+}
+
+/* Side panel on desktop */
+@media (min-width: 1024px) {
+  .panel[data-side='true'] {
+    left: auto;
+    top: 0;
+    bottom: 0;
+    width: min(32rem, 100vw);
+    max-height: none;
+    border-radius: var(--r-xl) 0 0 var(--r-xl);
+    border-bottom: var(--edge-line-strong);
+    border-right: 0;
+    padding-top: var(--safe-top);
+    animation: slideLeft var(--dur-panel) var(--ease-out) both;
+  }
+  .panel[data-side='true'][data-closing='true'] {
+    animation: slideRight var(--dur-panel) var(--ease-in-out) both;
+  }
+  .panel[data-side='true'] .handleArea {
+    display: none;
+  }
+  .panel[data-side='true'] .header {
+    padding-top: var(--s-5);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes slideLeft {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes slideRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}

@@ -1,0 +1,76 @@
+.dateRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--c-cyan);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  color: var(--t-secondary);
+  font-size: var(--text-md);
+}
+
+.meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.result {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-4);
+  align-items: center;
+}
+
+.resultText {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.resultText strong {
+  font-size: var(--text-lg);
+  color: var(--t-primary);
+}
+
+.history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.historyRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--s-3);
+  align-items: center;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid rgba(170, 182, 200, 0.12);
+  font-size: var(--text-sm);
+  color: var(--t-secondary);
+}
+
+.historyRow:last-child {
+  border-bottom: 0;
+}
+
+.historyScore {
+  font-weight: var(--weight-bold);
+  color: var(--t-primary);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-md);
+}
+
+.historyOutcome {
+  color: var(--t-tertiary);
+  white-space: nowrap;
+}

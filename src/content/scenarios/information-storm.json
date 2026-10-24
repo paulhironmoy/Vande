@@ -1,0 +1,3560 @@
+{
+  "id": "information-storm",
+  "chapter": 3,
+  "title": "Information Storm",
+  "subtitle": "When the recording, the rumour and the report all arrive at once",
+  "duration": 180,
+  "briefing": {
+    "grievance": "Residents of the Lower Ward went without water for hours during a heat alert, and a recording suggests a senior official ordered the cut without caring.",
+    "knownFacts": [
+      "A 41-second clip of a utility control-room call is genuine audio.",
+      "Water to the Lower Ward stopped at 06:50; the utility logged a burst main at 06:40.",
+      "Heat alert: 44°C expected by noon; the Civil Hospital is on amber.",
+      "Independent journalists at the Press Enclave are verifying the clip before broadcast."
+    ],
+    "unverifiedClaims": [
+      "The official said 'let them learn' — a 19-second version with that line is circulating.",
+      "The Civil Hospital is turning away heat-stroke patients.",
+      "Lower Ward water is contaminated.",
+      "Three commentators are behind the panic."
+    ],
+    "responsibility": "You coordinate district information and public safety. Protect independent reporting, verify before you speak, correct what is false, stop specific threats, and never confuse criticism with crime.",
+    "objective": "In three minutes: get the full recording on the table, keep the hospital gate open, answer the hoax with evidence and protect the reporter — without censoring anyone.",
+    "lines": [
+      "06:50 — The Lower Ward taps run dry.",
+      "08:14 — A 41-second clip reaches the Press Enclave.",
+      "08:31 — A shorter version adds three words the official never said.",
+      "Heat alert in force. Everyone is watching what you say next."
+    ]
+  },
+  "startingScores": {
+    "freedom": 62,
+    "grievance": 48,
+    "safety": 58,
+    "evidence": 55,
+    "trust": 50,
+    "economy": 62
+  },
+  "districts": [
+    {
+      "id": "campus",
+      "name": "University Quarter",
+      "kind": "campus",
+      "x": 0.18,
+      "y": 0.3,
+      "baseline": {
+        "crowd": 0.1,
+        "trust": 0.6,
+        "services": 0.9
+      },
+      "institution": "University Registrar"
+    },
+    {
+      "id": "hospital",
+      "name": "Civil Hospital",
+      "kind": "hospital",
+      "x": 0.58,
+      "y": 0.12,
+      "baseline": {
+        "crowd": 0.25,
+        "trust": 0.62,
+        "services": 0.8
+      },
+      "institution": "Civil Hospital"
+    },
+    {
+      "id": "civic",
+      "name": "Civic Square",
+      "kind": "civic",
+      "x": 0.5,
+      "y": 0.44,
+      "baseline": {
+        "crowd": 0.15,
+        "trust": 0.5,
+        "services": 0.9
+      },
+      "institution": "District Collectorate"
+    },
+    {
+      "id": "market",
+      "name": "Market Street",
+      "kind": "market",
+      "x": 0.8,
+      "y": 0.34,
+      "baseline": {
+        "crowd": 0.2,
+        "trust": 0.55,
+        "services": 0.85
+      }
+    },
+    {
+      "id": "records",
+      "name": "Records Office",
+      "kind": "records",
+      "x": 0.22,
+      "y": 0.7,
+      "baseline": {
+        "crowd": 0.05,
+        "trust": 0.6,
+        "services": 0.9
+      },
+      "institution": "Election Records Office"
+    },
+    {
+      "id": "transit",
+      "name": "Central Transit Hub",
+      "kind": "transit",
+      "x": 0.48,
+      "y": 0.78,
+      "baseline": {
+        "crowd": 0.3,
+        "trust": 0.42,
+        "services": 0.6
+      },
+      "institution": "Transit Authority"
+    },
+    {
+      "id": "media",
+      "name": "Press Enclave",
+      "kind": "media",
+      "x": 0.82,
+      "y": 0.7,
+      "baseline": {
+        "crowd": 0.2,
+        "trust": 0.6,
+        "services": 0.9
+      },
+      "institution": "Press Club"
+    }
+  ],
+  "roads": [
+    {
+      "id": "r-campus-civic",
+      "from": "campus",
+      "to": "civic"
+    },
+    {
+      "id": "r-civic-market",
+      "from": "civic",
+      "to": "market"
+    },
+    {
+      "id": "r-civic-transit",
+      "from": "civic",
+      "to": "transit"
+    },
+    {
+      "id": "r-transit-media",
+      "from": "transit",
+      "to": "media"
+    },
+    {
+      "id": "r-market-media",
+      "from": "market",
+      "to": "media"
+    },
+    {
+      "id": "r-campus-records",
+      "from": "campus",
+      "to": "records"
+    },
+    {
+      "id": "r-records-transit",
+      "from": "records",
+      "to": "transit"
+    },
+    {
+      "id": "r-civic-hospital",
+      "from": "civic",
+      "to": "hospital"
+    },
+    {
+      "id": "r-market-hospital",
+      "from": "market",
+      "to": "hospital"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-clip-41s",
+      "title": "The 41-second clip",
+      "source": "Utility employee, via the Press Enclave verification desk",
+      "sourceType": "leak",
+      "time": "08:14",
+      "claim": "Audio appears to show a senior official ordering the Lower Ward water cut during the heat alert.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 4,
+      "metadata": [
+        {
+          "label": "Duration",
+          "value": "0:41"
+        },
+        {
+          "label": "Format",
+          "value": "Phone recording of a control-room speaker"
+        },
+        {
+          "label": "Audio continuity",
+          "value": "Single take, no splice points"
+        },
+        {
+          "label": "Context",
+          "value": "Begins mid-conversation; no reason for the cut is heard"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-full-recording"
+      ],
+      "visual": {
+        "type": "recording",
+        "caption": "Waveform of a single continuous take"
+      },
+      "district": "media",
+      "resolutionNote": "Genuine audio. The full recording shows the order was a 90-minute shutoff for a burst-main repair, with tankers requested in the same call."
+    },
+    {
+      "id": "ev-utility-workorder",
+      "title": "Burst-main work order",
+      "source": "Water Utility operations",
+      "sourceType": "official",
+      "time": "06:40",
+      "claim": "Work order: burst main at Lower Ward junction; 90-minute shutoff authorised; tankers requested for 07:30.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 24,
+      "metadata": [
+        {
+          "label": "Order number",
+          "value": "WU/LW/0640"
+        },
+        {
+          "label": "Authorised by",
+          "value": "Operations duty officer and the deputy commissioner"
+        },
+        {
+          "label": "Tanker dispatch",
+          "value": "Requested 07:30 — logged as departed 09:05"
+        },
+        {
+          "label": "Post-repair",
+          "value": "Chlorination and sampling scheduled"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-full-recording"
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "Stamped work order with dispatch log"
+      },
+      "district": "transit",
+      "resolutionNote": "The cut was a repair, not a punishment. The tankers left ninety-five minutes late — that failure is real."
+    },
+    {
+      "id": "ev-hospital-rumor",
+      "title": "'Hospital turning patients away'",
+      "source": "Forwarded message, origin unknown",
+      "sourceType": "anonymous",
+      "time": "09:20",
+      "claim": "Photo of a crowd at the Civil Hospital gate: 'Heat-stroke patients being turned away. Share before they delete.'",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "availableAt": 46,
+      "metadata": [
+        {
+          "label": "Clothing in photo",
+          "value": "People in sweaters and shawls during a 44°C alert",
+          "anomaly": true
+        },
+        {
+          "label": "Gate signage",
+          "value": "Board advertises a winter vaccination camp",
+          "anomaly": true
+        },
+        {
+          "label": "Origin",
+          "value": "Forwarded 1,400+ times; no first sender"
+        }
+      ],
+      "contradictedBy": [
+        "ev-hospital-bed-data"
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "Crowd at a hospital gate — recycled image"
+      },
+      "district": "hospital",
+      "setsFlagsOnResolve": [
+        "hospital-rumour-exposed"
+      ],
+      "resolutionNote": "A photo from a winter vaccination camp, recycled. The hospital is busy but not full."
+    },
+    {
+      "id": "ev-hospital-bed-data",
+      "title": "Hospital live bed count",
+      "source": "Civil Hospital control room",
+      "sourceType": "institution",
+      "time": "09:40",
+      "claim": "Emergency ward 31 of 40 beds occupied; 37 heat cases admitted since 06:00; status amber; no patient refused.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 60,
+      "metadata": [
+        {
+          "label": "Feed",
+          "value": "Bed-management system, auto-updated every 15 minutes"
+        },
+        {
+          "label": "Refusals logged",
+          "value": "0"
+        },
+        {
+          "label": "Ambulance handover",
+          "value": "Median 9 minutes"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-ambulance-log"
+      ],
+      "visual": {
+        "type": "chart",
+        "caption": "Bed occupancy by ward, updated 09:40"
+      },
+      "district": "hospital",
+      "setsFlagsOnResolve": [
+        "hospital-data-verified"
+      ],
+      "resolutionNote": "The hospital is on amber, not full, and has refused no one."
+    },
+    {
+      "id": "ev-ambulance-log",
+      "title": "Ambulance service log",
+      "source": "District ambulance control",
+      "sourceType": "emergency",
+      "time": "09:45",
+      "claim": "37 heat cases transported to the Civil Hospital since 06:00; all handed over; no diversions ordered.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "availableAt": 66,
+      "metadata": [
+        {
+          "label": "Transports",
+          "value": "37 heat-related, 12 other"
+        },
+        {
+          "label": "Diversions",
+          "value": "None"
+        },
+        {
+          "label": "Longest handover",
+          "value": "21 minutes at 09:10"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-hospital-bed-data"
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "Dispatch log with handover times"
+      },
+      "district": "hospital",
+      "resolutionNote": "Independent confirmation: the hospital accepted every patient brought to it."
+    },
+    {
+      "id": "ev-full-recording",
+      "title": "Full control-room recording",
+      "source": "Water Utility control-room recorder",
+      "sourceType": "institution",
+      "time": "06:52",
+      "claim": "3 min 12 s: the official orders a 90-minute shutoff for the burst-main repair and demands tankers 'within the hour'.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 76,
+      "metadata": [
+        {
+          "label": "Duration",
+          "value": "3:12"
+        },
+        {
+          "label": "Recorder",
+          "value": "Continuous control-room line recorder"
+        },
+        {
+          "label": "Retention",
+          "value": "Overwritten every 6 hours unless preserved"
+        },
+        {
+          "label": "Integrity",
+          "value": "Hash logged at 06:55 in the utility register"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-utility-workorder"
+      ],
+      "visual": {
+        "type": "recording",
+        "caption": "Full waveform with the 41-second excerpt marked"
+      },
+      "district": "civic",
+      "perishable": true,
+      "setsFlagsOnResolve": [
+        "full-recording-verified"
+      ],
+      "resolutionNote": "The complete call: a repair shutoff, an order for tankers within the hour, and no 'let them learn'."
+    },
+    {
+      "id": "ev-threat-messages",
+      "title": "Threats to the reporter",
+      "source": "Press Club safety desk",
+      "sourceType": "institution",
+      "time": "10:05",
+      "claim": "Three accounts sent the reporter messages naming her street and saying 'tonight'. Identical phrasing, 40 seconds apart.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 84,
+      "metadata": [
+        {
+          "label": "Accounts",
+          "value": "3, all created within the last 48 hours"
+        },
+        {
+          "label": "Timing",
+          "value": "10:01:12, 10:01:40, 10:02:08"
+        },
+        {
+          "label": "Content",
+          "value": "Street name, 'tonight', the same spelling error in all three"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-posting-pattern"
+      ],
+      "visual": {
+        "type": "message",
+        "caption": "Three messages, side by side"
+      },
+      "district": "media",
+      "setsFlagsOnResolve": [
+        "threats-verified"
+      ],
+      "resolutionNote": "Specific, imminent threats from accounts that also ran the contamination posts. A crime, not an opinion."
+    },
+    {
+      "id": "ev-posting-pattern",
+      "title": "The 90-second swarm",
+      "source": "District media-monitoring cell",
+      "sourceType": "institution",
+      "time": "10:12",
+      "claim": "212 accounts posted the identical 'water is poisoned' text within 90 seconds; 14 posts are paid, buyer undisclosed.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 92,
+      "metadata": [
+        {
+          "label": "Median interval",
+          "value": "0.4 seconds between posts"
+        },
+        {
+          "label": "Text",
+          "value": "Identical, including a doubled space"
+        },
+        {
+          "label": "Paid posts",
+          "value": "14, one advertiser id, created two days ago"
+        },
+        {
+          "label": "Ad library",
+          "value": "Snapshot only — pages can delete within hours"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-platform-response",
+        "ev-threat-messages"
+      ],
+      "visual": {
+        "type": "chart",
+        "caption": "Posting times clustered in one 90-second band"
+      },
+      "district": "market",
+      "perishable": true,
+      "setsFlagsOnResolve": [
+        "network-pattern-verified"
+      ],
+      "resolutionNote": "Automated amplification with undisclosed payment — a network, not a public mood."
+    },
+    {
+      "id": "ev-water-lab-result",
+      "title": "Public-health lab result",
+      "source": "State public-health laboratory",
+      "sourceType": "official",
+      "time": "10:30",
+      "claim": "Lower Ward samples, 4 points: residual chlorine 0.5 mg/L, no coliform detected. Water fit to drink.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 104,
+      "metadata": [
+        {
+          "label": "Lab accreditation",
+          "value": "Accredited; certificate number printed on the report"
+        },
+        {
+          "label": "Sampling",
+          "value": "4 standposts, 09:10–09:25"
+        },
+        {
+          "label": "Method",
+          "value": "Standard potability panel"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-utility-workorder"
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "Lab report with sampling map"
+      },
+      "district": "transit",
+      "setsFlagsOnResolve": [
+        "lab-verified"
+      ],
+      "resolutionNote": "The water is safe. The post-repair chlorination the work order scheduled was carried out."
+    },
+    {
+      "id": "ev-platform-response",
+      "title": "Platform transparency response",
+      "source": "Video platform transparency desk, answering a lawful request",
+      "sourceType": "institution",
+      "time": "10:58",
+      "claim": "Platform confirms 14 paid posts bought by one advertiser account two days old; 198 linked accounts suspended for coordination.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Request",
+          "value": "Specific: 14 post ids, one buyer"
+        },
+        {
+          "label": "Response time",
+          "value": "46 minutes"
+        },
+        {
+          "label": "Buyer",
+          "value": "Identity undisclosed; account suspended for coordinated inauthentic behaviour"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-posting-pattern"
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "Transparency letter with account summary"
+      },
+      "district": "civic",
+      "setsFlagsOnResolve": [
+        "network-confirmed"
+      ],
+      "resolutionNote": "The swarm was bought. A narrow lawful request got the answer a takedown never would."
+    },
+    {
+      "id": "ev-spliced-clip",
+      "title": "The 19-second version",
+      "source": "Reposted widely; original uploader unknown",
+      "sourceType": "anonymous",
+      "time": "08:31",
+      "claim": "A shorter clip: the official says 'cut the water to the Lower Ward now… let them learn.'",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "injectedBy": "disinfo",
+      "metadata": [
+        {
+          "label": "Duration",
+          "value": "0:19 — the source excerpt is 0:41",
+          "anomaly": true
+        },
+        {
+          "label": "Waveform",
+          "value": "Abrupt level changes at 0:11 and 0:14",
+          "anomaly": true
+        },
+        {
+          "label": "Noise floor",
+          "value": "Changes mid-sentence",
+          "anomaly": true
+        },
+        {
+          "label": "Spread",
+          "value": "First 500 shares within 4 minutes"
+        }
+      ],
+      "contradictedBy": [
+        "ev-full-recording",
+        "ev-clip-41s"
+      ],
+      "visual": {
+        "type": "video",
+        "caption": "Waveform showing two splice points"
+      },
+      "district": "media",
+      "setsFlagsOnResolve": [
+        "splice-exposed"
+      ],
+      "resolutionNote": "Spliced. 'Let them learn' is cut from a different sentence about training new repair crews."
+    },
+    {
+      "id": "ev-fake-lab-notice",
+      "title": "'Contamination notice'",
+      "source": "Image styled as a laboratory notice",
+      "sourceType": "anonymous",
+      "time": "10:20",
+      "claim": "Notice: 'Lower Ward water contaminated with sewage. Do not drink. Boil-water order in force.'",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "injectedBy": "disinfo",
+      "metadata": [
+        {
+          "label": "Lab registration number",
+          "value": "Missing",
+          "anomaly": true
+        },
+        {
+          "label": "Date",
+          "value": "Tomorrow's date",
+          "anomaly": true
+        },
+        {
+          "label": "Logo",
+          "value": "Stretched, low resolution",
+          "anomaly": true
+        },
+        {
+          "label": "Issuing authority",
+          "value": "'Water Lab Dept' — no such department exists"
+        }
+      ],
+      "contradictedBy": [
+        "ev-water-lab-result"
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "Notice with a missing registration and tomorrow's date"
+      },
+      "district": "market",
+      "setsFlagsOnResolve": [
+        "fake-notice-exposed"
+      ],
+      "resolutionNote": "A forgery. No accredited lab issued it; the real result says the water is safe."
+    },
+    {
+      "id": "ev-attribution-note",
+      "title": "Unsigned 'panic source' note",
+      "source": "Unsigned note circulated to the control room",
+      "sourceType": "leak",
+      "time": "10:45",
+      "claim": "Note: 'Panic buying traced to three commentators. Recommend immediate detention and removal of all commentary.'",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "injectedBy": "overreaction",
+      "metadata": [
+        {
+          "label": "Author",
+          "value": "None",
+          "anomaly": true
+        },
+        {
+          "label": "Method",
+          "value": "None stated",
+          "anomaly": true
+        },
+        {
+          "label": "Timestamps",
+          "value": "The commentators posted after the first 212 identical posts",
+          "anomaly": true
+        }
+      ],
+      "contradictedBy": [
+        "ev-posting-pattern",
+        "ev-platform-response"
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A note with no author and no method"
+      },
+      "district": "civic",
+      "setsFlagsOnResolve": [
+        "attribution-note-exposed"
+      ],
+      "resolutionNote": "Backwards causation. The commentators reacted to the panic; the paid swarm started it."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "dec-first-response",
+      "title": "The clip is everywhere",
+      "situation": "A 41-second clip of a senior official apparently ordering a water cut is spreading. Journalists at the Press Enclave are asking for comment. You have not heard the full recording.",
+      "district": "media",
+      "triggerAt": 8,
+      "expiresAfter": 24,
+      "defaultOption": "first-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "first-known-unknown",
+          "title": "Say what is known and unknown",
+          "preview": "A short public note: a cut was ordered, the reason is being verified, the full recording has been requested",
+          "authority": "Duty to inform honestly — Article 19(1)(a) includes the public's right to receive information",
+          "tags": [
+            "transparent",
+            "communication",
+            "protect-press"
+          ],
+          "effects": {
+            "trust": 5,
+            "evidence": 3,
+            "freedom": 2
+          },
+          "unlocksEvidence": [
+            "ev-full-recording"
+          ],
+          "setsFlags": [
+            "first-update-published",
+            "full-recording-requested"
+          ],
+          "mapEffects": [
+            {
+              "kind": "institution",
+              "district": "civic"
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "media",
+              "signal": "official"
+            },
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            }
+          ],
+          "consequence": "Reporters quote your note word for word. The storm slows: people wait for the full recording."
+        },
+        {
+          "id": "first-deny",
+          "title": "Deny that any cut was ordered",
+          "preview": "A flat denial buys an hour and collapses the moment the recording proves genuine",
+          "authority": "Public statements must be truthful; a false denial is itself misinformation",
+          "tags": [
+            "communication"
+          ],
+          "effects": {
+            "trust": 3
+          },
+          "delayed": [
+            {
+              "afterTicks": 30,
+              "effects": {
+                "trust": -14,
+                "evidence": -8,
+                "grievance": -4
+              },
+              "message": "The denial unravels: the cut was real. Every later statement is now doubted.",
+              "mapEffects": [
+                {
+                  "kind": "mood",
+                  "district": "civic",
+                  "mood": "volatile"
+                }
+              ]
+            }
+          ],
+          "setsFlags": [
+            "denial-issued"
+          ],
+          "consequence": "The denial is quoted everywhere. Journalists start pulling the full recording themselves."
+        },
+        {
+          "id": "first-demand-takedown",
+          "title": "Tell the Press Club to stop airing it",
+          "preview": "Prior restraint on reporting: freedom and trust fall, and the clip spreads faster",
+          "authority": "Article 19(1)(a) — no prior restraint on the press without a specific lawful basis",
+          "tags": [
+            "censorship",
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -8,
+            "evidence": -2
+          },
+          "setsFlags": [
+            "press-pressured"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "trust": -5,
+                "freedom": -3
+              },
+              "message": "Editors publish your demand alongside the clip. The story is now also about censorship."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "mood",
+              "district": "media",
+              "mood": "tense"
+            },
+            {
+              "kind": "signal",
+              "from": "media",
+              "to": "market",
+              "signal": "rumor"
+            }
+          ],
+          "consequence": "The demand leaks within minutes. Three more outlets pick up the clip."
+        },
+        {
+          "id": "first-wait",
+          "title": "Wait for the full recording",
+          "preview": "Silence while the clip spreads; anger builds in the Lower Ward",
+          "authority": "Discretion to verify before speaking — but silence is also a message",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "trust": -3,
+            "grievance": -2
+          },
+          "mapEffects": [
+            {
+              "kind": "mood",
+              "district": "transit",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "Silence reads as confirmation. The Lower Ward hears nothing from anyone in charge."
+        }
+      ]
+    },
+    {
+      "id": "dec-lower-ward-water",
+      "title": "Two hours without water",
+      "situation": "Lower Ward lanes behind the Transit Hub have had no water for two hours in 44°C. Residents are gathering at the Hub asking who ordered the cut.",
+      "district": "transit",
+      "triggerAt": 28,
+      "expiresAfter": 24,
+      "defaultOption": "water-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "water-tankers-briefing",
+          "title": "Send tankers and brief residents on site",
+          "preview": "Water within the hour and an officer at the standpost explaining the burst-main repair",
+          "authority": "Duty to maintain essential services — Article 21 (right to life includes water)",
+          "tags": [
+            "service",
+            "relief",
+            "dialogue"
+          ],
+          "effects": {
+            "grievance": 8,
+            "safety": 4,
+            "trust": 4,
+            "economy": 1
+          },
+          "setsFlags": [
+            "tankers-sent",
+            "residents-briefed"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "relief"
+            },
+            {
+              "kind": "crowd",
+              "district": "transit",
+              "magnitude": -0.2
+            },
+            {
+              "kind": "mood",
+              "district": "transit",
+              "mood": "hopeful"
+            },
+            {
+              "kind": "service",
+              "district": "transit",
+              "magnitude": 0.2
+            }
+          ],
+          "consequence": "Tankers reach the standposts. An officer explains the burst main in person and takes names for follow-up."
+        },
+        {
+          "id": "water-tankers-only",
+          "title": "Send tankers, no explanation",
+          "preview": "Water arrives; the question 'who ordered it?' keeps circulating",
+          "authority": "Duty to maintain essential services",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "grievance": 4,
+            "safety": 3
+          },
+          "setsFlags": [
+            "tankers-sent"
+          ],
+          "undoTicks": 5,
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "relief"
+            },
+            {
+              "kind": "crowd",
+              "district": "transit",
+              "magnitude": -0.1
+            },
+            {
+              "kind": "service",
+              "district": "transit",
+              "magnitude": 0.2
+            }
+          ],
+          "consequence": "Water arrives. The rumour that the cut was punishment arrives with it."
+        },
+        {
+          "id": "water-disperse-crowd",
+          "title": "Disperse the crowd at the Hub",
+          "preview": "Thirsty residents are pushed back from the standposts while phones record everything",
+          "authority": "Dispersal powers apply to unlawful assemblies, not to people queuing for water",
+          "tags": [
+            "force",
+            "suppressive",
+            "disproportionate"
+          ],
+          "proportionateIf": {
+            "flag": "transit-violence"
+          },
+          "disproportionateEffects": {
+            "freedom": -10,
+            "trust": -8,
+            "safety": -2
+          },
+          "effects": {
+            "grievance": -4,
+            "trust": -2
+          },
+          "delayed": [
+            {
+              "afterTicks": 15,
+              "effects": {
+                "safety": -4,
+                "grievance": -2
+              },
+              "message": "Residents regroup at Civic Square, angrier and without water.",
+              "mapEffects": [
+                {
+                  "kind": "crowd",
+                  "district": "civic",
+                  "magnitude": 0.25
+                },
+                {
+                  "kind": "mood",
+                  "district": "civic",
+                  "mood": "volatile"
+                }
+              ]
+            }
+          ],
+          "setsFlags": [
+            "hub-dispersed"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "deploy"
+            },
+            {
+              "kind": "crowd",
+              "district": "transit",
+              "magnitude": -0.3
+            },
+            {
+              "kind": "mood",
+              "district": "transit",
+              "mood": "volatile"
+            }
+          ],
+          "consequence": "The queue is pushed back from the Hub. The videos are online before the officers leave."
+        },
+        {
+          "id": "water-wait",
+          "title": "Wait for the utility's schedule",
+          "preview": "The queue grows, and so does the story that the cut was punishment",
+          "authority": "Routine utility process — too slow for a heat alert",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -5,
+            "safety": -3,
+            "trust": -2
+          },
+          "mapEffects": [
+            {
+              "kind": "crowd",
+              "district": "transit",
+              "magnitude": 0.15
+            },
+            {
+              "kind": "mood",
+              "district": "transit",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "The queue doubles. A child faints at the standpost and the crowd turns on the utility van."
+        }
+      ]
+    },
+    {
+      "id": "dec-hospital-rumour",
+      "title": "'They are turning patients away'",
+      "situation": "A forwarded photo claims the Civil Hospital is turning away heat-stroke patients. Families are arriving at the gate to check on relatives. The hospital's dashboard shows amber, not full.",
+      "district": "hospital",
+      "triggerAt": 62,
+      "expiresAfter": 26,
+      "defaultOption": "hosp-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "hosp-publish-data",
+          "title": "Publish live admissions data",
+          "preview": "The hospital posts a live bed count every 15 minutes, on screens at the gate and online",
+          "authority": "Right to information; the hospital's duty of transparency during an emergency",
+          "tags": [
+            "transparent",
+            "communication",
+            "service"
+          ],
+          "requiresEvidence": [
+            "ev-hospital-bed-data"
+          ],
+          "effects": {
+            "trust": 6,
+            "safety": 4,
+            "evidence": 4
+          },
+          "setsFlags": [
+            "hospital-data-published"
+          ],
+          "mapEffects": [
+            {
+              "kind": "signal",
+              "from": "hospital",
+              "to": "civic",
+              "signal": "official"
+            },
+            {
+              "kind": "signal",
+              "from": "hospital",
+              "to": "market",
+              "signal": "official"
+            },
+            {
+              "kind": "crowd",
+              "district": "hospital",
+              "magnitude": -0.15
+            },
+            {
+              "kind": "institution",
+              "district": "hospital"
+            }
+          ],
+          "consequence": "The bed count is on every screen at the gate. Families stop rushing in to check."
+        },
+        {
+          "id": "hosp-second-entrance",
+          "title": "Open a second entrance and info desk",
+          "preview": "A shaded tent with water and a staff member answering families' questions",
+          "authority": "Duty to keep emergency access open and treat families with dignity",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "grievance": 2,
+            "trust": 2
+          },
+          "setsFlags": [
+            "hospital-info-desk"
+          ],
+          "undoTicks": 5,
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "restore"
+            },
+            {
+              "kind": "crowd",
+              "district": "hospital",
+              "magnitude": -0.1
+            },
+            {
+              "kind": "mood",
+              "district": "hospital",
+              "mood": "calm"
+            }
+          ],
+          "consequence": "The crush at the main gate eases. Ambulances take the second entrance."
+        },
+        {
+          "id": "hosp-detain-forwarders",
+          "title": "Detain whoever forwarded the photo",
+          "preview": "Two worried relatives are taken in for forwarding a photo that stays everywhere",
+          "authority": "Detention needs a specific offence and proportionality — forwarding a photo is neither",
+          "tags": [
+            "detention",
+            "suppressive",
+            "disproportionate"
+          ],
+          "proportionateIf": {
+            "flag": "hospital-gate-armed"
+          },
+          "disproportionateEffects": {
+            "freedom": -10,
+            "trust": -6
+          },
+          "effects": {
+            "safety": -1,
+            "evidence": -2
+          },
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "trust": -4,
+                "freedom": -2
+              },
+              "message": "Their release is filmed. The hospital rumour now travels with a second story."
+            }
+          ],
+          "setsFlags": [
+            "forwarders-detained"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "deploy"
+            },
+            {
+              "kind": "mood",
+              "district": "hospital",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "Two relatives are detained for forwarding a photo. The photo is still everywhere."
+        },
+        {
+          "id": "hosp-wait",
+          "title": "Let the hospital handle it",
+          "preview": "The gate crowd doubles and ambulances slow at the turn",
+          "authority": "Hospital security's remit — not enough for a crowd this size",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "safety": -4,
+            "trust": -2
+          },
+          "mapEffects": [
+            {
+              "kind": "crowd",
+              "district": "hospital",
+              "magnitude": 0.2
+            },
+            {
+              "kind": "mood",
+              "district": "hospital",
+              "mood": "tense"
+            },
+            {
+              "kind": "road",
+              "road": "r-civic-hospital",
+              "status": "congested"
+            }
+          ],
+          "consequence": "The gate crowd doubles. An ambulance waits four minutes at the turn."
+        }
+      ]
+    },
+    {
+      "id": "dec-press-enclave",
+      "title": "The press wants the recording",
+      "situation": "The Press Club is hosting an open verification session on the clip. A senior colleague suggests 'advising' editors to hold the story until the inquiry ends.",
+      "district": "media",
+      "triggerAt": 70,
+      "expiresAfter": 26,
+      "defaultOption": "press-wait",
+      "urgency": "medium",
+      "rightsMomentId": "rm-prior-restraint",
+      "options": [
+        {
+          "id": "press-share-recording",
+          "title": "Share the full recording with the press",
+          "preview": "Editors compare the clips live; the spliced version is exposed on air",
+          "authority": "Article 19(1)(a) — the answer to incomplete reporting is more information",
+          "tags": [
+            "transparent",
+            "protect-press",
+            "communication"
+          ],
+          "requiresEvidence": [
+            "ev-full-recording"
+          ],
+          "effects": {
+            "trust": 7,
+            "evidence": 5,
+            "freedom": 3
+          },
+          "setsFlags": [
+            "press-given-recording"
+          ],
+          "mapEffects": [
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "media",
+              "signal": "verified"
+            },
+            {
+              "kind": "institution",
+              "district": "media"
+            },
+            {
+              "kind": "mood",
+              "district": "media",
+              "mood": "hopeful"
+            }
+          ],
+          "consequence": "Editors play both clips side by side. The splice is exposed on air within minutes."
+        },
+        {
+          "id": "press-open-briefing",
+          "title": "Hold an on-record briefing",
+          "preview": "Forty minutes of questions, every one answered or honestly declined",
+          "authority": "Accountability to the press and public",
+          "tags": [
+            "transparent",
+            "dialogue",
+            "protect-press"
+          ],
+          "effects": {
+            "trust": 5,
+            "freedom": 2,
+            "evidence": 2
+          },
+          "setsFlags": [
+            "press-briefed"
+          ],
+          "undoTicks": 5,
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "dialogue"
+            },
+            {
+              "kind": "institution",
+              "district": "civic"
+            }
+          ],
+          "consequence": "Forty minutes of questions. The uncertainty is uncomfortable, and credible."
+        },
+        {
+          "id": "press-advise-hold",
+          "title": "Advise editors to hold the story",
+          "preview": "The 'advice' is reported as a gag; the story grows a second headline",
+          "authority": "Article 19(1)(a) — informal pressure on editors is still prior restraint",
+          "tags": [
+            "censorship",
+            "suppressive"
+          ],
+          "effects": {
+            "freedom": -9,
+            "trust": -6
+          },
+          "setsFlags": [
+            "press-pressured"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "trust": -5,
+                "freedom": -2
+              },
+              "message": "An editor publishes the 'advice' in full. It reads as a gag order."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "mood",
+              "district": "media",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "The advice is noted — and reported."
+        },
+        {
+          "id": "press-wait",
+          "title": "Stay away from the session",
+          "preview": "The session runs without you and speculation fills the gap",
+          "authority": "No duty to attend — but absence is noticed",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "trust": -3,
+            "evidence": -1
+          },
+          "consequence": "The session runs without you. Speculation fills the empty chair."
+        }
+      ]
+    },
+    {
+      "id": "dec-reporter-threats",
+      "title": "Threats against the reporter",
+      "situation": "Reporter Nadia, who first verified the clip, has received messages naming her street and saying 'tonight'. Three accounts, identical phrasing. She intends to keep reporting.",
+      "district": "media",
+      "triggerAt": 90,
+      "expiresAfter": 22,
+      "defaultOption": "threat-wait",
+      "urgency": "high",
+      "rightsMomentId": "rm-incitement",
+      "options": [
+        {
+          "id": "threat-protect-investigate",
+          "title": "Protect her; open a case on the accounts",
+          "preview": "A protection detail tonight and a registered case against three specific accounts",
+          "authority": "Article 21 (life and safety) and the state's duty to protect journalists from specific threats",
+          "tags": [
+            "protect-press",
+            "legal-process",
+            "proportionate",
+            "investigative"
+          ],
+          "requiresEvidence": [
+            "ev-threat-messages"
+          ],
+          "effects": {
+            "safety": 5,
+            "freedom": 5,
+            "trust": 4,
+            "evidence": 2
+          },
+          "setsFlags": [
+            "reporter-protected",
+            "threat-case-opened"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "protect"
+            },
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "legal"
+            },
+            {
+              "kind": "mood",
+              "district": "media",
+              "mood": "calm"
+            }
+          ],
+          "consequence": "A protection detail and a case for specific threats. She files her next story on schedule."
+        },
+        {
+          "id": "threat-ask-pause",
+          "title": "Ask her to pause reporting for safety",
+          "preview": "She refuses on air; the threats achieve what the law should have prevented",
+          "authority": "Press freedom — asking a journalist to stop is not protection",
+          "tags": [
+            "suppressive"
+          ],
+          "effects": {
+            "freedom": -7,
+            "trust": -3,
+            "safety": 1
+          },
+          "setsFlags": [
+            "reporter-asked-to-stop"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 15,
+              "effects": {
+                "trust": -4,
+                "freedom": -2
+              },
+              "message": "Her outlet publishes your request. The threats got what they wanted."
+            }
+          ],
+          "consequence": "She refuses, and says so on air."
+        },
+        {
+          "id": "threat-detain-critics",
+          "title": "Detain everyone who attacked her online",
+          "preview": "Dozens of critics are picked up while the three threatening accounts keep posting",
+          "authority": "Detention requires a specific offence — criticism is not one",
+          "tags": [
+            "detention",
+            "suppressive",
+            "disproportionate"
+          ],
+          "proportionateIf": {
+            "flag": "threats-are-from-critics"
+          },
+          "disproportionateEffects": {
+            "freedom": -14,
+            "trust": -10
+          },
+          "effects": {
+            "evidence": -4,
+            "safety": -1
+          },
+          "setsFlags": [
+            "critics-detained"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "deploy"
+            },
+            {
+              "kind": "mood",
+              "district": "media",
+              "mood": "volatile"
+            }
+          ],
+          "consequence": "Dozens of critics are picked up. The three threatening accounts keep posting."
+        },
+        {
+          "id": "threat-wait",
+          "title": "Log the complaint and wait",
+          "preview": "Nothing happens until something does — by evening a brick comes through the window",
+          "authority": "A complaint on file is not protection",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "safety": -4,
+            "freedom": -3,
+            "trust": -3
+          },
+          "setsFlags": [
+            "reporter-unprotected"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "media",
+              "incident": "intimidation"
+            },
+            {
+              "kind": "mood",
+              "district": "media",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "By evening a brick comes through the Press Club window."
+        }
+      ]
+    },
+    {
+      "id": "dec-contamination-claim",
+      "title": "'The water is poisoned'",
+      "situation": "A 'lab notice' saying Lower Ward water is contaminated is spreading with a wave of identical posts. Market Street shops are selling out of bottled water; prices have tripled.",
+      "district": "market",
+      "triggerAt": 108,
+      "expiresAfter": 24,
+      "defaultOption": "contam-wait",
+      "urgency": "high",
+      "rightsMomentId": "rm-false-vs-criticism",
+      "options": [
+        {
+          "id": "contam-publish-lab",
+          "title": "Publish the lab result and sampling map",
+          "preview": "The accredited result, the four sampling points and the lab's registration number go out together",
+          "authority": "Duty to correct demonstrably false safety information with verified facts",
+          "tags": [
+            "transparent",
+            "communication",
+            "service"
+          ],
+          "requiresEvidence": [
+            "ev-water-lab-result"
+          ],
+          "effects": {
+            "trust": 7,
+            "evidence": 5,
+            "economy": 5,
+            "safety": 3
+          },
+          "setsFlags": [
+            "lab-result-published"
+          ],
+          "mapEffects": [
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "market",
+              "signal": "verified"
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "transit",
+              "signal": "verified"
+            },
+            {
+              "kind": "service",
+              "district": "market",
+              "magnitude": 0.15
+            },
+            {
+              "kind": "mood",
+              "district": "market",
+              "mood": "calm"
+            }
+          ],
+          "consequence": "The result, the sampling points and the lab's registration go out together. Panic buying slows."
+        },
+        {
+          "id": "contam-free-tankers",
+          "title": "Free tankers; act on price gouging",
+          "preview": "Free water at three points undercuts the panic; inspectors visit the worst offenders",
+          "authority": "Essential-supplies and consumer-protection powers",
+          "tags": [
+            "service",
+            "relief",
+            "legal-process"
+          ],
+          "effects": {
+            "economy": 4,
+            "grievance": 4,
+            "safety": 2
+          },
+          "setsFlags": [
+            "price-action"
+          ],
+          "undoTicks": 5,
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "relief"
+            },
+            {
+              "kind": "crowd",
+              "district": "market",
+              "magnitude": -0.1
+            },
+            {
+              "kind": "service",
+              "district": "market",
+              "magnitude": 0.1
+            }
+          ],
+          "consequence": "Free water at three points undercuts the panic. Inspectors visit the worst offenders."
+        },
+        {
+          "id": "contam-boil-order",
+          "title": "Issue a citywide boil-water order",
+          "preview": "An order based on the notice: shops empty further and the notice is later exposed as fake",
+          "authority": "Public-health orders must rest on verified test results",
+          "tags": [
+            "communication",
+            "service"
+          ],
+          "requiresEvidence": [
+            "ev-fake-lab-notice"
+          ],
+          "effects": {
+            "economy": -8,
+            "evidence": -10,
+            "trust": -6,
+            "grievance": -2
+          },
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "trust": -6,
+                "evidence": -3
+              },
+              "message": "The lab notice is exposed as a forgery. The boil-water order now reads as proof you were fooled."
+            }
+          ],
+          "setsFlags": [
+            "boil-order-on-forgery"
+          ],
+          "mapEffects": [
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "market",
+              "signal": "official"
+            },
+            {
+              "kind": "crowd",
+              "district": "market",
+              "magnitude": 0.2
+            },
+            {
+              "kind": "service",
+              "district": "market",
+              "magnitude": -0.2
+            }
+          ],
+          "consequence": "The order goes out on the strength of a notice nobody checked. Shops empty further."
+        },
+        {
+          "id": "contam-wait",
+          "title": "Wait for the utility to respond",
+          "preview": "Bottled water runs out at the Hub and a scuffle starts over the last crate",
+          "authority": "Routine process — too slow for a panic",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "economy": -6,
+            "safety": -3,
+            "trust": -3
+          },
+          "mapEffects": [
+            {
+              "kind": "crowd",
+              "district": "market",
+              "magnitude": 0.2
+            },
+            {
+              "kind": "mood",
+              "district": "market",
+              "mood": "tense"
+            },
+            {
+              "kind": "service",
+              "district": "market",
+              "magnitude": -0.15
+            }
+          ],
+          "consequence": "Bottled water runs out at the Hub. A scuffle starts over the last crate."
+        }
+      ]
+    },
+    {
+      "id": "dec-expose-network",
+      "title": "The swarm has a buyer",
+      "situation": "The monitoring cell shows 212 accounts posted the identical contamination text within 90 seconds; 14 posts were paid by one undisclosed buyer. The same accounts threatened the reporter.",
+      "district": "civic",
+      "triggerAt": 124,
+      "expiresAfter": 26,
+      "defaultOption": "network-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "network-lawful-request",
+          "title": "Send a specific lawful request to platforms",
+          "preview": "A narrow request about 14 paid posts and one buyer; the platform's transparency desk answers",
+          "authority": "Lawful, specific information requests — proportionate process, not blanket demands",
+          "tags": [
+            "legal-process",
+            "investigative",
+            "transparent",
+            "proportionate"
+          ],
+          "requiresEvidence": [
+            "ev-posting-pattern"
+          ],
+          "effects": {
+            "evidence": 8,
+            "trust": 4,
+            "freedom": 2
+          },
+          "unlocksEvidence": [
+            "ev-platform-response"
+          ],
+          "setsFlags": [
+            "platform-request-sent",
+            "network-exposed"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "legal"
+            },
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "investigate"
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "market",
+              "signal": "verified"
+            }
+          ],
+          "consequence": "A narrow request: 14 paid posts, one buyer, these account ids. The transparency desk responds within the hour."
+        },
+        {
+          "id": "network-publish-pattern",
+          "title": "Publish the pattern with raw timestamps",
+          "preview": "People see the swarm for themselves: identical text, 0.4 seconds apart",
+          "authority": "Right to information; exposing coordination with evidence rather than accusation",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "requiresEvidence": [
+            "ev-posting-pattern"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 5,
+            "freedom": 2
+          },
+          "setsFlags": [
+            "network-exposed"
+          ],
+          "mapEffects": [
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "market",
+              "signal": "verified"
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "media",
+              "signal": "verified"
+            },
+            {
+              "kind": "mood",
+              "district": "market",
+              "mood": "calm"
+            }
+          ],
+          "consequence": "People can see the swarm for themselves: identical text, 0.4 seconds apart. Shares of the hoax collapse."
+        },
+        {
+          "id": "network-mass-takedown",
+          "title": "Demand removal of all water posts",
+          "preview": "Thousands of posts vanish, including residents asking where the tankers are",
+          "authority": "Article 19(2) — restrictions must be narrow; blanket removal is not",
+          "tags": [
+            "censorship",
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -7,
+            "evidence": -3
+          },
+          "setsFlags": [
+            "mass-takedown-ordered"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "trust": -6,
+                "freedom": -3
+              },
+              "message": "Residents' genuine complaints vanished with the hoax. The takedown is now the story."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "mood",
+              "district": "media",
+              "mood": "volatile"
+            },
+            {
+              "kind": "mood",
+              "district": "transit",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "Thousands of posts disappear — including residents asking where the tankers are."
+        },
+        {
+          "id": "network-wait",
+          "title": "Keep monitoring, take no action",
+          "preview": "The swarm pivots to a new claim: 'the lab result is forged'",
+          "authority": "Monitoring alone — no process, no correction",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "evidence": -3,
+            "trust": -2,
+            "safety": -2
+          },
+          "mapEffects": [
+            {
+              "kind": "signal",
+              "from": "market",
+              "to": "civic",
+              "signal": "manipulated"
+            }
+          ],
+          "consequence": "The swarm shifts to a new line: 'the lab result is forged'."
+        }
+      ]
+    },
+    {
+      "id": "dec-official-accountability",
+      "title": "What happens to the official?",
+      "situation": "You now have the full recording and the work order. The cut was a 90-minute shutoff for a burst-main repair, but the tankers reached the Lower Ward ninety-five minutes late. The public wants to know what happens next.",
+      "district": "civic",
+      "triggerAt": 146,
+      "expiresAfter": 24,
+      "defaultOption": "acct-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "acct-publish-full",
+          "title": "Publish the recording, timeline and delay",
+          "preview": "The full record: a lawful repair, a real failure on the tankers, and a named review to examine it",
+          "authority": "Accountability and the right to information — fair to the official and to the Lower Ward",
+          "tags": [
+            "transparent",
+            "communication",
+            "legal-process"
+          ],
+          "requiresEvidence": [
+            "ev-full-recording",
+            "ev-utility-workorder"
+          ],
+          "effects": {
+            "trust": 8,
+            "evidence": 6,
+            "grievance": 6,
+            "freedom": 2
+          },
+          "setsFlags": [
+            "full-record-published",
+            "accountability-review"
+          ],
+          "mapEffects": [
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "media",
+              "signal": "official"
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "transit",
+              "signal": "official"
+            },
+            {
+              "kind": "institution",
+              "district": "civic"
+            },
+            {
+              "kind": "mood",
+              "district": "transit",
+              "mood": "hopeful"
+            }
+          ],
+          "consequence": "The record shows a lawful repair and a real failure — the tanker delay — and names the review that will examine it."
+        },
+        {
+          "id": "acct-suspend-on-clip",
+          "title": "Suspend the official for the 'cruel cut'",
+          "preview": "A suspension on the strength of a clip; the full recording tells a different story",
+          "authority": "Fair process — disciplinary action must rest on verified facts, not a viral clip",
+          "tags": [
+            "accusation",
+            "communication"
+          ],
+          "requiresEvidence": [
+            "ev-spliced-clip"
+          ],
+          "effects": {
+            "trust": -2,
+            "evidence": -4,
+            "grievance": 2
+          },
+          "falseAccusationEffects": {
+            "freedom": -10,
+            "trust": -12,
+            "evidence": -10,
+            "grievance": -3
+          },
+          "setsFlags": [
+            "official-scapegoated"
+          ],
+          "mapEffects": [
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "A suspension announced on a clip nobody verified. The full recording surfaces anyway."
+        },
+        {
+          "id": "acct-quiet-inquiry",
+          "title": "Announce an inquiry, publish nothing",
+          "preview": "'An inquiry is under way' — a sentence nobody believes any more",
+          "authority": "Internal review process without public accountability",
+          "tags": [
+            "investigative",
+            "wait"
+          ],
+          "effects": {
+            "trust": -2,
+            "grievance": 1,
+            "evidence": 1
+          },
+          "setsFlags": [
+            "quiet-inquiry"
+          ],
+          "consequence": "'An inquiry is under way.' The sentence lands on a city that has heard it before."
+        },
+        {
+          "id": "acct-wait",
+          "title": "Defer the question",
+          "preview": "Deferral reads as cover-up",
+          "authority": "Discretion to delay — at the cost of trust",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "trust": -4,
+            "grievance": -3
+          },
+          "mapEffects": [
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "No answer. By evening 'cover-up' is the most shared word in the district."
+        }
+      ]
+    },
+    {
+      "id": "dec-blanket-denial",
+      "title": "'No one in charge is answering'",
+      "situation": "'No one in charge is answering' is trending. A colleague drafts a blanket statement: 'No water was cut, no one was turned away, the water is safe.' Two of those three sentences are not yet known to be true.",
+      "district": "civic",
+      "expiresAfter": 20,
+      "defaultOption": "denial-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "denial-blanket",
+          "title": "Issue the blanket denial",
+          "preview": "Three reassuring sentences; two of them will be tested within the hour",
+          "authority": "Public statements must be truthful — reassurance is not a substitute for facts",
+          "tags": [
+            "communication"
+          ],
+          "effects": {
+            "trust": 4,
+            "grievance": 1
+          },
+          "delayed": [
+            {
+              "afterTicks": 25,
+              "effects": {
+                "trust": -13,
+                "evidence": -8,
+                "grievance": -3
+              },
+              "message": "The blanket denial unravels line by line. Every true update is now treated as spin.",
+              "mapEffects": [
+                {
+                  "kind": "mood",
+                  "district": "civic",
+                  "mood": "volatile"
+                },
+                {
+                  "kind": "signal",
+                  "from": "civic",
+                  "to": "transit",
+                  "signal": "rumor"
+                }
+              ]
+            }
+          ],
+          "setsFlags": [
+            "blanket-denial"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            }
+          ],
+          "consequence": "Three reassuring sentences go out. The first one is contradicted by a tanker photo within the hour."
+        },
+        {
+          "id": "denial-status-board",
+          "title": "Publish a known / checking / false board",
+          "preview": "A three-column public board updated every 20 minutes — boring, and believed",
+          "authority": "Duty to inform honestly, including about what is not yet known",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 4,
+            "grievance": 2
+          },
+          "setsFlags": [
+            "first-update-published",
+            "status-board"
+          ],
+          "mapEffects": [
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "transit",
+              "signal": "official"
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "market",
+              "signal": "official"
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "media",
+              "signal": "official"
+            },
+            {
+              "kind": "institution",
+              "district": "civic"
+            }
+          ],
+          "consequence": "A three-column board, updated every 20 minutes. Boring, and believed."
+        },
+        {
+          "id": "denial-wait",
+          "title": "Say nothing yet",
+          "preview": "The trend hardens into a slogan",
+          "authority": "Discretion to wait — while the vacuum fills itself",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "trust": -4,
+            "grievance": -3
+          },
+          "mapEffects": [
+            {
+              "kind": "mood",
+              "district": "transit",
+              "mood": "volatile"
+            }
+          ],
+          "consequence": "The trend hardens into a slogan painted on the Hub wall."
+        }
+      ]
+    },
+    {
+      "id": "dec-hospital-gate",
+      "title": "Confrontation at the hospital gate",
+      "situation": "At the hospital gate a group of agitators is shouting that patients are being 'left to die', pushing families toward the security line. An ambulance is stuck at the turn.",
+      "district": "hospital",
+      "triggerFlag": "hospital-gate-clash",
+      "expiresAfter": 18,
+      "defaultOption": "gate-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "gate-cordon-medics",
+          "title": "Cordon the emergency lane; medics to the gate",
+          "preview": "The lane opens for the ambulance; a doctor reads the bed count aloud at the gate",
+          "authority": "Proportionate policing: protect emergency access, separate agitators from families",
+          "tags": [
+            "force",
+            "proportionate",
+            "service",
+            "dialogue"
+          ],
+          "proportionateIf": {
+            "flag": "hospital-gate-clash"
+          },
+          "disproportionateEffects": {
+            "freedom": -6,
+            "trust": -4
+          },
+          "effects": {
+            "safety": 7,
+            "trust": 3,
+            "grievance": 1
+          },
+          "setsFlags": [
+            "gate-secured"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "protect"
+            },
+            {
+              "kind": "incident",
+              "district": "hospital",
+              "incident": null
+            },
+            {
+              "kind": "crowd",
+              "district": "hospital",
+              "magnitude": -0.2
+            },
+            {
+              "kind": "mood",
+              "district": "hospital",
+              "mood": "calm"
+            },
+            {
+              "kind": "road",
+              "road": "r-civic-hospital",
+              "status": "open"
+            }
+          ],
+          "consequence": "The lane opens for the ambulance. A doctor reads the live bed count aloud at the gate."
+        },
+        {
+          "id": "gate-force-clear",
+          "title": "Clear the whole gate area by force",
+          "preview": "Families and agitators are pushed back together; the ambulance gets through, so do the videos",
+          "authority": "Force must be the minimum necessary — clearing families is not",
+          "tags": [
+            "force",
+            "disproportionate",
+            "suppressive"
+          ],
+          "proportionateIf": {
+            "flag": "hospital-gate-armed"
+          },
+          "disproportionateEffects": {
+            "freedom": -12,
+            "trust": -10,
+            "safety": -3
+          },
+          "effects": {
+            "safety": 2
+          },
+          "delayed": [
+            {
+              "afterTicks": 15,
+              "effects": {
+                "trust": -5,
+                "safety": -3
+              },
+              "message": "Footage of families pushed from a hospital gate spreads faster than any clip today."
+            }
+          ],
+          "setsFlags": [
+            "gate-force"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "deploy"
+            },
+            {
+              "kind": "incident",
+              "district": "hospital",
+              "incident": null
+            },
+            {
+              "kind": "crowd",
+              "district": "hospital",
+              "magnitude": -0.4
+            },
+            {
+              "kind": "mood",
+              "district": "hospital",
+              "mood": "volatile"
+            },
+            {
+              "kind": "road",
+              "road": "r-civic-hospital",
+              "status": "open"
+            }
+          ],
+          "consequence": "Families and agitators are pushed back together. The ambulance gets through; so do the videos."
+        },
+        {
+          "id": "gate-wait",
+          "title": "Let hospital security manage it",
+          "preview": "The shouting turns into shoving and someone is hurt",
+          "authority": "Hospital security's remit — outmatched by an organised crowd",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "safety": -6,
+            "trust": -3
+          },
+          "delayed": [
+            {
+              "afterTicks": 10,
+              "effects": {
+                "safety": -3,
+                "grievance": -2
+              },
+              "message": "A scuffle at the gate injures a security guard and a relative."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "hospital",
+              "incident": "clash"
+            },
+            {
+              "kind": "mood",
+              "district": "hospital",
+              "mood": "volatile"
+            }
+          ],
+          "consequence": "The shouting turns into shoving."
+        }
+      ]
+    },
+    {
+      "id": "dec-silence-storm",
+      "title": "'Shut it all down'",
+      "situation": "An unsigned note on your desk blames three commentators for the panic and urges 'decisive action': suspend the Press Club's accreditation, order platforms to remove all commentary, detain the commentators.",
+      "district": "media",
+      "expiresAfter": 22,
+      "defaultOption": "silence-ignore",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "silence-suspend-and-remove",
+          "title": "Suspend the Press Club; remove all commentary",
+          "preview": "The desk that exposed the splice is locked out; corrections vanish with the criticism",
+          "authority": "Article 19(1)(a) — accreditation and takedowns cannot be used to silence reporting",
+          "tags": [
+            "censorship",
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -16,
+            "trust": -10,
+            "evidence": -4
+          },
+          "setsFlags": [
+            "press-club-suspended",
+            "mass-takedown-ordered"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "trust": -6,
+                "freedom": -4
+              },
+              "message": "National outlets arrive to cover the suspension. The water story is now a press-freedom story.",
+              "mapEffects": [
+                {
+                  "kind": "crowd",
+                  "district": "media",
+                  "magnitude": 0.25
+                }
+              ]
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "mood",
+              "district": "media",
+              "mood": "volatile"
+            },
+            {
+              "kind": "crowd",
+              "district": "media",
+              "magnitude": 0.2
+            },
+            {
+              "kind": "incident",
+              "district": "media",
+              "incident": "intimidation"
+            }
+          ],
+          "consequence": "The verification desk that exposed the splice is locked out. Corrections disappear with the criticism."
+        },
+        {
+          "id": "silence-detain",
+          "title": "Detain the three commentators",
+          "preview": "Three people are held for opinions posted after the panic began; the paid network posts on",
+          "authority": "Detention requires a specific offence and verified basis — an unsigned note is neither",
+          "tags": [
+            "detention",
+            "accusation",
+            "disproportionate",
+            "suppressive"
+          ],
+          "requiresEvidence": [
+            "ev-attribution-note"
+          ],
+          "falseAccusationEffects": {
+            "freedom": -16,
+            "trust": -14,
+            "evidence": -10
+          },
+          "proportionateIf": {
+            "flag": "commentators-issued-threats"
+          },
+          "disproportionateEffects": {
+            "freedom": -6,
+            "trust": -4
+          },
+          "effects": {
+            "evidence": -3
+          },
+          "setsFlags": [
+            "commentators-detained"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "deploy"
+            },
+            {
+              "kind": "mood",
+              "district": "media",
+              "mood": "volatile"
+            }
+          ],
+          "consequence": "Three people are detained for opinions posted after the panic began. The paid network posts on."
+        },
+        {
+          "id": "silence-refuse",
+          "title": "Refuse; act only on specific threats",
+          "preview": "You file the note and ask where it came from; nobody owns it",
+          "authority": "Articles 19 and 21 — narrow, evidence-based action only",
+          "tags": [
+            "protect-press",
+            "proportionate",
+            "legal-process"
+          ],
+          "effects": {
+            "freedom": 6,
+            "trust": 4,
+            "evidence": 2
+          },
+          "setsFlags": [
+            "refused-overreach"
+          ],
+          "mapEffects": [
+            {
+              "kind": "mood",
+              "district": "media",
+              "mood": "calm"
+            }
+          ],
+          "consequence": "You file the note and ask where it came from. Nobody owns it."
+        },
+        {
+          "id": "silence-ignore",
+          "title": "Leave the note unanswered",
+          "preview": "The note stays on the desk, and so does the pressure",
+          "authority": "No action — the pressure to overreach remains",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "trust": -1,
+            "evidence": -1
+          },
+          "consequence": "The note stays on the desk. So does the pressure."
+        }
+      ]
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-prior-restraint",
+      "question": "Editors are about to broadcast a recording they have not fully verified. What may the administration lawfully do?",
+      "options": [
+        {
+          "id": "hold",
+          "text": "Order them to hold the story until the inquiry ends",
+          "correct": false,
+          "feedback": "That is prior restraint. Without a specific lawful basis and due process, the administration cannot stop publication in advance."
+        },
+        {
+          "id": "inform",
+          "text": "Give them the full recording and put a correction on record",
+          "correct": true,
+          "feedback": "Yes. The remedy for incomplete reporting is more information and a public rebuttal, not a gag."
+        },
+        {
+          "id": "accredit",
+          "text": "Suspend the outlet's accreditation until it complies",
+          "correct": false,
+          "feedback": "Accreditation is not a lever for controlling what is reported. Using it that way is censorship by another name."
+        }
+      ],
+      "principle": "Article 19(1)(a) protects freedom of speech and expression, including the press. Restrictions must fall within Article 19(2), rest on law and be proportionate. Stopping a report before it is published is the rare exception, never a routine tool.",
+      "why": "The clip was genuine but incomplete. Sharing the full recording corrected the record faster than any order could have, and left journalists free to verify it themselves.",
+      "source": {
+        "label": "Constitution of India, Article 19 — India Code",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-23"
+    },
+    {
+      "id": "rm-false-vs-criticism",
+      "question": "Two posts are spreading: 'This administration treats the Lower Ward as disposable' and 'Lower Ward water is poisoned — do not drink'. Which can be acted against, and how?",
+      "options": [
+        {
+          "id": "both",
+          "text": "Both — order the removal of every post about the water",
+          "correct": false,
+          "feedback": "Sweeping removal silences lawful criticism along with the hoax, and the courts have struck down vague, broad speech restrictions."
+        },
+        {
+          "id": "specific",
+          "text": "Only the false safety claim — correct it publicly and pursue the accounts spreading it",
+          "correct": true,
+          "feedback": "Yes. A demonstrably false claim that endangers health can be met with evidence and narrow, lawful action against those spreading it."
+        },
+        {
+          "id": "neither",
+          "text": "Neither — nothing posted online can be acted upon",
+          "correct": false,
+          "feedback": "A specific false claim that endangers safety can be corrected and, where the law provides, pursued. Opinion is protected; a dangerous falsehood is not immune."
+        }
+      ],
+      "principle": "Harsh criticism of public authorities is protected speech. Restrictions that sweep in speech merely because it is 'offensive' or 'annoying' have been struck down. Action must be narrow, evidence-based and aimed at specific unlawful content.",
+      "why": "The contamination hoax endangered health and trade. Publishing the verified lab result and pursuing the paid accounts answered it without erasing residents' complaints about the water.",
+      "source": {
+        "label": "Supreme Court of India — judgments, including Shreya Singhal v. Union of India (2015)",
+        "url": "https://main.sci.gov.in/"
+      },
+      "contentDate": "2026-10-23"
+    },
+    {
+      "id": "rm-incitement",
+      "question": "A reporter receives messages naming her street and saying 'tonight'. Elsewhere a commentator writes that she 'deserves to be run out of town'. What justifies police action?",
+      "options": [
+        {
+          "id": "any",
+          "text": "Both — any hostile message about her",
+          "correct": false,
+          "feedback": "Ugly opinion is still opinion. Detaining people for it harms freedom and does nothing to stop the real threat."
+        },
+        {
+          "id": "threat",
+          "text": "The messages naming her street and a time — a specific, imminent threat",
+          "correct": true,
+          "feedback": "Yes. A specific threat against a person is a crime to investigate. The response targets the threat, not the critic."
+        },
+        {
+          "id": "wait",
+          "text": "Neither, until something actually happens",
+          "correct": false,
+          "feedback": "A credible, specific threat justifies protection and investigation now. Waiting for harm is not neutrality."
+        }
+      ],
+      "principle": "Speech loses protection when it is a specific threat or incitement to imminent unlawful action. Heated opinion, however unpleasant, is not a crime. Police action must be aimed at the threat and the person making it.",
+      "why": "Protecting the reporter and registering a case against the specific accounts stopped the intimidation without detaining anyone for an opinion.",
+      "source": {
+        "label": "Constitution of India, Articles 19 and 21 — India Code",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-23"
+    }
+  ],
+  "events": [
+    {
+      "id": "evt-clip-spreads",
+      "at": 2,
+      "kind": "rumor",
+      "message": "A 41-second clip of an official ordering a water cut is spreading from the Press Enclave to every district.",
+      "mapEffects": [
+        {
+          "kind": "signal",
+          "from": "media",
+          "to": "civic",
+          "signal": "rumor"
+        },
+        {
+          "kind": "signal",
+          "from": "media",
+          "to": "market",
+          "signal": "rumor"
+        },
+        {
+          "kind": "signal",
+          "from": "media",
+          "to": "transit",
+          "signal": "rumor"
+        },
+        {
+          "kind": "mood",
+          "district": "media",
+          "mood": "tense"
+        }
+      ]
+    },
+    {
+      "id": "evt-heat-alert",
+      "at": 5,
+      "kind": "news",
+      "message": "Heat alert: 44°C by noon. The Civil Hospital is on amber. The Lower Ward has had no water since 06:50.",
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "transit",
+          "magnitude": 0.15
+        },
+        {
+          "kind": "mood",
+          "district": "transit",
+          "mood": "tense"
+        },
+        {
+          "kind": "service",
+          "district": "transit",
+          "magnitude": -0.2
+        }
+      ]
+    },
+    {
+      "id": "evt-tankers-arrive",
+      "at": 44,
+      "kind": "relief",
+      "message": "Utility tankers reach the Lower Ward standposts. The queue becomes a line.",
+      "condition": {
+        "flag": "tankers-sent"
+      },
+      "effects": {
+        "grievance": 2,
+        "safety": 1
+      },
+      "mapEffects": [
+        {
+          "kind": "action",
+          "district": "transit",
+          "action": "relief"
+        },
+        {
+          "kind": "crowd",
+          "district": "transit",
+          "magnitude": -0.15
+        },
+        {
+          "kind": "mood",
+          "district": "transit",
+          "mood": "hopeful"
+        }
+      ]
+    },
+    {
+      "id": "evt-tankers-late",
+      "at": 44,
+      "kind": "crowd",
+      "message": "Two hours without water. The queue at the Transit Hub turns on the utility van.",
+      "condition": {
+        "notFlag": "tankers-sent"
+      },
+      "effects": {
+        "safety": -3,
+        "grievance": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "transit",
+          "magnitude": 0.15
+        },
+        {
+          "kind": "mood",
+          "district": "transit",
+          "mood": "volatile"
+        },
+        {
+          "kind": "road",
+          "road": "r-civic-transit",
+          "status": "congested"
+        }
+      ]
+    },
+    {
+      "id": "evt-hospital-crowding",
+      "at": 50,
+      "kind": "crowd",
+      "message": "Families arrive at the Civil Hospital gate after a forwarded photo claims patients are being turned away.",
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "hospital",
+          "magnitude": 0.25
+        },
+        {
+          "kind": "mood",
+          "district": "hospital",
+          "mood": "tense"
+        },
+        {
+          "kind": "road",
+          "road": "r-civic-hospital",
+          "status": "congested"
+        },
+        {
+          "kind": "signal",
+          "from": "market",
+          "to": "hospital",
+          "signal": "rumor"
+        }
+      ]
+    },
+    {
+      "id": "evt-hospital-data-live",
+      "at": 72,
+      "kind": "institution",
+      "message": "The hospital's live bed count is on every screen at the gate. The crowd thins.",
+      "condition": {
+        "flag": "hospital-data-published"
+      },
+      "effects": {
+        "safety": 2,
+        "trust": 1
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "hospital",
+          "magnitude": -0.2
+        },
+        {
+          "kind": "mood",
+          "district": "hospital",
+          "mood": "calm"
+        },
+        {
+          "kind": "road",
+          "road": "r-civic-hospital",
+          "status": "open"
+        },
+        {
+          "kind": "institution",
+          "district": "hospital"
+        }
+      ]
+    },
+    {
+      "id": "evt-contamination-wave",
+      "at": 102,
+      "kind": "rumor",
+      "message": "'The water is contaminated' — hundreds of identical posts in ninety seconds. Bottled water sells out on Market Street.",
+      "effects": {
+        "economy": -5,
+        "safety": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "signal",
+          "from": "market",
+          "to": "transit",
+          "signal": "manipulated"
+        },
+        {
+          "kind": "signal",
+          "from": "market",
+          "to": "civic",
+          "signal": "manipulated"
+        },
+        {
+          "kind": "crowd",
+          "district": "market",
+          "magnitude": 0.25
+        },
+        {
+          "kind": "service",
+          "district": "market",
+          "magnitude": -0.2
+        },
+        {
+          "kind": "mood",
+          "district": "market",
+          "mood": "tense"
+        }
+      ]
+    },
+    {
+      "id": "evt-panic-eases",
+      "at": 122,
+      "kind": "relief",
+      "message": "The verified lab result is pinned on every board. Bottled-water queues shrink.",
+      "condition": {
+        "flag": "lab-result-published"
+      },
+      "effects": {
+        "economy": 3,
+        "trust": 1
+      },
+      "mapEffects": [
+        {
+          "kind": "service",
+          "district": "market",
+          "magnitude": 0.15
+        },
+        {
+          "kind": "mood",
+          "district": "market",
+          "mood": "calm"
+        },
+        {
+          "kind": "crowd",
+          "district": "market",
+          "magnitude": -0.15
+        }
+      ]
+    },
+    {
+      "id": "evt-panic-deepens",
+      "at": 122,
+      "kind": "incident",
+      "message": "Shops on Market Street close early. A crate of bottled water is stolen from a tanker.",
+      "condition": {
+        "notFlag": "lab-result-published"
+      },
+      "effects": {
+        "economy": -5,
+        "safety": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "service",
+          "district": "market",
+          "magnitude": -0.15
+        },
+        {
+          "kind": "incident",
+          "district": "market",
+          "incident": "vandalism"
+        },
+        {
+          "kind": "mood",
+          "district": "market",
+          "mood": "volatile"
+        }
+      ]
+    },
+    {
+      "id": "evt-repair-complete",
+      "at": 140,
+      "kind": "service",
+      "message": "Burst main repaired. Pressure is returning to the Lower Ward.",
+      "effects": {
+        "grievance": 3,
+        "economy": 1
+      },
+      "mapEffects": [
+        {
+          "kind": "service",
+          "district": "transit",
+          "magnitude": 0.3
+        },
+        {
+          "kind": "mood",
+          "district": "transit",
+          "mood": "hopeful"
+        },
+        {
+          "kind": "action",
+          "district": "transit",
+          "action": "restore"
+        }
+      ]
+    },
+    {
+      "id": "evt-press-vigil",
+      "at": 156,
+      "kind": "crowd",
+      "message": "Journalists hold a vigil outside the Press Club after its window is smashed.",
+      "condition": {
+        "notFlag": "reporter-protected"
+      },
+      "effects": {
+        "freedom": -2,
+        "trust": -1
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "media",
+          "magnitude": 0.15
+        },
+        {
+          "kind": "mood",
+          "district": "media",
+          "mood": "tense"
+        }
+      ]
+    },
+    {
+      "id": "evt-reporter-files",
+      "at": 156,
+      "kind": "news",
+      "message": "The reporter files her follow-up: the full recording, the splice and the paid swarm, side by side.",
+      "condition": {
+        "flag": "reporter-protected"
+      },
+      "effects": {
+        "trust": 2,
+        "evidence": 2
+      },
+      "mapEffects": [
+        {
+          "kind": "signal",
+          "from": "media",
+          "to": "civic",
+          "signal": "verified"
+        },
+        {
+          "kind": "signal",
+          "from": "media",
+          "to": "transit",
+          "signal": "verified"
+        },
+        {
+          "kind": "mood",
+          "district": "media",
+          "mood": "hopeful"
+        }
+      ]
+    },
+    {
+      "id": "evt-no-one-answering",
+      "at": -1,
+      "kind": "rumor",
+      "message": "'No one in charge is answering.' The line spreads from the Hub to Market Street.",
+      "effects": {
+        "trust": -4,
+        "grievance": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "signal",
+          "from": "transit",
+          "to": "market",
+          "signal": "rumor"
+        },
+        {
+          "kind": "signal",
+          "from": "transit",
+          "to": "civic",
+          "signal": "rumor"
+        },
+        {
+          "kind": "mood",
+          "district": "transit",
+          "mood": "volatile"
+        }
+      ]
+    },
+    {
+      "id": "evt-lower-ward-march",
+      "at": -1,
+      "kind": "crowd",
+      "message": "Lower Ward residents march from the Hub to Civic Square carrying empty pots.",
+      "effects": {
+        "grievance": -3,
+        "safety": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "transit",
+          "magnitude": -0.1
+        },
+        {
+          "kind": "crowd",
+          "district": "civic",
+          "magnitude": 0.3
+        },
+        {
+          "kind": "mood",
+          "district": "civic",
+          "mood": "tense"
+        },
+        {
+          "kind": "road",
+          "road": "r-civic-transit",
+          "status": "congested"
+        }
+      ],
+      "setsFlags": [
+        "lower-ward-march"
+      ]
+    },
+    {
+      "id": "evt-hospital-gate-confrontation",
+      "at": -1,
+      "kind": "incident",
+      "message": "Agitators at the hospital gate push families toward the security line. An ambulance is blocked at the turn.",
+      "effects": {
+        "safety": -5,
+        "trust": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "hospital",
+          "incident": "clash"
+        },
+        {
+          "kind": "mood",
+          "district": "hospital",
+          "mood": "volatile"
+        },
+        {
+          "kind": "crowd",
+          "district": "hospital",
+          "magnitude": 0.2
+        },
+        {
+          "kind": "road",
+          "road": "r-civic-hospital",
+          "status": "closed"
+        }
+      ],
+      "setsFlags": [
+        "hospital-gate-clash"
+      ]
+    },
+    {
+      "id": "evt-transit-scuffle",
+      "at": -1,
+      "kind": "incident",
+      "message": "A scuffle breaks out at the standpost queue. Two men who were not queuing started it.",
+      "effects": {
+        "safety": -4
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "transit",
+          "incident": "clash"
+        },
+        {
+          "kind": "mood",
+          "district": "transit",
+          "mood": "volatile"
+        }
+      ],
+      "setsFlags": [
+        "transit-violence"
+      ]
+    },
+    {
+      "id": "evt-agitators-media",
+      "at": -1,
+      "kind": "incident",
+      "message": "A group tries to force its way into the Press Club's verification session.",
+      "effects": {
+        "freedom": -3,
+        "safety": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "media",
+          "incident": "intimidation"
+        },
+        {
+          "kind": "crowd",
+          "district": "media",
+          "magnitude": 0.2
+        },
+        {
+          "kind": "mood",
+          "district": "media",
+          "mood": "volatile"
+        }
+      ],
+      "setsFlags": [
+        "press-club-mobbed"
+      ]
+    },
+    {
+      "id": "evt-lab-forged-rumor",
+      "at": -1,
+      "kind": "rumor",
+      "message": "The swarm pivots: 'the lab result is forged'. Same accounts, new text.",
+      "effects": {
+        "evidence": -3,
+        "trust": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "signal",
+          "from": "market",
+          "to": "civic",
+          "signal": "manipulated"
+        },
+        {
+          "kind": "signal",
+          "from": "market",
+          "to": "media",
+          "signal": "manipulated"
+        }
+      ]
+    },
+    {
+      "id": "evt-boards-tampered",
+      "at": -1,
+      "kind": "incident",
+      "message": "Transit information boards are hacked to read 'WATER UNSAFE — DO NOT DRINK'.",
+      "effects": {
+        "safety": -3,
+        "economy": -3,
+        "trust": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "transit",
+          "incident": "vandalism"
+        },
+        {
+          "kind": "service",
+          "district": "transit",
+          "magnitude": -0.2
+        },
+        {
+          "kind": "signal",
+          "from": "transit",
+          "to": "market",
+          "signal": "manipulated"
+        }
+      ],
+      "setsFlags": [
+        "boards-tampered"
+      ]
+    },
+    {
+      "id": "evt-pressure-call",
+      "at": -1,
+      "kind": "news",
+      "message": "A senior voice on the phone: 'Shut it all down — the press, the posts, the lot. Decide now.'",
+      "setsFlags": [
+        "pressure-to-shut-down"
+      ]
+    }
+  ],
+  "opponentPlays": [
+    {
+      "id": "play-exp-no-one-answering",
+      "opponent": "exploiter",
+      "kind": "event",
+      "target": "evt-no-one-answering",
+      "earliest": 20,
+      "latest": 60,
+      "weight": 1.2,
+      "respondsTo": [
+        "wait"
+      ],
+      "condition": {
+        "notFlag": "first-update-published"
+      },
+      "message": "The Grievance Exploiter turns silence into a slogan."
+    },
+    {
+      "id": "play-exp-blanket-denial",
+      "opponent": "exploiter",
+      "kind": "decision",
+      "target": "dec-blanket-denial",
+      "earliest": 30,
+      "latest": 75,
+      "respondsTo": [
+        "wait",
+        "communication"
+      ],
+      "message": "The Grievance Exploiter dares you to over-promise."
+    },
+    {
+      "id": "play-exp-lower-ward-march",
+      "opponent": "exploiter",
+      "kind": "event",
+      "target": "evt-lower-ward-march",
+      "earliest": 70,
+      "latest": 130,
+      "respondsTo": [
+        "wait"
+      ],
+      "condition": {
+        "maxScore": {
+          "grievance": 55
+        }
+      },
+      "minDifficulty": "standard",
+      "message": "The Grievance Exploiter marches unresolved anger to Civic Square."
+    },
+    {
+      "id": "play-prov-gate-confrontation",
+      "opponent": "provocateur",
+      "kind": "event",
+      "target": "evt-hospital-gate-confrontation",
+      "earliest": 55,
+      "latest": 100,
+      "weight": 1.3,
+      "respondsTo": [
+        "force",
+        "wait"
+      ],
+      "message": "The Provocateur manufactures a confrontation at the hospital gate."
+    },
+    {
+      "id": "play-prov-transit-scuffle",
+      "opponent": "provocateur",
+      "kind": "event",
+      "target": "evt-transit-scuffle",
+      "earliest": 34,
+      "latest": 70,
+      "respondsTo": [
+        "wait"
+      ],
+      "message": "The Provocateur starts a scuffle in the water queue."
+    },
+    {
+      "id": "play-prov-agitators-media",
+      "opponent": "provocateur",
+      "kind": "event",
+      "target": "evt-agitators-media",
+      "earliest": 100,
+      "latest": 140,
+      "respondsTo": [
+        "wait",
+        "force"
+      ],
+      "minDifficulty": "standard",
+      "message": "The Provocateur sends a crowd at the Press Club."
+    },
+    {
+      "id": "play-dis-spliced-clip",
+      "opponent": "disinfo",
+      "kind": "inject-evidence",
+      "target": "ev-spliced-clip",
+      "earliest": 20,
+      "latest": 40,
+      "weight": 1.5,
+      "message": "The Disinformation Cell releases a spliced version of the clip."
+    },
+    {
+      "id": "play-dis-fake-lab-notice",
+      "opponent": "disinfo",
+      "kind": "inject-evidence",
+      "target": "ev-fake-lab-notice",
+      "earliest": 86,
+      "latest": 104,
+      "respondsTo": [
+        "accusation",
+        "communication"
+      ],
+      "message": "The Disinformation Cell forges a laboratory notice."
+    },
+    {
+      "id": "play-dis-forged-result-rumor",
+      "opponent": "disinfo",
+      "kind": "event",
+      "target": "evt-lab-forged-rumor",
+      "earliest": 110,
+      "latest": 150,
+      "respondsTo": [
+        "communication"
+      ],
+      "condition": {
+        "flag": "lab-result-published"
+      },
+      "minDifficulty": "standard",
+      "message": "The Disinformation Cell attacks the correction itself."
+    },
+    {
+      "id": "play-sab-destroy-recording",
+      "opponent": "sabotage",
+      "kind": "destroy-evidence",
+      "target": "ev-full-recording",
+      "earliest": 50,
+      "latest": 95,
+      "respondsTo": [
+        "wait"
+      ],
+      "message": "The Sabotage Network lets the control-room recorder overwrite itself."
+    },
+    {
+      "id": "play-sab-boards-tampered",
+      "opponent": "sabotage",
+      "kind": "event",
+      "target": "evt-boards-tampered",
+      "earliest": 96,
+      "latest": 130,
+      "respondsTo": [
+        "wait",
+        "service"
+      ],
+      "message": "The Sabotage Network hijacks the transit information boards."
+    },
+    {
+      "id": "play-sab-destroy-pattern",
+      "opponent": "sabotage",
+      "kind": "destroy-evidence",
+      "target": "ev-posting-pattern",
+      "earliest": 100,
+      "latest": 135,
+      "respondsTo": [
+        "wait"
+      ],
+      "minDifficulty": "standard",
+      "message": "The Sabotage Network scrubs the ad-library trail."
+    },
+    {
+      "id": "play-over-pressure-call",
+      "opponent": "overreaction",
+      "kind": "event",
+      "target": "evt-pressure-call",
+      "earliest": 60,
+      "latest": 100,
+      "respondsTo": [
+        "force",
+        "suppressive"
+      ],
+      "message": "The Overreaction Trap applies pressure from above."
+    },
+    {
+      "id": "play-over-attribution-note",
+      "opponent": "overreaction",
+      "kind": "inject-evidence",
+      "target": "ev-attribution-note",
+      "earliest": 112,
+      "latest": 124,
+      "respondsTo": [
+        "force",
+        "detention",
+        "suppressive",
+        "accusation"
+      ],
+      "message": "The Overreaction Trap plants a note blaming the critics."
+    },
+    {
+      "id": "play-over-silence-storm",
+      "opponent": "overreaction",
+      "kind": "decision",
+      "target": "dec-silence-storm",
+      "earliest": 125,
+      "latest": 136,
+      "respondsTo": [
+        "force",
+        "detention",
+        "suppressive",
+        "censorship"
+      ],
+      "message": "The Overreaction Trap offers you a shutdown."
+    }
+  ],
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "full-record-published"
+        },
+        "text": "The full recording and timeline were published: the cut was a repair, and the tanker delay was named as the real failure."
+      },
+      {
+        "condition": {
+          "flag": "tankers-sent"
+        },
+        "text": "Water reached the Lower Ward standposts within the hour."
+      },
+      {
+        "condition": {
+          "flag": "lab-result-published"
+        },
+        "text": "The contamination hoax was answered with an accredited lab result and its sampling map."
+      },
+      {
+        "condition": {
+          "flag": "reporter-protected"
+        },
+        "text": "The reporter was protected and the specific threats were pursued as crimes."
+      },
+      {
+        "condition": {
+          "flag": "network-exposed"
+        },
+        "text": "The undisclosed paid network was exposed through timestamps and ad records."
+      },
+      {
+        "condition": {
+          "flag": "hospital-data-published"
+        },
+        "text": "Live hospital data replaced the 'turning patients away' rumour."
+      },
+      {
+        "condition": {
+          "flag": "splice-exposed",
+          "opponent": "disinfo"
+        },
+        "text": "The spliced clip was exposed as manipulated: two splice points, three words from another sentence."
+      },
+      {
+        "condition": {
+          "flag": "fake-notice-exposed",
+          "opponent": "disinfo"
+        },
+        "text": "The forged laboratory notice was caught by its missing registration and impossible date."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "notFlag": "full-record-published"
+        },
+        "text": "The city never heard the full recording from you. The splice kept its power."
+      },
+      {
+        "condition": {
+          "notFlag": "tankers-sent"
+        },
+        "text": "The Lower Ward waited hours for water a tanker could have delivered."
+      },
+      {
+        "condition": {
+          "notFlag": "lab-result-published"
+        },
+        "text": "The contamination claim was never publicly answered with the lab result."
+      },
+      {
+        "condition": {
+          "notFlag": "reporter-protected"
+        },
+        "text": "Threats against the reporter were never met with a specific, lawful response."
+      },
+      {
+        "condition": {
+          "anyFlag": [
+            "denial-issued",
+            "blanket-denial"
+          ]
+        },
+        "text": "A denial that proved false poisoned every true statement that followed."
+      },
+      {
+        "condition": {
+          "notFlag": "network-exposed"
+        },
+        "text": "The paid swarm was never named for what it was; the next one will be cheaper."
+      },
+      {
+        "condition": {
+          "notFlag": "splice-exposed",
+          "opponent": "disinfo"
+        },
+        "text": "The spliced clip was never exposed as manipulated; its three invented words outlived the day."
+      },
+      {
+        "condition": {
+          "notFlag": "attribution-note-exposed",
+          "opponent": "overreaction"
+        },
+        "text": "The unsigned note blaming commentators was never examined; it kept its influence."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "anyFlag": [
+            "press-given-recording",
+            "press-briefed"
+          ]
+        },
+        "text": "Freedom of the press: journalists received information, not instructions."
+      },
+      {
+        "condition": {
+          "flag": "reporter-protected"
+        },
+        "text": "Safety of journalists: a specific threat met a specific, lawful response."
+      },
+      {
+        "condition": {
+          "flag": "refused-overreach"
+        },
+        "text": "Freedom of expression: the call to detain commentators was refused."
+      },
+      {
+        "condition": {
+          "flag": "first-update-published"
+        },
+        "text": "Right to information: the public was told what was known and what was not."
+      },
+      {
+        "condition": {
+          "flag": "gate-secured"
+        },
+        "text": "Proportionate policing: the hospital lane was secured without clearing families by force."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "anyFlag": [
+            "press-pressured",
+            "press-club-suspended"
+          ]
+        },
+        "text": "Press freedom was harmed: editors were pressured or locked out."
+      },
+      {
+        "condition": {
+          "flag": "mass-takedown-ordered"
+        },
+        "text": "Expression was harmed: lawful complaints vanished alongside the hoax."
+      },
+      {
+        "condition": {
+          "anyFlag": [
+            "commentators-detained",
+            "critics-detained",
+            "forwarders-detained"
+          ]
+        },
+        "text": "Liberty was harmed: people were detained for opinions or for forwarding a photo."
+      },
+      {
+        "condition": {
+          "anyFlag": [
+            "gate-force",
+            "hub-dispersed"
+          ]
+        },
+        "text": "Proportionality was harmed: thirsty residents or hospital families were cleared by force."
+      },
+      {
+        "condition": {
+          "flag": "official-scapegoated"
+        },
+        "text": "Fair process was harmed: an official was suspended on a spliced clip."
+      },
+      {
+        "condition": {
+          "flag": "reporter-asked-to-stop"
+        },
+        "text": "Press freedom was harmed: the reporter was asked to stop instead of being protected."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "full-recording-requested"
+        },
+        "text": "Ask for the complete recording in your first statement. A splice loses its power the moment the original is on the table."
+      },
+      {
+        "condition": {
+          "notFlag": "lab-result-published"
+        },
+        "text": "When a safety claim spreads, publish the verified test with its sampling points and accreditation. Specifics beat reassurance."
+      },
+      {
+        "condition": {
+          "notFlag": "reporter-protected"
+        },
+        "text": "Treat a message naming a street and a time as a crime to investigate, not a reason to ask the reporter to go quiet."
+      },
+      {
+        "condition": {
+          "notFlag": "network-exposed"
+        },
+        "text": "Expose coordination with timestamps and ad records. People can see a swarm when you show them the pattern."
+      },
+      {
+        "condition": {
+          "anyFlag": [
+            "mass-takedown-ordered",
+            "press-club-suspended",
+            "press-pressured"
+          ]
+        },
+        "text": "Correct, do not censor. Every takedown of criticism became the next headline."
+      },
+      {
+        "condition": {
+          "notFlag": "full-recording-verified"
+        },
+        "text": "Preserve and compare the full recording as soon as it arrives; perishable evidence is the first thing a saboteur reaches for."
+      },
+      {
+        "condition": {
+          "notFlag": "fake-notice-exposed",
+          "opponent": "disinfo"
+        },
+        "text": "Inspect the metadata of anything styled as an official notice. A missing registration number or an impossible date exposes a forgery in seconds."
+      },
+      {
+        "condition": {},
+        "text": "You held every line. Try it again with the Sabotage Network and the Overreaction Trap both selected at severe difficulty."
+      }
+    ],
+    "closing": {
+      "good": "The city went to bed knowing what happened, who fixed it, and who tried to fool it.",
+      "mixed": "Water came back and half the truth emerged. The next rumour will find a city unsure whom to believe.",
+      "poor": "The splice, the hoax and the crackdown each won something today. The Lower Ward remembers the thirst; the press remembers the pressure."
+    }
+  }
+}

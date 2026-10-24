@@ -1,0 +1,124 @@
+.root {
+  --accent: var(--c-cyan);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%), var(--surface-glass);
+  box-shadow: var(--edge-light);
+  animation: slide var(--dur-panel) var(--ease-out) both;
+}
+.root[data-warning] {
+  --accent: var(--o-danger);
+}
+.root[data-warning='unverified-basis'] {
+  --accent: var(--a-saffron);
+}
+@keyframes slide {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.iconWrap {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+  margin-top: 0.1rem;
+}
+.body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.title {
+  margin: 0;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
+}
+.text {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--t-secondary);
+}
+.warn {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--accent);
+}
+.dims {
+  list-style: none;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.dim {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--r-pill);
+  background: rgba(170, 182, 200, 0.08);
+}
+.dirIcon {
+  color: var(--t-secondary);
+}
+.dim[data-dir='down'] .dirIcon {
+  color: var(--o-danger);
+}
+.dim[data-dir='up'] .dirIcon {
+  color: var(--o-safety);
+}
+.undoRow {
+  margin-top: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.undoBtn {
+  flex: none;
+}
+.undoBar {
+  flex: 1 1 auto;
+  height: 0.25rem;
+  border-radius: var(--r-pill);
+  background: rgba(170, 182, 200, 0.18);
+  overflow: hidden;
+}
+.undoFill {
+  display: block;
+  height: 100%;
+  background: var(--c-cyan);
+  transition: width 1s linear;
+}
+.close {
+  flex: none;
+  margin: -0.25rem -0.25rem 0 0;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

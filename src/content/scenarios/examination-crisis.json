@@ -1,0 +1,3308 @@
+{
+  "id": "examination-crisis",
+  "chapter": 1,
+  "title": "Examination Crisis",
+  "subtitle": "A leak, a sit-in and a city holding its breath",
+  "duration": 180,
+  "briefing": {
+    "grievance": "Students have credible grounds to believe the state entrance examination paper leaked. An answer key circulated in a coaching group 23 minutes before the exam began. They want the leak investigated, the exam re-held fairly and the right to say so in public.",
+    "knownFacts": [
+      "An answer key matching most of the paper circulated at 08:52. The exam began at 09:15.",
+      "About 600 students have gathered peacefully outside the University Registrar's office.",
+      "The examination board has not yet made any public statement.",
+      "The paper was printed by a contracted secure printing unit near the Records Office."
+    ],
+    "unverifiedClaims": [
+      "A screenshot claims the entire paper was online at 06:00.",
+      "Forwards say the board has already cancelled the exam.",
+      "Messages offer a 'guaranteed paper' for 40,000 rupees.",
+      "Some officials believe 'outside elements' are steering the protest."
+    ],
+    "responsibility": "You coordinate the district administration, the police and the examination board. Protect peaceful assembly, establish the facts, prevent exploitation and keep the city's services running.",
+    "objective": "In three minutes: open a credible investigation, keep the sit-in safe and the hospital reachable, and expose any fabricated evidence.",
+    "lines": [
+      "08:52. An answer key lands in a coaching group.",
+      "09:15. The exam begins anyway.",
+      "By ten, six hundred students stand outside the Registrar's office.",
+      "Somewhere in the city, someone is already selling the next one.",
+      "Freedom. Order. Your move."
+    ]
+  },
+  "startingScores": {
+    "freedom": 62,
+    "grievance": 38,
+    "safety": 60,
+    "evidence": 55,
+    "trust": 50,
+    "economy": 64
+  },
+  "districts": [
+    {
+      "id": "campus",
+      "name": "University Quarter",
+      "kind": "campus",
+      "x": 0.18,
+      "y": 0.3,
+      "baseline": {
+        "crowd": 0.35,
+        "trust": 0.45,
+        "services": 0.9
+      },
+      "institution": "University Registrar"
+    },
+    {
+      "id": "hospital",
+      "name": "Civil Hospital",
+      "kind": "hospital",
+      "x": 0.58,
+      "y": 0.12,
+      "baseline": {
+        "crowd": 0.08,
+        "trust": 0.65,
+        "services": 1
+      },
+      "institution": "Civil Hospital"
+    },
+    {
+      "id": "civic",
+      "name": "Civic Square",
+      "kind": "civic",
+      "x": 0.5,
+      "y": 0.44,
+      "baseline": {
+        "crowd": 0.2,
+        "trust": 0.5,
+        "services": 0.9
+      },
+      "institution": "District Collectorate"
+    },
+    {
+      "id": "market",
+      "name": "Market Street",
+      "kind": "market",
+      "x": 0.8,
+      "y": 0.34,
+      "baseline": {
+        "crowd": 0.15,
+        "trust": 0.55,
+        "services": 0.95
+      }
+    },
+    {
+      "id": "records",
+      "name": "Records Office",
+      "kind": "records",
+      "x": 0.22,
+      "y": 0.7,
+      "baseline": {
+        "crowd": 0.05,
+        "trust": 0.6,
+        "services": 0.9
+      },
+      "institution": "Election Records Office"
+    },
+    {
+      "id": "transit",
+      "name": "Central Transit Hub",
+      "kind": "transit",
+      "x": 0.48,
+      "y": 0.78,
+      "baseline": {
+        "crowd": 0.18,
+        "trust": 0.55,
+        "services": 0.95
+      },
+      "institution": "Transit Authority"
+    },
+    {
+      "id": "media",
+      "name": "Press Enclave",
+      "kind": "media",
+      "x": 0.82,
+      "y": 0.7,
+      "baseline": {
+        "crowd": 0.1,
+        "trust": 0.6,
+        "services": 0.95
+      },
+      "institution": "Press Club"
+    }
+  ],
+  "roads": [
+    {
+      "id": "r-campus-civic",
+      "from": "campus",
+      "to": "civic"
+    },
+    {
+      "id": "r-civic-market",
+      "from": "civic",
+      "to": "market"
+    },
+    {
+      "id": "r-civic-transit",
+      "from": "civic",
+      "to": "transit"
+    },
+    {
+      "id": "r-transit-media",
+      "from": "transit",
+      "to": "media"
+    },
+    {
+      "id": "r-market-media",
+      "from": "market",
+      "to": "media"
+    },
+    {
+      "id": "r-campus-records",
+      "from": "campus",
+      "to": "records"
+    },
+    {
+      "id": "r-records-transit",
+      "from": "records",
+      "to": "transit"
+    },
+    {
+      "id": "r-civic-hospital",
+      "from": "civic",
+      "to": "hospital"
+    },
+    {
+      "id": "r-market-hospital",
+      "from": "market",
+      "to": "hospital"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-answer-key-forward",
+      "title": "Forwarded answer key",
+      "source": "Campus legal-aid desk (student volunteers)",
+      "sourceType": "organizer",
+      "time": "08:52",
+      "claim": "An answer key matching 41 of 50 questions circulated in a coaching group 23 minutes before the exam began.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 4,
+      "metadata": [
+        {
+          "label": "Forward chain",
+          "value": "Coaching group, then a class group, then a screenshot (3 hops)"
+        },
+        {
+          "label": "Device timestamp",
+          "value": "08:52, twenty-three minutes before the 09:15 start"
+        },
+        {
+          "label": "Match checked by",
+          "value": "Students, against the board's official key: 41 of 50"
+        },
+        {
+          "label": "Original sender",
+          "value": "Number not yet identified"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-board-forensic",
+        "ev-vendor-shift-log"
+      ],
+      "visual": {
+        "type": "message",
+        "caption": "Screenshot of a fifty-line answer key inside a group chat"
+      },
+      "district": "campus",
+      "setsFlagsOnResolve": [
+        "leak-corroborated"
+      ],
+      "resolutionNote": "The key is genuine: it matches the paper and was timestamped before the exam started."
+    },
+    {
+      "id": "ev-organiser-statement",
+      "title": "Student council statement",
+      "source": "Elected student council",
+      "sourceType": "organizer",
+      "time": "09:05",
+      "claim": "'We will sit peacefully at Civic Square until an independent inquiry is announced. No property will be touched.'",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 10,
+      "metadata": [
+        {
+          "label": "Signatories",
+          "value": "Five elected council members"
+        },
+        {
+          "label": "Published",
+          "value": "Council notice board and public channel"
+        },
+        {
+          "label": "Demands",
+          "value": "Independent inquiry, fair re-exam, no detentions"
+        },
+        {
+          "label": "Contact",
+          "value": "The council president offers a liaison line"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-police-field-report"
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "One-page statement carrying five signatures"
+      },
+      "district": "campus",
+      "resolutionNote": "The council said what it would do, and the field report shows it did exactly that."
+    },
+    {
+      "id": "ev-police-field-report",
+      "title": "Field report: Civic Square",
+      "source": "Station house officer, Civic Square (radio log)",
+      "sourceType": "official",
+      "time": "09:48",
+      "claim": "About 1,800 students seated, no weapons, no damage. A separate group of 20 to 30 adults is testing the barricade.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "availableAt": 24,
+      "metadata": [
+        {
+          "label": "Headcount",
+          "value": "About 1,800, seated on the eastern half of the square"
+        },
+        {
+          "label": "Weapons or damage",
+          "value": "None observed"
+        },
+        {
+          "label": "Separate group",
+          "value": "20 to 30 adults, not seated, filming the police line"
+        },
+        {
+          "label": "Hospital route",
+          "value": "Slow but moving"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-organiser-statement"
+      ],
+      "visual": {
+        "type": "map",
+        "caption": "Sketch of the square: seated crowd, barricade line, hospital lane"
+      },
+      "district": "civic",
+      "setsFlagsOnResolve": [
+        "peaceful-confirmed"
+      ],
+      "resolutionNote": "Two different groups: a large peaceful sit-in and a small crowd at the barricade. Policing has to tell them apart."
+    },
+    {
+      "id": "ev-vendor-shift-log",
+      "title": "Strongroom access log",
+      "source": "Secure printing unit, digital access system",
+      "sourceType": "business",
+      "time": "02:10",
+      "claim": "The access log shows a supervisor's badge entering the sealed strongroom at 02:10, outside the scheduled window.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 38,
+      "metadata": [
+        {
+          "label": "Entry",
+          "value": "02:10, badge 0471 (shift supervisor)"
+        },
+        {
+          "label": "Scheduled access window",
+          "value": "06:00 to 07:00 only"
+        },
+        {
+          "label": "Retention",
+          "value": "Overwritten by the weekly cleanup unless exported"
+        },
+        {
+          "label": "Export hash",
+          "value": "Present; matches the system record"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-cctv-strongroom",
+        "ev-board-forensic"
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "Access-control entries for the night of the print run"
+      },
+      "district": "records",
+      "setsFlagsOnResolve": [
+        "strongroom-breach-confirmed"
+      ],
+      "perishable": true,
+      "resolutionNote": "The badge entry is real and unscheduled. Someone was inside the strongroom seven hours before the exam."
+    },
+    {
+      "id": "ev-racket-ledger",
+      "title": "'Guaranteed paper' payment screenshots",
+      "source": "Anonymous tip to the police helpline",
+      "sourceType": "anonymous",
+      "time": "09:30",
+      "claim": "Receipts show six transfers of 40,000 rupees labelled 'EX-PKG' to one account the night before the exam.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 45,
+      "metadata": [
+        {
+          "label": "Transfers",
+          "value": "Six, between 22:10 and 23:45"
+        },
+        {
+          "label": "Payers",
+          "value": "Six distinct payment ids"
+        },
+        {
+          "label": "Receiver",
+          "value": "An account in the name of a coaching-centre proprietor"
+        },
+        {
+          "label": "Tip source",
+          "value": "Anonymous; cannot be re-contacted"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-bank-alert"
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "Six payment confirmations with the same memo line"
+      },
+      "district": "market",
+      "setsFlagsOnResolve": [
+        "racket-evidence-verified"
+      ],
+      "resolutionNote": "The bank's own alert matches the screenshots: the transfers happened, into one brand-new account."
+    },
+    {
+      "id": "ev-cctv-strongroom",
+      "title": "Strongroom corridor CCTV",
+      "source": "Secure printing unit, camera 4",
+      "sourceType": "business",
+      "time": "02:08",
+      "claim": "Corridor footage shows a person entering the sealed strongroom at 02:08, holding a phone.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 52,
+      "metadata": [
+        {
+          "label": "Camera",
+          "value": "Camera 4, corridor B, facing the strongroom door"
+        },
+        {
+          "label": "Retention",
+          "value": "72-hour rolling overwrite"
+        },
+        {
+          "label": "Clock check",
+          "value": "Matches the access system to the minute"
+        },
+        {
+          "label": "Face",
+          "value": "Partly visible; identification pending"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-vendor-shift-log",
+        "ev-board-forensic"
+      ],
+      "visual": {
+        "type": "video",
+        "caption": "Grainy corridor footage, timestamp 02:08:14"
+      },
+      "district": "records",
+      "setsFlagsOnResolve": [
+        "strongroom-breach-confirmed"
+      ],
+      "perishable": true,
+      "resolutionNote": "The footage lines up with the badge entry to the minute. The breach happened, and it was recorded."
+    },
+    {
+      "id": "ev-bank-alert",
+      "title": "Bank monitoring alert",
+      "source": "Bank fraud-monitoring unit, via the cyber cell",
+      "sourceType": "institution",
+      "time": "11:15",
+      "claim": "Six credits of 40,000 rupees reached one account within 95 minutes. The account was opened eleven days ago.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "availableAt": 88,
+      "metadata": [
+        {
+          "label": "Account age",
+          "value": "11 days"
+        },
+        {
+          "label": "Alert reason",
+          "value": "Rapid same-value credits (structuring pattern)"
+        },
+        {
+          "label": "Account holder",
+          "value": "Coaching-centre proprietor, Market Street"
+        },
+        {
+          "label": "Balance",
+          "value": "2,40,000 rupees; no debits yet"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-racket-ledger"
+      ],
+      "visual": {
+        "type": "chart",
+        "caption": "Timeline of six identical credits in one evening"
+      },
+      "district": "market",
+      "resolutionNote": "An eleven-day-old account filled with identical payments the night before the exam. This is the racket's cash trail."
+    },
+    {
+      "id": "ev-board-forensic",
+      "title": "Board forensic note",
+      "source": "State examination board, secrecy cell",
+      "sourceType": "institution",
+      "time": "10:40",
+      "claim": "Preliminary check: the circulated key matches the paper set used here. Set codes trace to one printing batch.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "availableAt": 96,
+      "metadata": [
+        {
+          "label": "Sets compared",
+          "value": "Key against sets A, B and D used in this district"
+        },
+        {
+          "label": "Match",
+          "value": "Set B: 41 of 50. Sets A and D: under 20 of 50"
+        },
+        {
+          "label": "Printing batch",
+          "value": "Batch 7, night shift of the previous day"
+        },
+        {
+          "label": "Evaluation status",
+          "value": "OMR sheets still sealed; scanning not yet begun"
+        }
+      ],
+      "corroboratedBy": [
+        "ev-vendor-shift-log",
+        "ev-answer-key-forward"
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "Two-page internal note with a set-code comparison table"
+      },
+      "district": "civic",
+      "setsFlagsOnResolve": [
+        "leak-verified"
+      ],
+      "resolutionNote": "The board's own check confirms the leak and points to one batch and one night shift."
+    },
+    {
+      "id": "ev-doctored-screenshot",
+      "title": "Screenshot: 'full paper online at 06:00'",
+      "source": "Viral post from an anonymous account",
+      "sourceType": "anonymous",
+      "time": "09:20",
+      "claim": "A screenshot claims the entire question paper was posted online at 06:00, three hours before the exam.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "injectedBy": "disinfo",
+      "metadata": [
+        {
+          "label": "Post timestamp",
+          "value": "06:00, as displayed"
+        },
+        {
+          "label": "Image created",
+          "value": "09:14, after the exam had begun",
+          "anomaly": true
+        },
+        {
+          "label": "Set code shown",
+          "value": "Set C, which was not distributed in this district",
+          "anomaly": true
+        },
+        {
+          "label": "Account age",
+          "value": "Two days; no earlier posts"
+        }
+      ],
+      "contradictedBy": [
+        "ev-board-forensic"
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "Cropped phone screenshot of a question paper with a set code"
+      },
+      "district": "media",
+      "setsFlagsOnResolve": [
+        "screenshot-exposed"
+      ],
+      "resolutionNote": "The image was made after the exam began and shows a set never used here. It was fabricated to inflate the leak."
+    },
+    {
+      "id": "ev-fake-circular",
+      "title": "Circular: 'exam cancelled statewide'",
+      "source": "Forwarded PDF on letterhead resembling the board's",
+      "sourceType": "anonymous",
+      "time": "10:05",
+      "claim": "A circular on board letterhead announces that the exam is cancelled and a re-test will be held 'within 48 hours'.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "injectedBy": "disinfo",
+      "metadata": [
+        {
+          "label": "Letterhead",
+          "value": "Crest and colours differ from the board's current template",
+          "anomaly": true
+        },
+        {
+          "label": "Reference number",
+          "value": "2019-series format, discontinued",
+          "anomaly": true
+        },
+        {
+          "label": "Signature",
+          "value": "An unnamed 'Controller'"
+        },
+        {
+          "label": "File properties",
+          "value": "Created with a free online PDF editor"
+        }
+      ],
+      "contradictedBy": [
+        "ev-board-forensic"
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "One-page circular with a blurred crest"
+      },
+      "district": "market",
+      "setsFlagsOnResolve": [
+        "circular-exposed"
+      ],
+      "resolutionNote": "Outdated letterhead, a dead reference format and no board record: the circular is a forgery."
+    },
+    {
+      "id": "ev-barricade-clip",
+      "title": "Clip: 'students attack police'",
+      "source": "Account posting live from Civic Square",
+      "sourceType": "anonymous",
+      "time": "10:30",
+      "claim": "A nine-second clip shows people pushing a barricade, captioned 'students attack police line'.",
+      "initialState": "unverified",
+      "truth": "misleading",
+      "resolvedState": "manipulated",
+      "injectedBy": "provocateur",
+      "metadata": [
+        {
+          "label": "Length",
+          "value": "Nine seconds, cut from a two-minute original",
+          "anomaly": true
+        },
+        {
+          "label": "Framing",
+          "value": "Pans away from the seated crowd the moment it appears",
+          "anomaly": true
+        },
+        {
+          "label": "Audio",
+          "value": "Caption added; no audio from the people pushing"
+        },
+        {
+          "label": "Account",
+          "value": "Created today; follows no one"
+        }
+      ],
+      "contradictedBy": [
+        "ev-police-field-report"
+      ],
+      "visual": {
+        "type": "video",
+        "caption": "Shaky vertical clip at the barricade line"
+      },
+      "district": "civic",
+      "setsFlagsOnResolve": [
+        "clip-exposed"
+      ],
+      "resolutionNote": "The clip is real but cut to hide that the pushing group stood apart from the seated students, who never moved."
+    },
+    {
+      "id": "ev-intel-note",
+      "title": "Unsigned 'intelligence note'",
+      "source": "Unsigned note circulating between offices",
+      "sourceType": "leak",
+      "time": "12:20",
+      "claim": "A note claims the student council plans to 'storm the Collectorate at 6 pm' and recommends preventive detention.",
+      "initialState": "unknown",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "injectedBy": "overreaction",
+      "metadata": [
+        {
+          "label": "File number",
+          "value": "None; no originating unit named",
+          "anomaly": true
+        },
+        {
+          "label": "Named organiser",
+          "value": "A council member who left the university last year",
+          "anomaly": true
+        },
+        {
+          "label": "Basis",
+          "value": "'Reliable sources'; nothing specific"
+        },
+        {
+          "label": "Circulation",
+          "value": "Forwarded between three offices in ten minutes"
+        }
+      ],
+      "contradictedBy": [
+        "ev-police-field-report",
+        "ev-organiser-statement"
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "Half a page, no letterhead, bold capitals"
+      },
+      "district": "civic",
+      "setsFlagsOnResolve": [
+        "intel-note-exposed"
+      ],
+      "resolutionNote": "No unit, no file number, and a name a year out of date. The note was written to make detention look necessary."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d-first-response",
+      "title": "Students are gathering",
+      "situation": "About 600 students stand outside the University Registrar's office asking for the exam to be cancelled and an inquiry opened. The board has said nothing yet.",
+      "district": "campus",
+      "triggerAt": 8,
+      "expiresAfter": 25,
+      "defaultOption": "o-wait-first",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-acknowledge",
+          "title": "Meet the student council today",
+          "preview": "A meeting is fixed; the council commits publicly to a peaceful sit-in.",
+          "authority": "Article 19(1)(a) and (b): speech and peaceful assembly; your duty to hear grievances",
+          "tags": [
+            "dialogue",
+            "protect-assembly",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 6,
+            "trust": 4,
+            "freedom": 2
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "dialogue"
+            },
+            {
+              "kind": "mood",
+              "district": "campus",
+              "mood": "hopeful"
+            }
+          ],
+          "consequence": "A meeting is set for 10:30. The council agrees to keep the sit-in peaceful and to name a liaison.",
+          "setsFlags": [
+            "grievance-acknowledged",
+            "council-heard"
+          ]
+        },
+        {
+          "id": "o-board-statement",
+          "title": "Ask the board to publish what it knows",
+          "preview": "The board promises a factual statement by noon; students wait, sceptical.",
+          "authority": "Right to information; the board's duty of candour to candidates",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 3,
+            "grievance": 3,
+            "evidence": 2
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            }
+          ],
+          "consequence": "The board promises a statement by noon. Students stay put, waiting to see if it says anything.",
+          "undoTicks": 5,
+          "setsFlags": [
+            "board-statement-requested",
+            "grievance-acknowledged"
+          ]
+        },
+        {
+          "id": "o-cordon-campus",
+          "title": "Cordon the campus gates",
+          "preview": "Gates are locked; the crowd is pushed toward Civic Square instead.",
+          "authority": "Article 19(3): restrictions on assembly must be reasonable and specific",
+          "tags": [
+            "suppressive"
+          ],
+          "effects": {
+            "freedom": -8,
+            "trust": -5,
+            "safety": 2,
+            "grievance": -3
+          },
+          "proportionateIf": {
+            "flag": "violence-active"
+          },
+          "disproportionateEffects": {
+            "freedom": -4,
+            "trust": -3
+          },
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "Students blocked at the gates reach Civic Square in larger numbers, angrier than before."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "deploy"
+            },
+            {
+              "kind": "mood",
+              "district": "campus",
+              "mood": "tense"
+            },
+            {
+              "kind": "crowd",
+              "district": "civic",
+              "magnitude": 0.2
+            }
+          ],
+          "consequence": "The gates are locked. The crowd turns and spills along the main road toward Civic Square.",
+          "setsFlags": [
+            "campus-cordoned"
+          ]
+        },
+        {
+          "id": "o-wait-first",
+          "title": "Wait for the board to respond",
+          "preview": "Hours pass without a word; the crowd grows and rumours fill the silence.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3
+          },
+          "mapEffects": [
+            {
+              "kind": "crowd",
+              "district": "campus",
+              "magnitude": 0.1
+            },
+            {
+              "kind": "mood",
+              "district": "campus",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "Nobody speaks for the administration. The crowd grows, and the forwards do the talking."
+        }
+      ]
+    },
+    {
+      "id": "d-investigation",
+      "title": "Who investigates the leak?",
+      "situation": "The forwarded answer key looks real. The board wants an internal check; students demand an independent inquiry. You decide who looks into this and how fast the records are secured.",
+      "district": "records",
+      "triggerAt": 28,
+      "expiresAfter": 30,
+      "defaultOption": "o-wait-inv",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-independent-inquiry",
+          "title": "Appoint an independent inquiry panel",
+          "preview": "A retired judge and two technical experts take charge; the board hands over its records.",
+          "authority": "Rule of law: an inquiry that the aggrieved can trust",
+          "tags": [
+            "investigative",
+            "transparent",
+            "legal-process"
+          ],
+          "effects": {
+            "grievance": 8,
+            "trust": 6,
+            "evidence": 4,
+            "freedom": 1
+          },
+          "delayed": [
+            {
+              "afterTicks": 30,
+              "effects": {
+                "trust": 3
+              },
+              "message": "The inquiry's first public note lists what it has secured. Students read it aloud at the sit-in."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "investigate"
+            },
+            {
+              "kind": "institution",
+              "district": "civic"
+            }
+          ],
+          "consequence": "A retired judge and two technical experts take charge. The board hands over the printing records.",
+          "unlocksEvidence": [
+            "ev-board-forensic"
+          ],
+          "setsFlags": [
+            "investigation-opened",
+            "inquiry-independent"
+          ]
+        },
+        {
+          "id": "o-police-case",
+          "title": "Register a case; seize the vendor's records",
+          "preview": "Officers secure the printing unit's logs and CCTV before anyone can touch them.",
+          "authority": "Criminal procedure: preserve evidence of an offence",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 6,
+            "safety": 2,
+            "grievance": 3,
+            "trust": 1
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "legal"
+            },
+            {
+              "kind": "institution",
+              "district": "records"
+            }
+          ],
+          "consequence": "Officers reach the printing unit and seal the access system and the camera recorder.",
+          "unlocksEvidence": [
+            "ev-vendor-shift-log"
+          ],
+          "setsFlags": [
+            "investigation-opened",
+            "vendor-records-secured"
+          ]
+        },
+        {
+          "id": "o-board-internal",
+          "title": "Let the board run an internal check",
+          "preview": "The secrecy cell starts comparing set codes; students call it marking its own homework.",
+          "authority": "The board's statutory duty to protect the examination",
+          "tags": [
+            "investigative"
+          ],
+          "effects": {
+            "evidence": 3,
+            "grievance": 1,
+            "trust": -2
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "investigate"
+            }
+          ],
+          "consequence": "The board's secrecy cell begins its check. At the sit-in, the phrase 'marking its own homework' catches on.",
+          "unlocksEvidence": [
+            "ev-board-forensic"
+          ],
+          "setsFlags": [
+            "investigation-opened",
+            "inquiry-internal"
+          ]
+        },
+        {
+          "id": "o-wait-inv",
+          "title": "Decide later",
+          "preview": "Nothing is secured; the printing unit's logs are due for 'routine cleanup'.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -5,
+            "evidence": -3,
+            "trust": -2
+          },
+          "consequence": "Nothing is secured. At the printing unit, the night shift's logs are scheduled for routine cleanup."
+        }
+      ]
+    },
+    {
+      "id": "d-civic-square",
+      "title": "The sit-in reaches Civic Square",
+      "situation": "Around 1,800 students sit on the square's eastern half. Traffic to the hospital is slow. A separate group of twenty adults is testing the barricade near the Collectorate.",
+      "district": "civic",
+      "triggerAt": 48,
+      "expiresAfter": 30,
+      "defaultOption": "o-wait-square",
+      "urgency": "high",
+      "rightsMomentId": "rm-assembly",
+      "options": [
+        {
+          "id": "o-facilitate-assembly",
+          "title": "Keep the square open; route traffic around",
+          "preview": "A hospital corridor is marked through the square and the council keeps it clear.",
+          "authority": "Article 19(1)(b): facilitate peaceful assembly while protecting others' access",
+          "tags": [
+            "protect-assembly",
+            "service",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 6,
+            "trust": 4,
+            "safety": 2,
+            "economy": -2
+          },
+          "delayed": [
+            {
+              "afterTicks": 25,
+              "effects": {
+                "economy": 2,
+                "safety": 2
+              },
+              "message": "Ambulances pass through the student corridor without delay."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "protect"
+            },
+            {
+              "kind": "road",
+              "road": "r-civic-market",
+              "status": "congested"
+            },
+            {
+              "kind": "road",
+              "road": "r-civic-hospital",
+              "status": "open"
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "hopeful"
+            }
+          ],
+          "consequence": "Officers mark a hospital corridor through the square. The council's volunteers keep it clear themselves.",
+          "setsFlags": [
+            "assembly-protected",
+            "hospital-route-open"
+          ]
+        },
+        {
+          "id": "o-separate-provocateurs",
+          "title": "Identify and separate the barricade group",
+          "preview": "Officers move the barricade group aside one by one; the seated students stay.",
+          "authority": "Proportionality: act against specific conduct, not the whole crowd",
+          "tags": [
+            "proportionate",
+            "force",
+            "legal-process"
+          ],
+          "requiresEvidence": [
+            "ev-police-field-report"
+          ],
+          "effects": {
+            "safety": 6,
+            "freedom": 1,
+            "trust": 2,
+            "evidence": 2
+          },
+          "proportionateIf": {
+            "anyFlag": [
+              "peaceful-confirmed",
+              "barricade-pushed"
+            ]
+          },
+          "disproportionateEffects": {
+            "freedom": -6,
+            "trust": -5
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "deploy"
+            },
+            {
+              "kind": "crowd",
+              "district": "civic",
+              "magnitude": -0.05
+            }
+          ],
+          "consequence": "Officers move the barricade group aside one by one. The seated students applaud.",
+          "setsFlags": [
+            "provocateurs-separated"
+          ]
+        },
+        {
+          "id": "o-clear-square",
+          "title": "Clear the square before dark",
+          "preview": "The square is emptied by force in twenty minutes; footage spreads across the city.",
+          "authority": "Article 19(3) and Article 21: force must be necessary and proportionate",
+          "tags": [
+            "force",
+            "disproportionate",
+            "suppressive"
+          ],
+          "effects": {
+            "safety": 3,
+            "freedom": -14,
+            "trust": -10,
+            "grievance": -6,
+            "economy": -2
+          },
+          "proportionateIf": {
+            "flag": "violence-active"
+          },
+          "disproportionateEffects": {
+            "freedom": -4,
+            "trust": -4,
+            "safety": -4
+          },
+          "delayed": [
+            {
+              "afterTicks": 15,
+              "effects": {
+                "safety": -6,
+                "trust": -4,
+                "economy": -3
+              },
+              "message": "Videos of students being dragged from the square spread. Crowds gather again at three places."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "deploy"
+            },
+            {
+              "kind": "crowd",
+              "district": "civic",
+              "magnitude": -0.4
+            },
+            {
+              "kind": "incident",
+              "district": "civic",
+              "incident": "clash"
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "volatile"
+            },
+            {
+              "kind": "crowd",
+              "district": "campus",
+              "magnitude": 0.3
+            },
+            {
+              "kind": "crowd",
+              "district": "transit",
+              "magnitude": 0.2
+            }
+          ],
+          "consequence": "Lathis come out. The square empties in twenty minutes and the city's phones fill with the footage.",
+          "setsFlags": [
+            "square-cleared-by-force"
+          ]
+        },
+        {
+          "id": "o-wait-square",
+          "title": "Hold positions and watch",
+          "preview": "The barricade group keeps pushing; traffic backs up to the transit hub.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "safety": -3,
+            "economy": -3,
+            "grievance": -2
+          },
+          "mapEffects": [
+            {
+              "kind": "road",
+              "road": "r-civic-transit",
+              "status": "congested"
+            }
+          ],
+          "consequence": "The barricade group keeps pushing. Traffic backs up all the way to the transit hub."
+        }
+      ]
+    },
+    {
+      "id": "d-racket",
+      "title": "A 'guaranteed paper' racket surfaces",
+      "situation": "Payment screenshots point to a coaching-centre account collecting 40,000 rupees per 'package'. Students want arrests. The proprietor says the money was tuition fees.",
+      "district": "market",
+      "triggerAt": 70,
+      "expiresAfter": 30,
+      "defaultOption": "o-wait-racket",
+      "urgency": "medium",
+      "rightsMomentId": "rm-detention",
+      "options": [
+        {
+          "id": "o-trace-first",
+          "title": "Freeze the account and trace payers first",
+          "preview": "The bank freezes the account; six payers are identified for questioning.",
+          "authority": "Due process: build the case before taking liberty",
+          "tags": [
+            "investigative",
+            "legal-process",
+            "proportionate"
+          ],
+          "effects": {
+            "evidence": 6,
+            "grievance": 3,
+            "trust": 2,
+            "safety": 1
+          },
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "grievance": 4,
+                "safety": 3
+              },
+              "message": "Two payers admit buying 'the package'. The racket's chain becomes a case file."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "investigate"
+            }
+          ],
+          "consequence": "The bank freezes the account within the hour. Six payers are identified for questioning.",
+          "unlocksEvidence": [
+            "ev-bank-alert"
+          ],
+          "setsFlags": [
+            "racket-traced"
+          ]
+        },
+        {
+          "id": "o-trace-arrest",
+          "title": "Arrest the account holder on the evidence",
+          "preview": "Cyber-cell officers detain the proprietor with the transfer records in hand.",
+          "authority": "Article 22: arrest needs specific grounds, communicated to the person",
+          "tags": [
+            "accusation",
+            "legal-process",
+            "detention"
+          ],
+          "requiresEvidence": [
+            "ev-racket-ledger",
+            "ev-bank-alert"
+          ],
+          "effects": {
+            "safety": 5,
+            "grievance": 6,
+            "evidence": 4,
+            "trust": 4
+          },
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -10,
+            "grievance": -4
+          },
+          "proportionateIf": {
+            "flag": "racket-evidence-verified"
+          },
+          "disproportionateEffects": {
+            "freedom": -5,
+            "trust": -4
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "legal"
+            }
+          ],
+          "consequence": "Cyber-cell officers detain the proprietor with the transfer records in hand. The account is frozen.",
+          "setsFlags": [
+            "racket-arrest"
+          ]
+        },
+        {
+          "id": "o-raid-centres",
+          "title": "Raid every coaching centre in Market Street",
+          "preview": "Shutters come down across Market Street; traders with no part in it lose a day.",
+          "authority": "Article 14 and 19(1)(g): no collective punishment of lawful trade",
+          "tags": [
+            "disproportionate",
+            "force",
+            "suppressive"
+          ],
+          "effects": {
+            "safety": 1,
+            "economy": -10,
+            "freedom": -8,
+            "trust": -6,
+            "evidence": -2
+          },
+          "proportionateIf": {
+            "flag": "all-centres-implicated"
+          },
+          "disproportionateEffects": {
+            "freedom": -4,
+            "trust": -4
+          },
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "trust": -3,
+                "economy": -3
+              },
+              "message": "The traders' association announces a shutdown against 'collective punishment'."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "deploy"
+            },
+            {
+              "kind": "crowd",
+              "district": "market",
+              "magnitude": -0.1
+            },
+            {
+              "kind": "mood",
+              "district": "market",
+              "mood": "tense"
+            },
+            {
+              "kind": "service",
+              "district": "market",
+              "magnitude": -0.3
+            }
+          ],
+          "consequence": "Shutters come down across Market Street. Shop owners who had nothing to do with it lose a day's trade.",
+          "setsFlags": [
+            "market-raided"
+          ]
+        },
+        {
+          "id": "o-wait-racket",
+          "title": "Wait for more evidence",
+          "preview": "The account keeps receiving money; the screenshots keep circulating.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -3,
+            "safety": -2
+          },
+          "consequence": "The account keeps receiving money and the screenshots keep circulating."
+        }
+      ]
+    },
+    {
+      "id": "d-communication",
+      "title": "What do you tell the city?",
+      "situation": "The forensic picture is forming but incomplete. Rumours about cancellation, hidden results and 'student violence' travel faster than facts. The press is asking for a briefing.",
+      "district": "media",
+      "triggerAt": 95,
+      "expiresAfter": 28,
+      "defaultOption": "o-silence",
+      "urgency": "medium",
+      "rightsMomentId": "rm-internet",
+      "options": [
+        {
+          "id": "o-brief-honest",
+          "title": "Hold a briefing: say what is known and unknown",
+          "preview": "You list verified facts, open questions and the inquiry's timetable. The room quietens.",
+          "authority": "Article 19(1)(a): the public's right to receive information; press freedom",
+          "tags": [
+            "communication",
+            "transparent",
+            "protect-press"
+          ],
+          "effects": {
+            "trust": 7,
+            "evidence": 4,
+            "grievance": 3,
+            "freedom": 2
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "media",
+              "signal": "official"
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "campus",
+              "signal": "official"
+            },
+            {
+              "kind": "institution",
+              "district": "media"
+            }
+          ],
+          "consequence": "You list three verified facts, four open questions and the inquiry's timetable. The room quietens.",
+          "setsFlags": [
+            "honest-briefing"
+          ]
+        },
+        {
+          "id": "o-bulletin",
+          "title": "Post a verified-facts bulletin every hour",
+          "preview": "Timestamped bulletins start reaching notice boards and parents' groups.",
+          "authority": "Duty to inform; counter rumours with facts, not silence",
+          "tags": [
+            "communication",
+            "transparent"
+          ],
+          "effects": {
+            "trust": 4,
+            "evidence": 3
+          },
+          "delayed": [
+            {
+              "afterTicks": 25,
+              "effects": {
+                "trust": 2
+              },
+              "message": "Hourly bulletins begin to crowd out the forwards in parents' groups."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "campus",
+              "signal": "verified"
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "market",
+              "signal": "verified"
+            }
+          ],
+          "consequence": "The first bulletin goes out with timestamps. Teachers pin it on notice boards within minutes.",
+          "undoTicks": 5,
+          "setsFlags": [
+            "bulletin-running"
+          ]
+        },
+        {
+          "id": "o-deny-leak",
+          "title": "Announce there was no leak, to calm things",
+          "preview": "Relief lasts an hour, until the strongroom log reaches a news channel.",
+          "authority": "Duty of candour: officials may not assert what the evidence contradicts",
+          "tags": [
+            "communication"
+          ],
+          "requiresEvidence": [
+            "ev-board-forensic"
+          ],
+          "effects": {
+            "trust": -8,
+            "evidence": -8,
+            "grievance": -6
+          },
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "trust": -8,
+                "grievance": -5,
+                "safety": -4
+              },
+              "message": "The inquiry's own note confirms the leak. Your denial is replayed on every channel."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "campus",
+              "signal": "rumor"
+            }
+          ],
+          "consequence": "Relief lasts an hour. Then the strongroom log reaches a news channel.",
+          "setsFlags": [
+            "false-denial"
+          ]
+        },
+        {
+          "id": "o-silence",
+          "title": "No briefing until the inquiry finishes",
+          "preview": "The vacuum fills with forwards; reporters quote 'sources' instead of you.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "trust": -5,
+            "grievance": -3,
+            "evidence": -2
+          },
+          "mapEffects": [
+            {
+              "kind": "signal",
+              "from": "media",
+              "to": "market",
+              "signal": "rumor"
+            }
+          ],
+          "consequence": "The vacuum fills with forwards. Reporters quote 'sources' instead of you."
+        }
+      ]
+    },
+    {
+      "id": "d-services",
+      "title": "The city's lifelines",
+      "situation": "The transit hub is jammed, the hospital reports late arrivals and shopkeepers near the square are closing early. The student council offers to help keep a corridor clear.",
+      "district": "transit",
+      "triggerAt": 118,
+      "expiresAfter": 28,
+      "defaultOption": "o-wait-services",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-corridor-with-students",
+          "title": "Run a joint corridor with student volunteers",
+          "preview": "Volunteers and traffic police open two lanes; buses move within the hour.",
+          "authority": "Public safety through cooperation; the duty to keep essential services running",
+          "tags": [
+            "service",
+            "dialogue",
+            "relief"
+          ],
+          "effects": {
+            "economy": 6,
+            "safety": 4,
+            "trust": 5,
+            "grievance": 2
+          },
+          "mapEffects": [
+            {
+              "kind": "road",
+              "road": "r-civic-hospital",
+              "status": "open"
+            },
+            {
+              "kind": "road",
+              "road": "r-civic-transit",
+              "status": "open"
+            },
+            {
+              "kind": "service",
+              "district": "transit",
+              "magnitude": 0.2
+            },
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "relief"
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "hopeful"
+            }
+          ],
+          "consequence": "Volunteers in council armbands and traffic police open two lanes. Buses move within the hour.",
+          "setsFlags": [
+            "services-maintained",
+            "joint-corridor"
+          ]
+        },
+        {
+          "id": "o-divert-transit",
+          "title": "Divert buses and open an emergency hospital lane",
+          "preview": "Buses loop via Market Street; a coned-off hospital lane is policed.",
+          "authority": "The duty to keep essential services running",
+          "tags": [
+            "service",
+            "proportionate"
+          ],
+          "effects": {
+            "economy": 4,
+            "safety": 3,
+            "trust": 1
+          },
+          "mapEffects": [
+            {
+              "kind": "road",
+              "road": "r-civic-hospital",
+              "status": "open"
+            },
+            {
+              "kind": "road",
+              "road": "r-market-hospital",
+              "status": "open"
+            },
+            {
+              "kind": "service",
+              "district": "transit",
+              "magnitude": 0.15
+            },
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "restore"
+            }
+          ],
+          "consequence": "Buses loop via Market Street. The hospital lane is coned off and policed.",
+          "undoTicks": 5,
+          "setsFlags": [
+            "services-maintained"
+          ]
+        },
+        {
+          "id": "o-shut-transit",
+          "title": "Suspend bus services to starve the protest",
+          "preview": "Commuters, not students, are stranded; daily-wage workers crowd the hub.",
+          "authority": "Article 19(1)(d) and (g): movement and livelihood cannot be collateral",
+          "tags": [
+            "disproportionate",
+            "suppressive"
+          ],
+          "effects": {
+            "economy": -10,
+            "trust": -7,
+            "freedom": -6,
+            "safety": -2
+          },
+          "proportionateIf": {
+            "flag": "violence-active"
+          },
+          "disproportionateEffects": {
+            "economy": -3,
+            "trust": -3
+          },
+          "delayed": [
+            {
+              "afterTicks": 15,
+              "effects": {
+                "safety": -5,
+                "economy": -4
+              },
+              "message": "Stranded commuters and students argue at the hub. A scuffle is reported."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "service",
+              "district": "transit",
+              "magnitude": -0.5
+            },
+            {
+              "kind": "road",
+              "road": "r-civic-transit",
+              "status": "closed"
+            },
+            {
+              "kind": "crowd",
+              "district": "transit",
+              "magnitude": 0.15
+            },
+            {
+              "kind": "mood",
+              "district": "transit",
+              "mood": "volatile"
+            }
+          ],
+          "consequence": "Commuters, not students, are stranded. Daily-wage workers crowd the hub with nowhere to go.",
+          "setsFlags": [
+            "transit-suspended"
+          ]
+        },
+        {
+          "id": "o-wait-services",
+          "title": "Leave it to the traffic police",
+          "preview": "Ambulances take the long way round; two reach the hospital late.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "economy": -4,
+            "safety": -3
+          },
+          "mapEffects": [
+            {
+              "kind": "road",
+              "road": "r-civic-hospital",
+              "status": "congested"
+            }
+          ],
+          "consequence": "Ambulances take the long way round. Two reach the hospital late."
+        }
+      ]
+    },
+    {
+      "id": "d-resolution",
+      "title": "Closing the day",
+      "situation": "The inquiry has enough to act on. The council asks what happens to the exam and to the students who sat it honestly. Whatever you decide will be read on every phone in the city tonight.",
+      "district": "civic",
+      "triggerAt": 145,
+      "expiresAfter": 30,
+      "defaultOption": "o-wait-close",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-announce-plan",
+          "title": "Announce the re-exam plan and inquiry timetable",
+          "preview": "A dated plan: fresh paper in three weeks, free travel, inquiry report in thirty days.",
+          "authority": "Article 14: equal treatment of every candidate; the duty to remedy a proven wrong",
+          "tags": [
+            "communication",
+            "transparent",
+            "legal-process"
+          ],
+          "effects": {
+            "grievance": 10,
+            "trust": 7,
+            "freedom": 2,
+            "economy": 2
+          },
+          "delayed": [
+            {
+              "afterTicks": 15,
+              "effects": {
+                "economy": 3,
+                "safety": 3
+              },
+              "message": "Shops reopen around the square as the crowd thins."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            },
+            {
+              "kind": "mood",
+              "district": "campus",
+              "mood": "hopeful"
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "hopeful"
+            },
+            {
+              "kind": "crowd",
+              "district": "civic",
+              "magnitude": -0.3
+            },
+            {
+              "kind": "crowd",
+              "district": "campus",
+              "magnitude": -0.2
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "campus",
+              "signal": "official"
+            }
+          ],
+          "consequence": "Fresh paper in three weeks, free travel for candidates, inquiry report in thirty days. The sit-in stands up and sings.",
+          "setsFlags": [
+            "re-exam-announced",
+            "day-closed-well"
+          ]
+        },
+        {
+          "id": "o-partial-plan",
+          "title": "Promise a decision after the inquiry report",
+          "preview": "Students accept the honesty but not the wait; a smaller sit-in stays overnight.",
+          "authority": "Due process: decisions follow findings",
+          "tags": [
+            "communication"
+          ],
+          "effects": {
+            "grievance": 3,
+            "trust": 1
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            },
+            {
+              "kind": "crowd",
+              "district": "civic",
+              "magnitude": -0.1
+            }
+          ],
+          "consequence": "Students accept the honesty but not the wait. A smaller sit-in settles in for the night.",
+          "undoTicks": 5,
+          "setsFlags": [
+            "decision-deferred"
+          ]
+        },
+        {
+          "id": "o-blame-students",
+          "title": "Blame 'outside elements' for the unrest",
+          "preview": "The phrase trends within minutes, next to footage of students sitting quietly.",
+          "authority": "Article 14 and 21: dignity; no public blame without evidence",
+          "tags": [
+            "accusation",
+            "communication"
+          ],
+          "requiresEvidence": [
+            "ev-barricade-clip"
+          ],
+          "effects": {
+            "trust": -6,
+            "freedom": -6,
+            "grievance": -6,
+            "safety": -2
+          },
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -10,
+            "grievance": -6
+          },
+          "delayed": [
+            {
+              "afterTicks": 15,
+              "effects": {
+                "safety": -5,
+                "trust": -4
+              },
+              "message": "The accusation lands on students who sat peacefully all day. Their parents join them."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "volatile"
+            },
+            {
+              "kind": "crowd",
+              "district": "civic",
+              "magnitude": 0.2
+            }
+          ],
+          "consequence": "The phrase 'outside elements' trends within minutes, next to footage of students sitting quietly.",
+          "setsFlags": [
+            "students-blamed"
+          ]
+        },
+        {
+          "id": "o-wait-close",
+          "title": "Say nothing tonight",
+          "preview": "Night falls on an unanswered square.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -5,
+            "trust": -4,
+            "safety": -2
+          },
+          "consequence": "Night falls on an unanswered square."
+        }
+      ]
+    },
+    {
+      "id": "d-bait-cancel",
+      "title": "Pressure to cancel now",
+      "situation": "A crowd chants for an immediate cancellation. Forwards say the board has 'already decided'. Officials around you want a dramatic announcement to end the day.",
+      "district": "campus",
+      "expiresAfter": 22,
+      "defaultOption": "o-ignore-pressure",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-commit-timeline",
+          "title": "Promise a decision in 48 hours, with evidence",
+          "preview": "A dated promise pinned to the inquiry; the chants soften into a wait.",
+          "authority": "Due process: decide on findings, on a public timetable",
+          "tags": [
+            "communication",
+            "transparent"
+          ],
+          "effects": {
+            "grievance": 3,
+            "trust": 3,
+            "evidence": 1
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "announce"
+            }
+          ],
+          "consequence": "A dated promise, pinned to the inquiry. The chants soften into a wait.",
+          "undoTicks": 5,
+          "setsFlags": [
+            "timeline-committed"
+          ]
+        },
+        {
+          "id": "o-cancel-now",
+          "title": "Announce the cancellation immediately",
+          "preview": "Cheers at the square, confusion everywhere else; the board says it was not consulted.",
+          "authority": "The board, not the district, decides the exam; act on evidence",
+          "tags": [
+            "communication"
+          ],
+          "requiresEvidence": [
+            "ev-board-forensic"
+          ],
+          "effects": {
+            "grievance": 4,
+            "trust": -4,
+            "evidence": -4,
+            "economy": -3
+          },
+          "delayed": [
+            {
+              "afterTicks": 20,
+              "effects": {
+                "trust": -6,
+                "grievance": -4
+              },
+              "message": "The board says it was not consulted. Candidates elsewhere protest that their honest attempts are void."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "announce"
+            },
+            {
+              "kind": "signal",
+              "from": "campus",
+              "to": "market",
+              "signal": "rumor"
+            }
+          ],
+          "consequence": "Cheers at the square. Confusion everywhere else.",
+          "setsFlags": [
+            "premature-cancellation"
+          ]
+        },
+        {
+          "id": "o-ignore-pressure",
+          "title": "Let the pressure pass",
+          "preview": "The chants get louder and the forwards sharper.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -3,
+            "trust": -2
+          },
+          "consequence": "The chants get louder and the forwards sharper."
+        }
+      ]
+    },
+    {
+      "id": "d-bait-disperse",
+      "title": "Disperse everyone now?",
+      "situation": "A barricade has been pushed over near the Collectorate. A clip captioned 'students attack police' is spreading. Commanders ask for an order to clear the whole square.",
+      "district": "civic",
+      "expiresAfter": 22,
+      "defaultOption": "o-hold-line",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-targeted-response",
+          "title": "Detain only those who pushed the barricade",
+          "preview": "Six people are detained on camera; the sit-in stays seated.",
+          "authority": "Proportionality: force only against specific unlawful conduct",
+          "tags": [
+            "force",
+            "proportionate",
+            "legal-process"
+          ],
+          "requiresEvidence": [
+            "ev-police-field-report"
+          ],
+          "effects": {
+            "safety": 7,
+            "freedom": 1,
+            "trust": 3,
+            "evidence": 2
+          },
+          "proportionateIf": {
+            "anyFlag": [
+              "barricade-pushed",
+              "peaceful-confirmed"
+            ]
+          },
+          "disproportionateEffects": {
+            "freedom": -5,
+            "trust": -4
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "deploy"
+            },
+            {
+              "kind": "crowd",
+              "district": "civic",
+              "magnitude": -0.05
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "tense"
+            }
+          ],
+          "consequence": "Six people are detained on camera for the barricade. The chant changes to 'we are not them'.",
+          "setsFlags": [
+            "provocateurs-separated"
+          ]
+        },
+        {
+          "id": "o-verify-clip-first",
+          "title": "Check the clip before acting",
+          "preview": "The full two-minute video shows the pushing group apart from the seated students.",
+          "authority": "Evidence before force",
+          "tags": [
+            "investigative"
+          ],
+          "effects": {
+            "evidence": 4,
+            "safety": -1
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "investigate"
+            }
+          ],
+          "consequence": "The full two-minute video shows the pushing group standing well apart from the seated students.",
+          "setsFlags": [
+            "clip-checked"
+          ]
+        },
+        {
+          "id": "o-disperse-all",
+          "title": "Clear the whole square now",
+          "preview": "Tear gas over a seated crowd; the square empties, the anger does not.",
+          "authority": "Article 19(3) and Article 21: force must be necessary and proportionate",
+          "tags": [
+            "force",
+            "disproportionate",
+            "suppressive"
+          ],
+          "effects": {
+            "safety": 2,
+            "freedom": -14,
+            "trust": -10,
+            "grievance": -5,
+            "economy": -2
+          },
+          "proportionateIf": {
+            "flag": "violence-active"
+          },
+          "disproportionateEffects": {
+            "freedom": -4,
+            "trust": -4,
+            "safety": -4
+          },
+          "delayed": [
+            {
+              "afterTicks": 15,
+              "effects": {
+                "safety": -6,
+                "trust": -5
+              },
+              "message": "Students pushed out of the square regroup at the transit hub and the campus."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "deploy"
+            },
+            {
+              "kind": "crowd",
+              "district": "civic",
+              "magnitude": -0.4
+            },
+            {
+              "kind": "incident",
+              "district": "civic",
+              "incident": "clash"
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "volatile"
+            },
+            {
+              "kind": "crowd",
+              "district": "transit",
+              "magnitude": 0.25
+            },
+            {
+              "kind": "crowd",
+              "district": "campus",
+              "magnitude": 0.2
+            }
+          ],
+          "consequence": "Tear-gas shells arc over people sitting cross-legged. The square empties. The anger does not.",
+          "setsFlags": [
+            "square-cleared-by-force"
+          ]
+        },
+        {
+          "id": "o-hold-line",
+          "title": "Hold the line and wait",
+          "preview": "Officers hold; the barricade group drifts away once the cameras turn to them.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "safety": -3,
+            "trust": -1
+          },
+          "consequence": "Officers hold. The barricade group drifts away once the cameras turn toward them."
+        }
+      ]
+    },
+    {
+      "id": "d-bait-shutdown",
+      "title": "Calls to 'shut it down'",
+      "situation": "Senior voices want decisive action before nightfall: suspend mobile internet across the district and preventively detain the student council 'to take the air out of this'.",
+      "district": "civic",
+      "expiresAfter": 24,
+      "defaultOption": "o-table-shutdown",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-targeted-notices",
+          "title": "Target the incitement; protect the council",
+          "preview": "Notices go to accounts posting fake circulars; the council gets a liaison, not handcuffs.",
+          "authority": "Proportionality: address specific unlawful content, keep the channel open",
+          "tags": [
+            "proportionate",
+            "legal-process",
+            "protect-assembly",
+            "communication"
+          ],
+          "effects": {
+            "safety": 3,
+            "freedom": 3,
+            "trust": 4,
+            "evidence": 3
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "legal"
+            },
+            {
+              "kind": "signal",
+              "from": "civic",
+              "to": "campus",
+              "signal": "verified"
+            }
+          ],
+          "consequence": "Notices go to the accounts posting fake circulars. The council gets a police liaison, not handcuffs.",
+          "setsFlags": [
+            "targeted-notices"
+          ]
+        },
+        {
+          "id": "o-internet-shutdown",
+          "title": "Suspend mobile internet district-wide",
+          "preview": "Screens go dark across the district; your verified bulletins stop reaching anyone.",
+          "authority": "Article 19(1)(a) and (g): suspension must be necessary, proportionate and reviewable",
+          "tags": [
+            "censorship",
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -16,
+            "trust": -9,
+            "economy": -9,
+            "evidence": -4,
+            "safety": 1
+          },
+          "proportionateIf": {
+            "flag": "violence-active"
+          },
+          "disproportionateEffects": {
+            "freedom": -4,
+            "economy": -3,
+            "trust": -3
+          },
+          "delayed": [
+            {
+              "afterTicks": 15,
+              "effects": {
+                "economy": -6,
+                "trust": -4,
+                "grievance": -3
+              },
+              "message": "Payments fail at every shop. Ambulance dispatch falls back to radio. The rumours travel by SMS anyway."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "service",
+              "district": "market",
+              "magnitude": -0.3
+            },
+            {
+              "kind": "service",
+              "district": "transit",
+              "magnitude": -0.2
+            },
+            {
+              "kind": "service",
+              "district": "hospital",
+              "magnitude": -0.2
+            },
+            {
+              "kind": "mood",
+              "district": "market",
+              "mood": "volatile"
+            },
+            {
+              "kind": "signal",
+              "from": "campus",
+              "to": "civic",
+              "signal": "rumor"
+            }
+          ],
+          "consequence": "Screens go dark across the district. The verified bulletins stop reaching anyone.",
+          "setsFlags": [
+            "internet-suspended"
+          ]
+        },
+        {
+          "id": "o-detain-council",
+          "title": "Preventively detain the student council",
+          "preview": "Five elected students are taken from the stage; the chant becomes their names.",
+          "authority": "Articles 21 and 22: liberty only by lawful procedure, with individual grounds",
+          "tags": [
+            "detention",
+            "disproportionate",
+            "suppressive",
+            "accusation"
+          ],
+          "requiresEvidence": [
+            "ev-intel-note"
+          ],
+          "effects": {
+            "freedom": -15,
+            "trust": -12,
+            "grievance": -8,
+            "safety": -3
+          },
+          "falseAccusationEffects": {
+            "freedom": -16,
+            "trust": -14,
+            "evidence": -10,
+            "grievance": -6
+          },
+          "proportionateIf": {
+            "flag": "council-incited-violence"
+          },
+          "disproportionateEffects": {
+            "freedom": -5,
+            "trust": -4
+          },
+          "delayed": [
+            {
+              "afterTicks": 15,
+              "effects": {
+                "safety": -7,
+                "trust": -4
+              },
+              "message": "With the council gone, no one can hold the crowd to its own rules. The sit-in fragments."
+            }
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "deploy"
+            },
+            {
+              "kind": "crowd",
+              "district": "civic",
+              "magnitude": 0.2
+            },
+            {
+              "kind": "mood",
+              "district": "civic",
+              "mood": "volatile"
+            },
+            {
+              "kind": "mood",
+              "district": "campus",
+              "mood": "volatile"
+            }
+          ],
+          "consequence": "Five elected students are taken from the stage. The chant becomes their names.",
+          "setsFlags": [
+            "council-detained"
+          ],
+          "clearsFlags": [
+            "council-heard"
+          ]
+        },
+        {
+          "id": "o-table-shutdown",
+          "title": "Leave the proposal on the table",
+          "preview": "Rumours of an imminent shutdown spread; people queue at cash machines just in case.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "trust": -2,
+            "safety": -1
+          },
+          "consequence": "Rumours of an imminent shutdown spread. People queue at cash machines just in case."
+        }
+      ]
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-assembly",
+      "question": "A peaceful group has taken no part in pushing the barricade. What is needed before its assembly can be restricted?",
+      "options": [
+        {
+          "id": "rm-assembly-a",
+          "text": "Specific, evidence-based grounds showing a real and imminent threat to public order",
+          "correct": true,
+          "feedback": "Correct. Peaceful assembly can be restricted only on reasonable, specific grounds, never by association with others."
+        },
+        {
+          "id": "rm-assembly-b",
+          "text": "A general fear that the situation might get out of hand",
+          "correct": false,
+          "feedback": "A vague fear is not enough. Restrictions must be specific, necessary and tied to an actual risk."
+        },
+        {
+          "id": "rm-assembly-c",
+          "text": "A complaint from any resident who finds the gathering inconvenient",
+          "correct": false,
+          "feedback": "A complaint can start an inquiry, but it does not by itself justify restricting a peaceful assembly."
+        }
+      ],
+      "principle": "Article 19(1)(b) protects the right to assemble peacefully and without arms. Article 19(3) allows only reasonable restrictions in the interests of public order or sovereignty, aimed at real risks rather than whole crowds.",
+      "why": "The seated students and the barricade group were different people. Treating them as one would have punished the peaceful for the actions of a few.",
+      "source": {
+        "label": "Constitution of India, Article 19 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-23"
+    },
+    {
+      "id": "rm-detention",
+      "question": "Thousands of students received the forwarded answer key. Some officers propose detaining every recipient. What does the law require?",
+      "options": [
+        {
+          "id": "rm-detention-a",
+          "text": "Detention is acceptable as long as it lasts under 24 hours",
+          "correct": false,
+          "feedback": "Time limits matter, but they do not replace the need for lawful, individual grounds."
+        },
+        {
+          "id": "rm-detention-b",
+          "text": "Individual grounds for each person, told to them, with access to a lawyer",
+          "correct": true,
+          "feedback": "Correct. Liberty can be taken away only by procedure established by law: person by person, with grounds and legal recourse."
+        },
+        {
+          "id": "rm-detention-c",
+          "text": "Receiving the message is enough to hold someone while the inquiry runs",
+          "correct": false,
+          "feedback": "Receiving a forward is not an offence, and preventive detention cannot be used as a dragnet."
+        }
+      ],
+      "principle": "Articles 21 and 22 require that no one is deprived of liberty except by procedure established by law: specific grounds, information about those grounds, and the right to consult a lawyer.",
+      "why": "Dragnet detentions would have turned the victims of a leak into suspects, destroyed trust and distracted from the people who actually sold the paper.",
+      "source": {
+        "label": "Constitution of India, Articles 21 and 22 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-23"
+    },
+    {
+      "id": "rm-internet",
+      "question": "Officials propose suspending mobile internet across the district to stop the rumours. What standard applies?",
+      "options": [
+        {
+          "id": "rm-internet-a",
+          "text": "Any order from a sufficiently senior official is enough",
+          "correct": false,
+          "feedback": "Suspension orders must follow the rules, state reasons and be reviewed. Seniority is not a legal standard."
+        },
+        {
+          "id": "rm-internet-b",
+          "text": "Shutdowns are always lawful while a protest is under way",
+          "correct": false,
+          "feedback": "A protest is not by itself a ground for cutting off a whole district's communication, trade and emergency services."
+        },
+        {
+          "id": "rm-internet-c",
+          "text": "Necessity and proportionality: the least restrictive measure, with written, published and reviewable reasons",
+          "correct": true,
+          "feedback": "Correct. The Supreme Court has held that suspension orders must be necessary, proportionate, published and subject to review."
+        }
+      ],
+      "principle": "Speech and trade online fall within Article 19(1)(a) and 19(1)(g). The Supreme Court has held that internet suspension orders must be necessary, proportionate, published and reviewable.",
+      "why": "A district-wide shutdown would have silenced the verified bulletins, broken payments and ambulance dispatch, and left the rumours to travel by word of mouth.",
+      "source": {
+        "label": "Supreme Court of India, judgments portal",
+        "url": "https://main.sci.gov.in/"
+      },
+      "contentDate": "2026-10-23"
+    }
+  ],
+  "events": [
+    {
+      "id": "e-opening-gather",
+      "at": 2,
+      "kind": "crowd",
+      "message": "Students gather outside the Registrar's office holding printouts of the forwarded answer key.",
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "campus",
+          "magnitude": 0.2
+        },
+        {
+          "kind": "mood",
+          "district": "campus",
+          "mood": "tense"
+        }
+      ]
+    },
+    {
+      "id": "e-forward-spreads",
+      "at": 6,
+      "kind": "rumor",
+      "message": "The answer-key forward crosses into parents' groups. Three different versions now circulate.",
+      "mapEffects": [
+        {
+          "kind": "signal",
+          "from": "campus",
+          "to": "market",
+          "signal": "rumor"
+        }
+      ]
+    },
+    {
+      "id": "e-march-to-square",
+      "at": 36,
+      "kind": "crowd",
+      "message": "The sit-in walks from the campus to Civic Square along the main road, singing.",
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "civic",
+          "magnitude": 0.3
+        },
+        {
+          "kind": "crowd",
+          "district": "campus",
+          "magnitude": -0.15
+        },
+        {
+          "kind": "road",
+          "road": "r-campus-civic",
+          "status": "congested"
+        }
+      ]
+    },
+    {
+      "id": "e-hospital-delay",
+      "at": 44,
+      "kind": "service",
+      "message": "Civil Hospital reports ambulances slowed by traffic diverted around the square.",
+      "effects": {
+        "safety": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "road",
+          "road": "r-civic-hospital",
+          "status": "congested"
+        }
+      ]
+    },
+    {
+      "id": "e-press-arrives",
+      "at": 54,
+      "kind": "news",
+      "message": "Reporters set up at the Press Enclave. The first live broadcast shows students seated with hand-written placards.",
+      "mapEffects": [
+        {
+          "kind": "institution",
+          "district": "media"
+        },
+        {
+          "kind": "signal",
+          "from": "civic",
+          "to": "media",
+          "signal": "verified"
+        }
+      ]
+    },
+    {
+      "id": "e-vendor-cleanup",
+      "at": 60,
+      "kind": "institution",
+      "message": "The printing unit schedules its weekly log cleanup for this afternoon. Nothing has been exported yet.",
+      "condition": {
+        "notFlag": "vendor-records-secured"
+      },
+      "mapEffects": [
+        {
+          "kind": "institution",
+          "district": "records"
+        }
+      ]
+    },
+    {
+      "id": "e-looting-attempt",
+      "at": 82,
+      "kind": "incident",
+      "message": "Opportunists smash two shop shutters on Market Street while the police are concentrated at the square.",
+      "condition": {
+        "maxScore": {
+          "safety": 55
+        }
+      },
+      "effects": {
+        "safety": -4,
+        "economy": -4
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "market",
+          "incident": "vandalism"
+        },
+        {
+          "kind": "mood",
+          "district": "market",
+          "mood": "tense"
+        },
+        {
+          "kind": "service",
+          "district": "market",
+          "magnitude": -0.15
+        }
+      ],
+      "setsFlags": [
+        "market-looted"
+      ]
+    },
+    {
+      "id": "e-inquiry-first-note",
+      "at": 100,
+      "kind": "institution",
+      "message": "The investigation secures the printing batch records. Set codes narrow the leak to one night shift.",
+      "condition": {
+        "flag": "investigation-opened"
+      },
+      "effects": {
+        "evidence": 3,
+        "trust": 2
+      },
+      "mapEffects": [
+        {
+          "kind": "institution",
+          "district": "records"
+        },
+        {
+          "kind": "signal",
+          "from": "records",
+          "to": "civic",
+          "signal": "official"
+        }
+      ]
+    },
+    {
+      "id": "e-no-inquiry-rumours",
+      "at": 100,
+      "kind": "rumor",
+      "message": "With no inquiry announced, forwards name 'the real culprits', a different name every hour.",
+      "condition": {
+        "notFlag": "investigation-opened"
+      },
+      "effects": {
+        "trust": -4,
+        "evidence": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "signal",
+          "from": "media",
+          "to": "campus",
+          "signal": "rumor"
+        },
+        {
+          "kind": "signal",
+          "from": "market",
+          "to": "civic",
+          "signal": "rumor"
+        }
+      ]
+    },
+    {
+      "id": "e-clash",
+      "at": 120,
+      "kind": "incident",
+      "message": "Stones fly near the transit hub. Two officers and five students are hurt.",
+      "condition": {
+        "maxScore": {
+          "safety": 40
+        }
+      },
+      "effects": {
+        "safety": -6,
+        "trust": -3,
+        "economy": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "transit",
+          "incident": "clash"
+        },
+        {
+          "kind": "mood",
+          "district": "transit",
+          "mood": "volatile"
+        }
+      ],
+      "setsFlags": [
+        "violence-active"
+      ]
+    },
+    {
+      "id": "e-shops-reopen",
+      "at": 160,
+      "kind": "relief",
+      "message": "Shops around the square roll up their shutters. The hub is clearing.",
+      "condition": {
+        "flag": "re-exam-announced"
+      },
+      "effects": {
+        "economy": 3
+      },
+      "mapEffects": [
+        {
+          "kind": "service",
+          "district": "market",
+          "magnitude": 0.2
+        },
+        {
+          "kind": "crowd",
+          "district": "civic",
+          "magnitude": -0.2
+        },
+        {
+          "kind": "mood",
+          "district": "market",
+          "mood": "hopeful"
+        }
+      ]
+    },
+    {
+      "id": "e-night-falls",
+      "at": 172,
+      "kind": "news",
+      "message": "Night falls. Whatever stands in the square now will be the morning's headline."
+    },
+    {
+      "id": "e-barricade-pushed",
+      "at": 999,
+      "kind": "incident",
+      "message": "A group of about twenty adults pushes over a barricade near the Collectorate and films the police reaction.",
+      "condition": {
+        "opponent": "provocateur"
+      },
+      "effects": {
+        "safety": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "civic",
+          "incident": "intimidation"
+        },
+        {
+          "kind": "mood",
+          "district": "civic",
+          "mood": "tense"
+        }
+      ],
+      "setsFlags": [
+        "barricade-pushed"
+      ]
+    },
+    {
+      "id": "e-hub-outage",
+      "at": 999,
+      "kind": "incident",
+      "message": "Signalling at the transit hub fails. A junction box is found forced open.",
+      "condition": {
+        "opponent": "sabotage"
+      },
+      "effects": {
+        "economy": -5,
+        "safety": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "transit",
+          "incident": "outage"
+        },
+        {
+          "kind": "service",
+          "district": "transit",
+          "magnitude": -0.3
+        },
+        {
+          "kind": "road",
+          "road": "r-civic-transit",
+          "status": "congested"
+        },
+        {
+          "kind": "road",
+          "road": "r-records-transit",
+          "status": "congested"
+        }
+      ],
+      "setsFlags": [
+        "hub-outage"
+      ]
+    },
+    {
+      "id": "e-shutter-smash",
+      "at": 999,
+      "kind": "incident",
+      "message": "Shutters are forced on three shops along Market Street while attention is on the square.",
+      "condition": {
+        "opponent": "sabotage"
+      },
+      "effects": {
+        "economy": -4,
+        "safety": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "market",
+          "incident": "vandalism"
+        },
+        {
+          "kind": "service",
+          "district": "market",
+          "magnitude": -0.2
+        }
+      ],
+      "setsFlags": [
+        "market-looted"
+      ]
+    },
+    {
+      "id": "e-hidden-results-surge",
+      "at": 999,
+      "kind": "rumor",
+      "message": "'They already have the results' spreads through parents' groups faster than any bulletin.",
+      "condition": {
+        "opponent": "exploiter"
+      },
+      "effects": {
+        "trust": -4,
+        "grievance": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "signal",
+          "from": "campus",
+          "to": "civic",
+          "signal": "rumor"
+        },
+        {
+          "kind": "signal",
+          "from": "market",
+          "to": "campus",
+          "signal": "rumor"
+        }
+      ]
+    },
+    {
+      "id": "e-stalling-stage",
+      "at": 999,
+      "kind": "crowd",
+      "message": "A second stage goes up demanding 'compensation now'. Speakers call the inquiry a stalling tactic.",
+      "condition": {
+        "opponent": "exploiter",
+        "notFlag": "re-exam-announced"
+      },
+      "effects": {
+        "grievance": -3,
+        "trust": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "civic",
+          "magnitude": 0.1
+        },
+        {
+          "kind": "mood",
+          "district": "civic",
+          "mood": "tense"
+        }
+      ]
+    },
+    {
+      "id": "e-pressure-call",
+      "at": 999,
+      "kind": "news",
+      "message": "A senior official calls twice asking why 'the problem' is still in the square. A draft shutdown order is on your desk.",
+      "condition": {
+        "opponent": "overreaction"
+      },
+      "effects": {
+        "trust": -1
+      },
+      "setsFlags": [
+        "shutdown-draft-circulated"
+      ]
+    }
+  ],
+  "opponentPlays": [
+    {
+      "id": "p-exp-bait-cancel",
+      "opponent": "exploiter",
+      "kind": "decision",
+      "target": "d-bait-cancel",
+      "earliest": 30,
+      "latest": 80,
+      "weight": 1.2,
+      "respondsTo": [
+        "wait",
+        "communication"
+      ],
+      "message": "The pressure to announce something, anything, peaks."
+    },
+    {
+      "id": "p-exp-surge",
+      "opponent": "exploiter",
+      "kind": "event",
+      "target": "e-hidden-results-surge",
+      "earliest": 60,
+      "latest": 120,
+      "respondsTo": [
+        "wait"
+      ],
+      "condition": {
+        "notFlag": "bulletin-running"
+      }
+    },
+    {
+      "id": "p-exp-stage",
+      "opponent": "exploiter",
+      "kind": "event",
+      "target": "e-stalling-stage",
+      "earliest": 100,
+      "latest": 150,
+      "respondsTo": [
+        "wait"
+      ],
+      "minDifficulty": "standard",
+      "condition": {
+        "notFlag": "re-exam-announced"
+      }
+    },
+    {
+      "id": "p-prov-barricade",
+      "opponent": "provocateur",
+      "kind": "event",
+      "target": "e-barricade-pushed",
+      "earliest": 40,
+      "latest": 75,
+      "respondsTo": [
+        "force",
+        "wait"
+      ]
+    },
+    {
+      "id": "p-prov-clip",
+      "opponent": "provocateur",
+      "kind": "inject-evidence",
+      "target": "ev-barricade-clip",
+      "earliest": 44,
+      "latest": 85,
+      "respondsTo": [
+        "force"
+      ],
+      "condition": {
+        "flag": "barricade-pushed"
+      }
+    },
+    {
+      "id": "p-prov-bait-disperse",
+      "opponent": "provocateur",
+      "kind": "decision",
+      "target": "d-bait-disperse",
+      "earliest": 48,
+      "latest": 95,
+      "weight": 1.3,
+      "respondsTo": [
+        "force",
+        "wait"
+      ],
+      "condition": {
+        "flag": "barricade-pushed"
+      }
+    },
+    {
+      "id": "p-dis-screenshot",
+      "opponent": "disinfo",
+      "kind": "inject-evidence",
+      "target": "ev-doctored-screenshot",
+      "earliest": 20,
+      "latest": 50,
+      "respondsTo": [
+        "accusation",
+        "communication"
+      ]
+    },
+    {
+      "id": "p-dis-circular",
+      "opponent": "disinfo",
+      "kind": "inject-evidence",
+      "target": "ev-fake-circular",
+      "earliest": 55,
+      "latest": 110,
+      "respondsTo": [
+        "communication"
+      ]
+    },
+    {
+      "id": "p-sab-wipe-log",
+      "opponent": "sabotage",
+      "kind": "destroy-evidence",
+      "target": "ev-vendor-shift-log",
+      "earliest": 62,
+      "latest": 100,
+      "respondsTo": [
+        "wait"
+      ],
+      "condition": {
+        "notFlag": "vendor-records-secured"
+      },
+      "message": "The printing unit's access log is wiped during 'routine maintenance'."
+    },
+    {
+      "id": "p-sab-wipe-cctv",
+      "opponent": "sabotage",
+      "kind": "destroy-evidence",
+      "target": "ev-cctv-strongroom",
+      "earliest": 75,
+      "latest": 120,
+      "respondsTo": [
+        "wait"
+      ],
+      "minDifficulty": "standard",
+      "condition": {
+        "notFlag": "vendor-records-secured"
+      },
+      "message": "The corridor camera's recorder is found reset to factory settings."
+    },
+    {
+      "id": "p-sab-outage",
+      "opponent": "sabotage",
+      "kind": "event",
+      "target": "e-hub-outage",
+      "earliest": 70,
+      "latest": 130,
+      "respondsTo": [
+        "wait",
+        "service"
+      ]
+    },
+    {
+      "id": "p-sab-shutters",
+      "opponent": "sabotage",
+      "kind": "event",
+      "target": "e-shutter-smash",
+      "earliest": 85,
+      "latest": 140,
+      "respondsTo": [
+        "wait"
+      ],
+      "minDifficulty": "standard",
+      "condition": {
+        "notFlag": "market-looted"
+      }
+    },
+    {
+      "id": "p-over-pressure",
+      "opponent": "overreaction",
+      "kind": "event",
+      "target": "e-pressure-call",
+      "earliest": 40,
+      "latest": 90,
+      "respondsTo": [
+        "force",
+        "suppressive"
+      ]
+    },
+    {
+      "id": "p-over-intel",
+      "opponent": "overreaction",
+      "kind": "inject-evidence",
+      "target": "ev-intel-note",
+      "earliest": 50,
+      "latest": 100,
+      "respondsTo": [
+        "detention",
+        "force"
+      ]
+    },
+    {
+      "id": "p-over-bait",
+      "opponent": "overreaction",
+      "kind": "decision",
+      "target": "d-bait-shutdown",
+      "earliest": 60,
+      "latest": 115,
+      "weight": 1.4,
+      "respondsTo": [
+        "force",
+        "detention",
+        "suppressive"
+      ]
+    }
+  ],
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "investigation-opened"
+        },
+        "text": "A credible investigation into the leak was opened and the printing records were secured."
+      },
+      {
+        "condition": {
+          "anyFlag": [
+            "leak-verified",
+            "strongroom-breach-confirmed"
+          ]
+        },
+        "text": "The leak was verified: a strongroom entry at 02:08, one night shift, one printing batch."
+      },
+      {
+        "condition": {
+          "anyFlag": [
+            "racket-arrest",
+            "racket-traced"
+          ]
+        },
+        "text": "The 'guaranteed paper' racket was traced through its own payment trail."
+      },
+      {
+        "condition": {
+          "flag": "services-maintained"
+        },
+        "text": "Hospital access and bus services kept running through the sit-in."
+      },
+      {
+        "condition": {
+          "flag": "re-exam-announced"
+        },
+        "text": "Candidates got a dated plan: a fresh paper, free travel and a public inquiry timetable."
+      },
+      {
+        "condition": {
+          "flag": "council-heard"
+        },
+        "text": "The student council was heard and kept its word about a peaceful sit-in."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "notFlag": "investigation-opened"
+        },
+        "text": "No investigation was opened. The people who sold the paper are still unidentified."
+      },
+      {
+        "condition": {
+          "notFlag": "leak-verified"
+        },
+        "text": "The leak was never formally verified. The city is arguing about rumours instead of facts."
+      },
+      {
+        "condition": {
+          "notFlag": "re-exam-announced"
+        },
+        "text": "Students still do not know what happens to their exam."
+      },
+      {
+        "condition": {
+          "flag": "market-looted"
+        },
+        "text": "Shops on Market Street were broken into while attention was elsewhere."
+      },
+      {
+        "condition": {
+          "notFlag": "services-maintained"
+        },
+        "text": "Ambulances and buses lost hours to a square nobody managed."
+      },
+      {
+        "condition": {
+          "flag": "premature-cancellation"
+        },
+        "text": "A cancellation announced without the board left candidates across the state in limbo."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "assembly-protected"
+        },
+        "text": "Peaceful assembly: the sit-in stayed in the square and kept a hospital corridor open."
+      },
+      {
+        "condition": {
+          "flag": "provocateurs-separated"
+        },
+        "text": "Proportionality: force was used only against those who pushed the barricade."
+      },
+      {
+        "condition": {
+          "flag": "honest-briefing"
+        },
+        "text": "Freedom of information: the city was told what was known and what was not."
+      },
+      {
+        "condition": {
+          "flag": "targeted-notices"
+        },
+        "text": "Free expression: specific incitement was addressed without cutting off a district."
+      },
+      {
+        "condition": {
+          "flag": "council-heard",
+          "notFlag": "council-detained"
+        },
+        "text": "Due process: no organiser was detained without individual grounds."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "square-cleared-by-force"
+        },
+        "text": "Peaceful assembly: seated students were cleared with force."
+      },
+      {
+        "condition": {
+          "flag": "internet-suspended"
+        },
+        "text": "Free expression and livelihood: a district-wide internet shutdown silenced everyone, including you."
+      },
+      {
+        "condition": {
+          "flag": "council-detained"
+        },
+        "text": "Personal liberty: elected student representatives were detained without individual grounds."
+      },
+      {
+        "condition": {
+          "flag": "students-blamed"
+        },
+        "text": "Equality and dignity: peaceful students were publicly blamed for unrest they did not cause."
+      },
+      {
+        "condition": {
+          "flag": "false-denial"
+        },
+        "text": "Right to know: the public was told there was no leak when the evidence said otherwise."
+      },
+      {
+        "condition": {
+          "flag": "market-raided"
+        },
+        "text": "Livelihood: lawful traders were raided for the actions of one account holder."
+      },
+      {
+        "condition": {
+          "flag": "campus-cordoned"
+        },
+        "text": "Peaceful assembly: campus gates were locked against a gathering that had harmed no one."
+      },
+      {
+        "condition": {
+          "flag": "transit-suspended"
+        },
+        "text": "Movement and livelihood: buses were stopped to starve a protest, stranding commuters instead."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "investigation-opened"
+        },
+        "text": "Open an investigation in the first half hour. Evidence is at its most perishable then."
+      },
+      {
+        "condition": {
+          "notFlag": "grievance-acknowledged"
+        },
+        "text": "Acknowledge the grievance in the first minutes. A crowd that has been heard keeps its own rules."
+      },
+      {
+        "condition": {
+          "flag": "investigation-opened",
+          "notFlag": "vendor-records-secured"
+        },
+        "text": "Secure and preserve the printing unit's logs and CCTV before the afternoon cleanup."
+      },
+      {
+        "condition": {
+          "flag": "square-cleared-by-force"
+        },
+        "text": "Separate the few who push barricades from the many who sit. The field report tells you who is who."
+      },
+      {
+        "condition": {
+          "flag": "internet-suspended"
+        },
+        "text": "Target specific incitement instead of switching off a district."
+      },
+      {
+        "condition": {
+          "notFlag": "honest-briefing"
+        },
+        "text": "Brief the city early with what is known and unknown. Silence gets filled by forwards."
+      },
+      {
+        "condition": {
+          "notFlag": "services-maintained"
+        },
+        "text": "Keep a hospital corridor and a bus route open with the organisers' help. They want it too."
+      },
+      {
+        "condition": {
+          "notFlag": "re-exam-announced"
+        },
+        "text": "Give candidates a dated plan before nightfall. Uncertainty is the exploiter's fuel."
+      }
+    ],
+    "closing": {
+      "good": "The square emptied on its own terms: a verified leak, a dated plan, and a city that watched its officials tell the truth.",
+      "mixed": "The exam will be re-held, but parts of the city still trust forwards more than bulletins. Some of today's wounds will not show until the next crisis.",
+      "poor": "The paper leaked, the square was cleared, and nobody can say who sold the key. The students will remember how they were treated."
+    }
+  }
+}
