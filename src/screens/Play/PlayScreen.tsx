@@ -166,6 +166,7 @@ export function PlayScreen() {
       focus={focusDistrict}
       onSelectDistrict={(id) => setFocusDistrict(id ?? undefined)}
       className={styles.map}
+      simple={simple}
     />
   ) : (
     <div className={styles.mapFallback} role="img" aria-label="City map unavailable">

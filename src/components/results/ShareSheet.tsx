@@ -32,7 +32,7 @@ export function ShareSheet({ open, onClose, result }: ShareSheetProps) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const model = useMemo(() => buildCardModel(result, { origin, base: basePath() }), [result, origin]);
+  const model = useMemo(() => buildCardModel(result, { origin, base: basePath(), simple }), [result, origin, simple]);
 
   useEffect(() => {
     if (!open) return;
@@ -58,7 +58,7 @@ export function ShareSheet({ open, onClose, result }: ShareSheetProps) {
   const onShare = async () => {
     setBusy(true);
     try {
-      const outcome = await shareResult(result, origin, { size, blob: preview?.blob, model });
+      const outcome = await shareResult(result, origin, { size, blob: preview?.blob, model, simple });
       const t = OUTCOME_TOAST[outcome];
       toast({ text: t.text, kind: t.kind, duration: 3200 });
       if (outcome === 'shared') onClose();
@@ -108,13 +108,13 @@ export function ShareSheet({ open, onClose, result }: ShareSheetProps) {
         </div>
         <div className={styles.codeBox}>
           <div>
-            <span className={styles.codeLabel}>Challenge code</span>
+            <span className={styles.codeLabel}>{simple ? 'Your game code' : 'Challenge code'}</span>
             <span className={styles.code} data-testid="challenge-code">
               {model.code}
             </span>
           </div>
-          <Button variant="secondary" size="sm" onClick={onCopyCode}>
-            Copy code
+          <Button variant="secondary" size="sm" onClick={onCopyCode} className={styles.copyCode}>
+            {simple ? 'Copy the code' : 'Copy code'}
           </Button>
         </div>
         <p className={styles.url}>{model.url}</p>
@@ -134,7 +134,7 @@ export function ShareSheet({ open, onClose, result }: ShareSheetProps) {
           <Button variant="ghost" size="md" onClick={onDownload} disabled={!preview}>
             <span className={styles.btnInner}>
               <DownloadIcon size={18} />
-              Download image
+              {simple ? 'Save picture' : 'Download image'}
             </span>
           </Button>
           <Button variant="ghost" size="md" onClick={onClose}>

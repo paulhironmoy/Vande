@@ -84,8 +84,34 @@
   letter-spacing: 0.06em;
   color: var(--t-primary);
   font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
+  font-feature-settings: 'tnum';
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   user-select: all;
+}
+
+.copyCode {
+  white-space: nowrap;
+}
+
+/* Narrow phones: the copy button drops to its own row so the code keeps the full width on one line. */
+@media (max-width: 479px) {
+  .codeBox {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .code {
+    font-size: var(--text-md);
+    letter-spacing: 0.04em;
+  }
+}
+
+/* Last resort on very narrow screens: wrap rather than hide characters of the code. */
+@media (max-width: 339px) {
+  .code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 }
 
 .url {

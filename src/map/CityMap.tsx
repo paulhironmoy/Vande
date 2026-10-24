@@ -8,6 +8,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import type { MapDistrictView, MapState } from '@/engine/types';
 import { computeLayout, districtAriaLabel, getPalette, groundColours, labelSides, shortName, type LabelSide } from './layout';
 import { describeMapChange } from './describe';
+import { simpleDistrictAriaLabel } from './simple';
 import { StaticMap } from './StaticMap';
 import type { CityScene } from './pixi/CityScene';
 import styles from './CityMap.module.css';
@@ -21,6 +22,8 @@ export interface CityMapProps {
   focus?: string;
   onSelectDistrict(id: string | undefined): void;
   className?: string;
+  /** Simple play style: plain-language captions, announcements and district names. */
+  simple?: boolean;
 }
 
 type Mode = 'static' | 'pixi';
@@ -39,7 +42,7 @@ function canTryPixi(): boolean {
   }
 }
 
-export function CityMap({ map, reducedMotion, highContrast, colourBlind, captions, focus, onSelectDistrict, className }: CityMapProps) {
+export function CityMap({ map, reducedMotion, highContrast, colourBlind, captions, focus, onSelectDistrict, className, simple = false }: CityMapProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<CityScene | null>(null);
@@ -156,13 +159,13 @@ export function CityMap({ map, reducedMotion, highContrast, colourBlind, caption
   const prevMapRef = useRef<MapState | undefined>(undefined);
   const captionKey = useRef(0);
   useEffect(() => {
-    const msgs = describeMapChange(prevMapRef.current, map);
+    const msgs = describeMapChange(prevMapRef.current, map, { simple });
     prevMapRef.current = map;
     if (msgs.length === 0) return;
     captionKey.current += 1;
     setCaption({ text: msgs[0], key: captionKey.current });
     setAnnouncement(`${msgs.slice(0, 2).join('. ')}.`);
-  }, [map]);
+  }, [map, simple]);
 
   useEffect(() => {
     if (!caption) return;
@@ -219,6 +222,7 @@ export function CityMap({ map, reducedMotion, highContrast, colourBlind, caption
             label={layout.compact ? shortName(d.name) : d.name}
             side={sides[d.id] ?? 'below'}
             onSelect={handleSelect}
+            simple={simple}
           />
         ))}
       </div>
@@ -242,16 +246,18 @@ interface DistrictButtonProps {
   label: string;
   side: LabelSide;
   onSelect(id: string): void;
+  simple?: boolean;
 }
 
-function DistrictButton({ district: d, pos, selected, label, side, onSelect }: DistrictButtonProps) {
+function DistrictButton({ district: d, pos, selected, label, side, onSelect, simple = false }: DistrictButtonProps) {
+  const aria = simple ? simpleDistrictAriaLabel(d) : districtAriaLabel(d);
   return (
     <button
       type="button"
       className={styles.district}
       style={{ left: `${pos.x}px`, top: `${pos.y}px` }}
       data-testid={`map-district-${d.id}`}
-      aria-label={label === d.name ? districtAriaLabel(d) : `${label} — ${districtAriaLabel(d)}`}
+      aria-label={label === d.name ? aria : `${label} — ${aria}`}
       aria-pressed={selected}
       onClick={() => onSelect(d.id)}
     >

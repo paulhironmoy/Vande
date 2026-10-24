@@ -1,4 +1,5 @@
 import type { CampaignResult } from '@/engine/types';
+import { isSimple } from '@/app/simple';
 import { buildCardModel, renderCard, shareText, type CardModel, type CardSize } from './resultCard';
 
 export type ShareOutcome = 'shared' | 'copied' | 'downloaded' | 'cancelled' | 'failed';
@@ -9,6 +10,8 @@ export interface ShareOptions {
   blob?: Blob;
   model?: CardModel;
   base?: string;
+  /** Simple play style vocabulary on the card; defaults to the current setting. */
+  simple?: boolean;
 }
 
 export function basePath(): string {
@@ -117,7 +120,7 @@ function triggerDownload(blob: Blob, filename: string): void {
  */
 export async function shareResult(result: CampaignResult, origin: string, opts: ShareOptions = {}): Promise<ShareOutcome> {
   const size = opts.size ?? 'landscape';
-  const model = opts.model ?? buildCardModel(result, { origin, base: opts.base ?? basePath() });
+  const model = opts.model ?? buildCardModel(result, { origin, base: opts.base ?? basePath(), simple: opts.simple ?? isSimple() });
   let blob = opts.blob;
   try {
     blob = blob ?? (await renderCard(model, size));

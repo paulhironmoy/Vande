@@ -1,4 +1,5 @@
 import type { MapDistrictView } from '@/engine/types';
+import { simpleInstitutionName } from '@/map/simple';
 import { DISTRICT_ICON, PlayIcon } from './icons';
 import { PlayButton, PlayIconButton } from './PlayButton';
 import { crowdWord, moodWord, servicesWord, trustWord } from './format';
@@ -34,7 +35,7 @@ export function DistrictCard({ district, onClose, onShowDecision, onShowEvidence
           <h3 id={`district-${district.id}`} className={styles.name}>
             {district.name}
           </h3>
-          {district.institution ? <p className={styles.institution}>{district.institution}</p> : null}
+          {district.institution ? <p className={styles.institution}>{simple ? simpleInstitutionName(district.institution) : district.institution}</p> : null}
         </div>
         <PlayIconButton icon="close" label={simple ? 'Close' : 'Close district details'} onClick={onClose} />
       </header>

@@ -4,6 +4,8 @@
  */
 import type { CampaignResult, Dimension, RepublicOutcome } from '@/engine/types';
 import { DIMENSIONS, OUTCOME_LABELS } from '@/engine/types';
+import { getScenario } from '@/engine';
+import { SIMPLE_DIMENSIONS, SIMPLE_OUTCOMES, simpleValue } from '@/app/simple';
 
 export const TAGLINE = 'I held the Republic together. Can you?';
 export const DISCLAIMER = 'Independent game · not affiliated with any government, party or institution';
@@ -69,10 +71,40 @@ function clampScore(n: number): number {
   return Math.max(0, Math.min(100, Math.round(Number.isFinite(n) ? n : 0)));
 }
 
-export function buildCardModel(result: CampaignResult, opts: { origin: string; base?: string; now?: Date }): CardModel {
+export interface CardModelOptions {
+  origin: string;
+  base?: string;
+  now?: Date;
+  /** Simple play style: plain-language outcome, decision and value labels. */
+  simple?: boolean;
+}
+
+/** Plain-language "decision — option" line for the most consequential decision, from the scenario's simple layer. */
+function simpleHardestDecision(result: CampaignResult): string | undefined {
+  const key = result.mostConsequential;
+  if (!key) return undefined;
+  try {
+    const scenario = getScenario(key.scenarioId);
+    const decision = scenario.decisions.find((d) => d.id === key.decisionId);
+    if (!decision) return undefined;
+    const option = decision.options.find((o) => o.id === key.optionId);
+    const title = decision.simple?.title ?? decision.title;
+    const optionTitle = decision.simple?.options[key.optionId]?.title ?? option?.title ?? key.optionTitle;
+    return `${title} — ${optionTitle}`;
+  } catch {
+    return undefined;
+  }
+}
+
+export function buildCardModel(result: CampaignResult, opts: CardModelOptions): CardModel {
+  const simple = opts.simple === true;
   const code = result.challengeCode;
-  const hardest = (result.hardestDecision ?? result.mostConsequential?.optionTitle ?? result.mostConsequential?.title ?? 'Every decision counted').trim();
-  const values = (result.valuesProtected ?? []).map((v) => v.trim()).filter(Boolean).slice(0, 4);
+  const fullHardest = (result.hardestDecision ?? result.mostConsequential?.optionTitle ?? result.mostConsequential?.title ?? 'Every decision counted').trim();
+  const hardest = (simple ? (simpleHardestDecision(result) ?? fullHardest) : fullHardest).trim();
+  const values = (result.valuesProtected ?? [])
+    .map((v) => simpleValue(v.trim(), simple))
+    .filter(Boolean)
+    .slice(0, 4);
   const date = new Date(result.completedAt);
   const dateLabel = Number.isNaN(date.getTime())
     ? ''
@@ -82,16 +114,16 @@ export function buildCardModel(result: CampaignResult, opts: { origin: string; b
     wordmark: 'VANDE//REPUBLIC',
     subtitle: 'REPUBLIC UNDER PRESSURE',
     outcome: result.outcome,
-    outcomeLabel: OUTCOME_LABELS[result.outcome] ?? 'Republic result',
+    outcomeLabel: simple ? (SIMPLE_OUTCOMES[result.outcome]?.label ?? OUTCOME_LABELS[result.outcome] ?? 'Your city') : (OUTCOME_LABELS[result.outcome] ?? 'Republic result'),
     score: clampScore(result.score),
     hardestDecision: hardest,
-    values: values.length > 0 ? values : ['Lawful protest', 'Proportionate safety'],
+    values: values.length > 0 ? values : simple ? ['People could speak and gather', 'Everyone stayed safe'] : ['Lawful protest', 'Proportionate safety'],
     code,
     url: challengeUrl(code, opts.origin, opts.base ?? '/'),
     tagline: TAGLINE,
     disclaimer: DISCLAIMER,
     dateLabel,
-    dims: DIMENSIONS.map((dim) => ({ dim, label: DIM_SHORT[dim], value: clampScore(result.finalScores[dim]) })),
+    dims: DIMENSIONS.map((dim) => ({ dim, label: simple ? SIMPLE_DIMENSIONS[dim].short : DIM_SHORT[dim], value: clampScore(result.finalScores[dim]) })),
     mode: result.mode,
   };
 }

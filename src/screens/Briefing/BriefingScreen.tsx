@@ -106,6 +106,7 @@ export function BriefingScreen() {
               colourBlind={settings.colourBlindSafe}
               captions={false}
               onSelectDistrict={() => undefined}
+              simple={simple}
             />
           )}
           <div className={styles.bgShade} />

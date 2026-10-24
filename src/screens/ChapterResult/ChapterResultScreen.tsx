@@ -78,6 +78,7 @@ export function ChapterResultScreen() {
                 colourBlind={settings.colourBlindSafe}
                 captions={false}
                 onSelectDistrict={() => undefined}
+                simple={simple}
               />
             </div>
           ) : (
