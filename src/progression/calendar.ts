@@ -59,7 +59,8 @@ export function buildMonth(year: number, month: number, index: CalendarRecordInd
     const isToday = dailyId === todayId;
     let state: CalendarCellState;
     let score: number | undefined;
-    if (index.official.has(dailyId)) {
+    if (dailyId > todayId) state = 'future';
+    else if (index.official.has(dailyId)) {
       state = 'official';
       score = index.official.get(dailyId);
       officialCount++;

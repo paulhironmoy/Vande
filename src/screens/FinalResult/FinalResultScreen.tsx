@@ -62,6 +62,7 @@ export function FinalResultScreen() {
   const toast = useApp((s) => s.toast);
   const simple = useSimple();
   const lastDaily = useApp((s) => s.lastDaily);
+  const startDailyById = useApp((s) => s.startDailyById);
   const newAccomplishments = useApp((s) => s.newAccomplishments);
   const [shareOpen, setShareOpen] = useState(false);
   useEffect(() => {
@@ -144,7 +145,7 @@ export function FinalResultScreen() {
             onHome={() => navigate({ name: 'home' })}
             community={<CommunitySlot dailyId={lastDaily.dailyId} mine={lastDaily.record.official?.score} />}
           />
-          <Button variant="ghost" size="sm" onClick={() => replayLast()} data-testid="final-replay">
+          <Button variant="ghost" size="sm" onClick={() => startDailyById(lastDaily.dailyId)} data-testid="final-replay">
             {simple ? 'Play it again (practice)' : 'Replay as practice'}
           </Button>
         </div>

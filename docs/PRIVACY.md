@@ -51,6 +51,9 @@ content version; like any web request, your IP address reaches Cloudflare for th
 stored by VANDE. If sharing is off, no statistics are requested and no results are sent. Everything still works offline:
 your results are kept on your device and queued submissions are sent later (or dropped after 14 days or 10 failed tries).
 
+Because server rows cannot be linked to you, deleting all local data and playing the same day again is counted again as
+a new anonymous result; community counts may therefore include such repeats.
+
 ## Android permissions (reminders)
 
 The optional daily reminder uses local notifications only. The Android app declares `POST_NOTIFICATIONS`,

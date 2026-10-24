@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { __resetStoreForTests, migrateDailyRecords, useApp, utcDayKey } from '@/app/store';
+import { __resetStoreForTests, mergeDailyRecords, migrateDailyRecords, useApp, utcDayKey } from '@/app/store';
 import { __resetPersistenceForTests, storage } from '@/app/persistence';
 import type { DailyRecord, DailyRecordV2 } from '@/engine/types';
 
@@ -63,5 +63,31 @@ describe('daily records v1 → v2 migration', () => {
   it('uses the UTC calendar day as the canonical daily id', () => {
     expect(utcDayKey(new Date('2026-10-24T23:59:59Z'))).toBe('2026-10-24');
     expect(utcDayKey(new Date('2026-10-25T00:00:01Z'))).toBe('2026-10-25');
+  });
+
+  it('drops malformed legacy rows and keeps the best score per date', () => {
+    const junk = [
+      { date: 'not-a-date', score: 50, outcome: 'resilient', completedAt: 'x' },
+      { date: '2026-10-21' } as unknown as DailyRecord,
+      { date: '2026-10-22', score: 50, outcome: 'resilient', completedAt: '2026-10-22T01:00:00.000Z' },
+      { date: '2026-10-22', score: 70, outcome: 'free-fragile', completedAt: '2026-10-22T02:00:00.000Z' },
+      { date: '2026-10-23', score: 500, outcome: 'resilient', completedAt: 'x' },
+      { date: '2026-10-24', score: 40, outcome: 'nonsense', completedAt: 'x' } as unknown as DailyRecord,
+    ] as DailyRecord[];
+    const out = migrateDailyRecords(junk, []);
+    expect(out.map((r) => r.dailyId)).toEqual(['2026-10-22']);
+    expect(out[0].official?.score).toBe(70);
+  });
+
+  it('merges records from another tab: the earlier official result wins and the other completion becomes practice', () => {
+    const mk = (score: number, at: string): DailyRecordV2['official'] => ({ score, outcome: 'resilient', fingerprint: 'DDD', completedAt: at, contentVersion: 'c', mode: 'simple', scores: { freedom: 0, grievance: 0, safety: 0, evidence: 0, trust: 0, economy: 0 } });
+    const stored: DailyRecordV2[] = [{ v: 2, dailyId: '2026-10-24', official: mk(60, '2026-10-24T10:00:00.000Z') }];
+    const local: DailyRecordV2[] = [{ v: 2, dailyId: '2026-10-24', official: mk(90, '2026-10-24T10:05:00.000Z') }];
+    const merged = mergeDailyRecords(stored, local);
+    expect(merged[0].official?.score).toBe(60);
+    expect(merged[0].practice?.best.score).toBe(90);
+    expect(merged[0].practice?.attempts).toBe(1);
+    // Nothing stored yet: local wins unchanged.
+    expect(mergeDailyRecords(undefined, local)[0].official?.score).toBe(90);
   });
 });

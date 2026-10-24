@@ -16,6 +16,7 @@ import {
   type ScenarioId,
   type Scores,
 } from './types';
+import { isDailyScenarioId } from './types';
 import { checkCondition, clamp, round1 } from './state';
 import { roundScores } from './simulation';
 import { encodeChallenge } from './challenge';
@@ -228,7 +229,8 @@ export function computeCampaignResult(
     .slice(0, 3)
     .map((d) => VALUE_LABELS[d]);
   const scenario: ScenarioId | 'campaign' = chapters.length >= 3 ? 'campaign' : chapters[0].scenarioId;
-  const challengeCode = encodeChallenge({ v: 1, scenario, seed: meta.seed, difficulty: meta.difficulty, opponents: meta.opponents, score });
+  // Daily runs get their spoiler-free D1 code from the store (it knows the daily id); campaign codes only for campaign scenarios.
+  const challengeCode = isDailyScenarioId(scenario) ? '' : encodeChallenge({ v: 1, scenario, seed: meta.seed, difficulty: meta.difficulty, opponents: meta.opponents, score });
   return {
     id: meta.id,
     mode: meta.mode,

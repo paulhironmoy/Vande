@@ -120,7 +120,8 @@ testing first), enrol in Play App Signing with this upload key, then promote the
 
 ## 9. Daily content, backend and analytics (added with Daily Quick Play)
 
-* Content: `node scripts/validate-daily.mjs` must pass; before the first public day resolves run
+* Content: the pool holds 30 days starting 2026-10-26, so **days 31–90 must be appended before 2026-11-25** or dilemmas start
+  repeating (`docs/CONTENT-DAILY.md`). `node scripts/validate-daily.mjs` must pass; before the first public day resolves run
   `node scripts/validate-daily.mjs --pin-through=<launch date>` and paste the output into `src/content/daily/schedule.json`
   `pinned`; bump `contentVersion` whenever a published day changes. Authoring guide: `docs/CONTENT-DAILY.md`.
 * Backend (optional, Cloudflare Workers + D1): `cd backend && npx wrangler d1 create vande-daily && npx wrangler d1 migrations apply vande-daily

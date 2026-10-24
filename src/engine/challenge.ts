@@ -28,6 +28,7 @@ function checksum(body: string): string {
 
 /** Compact URL-safe code: V1-EX-k3j9z-S-b-2a-x (version, scenario, seed, difficulty, opponents mask, score?, checksum). */
 export function encodeChallenge(spec: ChallengeSpec): string {
+  if (!(spec.scenario in SCENARIO_CODES)) throw new TypeError(`Campaign challenge codes cannot encode scenario '${spec.scenario}'`);
   const parts = [
     'V1',
     SCENARIO_CODES[spec.scenario],

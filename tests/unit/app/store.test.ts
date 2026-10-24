@@ -313,7 +313,7 @@ describe('app store', () => {
     expect(await storage.getSession()).toBeUndefined();
   });
 
-  it('replays a daily as a replay run without touching daily records or bests', () => {
+  it('replaying a daily from its result is a practice attempt: the official result and bests stay untouched', () => {
     useApp.getState().updateSettings({ autoPauseOnDecision: false });
     const s = useApp.getState();
     s.completeIntro();
@@ -323,19 +323,24 @@ describe('app store', () => {
     useApp.getState().endChapter();
     useApp.getState().nextChapter();
     const before = useApp.getState();
-    const dailyBefore = before.dailyV2;
+    const officialBefore = before.dailyV2[0].official;
     const bestsBefore = before.bests;
+    expect(before.lastCampaign?.challengeCode).toMatch(/^D1-/); // daily results carry the spoiler-free daily code
     useApp.getState().replayLast();
-    expect(useApp.getState().campaign?.config.mode).toBe('replay');
-    useApp.getState().startChapter();
+    expect(useApp.getState().screen).toEqual({ name: 'daily-open' });
+    expect(useApp.getState().intent?.official).toBe(false);
+    useApp.getState().beginDailyPlay();
+    expect(useApp.getState().campaign?.config.mode).toBe('daily');
     useApp.getState().tickGame(useApp.getState().game!.duration);
     useApp.getState().endChapter();
     useApp.getState().nextChapter();
     const after = useApp.getState();
-    expect(after.dailyV2).toEqual(dailyBefore);
+    expect(after.dailyV2[0].official).toEqual(officialBefore);
+    expect(after.dailyV2[0].practice?.attempts).toBe(1);
+    expect(after.lastDaily?.official).toBe(false);
     expect(after.bests.daily).toEqual(bestsBefore.daily);
-    expect(after.bests.campaign).toEqual(bestsBefore.campaign);
     expect(after.history.length).toBe(2);
+    expect(after.history[0].title).toContain('Practice');
   });
 
   it('keeps toasts to a small queue and dismisses them', () => {

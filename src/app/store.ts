@@ -11,6 +11,7 @@ import {
   type CampaignResult,
   type ChapterResult,
   isDailyScenarioId,
+  OUTCOME_LABELS,
   type DailyRecord,
   type PassportAccomplishment,
   type DailyResolution,
@@ -51,6 +52,7 @@ import { elapsedBucket, track } from '@/analytics';
 import { applyAnalyticsOptOut, startCommunityAndAnalytics, wipeCommunityData } from './communityBridge';
 import { DAILY_CONTENT_VERSION, dailyIdFor, dailyScenarioId, resolveDaily } from '@/engine/daily';
 import { roundScores } from '@/engine';
+import { encodeDailyChallenge } from '@/engine/challenge';
 import { evaluateAccomplishments } from '@/progression/passport';
 import { submitOfficialResult } from '@/community';
 import { storage, type MetaRecord, type SessionPlan, type SessionRecord } from './persistence';
@@ -82,6 +84,7 @@ let hydratePromise: Promise<void> | null = null;
 /** Wall-clock start of the current daily attempt (analytics bucketing only; never part of game state). */
 let dailyStartedAt = 0;
 let firstChoiceTracked = false;
+let dailyRefreshBound = false;
 
 /** UTC calendar day `YYYY-MM-DD` (the canonical daily id). */
 export function utcDayKey(date: Date): string {
@@ -101,10 +104,22 @@ function newInstallId(): string {
  * Migrates legacy daily records (one per local date, best score kept) into v2 records.
  * The legacy completion becomes the immutable official result; v2 rows that already exist win.
  */
+const DAILY_ID_RE = /^\d{4}-\d{2}-\d{2}$/;
+const OUTCOMES = new Set(Object.keys(OUTCOME_LABELS));
+
 export function migrateDailyRecords(legacy: DailyRecord[], existing: DailyRecordV2[]): DailyRecordV2[] {
   const byId = new Map(existing.map((r) => [r.dailyId, r] as const));
+  // Keep the best legacy row per date; drop malformed rows outright.
+  const best = new Map<string, DailyRecord>();
   for (const row of legacy) {
-    if (!row || typeof row.date !== 'string' || byId.has(row.date)) continue;
+    if (!row || typeof row.date !== 'string' || !DAILY_ID_RE.test(row.date)) continue;
+    if (typeof row.score !== 'number' || !Number.isFinite(row.score) || row.score < 0 || row.score > 100) continue;
+    if (typeof row.outcome !== 'string' || !OUTCOMES.has(row.outcome)) continue;
+    const prev = best.get(row.date);
+    if (!prev || row.score > prev.score) best.set(row.date, row);
+  }
+  for (const row of best.values()) {
+    if (byId.has(row.date)) continue;
     byId.set(row.date, {
       v: 2,
       dailyId: row.date,
@@ -120,6 +135,33 @@ export function migrateDailyRecords(legacy: DailyRecord[], existing: DailyRecord
     });
   }
   return [...byId.values()].sort((a, b) => (a.dailyId < b.dailyId ? 1 : -1));
+}
+
+/** Merges records written by another tab: an existing official result always wins; practice keeps the best and the attempt count. */
+export function mergeDailyRecords(stored: DailyRecordV2[] | undefined, local: DailyRecordV2[]): DailyRecordV2[] {
+  const out = new Map<string, DailyRecordV2>();
+  for (const r of stored ?? []) if (r && r.v === 2 && typeof r.dailyId === 'string') out.set(r.dailyId, r);
+  for (const l of local) {
+    const s = out.get(l.dailyId);
+    if (!s) {
+      out.set(l.dailyId, l);
+      continue;
+    }
+    const official = s.official ?? l.official;
+    // When both tabs produced an "official" result, the earlier completion is the official one; the other becomes practice.
+    let practice = s.practice ?? l.practice;
+    const loser = s.official && l.official && l.official.completedAt !== s.official.completedAt ? (l.official.completedAt < s.official.completedAt ? s.official : l.official) : undefined;
+    const winner = s.official && l.official && l.official.completedAt < s.official.completedAt ? l.official : official;
+    if (loser) {
+      const attempts = Math.max(s.practice?.attempts ?? 0, l.practice?.attempts ?? 0) + 1;
+      const bestOf = [s.practice?.best, l.practice?.best, loser].filter((x): x is DailyAttemptResult => Boolean(x)).sort((a, b) => b.score - a.score)[0];
+      practice = { attempts, best: bestOf };
+    } else if (s.practice && l.practice) {
+      practice = { attempts: Math.max(s.practice.attempts, l.practice.attempts), best: s.practice.best.score >= l.practice.best.score ? s.practice.best : l.practice.best };
+    }
+    out.set(l.dailyId, { ...s, ...l, official: winner, practice, startedAt: s.startedAt ?? l.startedAt, dayId: s.dayId ?? l.dayId });
+  }
+  return [...out.values()].sort((a, b) => (a.dailyId < b.dailyId ? 1 : -1)).slice(0, 400);
 }
 
 function diffRepublic(prev: RepublicCondition, next: RepublicCondition): Partial<RepublicCondition> {
@@ -739,6 +781,7 @@ export const useApp = create<State>()((set, get) => ({
         return { ...r, practice: { attempts: (r.practice?.attempts ?? 0) + 1, best: prevBest && prevBest.score >= attempt.score ? prevBest : attempt } };
       });
       const record = dailyV2.find((r) => r.dailyId === dailyId)!;
+      result.challengeCode = encodeDailyChallenge({ dailyId, score: attempt.score, fingerprint: attempt.fingerprint, outcome: attempt.outcome });
       lastDaily = {
         dailyId,
         official: officialRun,
@@ -793,14 +836,20 @@ export const useApp = create<State>()((set, get) => ({
       focusDistrict: undefined,
     });
     if (awarded.length) get().awardAccomplishments(awarded);
-    void Promise.all([
-      storage.setRepublic(republic),
-      storage.setBests(bests),
-      storage.setHistory(history),
-      storage.setDaily(daily),
-      storage.setDailyV2(dailyV2),
-      storage.clearSession(),
-    ]).catch(() => undefined);
+    // Another tab may have completed the same day first: merge with what is stored so an official result is never overwritten.
+    const writeDaily = isDaily
+      ? storage
+          .getDailyV2()
+          .catch(() => undefined)
+          .then((stored) => {
+            const merged = mergeDailyRecords(stored, dailyV2);
+            set({ dailyV2: merged });
+            return storage.setDailyV2(merged);
+          })
+      : storage.setDailyV2(dailyV2);
+    void Promise.all([storage.setRepublic(republic), storage.setBests(bests), storage.setHistory(history), storage.setDaily(daily), writeDaily, storage.clearSession()]).catch(
+      () => undefined,
+    );
     playCue('success');
     get().navigate({ name: 'final-result', resultId: id });
   },
@@ -826,6 +875,12 @@ export const useApp = create<State>()((set, get) => ({
     const r = get().lastCampaign;
     if (!r) return;
     const scenarioIds = r.chapters.map((c) => c.scenarioId);
+    // A daily is replayed as practice through the daily flow, never as a campaign-style replay.
+    const dailyId = get().lastDaily?.dailyId;
+    if (scenarioIds.some((id) => isDailyScenarioId(id))) {
+      if (dailyId) get().startDailyById(dailyId);
+      return;
+    }
     const full = scenarioIds.length === SCENARIO_IDS.length;
     const intent: PendingIntent = full
       ? { kind: 'campaign', seed: r.seed, difficulty: r.difficulty, opponents: [...r.opponents] }
@@ -1154,6 +1209,19 @@ export const useApp = create<State>()((set, get) => ({
       if (!restored && session) {
         void storage.clearSession().catch(() => undefined);
         get().toast({ text: 'A saved game from an older version could not be restored and was cleared.', kind: 'warning', duration: 6000 });
+      }
+      // Keep daily records fresh across tabs: reload them whenever this tab comes back to the foreground.
+      if (typeof document !== 'undefined' && !dailyRefreshBound) {
+        dailyRefreshBound = true;
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState !== 'visible') return;
+          void storage
+            .getDailyV2()
+            .then((stored) => {
+              if (Array.isArray(stored)) set({ dailyV2: mergeDailyRecords(stored, get().dailyV2) });
+            })
+            .catch(() => undefined);
+        });
       }
       // Network features start after local state is ready; they never block or affect gameplay.
       void startCommunityAndAnalytics({
