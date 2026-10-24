@@ -270,6 +270,9 @@ export function PlayScreen() {
           </aside>
         </div>
         <PauseSheet open={manualPaused} pace={settings.timerPace} chapterTitle={chapterLabel} onResume={resumeGame} onAbandon={onAbandon} onOpenSettings={() => navigate({ name: 'settings' })} simple={simple} />
+        <PlaySheet open={rulesOpen} onClose={() => setRulesOpen(false)} title={simple ? 'Rules' : 'Rules at a glance'} testId="rules-sheet">
+          <RulesCard compact hideHeading />
+        </PlaySheet>
       </main>
     );
   }
