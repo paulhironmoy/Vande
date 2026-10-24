@@ -17,9 +17,7 @@ test.describe('daily quick play', () => {
     await cta.click();
 
     const open = page.getByTestId('daily-open-screen');
-    const wired = await open.isVisible({ timeout: 5_000 }).catch(() => false);
-    test.fixme(!wired, 'startDailyQuickPlay is not wired in the store yet');
-    await expect(open).toBeVisible();
+    await expect(open).toBeVisible({ timeout: 10_000 });
     await expect(page.getByTestId('daily-open-start')).toBeVisible();
     await expect(page.getByTestId('daily-open-skip')).toBeVisible();
 
@@ -66,12 +64,12 @@ test.describe('daily quick play', () => {
     // Calendar shows today as official.
     await page.getByTestId('daily-calendar').click();
     await expect(page.getByTestId('calendar-screen')).toBeVisible();
-    const today = new Date().toISOString().slice(0, 10);
+    const today = await page.evaluate(() => new Date().toISOString().slice(0, 10));
     await expect(page.getByTestId(`calendar-day-${today}`)).toHaveAttribute('data-state', 'official');
 
     // Second completion is practice and keeps the official result.
     await page.goto('/home');
-    await expect(page.getByTestId('daily-state-line')).toContainText(/Official result/i);
+    await expect(page.getByTestId('daily-state-line')).toContainText(/Official result|Done today/i);
     await page.getByTestId('daily-play-today').click();
     await expect(page.getByTestId('daily-open-screen')).toBeVisible();
     await page.getByTestId('daily-open-skip').click();

@@ -32,7 +32,7 @@ test('today’s crisis: one tap from Home, official first result, practice after
   await expect(page.getByTestId('daily-state')).toContainText(String(official));
   await page.goto('/calendar');
   await expect(page.getByTestId('calendar-screen')).toBeVisible({ timeout: 15_000 });
-  const today = new Date('2026-10-23T10:00:00').toISOString().slice(0, 10);
+  const today = await page.evaluate(() => new Date().toISOString().slice(0, 10));
   await expect(page.locator(`[data-testid="calendar-day-${today}"]`)).toHaveAttribute('data-state', /official|today/);
 
   // A second run is practice and cannot change the official score.
