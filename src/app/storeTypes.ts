@@ -93,7 +93,15 @@ export interface SessionSlice {
   /** Chapter result awaiting the player's "continue". */
   intent?: PendingIntent;
   /** Set after a daily attempt completes: which record it produced and whether it was official. */
-  lastDaily?: { dailyId: DailyId; official: boolean; result: DailyAttemptResult; record: DailyRecordV2; friend?: PendingIntent['friend'] };
+  lastDaily?: {
+    dailyId: DailyId;
+    official: boolean;
+    result: DailyAttemptResult;
+    record: DailyRecordV2;
+    friend?: PendingIntent['friend'];
+    /** Change in the five long-term Republic measures caused by this (official) result. */
+    republicDelta?: Partial<RepublicCondition>;
+  };
   /** Accomplishments awarded by the most recent completion (for the result screen). */
   newAccomplishments: PassportAccomplishment[];
 }

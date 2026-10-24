@@ -10,7 +10,11 @@ import {
   type CampaignProgress,
   type CampaignResult,
   type ChapterResult,
+  isDailyScenarioId,
   type DailyRecord,
+  type PassportAccomplishment,
+  type DailyResolution,
+  type DailyAttemptResult,
   type DailyRecordV2,
   type PassportState,
   type GameConfig,
@@ -35,7 +39,6 @@ import {
   deriveMapState,
   derivePulse,
   encodeChallenge,
-  getDailySpec,
   getScenario,
   hashString,
   newSeed,
@@ -46,6 +49,10 @@ import {
 import type { AppState, PendingIntent, Screen, ScreenName, Toast } from './storeTypes';
 import { track } from '@/analytics';
 import { applyAnalyticsOptOut, startCommunityAndAnalytics, wipeCommunityData } from './communityBridge';
+import { DAILY_CONTENT_VERSION, dailyIdFor, dailyScenarioId, resolveDaily } from '@/engine/daily';
+import { roundScores } from '@/engine';
+import { evaluateAccomplishments } from '@/progression/passport';
+import { submitOfficialResult } from '@/community';
 import { storage, type MetaRecord, type SessionPlan, type SessionRecord } from './persistence';
 import { currentLocationScreen } from './routes';
 import { resolveReducedMotion } from './motion';
@@ -110,6 +117,21 @@ export function migrateDailyRecords(legacy: DailyRecord[], existing: DailyRecord
     });
   }
   return [...byId.values()].sort((a, b) => (a.dailyId < b.dailyId ? 1 : -1));
+}
+
+function diffRepublic(prev: RepublicCondition, next: RepublicCondition): Partial<RepublicCondition> {
+  const out: Partial<RepublicCondition> = {};
+  for (const k of ['freedom', 'safety', 'trust', 'economy', 'legitimacy'] as const) {
+    const d = Math.round(next[k] - prev[k]);
+    if (d !== 0) out[k] = d;
+  }
+  return out;
+}
+
+function upsertDaily(records: DailyRecordV2[], dailyId: string, patch: (r: DailyRecordV2) => DailyRecordV2): DailyRecordV2[] {
+  const existing = records.find((r) => r.dailyId === dailyId) ?? { v: 2 as const, dailyId };
+  const next = patch(existing);
+  return [next, ...records.filter((r) => r.dailyId !== dailyId)].slice(0, 400);
 }
 let persistTimer: number | undefined;
 let toastCounter = 0;
@@ -242,7 +264,7 @@ function restoreSession(rec: SessionRecord | undefined): RestoredSession | null 
   if (!rec?.progress || !Array.isArray(rec.plan?.scenarioIds) || rec.plan.scenarioIds.length === 0) return null;
   try {
     const known = SCENARIO_IDS as readonly string[];
-    if (!rec.plan.scenarioIds.every((id) => known.includes(id))) return null;
+    if (!rec.plan.scenarioIds.every((id) => known.includes(id) || isDailyScenarioId(id))) return null;
     const { game: savedGame, ...progress } = rec.progress;
     if (!Array.isArray(progress.completed) || typeof progress.chapterIndex !== 'number') return null;
     if (progress.chapterIndex < 0 || progress.chapterIndex >= rec.plan.scenarioIds.length) return null;
@@ -454,12 +476,7 @@ export const useApp = create<State>()((set, get) => ({
   },
 
   beginDailySetup() {
-    const spec = getDailySpec(new Date());
-    set({
-      intent: { kind: 'daily', seed: spec.seed, difficulty: spec.difficulty, opponents: [...spec.opponents], daily: spec },
-      replayOf: undefined,
-    });
-    get().confirmSetup();
+    get().startDailyQuickPlay();
   },
 
   beginChallenge(code) {
@@ -674,12 +691,15 @@ export const useApp = create<State>()((set, get) => ({
       id,
       completedAt,
     });
-    const republic = updateRepublic(s.republic, result);
-    const bests = withRunBest(s.bests, result, plan);
+    const isDaily = mode === 'daily' && Boolean(plan.dailyDate);
+    const officialRun = isDaily ? !s.dailyV2.find((r) => r.dailyId === plan.dailyDate)?.official : false;
+    // Practice runs never move the long-term Republic or the official best: progression is earned once per day.
+    const republic = isDaily && !officialRun ? s.republic : updateRepublic(s.republic, result);
+    const bests = isDaily && !officialRun ? s.bests : withRunBest(s.bests, result, plan);
     const entry: HistoryEntry = {
       id,
       kind: historyKind(mode, plan),
-      title: runTitle(plan, mode, campaign.completed),
+      title: runTitle(plan, mode, campaign.completed) + (isDaily && !officialRun ? ' · Practice' : ''),
       score: result.score,
       outcome: result.outcome,
       completedAt,
@@ -688,14 +708,52 @@ export const useApp = create<State>()((set, get) => ({
       challengeCode: result.challengeCode,
     };
     const history = [entry, ...s.history].slice(0, MAX_HISTORY);
-    let daily: DailyRecord[] = s.daily;
-    if (mode === 'daily' && plan.dailyDate) {
-      // One record per calendar day; a repeat attempt only replaces it when it scores higher.
-      const date = plan.dailyDate;
-      const existing = s.daily.find((d) => d.date === date);
-      const record: DailyRecord =
-        existing && existing.score >= result.score ? existing : { date, score: result.score, outcome: result.outcome, completedAt };
-      daily = [record, ...s.daily.filter((d) => d.date !== date)].slice(0, 400);
+    const daily: DailyRecord[] = s.daily; // legacy v1 rows stay untouched
+    let dailyV2 = s.dailyV2;
+    let lastDaily: State['lastDaily'];
+    let awarded: PassportAccomplishment[] = [];
+    if (isDaily && plan.dailyDate) {
+      const dailyId = plan.dailyDate;
+      const chapter = campaign.completed[campaign.completed.length - 1];
+      const attempt: DailyAttemptResult = {
+        score: result.score,
+        outcome: result.outcome,
+        fingerprint: chapter?.fingerprint ?? '',
+        completedAt,
+        contentVersion: DAILY_CONTENT_VERSION,
+        mode: s.settings.playStyle,
+        scores: roundScores(result.finalScores),
+      };
+      dailyV2 = upsertDaily(s.dailyV2, dailyId, (r) => {
+        if (!r.official) return { ...r, dayId: r.dayId ?? s.intent?.dailyResolution?.dayId, official: attempt };
+        const prevBest = r.practice?.best;
+        return { ...r, practice: { attempts: (r.practice?.attempts ?? 0) + 1, best: prevBest && prevBest.score >= attempt.score ? prevBest : attempt } };
+      });
+      const record = dailyV2.find((r) => r.dailyId === dailyId)!;
+      lastDaily = {
+        dailyId,
+        official: officialRun,
+        result: attempt,
+        record,
+        friend: s.intent?.friend,
+        republicDelta: officialRun ? diffRepublic(s.republic, republic) : undefined,
+      };
+      if (chapter)
+        awarded = evaluateAccomplishments(
+          { result: chapter, fingerprint: attempt.fingerprint, official: officialRun, dailyId, scenarioId: chapter.scenarioId },
+          s.passport,
+          completedAt,
+        );
+      track('daily_completed', { dailyId, official: officialRun, contentVersion: DAILY_CONTENT_VERSION, mode: s.settings.playStyle, state: 'completed' });
+      if (s.intent?.friend) track('challenge_completed', { dailyId });
+      if (officialRun) {
+        void submitOfficialResult(record, {
+          installId: s.installId,
+          appVersion: typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev',
+          platform: s.isNative ? 'android' : 'web',
+          communitySharing: s.settings.communitySharing,
+        }).catch(() => undefined);
+      }
     }
     set({
       campaign: undefined,
@@ -710,15 +768,21 @@ export const useApp = create<State>()((set, get) => ({
       bests,
       history,
       daily,
+      dailyV2,
+      lastDaily,
+      intent: undefined,
+      newAccomplishments: [],
       openEvidenceId: undefined,
       trayOpen: false,
       focusDistrict: undefined,
     });
+    if (awarded.length) get().awardAccomplishments(awarded);
     void Promise.all([
       storage.setRepublic(republic),
       storage.setBests(bests),
       storage.setHistory(history),
       storage.setDaily(daily),
+      storage.setDailyV2(dailyV2),
       storage.clearSession(),
     ]).catch(() => undefined);
     playCue('success');
@@ -795,34 +859,110 @@ export const useApp = create<State>()((set, get) => ({
   },
 
   // --- data -------------------------------------------------------------------
-  // --- daily quick play (lead implements fully; stubs keep the contract compiling) ------------
+  // --- daily quick play ------------------------------------------------------
   startDailyQuickPlay() {
-    get().beginDailySetup();
+    get().startDailyById(dailyIdFor(new Date()));
   },
-  startDailyById(_dailyId, _opts) {
-    return false;
+
+  startDailyById(dailyId, opts) {
+    let resolution: DailyResolution;
+    try {
+      resolution = resolveDaily(dailyId);
+    } catch {
+      return false;
+    }
+    const record = get().dailyV2.find((r) => r.dailyId === dailyId);
+    set({
+      intent: {
+        kind: 'daily',
+        seed: resolution.seed,
+        difficulty: resolution.difficulty,
+        opponents: [...resolution.opponents],
+        dailyId,
+        dailyResolution: resolution,
+        official: !record?.official,
+        friend: opts?.friend,
+      },
+      replayOf: undefined,
+    });
+    get().navigate({ name: 'daily-open' });
+    return true;
   },
+
   beginDailyPlay() {
-    get().startChapter();
+    const s = get();
+    const { intent } = s;
+    if (!intent || intent.kind !== 'daily' || !intent.dailyResolution || !intent.dailyId) {
+      get().navigate(HOME);
+      return;
+    }
+    const res = intent.dailyResolution;
+    const dailyId = intent.dailyId;
+    const plan: SessionPlan = { scenarioIds: [dailyScenarioId(res.dayId)], dailyDate: dailyId };
+    const hadCampaign = Boolean(s.campaign && (s.game || s.campaign.completed.length));
+    const progress: CampaignProgress = {
+      id: uid(),
+      config: { seed: res.seed >>> 0, difficulty: res.difficulty, opponents: [...res.opponents], mode: 'daily' },
+      chapterIndex: 0,
+      completed: [],
+      startedAt: nowIso(),
+      updatedAt: nowIso(),
+    };
+    let made: { scenario: Scenario; game: GameState };
+    try {
+      made = makeChapterGame(progress, plan, 0);
+    } catch {
+      get().toast({ text: "Today's crisis could not be loaded. Please try again.", kind: 'warning', duration: 5000 });
+      get().navigate(HOME);
+      return;
+    }
+    // Starting never locks anything: only a completed attempt produces a result.
+    const dailyV2 = upsertDaily(s.dailyV2, dailyId, (r) => ({ ...r, dayId: res.dayId, startedAt: r.startedAt ?? nowIso() }));
+    const started = reduce(made.game, { type: 'start', tick: made.game.tick }, made.scenario);
+    set({
+      campaign: progress,
+      plan,
+      scenario: made.scenario,
+      game: started,
+      ...views(started, made.scenario),
+      lastChapter: undefined,
+      openEvidenceId: undefined,
+      trayOpen: false,
+      focusDistrict: undefined,
+      replayOf: undefined,
+      dailyV2,
+      newAccomplishments: [],
+    });
+    void storage.setDailyV2(dailyV2).catch(() => undefined);
+    void persistNow();
+    if (hadCampaign) get().toast({ text: "Your paused campaign was replaced by today's crisis.", kind: 'info', duration: 4000 });
+    track('daily_started', { dailyId, official: intent.official, contentVersion: res.contentVersion, mode: s.settings.playStyle });
+    playCue('open');
+    get().navigate({ name: 'play' });
   },
+
   setCommunitySharing(value) {
     get().updateSettings({ communitySharing: value });
   },
   setReminders(enabled, hour) {
     get().updateSettings({ remindersEnabled: enabled, ...(hour !== undefined ? { reminderHour: hour } : {}) });
-  },
-  async rotateInstallId() {
-    metaRecord = { ...metaRecord, installId: newInstallId(), installIdRotatedAt: nowIso() };
-    set({ installId: metaRecord.installId ?? '' });
-    await storage.setMeta(metaRecord).catch(() => undefined);
-    get().toast({ text: 'Your anonymous id was replaced with a new one.', kind: 'success', duration: 3500 });
+    track(enabled ? 'reminder_enabled' : 'reminder_disabled');
   },
   awardAccomplishments(items) {
     const { passport } = get();
     const known = new Set(passport.earned.map((e) => e.id));
     const fresh = items.filter((i) => !known.has(i.id));
     if (!fresh.length) return;
-    set({ passport: { v: 1, earned: [...passport.earned, ...fresh] }, newAccomplishments: fresh });
+    const next: PassportState = { v: 1, earned: [...passport.earned, ...fresh] };
+    set({ passport: next, newAccomplishments: fresh });
+    void storage.setPassport(next).catch(() => undefined);
+  },
+
+  async rotateInstallId() {
+    metaRecord = { ...metaRecord, installId: newInstallId(), installIdRotatedAt: nowIso() };
+    set({ installId: metaRecord.installId ?? '' });
+    await storage.setMeta(metaRecord).catch(() => undefined);
+    get().toast({ text: 'Your anonymous id was replaced with a new one.', kind: 'success', duration: 3500 });
   },
 
   setPlayStyle(style) {
@@ -966,6 +1106,17 @@ export const useApp = create<State>()((set, get) => ({
         lastCampaign: resolved.lastCampaign,
         intent: resolved.intent,
       });
+      if (restored?.plan.dailyDate) {
+        try {
+          const res = resolveDaily(restored.plan.dailyDate);
+          const rec = dailyV2.find((r) => r.dailyId === restored.plan.dailyDate);
+          set({
+            intent: { kind: 'daily', seed: res.seed, difficulty: res.difficulty, opponents: [...res.opponents], dailyId: restored.plan.dailyDate, dailyResolution: res, official: !rec?.official },
+          });
+        } catch {
+          /* the day is no longer resolvable; the session still plays from its saved state */
+        }
+      }
       if (!restored && session) {
         void storage.clearSession().catch(() => undefined);
         get().toast({ text: 'A saved game from an older version could not be restored and was cleared.', kind: 'warning', duration: 6000 });

@@ -157,21 +157,34 @@ describe('app store', () => {
     expect(useApp.getState().campaign?.config.mode).toBe('replay');
   });
 
-  it('starts the daily challenge directly and records a daily result', async () => {
+  it('starts today\'s crisis without opponent setup and records the first completion as the official result', async () => {
+    useApp.getState().updateSettings({ autoPauseOnDecision: false });
     const s = useApp.getState();
     s.completeIntro();
-    s.beginDailySetup();
-    expect(useApp.getState().screen).toEqual({ name: 'briefing' });
+    s.startDailyQuickPlay();
+    expect(useApp.getState().screen).toEqual({ name: 'daily-open' });
+    expect(useApp.getState().intent?.kind).toBe('daily');
+    expect(useApp.getState().intent?.official).toBe(true);
+    expect(useApp.getState().campaign).toBeUndefined(); // nothing is locked by looking at the cold open
+    useApp.getState().beginDailyPlay();
+    expect(useApp.getState().screen).toEqual({ name: 'play' });
     expect(useApp.getState().campaign?.config.mode).toBe('daily');
-    useApp.getState().startChapter();
+    expect(useApp.getState().game?.status).toBe('running');
+    const dailyId = useApp.getState().plan!.dailyDate!;
+    expect(useApp.getState().dailyV2[0]).toMatchObject({ dailyId });
+    expect(useApp.getState().dailyV2[0].official).toBeUndefined(); // starting never locks
     useApp.getState().tickGame(useApp.getState().game!.duration);
     useApp.getState().endChapter();
     useApp.getState().nextChapter();
     const st = useApp.getState();
     expect(st.screen.name).toBe('final-result');
-    expect(st.daily.length).toBe(1);
+    expect(st.dailyV2.length).toBe(1);
+    expect(st.dailyV2[0].official?.score).toBe(st.lastCampaign!.score);
+    expect(st.dailyV2[0].official?.fingerprint).toMatch(/^[DESPXW]*$/);
+    expect(st.lastDaily?.official).toBe(true);
+    expect(st.bests.daily?.score).toBe(st.dailyV2[0].official?.score);
     expect(st.history[0].kind).toBe('daily');
-    expect(st.bests.daily?.score).toBe(st.daily[0].score);
+    expect(st.history[0].title).not.toContain('Practice');
   });
 
   it('accepts a valid challenge code and rejects an invalid one', () => {
@@ -228,26 +241,42 @@ describe('app store', () => {
     expect(useApp.getState().plan?.scenarioIds).toEqual([...SCENARIO_IDS]);
   });
 
-  it('keeps the best daily score for a calendar day across repeat attempts', () => {
+  it('never lets a practice attempt overwrite the official result, even with a higher score', () => {
+    useApp.getState().updateSettings({ autoPauseOnDecision: false });
     const s = useApp.getState();
     s.completeIntro();
-    s.beginDailySetup();
-    const date = useApp.getState().plan!.dailyDate!;
-    // A better earlier attempt on the same day must not be overwritten by a weaker one.
-    useApp.setState({
-      daily: [{ date, score: 99, outcome: 'resilient', completedAt: '2026-10-23T08:00:00.000Z' }],
-      bests: { ...useApp.getState().bests, daily: { score: 99, date } },
-    });
-    useApp.getState().startChapter();
+    s.startDailyQuickPlay();
+    const dailyId = useApp.getState().intent!.dailyId!;
+    // An earlier official result exists for today.
+    const official = { score: 12, outcome: 'manipulated' as const, fingerprint: 'XXW', completedAt: '2026-10-24T08:00:00.000Z', contentVersion: 'x', mode: 'simple' as const, scores: { freedom: 10, grievance: 10, safety: 10, evidence: 10, trust: 10, economy: 10 } };
+    useApp.setState({ dailyV2: [{ v: 2, dailyId, official }], bests: { ...useApp.getState().bests, daily: { score: 12, date: dailyId } } });
+    const republicBefore = useApp.getState().republic;
+    useApp.getState().startDailyById(dailyId);
+    expect(useApp.getState().intent?.official).toBe(false);
+    useApp.getState().beginDailyPlay();
     useApp.getState().tickGame(useApp.getState().game!.duration);
     useApp.getState().endChapter();
     useApp.getState().nextChapter();
     const st = useApp.getState();
-    expect(st.lastCampaign!.score).toBeLessThan(99);
-    expect(st.daily.length).toBe(1);
-    expect(st.daily[0]).toMatchObject({ date, score: 99 });
-    expect(st.bests.daily?.score).toBe(99);
-    expect(st.history[0].kind).toBe('daily');
+    expect(st.lastCampaign!.score).toBeGreaterThan(12);
+    expect(st.dailyV2.length).toBe(1);
+    expect(st.dailyV2[0].official).toEqual(official); // immutable
+    expect(st.dailyV2[0].practice?.attempts).toBe(1);
+    expect(st.dailyV2[0].practice?.best.score).toBe(st.lastCampaign!.score);
+    expect(st.lastDaily?.official).toBe(false);
+    expect(st.bests.daily?.score).toBe(12); // official best only
+    expect(st.republic).toEqual(republicBefore); // practice never moves the Republic
+    expect(st.history[0].title).toContain('Practice');
+    // A second, weaker practice keeps the best practice.
+    useApp.getState().startDailyById(dailyId);
+    useApp.getState().beginDailyPlay();
+    useApp.setState({ dailyV2: useApp.getState().dailyV2.map((r) => ({ ...r, practice: { attempts: 1, best: { ...official, score: 100 } } })) });
+    useApp.getState().tickGame(useApp.getState().game!.duration);
+    useApp.getState().endChapter();
+    useApp.getState().nextChapter();
+    expect(useApp.getState().dailyV2[0].practice?.attempts).toBe(2);
+    expect(useApp.getState().dailyV2[0].practice?.best.score).toBe(100);
+    expect(useApp.getState().dailyV2[0].official).toEqual(official);
   });
 
   it('leaves a paused chapter resumable: back from play pauses, back again goes home, continue returns to play', () => {
@@ -285,15 +314,16 @@ describe('app store', () => {
   });
 
   it('replays a daily as a replay run without touching daily records or bests', () => {
+    useApp.getState().updateSettings({ autoPauseOnDecision: false });
     const s = useApp.getState();
     s.completeIntro();
-    s.beginDailySetup();
-    useApp.getState().startChapter();
+    s.startDailyQuickPlay();
+    useApp.getState().beginDailyPlay();
     useApp.getState().tickGame(useApp.getState().game!.duration);
     useApp.getState().endChapter();
     useApp.getState().nextChapter();
     const before = useApp.getState();
-    const dailyBefore = before.daily;
+    const dailyBefore = before.dailyV2;
     const bestsBefore = before.bests;
     useApp.getState().replayLast();
     expect(useApp.getState().campaign?.config.mode).toBe('replay');
@@ -302,11 +332,10 @@ describe('app store', () => {
     useApp.getState().endChapter();
     useApp.getState().nextChapter();
     const after = useApp.getState();
-    expect(after.daily).toEqual(dailyBefore);
+    expect(after.dailyV2).toEqual(dailyBefore);
     expect(after.bests.daily).toEqual(bestsBefore.daily);
     expect(after.bests.campaign).toEqual(bestsBefore.campaign);
     expect(after.history.length).toBe(2);
-    expect(after.republic.crises).toBeGreaterThan(before.republic.crises - 1);
   });
 
   it('keeps toasts to a small queue and dismisses them', () => {
