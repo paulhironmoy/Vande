@@ -272,7 +272,8 @@ function restoreSession(rec: SessionRecord | undefined): RestoredSession | null 
     let game: GameState | undefined;
     let scenario: Scenario | undefined;
     if (savedGame) {
-      if (savedGame.version !== 1 || !known.includes(savedGame.config?.scenarioId)) return null;
+      const sid = savedGame.config?.scenarioId;
+      if (savedGame.version !== 1 || typeof sid !== 'string' || !(known.includes(sid) || isDailyScenarioId(sid))) return null;
       scenario = getScenario(savedGame.config.scenarioId);
       game = savedGame.status === 'running' ? reduce(savedGame, { type: 'pause', tick: savedGame.tick }, scenario) : savedGame;
     }
