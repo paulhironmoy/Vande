@@ -33,6 +33,12 @@ evidence and covert manipulation, never people.
 Also included: a deterministic **daily challenge**, **friend challenges** that reproduce the identical game from a URL
 (no backend), locally generated **share cards**, and a **persistent Republic** that evolves across sessions.
 
+**Daily Quick Play**: one tap from Home starts today's crisis (a new one every day at 00:00 UTC, identical for everyone),
+with a skippable cold open and the first choice in under 30 seconds. The first completion is the official result; replays
+are practice and never overwrite it. A civic calendar, a Civic Passport of strategy-based accomplishments, spoiler-free
+share fingerprints, friend challenges and optional anonymous community comparisons sit around that loop. See
+`docs/DAILY-DESIGN.md`, `docs/CONTENT-DAILY.md`, `docs/BACKEND.md`, `docs/ANALYTICS.md`, `docs/COST.md` and `docs/PRIVACY.md`.
+
 Two play styles share the same simulation. **Simple** (the default for new players) uses plain words an eight-year-old
 can read, bigger buttons, a clock that waits whenever something new needs an answer, and star ratings. **Full** keeps the
 complete strategist presentation with legal references and a real-time clock. Switch any time in Settings.

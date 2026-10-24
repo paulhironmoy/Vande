@@ -47,7 +47,7 @@ import {
   updateRepublic,
 } from '@/engine';
 import type { AppState, PendingIntent, Screen, ScreenName, Toast } from './storeTypes';
-import { track } from '@/analytics';
+import { elapsedBucket, track } from '@/analytics';
 import { applyAnalyticsOptOut, startCommunityAndAnalytics, wipeCommunityData } from './communityBridge';
 import { DAILY_CONTENT_VERSION, dailyIdFor, dailyScenarioId, resolveDaily } from '@/engine/daily';
 import { roundScores } from '@/engine';
@@ -79,6 +79,9 @@ const MAX_TOASTS = 3;
 
 let metaRecord: MetaRecord = {};
 let hydratePromise: Promise<void> | null = null;
+/** Wall-clock start of the current daily attempt (analytics bucketing only; never part of game state). */
+let dailyStartedAt = 0;
+let firstChoiceTracked = false;
 
 /** UTC calendar day `YYYY-MM-DD` (the canonical daily id). */
 export function utcDayKey(date: Date): string {
@@ -618,6 +621,11 @@ export const useApp = create<State>()((set, get) => ({
       void persistNow();
       return;
     }
+    // First meaningful choice of a daily attempt (time-to-first-choice metric, bucketed).
+    if (game.pendingDecisionIds.length === 0 && next.pendingDecisionIds.length > 0 && s.plan?.dailyDate && next.stats.decisionsMade === 0 && !firstChoiceTracked) {
+      firstChoiceTracked = true;
+      track('first_choice_reached', { dailyId: s.plan.dailyDate, elapsedBucket: elapsedBucket(Date.now() - dailyStartedAt), mode: s.settings.playStyle });
+    }
     // Simple play style: the clock waits whenever something new needs an answer.
     const grew = next.pendingDecisionIds.length > game.pendingDecisionIds.length || next.pendingRightsIds.length > game.pendingRightsIds.length;
     if (grew && s.settings.autoPauseOnDecision && next.status === 'running') {
@@ -937,6 +945,8 @@ export const useApp = create<State>()((set, get) => ({
     void storage.setDailyV2(dailyV2).catch(() => undefined);
     void persistNow();
     if (hadCampaign) get().toast({ text: "Your paused campaign was replaced by today's crisis.", kind: 'info', duration: 4000 });
+    dailyStartedAt = Date.now();
+    firstChoiceTracked = false;
     track('daily_started', { dailyId, official: intent.official, contentVersion: res.contentVersion, mode: s.settings.playStyle });
     playCue('open');
     get().navigate({ name: 'play' });

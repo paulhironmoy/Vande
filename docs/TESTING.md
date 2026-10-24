@@ -33,6 +33,12 @@ captures every screen at phone and desktop sizes into `test-results-visual/` for
 | Full style still fits the narrowest phone (360×800: opponents, briefing, play) | `tests/e2e/viewports.spec.ts` ("viewport 360x800 · Full style") |
 | Console errors | `tests/e2e/journey.spec.ts` fails on any uncaught page error or console error during the full campaign |
 
+| Daily quick play: one tap from Home, cold open, first choice < 30 s, official first result, practice afterwards, calendar and history | `tests/e2e/daily-complete.spec.ts`, `tests/e2e/daily-quickplay.spec.ts`, `tests/unit/app/store.test.ts` (official immutability, practice separation, replay), `tests/unit/integration/dailyLifecycle.test.ts` (abandon never locks, refresh restores, UTC ids, duplicate completion) |
+| Daily records v1 → v2 migration, anonymous install id | `tests/unit/app/dailyMigration.test.ts` |
+| Daily content: deterministic resolution, 30-day no-repeat, schema/validator, balance, fingerprint | `tests/unit/engine/daily*.test.ts`, `scripts/validate-daily.mjs` |
+| Civic Passport rules, calendar derivation, reminder copy | `tests/unit/progression/**` |
+| Share fingerprint card, daily challenge codes, community client, analytics privacy, backend API | `tests/unit/share/**`, `tests/unit/community/**`, `tests/unit/analytics/**`, `backend/test/**` |
+
 ## Running
 
 ```bash
