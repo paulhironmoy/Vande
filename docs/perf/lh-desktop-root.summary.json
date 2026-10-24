@@ -1,0 +1,113 @@
+{
+  "url": "http://localhost:4175/intro",
+  "fetchTime": "2026-10-24T05:10:27.676Z",
+  "lighthouseVersion": "13.5.0",
+  "formFactor": "desktop",
+  "throttling": {
+    "rttMs": 40,
+    "throughputKbps": 10240,
+    "requestLatencyMs": 0,
+    "downloadThroughputKbps": 0,
+    "uploadThroughputKbps": 0,
+    "cpuSlowdownMultiplier": 1
+  },
+  "categories": {
+    "performance": 1,
+    "accessibility": 1,
+    "best-practices": 1
+  },
+  "metrics": {
+    "first-contentful-paint": {
+      "score": 1,
+      "value": 455.23210000000006,
+      "display": "0.5 s"
+    },
+    "largest-contentful-paint": {
+      "score": 0.99,
+      "value": 662.8481499999999,
+      "display": "0.7 s"
+    },
+    "total-blocking-time": {
+      "score": 1,
+      "value": 0,
+      "display": "0 ms"
+    },
+    "cumulative-layout-shift": {
+      "score": 1,
+      "value": 0,
+      "display": "0"
+    },
+    "speed-index": {
+      "score": 1,
+      "value": 455.23210000000006,
+      "display": "0.5 s"
+    },
+    "interactive": {
+      "score": 1,
+      "value": 662.84815,
+      "display": "0.7 s"
+    },
+    "max-potential-fid": {
+      "score": 1,
+      "value": 16,
+      "display": "20 ms"
+    },
+    "server-response-time": {
+      "score": 1,
+      "value": 8,
+      "display": "Root document took 10 ms"
+    }
+  },
+  "diagnostics": {
+    "bootup-time": {
+      "score": 1,
+      "value": 1.6039999999999996,
+      "display": "0.0 s"
+    },
+    "mainthread-work-breakdown": {
+      "score": 1,
+      "value": 136.78499999999946,
+      "display": "0.1 s"
+    },
+    "total-byte-weight": {
+      "score": 1,
+      "value": 306223,
+      "display": "Total size was 299 KiB"
+    },
+    "unused-javascript": {
+      "score": 0,
+      "value": 40,
+      "display": "Est savings of 43 KiB"
+    },
+    "unused-css-rules": {
+      "score": 1,
+      "value": 0,
+      "display": ""
+    }
+  },
+  "failingAudits": [
+    {
+      "id": "largest-contentful-paint",
+      "score": 0.99,
+      "display": "0.7 s"
+    },
+    {
+      "id": "unused-javascript",
+      "score": 0,
+      "display": "Est savings of 43 KiB"
+    },
+    {
+      "id": "cache-insight",
+      "score": 0,
+      "display": "Est savings of 247 KiB"
+    },
+    {
+      "id": "network-dependency-tree-insight",
+      "score": 0
+    },
+    {
+      "id": "render-blocking-insight",
+      "score": 0.5
+    }
+  ]
+}

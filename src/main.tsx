@@ -1,5 +1,4 @@
 import '@fontsource-variable/manrope';
-import '@fontsource/noto-sans-devanagari/500.css';
 import '@/styles/tokens.css';
 import '@/styles/base.css';
 import '@/styles/utilities.css';

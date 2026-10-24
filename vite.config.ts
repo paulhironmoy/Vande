@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
+import type { Plugin } from 'vite';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 const base = process.env.BASE_PATH || '/';
@@ -11,6 +12,33 @@ const now = new Date();
 const buildId =
   process.env.BUILD_ID ||
   `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, '0')}${String(now.getUTCDate()).padStart(2, '0')}.${String(now.getUTCHours()).padStart(2, '0')}${String(now.getUTCMinutes()).padStart(2, '0')}`;
+
+/**
+ * Preloads the Latin subset of the primary typeface so the first text paint uses Manrope instead of swapping in later.
+ * The hashed file name is only known at bundle time, so the tag is injected from the output bundle.
+ */
+function preloadPrimaryFont(): Plugin {
+  return {
+    name: 'vande:preload-primary-font',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, ctx) {
+        const bundle = ctx.bundle;
+        if (!bundle) return [];
+        const fileName = Object.keys(bundle).find((f) => /manrope-latin-wght-normal-[\w-]+\.woff2$/.test(f));
+        if (!fileName) return [];
+        return [
+          {
+            tag: 'link',
+            attrs: { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: true, href: `${base}${fileName}` },
+            injectTo: 'head-prepend',
+          },
+        ];
+      },
+    },
+  };
+}
 
 export default defineConfig({
   base,
@@ -24,6 +52,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    preloadPrimaryFont(),
     VitePWA({
       strategies: 'injectManifest',
       srcDir: 'src/pwa',
@@ -67,6 +96,8 @@ export default defineConfig({
     sourcemap: false,
     cssCodeSplit: true,
     chunkSizeWarningLimit: 900,
+    // Keep every font as a separate cacheable file; inlining small subsets would bloat the render-blocking CSS.
+    assetsInlineLimit: (filePath) => (/\.(woff2?|ttf|otf)$/i.test(filePath) ? false : undefined),
   },
   server: { port: 5173, strictPort: false },
   preview: { port: 4173, strictPort: true },

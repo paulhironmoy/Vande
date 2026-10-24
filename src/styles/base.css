@@ -1,3 +1,15 @@
+/* Supporting Devanagari face (used for the single "वन्दे" brand accent). `optional` means it never causes a swap
+   or layout shift: the system Devanagari face renders on a cold first visit and the webfont — precached by the
+   service worker — takes over from the next visit on. Only the Devanagari subset is shipped (unicode-range). */
+@font-face {
+  font-family: 'Noto Sans Devanagari';
+  font-style: normal;
+  font-weight: 500;
+  font-display: optional;
+  src: url('../../node_modules/@fontsource/noto-sans-devanagari/files/noto-sans-devanagari-devanagari-500-normal.woff2') format('woff2');
+  unicode-range: U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+20A8, U+20B9, U+20F0, U+25CC, U+A830-A839, U+A8E0-A8FF, U+11B00-11B09;
+}
+
 /* VANDE — base styles. Tokens live in tokens.css. */
 *,
 *::before,
