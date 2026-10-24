@@ -1,1 +1,1 @@
-vande 1.0.0 source 06c90ef deployed 2026-10-24T07:44:54.006Z
+vande 1.0.0 source 49a13fe deployed 2026-10-24T07:54:33.790Z
