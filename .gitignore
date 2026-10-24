@@ -29,3 +29,7 @@ release/
 test-results-visual/
 test-results-exp/
 docs/perf/*.report.html
+dist-visual/
+dist-sb/
+dist-axe/
+dist-verify/
