@@ -14,7 +14,7 @@ Capacitor WebView).
 | compileSdk / targetSdk / minSdk | 36 / 36 / 24 (see `android/variables.gradle`) |
 | Gradle / AGP | 8.14.3 (wrapper) / 8.13.0 |
 | Application id | `in.vande.republic` |
-| Emulator | AVD `vybe-pixel-api36-arm64` |
+| Emulator | AVD `vybe-pixel-api36-arm64` (Android 16 / API 36, arm64; use `-gpu host` on Apple silicon) |
 
 ```bash
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
@@ -71,23 +71,50 @@ keytool -list -v -keystore android/keystore/vande-upload.jks -alias vande-upload
 
 ## Emulator smoke test (headless)
 
+Scripted: `scripts/android-smoke.sh release/vande-<version>-<code>-release.apk` boots the AVD if needed, installs,
+launches, captures screenshots to `release/smoke/`, presses hardware Back and fails on any crash/ANR in logcat.
+
+Use **host GPU** on Apple-silicon Macs. With `-gpu swiftshader_indirect` (software GL) the WebView logs
+`tile memory limits exceeded` and screens can lag or ghost; with `-gpu host` (Metal translator) the game renders and
+animates normally. The script defaults to `swiftshader_indirect` for CI portability; for visual checks start the
+emulator yourself first:
+
 ```bash
-emulator -avd vybe-pixel-api36-arm64 -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect &
+emulator -avd vybe-pixel-api36-arm64 -no-window -no-audio -no-boot-anim -gpu host -no-snapshot-save &
 adb wait-for-device
 until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do sleep 3; done
-adb install -r android/app/build/outputs/apk/release/app-release.apk     # or the debug APK
-adb logcat -c
-adb shell am start -n in.vande.republic/.MainActivity
-sleep 8
-adb shell dumpsys activity activities | grep -E "mResumedActivity|topResumedActivity"  # app in foreground
-adb logcat -d | grep -E "FATAL EXCEPTION|AndroidRuntime|Capacitor/Console" | head -40  # no crashes, console output
-adb exec-out screencap -p > release/smoke-android.png                                  # visual check
-adb shell input keyevent KEYCODE_BACK                                                  # Back navigation
+scripts/android-smoke.sh release/vande-1.0.0-1-release.apk
+# Manual flow (1080×2400 Pixel-class AVD; coordinates are physical pixels)
+adb shell input tap 540 2108   # Intro → "Begin your first crisis"
+adb shell input tap 540 2230   # Opponents → "Begin chapter 1"
+adb shell input tap 540 2250   # Briefing → "Take command"
+adb shell input keyevent KEYCODE_BACK   # during play: pauses (pause sheet), does not leave the chapter
+adb exec-out screencap -p > release/smoke/play.png
+adb shell dumpsys activity activities | grep topResumedActivity
+adb logcat -d | grep -E "FATAL EXCEPTION|AndroidRuntime|CONSOLE|tile memory"
 adb emu kill
 ```
 
-Hardware Back is handled in the web layer through Capacitor's `App.addListener('backButton')` → the app's `back()`;
-on the Home screen it minimises the app (`App.minimizeApp()`) instead of exiting abruptly.
+Hardware Back is handled in the web layer through Capacitor's `App.addListener('backButton')` → the app's `back()`:
+during a running chapter it pauses; on secondary screens it returns to Home; on Home it calls `App.exitApp()`.
+
+### Verified release 1.0.0 (versionCode 1) — 23 Oct 2026
+
+| Check | Result |
+| --- | --- |
+| Build | `scripts/build-android.sh --skip-web` — Gradle 8.14.3 / AGP 8.13.0 / JDK 21.0.10, `BUILD SUCCESSFUL in 1m 20s` |
+| Artifacts | `release/vande-1.0.0-1-release.apk` 6.73 MB · `release/vande-1.0.0-1-release.aab` 6.66 MB · sums in `release/SHA256SUMS-1.0.0-1.txt` |
+| Signature | APK v1+v2 and AAB signed by the upload key `CN=VANDE Upload Key, OU=VANDE, O=VANDE, L=Kolkata, ST=West Bengal, C=IN` (SHA-256 `26:B1:3E:5A:…:7B:85:A0`, valid to 2054) |
+| Device | AVD `vybe-pixel-api36-arm64` — sdk_gphone64_arm64, Android 16 (API 36), WebView 133.0.6943.137, 1080×2400 |
+| Install / launch | `adb install -r -g` → Success; `am start -W` Status ok, TotalTime 3.0–4.3 s (host GPU); `versionCode=1 versionName=1.0.0`; launcher activity `in.vande.republic/.MainActivity` |
+| Screens | Intro, Home, Settings, opponent selection, briefing, gameplay (PixiJS WebGL map, timer, decisions, evidence tray) all render with correct fonts and layout |
+| Back | Settings → Home ✓ · Opponents → Home ✓ · during play → pause sheet ✓ · Home → app leaves foreground (launcher resumed) ✓ |
+| Logcat | No FATAL/ANR, no JS console errors, no asset 404s. Benign: `GL_INVALID_ENUM GetIntegerv` (PixiJS capability probe), `tile memory limits exceeded` (see note above; also seen briefly on host GPU while the opponent cards animate in) |
+| Rendering | gfxinfo over the session: 2 247 frames, 13.5 % janky on the emulator (not representative of hardware) |
+
+Known limitations observed on the emulator (web-layer items, tracked by the integrator): sticky footers on the
+briefing and opponent screens let the card text behind them show through; `backdrop-filter` on static cards is the
+likely source of the WebView tile-memory warnings.
 
 ## Troubleshooting
 

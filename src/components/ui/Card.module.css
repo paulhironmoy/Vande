@@ -19,12 +19,8 @@
 .glass {
   background: var(--surface-glass);
 }
-@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-  .glass {
-    -webkit-backdrop-filter: blur(14px) saturate(1.2);
-    backdrop-filter: blur(14px) saturate(1.2);
-  }
-}
+/* Static cards deliberately avoid backdrop-filter: several per screen exhaust tile memory on
+   mid-range Android WebViews. Blur is reserved for floating surfaces (sheets, dialogs, footers). */
 .interactive {
   cursor: pointer;
   text-align: left;

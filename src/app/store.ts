@@ -375,6 +375,8 @@ export const useApp = create<State>()((set, get) => ({
     if (s.screen.name === 'launch') return false;
     if (s.stack.length === 0) {
       if (s.screen.name === 'home') return false;
+      // Leaving the first-run introduction by Back counts as having seen it.
+      if (s.screen.name === 'intro' && s.firstRun) s.completeIntro();
       set({ screen: HOME, stack: [] });
       return true;
     }

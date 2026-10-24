@@ -121,3 +121,56 @@ export async function playChapterToEnd(page: Page, opts: { pickOption?: (titles:
   }
   throw new Error('Chapter did not finish within the time budget');
 }
+
+/** First integer found in the element's text. */
+export async function readNumber(page: Page, testId: string): Promise<number> {
+  const text = await page.getByTestId(testId).innerText();
+  const m = text.match(/\d+/);
+  if (!m) throw new Error(`No number in ${testId}: "${text}"`);
+  return Number(m[0]);
+}
+
+/** Fast-forwards game time without taking any decision until a result screen is visible. */
+export async function fastForwardChapterToEnd(page: Page, stepMs = 20_000) {
+  const deadline = Date.now() + 120_000;
+  while (Date.now() < deadline) {
+    if (await page.getByTestId('chapter-result-screen').isVisible().catch(() => false)) return;
+    if (await page.getByTestId('final-result-screen').isVisible().catch(() => false)) return;
+    await page.clock.fastForward(stepMs);
+    await page.waitForTimeout(60);
+  }
+  throw new Error('Chapter did not finish while fast-forwarding');
+}
+
+/** From a chapter or final result, continue until the final result screen is visible. */
+export async function continueToFinalResult(page: Page) {
+  const deadline = Date.now() + 60_000;
+  while (Date.now() < deadline) {
+    if (await page.getByTestId('final-result-screen').isVisible().catch(() => false)) return;
+    const cont = page.getByTestId('chapter-continue');
+    if (await cont.isVisible().catch(() => false)) {
+      await cont.click();
+      await page.waitForTimeout(100);
+      continue;
+    }
+    const brief = page.getByTestId('briefing-start');
+    if (await brief.isVisible().catch(() => false)) {
+      await brief.click();
+      await expect(page.getByTestId('play-screen')).toBeVisible({ timeout: 20_000 });
+      await playChapterToEnd(page);
+      continue;
+    }
+    await page.waitForTimeout(100);
+  }
+  throw new Error('Final result did not appear');
+}
+
+/** Opens a challenge link in a fresh page and starts the chapter. */
+export async function startChallenge(page: Page, code: string) {
+  await page.goto(`/?c=${encodeURIComponent(code)}`);
+  await expect(page.getByTestId('challenge-screen')).toBeVisible({ timeout: 15_000 });
+  await page.getByTestId('challenge-accept').click();
+  await expect(page.getByTestId('briefing-screen')).toBeVisible();
+  await page.getByTestId('briefing-start').click();
+  await expect(page.getByTestId('play-screen')).toBeVisible({ timeout: 20_000 });
+}
