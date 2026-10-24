@@ -37,8 +37,9 @@
 .chapter {
   flex: none;
 }
-@media (max-width: 379px) {
-  .world {
+@media (max-width: 419px) {
+  .phase,
+  .kicker > [aria-hidden] {
     display: none;
   }
 }

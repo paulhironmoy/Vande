@@ -264,7 +264,7 @@ function DistrictButton({ district: d, pos, selected, label, side, onSelect }: D
                 <path d="M5 1.5v4.2" />
                 <circle cx="5" cy="8.3" r="0.6" fill="currentColor" />
               </svg>
-              {d.pendingDecisions}
+              <span className={styles.count} data-count={d.pendingDecisions} />
             </span>
           )}
           {d.openEvidence > 0 && (
@@ -273,7 +273,7 @@ function DistrictButton({ district: d, pos, selected, label, side, onSelect }: D
                 <path d="M2.5 1.2h3.6l1.9 1.9v5.7h-5.5z" />
                 <path d="M3.6 5h2.8M3.6 6.8h2.8" />
               </svg>
-              {d.openEvidence}
+              <span className={styles.count} data-count={d.openEvidence} />
             </span>
           )}
         </span>

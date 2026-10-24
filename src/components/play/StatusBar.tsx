@@ -1,8 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import type { GameStatus } from '@/engine/types';
-import { PlayIcon } from './icons';
 import { PlayIconButton } from './PlayButton';
-import { formatClock, phaseLabel, worldTime } from './format';
+import { formatClock, phaseLabel } from './format';
 import styles from './StatusBar.module.css';
 
 export interface StatusBarProps {
@@ -43,10 +42,6 @@ export function StatusBar({ chapter, title, tick, duration, status, onPause, pul
       </div>
       <div className={styles.right}>
         <div className={styles.clockGroup}>
-          <span className={styles.world} aria-label={`In-world time ${worldTime(tick)}`}>
-            <PlayIcon name="clock" size={13} />
-            {worldTime(tick)}
-          </span>
           <span className={styles.timer} role="timer" aria-live="off" aria-label={`Time left ${formatClock(left)}`} data-testid="timer" data-urgent={urgent ? 'true' : undefined} data-status={status}>
             {formatClock(left)}
           </span>

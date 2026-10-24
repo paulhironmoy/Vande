@@ -316,7 +316,15 @@ function drawChips(ctx: CanvasRenderingContext2D, items: string[], x: number, y:
 function drawDims(ctx: CanvasRenderingContext2D, model: CardModel, x: number, y: number, width: number, px: number): void {
   const gap = px * 0.9;
   const colW = (width - gap * (model.dims.length - 1)) / model.dims.length;
+  const fit = (text: string, max: number): string => {
+    if (ctx.measureText(text).width <= max) return text;
+    let t = text;
+    while (t.length > 1 && ctx.measureText(`${t}…`).width > max) t = t.slice(0, -1);
+    return `${t}…`;
+  };
   ctx.save();
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
   model.dims.forEach((d, i) => {
     const cx = x + i * (colW + gap);
     ctx.fillStyle = 'rgba(170,182,200,0.14)';
@@ -325,15 +333,13 @@ function drawDims(ctx: CanvasRenderingContext2D, model: CardModel, x: number, y:
     ctx.fillStyle = C.dims[d.dim];
     roundRect(ctx, cx, y, Math.max(px * 0.5, (colW * d.value) / 100), px * 0.5, px * 0.25);
     ctx.fill();
-    ctx.fillStyle = C.steel;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
-    ctx.font = font(560, px);
-    ctx.fillText(d.label, cx, y + px * 1.9);
+    // Two rows: value (bold) then a short label, each fitted to the column so nothing overlaps.
     ctx.fillStyle = C.paper;
-    ctx.font = font(760, px);
-    ctx.textAlign = 'right';
-    ctx.fillText(String(d.value), cx + colW, y + px * 1.9);
+    ctx.font = font(760, px * 1.05);
+    ctx.fillText(String(d.value), cx, y + px * 1.8);
+    ctx.fillStyle = C.steel;
+    ctx.font = font(560, px * 0.72);
+    ctx.fillText(fit(d.label, colW), cx, y + px * 2.75);
   });
   ctx.restore();
 }

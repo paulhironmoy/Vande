@@ -129,5 +129,23 @@ export function challengeShareUrl(code: string, origin = typeof location !== 'un
 
 export function currentLocationScreen(): Screen | null {
   if (typeof location === 'undefined') return null;
-  return pathToScreen(location.pathname, location.search);
+  let pathname = location.pathname;
+  let search = location.search;
+  // Static-host deep links: public/404.html stores the requested in-app path (relative to the base) and loads the shell.
+  try {
+    const redirect = sessionStorage.getItem('vandeRedirect');
+    if (redirect) {
+      sessionStorage.removeItem('vandeRedirect');
+      const hashIdx = redirect.indexOf('#');
+      const noHash = hashIdx >= 0 ? redirect.slice(0, hashIdx) : redirect;
+      const qIdx = noHash.indexOf('?');
+      const rel = (qIdx >= 0 ? noHash.slice(0, qIdx) : noHash).replace(/^\/+/, '');
+      pathname = `${BASE}${rel}`;
+      search = qIdx >= 0 ? noHash.slice(qIdx) : search;
+      if (typeof history !== 'undefined') history.replaceState(history.state, '', `${pathname}${search}`);
+    }
+  } catch {
+    /* storage unavailable; the query string still carries ?c= codes */
+  }
+  return pathToScreen(pathname, search);
 }

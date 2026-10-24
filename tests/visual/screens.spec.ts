@@ -11,7 +11,7 @@ const SIZES = [
 
 async function shot(page: Page, name: string, size: string) {
   await page.waitForTimeout(350);
-  await page.screenshot({ path: `test-results/visual/${name}-${size}.png`, fullPage: false });
+  await page.screenshot({ path: `test-results-visual/shots/${name}-${size}.png`, fullPage: false });
 }
 
 async function playChapter(page: Page) {

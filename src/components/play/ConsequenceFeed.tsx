@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FeedItem } from '@/engine/types';
 import { FEED_ICON, FEED_LABEL, PlayIcon } from './icons';
-import { worldTime } from './format';
+import { formatClock } from './format';
 import styles from './ConsequenceFeed.module.css';
 
 export interface ConsequenceFeedProps {
@@ -48,7 +48,7 @@ export function ConsequenceFeed({ items, limit = 6, collapsible, className }: Co
               <PlayIcon name={FEED_ICON[f.kind]} size={14} title={FEED_LABEL[f.kind]} />
             </span>
             <span className={styles.text}>{f.text}</span>
-            <time className={styles.time}>{worldTime(f.tick)}</time>
+            <time className={styles.time} aria-label={`${formatClock(f.tick)} into the chapter`}>{formatClock(f.tick)}</time>
           </li>
         ))}
       </ol>

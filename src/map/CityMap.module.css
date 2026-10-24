@@ -198,6 +198,9 @@
   pointer-events: none;
 }
 
+.count::after {
+  content: attr(data-count);
+}
 .badge {
   display: inline-flex;
   align-items: center;

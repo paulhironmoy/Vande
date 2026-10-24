@@ -146,7 +146,7 @@ export function RepublicPulse({ pulse, scores, variant = 'full', reducedMotion =
         data-testid={testId}
         aria-expanded={showPanel}
         aria-controls={panelId}
-        aria-label={showPanel ? 'Hide Republic Pulse values' : 'Show Republic Pulse values'}
+        aria-label={`${mean} ${TREND_LABEL[direction]}. ${showPanel ? 'Hide' : 'Show'} Republic Pulse values`}
         onClick={() => setPinned((p) => !p)}
         onPointerEnter={onPointerEnter}
         onPointerLeave={onPointerLeave}

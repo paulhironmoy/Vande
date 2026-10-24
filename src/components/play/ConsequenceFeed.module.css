@@ -130,3 +130,6 @@
   font-size: var(--text-sm);
   color: var(--t-muted);
 }
+.list[hidden] {
+  display: none;
+}

@@ -212,3 +212,8 @@ video {
     scroll-behavior: auto;
   }
 }
+
+/* Author display rules must never defeat the hidden attribute. */
+[hidden]:not([hidden='until-found']) {
+  display: none !important;
+}

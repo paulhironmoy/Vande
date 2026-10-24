@@ -90,6 +90,16 @@ export function PlayScreen() {
     return () => window.removeEventListener('keydown', onKey);
   }, [focusDistrict, trayOpen, pulseOpen, setFocusDistrict]);
 
+  // On the phone layout the district card lives at the top of the scrolling dock; bring it into view when a district is picked.
+  const districtDockRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!focusDistrict || !districtDockRef.current) return;
+    const reduce =
+      document.documentElement.getAttribute('data-motion') === 'reduced' ||
+      (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    districtDockRef.current.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+  }, [focusDistrict]);
+
   if (!game || !scenario) {
     return (
       <main className={styles.screen} data-testid="play-screen">
@@ -275,7 +285,11 @@ export function PlayScreen() {
           {briefingOverlay}
         </section>
         <section className={styles.dock} aria-label="Decisions">
-          {district ? <DistrictCard district={district} onClose={() => setFocusDistrict(undefined)} onShowDecision={pendingHere ? showDecisionHere : undefined} onShowEvidence={district.openEvidence > 0 ? showEvidenceHere : undefined} className={styles.districtDock} /> : null}
+          {district ? (
+            <div ref={districtDockRef}>
+              <DistrictCard district={district} onClose={() => setFocusDistrict(undefined)} onShowDecision={pendingHere ? showDecisionHere : undefined} onShowEvidence={district.openEvidence > 0 ? showEvidenceHere : undefined} className={styles.districtDock} />
+            </div>
+          ) : null}
           <ConsequenceFeed items={game.feed} limit={6} collapsible />
           <DecisionArea game={game} scenario={scenario} layout="pager" requestedDecisionId={requestedDecision} onRequestHandled={clearRequestedDecision} unexaminedEvidence={unexamined} onOpenEvidence={openEvidenceUi} sheetOpen={sheetOpen} />
         </section>

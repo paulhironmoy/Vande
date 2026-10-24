@@ -91,3 +91,10 @@
   color: var(--t-primary);
   overflow-wrap: anywhere;
 }
+
+/* Let the page switcher wrap instead of clipping labels on narrow screens. */
+.nav {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  row-gap: var(--s-2);
+}
