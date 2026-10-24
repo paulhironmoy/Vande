@@ -1,0 +1,1098 @@
+{
+  "id": "d027",
+  "version": 1,
+  "title": "The Drone",
+  "subtitle": "A police drone films a peaceful procession; by noon the footage is being used to identify marchers",
+  "dilemmaKey": "drone-footage",
+  "themeTags": [
+    "privacy",
+    "assembly",
+    "evidence"
+  ],
+  "focus": "campus",
+  "institution": "campus",
+  "mood": "tense",
+  "opponents": [
+    "provocateur",
+    "disinfo"
+  ],
+  "coldOpen": [
+    "10:00. A drone hovers over the students’ march.",
+    "11:30. A list of “identified marchers” circulates.",
+    "The registrar is asked to confirm names."
+  ],
+  "briefing": {
+    "grievance": "Students marched peacefully for hostel fees. A police drone filmed every face. Now a list of names is circulating and the registrar has been asked to confirm them for “preventive action”.",
+    "knownFacts": [
+      "The march had permission and ended without incident.",
+      "The drone was flown by the district police with no written order.",
+      "A list of forty names with photos is circulating on messaging apps."
+    ],
+    "unverifiedClaims": [
+      "The list says the marchers were “paid by an outside group”.",
+      "A post says the drone footage shows students carrying weapons."
+    ],
+    "responsibility": "You run the district administration. The registrar reports to you; so does the officer who flew the drone.",
+    "objective": "Stop the misuse of the footage, protect the marchers from reprisal, and set a rule for surveillance of lawful assembly."
+  },
+  "evidence": [
+    {
+      "id": "ev-d027-1",
+      "title": "March permission",
+      "source": "District administration",
+      "sourceType": "official",
+      "time": "09:00",
+      "claim": "Permission granted for a peaceful march, 10:00–12:00, campus to Civic Square, 500 persons.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Status",
+          "value": "Permitted"
+        },
+        {
+          "label": "Incidents",
+          "value": "None reported"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A permission letter"
+      },
+      "resolutionNote": "The march was lawful from start to finish.",
+      "availableAt": 2,
+      "district": "civic",
+      "simple": {
+        "title": "The march permission",
+        "claim": "The march was allowed, 10 to 12, campus to Civic Square.",
+        "resolutionNote": "The march was lawful from start to finish.",
+        "caption": "A permission letter"
+      }
+    },
+    {
+      "id": "ev-d027-2",
+      "title": "Drone flight log",
+      "source": "District police",
+      "sourceType": "official",
+      "time": "11:00",
+      "claim": "Flight 10:05–11:40 over the march; operator notes “face capture for records”; no written authorisation attached.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Purpose noted",
+          "value": "“Face capture for records”"
+        },
+        {
+          "label": "Written order",
+          "value": "None"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A flight log with an empty authorisation line"
+      },
+      "resolutionNote": "Faces were captured on purpose with no order.",
+      "availableAt": 6,
+      "district": "campus",
+      "simple": {
+        "title": "The drone flight log",
+        "claim": "The drone flew over the march to capture faces “for records”. No written order.",
+        "resolutionNote": "Faces were captured on purpose, with no order.",
+        "caption": "A log with an empty line"
+      }
+    },
+    {
+      "id": "ev-d027-3",
+      "title": "The names list",
+      "source": "Messaging forward",
+      "sourceType": "anonymous",
+      "time": "11:30",
+      "claim": "Forty names and photos labelled “paid agitators”; photos cropped from the drone footage.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Source of photos",
+          "value": "Drone footage, cropped",
+          "anomaly": true
+        },
+        {
+          "label": "“Paid” claim",
+          "value": "No evidence attached",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A grid of forty cropped faces"
+      },
+      "resolutionNote": "Police footage became a public list with an invented label.",
+      "injectedBy": "disinfo",
+      "contradictedBy": [
+        "ev-d027-1"
+      ],
+      "district": "campus",
+      "simple": {
+        "title": "The names list",
+        "claim": "Forty names and photos labelled “paid agitators”. The photos come from the drone.",
+        "resolutionNote": "Police footage became a public list with a made-up label.",
+        "caption": "A grid of forty faces"
+      }
+    },
+    {
+      "id": "ev-d027-4",
+      "title": "Weapons post",
+      "source": "Local channel",
+      "sourceType": "anonymous",
+      "time": "12:00",
+      "claim": "A still “from the drone” shows a marcher with a “rod”; the object is a rolled banner.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Object",
+          "value": "A rolled banner, visible unrolled in the next frame",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "A blurry still of a student holding a long roll"
+      },
+      "resolutionNote": "The “rod” is a banner; the next frame shows it unrolled.",
+      "injectedBy": "provocateur",
+      "contradictedBy": [
+        "ev-d027-5"
+      ],
+      "district": "media",
+      "simple": {
+        "title": "The weapons post",
+        "claim": "A still shows a marcher with a “rod”.",
+        "resolutionNote": "The rod is a rolled-up banner. The next frame shows it open.",
+        "caption": "A student holding a long roll"
+      }
+    },
+    {
+      "id": "ev-d027-5",
+      "title": "Full drone footage",
+      "source": "District police evidence room",
+      "sourceType": "official",
+      "time": "12:30",
+      "claim": "Ninety-five minutes of footage; no weapons, no violence; the rolled banner unrolls at 10:52; stored on a removable card.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Weapons",
+          "value": "None"
+        },
+        {
+          "label": "Storage",
+          "value": "Removable card, not yet copied"
+        }
+      ],
+      "visual": {
+        "type": "video",
+        "caption": "A wide shot of a peaceful column"
+      },
+      "resolutionNote": "The full footage clears the marchers and sits on one card.",
+      "availableAt": 10,
+      "corroboratedBy": [
+        "ev-d027-1"
+      ],
+      "district": "campus",
+      "perishable": true,
+      "simple": {
+        "title": "The full drone footage",
+        "claim": "Ninety-five minutes of peaceful marching. The “rod” unrolls into a banner. It sits on one memory card.",
+        "resolutionNote": "The full footage clears the marchers. It is on one card.",
+        "caption": "A wide shot of a calm march"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d027-1",
+      "title": "The registrar’s request",
+      "situation": "The registrar has a list of forty names and a request to confirm them for “preventive action”. She wants to know if she must.",
+      "district": "campus",
+      "expiresAfter": 22,
+      "defaultOption": "o-d027-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d027-1-refuse",
+          "title": "Tell the registrar not to confirm any name",
+          "preview": "No student records are matched to the footage without a lawful order.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "Forty students keep their names out of a file.",
+          "setsFlags": [
+            "acknowledged",
+            "protected",
+            "names-refused"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "protect"
+            }
+          ]
+        },
+        {
+          "id": "o-d027-1-order",
+          "title": "Ask the police for the written authorisation",
+          "preview": "The flight log comes back with an empty authorisation line.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The question has an answer: there was no order.",
+          "requiresEvidence": [
+            "ev-d027-2"
+          ],
+          "setsFlags": [
+            "acknowledged",
+            "checked"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d027-1-confirm",
+          "title": "Confirm the names for the file",
+          "preview": "Forty students are matched to drone stills and flagged.",
+          "authority": "Article 19(1)(a): speech cannot be silenced wholesale",
+          "tags": [
+            "censorship",
+            "suppressive"
+          ],
+          "effects": {
+            "freedom": -13,
+            "trust": -8,
+            "evidence": -3,
+            "safety": 2
+          },
+          "consequence": "A lawful march becomes a watch list.",
+          "setsFlags": [
+            "names-confirmed"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d027-1-wait",
+          "title": "Tell her to use her judgement",
+          "preview": "She confirms twelve names before you call back.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1,
+            "freedom": -3
+          },
+          "consequence": "Twelve students are on a list because you were busy."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "The registrar’s request",
+        "situation": "The registrar has forty names and a request to confirm them. Must she?",
+        "options": {
+          "o-d027-1-refuse": {
+            "title": "Tell the registrar: confirm nothing",
+            "preview": "No student records are matched without a lawful order.",
+            "consequence": "Forty students keep their names out of a file."
+          },
+          "o-d027-1-order": {
+            "title": "Ask for the written order",
+            "preview": "The flight log comes back with an empty line.",
+            "consequence": "There was no order."
+          },
+          "o-d027-1-confirm": {
+            "title": "Confirm the names",
+            "preview": "Forty students are matched to drone stills and flagged.",
+            "consequence": "A lawful march becomes a watch list."
+          },
+          "o-d027-1-wait": {
+            "title": "Tell her to use her judgement",
+            "preview": "She confirms twelve names before you call back.",
+            "consequence": "Twelve students are listed because you were busy."
+          }
+        }
+      }
+    },
+    {
+      "id": "d027-2",
+      "title": "The list and the rod",
+      "situation": "The names list and the “rod” still are everywhere. Two students on the list have been threatened at their hostel.",
+      "district": "campus",
+      "expiresAfter": 24,
+      "defaultOption": "o-d027-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d027-2-footage",
+          "title": "Release the frame where the banner unrolls",
+          "preview": "The still and the next frame, side by side, with the permission letter.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The rod becomes a banner in public.",
+          "requiresEvidence": [
+            "ev-d027-5"
+          ],
+          "setsFlags": [
+            "checked",
+            "rod-answered"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d027-2-protect",
+          "title": "Post officers at the hostel; disown the list",
+          "preview": "A statement says the list is not official and no student is accused.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The threatened students have a door and a sentence.",
+          "setsFlags": [
+            "protected",
+            "list-disowned"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "protect"
+            }
+          ]
+        },
+        {
+          "id": "o-d027-2-accuse",
+          "title": "Announce an inquiry into the “paid agitators”",
+          "preview": "A statement adopts the list’s label.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "The administration endorses an anonymous forward.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d027-3"
+          ]
+        },
+        {
+          "id": "o-d027-2-wait",
+          "title": "Say nothing about an unofficial list",
+          "preview": "The list is treated as official because nobody says it is not.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "A third student is threatened."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "The list and the rod",
+        "situation": "The list and the “rod” still are everywhere. Two listed students have been threatened.",
+        "options": {
+          "o-d027-2-footage": {
+            "title": "Show the frame where the banner opens",
+            "preview": "The still and the next frame side by side, with the permission letter.",
+            "consequence": "The rod becomes a banner in public."
+          },
+          "o-d027-2-protect": {
+            "title": "Guard the hostel; disown the list",
+            "preview": "A statement says the list is not official and no one is accused.",
+            "consequence": "The threatened students have a door and a sentence."
+          },
+          "o-d027-2-accuse": {
+            "title": "Announce a “paid agitators” inquiry",
+            "preview": "A statement adopts the list’s label.",
+            "consequence": "The administration endorses a forward."
+          },
+          "o-d027-2-wait": {
+            "title": "Say nothing",
+            "preview": "Nobody says the list is not official, so it is.",
+            "consequence": "A third student is threatened."
+          }
+        }
+      }
+    },
+    {
+      "id": "d027-3",
+      "title": "The memory card",
+      "situation": "The full footage, which clears the marchers, is on one removable card in the evidence room. The drone officer has asked to “review and trim” it.",
+      "district": "civic",
+      "expiresAfter": 22,
+      "defaultOption": "o-d027-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d027-3-seal",
+          "title": "Seal the card; copy it under a magistrate’s seal",
+          "preview": "The full footage is preserved; the trimming request is refused in writing.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The exculpatory footage survives.",
+          "requiresEvidence": [
+            "ev-d027-5"
+          ],
+          "setsFlags": [
+            "checked",
+            "footage-sealed"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d027-3-rule",
+          "title": "Order: no face capture of lawful marches",
+          "preview": "Drones over lawful marches need a written order, a purpose and a delete date.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The next march is filmed by the law or not at all.",
+          "requiresEvidence": [
+            "ev-d027-2"
+          ],
+          "setsFlags": [
+            "plan-published"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "legal"
+            }
+          ]
+        },
+        {
+          "id": "o-d027-3-trim",
+          "title": "Let the officer trim the footage",
+          "preview": "Ninety-five minutes become eleven; the banner frame is gone.",
+          "authority": "Article 19(1)(a): speech cannot be silenced wholesale",
+          "tags": [
+            "censorship",
+            "suppressive"
+          ],
+          "effects": {
+            "freedom": -13,
+            "trust": -8,
+            "evidence": -3,
+            "safety": 2
+          },
+          "consequence": "The only proof of a peaceful march is edited by the accuser.",
+          "setsFlags": [
+            "footage-trimmed"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d027-3-wait",
+          "title": "Leave the card where it is",
+          "preview": "The card is “misplaced” during a shift change.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1,
+            "evidence": -3
+          },
+          "consequence": "The full footage never existed."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d027",
+      "simple": {
+        "title": "The memory card",
+        "situation": "The full footage clears the marchers. It sits on one card. The drone officer wants to “trim” it.",
+        "options": {
+          "o-d027-3-seal": {
+            "title": "Seal the card; copy it under seal",
+            "preview": "The full footage is preserved. The trimming request is refused in writing.",
+            "consequence": "The footage that clears them survives."
+          },
+          "o-d027-3-rule": {
+            "title": "Rule: no face capture of lawful marches",
+            "preview": "Drones over permitted marches need a written order, a purpose and a delete date.",
+            "consequence": "The next march is filmed by the law or not at all."
+          },
+          "o-d027-3-trim": {
+            "title": "Let the officer trim it",
+            "preview": "Ninety-five minutes become eleven. The banner frame is gone.",
+            "consequence": "The proof of a peaceful march is edited away."
+          },
+          "o-d027-3-wait": {
+            "title": "Leave the card where it is",
+            "preview": "The card is “misplaced” at shift change.",
+            "consequence": "The full footage never existed."
+          }
+        }
+      }
+    },
+    {
+      "id": "d027-4",
+      "title": "Forty names",
+      "situation": "The names list is still online. The students want it taken down and an apology. The police want it treated as “open-source intelligence”.",
+      "district": "campus",
+      "expiresAfter": 24,
+      "defaultOption": "o-d027-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d027-4-delete",
+          "title": "Order the stills deleted and say so publicly",
+          "preview": "All face captures are deleted under supervision; students are told in writing.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The list loses its source and its authority.",
+          "requiresEvidence": [
+            "ev-d027-2"
+          ],
+          "setsFlags": [
+            "protected",
+            "stills-deleted"
+          ]
+        },
+        {
+          "id": "o-d027-4-meet",
+          "title": "Meet the forty students with the registrar",
+          "preview": "You hear them, confirm nothing was matched, and give each a letter saying so.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "Forty letters answer forty cropped faces.",
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d027-4-accuse",
+          "title": "Name the student union as the list’s author",
+          "preview": "A statement blames the union for leaking the names.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "The victims of the list are blamed for it.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d027-3"
+          ]
+        },
+        {
+          "id": "o-d027-4-wait",
+          "title": "Let the police keep the stills",
+          "preview": "The faces stay in a folder marked “intelligence”.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The next march is smaller."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "Forty names",
+        "situation": "The list is still online. Students want it gone. Police want to keep the stills.",
+        "options": {
+          "o-d027-4-delete": {
+            "title": "Delete the stills; say so publicly",
+            "preview": "All face captures are deleted under supervision. Students are told in writing.",
+            "consequence": "The list loses its source and its authority."
+          },
+          "o-d027-4-meet": {
+            "title": "Meet the forty students",
+            "preview": "You confirm nothing was matched and give each a letter saying so.",
+            "consequence": "Forty letters answer forty cropped faces."
+          },
+          "o-d027-4-accuse": {
+            "title": "Blame the student union for the list",
+            "preview": "A statement says the union leaked the names.",
+            "consequence": "The victims are blamed for the list."
+          },
+          "o-d027-4-wait": {
+            "title": "Let the police keep the stills",
+            "preview": "The faces stay in a folder.",
+            "consequence": "The next march is smaller."
+          }
+        }
+      }
+    },
+    {
+      "id": "d027-bait",
+      "title": "“Charge the marchers”",
+      "situation": "A councillor demands the forty be charged with rioting on the strength of the “rod” still, “before they march again”.",
+      "district": "civic",
+      "expiresAfter": 20,
+      "defaultOption": "o-d027-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d027-bait-charge",
+          "title": "Register rioting cases against the forty",
+          "preview": "Forty students face charges based on a still of a banner.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A lawful march is prosecuted on a cropped frame.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d027-4"
+          ],
+          "setsFlags": [
+            "charged"
+          ]
+        },
+        {
+          "id": "o-d027-bait-decline",
+          "title": "Decline, and publish the full-footage summary",
+          "preview": "No weapons, no violence, permission granted, said in one page.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The councillor’s demand meets ninety-five minutes of calm.",
+          "requiresEvidence": [
+            "ev-d027-5"
+          ],
+          "setsFlags": [
+            "acknowledged",
+            "rod-answered"
+          ]
+        },
+        {
+          "id": "o-d027-bait-wait",
+          "title": "Say the footage is being reviewed",
+          "preview": "The review is done by the officer who wants to trim it.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The still remains the story."
+        }
+      ],
+      "simple": {
+        "title": "“Charge the marchers”",
+        "situation": "A councillor wants the forty charged with rioting over the “rod” still.",
+        "options": {
+          "o-d027-bait-charge": {
+            "title": "Charge the forty with rioting",
+            "preview": "Forty students face charges over a still of a banner.",
+            "consequence": "A lawful march is prosecuted on a cropped frame."
+          },
+          "o-d027-bait-decline": {
+            "title": "Decline; publish the footage summary",
+            "preview": "No weapons, no violence, permission granted, in one page.",
+            "consequence": "The demand meets ninety-five minutes of calm."
+          },
+          "o-d027-bait-wait": {
+            "title": "Say it is under review",
+            "preview": "The review is done by the drone officer.",
+            "consequence": "The still remains the story."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d027",
+      "question": "Police filmed a lawful march to capture faces without a written order. What do privacy and assembly rights require?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Surveillance of lawful assembly needs a legal basis, a specific purpose and proportionality; footage must be preserved intact and face data deleted when no offence is alleged.",
+          "correct": true,
+          "feedback": "Correct. Privacy is a fundamental right; blanket face capture of a peaceful march fails legality, necessity and proportionality."
+        },
+        {
+          "id": "b",
+          "text": "Police may film anyone in public and keep the faces indefinitely.",
+          "correct": false,
+          "feedback": "Public presence does not surrender privacy; targeted capture and retention need a lawful basis."
+        },
+        {
+          "id": "c",
+          "text": "Delete all the footage immediately, including the parts that clear the marchers.",
+          "correct": false,
+          "feedback": "Exculpatory footage must be preserved; it is the identification data, not the record of peace, that must go."
+        }
+      ],
+      "principle": "Privacy (Puttaswamy, Article 21) and peaceful assembly (Article 19(1)(b)) mean surveillance needs law, purpose and proportion; face data from a lawful march must be deleted while the record is preserved.",
+      "why": "A sealed card and a deletion order protected both the truth and the marchers; a trimmed card would have lost both.",
+      "source": {
+        "label": "Constitution of India, Articles 21 and 22 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "Police filmed a lawful march to capture faces, with no written order. What do privacy and assembly rights require?",
+        "options": {
+          "a": "Filming needs a law, a reason and limits. Keep the footage intact, delete the face data.",
+          "b": "Police may film anyone outside and keep the faces forever.",
+          "c": "Delete everything, including the parts that clear the marchers."
+        },
+        "feedback": {
+          "a": "Yes! Privacy still applies in public. Keep the proof, delete the faces.",
+          "b": "No. Being outside does not give up your privacy.",
+          "c": "The footage that proves peace must be kept."
+        },
+        "principle": "Filming a peaceful march needs a law, a reason and limits. Face data goes; the record stays.",
+        "why": "A sealed card and a deletion order protected the truth and the marchers."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d027-comp",
+      "at": -1,
+      "kind": "incident",
+      "message": "Masked men chase a listed student across the hostel lawn; a window is broken.",
+      "simple": "Masked men chase a listed student at the hostel.",
+      "effects": {
+        "safety": -5,
+        "trust": -1
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "campus",
+          "incident": "clash"
+        }
+      ]
+    },
+    {
+      "id": "e-d027-threats",
+      "at": 30,
+      "kind": "crowd",
+      "message": "Two more students on the list receive threats by phone.",
+      "simple": "Two more listed students get threats.",
+      "effects": {
+        "safety": -2,
+        "freedom": -2
+      },
+      "condition": {
+        "notFlag": "list-disowned"
+      }
+    }
+  ],
+  "complication": {
+    "opponent": "provocateur",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d027-comp",
+    "baitDecisionId": "d027-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "names-refused"
+        },
+        "text": "No student record was matched to the footage.",
+        "simple": "No student record was matched to the footage."
+      },
+      {
+        "condition": {
+          "flag": "footage-sealed"
+        },
+        "text": "The full footage was preserved under seal.",
+        "simple": "The full footage was preserved."
+      },
+      {
+        "condition": {
+          "flag": "plan-published"
+        },
+        "text": "Drones over lawful marches now need an order, a purpose and a deletion date.",
+        "simple": "Drones over marches now need an order and a delete date."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "flag": "names-confirmed"
+        },
+        "text": "Forty students are on a watch list for a lawful march.",
+        "simple": "Forty students are on a watch list."
+      },
+      {
+        "condition": {
+          "notFlag": "footage-sealed"
+        },
+        "text": "The footage that cleared the marchers was trimmed or lost.",
+        "simple": "The footage that cleared them is gone."
+      },
+      {
+        "condition": {
+          "notFlag": "rod-answered"
+        },
+        "text": "The “rod” still was never answered in public.",
+        "simple": "The “rod” still was never answered."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "stills-deleted"
+        },
+        "text": "The face captures were deleted and the students told.",
+        "simple": "The face captures were deleted."
+      },
+      {
+        "condition": {
+          "flag": "list-disowned"
+        },
+        "text": "The administration said the list was not its own.",
+        "simple": "The list was disowned."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "charged"
+        },
+        "text": "Peaceful marchers were charged on a cropped frame.",
+        "simple": "Marchers were charged on a cropped frame."
+      },
+      {
+        "condition": {
+          "flag": "footage-trimmed"
+        },
+        "text": "The accuser edited the only record of the march.",
+        "simple": "The accuser edited the record."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "names-refused"
+        },
+        "text": "Answer the registrar within the hour; silence confirms names.",
+        "simple": "Answer the registrar fast."
+      },
+      {
+        "condition": {
+          "notFlag": "footage-sealed"
+        },
+        "text": "Seal the card before anyone asks to trim it.",
+        "simple": "Seal the card first."
+      },
+      {
+        "condition": {},
+        "text": "Write the surveillance rule before the next march, not after.",
+        "simple": "Write the rule before the next march."
+      }
+    ],
+    "closing": {
+      "good": "The card is sealed, the stills are gone, forty students have letters, and the next drone needs a signature.",
+      "mixed": "The footage survived, but the stills sit in a folder and the list still has an audience.",
+      "poor": "Twelve names were confirmed, the card was trimmed, and a peaceful march ended in rioting charges."
+    }
+  },
+  "simple": {
+    "title": "The Drone",
+    "subtitle": "A police drone filmed a march. Now the faces are being matched.",
+    "briefing": {
+      "grievance": "Students marched peacefully about hostel fees. A police drone filmed every face. Now a list of names is spreading.",
+      "knownFacts": [
+        "The march had permission and ended peacefully.",
+        "The police flew the drone with no written order.",
+        "A list of forty names with photos is spreading."
+      ],
+      "unverifiedClaims": [
+        "The list says the marchers were paid by outsiders.",
+        "A post says the footage shows weapons."
+      ],
+      "responsibility": "You run the district. The registrar and the drone officer both report to you.",
+      "objective": "Stop the misuse of the footage. Protect the marchers. Set a rule for filming lawful marches."
+    },
+    "closing": {
+      "good": "The card is sealed. The stills are gone. The next drone needs a signature.",
+      "mixed": "The footage survived. The stills remain.",
+      "poor": "Names were confirmed. The card was trimmed."
+    },
+    "coldOpen": [
+      "A drone films the students’ march.",
+      "A list of names appears online.",
+      "The registrar is asked to confirm them."
+    ]
+  }
+}

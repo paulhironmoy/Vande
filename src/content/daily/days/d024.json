@@ -1,0 +1,1104 @@
+{
+  "id": "d024",
+  "version": 1,
+  "title": "The Blast Window",
+  "subtitle": "Quarry blasting cracks houses; the quarry employs the people whose walls are cracking",
+  "dilemmaKey": "quarry-blast",
+  "themeTags": [
+    "safety",
+    "economy",
+    "evidence"
+  ],
+  "focus": "records",
+  "institution": "civic",
+  "mood": "tense",
+  "opponents": [
+    "exploiter",
+    "sabotage"
+  ],
+  "coldOpen": [
+    "11:00. A quarry blast cracks a wall in the records lane.",
+    "11:30. Residents block the quarry road.",
+    "Half the lane works at the quarry."
+  ],
+  "briefing": {
+    "grievance": "Residents say the blasts have grown stronger for a month and now their walls are cracking. The quarry says the blasts are within the permit. Both sides are the same families.",
+    "knownFacts": [
+      "The quarry permit limits charge size and blast hours.",
+      "Three houses show fresh cracks; one wall has shifted.",
+      "Two hundred lane residents work at the quarry."
+    ],
+    "unverifiedClaims": [
+      "A post says the quarry uses double charges at lunch.",
+      "A message says the collector owns a share in the quarry."
+    ],
+    "responsibility": "You run the mines and safety desk for the district. The lane needs its walls; it also needs its wages.",
+    "objective": "Measure the blasts, make the houses safe, and keep the quarry working within its permit."
+  },
+  "evidence": [
+    {
+      "id": "ev-d024-1",
+      "title": "Blast permit",
+      "source": "Mines department",
+      "sourceType": "official",
+      "time": "11:40",
+      "claim": "Charge limit 40 kg; blasting 11:00–13:00 only; vibration limit at the nearest house 5 mm/s.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Charge limit",
+          "value": "40 kg"
+        },
+        {
+          "label": "Vibration limit",
+          "value": "5 mm/s"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A permit with limits"
+      },
+      "resolutionNote": "The permit sets clear limits that can be measured.",
+      "availableAt": 2,
+      "district": "civic",
+      "simple": {
+        "title": "The blast permit",
+        "claim": "Blasts up to 40 kg, 11 am to 1 pm. A shaking limit at the nearest house.",
+        "resolutionNote": "The rules can be measured.",
+        "caption": "A permit with limits"
+      }
+    },
+    {
+      "id": "ev-d024-2",
+      "title": "Cracked wall survey",
+      "source": "Municipal engineer",
+      "sourceType": "official",
+      "time": "12:30",
+      "claim": "Three houses with fresh cracks; one load-bearing wall displaced 12 mm; two homes unsafe to sleep in.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Houses cracked",
+          "value": "3"
+        },
+        {
+          "label": "Unsafe tonight",
+          "value": "2"
+        }
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "A crack running through a wall"
+      },
+      "resolutionNote": "Two families cannot sleep at home tonight.",
+      "availableAt": 6,
+      "district": "records",
+      "simple": {
+        "title": "The wall survey",
+        "claim": "Three houses have fresh cracks. Two are not safe to sleep in tonight.",
+        "resolutionNote": "Two families cannot sleep at home tonight.",
+        "caption": "A crack through a wall"
+      }
+    },
+    {
+      "id": "ev-d024-3",
+      "title": "“Collector’s share” message",
+      "source": "Forwarded message",
+      "sourceType": "anonymous",
+      "time": "11:20",
+      "claim": "A message claims the collector owns a share of the quarry, with a photo of a “share certificate”.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Certificate",
+          "value": "Template with the company name typed over",
+          "anomaly": true
+        },
+        {
+          "label": "Registry",
+          "value": "No such shareholder",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A share certificate with mismatched fonts"
+      },
+      "resolutionNote": "The certificate is a template; the registry shows no such owner.",
+      "injectedBy": "exploiter",
+      "contradictedBy": [
+        "ev-d024-4"
+      ],
+      "district": "market",
+      "simple": {
+        "title": "The “collector’s share” message",
+        "claim": "A message says the collector owns part of the quarry, with a certificate.",
+        "resolutionNote": "The certificate is a template. The registry shows no such owner.",
+        "caption": "A certificate with odd fonts"
+      }
+    },
+    {
+      "id": "ev-d024-4",
+      "title": "Company registry",
+      "source": "Registrar of companies",
+      "sourceType": "official",
+      "time": "12:00",
+      "claim": "Quarry owned by two partners; no public official among shareholders or directors.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Owners",
+          "value": "2 partners"
+        },
+        {
+          "label": "Officials",
+          "value": "None"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A registry extract"
+      },
+      "resolutionNote": "No official owns any part of the quarry.",
+      "availableAt": 10,
+      "district": "civic",
+      "simple": {
+        "title": "The company registry",
+        "claim": "Two partners own the quarry. No official is on the list.",
+        "resolutionNote": "No official owns any part of it.",
+        "caption": "A registry extract"
+      }
+    },
+    {
+      "id": "ev-d024-5",
+      "title": "Blast log and seismograph",
+      "source": "Quarry site office",
+      "sourceType": "business",
+      "time": "13:00",
+      "claim": "Today’s blast logged as 38 kg; the site seismograph trace shows 9 mm/s at the boundary, above the limit.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "metadata": [
+        {
+          "label": "Logged charge",
+          "value": "38 kg"
+        },
+        {
+          "label": "Measured vibration",
+          "value": "9 mm/s, limit 5"
+        },
+        {
+          "label": "Trace",
+          "value": "Paper roll, replaced daily"
+        }
+      ],
+      "visual": {
+        "type": "chart",
+        "caption": "A seismograph trace with a tall spike"
+      },
+      "resolutionNote": "The quarry’s own instrument shows the blast broke the vibration limit; the roll is replaced tomorrow.",
+      "availableAt": 16,
+      "corroboratedBy": [
+        "ev-d024-1"
+      ],
+      "district": "records",
+      "perishable": true,
+      "simple": {
+        "title": "The blast log and shake meter",
+        "claim": "The quarry logged 38 kg. Its own meter shows nearly double the shaking limit.",
+        "resolutionNote": "Their own meter shows the blast broke the limit. The paper roll is replaced tomorrow.",
+        "caption": "A trace with a tall spike"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d024-1",
+      "title": "The blocked road",
+      "situation": "Residents have blocked the quarry road with a cot and a cracked door. Trucks are queuing. The next blast is scheduled for noon.",
+      "district": "records",
+      "expiresAfter": 22,
+      "defaultOption": "o-d024-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d024-1-halt",
+          "title": "Halt today’s blasting; send the engineer",
+          "preview": "No noon blast; a municipal engineer surveys the cracked houses by one.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The road opens on its own. The lane has a surveyor, not a siren.",
+          "setsFlags": [
+            "acknowledged",
+            "served",
+            "blast-halted"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "relief"
+            }
+          ]
+        },
+        {
+          "id": "o-d024-1-meet",
+          "title": "Meet residents at the barricade with the permit",
+          "preview": "You read the limits and promise measurement, not promises.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "The cot stays, but the trucks are let through.",
+          "requiresEvidence": [
+            "ev-d024-1"
+          ],
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d024-1-clear",
+          "title": "Clear the road for the trucks",
+          "preview": "Police move the cot and the people; the noon blast goes ahead.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": -3,
+            "grievance": -4
+          },
+          "consequence": "The lane watches its own wages roll past, escorted.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "records",
+              "incident": "clash"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d024-1-wait",
+          "title": "Let the quarry negotiate",
+          "preview": "The quarry offers cash to the three families; others ask why not them.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -2,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The lane splits."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "The blocked road",
+        "situation": "Residents block the quarry road with a cot. Trucks queue. A blast is due at noon.",
+        "options": {
+          "o-d024-1-halt": {
+            "title": "Halt today’s blasting; send the engineer",
+            "preview": "No noon blast. An engineer checks the cracked houses by one.",
+            "consequence": "The road opens by itself."
+          },
+          "o-d024-1-meet": {
+            "title": "Meet residents with the permit",
+            "preview": "You read the limits and promise to measure.",
+            "consequence": "The cot stays, but the trucks pass."
+          },
+          "o-d024-1-clear": {
+            "title": "Clear the road for the trucks",
+            "preview": "Police move the people. The noon blast goes ahead.",
+            "consequence": "Wages roll past under escort."
+          },
+          "o-d024-1-wait": {
+            "title": "Let the quarry negotiate",
+            "preview": "The quarry pays three families. Others ask why not them.",
+            "consequence": "The lane splits."
+          }
+        }
+      }
+    },
+    {
+      "id": "d024-2",
+      "title": "The trace",
+      "situation": "The quarry’s own seismograph shows the blast broke the vibration limit. The paper roll is replaced each morning. The manager is “looking for it”.",
+      "district": "records",
+      "expiresAfter": 24,
+      "defaultOption": "o-d024-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d024-2-seize",
+          "title": "Secure the trace and the blast log today",
+          "preview": "An inspector takes the roll and a copy of the log, signed by the manager.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The number that matters is now on the record.",
+          "requiresEvidence": [
+            "ev-d024-5"
+          ],
+          "setsFlags": [
+            "checked",
+            "trace-secured"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d024-2-monitor",
+          "title": "Install your own monitor at a house",
+          "preview": "A district seismograph records every blast from tomorrow.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "Future blasts are measured by someone else.",
+          "setsFlags": [
+            "checked"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d024-2-accuse",
+          "title": "Announce the collector’s share will be probed",
+          "preview": "A statement adopts the message about the collector.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A probe into a template.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d024-3"
+          ]
+        },
+        {
+          "id": "o-d024-2-wait",
+          "title": "Ask the manager to send the trace",
+          "preview": "He sends tomorrow’s roll instead.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The spike is gone."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "The trace",
+        "situation": "The quarry’s own meter shows the blast broke the limit. The paper is replaced each morning.",
+        "options": {
+          "o-d024-2-seize": {
+            "title": "Secure the trace and log today",
+            "preview": "An inspector takes the roll and a signed copy of the log.",
+            "consequence": "The number that matters is on record."
+          },
+          "o-d024-2-monitor": {
+            "title": "Put your own meter at a house",
+            "preview": "A district meter records every blast from tomorrow.",
+            "consequence": "Future blasts are measured by someone else."
+          },
+          "o-d024-2-accuse": {
+            "title": "Announce a probe into the collector",
+            "preview": "A statement repeats the message about the share.",
+            "consequence": "A probe into a template."
+          },
+          "o-d024-2-wait": {
+            "title": "Ask the manager to send it",
+            "preview": "He sends tomorrow’s roll instead.",
+            "consequence": "The spike is gone."
+          }
+        }
+      }
+    },
+    {
+      "id": "d024-3",
+      "title": "Two unsafe houses",
+      "situation": "The engineer says two houses are unsafe to sleep in. The families refuse to leave: the last family that left a cracked house never got it back.",
+      "district": "records",
+      "expiresAfter": 22,
+      "defaultOption": "o-d024-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d024-3-house",
+          "title": "Rehouse them with a right to return",
+          "preview": "Two flats for two weeks, a repair order, and the families’ keys stay theirs.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "They leave because the paper says they come back.",
+          "requiresEvidence": [
+            "ev-d024-2"
+          ],
+          "setsFlags": [
+            "protected",
+            "rehoused"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "protect"
+            }
+          ]
+        },
+        {
+          "id": "o-d024-3-shore",
+          "title": "Shore the walls tonight and repair this week",
+          "preview": "Props go in by dark; the quarry pays for the repair.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The families stay, under steel props.",
+          "setsFlags": [
+            "served"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "records",
+              "action": "restore"
+            }
+          ]
+        },
+        {
+          "id": "o-d024-3-evict",
+          "title": "Evacuate the houses by force",
+          "preview": "Officers carry the families out “for their safety”.",
+          "authority": "Due process: safety orders still need notice and a route back",
+          "tags": [
+            "detention",
+            "force",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -13,
+            "trust": -10,
+            "safety": 3,
+            "grievance": -5
+          },
+          "consequence": "Safe tonight, homeless by every other measure.",
+          "setsFlags": [
+            "detained"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d024-3-wait",
+          "title": "Note the refusal and leave",
+          "preview": "The engineer’s warning sits in a file.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -4,
+            "economy": -1
+          },
+          "consequence": "A wall comes down in the night."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d024",
+      "simple": {
+        "title": "Two unsafe houses",
+        "situation": "Two houses are unsafe to sleep in. The families will not leave. The last family that left never came back.",
+        "options": {
+          "o-d024-3-house": {
+            "title": "Rehouse them with a right to return",
+            "preview": "Two flats for two weeks, a repair order, and their keys stay theirs.",
+            "consequence": "They leave because the paper says they return."
+          },
+          "o-d024-3-shore": {
+            "title": "Prop the walls tonight; repair this week",
+            "preview": "Props go in by dark. The quarry pays for the repair.",
+            "consequence": "The families stay, under steel props."
+          },
+          "o-d024-3-evict": {
+            "title": "Carry the families out",
+            "preview": "Officers remove the families “for safety”.",
+            "consequence": "Safe tonight. Homeless by every other measure."
+          },
+          "o-d024-3-wait": {
+            "title": "Note the refusal and leave",
+            "preview": "The engineer’s warning sits in a file.",
+            "consequence": "A wall comes down in the night."
+          }
+        }
+      }
+    },
+    {
+      "id": "d024-4",
+      "title": "The permit",
+      "situation": "The blast broke the vibration limit. Two hundred people work at the quarry. The owners want to resume tomorrow.",
+      "district": "civic",
+      "expiresAfter": 24,
+      "defaultOption": "o-d024-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d024-4-conditions",
+          "title": "Resume with half charges and a public monitor",
+          "preview": "Blasting resumes at 20 kg, every reading published daily, repairs paid first.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "Wages continue; walls stop cracking.",
+          "requiresEvidence": [
+            "ev-d024-5"
+          ],
+          "setsFlags": [
+            "plan-published",
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d024-4-fund",
+          "title": "Make the quarry fund repairs first",
+          "preview": "The quarry deposits the repair cost; the lane’s cracks are fixed from it.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "Repairs do not depend on goodwill.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d024-4-close",
+          "title": "Cancel the permit outright",
+          "preview": "The quarry closes; two hundred jobs go with it.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 2,
+            "grievance": -4,
+            "economy": -8
+          },
+          "consequence": "The lane’s walls are safe and its kitchens are empty.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 14,
+              "effects": {
+                "trust": -4,
+                "grievance": -3
+              },
+              "message": "Laid-off quarry workers march on the collectorate."
+            }
+          ]
+        },
+        {
+          "id": "o-d024-4-wait",
+          "title": "Let the quarry resume as before",
+          "preview": "Same charges, same hours, same trace replaced daily.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The next crack is scheduled for noon."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "The permit",
+        "situation": "The blast broke the limit. Two hundred people work there. The owners want to resume tomorrow.",
+        "options": {
+          "o-d024-4-conditions": {
+            "title": "Resume with half charges, public meter",
+            "preview": "Blasts at 20 kg, every reading published daily, repairs paid first.",
+            "consequence": "Wages continue. Walls stop cracking."
+          },
+          "o-d024-4-fund": {
+            "title": "Make the quarry fund repairs first",
+            "preview": "The quarry deposits the repair cost before blasting again.",
+            "consequence": "Repairs do not depend on goodwill."
+          },
+          "o-d024-4-close": {
+            "title": "Cancel the permit",
+            "preview": "The quarry closes. Two hundred jobs go with it.",
+            "consequence": "Walls are safe. Kitchens are empty."
+          },
+          "o-d024-4-wait": {
+            "title": "Let it resume as before",
+            "preview": "Same blasts. Same hours. Same paper replaced daily.",
+            "consequence": "The next crack is scheduled for noon."
+          }
+        }
+      }
+    },
+    {
+      "id": "d024-bait",
+      "title": "“Shut the quarry today”",
+      "situation": "Residents, a channel and an opposition councillor want the quarry shut today, permanently, before anyone has measured anything.",
+      "district": "civic",
+      "expiresAfter": 20,
+      "defaultOption": "o-d024-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d024-bait-shut",
+          "title": "Order the quarry shut permanently",
+          "preview": "A closure order on a day of anger, with no measurement.",
+          "authority": "Proportionality: regulate on measurement, not on the loudest day",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4,
+            "economy": -9
+          },
+          "consequence": "Two hundred families lose wages on a decision with no number behind it.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 16,
+              "effects": {
+                "trust": -3,
+                "economy": -3
+              },
+              "message": "Quarry workers from the same lane block the same road, the other way."
+            }
+          ]
+        },
+        {
+          "id": "o-d024-bait-measure",
+          "title": "Suspend blasting until the measurements are in",
+          "preview": "A pause, a monitor and a date; the quarry keeps its crushers running.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The decision waits for a number, not a chant.",
+          "setsFlags": [
+            "checked"
+          ]
+        },
+        {
+          "id": "o-d024-bait-wait",
+          "title": "Say the matter is being examined",
+          "preview": "Blasting resumes tomorrow by default.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The lane hears the noon blast again."
+        }
+      ],
+      "simple": {
+        "title": "“Shut the quarry today”",
+        "situation": "Everyone wants the quarry shut today, before anyone has measured anything.",
+        "options": {
+          "o-d024-bait-shut": {
+            "title": "Shut the quarry for good",
+            "preview": "A closure order with no measurement.",
+            "consequence": "Two hundred families lose wages."
+          },
+          "o-d024-bait-measure": {
+            "title": "Pause blasting until measured",
+            "preview": "A pause, a meter and a date. The crushers keep running.",
+            "consequence": "The decision waits for a number."
+          },
+          "o-d024-bait-wait": {
+            "title": "Say it is being examined",
+            "preview": "Blasting resumes tomorrow by default.",
+            "consequence": "The lane hears the noon blast again."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d024",
+      "question": "Two houses are unsafe. The families refuse to leave, fearing they will never return. What does a fair safety order look like?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Notice, a reason, temporary housing nearby, and a written right to return once repairs are done.",
+          "correct": true,
+          "feedback": "Correct. Safety powers must still follow due process and leave a route home."
+        },
+        {
+          "id": "b",
+          "text": "Carry them out; safety overrides everything, including notice.",
+          "correct": false,
+          "feedback": "Forced removal without notice or a route back turns protection into eviction."
+        },
+        {
+          "id": "c",
+          "text": "Do nothing; their house, their risk.",
+          "correct": false,
+          "feedback": "The state has a duty to protect life, and it can be met with lawful, humane measures."
+        }
+      ],
+      "principle": "The right to shelter and to life (Article 21) means safety orders need notice, reasons, alternatives and a right to return, not just a decision to clear.",
+      "why": "Two flats and a written return date moved the families; a forced evacuation would have fulfilled their fear.",
+      "source": {
+        "label": "Constitution of India, Articles 21 and 22 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "Two houses are unsafe. The families fear they will never come back. What is a fair safety order?",
+        "options": {
+          "a": "Notice, a reason, a nearby place to stay, and a written right to return.",
+          "b": "Carry them out. Safety beats everything.",
+          "c": "Do nothing. Their house, their risk."
+        },
+        "feedback": {
+          "a": "Yes! Safety still needs fairness and a way home.",
+          "b": "No. Removing people with no way back is eviction.",
+          "c": "The state must protect life, fairly."
+        },
+        "principle": "A safety order needs notice, a reason, a place to stay and a way back home.",
+        "why": "Two flats and a return date moved the families. Force would have proved their fear right."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d024-comp",
+      "at": -1,
+      "kind": "rumor",
+      "message": "A councillor at the barricade promises the quarry will be “shut by sunset”, to cheers from half the lane.",
+      "simple": "A councillor promises the quarry shut by sunset.",
+      "effects": {
+        "grievance": -4,
+        "trust": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "records",
+          "magnitude": 0.2
+        },
+        {
+          "kind": "mood",
+          "district": "records",
+          "mood": "volatile"
+        }
+      ]
+    },
+    {
+      "id": "e-d024-blast",
+      "at": 20,
+      "kind": "incident",
+      "message": "A blast goes ahead at noon; a second wall cracks.",
+      "simple": "A noon blast cracks a second wall.",
+      "effects": {
+        "safety": -3,
+        "trust": -2
+      },
+      "condition": {
+        "notFlag": "blast-halted"
+      }
+    }
+  ],
+  "complication": {
+    "opponent": "exploiter",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d024-comp",
+    "baitDecisionId": "d024-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "blast-halted"
+        },
+        "text": "Today’s blasting was halted and an engineer surveyed the lane.",
+        "simple": "Blasting was halted. An engineer checked the lane."
+      },
+      {
+        "condition": {
+          "flag": "trace-secured"
+        },
+        "text": "The quarry’s own trace was secured before it was replaced.",
+        "simple": "The quarry’s own trace was secured."
+      },
+      {
+        "condition": {
+          "flag": "plan-published"
+        },
+        "text": "Blasting resumes on half charges with published readings.",
+        "simple": "Blasting resumes smaller, with public readings."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "notFlag": "trace-secured"
+        },
+        "text": "The reading that proved the breach is gone.",
+        "simple": "The proof of the breach is gone."
+      },
+      {
+        "condition": {
+          "notFlag": "served"
+        },
+        "text": "The cracked houses got no repair or props.",
+        "simple": "The cracked houses got no help."
+      },
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "The lane lost either its road or its wages.",
+        "simple": "The lane lost its road or its wages."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "rehoused"
+        },
+        "text": "Two families left unsafe houses with a written right to return.",
+        "simple": "Two families left with a right to return."
+      },
+      {
+        "condition": {
+          "flag": "checked"
+        },
+        "text": "The decision rested on a measurement.",
+        "simple": "The decision rested on a measurement."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "detained"
+        },
+        "text": "Families were carried out with no route home.",
+        "simple": "Families were carried out with no way home."
+      },
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "Force or closure replaced measurement.",
+        "simple": "Force or closure replaced measurement."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "trace-secured"
+        },
+        "text": "Secure the quarry’s own instrument before the roll changes.",
+        "simple": "Secure the trace before it is replaced."
+      },
+      {
+        "condition": {
+          "notFlag": "rehoused"
+        },
+        "text": "A right to return in writing moves people a cordon cannot.",
+        "simple": "A written right to return moves people."
+      },
+      {
+        "condition": {},
+        "text": "Measure first; the closure chant and the permit both wait for a number.",
+        "simple": "Measure first."
+      }
+    ],
+    "closing": {
+      "good": "The trace is in a file, the blasts are half the size, and two families are in flats with a date to come home.",
+      "mixed": "The houses are propped and the blasting paused, but the breach was never proven.",
+      "poor": "The lane lost its wages or its walls, and the number that would have settled it was replaced with tomorrow’s roll."
+    }
+  },
+  "simple": {
+    "title": "The Blast Window",
+    "subtitle": "Quarry blasts crack the houses of its own workers.",
+    "briefing": {
+      "grievance": "Residents say the blasts got stronger and now walls are cracking. The quarry says it follows the rules. Both sides are the same families.",
+      "knownFacts": [
+        "The quarry permit limits blast size and hours.",
+        "Three houses have fresh cracks. One wall has moved.",
+        "Two hundred residents work at the quarry."
+      ],
+      "unverifiedClaims": [
+        "A post says the quarry uses double charges.",
+        "A message says the collector owns part of it."
+      ],
+      "responsibility": "You run the mines and safety desk.",
+      "objective": "Measure the blasts. Make the houses safe. Keep the quarry working within the rules."
+    },
+    "closing": {
+      "good": "The trace is safe. Blasts are half the size. Two families have a date to come home.",
+      "mixed": "Houses are propped. The breach was never proven.",
+      "poor": "The lane lost its wages or its walls."
+    },
+    "coldOpen": [
+      "A quarry blast cracks a wall.",
+      "Residents block the quarry road.",
+      "Half of them work at the quarry."
+    ]
+  }
+}

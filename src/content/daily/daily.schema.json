@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://vande.app/schema/daily.schema.json",
+  "title": "VANDE daily crisis (DailyCrisis)",
+  "description": "One authored Daily Quick Play day. Sub-objects (evidence, decisions, rights moments, events, resolution rules) reuse the scenario schema definitions; the compiler (src/engine/dailyCompiler.ts) adds the shared city, opening events and opponent plays. The schedule lives in schedule.json and is described by #/definitions/schedule.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "version", "title", "subtitle", "dilemmaKey", "themeTags", "focus", "institution", "mood", "opponents", "coldOpen", "briefing", "evidence", "decisions", "rightsMoments", "complication", "resolution"],
+  "properties": {
+    "id": { "$ref": "#/definitions/dayId" },
+    "version": { "type": "integer", "minimum": 1, "description": "Bump when the day's content changes in a way that should reseed future dates." },
+    "title": { "type": "string", "minLength": 1, "maxLength": 60 },
+    "subtitle": { "type": "string", "minLength": 1, "maxLength": 140 },
+    "dilemmaKey": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Identity of the central dilemma; must not repeat inside any 30-day window of the schedule." },
+    "themeTags": { "type": "array", "minItems": 1, "maxItems": 6, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" } },
+    "focus": { "$ref": "#/definitions/district" },
+    "institution": { "$ref": "#/definitions/institutionDistrict" },
+    "mood": { "enum": ["calm", "tense", "volatile", "hopeful"] },
+    "startingScores": { "$ref": "#/definitions/partialScores" },
+    "opponents": { "type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": { "$ref": "scenario.schema.json#/definitions/opponentId" } },
+    "coldOpen": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "string", "minLength": 1, "maxLength": 60 } },
+    "briefing": { "$ref": "#/definitions/briefing" },
+    "evidence": { "type": "array", "minItems": 4, "maxItems": 6, "items": { "$ref": "scenario.schema.json#/definitions/evidence" } },
+    "decisions": { "type": "array", "minItems": 4, "maxItems": 6, "items": { "$ref": "scenario.schema.json#/definitions/decision" } },
+    "rightsMoments": { "type": "array", "minItems": 1, "items": { "$ref": "scenario.schema.json#/definitions/rightsMoment" } },
+    "events": { "type": "array", "items": { "$ref": "scenario.schema.json#/definitions/event" } },
+    "complication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["opponent", "earliest", "latest", "eventId"],
+      "properties": {
+        "opponent": { "$ref": "scenario.schema.json#/definitions/opponentId" },
+        "earliest": { "type": "integer", "minimum": 1 },
+        "latest": { "type": "integer", "minimum": 1 },
+        "eventId": { "$ref": "scenario.schema.json#/definitions/id" },
+        "baitDecisionId": { "$ref": "scenario.schema.json#/definitions/id" }
+      }
+    },
+    "resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resolved", "unresolved", "rightsProtected", "rightsHarmed", "improvements", "closing"],
+      "properties": {
+        "resolved": { "$ref": "scenario.schema.json#/definitions/rules" },
+        "unresolved": { "$ref": "scenario.schema.json#/definitions/rules" },
+        "rightsProtected": { "$ref": "scenario.schema.json#/definitions/rules" },
+        "rightsHarmed": { "$ref": "scenario.schema.json#/definitions/rules" },
+        "improvements": { "$ref": "scenario.schema.json#/definitions/rules" },
+        "closing": { "$ref": "#/definitions/closing" }
+      }
+    },
+    "duration": { "type": "integer", "minimum": 80, "maximum": 140, "description": "Ticks; defaults to 100 (DAILY_DEFAULT_DURATION)." },
+    "simple": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "subtitle": { "type": "string", "minLength": 1, "maxLength": 140 },
+        "briefing": { "$ref": "#/definitions/briefing" },
+        "closing": { "$ref": "#/definitions/closing" },
+        "coldOpen": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "string", "pattern": "^\\s*\\S+(\\s+\\S+){0,6}\\s*$", "description": "At most seven words." } }
+      }
+    }
+  },
+  "definitions": {
+    "dayId": { "type": "string", "pattern": "^d\\d{3}$" },
+    "dailyId": { "type": "string", "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$", "description": "Canonical UTC calendar date." },
+    "district": { "enum": ["campus", "hospital", "civic", "market", "records", "transit", "media"] },
+    "institutionDistrict": { "enum": ["campus", "hospital", "civic", "records", "transit", "media"], "description": "A district that hosts an institution (Market Street has none)." },
+    "partialScores": {
+      "type": "object",
+      "propertyNames": { "$ref": "scenario.schema.json#/definitions/dimension" },
+      "additionalProperties": { "type": "number", "minimum": 0, "maximum": 100 }
+    },
+    "briefing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["grievance", "responsibility", "objective"],
+      "properties": {
+        "grievance": { "type": "string", "minLength": 1 },
+        "knownFacts": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "unverifiedClaims": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "responsibility": { "type": "string", "minLength": 1 },
+        "objective": { "type": "string", "minLength": 1 },
+        "lines": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "closing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["good", "mixed", "poor"],
+      "properties": {
+        "good": { "type": "string", "minLength": 1 },
+        "mixed": { "type": "string", "minLength": 1 },
+        "poor": { "type": "string", "minLength": 1 }
+      }
+    },
+    "schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contentVersion", "epoch", "order", "pinned"],
+      "properties": {
+        "contentVersion": { "type": "string", "pattern": "^\\d{4}\\.\\d{1,2}\\.\\d+$" },
+        "epoch": { "$ref": "#/definitions/dailyId" },
+        "order": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/definitions/dayId" } },
+        "pinned": {
+          "type": "object",
+          "propertyNames": { "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$" },
+          "additionalProperties": { "$ref": "#/definitions/dayId" }
+        }
+      }
+    }
+  }
+}

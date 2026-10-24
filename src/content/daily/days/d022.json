@@ -229,7 +229,7 @@
       "options": [
         {
           "id": "o-d022-1-pause",
-          "title": "Suspend tonight’s piling; meet the contractor at dawn",
+          "title": "Stop tonight’s piling; meet at dawn",
           "preview": "One night off for the wards; a meeting with the schedule on the table.",
           "authority": "Duty to keep essential services running",
           "tags": [
@@ -509,7 +509,7 @@
       "options": [
         {
           "id": "o-d022-3-accept",
-          "title": "Accept day shifts, waive the penalty for the shift",
+          "title": "Accept day shifts; waive the penalty",
           "preview": "The schedule changes; the four days are not penalised; the barrier goes up.",
           "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
           "tags": [
@@ -540,7 +540,7 @@
         },
         {
           "id": "o-d022-3-barrier",
-          "title": "Order the noise barrier first, then decide shifts",
+          "title": "Order the noise barrier first",
           "preview": "The barrier is installed in two days; nights pause until it is up.",
           "authority": "Duty to keep essential services running",
           "tags": [

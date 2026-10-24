@@ -1,0 +1,1089 @@
+{
+  "id": "d023",
+  "version": 1,
+  "title": "The Camp Rumour",
+  "subtitle": "A school vaccination camp meets a video of fainting children",
+  "dilemmaKey": "vaccine-rumour",
+  "themeTags": [
+    "health",
+    "rumour",
+    "children"
+  ],
+  "focus": "campus",
+  "institution": "hospital",
+  "mood": "tense",
+  "opponents": [
+    "disinfo",
+    "exploiter"
+  ],
+  "coldOpen": [
+    "09:00. A measles camp opens at the quarter’s school.",
+    "09:40. A video of fainting children spreads.",
+    "Parents are pulling their children out of the queue."
+  ],
+  "briefing": {
+    "grievance": "Parents want to know if the vaccine is safe and why nobody told them about the camp before a video did. Health workers want the queue back before the vials expire.",
+    "knownFacts": [
+      "The camp is part of a measles catch-up after twelve cases in the quarter.",
+      "Two children fainted in the heat before being vaccinated; both are fine.",
+      "The vials must be used today once opened."
+    ],
+    "unverifiedClaims": [
+      "The video shows children “collapsing after the shot”.",
+      "A message says the batch was recalled elsewhere."
+    ],
+    "responsibility": "You run the health office and the camp. The outbreak is real; so is the fear.",
+    "objective": "Answer the video with facts, keep the camp open with consent, and protect the health workers."
+  },
+  "evidence": [
+    {
+      "id": "ev-d023-1",
+      "title": "Camp log",
+      "source": "Health office",
+      "sourceType": "official",
+      "time": "09:45",
+      "claim": "Two children fainted in the waiting line at 09:20, before vaccination; observed and sent home well.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Fainted",
+          "value": "2, in the waiting line"
+        },
+        {
+          "label": "Vaccinated at the time",
+          "value": "No"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A camp register with two notes"
+      },
+      "resolutionNote": "The two children fainted before any shot.",
+      "availableAt": 2,
+      "district": "campus",
+      "simple": {
+        "title": "The camp log",
+        "claim": "Two children fainted in the queue before their shot. Both went home well.",
+        "resolutionNote": "They fainted before any shot.",
+        "caption": "A camp register"
+      }
+    },
+    {
+      "id": "ev-d023-2",
+      "title": "Fainting video",
+      "source": "Forwarded clip",
+      "sourceType": "anonymous",
+      "time": "09:40",
+      "claim": "Children on the ground beside the camp; a caption says “after the injection”.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Caption",
+          "value": "Added by the sender",
+          "anomaly": true
+        },
+        {
+          "label": "Timestamp",
+          "value": "09:20, before vaccination began",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "video",
+        "caption": "Children sitting on the ground in the shade"
+      },
+      "resolutionNote": "The clip is real; the caption is not. It was shot before the first shot.",
+      "injectedBy": "disinfo",
+      "contradictedBy": [
+        "ev-d023-1"
+      ],
+      "district": "campus",
+      "simple": {
+        "title": "The fainting video",
+        "claim": "Children on the ground beside the camp. The caption says “after the injection”.",
+        "resolutionNote": "The clip is real. The caption is not. It was filmed before the first shot.",
+        "caption": "Children sitting in the shade"
+      }
+    },
+    {
+      "id": "ev-d023-3",
+      "title": "Batch record",
+      "source": "State drug controller",
+      "sourceType": "official",
+      "time": "10:00",
+      "claim": "Batch MV-2291 is in date, cold chain intact, no recall anywhere.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Batch",
+          "value": "MV-2291"
+        },
+        {
+          "label": "Recall",
+          "value": "None"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A batch certificate"
+      },
+      "resolutionNote": "The batch is fine and was never recalled.",
+      "availableAt": 6,
+      "district": "hospital",
+      "simple": {
+        "title": "The batch record",
+        "claim": "The batch is in date, kept cold, and never recalled.",
+        "resolutionNote": "The batch is fine.",
+        "caption": "A batch certificate"
+      }
+    },
+    {
+      "id": "ev-d023-4",
+      "title": "Outbreak map",
+      "source": "District surveillance",
+      "sourceType": "official",
+      "time": "10:20",
+      "claim": "Twelve measles cases in the quarter in three weeks; four hospitalised.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Cases",
+          "value": "12"
+        },
+        {
+          "label": "In hospital",
+          "value": "4"
+        }
+      ],
+      "visual": {
+        "type": "map",
+        "caption": "A map with twelve dots in one quarter"
+      },
+      "resolutionNote": "The outbreak is real and growing.",
+      "availableAt": 10,
+      "district": "campus",
+      "simple": {
+        "title": "The outbreak map",
+        "claim": "Twelve measles cases in three weeks. Four children in hospital.",
+        "resolutionNote": "The outbreak is real.",
+        "caption": "A map with twelve dots"
+      }
+    },
+    {
+      "id": "ev-d023-5",
+      "title": "Open vials",
+      "source": "Camp pharmacist",
+      "sourceType": "institution",
+      "time": "11:00",
+      "claim": "Forty doses opened at 09:00; unusable after 15:00.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Doses open",
+          "value": "40"
+        },
+        {
+          "label": "Discard after",
+          "value": "15:00"
+        }
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "A cold box with open vials"
+      },
+      "resolutionNote": "Forty doses will be wasted by three o’clock.",
+      "availableAt": 18,
+      "district": "campus",
+      "perishable": true,
+      "simple": {
+        "title": "The open vials",
+        "claim": "Forty doses were opened at 9 am. They are useless after 3 pm.",
+        "resolutionNote": "Forty doses will be wasted by three.",
+        "caption": "A cold box with vials"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d023-1",
+      "title": "The emptying queue",
+      "situation": "Parents are leaving with their children. The video is on every phone. Health workers stand by a cold box.",
+      "district": "campus",
+      "expiresAfter": 22,
+      "defaultOption": "o-d023-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d023-1-explain",
+          "title": "Show the camp log at the gate, with a doctor",
+          "preview": "The two fainted in the heat, before any shot; a doctor says so to the parents.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "Some parents turn back. The caption meets a timestamp.",
+          "requiresEvidence": [
+            "ev-d023-1"
+          ],
+          "setsFlags": [
+            "acknowledged",
+            "facts-at-gate"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d023-1-shade",
+          "title": "Move the queue into the hall; water and fans",
+          "preview": "No one else faints in the sun; the camp carries on indoors.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The queue is shorter but calmer.",
+          "setsFlags": [
+            "acknowledged",
+            "served"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "relief"
+            }
+          ]
+        },
+        {
+          "id": "o-d023-1-order",
+          "title": "Order attendance; turn parents back at the gate",
+          "preview": "Staff block parents from leaving with unvaccinated children.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": -3,
+            "grievance": -4
+          },
+          "consequence": "A camp becomes a cordon. Parents push past.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "campus",
+              "incident": "intimidation"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d023-1-wait",
+          "title": "Let the camp carry on quietly",
+          "preview": "No statement; the video does the explaining.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The queue is empty by eleven."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "The emptying queue",
+        "situation": "Parents are leaving with their children. The video is on every phone.",
+        "options": {
+          "o-d023-1-explain": {
+            "title": "Show the camp log at the gate",
+            "preview": "A doctor tells parents the two fainted in the heat before any shot.",
+            "consequence": "Some parents turn back."
+          },
+          "o-d023-1-shade": {
+            "title": "Move the queue indoors",
+            "preview": "Water, fans, and no one else faints in the sun.",
+            "consequence": "The queue is shorter but calmer."
+          },
+          "o-d023-1-order": {
+            "title": "Block the gate; make them stay",
+            "preview": "Staff stop parents leaving with their children.",
+            "consequence": "A camp becomes a cordon."
+          },
+          "o-d023-1-wait": {
+            "title": "Carry on quietly",
+            "preview": "No statement. The video explains for you.",
+            "consequence": "The queue is empty by eleven."
+          }
+        }
+      }
+    },
+    {
+      "id": "d023-2",
+      "title": "The recall message",
+      "situation": "A message says the batch was recalled in another state. The drug controller’s record says no recall. The pharmacist is being shouted at.",
+      "district": "campus",
+      "expiresAfter": 24,
+      "defaultOption": "o-d023-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d023-2-batch",
+          "title": "Publish the batch record and the map",
+          "preview": "The batch, the cold chain, and twelve real cases, side by side.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The recall message meets paperwork and a map.",
+          "requiresEvidence": [
+            "ev-d023-3"
+          ],
+          "setsFlags": [
+            "checked",
+            "batch-published"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d023-2-verify",
+          "title": "Call the other state’s controller on speaker",
+          "preview": "A health officer confirms there was never a recall, with parents listening.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The parents hear the answer, not a notice.",
+          "requiresEvidence": [
+            "ev-d023-3"
+          ],
+          "setsFlags": [
+            "checked"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d023-2-accuse",
+          "title": "Call the sender an anti-vaccine agent",
+          "preview": "A statement names an account without evidence.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A rumour is answered with another rumour.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d023-2"
+          ]
+        },
+        {
+          "id": "o-d023-2-wait",
+          "title": "Let the pharmacist handle it",
+          "preview": "One person with a cold box faces a crowd.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The pharmacist leaves in tears."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "The recall message",
+        "situation": "A message says the batch was recalled. The record says no. The pharmacist is being shouted at.",
+        "options": {
+          "o-d023-2-batch": {
+            "title": "Publish the batch record and the map",
+            "preview": "The batch, the cold chain, and twelve real cases, together.",
+            "consequence": "The recall message meets paperwork and a map."
+          },
+          "o-d023-2-verify": {
+            "title": "Call the other state on speaker",
+            "preview": "An officer confirms there was never a recall. Parents listen.",
+            "consequence": "The parents hear the answer themselves."
+          },
+          "o-d023-2-accuse": {
+            "title": "Call the sender an agent",
+            "preview": "A statement names an account with no proof.",
+            "consequence": "A rumour is answered with another rumour."
+          },
+          "o-d023-2-wait": {
+            "title": "Let the pharmacist handle it",
+            "preview": "One person with a cold box faces a crowd.",
+            "consequence": "The pharmacist leaves in tears."
+          }
+        }
+      }
+    },
+    {
+      "id": "d023-3",
+      "title": "Consent at the gate",
+      "situation": "A councillor wants every child in the quarter vaccinated today, “door to door, no excuses”. Parents are split. The outbreak is real.",
+      "district": "campus",
+      "expiresAfter": 22,
+      "defaultOption": "o-d023-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d023-3-consent",
+          "title": "Vaccinate with consent; counsel the refusers",
+          "preview": "Children with a parent’s yes get the shot; refusers get a doctor, not a threat.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The camp runs on consent. Most say yes.",
+          "setsFlags": [
+            "protected",
+            "consent-kept"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "protect"
+            }
+          ]
+        },
+        {
+          "id": "o-d023-3-doors",
+          "title": "Send health workers door to door, to talk",
+          "preview": "Teams visit homes with the log and the map, and take yes for an answer only.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "Doorstep conversations beat a viral caption.",
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d023-3-force",
+          "title": "Hold refusing parents at the camp",
+          "preview": "Refusers are kept in a room until they sign.",
+          "authority": "Articles 21 and 22: liberty and safeguards on arrest",
+          "tags": [
+            "detention",
+            "force",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -13,
+            "trust": -10,
+            "safety": 3,
+            "grievance": -5
+          },
+          "consequence": "Consent becomes a signature taken from a locked room.",
+          "setsFlags": [
+            "detained"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d023-3-wait",
+          "title": "Close the camp for the day",
+          "preview": "The councillor is unhappy; the outbreak continues.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Forty doses go in the bin."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d023",
+      "simple": {
+        "title": "Consent at the gate",
+        "situation": "A councillor wants every child done today, no excuses. Parents are split. The outbreak is real.",
+        "options": {
+          "o-d023-3-consent": {
+            "title": "Vaccinate with consent; talk to refusers",
+            "preview": "Children with a parent’s yes get the shot. Refusers get a doctor.",
+            "consequence": "Most parents say yes."
+          },
+          "o-d023-3-doors": {
+            "title": "Send teams door to door, to talk",
+            "preview": "Teams visit homes with the log and the map. Yes is the only answer taken.",
+            "consequence": "Doorstep talks beat a viral caption."
+          },
+          "o-d023-3-force": {
+            "title": "Hold refusing parents",
+            "preview": "Refusers are kept in a room until they sign.",
+            "consequence": "Consent becomes a locked room."
+          },
+          "o-d023-3-wait": {
+            "title": "Close the camp for the day",
+            "preview": "The outbreak continues.",
+            "consequence": "Forty doses go in the bin."
+          }
+        }
+      }
+    },
+    {
+      "id": "d023-4",
+      "title": "The next camp",
+      "situation": "Tomorrow’s camp is at the market school. Parents there have seen the video too. The queue today ended at 180 of 400.",
+      "district": "hospital",
+      "expiresAfter": 24,
+      "defaultOption": "o-d023-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d023-4-notice",
+          "title": "Publish tomorrow’s plan and today’s numbers",
+          "preview": "Doses given, children fine, the log, the map, and a doctor’s number.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "Tomorrow’s parents hear from you before a video.",
+          "requiresEvidence": [
+            "ev-d023-4"
+          ],
+          "setsFlags": [
+            "plan-published",
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d023-4-teachers",
+          "title": "Brief the market school’s teachers tonight",
+          "preview": "Teachers get the facts and the camp log to share with parents.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "The people parents trust carry the message.",
+          "setsFlags": [
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d023-4-accuse",
+          "title": "Announce the video maker will be prosecuted",
+          "preview": "A statement promises charges against an account nobody has traced.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A threat against a ghost.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d023-2"
+          ]
+        },
+        {
+          "id": "o-d023-4-wait",
+          "title": "Run tomorrow’s camp as planned",
+          "preview": "Same posters, same surprise, same video.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Tomorrow’s queue empties by ten."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "The next camp",
+        "situation": "Tomorrow’s camp is at the market school. Those parents saw the video too.",
+        "options": {
+          "o-d023-4-notice": {
+            "title": "Publish tomorrow’s plan and numbers",
+            "preview": "Doses given, children fine, the log, the map and a doctor’s number.",
+            "consequence": "Parents hear from you before a video."
+          },
+          "o-d023-4-teachers": {
+            "title": "Brief the teachers tonight",
+            "preview": "Teachers get the facts and the log to share.",
+            "consequence": "People parents trust carry the message."
+          },
+          "o-d023-4-accuse": {
+            "title": "Promise to prosecute the video maker",
+            "preview": "A statement promises charges against an unknown account.",
+            "consequence": "A threat against a ghost."
+          },
+          "o-d023-4-wait": {
+            "title": "Run tomorrow the same way",
+            "preview": "Same posters. Same surprise. Same video.",
+            "consequence": "Tomorrow’s queue empties by ten."
+          }
+        }
+      }
+    },
+    {
+      "id": "d023-bait",
+      "title": "“Make it compulsory”",
+      "situation": "A viral petition and the councillor demand the shot be made compulsory today, with fines for refusing parents.",
+      "district": "civic",
+      "expiresAfter": 20,
+      "defaultOption": "o-d023-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d023-bait-fine",
+          "title": "Announce fines for refusing parents",
+          "preview": "A fine notice goes out the same afternoon.",
+          "authority": "Consent: public health is served by persuasion and access, not fines",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4
+          },
+          "consequence": "Fear of the shot becomes fear of the state. The queue gets shorter.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d023-bait-access",
+          "title": "Extend hours, add a doctor at every camp",
+          "preview": "Evening sessions, a doctor to answer questions, and transport.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "Access and answers do what fines cannot.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d023-bait-wait",
+          "title": "Say the matter is under review",
+          "preview": "Neither the petition nor the parents get an answer.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The outbreak reviews itself."
+        }
+      ],
+      "simple": {
+        "title": "“Make it compulsory”",
+        "situation": "A petition and the councillor want the shot made compulsory today, with fines.",
+        "options": {
+          "o-d023-bait-fine": {
+            "title": "Announce fines for refusing",
+            "preview": "A fine notice goes out the same afternoon.",
+            "consequence": "Fear of the shot becomes fear of the state."
+          },
+          "o-d023-bait-access": {
+            "title": "Extend hours; add a doctor to answer",
+            "preview": "Evening sessions, a doctor for questions, and transport.",
+            "consequence": "Access and answers do what fines cannot."
+          },
+          "o-d023-bait-wait": {
+            "title": "Say it is under review",
+            "preview": "Nobody gets an answer.",
+            "consequence": "The outbreak reviews itself."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d023",
+      "question": "A real outbreak meets a false video. Parents are refusing. What may the state do?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Inform, persuade and make vaccination easy; act on consent, and reserve compulsion for a lawful, proportionate public-health order.",
+          "correct": true,
+          "feedback": "Correct. Bodily autonomy and informed consent are the default; compulsion needs law, necessity and proportion."
+        },
+        {
+          "id": "b",
+          "text": "Detain refusing parents until they sign; the outbreak justifies it.",
+          "correct": false,
+          "feedback": "Detention to extract a signature is neither consent nor a lawful health measure."
+        },
+        {
+          "id": "c",
+          "text": "Nothing; the state cannot act on health at all.",
+          "correct": false,
+          "feedback": "The state has a duty to protect public health; it must do so through lawful, proportionate means."
+        }
+      ],
+      "principle": "Article 21 covers bodily autonomy and informed consent; public-health powers must be exercised by law and proportionately, persuading first and compelling only where necessary.",
+      "why": "A log, a map and a doctor at the gate brought parents back; a locked room would have emptied the quarter.",
+      "source": {
+        "label": "Constitution of India, Articles 21 and 22 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "A real outbreak meets a fake video. Parents are refusing. What may the state do?",
+        "options": {
+          "a": "Explain, persuade and make the shot easy. Ask for consent.",
+          "b": "Hold parents until they sign.",
+          "c": "Nothing. Health is not the state’s job."
+        },
+        "feedback": {
+          "a": "Yes! Consent first. Force only by law, and only if truly needed.",
+          "b": "No. Holding people until they sign is not consent.",
+          "c": "The state must protect health, but fairly."
+        },
+        "principle": "Your body is yours. The state explains and persuades first. Force needs a law and a real need.",
+        "why": "A log, a map and a doctor brought parents back. A locked room would have emptied the quarter."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d023-comp",
+      "at": -1,
+      "kind": "rumor",
+      "message": "A speaker at the gate tells parents the camp is “an experiment on poor children”.",
+      "simple": "A speaker calls the camp an experiment.",
+      "effects": {
+        "grievance": -4,
+        "trust": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "campus",
+          "magnitude": 0.2
+        },
+        {
+          "kind": "mood",
+          "district": "campus",
+          "mood": "volatile"
+        }
+      ]
+    },
+    {
+      "id": "e-d023-cases",
+      "at": 32,
+      "kind": "service",
+      "message": "Two more measles cases are admitted from the quarter.",
+      "simple": "Two more measles cases are admitted.",
+      "effects": {
+        "safety": -2
+      },
+      "condition": {
+        "notFlag": "facts-at-gate"
+      }
+    }
+  ],
+  "complication": {
+    "opponent": "exploiter",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d023-comp",
+    "baitDecisionId": "d023-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "facts-at-gate"
+        },
+        "text": "Parents heard the log from a doctor at the gate.",
+        "simple": "Parents heard the facts at the gate."
+      },
+      {
+        "condition": {
+          "flag": "batch-published"
+        },
+        "text": "The recall rumour was answered with the batch record.",
+        "simple": "The recall rumour was answered."
+      },
+      {
+        "condition": {
+          "flag": "plan-published"
+        },
+        "text": "Tomorrow’s parents heard from the camp before a video.",
+        "simple": "Tomorrow’s parents heard from you first."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "notFlag": "facts-at-gate"
+        },
+        "text": "The video was never answered where the parents stood.",
+        "simple": "The video was never answered."
+      },
+      {
+        "condition": {
+          "notFlag": "served"
+        },
+        "text": "Nothing was done to make the camp easier to say yes to.",
+        "simple": "The camp was not made easier."
+      },
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "Fines or a cordon replaced consent.",
+        "simple": "Fines or a cordon replaced consent."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "consent-kept"
+        },
+        "text": "Every shot was given with a parent’s yes.",
+        "simple": "Every shot had a parent’s yes."
+      },
+      {
+        "condition": {
+          "flag": "checked"
+        },
+        "text": "Claims were checked before they were answered.",
+        "simple": "Claims were checked first."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "detained"
+        },
+        "text": "Parents were held until they signed.",
+        "simple": "Parents were held until they signed."
+      },
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "A health camp became a cordon or a fine.",
+        "simple": "A health camp became a cordon."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "facts-at-gate"
+        },
+        "text": "Put the log and a doctor at the gate within the hour.",
+        "simple": "Put the facts at the gate fast."
+      },
+      {
+        "condition": {
+          "notFlag": "plan-published"
+        },
+        "text": "Tell tomorrow’s parents today.",
+        "simple": "Tell tomorrow’s parents today."
+      },
+      {
+        "condition": {},
+        "text": "Shade and water prevent the next video.",
+        "simple": "Shade and water prevent the next video."
+      }
+    ],
+    "closing": {
+      "good": "The queue came back after lunch, the vials were used, and tomorrow’s parents got a message before a video.",
+      "mixed": "Most of the doses were used, but the recall rumour still circulates in the market.",
+      "poor": "The camp closed with full vials, and the quarter learned that the state answers fear with fines."
+    }
+  },
+  "simple": {
+    "title": "The Camp Rumour",
+    "subtitle": "A video says children fainted at the vaccine camp.",
+    "briefing": {
+      "grievance": "Parents want to know if the vaccine is safe. Nobody told them about the camp before a video did.",
+      "knownFacts": [
+        "There are twelve measles cases in the quarter.",
+        "Two children fainted in the heat before their shot. Both are fine.",
+        "The vials must be used today."
+      ],
+      "unverifiedClaims": [
+        "The video says children collapsed after the shot.",
+        "A message says the batch was recalled."
+      ],
+      "responsibility": "You run the health office and the camp.",
+      "objective": "Answer the video with facts. Keep the camp open with consent. Protect the health workers."
+    },
+    "closing": {
+      "good": "The queue came back. The vials were used. Tomorrow’s parents heard from you first.",
+      "mixed": "Most doses were used. The rumour still spreads.",
+      "poor": "The camp closed with full vials."
+    },
+    "coldOpen": [
+      "A measles camp opens at school.",
+      "A video shows children fainting.",
+      "Parents pull children from the queue."
+    ]
+  }
+}

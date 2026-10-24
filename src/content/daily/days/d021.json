@@ -232,7 +232,7 @@
       "options": [
         {
           "id": "o-d021-1-relief",
-          "title": "Announce immediate relief and a shop-by-shop survey",
+          "title": "Announce relief and a shop survey",
           "preview": "Cash advances this week; a survey team at the site by noon.",
           "authority": "Duty to keep essential services running",
           "tags": [
@@ -499,8 +499,8 @@
       "options": [
         {
           "id": "o-d021-3-protect",
-          "title": "Protect the shop and say publicly there is no suspect",
-          "preview": "Officers guard the shop; a statement says the post is unverified and no one is accused.",
+          "title": "Guard the shop; say there is no suspect",
+          "preview": "Officers guard the shop; a statement says nobody is accused.",
           "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
           "tags": [
             "protect-assembly",
@@ -644,7 +644,7 @@
       "options": [
         {
           "id": "o-d021-4-rebuild",
-          "title": "Publish the cause and tie rebuilding grants to safety",
+          "title": "Publish the cause; tie grants to safety",
           "preview": "The finding goes public; grants require a certified panel and clear exits.",
           "authority": "Duty of candour: say what is known and what is not",
           "tags": [

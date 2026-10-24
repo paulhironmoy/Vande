@@ -1,0 +1,1103 @@
+{
+  "id": "d028",
+  "version": 1,
+  "title": "The Transfer Order",
+  "subtitle": "A popular teacher is transferred overnight after a complaint; parents block the school gate",
+  "dilemmaKey": "teacher-transfer",
+  "themeTags": [
+    "education",
+    "due-process",
+    "rumour"
+  ],
+  "focus": "campus",
+  "institution": "campus",
+  "mood": "hopeful",
+  "opponents": [
+    "exploiter",
+    "disinfo"
+  ],
+  "coldOpen": [
+    "07:30. A transfer order moves a teacher 200 km today.",
+    "08:00. Parents lock the school gate from inside.",
+    "The complaint behind the order is sealed."
+  ],
+  "briefing": {
+    "grievance": "Parents say the teacher who turned the school around is being removed on an anonymous complaint, with no hearing. The education office says the complaint is serious and sealed. Children are inside.",
+    "knownFacts": [
+      "The transfer order cites “administrative grounds” and gives one day’s notice.",
+      "A complaint was filed four days ago; its contents are sealed.",
+      "Four hundred children are inside the locked school."
+    ],
+    "unverifiedClaims": [
+      "A post says the complaint alleges abuse of a child.",
+      "Parents say the complaint came from a contractor the teacher refused to pay."
+    ],
+    "responsibility": "You run the district education office. The order is yours to pause, confirm or explain.",
+    "objective": "Give the teacher a fair process, protect the complainant and the children, and get the gate open without a fight."
+  },
+  "evidence": [
+    {
+      "id": "ev-d028-1",
+      "title": "Transfer order",
+      "source": "District education office",
+      "sourceType": "official",
+      "time": "07:30",
+      "claim": "Transfer on administrative grounds, one day’s notice, no hearing recorded, signed by the deputy director.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Grounds",
+          "value": "Administrative"
+        },
+        {
+          "label": "Hearing",
+          "value": "None recorded"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A one-page order"
+      },
+      "resolutionNote": "No hearing, no reasons, one day.",
+      "availableAt": 2,
+      "district": "campus",
+      "simple": {
+        "title": "The transfer order",
+        "claim": "Moved for “administrative reasons”, one day’s notice, no hearing.",
+        "resolutionNote": "No hearing. No reasons. One day.",
+        "caption": "A one-page order"
+      }
+    },
+    {
+      "id": "ev-d028-2",
+      "title": "Complaint register entry",
+      "source": "Education office",
+      "sourceType": "official",
+      "time": "08:10",
+      "claim": "Complaint received four days ago; category “financial irregularity”; complainant a vendor; inquiry not yet opened.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Category",
+          "value": "Financial irregularity"
+        },
+        {
+          "label": "Complainant",
+          "value": "A vendor"
+        },
+        {
+          "label": "Inquiry",
+          "value": "Not opened"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A register with one highlighted row"
+      },
+      "resolutionNote": "The complaint is about money, from a vendor, and nobody has looked at it.",
+      "availableAt": 6,
+      "district": "campus",
+      "simple": {
+        "title": "The complaint register",
+        "claim": "The complaint is about money. It came from a vendor. Nobody has looked at it yet.",
+        "resolutionNote": "About money, from a vendor, not yet checked.",
+        "caption": "A register with one row"
+      }
+    },
+    {
+      "id": "ev-d028-3",
+      "title": "“Child abuse” post",
+      "source": "Anonymous account",
+      "sourceType": "anonymous",
+      "time": "07:50",
+      "claim": "A post says the teacher was removed for “abusing a child” and that parents are “protecting a predator”.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Register category",
+          "value": "Financial, not child safety",
+          "anomaly": true
+        },
+        {
+          "label": "Child-safety referral",
+          "value": "None exists",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "A screenshot of a post with a school photo"
+      },
+      "resolutionNote": "The register says money; no child-safety referral exists.",
+      "injectedBy": "disinfo",
+      "contradictedBy": [
+        "ev-d028-2"
+      ],
+      "district": "media",
+      "simple": {
+        "title": "The “child abuse” post",
+        "claim": "A post says the teacher hurt a child and parents are protecting him.",
+        "resolutionNote": "The register says money, not children. No child-safety report exists.",
+        "caption": "A screenshot of a post"
+      }
+    },
+    {
+      "id": "ev-d028-4",
+      "title": "School mid-day meal accounts",
+      "source": "School management committee",
+      "sourceType": "institution",
+      "time": "09:30",
+      "claim": "The teacher stopped payments to a meal vendor over short deliveries; the vendor is the complainant.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Payments held",
+          "value": "3 months"
+        },
+        {
+          "label": "Vendor",
+          "value": "Same as complainant"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "An account book with crossed-out invoices"
+      },
+      "resolutionNote": "The complainant lost payments the teacher withheld for short deliveries.",
+      "availableAt": 10,
+      "corroboratedBy": [
+        "ev-d028-2"
+      ],
+      "district": "campus",
+      "simple": {
+        "title": "The meal accounts",
+        "claim": "The teacher stopped paying a meal vendor for short deliveries. That vendor made the complaint.",
+        "resolutionNote": "The complainant is the vendor who lost money.",
+        "caption": "An account book"
+      }
+    },
+    {
+      "id": "ev-d028-5",
+      "title": "Delivery weigh slips",
+      "source": "School store room",
+      "sourceType": "institution",
+      "time": "11:00",
+      "claim": "Three months of weigh slips show rice deliveries 20–30 % short; the slips are loose sheets in a store room being cleared today.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Shortfall",
+          "value": "20–30 %"
+        },
+        {
+          "label": "Storage",
+          "value": "Loose sheets, room cleared today"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A bundle of weigh slips"
+      },
+      "resolutionNote": "The proof of short deliveries is a loose bundle in a room being emptied.",
+      "availableAt": 18,
+      "corroboratedBy": [
+        "ev-d028-4"
+      ],
+      "district": "campus",
+      "perishable": true,
+      "simple": {
+        "title": "The weigh slips",
+        "claim": "Three months of slips show rice up to a third short. They are loose sheets in a room being cleared today.",
+        "resolutionNote": "The proof of short deliveries is about to be thrown out.",
+        "caption": "A bundle of slips"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d028-1",
+      "title": "The locked gate",
+      "situation": "Parents have locked the gate from inside with four hundred children in class. The deputy director wants the gate forced and the teacher escorted out.",
+      "district": "campus",
+      "expiresAfter": 22,
+      "defaultOption": "o-d028-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d028-1-pause",
+          "title": "Stay the transfer pending a hearing",
+          "preview": "The teacher stays this week; a hearing is fixed; the gate opens.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "Four hundred children have a normal Tuesday.",
+          "setsFlags": [
+            "acknowledged",
+            "served",
+            "transfer-stayed"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "legal"
+            }
+          ]
+        },
+        {
+          "id": "o-d028-1-talk",
+          "title": "Go to the gate; read the register entry aloud",
+          "preview": "The complaint is about money, from a vendor, not yet examined, said aloud.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "The abuse rumour dies at the gate. The lock stays, for now.",
+          "requiresEvidence": [
+            "ev-d028-2"
+          ],
+          "setsFlags": [
+            "acknowledged",
+            "category-told"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d028-1-force",
+          "title": "Force the gate and escort the teacher out",
+          "preview": "Police cut the lock in front of the children.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": -3,
+            "grievance": -4
+          },
+          "consequence": "A school watches its teacher leave between officers.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "campus",
+              "incident": "clash"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d028-1-wait",
+          "title": "Wait for the parents to tire",
+          "preview": "Classes stop; children sit in the yard till evening.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "A day of school lost and nothing decided."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "The locked gate",
+        "situation": "Parents locked the gate with 400 children inside. The deputy wants it forced.",
+        "options": {
+          "o-d028-1-pause": {
+            "title": "Pause the transfer; fix a hearing",
+            "preview": "The teacher stays this week. A hearing is set. The gate opens.",
+            "consequence": "Four hundred children have a normal Tuesday."
+          },
+          "o-d028-1-talk": {
+            "title": "Go to the gate; read the register",
+            "preview": "The complaint is about money, from a vendor, not yet checked, said to parents.",
+            "consequence": "The abuse rumour dies at the gate."
+          },
+          "o-d028-1-force": {
+            "title": "Force the gate; escort him out",
+            "preview": "Police cut the lock in front of the children.",
+            "consequence": "A school watches its teacher leave between officers."
+          },
+          "o-d028-1-wait": {
+            "title": "Wait for the parents to tire",
+            "preview": "Classes stop. Children sit in the yard till evening.",
+            "consequence": "A day of school lost."
+          }
+        }
+      }
+    },
+    {
+      "id": "d028-2",
+      "title": "The post",
+      "situation": "The “child abuse” post has 20,000 shares. Parents are being called “predator protectors”. The complainant’s name is being guessed online.",
+      "district": "campus",
+      "expiresAfter": 24,
+      "defaultOption": "o-d028-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d028-2-category",
+          "title": "Publish the complaint category and the process",
+          "preview": "Financial, not child safety; a hearing date; the complainant protected.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The post is answered without naming anyone.",
+          "requiresEvidence": [
+            "ev-d028-2"
+          ],
+          "setsFlags": [
+            "checked",
+            "category-told"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d028-2-protect",
+          "title": "Protect the complainant from the guessing game",
+          "preview": "A statement that naming complainants is an offence; the vendor gets a number.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "Whoever is right, nobody gets a mob.",
+          "setsFlags": [
+            "protected",
+            "complainant-protected"
+          ]
+        },
+        {
+          "id": "o-d028-2-accuse",
+          "title": "Announce the teacher is cleared of abuse",
+          "preview": "A statement declares him innocent of a charge nobody made, before any hearing.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "You have pre-judged the hearing and confirmed the frame.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d028-3"
+          ]
+        },
+        {
+          "id": "o-d028-2-wait",
+          "title": "Say the matter is confidential",
+          "preview": "Confidential sounds like confirmation.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The post doubles."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "The post",
+        "situation": "The “child abuse” post has 20,000 shares. The complainant’s name is being guessed.",
+        "options": {
+          "o-d028-2-category": {
+            "title": "Publish the category and the process",
+            "preview": "About money, not children. A hearing date. The complainant stays unnamed.",
+            "consequence": "The post is answered without naming anyone."
+          },
+          "o-d028-2-protect": {
+            "title": "Protect the complainant",
+            "preview": "A statement: naming complainants is an offence. The vendor gets a call and a number.",
+            "consequence": "Whoever is right, nobody gets a mob."
+          },
+          "o-d028-2-accuse": {
+            "title": "Declare the teacher cleared of abuse",
+            "preview": "A statement calls him innocent of a charge nobody made.",
+            "consequence": "You have pre-judged the hearing."
+          },
+          "o-d028-2-wait": {
+            "title": "Say it is confidential",
+            "preview": "Confidential sounds like confirmation.",
+            "consequence": "The post doubles."
+          }
+        }
+      }
+    },
+    {
+      "id": "d028-3",
+      "title": "The hearing",
+      "situation": "The committee shows the teacher withheld the complainant’s payments for short rice deliveries. The deputy still wants the transfer “to cool things down”.",
+      "district": "campus",
+      "expiresAfter": 22,
+      "defaultOption": "o-d028-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d028-3-hearing",
+          "title": "Hold the hearing with both sides and a record",
+          "preview": "The teacher, the vendor and the accounts in one room; a decision in writing.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "Whatever the outcome, it was reached, not imposed.",
+          "requiresEvidence": [
+            "ev-d028-4"
+          ],
+          "setsFlags": [
+            "protected",
+            "hearing-held"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "legal"
+            }
+          ]
+        },
+        {
+          "id": "o-d028-3-slips",
+          "title": "Secure the weigh slips before the clear-out",
+          "preview": "The bundle is sealed and copied before the room is emptied.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The hearing has its evidence.",
+          "requiresEvidence": [
+            "ev-d028-5"
+          ],
+          "setsFlags": [
+            "checked",
+            "slips-secured"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d028-3-transfer",
+          "title": "Confirm the transfer to cool things down",
+          "preview": "The teacher goes 200 km; the complaint is never heard.",
+          "authority": "Natural justice: no adverse action without a hearing",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -3,
+            "safety": 4,
+            "grievance": -4
+          },
+          "consequence": "Peace is bought with a man’s posting and a vendor’s impunity.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d028-3-wait",
+          "title": "Let the deputy director handle it",
+          "preview": "He confirms the transfer and seals the file.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The school loses its teacher; the vendor keeps the contract."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d028",
+      "simple": {
+        "title": "The hearing",
+        "situation": "The teacher stopped paying the vendor for short rice. The deputy still wants the transfer.",
+        "options": {
+          "o-d028-3-hearing": {
+            "title": "Hold a proper hearing, with a record",
+            "preview": "The teacher, the vendor and the accounts in one room. A written decision.",
+            "consequence": "The outcome is reached, not imposed."
+          },
+          "o-d028-3-slips": {
+            "title": "Save the weigh slips first",
+            "preview": "The bundle is sealed and copied before the room is emptied.",
+            "consequence": "The hearing has its evidence."
+          },
+          "o-d028-3-transfer": {
+            "title": "Confirm the transfer",
+            "preview": "The teacher goes 200 km. The complaint is never heard.",
+            "consequence": "Peace is bought with a man’s job."
+          },
+          "o-d028-3-wait": {
+            "title": "Let the deputy handle it",
+            "preview": "He confirms the transfer and seals the file.",
+            "consequence": "The school loses its teacher."
+          }
+        }
+      }
+    },
+    {
+      "id": "d028-4",
+      "title": "The contract",
+      "situation": "The weigh slips show rice deliveries a third short for three months. The vendor supplies eleven schools.",
+      "district": "civic",
+      "expiresAfter": 24,
+      "defaultOption": "o-d028-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d028-4-audit",
+          "title": "Suspend the vendor and audit all eleven schools",
+          "preview": "Payments stop; weigh slips from every school are collected; findings published.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "A complaint against one teacher becomes an audit of one vendor.",
+          "requiresEvidence": [
+            "ev-d028-5"
+          ],
+          "setsFlags": [
+            "plan-published",
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d028-4-rule",
+          "title": "Change the rule: no transfer without a hearing",
+          "preview": "Transfers on complaint now need a recorded hearing and reasons.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The next teacher gets a process by default.",
+          "requiresEvidence": [
+            "ev-d028-1"
+          ],
+          "setsFlags": [
+            "plan-published"
+          ]
+        },
+        {
+          "id": "o-d028-4-accuse",
+          "title": "Announce the deputy took the vendor’s money",
+          "preview": "A statement accuses him on parents’ suspicion.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A second person is accused without a hearing, in a crisis about hearings.",
+          "falseAccusationEffects": {
+            "freedom": -8,
+            "trust": -10,
+            "evidence": -8
+          },
+          "requiresEvidence": [
+            "ev-d028-3"
+          ]
+        },
+        {
+          "id": "o-d028-4-wait",
+          "title": "Renew the vendor’s contract as scheduled",
+          "preview": "Eleven schools keep getting two-thirds of their rice.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The teacher who noticed is the one who was punished."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "The contract",
+        "situation": "The slips show rice a third short for three months. The vendor supplies eleven schools.",
+        "options": {
+          "o-d028-4-audit": {
+            "title": "Suspend the vendor; audit eleven schools",
+            "preview": "Payments stop. Slips from every school are collected. Findings published.",
+            "consequence": "One complaint becomes one audit."
+          },
+          "o-d028-4-rule": {
+            "title": "Rule: no transfer without a hearing",
+            "preview": "Transfers on complaint now need a recorded hearing and reasons.",
+            "consequence": "The next teacher gets a process by default."
+          },
+          "o-d028-4-accuse": {
+            "title": "Accuse the deputy of taking money",
+            "preview": "A statement accuses him on suspicion.",
+            "consequence": "A second person is accused without a hearing."
+          },
+          "o-d028-4-wait": {
+            "title": "Renew the vendor’s contract",
+            "preview": "Eleven schools keep getting two-thirds of their rice.",
+            "consequence": "The one who noticed got punished."
+          }
+        }
+      }
+    },
+    {
+      "id": "d028-bait",
+      "title": "“Transfer the parents’ leader too”",
+      "situation": "The deputy director proposes transferring the parent who organised the gate lock, who is a government clerk, “as a lesson”.",
+      "district": "civic",
+      "expiresAfter": 20,
+      "defaultOption": "o-d028-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d028-bait-punish",
+          "title": "Transfer the parent-organiser as well",
+          "preview": "A clerk is moved for locking a school gate as a parent.",
+          "authority": "Freedom of expression: a parent’s protest is not a service matter",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -4,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4
+          },
+          "consequence": "Protest now costs a posting.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d028-bait-refuse",
+          "title": "Refuse; a protest is not a service matter",
+          "preview": "The proposal is declined in writing.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The lesson taught is a different one.",
+          "setsFlags": [
+            "protected"
+          ]
+        },
+        {
+          "id": "o-d028-bait-wait",
+          "title": "Leave it to the deputy’s discretion",
+          "preview": "The clerk’s transfer order is typed by evening.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1,
+            "freedom": -3
+          },
+          "consequence": "Two transfers for one complaint."
+        }
+      ],
+      "simple": {
+        "title": "“Transfer the parents’ leader too”",
+        "situation": "The deputy wants to move the parent who organised the gate lock. As a lesson.",
+        "options": {
+          "o-d028-bait-punish": {
+            "title": "Transfer the parent too",
+            "preview": "A clerk is moved for protesting as a parent.",
+            "consequence": "Protest now costs a posting."
+          },
+          "o-d028-bait-refuse": {
+            "title": "Refuse; protest is not a work matter",
+            "preview": "The proposal is declined in writing.",
+            "consequence": "The lesson taught is a different one."
+          },
+          "o-d028-bait-wait": {
+            "title": "Leave it to the deputy",
+            "preview": "The clerk’s transfer is typed by evening.",
+            "consequence": "Two transfers for one complaint."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d028",
+      "question": "A teacher is transferred overnight on a sealed complaint with no hearing. What does natural justice require?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Notice of the allegation, a chance to answer, an impartial decision-maker and reasons in writing before any adverse action.",
+          "correct": true,
+          "feedback": "Correct. Adverse action on a complaint without a hearing violates natural justice, however urgent the pressure."
+        },
+        {
+          "id": "b",
+          "text": "Nothing; transfers are administrative and need no reasons.",
+          "correct": false,
+          "feedback": "A transfer used as punishment on a complaint is adverse action and attracts the right to be heard."
+        },
+        {
+          "id": "c",
+          "text": "Clear the teacher publicly to end the protest.",
+          "correct": false,
+          "feedback": "Pre-judging in either direction denies the complainant and the teacher a fair process."
+        }
+      ],
+      "principle": "Natural justice (audi alteram partem, Article 14) requires notice, a hearing and reasons before adverse action, and protection for complainants against reprisal.",
+      "why": "A hearing with the accounts on the table found the facts; a quiet transfer would have punished the one who noticed.",
+      "source": {
+        "label": "Constitution of India, Article 14 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "A teacher is moved overnight on a secret complaint with no hearing. What is fair?",
+        "options": {
+          "a": "Tell him the charge, let him answer, decide fairly, give reasons in writing.",
+          "b": "Nothing. Transfers need no reasons.",
+          "c": "Declare him innocent to end the protest."
+        },
+        "feedback": {
+          "a": "Yes! Hear both sides before acting against anyone.",
+          "b": "No. A transfer used as punishment needs a hearing.",
+          "c": "Deciding before the hearing is unfair to both sides."
+        },
+        "principle": "Hear both sides before acting against anyone. Give reasons in writing. Protect the complainant too.",
+        "why": "A hearing with the accounts found the facts. A quiet transfer would have punished the one who noticed."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d028-comp",
+      "at": -1,
+      "kind": "rumor",
+      "message": "A speaker at the gate tells parents the office “sells teachers to contractors” and calls for a march on the collectorate.",
+      "simple": "A speaker says the office sells teachers to contractors.",
+      "effects": {
+        "grievance": -4,
+        "trust": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "campus",
+          "magnitude": 0.2
+        },
+        {
+          "kind": "mood",
+          "district": "campus",
+          "mood": "volatile"
+        }
+      ]
+    },
+    {
+      "id": "e-d028-store",
+      "at": 40,
+      "kind": "service",
+      "message": "The store room is being cleared; a bundle of slips is in the skip.",
+      "simple": "The store room is cleared. The slips are in the skip.",
+      "effects": {
+        "evidence": -2
+      },
+      "condition": {
+        "notFlag": "slips-secured"
+      }
+    }
+  ],
+  "complication": {
+    "opponent": "exploiter",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d028-comp",
+    "baitDecisionId": "d028-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "transfer-stayed"
+        },
+        "text": "The transfer was stayed pending a hearing.",
+        "simple": "The transfer was paused for a hearing."
+      },
+      {
+        "condition": {
+          "flag": "hearing-held"
+        },
+        "text": "A hearing with both sides reached a written decision.",
+        "simple": "A hearing reached a written decision."
+      },
+      {
+        "condition": {
+          "flag": "plan-published"
+        },
+        "text": "The vendor was audited or the transfer rule was fixed.",
+        "simple": "The vendor was audited or the rule was fixed."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "Someone was moved or forced out to buy quiet.",
+        "simple": "Someone was moved to buy quiet."
+      },
+      {
+        "condition": {
+          "notFlag": "category-told"
+        },
+        "text": "The abuse rumour was never answered in public.",
+        "simple": "The abuse rumour was never answered."
+      },
+      {
+        "condition": {
+          "notFlag": "slips-secured"
+        },
+        "text": "The proof of short deliveries went into a skip.",
+        "simple": "The proof went into a skip."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "complainant-protected"
+        },
+        "text": "The complainant was protected from the guessing game.",
+        "simple": "The complainant was protected."
+      },
+      {
+        "condition": {
+          "flag": "protected"
+        },
+        "text": "Nobody was punished without a hearing.",
+        "simple": "Nobody was punished without a hearing."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "A posting was used as a punishment.",
+        "simple": "A posting was used as punishment."
+      },
+      {
+        "condition": {
+          "notFlag": "hearing-held"
+        },
+        "text": "The complaint was decided without hearing anyone.",
+        "simple": "The complaint was decided without a hearing."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "transfer-stayed"
+        },
+        "text": "Stay first, hear second; a stay costs nothing and opens gates.",
+        "simple": "Pause first, hear second."
+      },
+      {
+        "condition": {
+          "notFlag": "slips-secured"
+        },
+        "text": "Secure the slips before the store is cleared.",
+        "simple": "Save the slips first."
+      },
+      {
+        "condition": {},
+        "text": "Publish the category, never the complainant.",
+        "simple": "Publish the category, never the name."
+      }
+    ],
+    "closing": {
+      "good": "The teacher taught on Wednesday, the vendor is suspended across eleven schools, and the next transfer order has a line for the hearing date.",
+      "mixed": "The transfer was paused and the rumour answered, but the vendor still delivers and the rule is unchanged.",
+      "poor": "The teacher is 200 km away, the slips are in a skip, and a clerk learned what protest costs."
+    }
+  },
+  "simple": {
+    "title": "The Transfer Order",
+    "subtitle": "A loved teacher is moved overnight. Parents block the gate.",
+    "briefing": {
+      "grievance": "Parents say the teacher who fixed the school is removed on a secret complaint with no hearing. The office says the complaint is serious.",
+      "knownFacts": [
+        "The order gives one day’s notice and no reason.",
+        "A complaint was filed four days ago. It is sealed.",
+        "Four hundred children are inside the locked school."
+      ],
+      "unverifiedClaims": [
+        "A post says the complaint is about hurting a child.",
+        "Parents say a contractor the teacher refused to pay filed it."
+      ],
+      "responsibility": "You run the district education office.",
+      "objective": "Give the teacher a fair process. Protect the complainant and the children. Open the gate without a fight."
+    },
+    "closing": {
+      "good": "The teacher taught on Wednesday. The vendor is suspended. Transfers now need a hearing.",
+      "mixed": "The transfer was paused. The vendor still delivers.",
+      "poor": "The teacher is 200 km away. The slips are in a skip."
+    },
+    "coldOpen": [
+      "A teacher is moved 200 km today.",
+      "Parents lock the school gate.",
+      "The complaint is sealed."
+    ]
+  }
+}

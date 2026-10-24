@@ -1,0 +1,1105 @@
+{
+  "id": "d025",
+  "version": 1,
+  "title": "The Red Canal",
+  "subtitle": "The canal behind the press enclave runs red; fishermen blame a dye unit, the unit blames the rain",
+  "dilemmaKey": "river-pollution",
+  "themeTags": [
+    "environment",
+    "evidence",
+    "economy"
+  ],
+  "focus": "media",
+  "institution": "media",
+  "mood": "tense",
+  "opponents": [
+    "sabotage",
+    "disinfo"
+  ],
+  "coldOpen": [
+    "06:00. The canal behind the press enclave runs red.",
+    "07:00. Dead fish along two hundred metres of bank.",
+    "Fishermen gather at the dye unit’s gate."
+  ],
+  "briefing": {
+    "grievance": "Forty fishing families say the dye unit has been dumping at night for months and today it killed the canal. The unit says a storm drain backed up. The fish are dead either way.",
+    "knownFacts": [
+      "The dye unit holds a discharge licence with a treatment plant on site.",
+      "Two hundred metres of fish kill between the unit’s outfall and the footbridge.",
+      "The pollution board’s last inspection was fourteen months ago."
+    ],
+    "unverifiedClaims": [
+      "A post shows a night tanker “from the unit” emptying into the canal.",
+      "The unit says the colour comes from a holi-colour wholesaler upstream."
+    ],
+    "responsibility": "You run the district pollution desk. The sample taken in the next two hours decides everything.",
+    "objective": "Sample the water before it clears, find the source with evidence, and keep the gate confrontation from becoming a fire."
+  },
+  "evidence": [
+    {
+      "id": "ev-d025-1",
+      "title": "Water sample window",
+      "source": "Pollution board field officer",
+      "sourceType": "official",
+      "time": "06:30",
+      "claim": "Dye concentration halves every three hours in flowing water; a sample at the outfall is only useful before noon.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Half-life in flow",
+          "value": "3 hours"
+        },
+        {
+          "label": "Useful until",
+          "value": "Noon"
+        }
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "A red sample bottle held against the light"
+      },
+      "resolutionNote": "The proof is dissolving by the hour.",
+      "availableAt": 2,
+      "district": "media",
+      "perishable": true,
+      "simple": {
+        "title": "The sample clock",
+        "claim": "The red fades by half every three hours. A sample is only useful before noon.",
+        "resolutionNote": "The proof is dissolving by the hour.",
+        "caption": "A red sample bottle"
+      }
+    },
+    {
+      "id": "ev-d025-2",
+      "title": "Night tanker post",
+      "source": "Local channel",
+      "sourceType": "anonymous",
+      "time": "06:40",
+      "claim": "A clip of a tanker emptying a hose at night, captioned “the dye unit, last night”.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Location",
+          "value": "A different canal, by the bridge shape",
+          "anomaly": true
+        },
+        {
+          "label": "Date",
+          "value": "Posted first eleven months ago",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "video",
+        "caption": "A tanker and a hose in the dark"
+      },
+      "resolutionNote": "The clip is old and from another canal.",
+      "injectedBy": "disinfo",
+      "district": "media",
+      "simple": {
+        "title": "The night tanker post",
+        "claim": "A clip shows a tanker emptying a hose at night. The caption blames the dye factory.",
+        "resolutionNote": "The clip is old and from another canal.",
+        "caption": "A tanker in the dark"
+      }
+    },
+    {
+      "id": "ev-d025-3",
+      "title": "Discharge licence",
+      "source": "Pollution board",
+      "sourceType": "official",
+      "time": "07:30",
+      "claim": "Licence requires treated discharge only, colour below 100 units, daily log; last inspection fourteen months ago.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Colour limit",
+          "value": "100 units"
+        },
+        {
+          "label": "Last inspection",
+          "value": "14 months ago"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A licence with conditions"
+      },
+      "resolutionNote": "The rules exist; nobody has checked them in over a year.",
+      "availableAt": 6,
+      "district": "civic",
+      "simple": {
+        "title": "The discharge licence",
+        "claim": "The factory may release only treated water, within a colour limit. Last check: 14 months ago.",
+        "resolutionNote": "The rules exist. Nobody checked them for a year.",
+        "caption": "A licence with conditions"
+      }
+    },
+    {
+      "id": "ev-d025-4",
+      "title": "Outfall sample result",
+      "source": "District lab",
+      "sourceType": "official",
+      "time": "10:30",
+      "claim": "Outfall sample: colour 2,400 units, pH 11, dye compounds matching the unit’s process; upstream sample clear.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Outfall colour",
+          "value": "2,400 units, limit 100"
+        },
+        {
+          "label": "Upstream",
+          "value": "Clear"
+        },
+        {
+          "label": "Match",
+          "value": "The unit’s dye compounds"
+        }
+      ],
+      "visual": {
+        "type": "chart",
+        "caption": "Two bars: a tall red one and a flat one"
+      },
+      "resolutionNote": "The outfall is the source; upstream is clean.",
+      "availableAt": 14,
+      "corroboratedBy": [
+        "ev-d025-3"
+      ],
+      "district": "media",
+      "simple": {
+        "title": "The sample result",
+        "claim": "The factory outlet is 24 times the colour limit. Upstream is clean. The dye matches the factory.",
+        "resolutionNote": "The outlet is the source. Upstream is clean.",
+        "caption": "A tall red bar and a flat one"
+      }
+    },
+    {
+      "id": "ev-d025-5",
+      "title": "Treatment plant log",
+      "source": "Dye unit",
+      "sourceType": "business",
+      "time": "09:00",
+      "claim": "Plant logged “running” every night; the power meter shows the plant drew no current for nine nights.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "metadata": [
+        {
+          "label": "Log",
+          "value": "“Running” nightly"
+        },
+        {
+          "label": "Power drawn",
+          "value": "None for 9 nights"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A log beside a flat meter graph"
+      },
+      "resolutionNote": "The plant was logged as running while switched off.",
+      "availableAt": 20,
+      "corroboratedBy": [
+        "ev-d025-4"
+      ],
+      "district": "media",
+      "simple": {
+        "title": "The treatment log",
+        "claim": "The log says the plant ran every night. The power meter says it was off for nine nights.",
+        "resolutionNote": "The plant was off while the log said “running”.",
+        "caption": "A log beside a flat graph"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d025-1",
+      "title": "Before noon",
+      "situation": "The canal is red now. The field officer says a sample is useless after noon. Fishermen are at the gate; the manager has locked it.",
+      "district": "media",
+      "expiresAfter": 22,
+      "defaultOption": "o-d025-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d025-1-sample",
+          "title": "Sample the outfall and upstream now, witnessed",
+          "preview": "Two bottles, sealed, with a fisherman and the manager as witnesses.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "Whatever the source is, the proof is in a bottle.",
+          "requiresEvidence": [
+            "ev-d025-1"
+          ],
+          "setsFlags": [
+            "checked",
+            "sampled"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d025-1-meet",
+          "title": "Meet the fishermen at the gate first",
+          "preview": "You promise a sample and a result today, and ask them to step back.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "They step back. The clock keeps running.",
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d025-1-seal",
+          "title": "Seal the unit immediately, no sample",
+          "preview": "Police lock the unit; eighty workers are sent home; no bottle is filled.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4,
+            "economy": -3
+          },
+          "consequence": "The source is sealed before it is proven, and the proof washes away.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "deploy"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d025-1-wait",
+          "title": "Wait for the board’s own team",
+          "preview": "The board’s van arrives after lunch; the canal is pink.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1,
+            "evidence": -3
+          },
+          "consequence": "The sample proves nothing."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "Before noon",
+        "situation": "The canal is red now. A sample is useless after noon. Fishermen are at the locked gate.",
+        "options": {
+          "o-d025-1-sample": {
+            "title": "Sample the outlet and upstream now",
+            "preview": "Two sealed bottles, with a fisherman and the manager watching.",
+            "consequence": "The proof is in a bottle."
+          },
+          "o-d025-1-meet": {
+            "title": "Meet the fishermen first",
+            "preview": "You promise a sample and a result today. They step back.",
+            "consequence": "They step back. The clock keeps running."
+          },
+          "o-d025-1-seal": {
+            "title": "Seal the factory now, no sample",
+            "preview": "Police lock it. Eighty workers go home. No bottle is filled.",
+            "consequence": "Sealed before proven. The proof washes away."
+          },
+          "o-d025-1-wait": {
+            "title": "Wait for the board’s team",
+            "preview": "Their van arrives after lunch. The canal is pink.",
+            "consequence": "The sample proves nothing."
+          }
+        }
+      }
+    },
+    {
+      "id": "d025-2",
+      "title": "The tanker clip",
+      "situation": "A channel is running the night-tanker clip on loop. The fishermen chant it. The unit says it proves nothing because it is not them.",
+      "district": "media",
+      "expiresAfter": 24,
+      "defaultOption": "o-d025-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d025-2-check",
+          "title": "Trace the clip before anyone cites it",
+          "preview": "The bridge in the frame is on another canal; the clip is eleven months old.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "You know what not to lean on.",
+          "requiresEvidence": [
+            "ev-d025-2"
+          ],
+          "setsFlags": [
+            "checked",
+            "clip-traced"
+          ]
+        },
+        {
+          "id": "o-d025-2-licence",
+          "title": "Publish the licence and the inspection gap",
+          "preview": "The conditions, the colour limit, and fourteen months unchecked, in public.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The board’s own failure is on the table beside the unit’s.",
+          "requiresEvidence": [
+            "ev-d025-3"
+          ],
+          "setsFlags": [
+            "licence-published"
+          ]
+        },
+        {
+          "id": "o-d025-2-accuse",
+          "title": "Cite the clip as proof against the unit",
+          "preview": "A statement says the tanker clip shows the unit dumping.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "The unit’s lawyer has the clip’s original upload date by evening.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d025-2"
+          ]
+        },
+        {
+          "id": "o-d025-2-wait",
+          "title": "Let the channel run it",
+          "preview": "The clip becomes the case in the public mind.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "When it falls, so does the real case."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "The tanker clip",
+        "situation": "A channel loops the night-tanker clip. The fishermen chant it. The factory says it is not them.",
+        "options": {
+          "o-d025-2-check": {
+            "title": "Trace the clip first",
+            "preview": "The bridge is on another canal. The clip is eleven months old.",
+            "consequence": "You know what not to lean on."
+          },
+          "o-d025-2-licence": {
+            "title": "Publish the licence and the gap",
+            "preview": "The rules, the colour limit, and fourteen months without a check.",
+            "consequence": "The board’s failure sits beside the factory’s."
+          },
+          "o-d025-2-accuse": {
+            "title": "Use the clip as proof",
+            "preview": "A statement says the clip shows the factory dumping.",
+            "consequence": "The factory’s lawyer finds the real date by evening."
+          },
+          "o-d025-2-wait": {
+            "title": "Let the channel run it",
+            "preview": "The clip becomes the case.",
+            "consequence": "When it falls, so does the real case."
+          }
+        }
+      }
+    },
+    {
+      "id": "d025-3",
+      "title": "The result",
+      "situation": "The lab result is back: the outfall is twenty-four times the limit and matches the unit’s dye. Eighty workers and forty fishing families wait at the same gate.",
+      "district": "media",
+      "expiresAfter": 22,
+      "defaultOption": "o-d025-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d025-3-notice",
+          "title": "Stop the discharge; set a hearing date",
+          "preview": "Discharge stops today; a hearing on Friday; workers keep their jobs.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The canal gets relief and the unit gets a process.",
+          "requiresEvidence": [
+            "ev-d025-4"
+          ],
+          "setsFlags": [
+            "protected",
+            "notice-served"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "legal"
+            }
+          ]
+        },
+        {
+          "id": "o-d025-3-publish",
+          "title": "Publish the result and the upstream sample",
+          "preview": "The numbers, the match and the clean upstream bottle, for both crowds.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The fishermen are vindicated by a bottle, not a clip.",
+          "requiresEvidence": [
+            "ev-d025-4"
+          ],
+          "setsFlags": [
+            "result-published"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d025-3-arrest",
+          "title": "Arrest the manager at the gate",
+          "preview": "The manager is led out past the workers.",
+          "authority": "Articles 21 and 22: liberty and safeguards on arrest",
+          "tags": [
+            "detention",
+            "force",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -13,
+            "trust": -10,
+            "safety": 3,
+            "grievance": -5
+          },
+          "consequence": "A process becomes a spectacle; the hearing is now about the arrest.",
+          "setsFlags": [
+            "detained"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d025-3-wait",
+          "title": "Send the result to the board and wait",
+          "preview": "The board will consider it at its monthly meeting.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The outfall runs tonight."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d025",
+      "simple": {
+        "title": "The result",
+        "situation": "The lab says the outlet is 24 times the limit and matches the dye. Workers and fishermen wait at the gate.",
+        "options": {
+          "o-d025-3-notice": {
+            "title": "Stop the discharge; set a hearing",
+            "preview": "Discharge stops today. The factory answers on Friday. Workers keep their jobs.",
+            "consequence": "The canal gets relief. The factory gets a process."
+          },
+          "o-d025-3-publish": {
+            "title": "Publish the result",
+            "preview": "The numbers, the match and the clean upstream bottle, for both crowds.",
+            "consequence": "The fishermen are proved right by a bottle."
+          },
+          "o-d025-3-arrest": {
+            "title": "Arrest the manager at the gate",
+            "preview": "The manager is led out past the workers.",
+            "consequence": "The hearing is now about the arrest."
+          },
+          "o-d025-3-wait": {
+            "title": "Send it to the board and wait",
+            "preview": "The board meets monthly.",
+            "consequence": "The outlet runs tonight."
+          }
+        }
+      }
+    },
+    {
+      "id": "d025-4",
+      "title": "Fourteen months",
+      "situation": "The treatment plant was logged as running while its meter drew nothing. Nobody inspected for fourteen months. Both facts are yours to publish or bury.",
+      "district": "civic",
+      "expiresAfter": 24,
+      "defaultOption": "o-d025-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d025-4-both",
+          "title": "Publish the log, the meter and the gap",
+          "preview": "The false log and the missed inspections, together; monthly checks from now.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "Two failures named; one schedule fixed.",
+          "requiresEvidence": [
+            "ev-d025-5"
+          ],
+          "setsFlags": [
+            "plan-published",
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d025-4-relief",
+          "title": "Pay the fishing families for the lost season",
+          "preview": "An advance from the unit’s bond covers forty families until the canal recovers.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The families eat while the hearing runs.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d025-4-accuse",
+          "title": "Blame the holi-colour wholesaler upstream",
+          "preview": "A statement adopts the unit’s story about the wholesaler.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A clean upstream sample says otherwise.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d025-2"
+          ]
+        },
+        {
+          "id": "o-d025-4-wait",
+          "title": "File the meter reading quietly",
+          "preview": "The false log stays a private matter.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The next unit learns logs are not checked."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "Fourteen months",
+        "situation": "The plant was logged as running while off. Nobody inspected for fourteen months.",
+        "options": {
+          "o-d025-4-both": {
+            "title": "Publish the log, the meter and the gap",
+            "preview": "The false log and the missed inspections, together, with monthly checks from now.",
+            "consequence": "Two failures named. One schedule fixed."
+          },
+          "o-d025-4-relief": {
+            "title": "Pay the fishing families now",
+            "preview": "Money from the factory’s bond covers forty families until the canal recovers.",
+            "consequence": "The families eat while the hearing runs."
+          },
+          "o-d025-4-accuse": {
+            "title": "Blame the colour seller upstream",
+            "preview": "A statement repeats the factory’s story.",
+            "consequence": "The clean upstream bottle says otherwise."
+          },
+          "o-d025-4-wait": {
+            "title": "File the meter quietly",
+            "preview": "The false log stays private.",
+            "consequence": "The next factory learns logs are not checked."
+          }
+        }
+      }
+    },
+    {
+      "id": "d025-bait",
+      "title": "“Burn the gate”",
+      "situation": "Someone has brought petrol to the gate. A voice says the unit will reopen in a week unless it is “made an example of” tonight.",
+      "district": "media",
+      "expiresAfter": 20,
+      "defaultOption": "o-d025-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d025-bait-protect",
+          "title": "Protect the unit and the workers inside",
+          "preview": "Officers stand between the gate and the petrol; workers leave by the back.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The gate stands. The case stays about the water.",
+          "setsFlags": [
+            "protected",
+            "gate-protected"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "protect"
+            }
+          ]
+        },
+        {
+          "id": "o-d025-bait-charge",
+          "title": "Baton-charge the gate crowd",
+          "preview": "The fishermen and the man with the petrol are charged together.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": -3,
+            "grievance": -4
+          },
+          "consequence": "The victims of the canal become the night’s suspects.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "media",
+              "incident": "clash"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d025-bait-wait",
+          "title": "Hope the petrol is a bluff",
+          "preview": "Nobody stands between the can and the gate.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -4,
+            "economy": -1
+          },
+          "consequence": "The gate burns; so does the case."
+        }
+      ],
+      "simple": {
+        "title": "“Burn the gate”",
+        "situation": "Someone brought petrol to the gate. A voice says make the factory an example tonight.",
+        "options": {
+          "o-d025-bait-protect": {
+            "title": "Protect the gate and the workers",
+            "preview": "Officers stand between the gate and the petrol. Workers go home the back way.",
+            "consequence": "The gate stands. The case stays about the water."
+          },
+          "o-d025-bait-charge": {
+            "title": "Charge the crowd",
+            "preview": "The fishermen and the man with the petrol are charged together.",
+            "consequence": "The canal’s victims become suspects."
+          },
+          "o-d025-bait-wait": {
+            "title": "Hope it is a bluff",
+            "preview": "Nobody stands between the can and the gate.",
+            "consequence": "The gate burns. So does the case."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d025",
+      "question": "A lab result proves the unit polluted the canal. Eighty people work there. What does a lawful response require?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Stop the harm now by notice, give the unit a hearing, protect the workers and the premises, and compensate those harmed from the polluter.",
+          "correct": true,
+          "feedback": "Correct. Environmental enforcement follows due process and the polluter-pays principle; it does not punish workers or skip the hearing."
+        },
+        {
+          "id": "b",
+          "text": "Arrest the manager publicly and let the crowd decide the rest.",
+          "correct": false,
+          "feedback": "A public arrest without process turns enforcement into spectacle and endangers everyone at the gate."
+        },
+        {
+          "id": "c",
+          "text": "Wait for the board’s monthly meeting; evidence can wait.",
+          "correct": false,
+          "feedback": "Continuing harm requires immediate interim action, which the law provides for."
+        }
+      ],
+      "principle": "The right to a clean environment flows from Article 21; enforcement is by lawful notice, hearing and the polluter-pays principle, with protection for the innocent at the scene.",
+      "why": "A sealed bottle at nine and a notice at three did what a clip and a petrol can could not.",
+      "source": {
+        "label": "Constitution of India, Articles 21 and 22 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "A lab proves the factory polluted the canal. Eighty people work there. What is the lawful response?",
+        "options": {
+          "a": "Stop the harm now, give the factory a hearing, protect the workers, make the polluter pay.",
+          "b": "Arrest the manager in public and let the crowd decide.",
+          "c": "Wait for the monthly meeting."
+        },
+        "feedback": {
+          "a": "Yes! Stop the harm, follow the process, make the polluter pay.",
+          "b": "No. A public arrest with no process is a spectacle.",
+          "c": "Harm that continues needs action now."
+        },
+        "principle": "A clean canal is a right. Stop the harm by notice, hold a hearing, and make the polluter pay.",
+        "why": "A sealed bottle at nine and a notice at three beat a clip and a petrol can."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d025-comp",
+      "at": -1,
+      "kind": "service",
+      "message": "The unit’s outfall valve is found forced open in the dark; the canal reddens again.",
+      "simple": "Someone forces the outlet valve open at night.",
+      "effects": {
+        "economy": -3,
+        "safety": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "media",
+          "incident": "outage"
+        },
+        {
+          "kind": "service",
+          "district": "media",
+          "magnitude": -0.3
+        }
+      ]
+    },
+    {
+      "id": "e-d025-fade",
+      "at": 28,
+      "kind": "service",
+      "message": "The canal is turning pink; the evidence is fading.",
+      "simple": "The canal turns pink. The proof fades.",
+      "effects": {
+        "evidence": -2
+      },
+      "condition": {
+        "notFlag": "sampled"
+      }
+    }
+  ],
+  "complication": {
+    "opponent": "sabotage",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d025-comp",
+    "baitDecisionId": "d025-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "sampled"
+        },
+        "text": "The water was sampled while it was still red.",
+        "simple": "The water was sampled while still red."
+      },
+      {
+        "condition": {
+          "flag": "notice-served"
+        },
+        "text": "Discharge stopped by notice with a hearing date.",
+        "simple": "Discharge stopped, with a hearing date."
+      },
+      {
+        "condition": {
+          "flag": "plan-published"
+        },
+        "text": "The false log and the missed inspections were both published.",
+        "simple": "Both failures were published."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "notFlag": "sampled"
+        },
+        "text": "The proof washed down the canal by noon.",
+        "simple": "The proof washed away by noon."
+      },
+      {
+        "condition": {
+          "notFlag": "notice-served"
+        },
+        "text": "The outfall still runs at night.",
+        "simple": "The outlet still runs at night."
+      },
+      {
+        "condition": {
+          "notFlag": "served"
+        },
+        "text": "Forty fishing families are unpaid for a dead season.",
+        "simple": "Forty families are unpaid."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "gate-protected"
+        },
+        "text": "The gate and the workers behind it were protected.",
+        "simple": "The gate and the workers were protected."
+      },
+      {
+        "condition": {
+          "flag": "clip-traced"
+        },
+        "text": "A false clip was traced before it became the case.",
+        "simple": "A false clip was traced in time."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "detained"
+        },
+        "text": "A manager was arrested for the crowd, not for the court.",
+        "simple": "A manager was arrested for the crowd."
+      },
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "Workers or fishermen paid for a shortcut.",
+        "simple": "Workers or fishermen paid for a shortcut."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "sampled"
+        },
+        "text": "Fill the bottle before you do anything else.",
+        "simple": "Fill the bottle first."
+      },
+      {
+        "condition": {
+          "notFlag": "clip-traced"
+        },
+        "text": "Trace a clip before you cite it; the other side will.",
+        "simple": "Trace a clip before you cite it."
+      },
+      {
+        "condition": {},
+        "text": "Publish your own failure beside theirs; it is the only way the schedule changes.",
+        "simple": "Publish your own failure too."
+      }
+    ],
+    "closing": {
+      "good": "Two sealed bottles, a Friday hearing, and a monthly inspection that did not exist yesterday: the canal will take a season, the case will not.",
+      "mixed": "The discharge stopped, but the proof came from the unit’s log rather than the water, and the clip still runs.",
+      "poor": "The canal went pink before anyone filled a bottle, and the night ended with a gate on fire or a crowd charged."
+    }
+  },
+  "simple": {
+    "title": "The Red Canal",
+    "subtitle": "The canal runs red. Who poisoned it?",
+    "briefing": {
+      "grievance": "Fishing families say the dye factory dumps at night and today it killed the canal. The factory blames a storm drain.",
+      "knownFacts": [
+        "The dye factory has a licence and a treatment plant.",
+        "Dead fish stretch two hundred metres from the factory outlet.",
+        "The last inspection was fourteen months ago."
+      ],
+      "unverifiedClaims": [
+        "A post shows a night tanker emptying into the canal.",
+        "The factory blames a colour seller upstream."
+      ],
+      "responsibility": "You run the pollution desk.",
+      "objective": "Sample the water before it clears. Find the source with proof. Keep the gate calm."
+    },
+    "closing": {
+      "good": "Two sealed bottles. A Friday hearing. Monthly checks from now.",
+      "mixed": "The discharge stopped. The proof came late.",
+      "poor": "The canal went pink before anyone filled a bottle."
+    },
+    "coldOpen": [
+      "The canal runs red.",
+      "Dead fish line the bank.",
+      "Fishermen gather at the dye factory."
+    ]
+  }
+}

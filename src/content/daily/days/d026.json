@@ -1,0 +1,1089 @@
+{
+  "id": "d026",
+  "version": 1,
+  "title": "The Shelter Notice",
+  "subtitle": "The transit hub night shelter is ordered closed in winter; the order is lawful and the cold is real",
+  "dilemmaKey": "shelter-closure",
+  "themeTags": [
+    "housing",
+    "services",
+    "dignity"
+  ],
+  "focus": "transit",
+  "institution": "transit",
+  "mood": "tense",
+  "opponents": [
+    "overreaction",
+    "exploiter"
+  ],
+  "coldOpen": [
+    "17:00. A notice closes the hub night shelter from tonight.",
+    "17:30. Ninety people with blankets outside the hub.",
+    "The forecast is four degrees."
+  ],
+  "briefing": {
+    "grievance": "Ninety people who sleep at the hub shelter are told it closes tonight for “renovation and security”. Shopkeepers wanted it gone; the transit authority signed. Nobody arranged anywhere else.",
+    "knownFacts": [
+      "The closure notice is signed and lawful; it gives no alternative.",
+      "The shelter holds 120; tonight’s forecast is four degrees.",
+      "Two shopkeeper complaints and one theft report are on file."
+    ],
+    "unverifiedClaims": [
+      "A post says shelter residents stabbed a vendor last week.",
+      "A message says the shelter is being sold to a hotel chain."
+    ],
+    "responsibility": "You run the urban services desk. The order is on your desk and so are ninety people.",
+    "objective": "Keep ninety people warm tonight, answer the shopkeepers’ real complaints, and fix the order rather than the people."
+  },
+  "evidence": [
+    {
+      "id": "ev-d026-1",
+      "title": "Closure notice",
+      "source": "Transit Authority",
+      "sourceType": "official",
+      "time": "17:00",
+      "claim": "Shelter closed from 20:00 tonight for renovation and security; no alternative accommodation listed.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Effective",
+          "value": "20:00 tonight"
+        },
+        {
+          "label": "Alternative",
+          "value": "None listed"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A notice with a stamp"
+      },
+      "resolutionNote": "Lawful, immediate, and silent on where people go.",
+      "availableAt": 2,
+      "district": "transit",
+      "simple": {
+        "title": "The closure notice",
+        "claim": "The shelter closes at 8 pm tonight. No other place is named.",
+        "resolutionNote": "Legal, immediate, and silent on where people go.",
+        "caption": "A notice with a stamp"
+      }
+    },
+    {
+      "id": "ev-d026-2",
+      "title": "Weather bulletin",
+      "source": "Meteorological office",
+      "sourceType": "official",
+      "time": "17:10",
+      "claim": "Minimum 4 °C tonight with wind; cold-wave advisory for the next three nights.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Tonight",
+          "value": "4 °C"
+        },
+        {
+          "label": "Advisory",
+          "value": "3 nights"
+        }
+      ],
+      "visual": {
+        "type": "chart",
+        "caption": "A temperature line dipping to four"
+      },
+      "resolutionNote": "Three nights of cold wave, starting now.",
+      "availableAt": 4,
+      "district": "civic",
+      "simple": {
+        "title": "The weather bulletin",
+        "claim": "Four degrees tonight with wind. A cold-wave warning for three nights.",
+        "resolutionNote": "Three cold nights, starting now.",
+        "caption": "A line dipping to four"
+      }
+    },
+    {
+      "id": "ev-d026-3",
+      "title": "Stabbing post",
+      "source": "Local channel",
+      "sourceType": "anonymous",
+      "time": "16:30",
+      "claim": "A post says a shelter resident stabbed a vendor last Tuesday; a photo shows a bandaged hand.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Police record",
+          "value": "No stabbing reported at the hub",
+          "anomaly": true
+        },
+        {
+          "label": "Photo",
+          "value": "From a kitchen accident post",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "A bandaged hand"
+      },
+      "resolutionNote": "No stabbing was reported; the photo is from a cooking accident.",
+      "injectedBy": "exploiter",
+      "contradictedBy": [
+        "ev-d026-4"
+      ],
+      "district": "market",
+      "simple": {
+        "title": "The stabbing post",
+        "claim": "A post says a shelter resident stabbed a vendor. There is a photo of a bandaged hand.",
+        "resolutionNote": "No stabbing was reported. The photo is from a kitchen accident.",
+        "caption": "A bandaged hand"
+      }
+    },
+    {
+      "id": "ev-d026-4",
+      "title": "Hub incident log",
+      "source": "Transit police post",
+      "sourceType": "official",
+      "time": "17:40",
+      "claim": "Three months: one theft (a phone, recovered), two noise complaints, no assaults.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Thefts",
+          "value": "1, recovered"
+        },
+        {
+          "label": "Assaults",
+          "value": "None"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A thin incident log"
+      },
+      "resolutionNote": "One recovered phone and two noise complaints in three months.",
+      "availableAt": 8,
+      "district": "transit",
+      "simple": {
+        "title": "The incident log",
+        "claim": "Three months: one phone stolen and found, two noise complaints, no attacks.",
+        "resolutionNote": "One found phone and two noise complaints.",
+        "caption": "A thin log"
+      }
+    },
+    {
+      "id": "ev-d026-5",
+      "title": "Vacant hall list",
+      "source": "Municipal estates office",
+      "sourceType": "official",
+      "time": "18:30",
+      "claim": "The old booking hall at the hub and a school hall are vacant tonight; both have power and toilets; the booking hall is unlocked until 19:30.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Vacant tonight",
+          "value": "2 halls"
+        },
+        {
+          "label": "Booking hall unlocked until",
+          "value": "19:30"
+        }
+      ],
+      "visual": {
+        "type": "map",
+        "caption": "Two highlighted buildings near the hub"
+      },
+      "resolutionNote": "Two warm rooms exist; one locks in an hour.",
+      "availableAt": 12,
+      "district": "transit",
+      "perishable": true,
+      "simple": {
+        "title": "The empty halls list",
+        "claim": "Two halls are empty tonight, with power and toilets. The booking hall locks at 7:30.",
+        "resolutionNote": "Two warm rooms exist. One locks in an hour.",
+        "caption": "Two buildings near the hub"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d026-1",
+      "title": "Twenty hundred hours",
+      "situation": "The shelter locks at eight. Ninety people are outside with blankets. The transit manager is asking for police to enforce the notice.",
+      "district": "transit",
+      "expiresAfter": 22,
+      "defaultOption": "o-d026-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d026-1-stay",
+          "title": "Suspend the closure for the cold wave",
+          "preview": "The shelter stays open three nights; renovation starts after the advisory lifts.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "Ninety people sleep inside. The notice waits for spring.",
+          "setsFlags": [
+            "acknowledged",
+            "served",
+            "shelter-open"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "relief"
+            }
+          ]
+        },
+        {
+          "id": "o-d026-1-hall",
+          "title": "Open the booking hall before it locks",
+          "preview": "Mattresses and heaters into the old booking hall by half past seven.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "A warm room with a different sign.",
+          "requiresEvidence": [
+            "ev-d026-5"
+          ],
+          "setsFlags": [
+            "acknowledged",
+            "served"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "restore"
+            }
+          ]
+        },
+        {
+          "id": "o-d026-1-enforce",
+          "title": "Enforce the notice; clear the forecourt",
+          "preview": "Police move ninety people and their blankets into the cold.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": -4,
+            "grievance": -4
+          },
+          "consequence": "The notice is honoured; the forecast is not.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "transit",
+              "incident": "intimidation"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d026-1-wait",
+          "title": "Let the manager decide",
+          "preview": "He locks the door at eight as the notice says.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -4,
+            "economy": -1
+          },
+          "consequence": "Ninety people on the forecourt at four degrees."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "Eight o’clock",
+        "situation": "The shelter locks at eight. Ninety people wait outside. The manager wants police.",
+        "options": {
+          "o-d026-1-stay": {
+            "title": "Keep it open for the cold wave",
+            "preview": "The shelter stays open three nights. Repairs start after.",
+            "consequence": "Ninety people sleep inside."
+          },
+          "o-d026-1-hall": {
+            "title": "Open the booking hall first",
+            "preview": "Mattresses and heaters into the old hall by 7:30.",
+            "consequence": "A warm room with a different sign."
+          },
+          "o-d026-1-enforce": {
+            "title": "Enforce the notice; clear them out",
+            "preview": "Police move ninety people into the cold.",
+            "consequence": "The notice is honoured. The forecast is not."
+          },
+          "o-d026-1-wait": {
+            "title": "Let the manager decide",
+            "preview": "He locks the door at eight.",
+            "consequence": "Ninety people outside at four degrees."
+          }
+        }
+      }
+    },
+    {
+      "id": "d026-2",
+      "title": "The stabbing",
+      "situation": "Shopkeepers cite the stabbing post as the reason the shelter must go. The police log has no stabbing. The vendors are gathering too.",
+      "district": "transit",
+      "expiresAfter": 24,
+      "defaultOption": "o-d026-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d026-2-log",
+          "title": "Publish the three-month incident log",
+          "preview": "One recovered phone, two noise complaints, no assaults, with the post beside it.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The vendors’ fear meets a thin log.",
+          "requiresEvidence": [
+            "ev-d026-4"
+          ],
+          "setsFlags": [
+            "checked",
+            "log-published"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d026-2-meet",
+          "title": "Meet shopkeepers and residents together",
+          "preview": "A table at the hub: the complaints are about noise and toilets, not knives.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "The real complaints turn out to be fixable.",
+          "setsFlags": [
+            "acknowledged",
+            "shops-heard"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d026-2-accuse",
+          "title": "Say the stabbing is under investigation",
+          "preview": "A statement treats the post as a case.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "The shelter is now officially dangerous, on no evidence.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d026-3"
+          ]
+        },
+        {
+          "id": "o-d026-2-wait",
+          "title": "Leave the post unanswered",
+          "preview": "The vendors believe it; so do the councillors.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The shelter’s reputation is set by a bandaged hand."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "The stabbing",
+        "situation": "Shopkeepers say a resident stabbed a vendor. The police log has no stabbing.",
+        "options": {
+          "o-d026-2-log": {
+            "title": "Publish the incident log",
+            "preview": "One found phone, two noise complaints, no attacks, next to the post.",
+            "consequence": "The fear meets a thin log."
+          },
+          "o-d026-2-meet": {
+            "title": "Meet shopkeepers and residents together",
+            "preview": "A table at the hub. The complaints are about noise and toilets, not knives.",
+            "consequence": "The real complaints are fixable."
+          },
+          "o-d026-2-accuse": {
+            "title": "Say the stabbing is being investigated",
+            "preview": "A statement treats the post as a real case.",
+            "consequence": "The shelter is now officially dangerous, with no proof."
+          },
+          "o-d026-2-wait": {
+            "title": "Leave the post alone",
+            "preview": "The vendors believe it.",
+            "consequence": "The shelter’s name is set by a bandaged hand."
+          }
+        }
+      }
+    },
+    {
+      "id": "d026-3",
+      "title": "Who signed it",
+      "situation": "The transit chairman wants the forecourt cleared tonight “whatever the weather”. A councillor wants the shelter moved out of sight permanently.",
+      "district": "transit",
+      "expiresAfter": 22,
+      "defaultOption": "o-d026-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d026-3-order",
+          "title": "Rescind the order; issue one with an alternative",
+          "preview": "No closure without a named warm place; the renovation waits for it.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The rule, not the weather, now protects them.",
+          "requiresEvidence": [
+            "ev-d026-1"
+          ],
+          "setsFlags": [
+            "protected",
+            "order-fixed"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "legal"
+            }
+          ]
+        },
+        {
+          "id": "o-d026-3-fix",
+          "title": "Fix the toilets and noise; keep the shelter",
+          "preview": "A night warden, a second toilet block, and a quiet rule after eleven.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The shopkeepers get the fix they actually wanted.",
+          "setsFlags": [
+            "served"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "restore"
+            }
+          ]
+        },
+        {
+          "id": "o-d026-3-move",
+          "title": "Move everyone to a yard outside the city tonight",
+          "preview": "Buses take ninety people to an open yard eleven kilometres out.",
+          "authority": "Dignity: removal from view is not a solution to homelessness",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": -3,
+            "grievance": -4,
+            "economy": -2
+          },
+          "consequence": "Out of sight is also out of warmth and out of work.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d026-3-wait",
+          "title": "Let the chairman and the councillor argue",
+          "preview": "The order stands by default while they argue.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -3,
+            "economy": -1
+          },
+          "consequence": "A second night outside."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d026",
+      "simple": {
+        "title": "Who signed it",
+        "situation": "The chairman wants the forecourt cleared tonight. A councillor wants the shelter gone for good.",
+        "options": {
+          "o-d026-3-order": {
+            "title": "Cancel the order; require a warm place",
+            "preview": "No closure without a named warm place. Repairs wait for that place.",
+            "consequence": "The rule now protects them, not the weather."
+          },
+          "o-d026-3-fix": {
+            "title": "Fix the toilets and noise; keep it",
+            "preview": "A night warden, more toilets, and quiet after eleven.",
+            "consequence": "The shopkeepers get what they really wanted."
+          },
+          "o-d026-3-move": {
+            "title": "Bus them to a yard outside the city",
+            "preview": "Ninety people are driven to an open yard eleven kilometres out.",
+            "consequence": "Out of sight is also out of warmth and work."
+          },
+          "o-d026-3-wait": {
+            "title": "Let them argue",
+            "preview": "The order stands while they argue.",
+            "consequence": "A second night outside."
+          }
+        }
+      }
+    },
+    {
+      "id": "d026-4",
+      "title": "After the cold wave",
+      "situation": "The advisory lifts in three days. The renovation is real: the roof leaks. The hotel-sale rumour is in every shop.",
+      "district": "civic",
+      "expiresAfter": 24,
+      "defaultOption": "o-d026-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d026-4-plan",
+          "title": "Publish the renovation plan and the lease",
+          "preview": "Dates, a temporary shelter in the booking hall, and the lease showing no sale.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The rumour meets a lease and the residents get a calendar.",
+          "requiresEvidence": [
+            "ev-d026-5"
+          ],
+          "setsFlags": [
+            "plan-published",
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d026-4-count",
+          "title": "Register every resident for the housing list",
+          "preview": "Ninety names, documents and a caseworker each.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "Some leave the shelter with a key, not a notice.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d026-4-accuse",
+          "title": "Announce the hotel sale as fact",
+          "preview": "A statement adopts the sale rumour and blames the chairman.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A lease nobody read answers you by morning.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d026-3"
+          ]
+        },
+        {
+          "id": "o-d026-4-wait",
+          "title": "Close it after the advisory, as planned",
+          "preview": "The same notice, three days later, same silence on alternatives.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The cold wave was a reprieve, not a decision."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "After the cold wave",
+        "situation": "The warning lifts in three days. The roof really leaks. The hotel rumour is in every shop.",
+        "options": {
+          "o-d026-4-plan": {
+            "title": "Publish the repair plan and the lease",
+            "preview": "Dates, a temporary shelter in the hall, and the lease showing no sale.",
+            "consequence": "The rumour meets a lease. Residents get a calendar."
+          },
+          "o-d026-4-count": {
+            "title": "Put every resident on the housing list",
+            "preview": "Ninety names, papers and a caseworker each.",
+            "consequence": "Some leave with a key, not a notice."
+          },
+          "o-d026-4-accuse": {
+            "title": "Announce the hotel sale as fact",
+            "preview": "A statement repeats the rumour and blames the chairman.",
+            "consequence": "The lease answers you by morning."
+          },
+          "o-d026-4-wait": {
+            "title": "Close it after the advisory",
+            "preview": "The same notice, three days later.",
+            "consequence": "The cold wave was a pause, not a decision."
+          }
+        }
+      }
+    },
+    {
+      "id": "d026-bait",
+      "title": "“Round them up”",
+      "situation": "A councillor demands the ninety be “rounded up and sent back to their villages” tonight, and has brought a bus.",
+      "district": "transit",
+      "expiresAfter": 20,
+      "defaultOption": "o-d026-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d026-bait-bus",
+          "title": "Put them on the councillor’s bus",
+          "preview": "Ninety people are loaded onto a bus to “their villages”; some were born here.",
+          "authority": "Freedom of movement: citizens cannot be bussed out of their own city",
+          "tags": [
+            "detention",
+            "force",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -13,
+            "trust": -10,
+            "safety": 3,
+            "grievance": -5
+          },
+          "consequence": "The city deports its own residents from itself.",
+          "setsFlags": [
+            "detained"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d026-bait-refuse",
+          "title": "Refuse the bus; register them for housing",
+          "preview": "The bus leaves empty; the caseworkers stay.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The residents stay residents.",
+          "setsFlags": [
+            "protected"
+          ]
+        },
+        {
+          "id": "o-d026-bait-wait",
+          "title": "Let the bus wait while you “review”",
+          "preview": "The councillor fills the bus himself.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1,
+            "freedom": -4
+          },
+          "consequence": "Forty people are gone before you finish reviewing."
+        }
+      ],
+      "simple": {
+        "title": "“Round them up”",
+        "situation": "A councillor wants the ninety bussed to their villages tonight. He brought a bus.",
+        "options": {
+          "o-d026-bait-bus": {
+            "title": "Put them on the bus",
+            "preview": "Ninety people are loaded onto a bus. Some were born here.",
+            "consequence": "The city deports its own people."
+          },
+          "o-d026-bait-refuse": {
+            "title": "Refuse the bus; register them",
+            "preview": "The bus leaves empty. The caseworkers stay.",
+            "consequence": "The residents stay residents."
+          },
+          "o-d026-bait-wait": {
+            "title": "Let the bus wait",
+            "preview": "The councillor fills the bus himself.",
+            "consequence": "Forty people are gone before you decide."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d026",
+      "question": "A lawful notice closes a shelter in a cold wave with no alternative. What does the right to life require of the authority?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Not to close without an alternative: shelter in a cold wave is part of the right to life, so the order must be amended or suspended.",
+          "correct": true,
+          "feedback": "Correct. A lawful power must still be exercised consistently with the right to life and dignity."
+        },
+        {
+          "id": "b",
+          "text": "To enforce the notice; it is lawful, and the weather is not the authority’s problem.",
+          "correct": false,
+          "feedback": "Lawful powers cannot be used to expose people to life-threatening cold with no alternative."
+        },
+        {
+          "id": "c",
+          "text": "To move the residents out of the city so the shelter can close.",
+          "correct": false,
+          "feedback": "Citizens cannot be removed from their own city; out of sight is not a lawful remedy."
+        }
+      ],
+      "principle": "The right to life and dignity (Article 21) includes shelter in life-threatening conditions; a lawful closure power must be exercised with a real alternative in place.",
+      "why": "A hall unlocked till half past seven and an amended order kept ninety people alive and the renovation on schedule.",
+      "source": {
+        "label": "Constitution of India, Articles 21 and 22 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "A legal notice closes a shelter in a cold wave with no other place to go. What must the authority do?",
+        "options": {
+          "a": "Not close it without a warm alternative. Change or pause the order.",
+          "b": "Enforce it. The weather is not their problem.",
+          "c": "Move the residents out of the city."
+        },
+        "feedback": {
+          "a": "Yes! A legal power still has to protect life.",
+          "b": "No. A rule cannot put people in deadly cold with nowhere to go.",
+          "c": "People cannot be removed from their own city."
+        },
+        "principle": "Shelter in deadly cold is part of the right to life. A closure needs a real alternative first.",
+        "why": "An unlocked hall and a fixed order kept ninety people alive and the repairs on schedule."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d026-comp",
+      "at": -1,
+      "kind": "news",
+      "message": "The transit chairman orders the forecourt cleared “by any means” and calls in a second police unit.",
+      "simple": "The chairman orders the forecourt cleared by any means.",
+      "effects": {
+        "trust": -1
+      },
+      "mapEffects": [
+        {
+          "kind": "mood",
+          "district": "transit",
+          "mood": "tense"
+        }
+      ]
+    },
+    {
+      "id": "e-d026-cold",
+      "at": 30,
+      "kind": "service",
+      "message": "The temperature drops to four; two residents are taken to hospital with hypothermia.",
+      "simple": "Two residents are taken to hospital with hypothermia.",
+      "effects": {
+        "safety": -3,
+        "trust": -2
+      },
+      "condition": {
+        "notFlag": "served"
+      }
+    }
+  ],
+  "complication": {
+    "opponent": "overreaction",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d026-comp",
+    "baitDecisionId": "d026-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "served"
+        },
+        "text": "Ninety people slept somewhere warm tonight.",
+        "simple": "Ninety people slept somewhere warm."
+      },
+      {
+        "condition": {
+          "flag": "order-fixed"
+        },
+        "text": "No shelter can now be closed without a named alternative.",
+        "simple": "No shelter closes now without a warm place first."
+      },
+      {
+        "condition": {
+          "flag": "log-published"
+        },
+        "text": "The stabbing post was answered with the incident log.",
+        "simple": "The stabbing post was answered."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "notFlag": "served"
+        },
+        "text": "Ninety people spent a cold-wave night outside.",
+        "simple": "Ninety people spent the night outside."
+      },
+      {
+        "condition": {
+          "notFlag": "order-fixed"
+        },
+        "text": "The next notice will still be silent on where people go.",
+        "simple": "The next notice will still say nothing about where to go."
+      },
+      {
+        "condition": {
+          "notFlag": "shops-heard"
+        },
+        "text": "The shopkeepers’ real complaints were never heard.",
+        "simple": "The shopkeepers’ real complaints went unheard."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "protected"
+        },
+        "text": "Residents were treated as residents, not as a forecourt problem.",
+        "simple": "Residents were treated as residents."
+      },
+      {
+        "condition": {
+          "flag": "checked"
+        },
+        "text": "The fear was checked against the record.",
+        "simple": "The fear was checked against the record."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "detained"
+        },
+        "text": "People were bussed out of their own city.",
+        "simple": "People were bussed out of their own city."
+      },
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "A lawful notice was enforced into the cold.",
+        "simple": "A notice was enforced into the cold."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "served"
+        },
+        "text": "Open the hall before it locks; warmth first, paperwork second.",
+        "simple": "Open the hall before it locks."
+      },
+      {
+        "condition": {
+          "notFlag": "order-fixed"
+        },
+        "text": "Fix the order so the next cold wave is not a crisis.",
+        "simple": "Fix the order for next time."
+      },
+      {
+        "condition": {},
+        "text": "Put shopkeepers and residents at one table; the complaints shrink.",
+        "simple": "Put both sides at one table."
+      }
+    ],
+    "closing": {
+      "good": "Ninety people slept warm, the order now names an alternative, and the shopkeepers got a night warden instead of an empty forecourt.",
+      "mixed": "The shelter stayed open for the cold wave, but the order is unchanged and the post still circulates.",
+      "poor": "The notice was honoured at four degrees, and some of the ninety are now on a bus to a village they have never seen."
+    }
+  },
+  "simple": {
+    "title": "The Shelter Notice",
+    "subtitle": "A night shelter is ordered closed in winter.",
+    "briefing": {
+      "grievance": "Ninety people who sleep at the shelter are told it closes tonight. Shopkeepers wanted it gone. Nobody arranged anywhere else.",
+      "knownFacts": [
+        "The closure notice is legal. It offers no other place.",
+        "The shelter holds 120. Tonight is four degrees.",
+        "Two shop complaints and one theft report are on file."
+      ],
+      "unverifiedClaims": [
+        "A post says shelter residents stabbed a vendor.",
+        "A message says the shelter is being sold to a hotel."
+      ],
+      "responsibility": "You run the urban services desk.",
+      "objective": "Keep ninety people warm tonight. Answer the shopkeepers fairly. Fix the order, not the people."
+    },
+    "closing": {
+      "good": "Ninety people slept warm. The order now names a warm place. Shopkeepers got a night warden.",
+      "mixed": "The shelter stayed open for now. The order is unchanged.",
+      "poor": "The notice was enforced at four degrees."
+    },
+    "coldOpen": [
+      "A notice closes the night shelter tonight.",
+      "Ninety people wait with blankets.",
+      "Tonight will be four degrees."
+    ]
+  }
+}

@@ -117,3 +117,16 @@ testing first), enrol in Play App Signing with this upload key, then promote the
 8. Check the viewports 360×800, 390×844, 412×915, 768×1024, 1366×768, 1440×900, 1920×1080 for clipping/horizontal scroll.
 9. Android: `adb install -r release/vande-*-release.apk`, launch, play one decision, press hardware Back on each screen.
 10. Record the deployed commit (`git rev-parse origin/gh-pages`) in the release notes for rollback.
+
+## 9. Daily content, backend and analytics (added with Daily Quick Play)
+
+* Content: `node scripts/validate-daily.mjs` must pass; before the first public day resolves run
+  `node scripts/validate-daily.mjs --pin-through=<launch date>` and paste the output into `src/content/daily/schedule.json`
+  `pinned`; bump `contentVersion` whenever a published day changes. Authoring guide: `docs/CONTENT-DAILY.md`.
+* Backend (optional, Cloudflare Workers + D1): `cd backend && npx wrangler d1 create vande-daily && npx wrangler d1 migrations apply vande-daily
+  && npx wrangler secret put RATE_SALT && npx wrangler deploy`; then rebuild the app with `VITE_COMMUNITY_API_URL=https://<worker>.workers.dev`.
+  Full steps, cost table and threat model: `docs/BACKEND.md`, `docs/COST.md`.
+* Analytics (optional): set `VITE_ANALYTICS_PROVIDER=posthog`, `VITE_POSTHOG_HOST`, `VITE_POSTHOG_KEY` at build time; event
+  dictionary in `docs/ANALYTICS.md`. Flags and kill switches: `docs/FEATURE-FLAGS.md`.
+* Android: `npx cap sync android` after dependency changes (the reminder plugin adds notification permissions; see
+  `docs/PRIVACY.md`).

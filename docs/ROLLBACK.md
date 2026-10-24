@@ -54,3 +54,12 @@ to an encrypted location now.
 2. Open in a private window: launch → home → start a chapter → make one decision.
 3. Open the installed PWA once online so it picks up the rolled-back build.
 4. On Android, install the rolled-back APK on a test device and play one decision.
+
+## Backend and content rollback
+
+* Worker: `cd backend && npx wrangler rollback` (or `npx wrangler deploy` of the previous commit). D1 migrations are
+  additive; to retire a table, write a new migration rather than editing old ones.
+* Disable without redeploying the app: remove the Worker route (dashboard) or raise `MIN_COHORT`; clients queue and
+  then drop submissions, statistics show "Not enough results yet".
+* Content: revert the day file(s), keep `schedule.pinned` intact, bump `contentVersion`, run `node scripts/validate-daily.mjs`.
+* Analytics: revoke the PostHog project key; clients fail silently.
