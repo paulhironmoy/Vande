@@ -50,10 +50,19 @@ export async function passIntro(page: Page, style?: PlayStyle) {
   await expect(page.getByTestId('intro-screen')).toBeVisible({ timeout: 15_000 });
   if (style) await chooseStyle(page, style);
   await page.getByTestId('intro-begin').click();
+  // The first run goes straight to today's crisis (skippable cold open).
+  await expect(page.getByTestId('daily-open-screen')).toBeVisible({ timeout: 15_000 });
+}
+
+/** From the intro, reach the campaign opponent screen the way a player would: Home → Start the campaign. */
+export async function passIntroToOpponents(page: Page, style?: PlayStyle) {
+  await passIntro(page, style);
+  await page.goto('/home');
+  await expect(page.getByTestId('home-screen')).toBeVisible({ timeout: 15_000 });
+  await page.getByTestId('home-start-campaign').click();
   await expect(page.getByTestId('opponents-screen')).toBeVisible();
 }
 
-/** From home (returning player) start the campaign. */
 export async function startCampaignFromHome(page: Page) {
   await expect(page.getByTestId('home-screen')).toBeVisible({ timeout: 15_000 });
   await page.getByTestId('home-start-campaign').click();
@@ -70,11 +79,10 @@ export async function confirmOpponentsAndStart(page: Page) {
 /** Fresh profile all the way into gameplay (Simple style unless a style is given). */
 export async function enterGameplayFresh(page: Page, style?: PlayStyle) {
   await gotoApp(page);
-  await passIntro(page, style);
+  await passIntroToOpponents(page, style);
   await confirmOpponentsAndStart(page);
 }
 
-/** True while the Simple style has paused the clock for a new decision or rights moment. */
 export async function clockIsWaiting(page: Page): Promise<boolean> {
   return page.getByTestId('clock-waiting').isVisible().catch(() => false);
 }

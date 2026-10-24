@@ -12,6 +12,12 @@ for (const vp of VIEWPORTS) {
       await assertNoHorizontalOverflow(page);
       await assertControlsReachable(page, ['intro-begin']);
       await page.getByTestId('intro-begin').click();
+      await expect(page.getByTestId('daily-open-screen')).toBeVisible({ timeout: 15_000 });
+      await assertNoHorizontalOverflow(page);
+      await assertControlsReachable(page, ['daily-open-start', 'daily-open-skip']);
+      await page.goto('/home');
+      await expect(page.getByTestId('home-screen')).toBeVisible({ timeout: 15_000 });
+      await page.getByTestId('home-start-campaign').click();
 
       await expect(page.getByTestId('opponents-screen')).toBeVisible();
       await assertNoHorizontalOverflow(page);
@@ -63,6 +69,11 @@ test.describe('viewport 360x800 · Full style', () => {
     await expect(page.getByTestId('intro-screen')).toBeVisible({ timeout: 15_000 });
     await chooseStyle(page, 'full');
     await page.getByTestId('intro-begin').click();
+    await expect(page.getByTestId('daily-open-screen')).toBeVisible({ timeout: 15_000 });
+    await assertNoHorizontalOverflow(page);
+    await page.goto('/home');
+    await expect(page.getByTestId('home-screen')).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId('home-start-campaign').click();
     await expect(page.getByTestId('opponents-screen')).toBeVisible();
     await assertNoHorizontalOverflow(page);
     await page.getByTestId('opponents-confirm').click();

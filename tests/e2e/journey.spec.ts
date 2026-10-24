@@ -52,7 +52,7 @@ test.describe('Critical journey', () => {
     await page.goto('/');
     await expect(page.getByTestId('intro-screen')).toBeVisible({ timeout: 15_000 });
     await page.getByTestId('intro-begin').click();
-    await expect(page.getByTestId('opponents-screen')).toBeVisible();
+    await expect(page.getByTestId('daily-open-screen')).toBeVisible({ timeout: 15_000 });
     await page.goto('/home');
     await expect(page.getByTestId('home-screen')).toBeVisible();
     await page.getByTestId('home-start-campaign').click();

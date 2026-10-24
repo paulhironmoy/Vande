@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { gotoApp, installClock, passIntro } from './helpers';
+import { gotoApp, installClock, passIntroToOpponents } from './helpers';
 
 test('opponent selection allows 1–5, defaults to two at standard, and shows behaviour, difficulty and pressure', async ({ page }) => {
   await installClock(page);
   await gotoApp(page);
-  await passIntro(page);
+  await passIntroToOpponents(page);
 
   const ids = ['exploiter', 'provocateur', 'disinfo', 'sabotage', 'overreaction'];
   for (const id of ids) {

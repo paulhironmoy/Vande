@@ -10,7 +10,7 @@ describe('intro play-style chooser', () => {
     const full = screen.getByTestId('style-full');
     expect(simple.getAttribute('aria-checked')).toBe('true');
     expect(full.getAttribute('aria-checked')).toBe('false');
-    expect(screen.getByTestId('intro-begin').textContent).toMatch(/Start playing/);
+    expect(screen.getByTestId('intro-begin').textContent).toMatch(/Play today's crisis/);
 
     fireEvent.click(full);
     let settings = useApp.getState().settings;
@@ -18,7 +18,7 @@ describe('intro play-style chooser', () => {
     expect(settings.timerPace).toBe('standard');
     expect(settings.autoPauseOnDecision).toBe(false);
     expect(screen.getByTestId('style-full').getAttribute('aria-checked')).toBe('true');
-    expect(screen.getByTestId('intro-begin').textContent).toMatch(/Begin your first crisis/);
+    expect(screen.getByTestId('intro-begin').textContent).toMatch(/Play Today's Crisis/);
 
     fireEvent.click(screen.getByTestId('style-simple'));
     settings = useApp.getState().settings;

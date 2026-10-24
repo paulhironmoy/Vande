@@ -15,6 +15,9 @@ const BriefingScreen = lazy(() => import('@/screens/Briefing/BriefingScreen').th
 const ChapterResultScreen = lazy(() => import('@/screens/ChapterResult/ChapterResultScreen').then((m) => ({ default: m.ChapterResultScreen })));
 const FinalResultScreen = lazy(() => import('@/screens/FinalResult/FinalResultScreen').then((m) => ({ default: m.FinalResultScreen })));
 const DailyScreen = lazy(() => import('@/screens/Daily/DailyScreen').then((m) => ({ default: m.DailyScreen })));
+const DailyOpenScreen = lazy(() => import('@/screens/Daily/DailyOpenScreen').then((m) => ({ default: m.DailyOpenScreen })));
+const CalendarScreen = lazy(() => import('@/screens/Calendar/CalendarScreen').then((m) => ({ default: m.CalendarScreen })));
+const PassportScreen = lazy(() => import('@/screens/Passport/PassportScreen').then((m) => ({ default: m.PassportScreen })));
 const ChallengeScreen = lazy(() => import('@/screens/Challenge/ChallengeScreen').then((m) => ({ default: m.ChallengeScreen })));
 const RepublicScreen = lazy(() => import('@/screens/Republic/RepublicScreen').then((m) => ({ default: m.RepublicScreen })));
 const HistoryScreen = lazy(() => import('@/screens/History/HistoryScreen').then((m) => ({ default: m.HistoryScreen })));
@@ -45,6 +48,12 @@ function CurrentScreen() {
       return <FinalResultScreen />;
     case 'daily':
       return <DailyScreen />;
+    case 'daily-open':
+      return <DailyOpenScreen />;
+    case 'calendar':
+      return <CalendarScreen />;
+    case 'passport':
+      return <PassportScreen />;
     case 'challenge':
       return <ChallengeScreen />;
     case 'republic':

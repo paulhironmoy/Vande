@@ -12,6 +12,10 @@ test('reduced motion: launch shows a static mark, durations collapse, and the ga
   const motion = await page.evaluate(() => document.documentElement.getAttribute('data-motion'));
   expect(motion === 'reduced' || motion === null).toBeTruthy();
   await page.getByTestId('intro-begin').click();
+  await expect(page.getByTestId('daily-open-screen')).toBeVisible({ timeout: 15_000 });
+  await page.goto('/home');
+  await expect(page.getByTestId('home-screen')).toBeVisible({ timeout: 15_000 });
+  await page.getByTestId('home-start-campaign').click();
   await page.getByTestId('opponents-confirm').click();
   await page.getByTestId('briefing-start').click();
   await expect(page.getByTestId('play-screen')).toBeVisible({ timeout: 20_000 });
