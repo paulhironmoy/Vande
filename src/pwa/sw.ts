@@ -12,8 +12,45 @@ declare let self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<PrecacheEntr
 
 const base: string = import.meta.env.BASE_URL || '/';
 
+/**
+ * Inside the Capacitor shell (https://localhost on Android, capacitor://localhost on iOS) the web bundle ships with
+ * the app, so a service worker can only ever serve stale files after an app update. When this worker is installed
+ * there (i.e. an older app version left a registration behind) it takes over immediately, drops every cache,
+ * unregisters itself and reloads open pages so they load the bundled version directly.
+ */
+const NATIVE_SHELL =
+  (self.location.protocol === 'https:' || self.location.protocol === 'capacitor:') && self.location.hostname === 'localhost';
+
+if (NATIVE_SHELL) {
+  self.addEventListener('install', () => {
+    void self.skipWaiting();
+  });
+  self.addEventListener('activate', (event) => {
+    event.waitUntil(
+      (async () => {
+        await self.clients.claim();
+        try {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((k) => caches.delete(k)));
+        } catch {
+          /* ignore */
+        }
+        const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        await self.registration.unregister();
+        for (const client of windows) {
+          try {
+            await client.navigate(client.url);
+          } catch {
+            /* the page will pick up the bundled version on its next load */
+          }
+        }
+      })(),
+    );
+  });
+}
+
 cleanupOutdatedCaches();
-precacheAndRoute(self.__WB_MANIFEST);
+precacheAndRoute(NATIVE_SHELL ? [] : self.__WB_MANIFEST);
 
 // App-shell navigation: every in-app route (and unknown deep links) resolves to the precached index.html.
 registerRoute(
