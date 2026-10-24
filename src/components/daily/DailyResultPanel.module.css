@@ -1,0 +1,122 @@
+.panel {
+  display: grid;
+  gap: var(--s-4);
+  padding: var(--s-4);
+  border-radius: var(--r-xl);
+  border: var(--edge-line);
+  background: var(--surface-1);
+  box-shadow: var(--edge-light), var(--shadow-2);
+}
+.hero {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.heroText {
+  display: grid;
+  gap: var(--s-2);
+  min-width: 0;
+  flex: 1 1 12rem;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--r-pill);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.03em;
+}
+.badgeOfficial {
+  color: var(--t-on-accent);
+  background: var(--o-safety);
+}
+.badgePractice {
+  color: var(--t-primary);
+  background: rgba(170, 182, 200, 0.18);
+  border: var(--edge-line-strong);
+}
+.outcome {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.01em;
+  line-height: var(--leading-tight);
+}
+.sub {
+  margin: 0;
+  color: var(--t-secondary);
+  font-size: var(--text-sm);
+}
+.lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.line {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--text-md);
+  color: var(--t-primary);
+  line-height: var(--leading-snug);
+}
+.line svg {
+  color: var(--c-cyan);
+  flex: none;
+}
+.pattern {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+.patternLabel {
+  font-size: var(--text-sm);
+  color: var(--t-tertiary);
+  font-weight: var(--weight-semibold);
+}
+.awards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.award {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: rgba(46, 211, 196, 0.08);
+  border: 1px solid rgba(46, 211, 196, 0.3);
+}
+.award svg {
+  color: var(--o-safety);
+  flex: none;
+  margin-top: 0.1rem;
+}
+.award strong {
+  display: block;
+  font-size: var(--text-md);
+}
+.awardWhy {
+  display: block;
+  color: var(--t-secondary);
+  font-size: var(--text-sm);
+}
+.actions {
+  display: grid;
+  gap: var(--s-2);
+}
+@media (min-width: 640px) {
+  .actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

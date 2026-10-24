@@ -47,6 +47,12 @@ function Disclosure() {
       <p>
         <strong>Educational content — not legal advice.</strong> Nothing in VANDE is a statement of law, policy or fact about any real situation.
       </p>
+      <h2>Community numbers are real or absent</h2>
+      <p>
+        Where the game shows how other players did on a daily crisis, every number comes from real, anonymous submissions by players who opted
+        in. Nothing is simulated or seeded, there are no bots or placeholder players, and below 25 results the game says "Not enough results
+        yet" instead of showing percentages. The earlier "simulated range" is labelled as such wherever it still appears.
+      </p>
     </>
   );
 }
@@ -54,36 +60,56 @@ function Disclosure() {
 function Privacy() {
   return (
     <>
-      <h2>Nothing leaves your device</h2>
+      <h2>Your game stays on your device</h2>
       <p>
-        VANDE has no accounts, no servers, no analytics and no advertising. Your campaign progress, results, history, personal bests, Republic
-        condition and settings are stored only in your browser or in the Android app's local storage (IndexedDB, with a localStorage fallback when
-        IndexedDB is unavailable, for example in some private-browsing modes).
+        VANDE has no accounts and no advertising. Your campaign progress, results, history, personal bests, Republic condition, daily records,
+        Civic Passport and settings are stored only in your browser or in the Android app's local storage (IndexedDB, with a localStorage fallback
+        when IndexedDB is unavailable, for example in some private-browsing modes). The game plays fully offline.
       </p>
+      <h2>Two optional, anonymous network features</h2>
+      <p>
+        Builds of VANDE may include two features that talk to a server. Both are <strong>off until you turn them on</strong>, both keep working
+        offline (nothing waits for the network), and neither sends anything that identifies you.
+      </p>
+      <ul>
+        <li>
+          <strong>Community results</strong> (Settings → Share anonymous results). After an official daily result, the game can send: the day's
+          id, the content version, your score, the outcome, your strategy pattern (a few letters), Simple or Full style, the app version, and
+          a one-way code derived from a random id created on your device and the day — a different code every day, so days cannot be linked.
+          In return you see real, aggregated results from other players (never fewer than 25, never a leaderboard). Server rows cannot be
+          traced back to a person, which also means they cannot be looked up or deleted on request; they are discarded after 180 days.
+        </li>
+        <li>
+          <strong>Product analytics</strong> (Settings → Help improve VANDE, shown only when a build is configured for it). A short list of
+          events such as "daily started" or "daily completed", with the app version, platform, play style, day id and coarse time buckets. No
+          decision text, no precise times, no location, no device fingerprint. Your browser's Do-Not-Track or Global Privacy Control signal turns
+          it off automatically.
+        </li>
+      </ul>
       <h2>What is stored locally</h2>
       <ul>
         <li>Settings and accessibility preferences.</li>
         <li>The chapter you are playing, so a refresh or interruption restores it.</li>
-        <li>Completed chapters, campaigns, daily challenges and personal bests.</li>
+        <li>Completed chapters, campaigns, daily records (official and practice), personal bests and the Civic Passport.</li>
         <li>Your long-term Republic condition.</li>
+        <li>A random installation id used only to build the anonymous codes above. "Reset anonymous id" in Settings replaces it.</li>
       </ul>
       <h2>Sharing is in your hands</h2>
       <p>
-        Result cards and challenge links are generated on your device. A challenge link contains only the scenario, a seed number, the difficulty,
-        the selected opponents and your score — never your name or device details. Sharing uses your device's own share sheet; nothing is sent to us.
-        On Android the result image is written to the app's own cache folder for the share sheet to read; you can clear it from system settings at
-        any time.
+        Result cards, daily cards and challenge links are generated on your device. A daily challenge link contains the day's date and, if you
+        choose, your score and strategy pattern — never your name or device details. Sharing uses your device's own share sheet. On Android the
+        image is written to the app's own cache folder for the share sheet to read; you can clear it from system settings at any time.
       </p>
       <h2>Offline by design</h2>
       <p>
-        After the first visit the game is cached so it works without a connection. The only network requests are the game's own static files;
-        fonts are bundled with the game and are never fetched from a third party. Official-source links in rights moments and the support links open
-        external websites (government, court and GitHub) with their own privacy policies.
+        After the first visit the game is cached so it works without a connection. Apart from the optional features above, the only network
+        requests are the game's own static files; fonts are bundled and never fetched from a third party. Official-source links in rights moments
+        and the support links open external websites with their own privacy policies.
       </p>
       <h2>Export and deletion</h2>
       <p>
-        From Settings you can export everything as a JSON file or delete all local progress at once. Uninstalling the app or clearing site data has the
-        same effect.
+        From Settings you can export everything as a JSON file or delete all local progress at once (this also clears the installation id and any
+        queued community submissions). Uninstalling the app or clearing site data has the same effect.
       </p>
     </>
   );

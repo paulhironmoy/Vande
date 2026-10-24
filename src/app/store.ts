@@ -753,7 +753,14 @@ export const useApp = create<State>()((set, get) => ({
           s.passport,
           completedAt,
         );
-      track('daily_completed', { dailyId, official: officialRun, contentVersion: DAILY_CONTENT_VERSION, mode: s.settings.playStyle, state: 'completed' });
+      track('daily_completed', {
+        dailyId,
+        official: officialRun,
+        contentVersion: DAILY_CONTENT_VERSION,
+        mode: s.settings.playStyle,
+        state: 'completed',
+        elapsedBucket: elapsedBucket(dailyStartedAt ? Date.now() - dailyStartedAt : 0),
+      });
       if (s.intent?.friend) track('challenge_completed', { dailyId });
       if (officialRun) {
         void submitOfficialResult(record, {
@@ -881,7 +888,15 @@ export const useApp = create<State>()((set, get) => ({
       return false;
     }
     const record = get().dailyV2.find((r) => r.dailyId === dailyId);
+    let preview: Scenario | undefined;
+    try {
+      preview = getScenario(dailyScenarioId(resolution.dayId));
+    } catch {
+      preview = undefined;
+    }
     set({
+      // The cold open reads the day's title and lines; the game itself is created only when play begins.
+      scenario: get().game ? get().scenario : preview,
       intent: {
         kind: 'daily',
         seed: resolution.seed,
@@ -973,6 +988,14 @@ export const useApp = create<State>()((set, get) => ({
     metaRecord = { ...metaRecord, installId: newInstallId(), installIdRotatedAt: nowIso() };
     set({ installId: metaRecord.installId ?? '' });
     await storage.setMeta(metaRecord).catch(() => undefined);
+    // The analytics distinct id derives from the install id: reconfigure immediately.
+    const st = get();
+    void startCommunityAndAnalytics({
+      installId: metaRecord.installId ?? '',
+      appVersion: typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev',
+      isNative: st.isNative,
+      settings: st.settings,
+    });
     get().toast({ text: 'Your anonymous id was replaced with a new one.', kind: 'success', duration: 3500 });
   },
 

@@ -1,0 +1,1111 @@
+{
+  "id": "d019",
+  "version": 1,
+  "title": "The Fare Hike",
+  "subtitle": "A forty percent fare rise brings commuters to the depot at dawn",
+  "dilemmaKey": "bus-fare-protest",
+  "themeTags": [
+    "transit",
+    "economy",
+    "assembly"
+  ],
+  "focus": "transit",
+  "institution": "transit",
+  "mood": "tense",
+  "opponents": [
+    "provocateur",
+    "exploiter"
+  ],
+  "coldOpen": [
+    "05:30. New fare boards go up: forty percent more from today.",
+    "06:15. Commuters sit on the depot exit; no bus leaves.",
+    "The transit chief announced it by notice, not by meeting."
+  ],
+  "briefing": {
+    "grievance": "Daily-wage commuters cannot absorb a forty percent rise announced overnight. They want the rise withdrawn or phased, and they want to be asked before, not told after.",
+    "knownFacts": [
+      "The authority is running a deficit; fuel costs rose 30% this year.",
+      "The rise was approved by the board without public notice.",
+      "Sixty buses serve two lakh passengers from this depot daily."
+    ],
+    "unverifiedClaims": [
+      "A post says the board gave itself a bonus the same day.",
+      "A message says private operators paid for the rise to push riders to their vans."
+    ],
+    "responsibility": "You run the transit authority and the depot policing. The deficit is real, the rise was clumsy, and the sit-in is lawful.",
+    "objective": "Get buses moving by agreement, open the books on the rise, and give riders a say before the next one."
+  },
+  "evidence": [
+    {
+      "id": "ev-d019-1",
+      "title": "Authority accounts summary",
+      "source": "Transit Authority finance",
+      "sourceType": "institution",
+      "time": "06:00",
+      "claim": "Deficit 18% of operating cost; fuel up 30%; no board remuneration change this year.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Deficit",
+          "value": "18%"
+        },
+        {
+          "label": "Board pay change",
+          "value": "None"
+        }
+      ],
+      "visual": {
+        "type": "chart",
+        "caption": "A bar chart of cost lines with fuel highest"
+      },
+      "resolutionNote": "The deficit is real; the board gave itself nothing.",
+      "availableAt": 2,
+      "district": "transit",
+      "simple": {
+        "title": "The accounts",
+        "claim": "The service loses 18% of what it spends. Fuel is up 30%. Board pay did not change.",
+        "resolutionNote": "The deficit is real. The board took no bonus.",
+        "caption": "A bar chart with fuel highest"
+      }
+    },
+    {
+      "id": "ev-d019-2",
+      "title": "Board minutes",
+      "source": "Transit Authority secretariat",
+      "sourceType": "official",
+      "time": "06:20",
+      "claim": "The fare rise was approved last Thursday; the minutes note “public consultation: not required”.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Approved",
+          "value": "Last Thursday"
+        },
+        {
+          "label": "Consultation",
+          "value": "“Not required”"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "Minutes with one line underlined"
+      },
+      "resolutionNote": "The board decided it did not need to ask anyone.",
+      "availableAt": 6,
+      "corroboratedBy": [
+        "ev-d019-1"
+      ],
+      "district": "transit",
+      "simple": {
+        "title": "The board minutes",
+        "claim": "The rise was approved last Thursday. The minutes say asking the public was “not required”.",
+        "resolutionNote": "The board decided not to ask anyone.",
+        "caption": "Minutes with one line underlined"
+      }
+    },
+    {
+      "id": "ev-d019-3",
+      "title": "“Board bonus” post",
+      "source": "Anonymous account",
+      "sourceType": "anonymous",
+      "time": "06:30",
+      "claim": "A photo of a cheque says each board member received a bonus the day of the rise.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Cheque",
+          "value": "Template image with a 2019 date",
+          "anomaly": true
+        },
+        {
+          "label": "Accounts",
+          "value": "No board remuneration change",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "A photo of a cheque"
+      },
+      "resolutionNote": "The cheque is a template from 2019; the accounts show no bonus.",
+      "injectedBy": "exploiter",
+      "contradictedBy": [
+        "ev-d019-1"
+      ],
+      "district": "market",
+      "simple": {
+        "title": "The “board bonus” post",
+        "claim": "A photo of a cheque says board members got a bonus.",
+        "resolutionNote": "The cheque is an old template. The accounts show no bonus.",
+        "caption": "A photo of a cheque"
+      }
+    },
+    {
+      "id": "ev-d019-4",
+      "title": "Depot CCTV",
+      "source": "Depot control room",
+      "sourceType": "business",
+      "time": "06:40",
+      "claim": "The sit-in is seated and orderly; a separate group of eight is letting air out of bus tyres at the back.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "metadata": [
+        {
+          "label": "Sit-in",
+          "value": "Seated, orderly"
+        },
+        {
+          "label": "Tyre group",
+          "value": "Eight, rear yard"
+        },
+        {
+          "label": "Retention",
+          "value": "12 hours"
+        }
+      ],
+      "visual": {
+        "type": "video",
+        "caption": "A still of the rear yard"
+      },
+      "resolutionNote": "The sit-in is peaceful; eight people at the back are damaging buses. The clip loops in 12 hours.",
+      "availableAt": 10,
+      "district": "transit",
+      "perishable": true,
+      "simple": {
+        "title": "The depot camera",
+        "claim": "The sit-in is calm. Eight people at the back are letting air out of tyres.",
+        "resolutionNote": "The sit-in is peaceful. Eight others are damaging buses.",
+        "caption": "A picture of the rear yard"
+      }
+    },
+    {
+      "id": "ev-d019-5",
+      "title": "Rider survey",
+      "source": "Commuter association",
+      "sourceType": "organizer",
+      "time": "07:00",
+      "claim": "A quick survey of 400 riders: 70% would accept a phased rise with a monthly pass.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "metadata": [
+        {
+          "label": "Surveyed",
+          "value": "400"
+        },
+        {
+          "label": "Accept phased rise with pass",
+          "value": "70%"
+        }
+      ],
+      "visual": {
+        "type": "chart",
+        "caption": "A pie chart with a large slice"
+      },
+      "resolutionNote": "Riders are not against any rise; they are against this one, done this way.",
+      "availableAt": 18,
+      "district": "transit",
+      "simple": {
+        "title": "The rider survey",
+        "claim": "Of 400 riders, 70% would accept a slower rise with a monthly pass.",
+        "resolutionNote": "Riders would accept a fair, slower rise.",
+        "caption": "A pie chart with a large slice"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d019-1",
+      "title": "No bus leaves",
+      "situation": "Three hundred commuters are seated across the depot exit. Two lakh people are waiting at stops. The chief wants police to open the gate.",
+      "district": "transit",
+      "expiresAfter": 22,
+      "defaultOption": "o-d019-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d019-1-pause",
+          "title": "Pause the rise; publish the accounts",
+          "preview": "Old fares today; the deficit figures go up on the depot wall.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The sit-in has what it asked for: time and numbers. Buses roll.",
+          "requiresEvidence": [
+            "ev-d019-1"
+          ],
+          "setsFlags": [
+            "acknowledged",
+            "rise-paused"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d019-1-meet",
+          "title": "Meet the commuter association at the gate",
+          "preview": "You hear the demand and agree a talks timetable; the gate opens one lane.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "The association opens a lane itself once a meeting is set.",
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d019-1-clear",
+          "title": "Clear the exit with police",
+          "preview": "Officers carry seated commuters off the road.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4
+          },
+          "consequence": "Buses leave over the people who ride them. Tomorrow’s sit-in is bigger.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "transit",
+              "incident": "clash"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d019-1-wait",
+          "title": "Hold the buses inside",
+          "preview": "No talks, no pause; the city walks to work.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -4
+          },
+          "consequence": "Two lakh people are late and angry at you, not at the rise."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "No bus leaves",
+        "situation": "Three hundred commuters sit across the depot exit. Two lakh people wait at stops.",
+        "options": {
+          "o-d019-1-pause": {
+            "title": "Pause the rise, publish the accounts",
+            "preview": "Old fares today. The money figures go on the depot wall.",
+            "consequence": "The sit-in gets time and numbers. Buses roll."
+          },
+          "o-d019-1-meet": {
+            "title": "Meet the commuters at the gate",
+            "preview": "You listen and set a talks timetable. One lane opens.",
+            "consequence": "They open a lane once a meeting is set."
+          },
+          "o-d019-1-clear": {
+            "title": "Clear the exit with police",
+            "preview": "Officers carry seated commuters off the road.",
+            "consequence": "Buses leave over their own riders. Tomorrow is bigger."
+          },
+          "o-d019-1-wait": {
+            "title": "Keep the buses inside",
+            "preview": "No talks. No pause. The city walks to work.",
+            "consequence": "Two lakh people are late and angry at you."
+          }
+        }
+      }
+    },
+    {
+      "id": "d019-2",
+      "title": "The tyres",
+      "situation": "The camera shows eight people letting air out of bus tyres at the back. The sit-in at the front is calm. The chief calls it all “sabotage”.",
+      "district": "transit",
+      "expiresAfter": 24,
+      "defaultOption": "o-d019-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d019-2-footage",
+          "title": "Save the footage; identify the eight",
+          "preview": "The clip is copied; the eight are separated from the sit-in on paper.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The sabotage has faces. The sit-in does not get the blame.",
+          "requiresEvidence": [
+            "ev-d019-4"
+          ],
+          "setsFlags": [
+            "checked",
+            "eight-identified"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d019-2-refill",
+          "title": "Fix the tyres; run a free shuttle",
+          "preview": "Mechanics fix the buses; ten run free to the hub while talks continue.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The city moves while the argument continues.",
+          "setsFlags": [
+            "served"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "restore"
+            }
+          ]
+        },
+        {
+          "id": "o-d019-2-accuse",
+          "title": "Call the sit-in a sabotage ring",
+          "preview": "A statement blames the commuter association for the tyres.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A seated protest is accused of what eight strangers did at the back.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d019-3"
+          ]
+        },
+        {
+          "id": "o-d019-2-wait",
+          "title": "Let the camera loop",
+          "preview": "Nobody copies it; by evening the eight are just a story.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The sit-in will carry the blame forever."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "The tyres",
+        "situation": "Eight people let air out of tyres at the back. The sit-in in front is calm.",
+        "options": {
+          "o-d019-2-footage": {
+            "title": "Save the footage, find the eight",
+            "preview": "The clip is copied. The eight are named, apart from the sit-in.",
+            "consequence": "The damage has faces. The sit-in is not blamed."
+          },
+          "o-d019-2-refill": {
+            "title": "Fix the tyres, run a free shuttle",
+            "preview": "Mechanics fix the buses. Ten run free to the hub.",
+            "consequence": "The city moves while the argument goes on."
+          },
+          "o-d019-2-accuse": {
+            "title": "Call the sit-in saboteurs",
+            "preview": "A statement blames the commuters for the tyres.",
+            "consequence": "The seated protest is blamed for eight strangers."
+          },
+          "o-d019-2-wait": {
+            "title": "Let the camera erase",
+            "preview": "Nobody copies it. By evening the eight are just a story.",
+            "consequence": "The sit-in carries the blame forever."
+          }
+        }
+      }
+    },
+    {
+      "id": "d019-3",
+      "title": "The private vans",
+      "situation": "Private vans are charging triple at the stops. A councillor wants the depot cleared. The association offers to run a minimum service itself.",
+      "district": "transit",
+      "expiresAfter": 22,
+      "defaultOption": "o-d019-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d019-3-minimum",
+          "title": "Accept the association’s minimum service",
+          "preview": "Twenty buses run on old fares with association volunteers as conductors.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The sit-in runs the buses it was blocking. The vans lose their customers.",
+          "setsFlags": [
+            "protected",
+            "minimum-service"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "protect"
+            }
+          ]
+        },
+        {
+          "id": "o-d019-3-targeted",
+          "title": "Remove only the eight from the camera",
+          "preview": "Officers walk the tyre group out; the sit-in is untouched.",
+          "authority": "Proportionality: act against the few causing harm, not the many",
+          "tags": [
+            "force",
+            "proportionate",
+            "legal-process"
+          ],
+          "effects": {
+            "safety": 6,
+            "freedom": -2,
+            "trust": 1
+          },
+          "consequence": "The saboteurs leave. The protest stays.",
+          "disproportionateEffects": {
+            "freedom": -8,
+            "trust": -7
+          },
+          "proportionateIf": {
+            "flag": "eight-identified"
+          },
+          "requiresEvidence": [
+            "ev-d019-4"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "deploy"
+            }
+          ]
+        },
+        {
+          "id": "o-d019-3-clear",
+          "title": "Clear the depot and arrest the organisers",
+          "preview": "Lines clear the exit; the association’s leaders are detained.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4
+          },
+          "consequence": "The people offering a minimum service are in cells.",
+          "setsFlags": [
+            "cleared",
+            "detained"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "transit",
+              "incident": "clash"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d019-3-wait",
+          "title": "Let the vans profit",
+          "preview": "No service, no decision; triple fares all day.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -3
+          },
+          "consequence": "The rise now looks cheap by comparison."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d019",
+      "simple": {
+        "title": "The private vans",
+        "situation": "Private vans charge triple. A councillor wants the depot cleared. The riders offer to run buses.",
+        "options": {
+          "o-d019-3-minimum": {
+            "title": "Accept the riders’ minimum service",
+            "preview": "Twenty buses run on old fares with volunteer conductors.",
+            "consequence": "The sit-in runs the buses it blocked."
+          },
+          "o-d019-3-targeted": {
+            "title": "Remove only the eight",
+            "preview": "Officers walk the tyre group out. The sit-in stays.",
+            "consequence": "The saboteurs leave. The protest stays."
+          },
+          "o-d019-3-clear": {
+            "title": "Clear the depot, arrest the leaders",
+            "preview": "Police clear the exit and detain the association’s leaders.",
+            "consequence": "The people offering to run buses are in cells."
+          },
+          "o-d019-3-wait": {
+            "title": "Let the vans charge triple",
+            "preview": "No service. No decision. Triple fares all day.",
+            "consequence": "The rise looks cheap now."
+          }
+        }
+      }
+    },
+    {
+      "id": "d019-4",
+      "title": "The next fare",
+      "situation": "The deficit is real. The board skipped consultation. Riders would accept a phased rise with a pass. Someone has to propose it.",
+      "district": "transit",
+      "expiresAfter": 24,
+      "defaultOption": "o-d019-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d019-4-phased",
+          "title": "Propose a phased rise with a pass, in public",
+          "preview": "Ten percent now, ten in six months, a capped pass, published with the accounts.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The rise becomes a plan people argued over, not a notice they found.",
+          "requiresEvidence": [
+            "ev-d019-5"
+          ],
+          "setsFlags": [
+            "plan-published",
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d019-4-forum",
+          "title": "Create a rider forum before any future rise",
+          "preview": "A standing forum of riders and the board, with notice periods.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "Next time, the riders are in the room.",
+          "setsFlags": [
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d019-4-accuse",
+          "title": "Blame the private operators for the protest",
+          "preview": "A statement adopts the message that van owners paid for it.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "An unproven conspiracy becomes the authority’s official position.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d019-3"
+          ]
+        },
+        {
+          "id": "o-d019-4-wait",
+          "title": "Reinstate the full rise tomorrow",
+          "preview": "The forty percent returns with no consultation.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -3,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The sit-in returns with it."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "The next fare",
+        "situation": "The deficit is real. The board skipped asking. Riders would accept a slower rise.",
+        "options": {
+          "o-d019-4-phased": {
+            "title": "Propose a slower rise with a pass",
+            "preview": "Ten percent now, ten in six months, a capped pass, with the accounts.",
+            "consequence": "The rise becomes a plan people shaped."
+          },
+          "o-d019-4-forum": {
+            "title": "Create a rider forum",
+            "preview": "Riders and the board meet before any future rise.",
+            "consequence": "Next time, riders are in the room."
+          },
+          "o-d019-4-accuse": {
+            "title": "Blame the van owners",
+            "preview": "A statement says van owners paid for the protest.",
+            "consequence": "An unproven conspiracy becomes official."
+          },
+          "o-d019-4-wait": {
+            "title": "Bring back the full rise tomorrow",
+            "preview": "The 40% returns with no consultation.",
+            "consequence": "The sit-in returns with it."
+          }
+        }
+      }
+    },
+    {
+      "id": "d019-bait",
+      "title": "“Ban the commuter association”",
+      "situation": "A legal note offers to declare the association an unlawful body for blocking an essential service.",
+      "district": "transit",
+      "expiresAfter": 20,
+      "defaultOption": "o-d019-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d019-bait-ban",
+          "title": "Declare the association unlawful",
+          "preview": "Its leaders are barred from the depot; its bank account is frozen.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4
+          },
+          "consequence": "A riders’ group is banned for sitting down.",
+          "setsFlags": [
+            "cleared",
+            "association-banned"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 16,
+              "effects": {
+                "freedom": -4,
+                "trust": -4
+              },
+              "message": "Three other commuter groups form overnight; the ban made them."
+            }
+          ]
+        },
+        {
+          "id": "o-d019-bait-pass",
+          "title": "Launch the monthly pass today",
+          "preview": "A capped pass goes on sale at old prices while the rise is reviewed.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The thing riders asked for exists before the ban does.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d019-bait-wait",
+          "title": "Keep the legal note in the drawer",
+          "preview": "No ban, no pass, no decision.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The association keeps meeting at the gate."
+        }
+      ],
+      "simple": {
+        "title": "“Ban the association”",
+        "situation": "A legal note offers to ban the riders’ association for blocking buses.",
+        "options": {
+          "o-d019-bait-ban": {
+            "title": "Ban the riders’ association",
+            "preview": "Its leaders are barred. Its account is frozen.",
+            "consequence": "A riders’ group is banned for sitting down."
+          },
+          "o-d019-bait-pass": {
+            "title": "Launch the monthly pass today",
+            "preview": "A capped pass goes on sale at old prices.",
+            "consequence": "What riders asked for exists now."
+          },
+          "o-d019-bait-wait": {
+            "title": "Keep the note in the drawer",
+            "preview": "No ban. No pass. No decision.",
+            "consequence": "The association keeps meeting at the gate."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d019",
+      "question": "Commuters are sitting across a bus depot exit over a fare rise. Can their association be banned as an unlawful body?",
+      "options": [
+        {
+          "id": "a",
+          "text": "No. Peaceful association and assembly are protected; obstruction is addressed by proportionate, specific measures, not by banning the group.",
+          "correct": true,
+          "feedback": "Correct. The right to associate survives a sit-in; the remedy is proportionate policing and negotiation."
+        },
+        {
+          "id": "b",
+          "text": "Yes. Blocking an essential service forfeits the right to associate.",
+          "correct": false,
+          "feedback": "Obstruction can be addressed, but a ban on the association is disproportionate and silences the people you must negotiate with."
+        },
+        {
+          "id": "c",
+          "text": "Yes, if the board votes for it.",
+          "correct": false,
+          "feedback": "A board vote cannot override constitutional protections for association."
+        }
+      ],
+      "principle": "Article 19(1)(c) protects the right to form associations; restrictions must be reasonable and specific. A sit-in is answered by proportionate steps and dialogue, not by outlawing the group.",
+      "why": "The association ended up running the minimum service; banning it would have removed the only partner the authority had.",
+      "source": {
+        "label": "Constitution of India, Article 19 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "Commuters sit across a bus depot exit. Can their group be banned?",
+        "options": {
+          "a": "No. People may form groups and protest peacefully. Deal with the block fairly.",
+          "b": "Yes. Blocking buses ends the right to form groups.",
+          "c": "Yes, if the board votes for it."
+        },
+        "feedback": {
+          "a": "Yes! Handle the block fairly. Do not ban the group.",
+          "b": "No. Banning the group is too much and leaves nobody to talk to.",
+          "c": "A board vote cannot cancel a constitutional right."
+        },
+        "principle": "People may form groups and protest peacefully. Answer a block with fair steps and talks, not a ban.",
+        "why": "The riders’ group ended up running the buses. Banning it would have removed your only partner."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d019-comp",
+      "at": -1,
+      "kind": "incident",
+      "message": "The tyre group moves to the front and starts rocking a bus with passengers inside.",
+      "simple": "The tyre group starts rocking a bus with people inside.",
+      "effects": {
+        "safety": -5,
+        "trust": -1
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "transit",
+          "incident": "clash"
+        }
+      ]
+    },
+    {
+      "id": "e-d019-vans",
+      "at": 30,
+      "kind": "service",
+      "message": "Private vans at every stop charge triple; queues of daily-wage workers form.",
+      "simple": "Private vans charge triple. Long queues form.",
+      "effects": {
+        "economy": -3,
+        "grievance": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "service",
+          "district": "transit",
+          "magnitude": -0.2
+        }
+      ],
+      "condition": {
+        "notFlag": "rise-paused"
+      }
+    }
+  ],
+  "complication": {
+    "opponent": "provocateur",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d019-comp",
+    "baitDecisionId": "d019-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "rise-paused"
+        },
+        "text": "The rise was paused and the accounts were put on the wall.",
+        "simple": "The rise was paused. The accounts went on the wall."
+      },
+      {
+        "condition": {
+          "flag": "minimum-service"
+        },
+        "text": "Riders ran a minimum service on old fares.",
+        "simple": "Riders ran a minimum bus service."
+      },
+      {
+        "condition": {
+          "flag": "plan-published"
+        },
+        "text": "A phased rise with a pass was proposed in public.",
+        "simple": "A slower rise with a pass was proposed in public."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "notFlag": "plan-published"
+        },
+        "text": "The forty percent rise is still a notice on a wall.",
+        "simple": "The 40% rise is still a notice on a wall."
+      },
+      {
+        "condition": {
+          "notFlag": "checked"
+        },
+        "text": "The tyre saboteurs were never separated from the sit-in.",
+        "simple": "The saboteurs were never separated from the sit-in."
+      },
+      {
+        "condition": {
+          "flag": "association-banned"
+        },
+        "text": "The riders’ association was outlawed.",
+        "simple": "The riders’ group was banned."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "protected"
+        },
+        "text": "The sit-in kept its place and ran the buses it blocked.",
+        "simple": "The sit-in stayed and ran the buses."
+      },
+      {
+        "condition": {
+          "flag": "acknowledged"
+        },
+        "text": "Riders were asked, finally, before being told.",
+        "simple": "Riders were asked before being told."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "Seated commuters were cleared or their leaders detained.",
+        "simple": "Seated commuters were cleared or their leaders held."
+      },
+      {
+        "condition": {
+          "flag": "association-banned"
+        },
+        "text": "A lawful association was banned for a sit-in.",
+        "simple": "A lawful group was banned for a sit-in."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "rise-paused"
+        },
+        "text": "Pause and publish: a week of old fares costs less than a day of no buses.",
+        "simple": "Pause the rise and show the numbers."
+      },
+      {
+        "condition": {
+          "notFlag": "checked"
+        },
+        "text": "Save the depot camera; it separates the eight from the three hundred.",
+        "simple": "Save the camera. It tells the eight from the rest."
+      },
+      {
+        "condition": {},
+        "text": "Ask riders before the next rise; the survey says they will listen.",
+        "simple": "Ask riders before the next rise."
+      }
+    ],
+    "closing": {
+      "good": "The buses ran on old fares with riders as conductors, the accounts went on the wall, and the next rise will be argued over in a room, not found on a board.",
+      "mixed": "The city moved again, but the rise is only paused and the eight with the tyre tools are still a story.",
+      "poor": "The depot was cleared over its own passengers, and the association that offered to run the buses is banned."
+    }
+  },
+  "simple": {
+    "title": "The Fare Hike",
+    "subtitle": "Bus fares jump 40%. Commuters block the depot.",
+    "briefing": {
+      "grievance": "Daily workers cannot afford a 40% rise announced overnight. They want it withdrawn or phased, and to be asked first.",
+      "knownFacts": [
+        "The bus service is losing money. Fuel costs rose 30%.",
+        "The board approved the rise without telling the public.",
+        "Sixty buses carry two lakh people from here daily."
+      ],
+      "unverifiedClaims": [
+        "A post says the board gave itself a bonus.",
+        "A message says private van owners paid for the rise."
+      ],
+      "responsibility": "You run the bus service and the depot policing.",
+      "objective": "Get buses moving by agreement. Open the books. Give riders a say."
+    },
+    "closing": {
+      "good": "Buses ran with riders as conductors. The next rise will be discussed first.",
+      "mixed": "The city moved again. The rise is only paused.",
+      "poor": "The depot was cleared over its own passengers."
+    },
+    "coldOpen": [
+      "Bus fares go up 40% today.",
+      "Commuters sit on the depot exit.",
+      "No bus leaves."
+    ]
+  }
+}

@@ -1,0 +1,1082 @@
+{
+  "id": "d021",
+  "version": 1,
+  "title": "After the Fire",
+  "subtitle": "The cloth market burned overnight; by dawn everyone has a culprit",
+  "dilemmaKey": "market-fire-blame",
+  "themeTags": [
+    "economy",
+    "rumour",
+    "evidence"
+  ],
+  "focus": "market",
+  "institution": "civic",
+  "mood": "volatile",
+  "opponents": [
+    "disinfo",
+    "provocateur"
+  ],
+  "coldOpen": [
+    "02:30. Fire sweeps forty shops in the cloth market.",
+    "06:00. Two posts name two different arsonists.",
+    "Traders stand in the ash asking who, and what now."
+  ],
+  "briefing": {
+    "grievance": "Forty traders lost their stock and their livelihood overnight. They want relief this week and the cause found honestly, not a scapegoat to make the anger stop.",
+    "knownFacts": [
+      "Forty shops burned; nobody died; the fire started near a shared electrical panel.",
+      "The market had three fire-safety notices in two years, none acted on.",
+      "The insurance covers twelve of the forty shops."
+    ],
+    "unverifiedClaims": [
+      "A post names a rival trader as the arsonist.",
+      "A second post says the owner burned it for insurance."
+    ],
+    "responsibility": "You run the relief and the fire investigation. The traders need help, and the cause needs facts before names.",
+    "objective": "Start relief now, secure the fire scene, and let the investigation name the cause before anyone names a person."
+  },
+  "evidence": [
+    {
+      "id": "ev-d021-1",
+      "title": "Fire officer’s first report",
+      "source": "Fire service",
+      "sourceType": "official",
+      "time": "05:30",
+      "claim": "Origin near the shared panel at the north end; pattern consistent with electrical fault; no accelerant smell.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Origin",
+          "value": "North end, shared panel"
+        },
+        {
+          "label": "Accelerant",
+          "value": "None detected"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A first report with a sketch of the origin"
+      },
+      "resolutionNote": "The first report points at the electrical panel, not arson.",
+      "availableAt": 2,
+      "district": "market",
+      "simple": {
+        "title": "The fire officer’s report",
+        "claim": "The fire started near a shared electrical box. No sign of fuel.",
+        "resolutionNote": "It looks electrical, not arson.",
+        "caption": "A report with a sketch"
+      }
+    },
+    {
+      "id": "ev-d021-2",
+      "title": "Safety notice file",
+      "source": "Municipal fire safety cell",
+      "sourceType": "official",
+      "time": "06:10",
+      "claim": "Three notices to the market association about the panel and blocked exits; no compliance recorded.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Notices",
+          "value": "3 in two years"
+        },
+        {
+          "label": "Compliance",
+          "value": "None recorded"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A file with three notices"
+      },
+      "resolutionNote": "The panel was flagged three times and never fixed.",
+      "availableAt": 6,
+      "district": "civic",
+      "simple": {
+        "title": "The safety notices",
+        "claim": "The market was warned three times about the electrical box. Nothing was fixed.",
+        "resolutionNote": "The box was flagged three times and never fixed.",
+        "caption": "A file with three notices"
+      }
+    },
+    {
+      "id": "ev-d021-3",
+      "title": "“Rival arsonist” post",
+      "source": "Anonymous account",
+      "sourceType": "anonymous",
+      "time": "06:00",
+      "claim": "A post names a rival trader and shows a blurry figure near the market at 02:00.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Figure",
+          "value": "Cannot be identified; post adds a name",
+          "anomaly": true
+        },
+        {
+          "label": "Timestamp",
+          "value": "From a camera on a different street",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "A blurry night figure"
+      },
+      "resolutionNote": "The figure is unidentifiable and filmed on another street; the name was added by the post.",
+      "injectedBy": "disinfo",
+      "contradictedBy": [
+        "ev-d021-1"
+      ],
+      "district": "market",
+      "simple": {
+        "title": "The “rival arsonist” post",
+        "claim": "A post names a rival trader and shows a blurry figure at night.",
+        "resolutionNote": "Nobody can tell who it is. The camera is on another street.",
+        "caption": "A blurry night figure"
+      }
+    },
+    {
+      "id": "ev-d021-4",
+      "title": "Shared panel remains",
+      "source": "Fire scene",
+      "sourceType": "official",
+      "time": "07:00",
+      "claim": "The melted panel shows a bypassed breaker and makeshift wiring; the remains are exposed to rain.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Finding",
+          "value": "Bypassed breaker"
+        },
+        {
+          "label": "Condition",
+          "value": "Exposed, rain forecast"
+        }
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "A melted electrical panel"
+      },
+      "resolutionNote": "The panel had a bypassed breaker; the evidence is lying in the open.",
+      "availableAt": 10,
+      "corroboratedBy": [
+        "ev-d021-1"
+      ],
+      "district": "market",
+      "perishable": true,
+      "simple": {
+        "title": "The burned panel",
+        "claim": "The melted box shows a bypassed breaker and rough wiring. Rain is coming.",
+        "resolutionNote": "The box was tampered with. The proof is out in the rain.",
+        "caption": "A melted electrical box"
+      }
+    },
+    {
+      "id": "ev-d021-5",
+      "title": "Traders’ loss register",
+      "source": "Market traders’ association",
+      "sourceType": "organizer",
+      "time": "08:00",
+      "claim": "Forty shops, 190 workers, estimated stock loss; 28 shops uninsured.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "metadata": [
+        {
+          "label": "Shops",
+          "value": "40"
+        },
+        {
+          "label": "Workers",
+          "value": "190"
+        },
+        {
+          "label": "Uninsured",
+          "value": "28"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A handwritten loss list"
+      },
+      "resolutionNote": "The scale of the loss, shop by shop.",
+      "availableAt": 18,
+      "district": "market",
+      "simple": {
+        "title": "The traders’ loss list",
+        "claim": "Forty shops, 190 workers, 28 shops with no insurance.",
+        "resolutionNote": "The loss, shop by shop.",
+        "caption": "A handwritten list"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d021-1",
+      "title": "Standing in the ash",
+      "situation": "Forty traders are at the burned market. Two posts name two arsonists. Relief has not been mentioned by anyone official.",
+      "district": "market",
+      "expiresAfter": 22,
+      "defaultOption": "o-d021-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d021-1-relief",
+          "title": "Announce immediate relief and a shop-by-shop survey",
+          "preview": "Cash advances this week; a survey team at the site by noon.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "Traders have a date and a desk. The arson talk softens.",
+          "setsFlags": [
+            "acknowledged",
+            "served",
+            "relief-started"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "relief"
+            }
+          ]
+        },
+        {
+          "id": "o-d021-1-cause",
+          "title": "Share the fire officer’s first finding",
+          "preview": "Electrical origin near the panel, no accelerant, said at the site.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The two arson posts meet a fire officer.",
+          "requiresEvidence": [
+            "ev-d021-1"
+          ],
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d021-1-arrest",
+          "title": "Arrest the named rival trader",
+          "preview": "Officers pick up the man from the post.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A man is arrested on a blurry figure from another street.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d021-3"
+          ]
+        },
+        {
+          "id": "o-d021-1-wait",
+          "title": "Wait for the full report",
+          "preview": "Nothing official for days; the posts fill the gap.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -3,
+            "economy": -1
+          },
+          "consequence": "Two traders come to blows over who did it."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "Standing in the ash",
+        "situation": "Forty traders stand at the burned market. Two posts blame two people. No one has mentioned relief.",
+        "options": {
+          "o-d021-1-relief": {
+            "title": "Announce relief now",
+            "preview": "Cash help this week. A survey team at the site by noon.",
+            "consequence": "Traders have a date and a desk."
+          },
+          "o-d021-1-cause": {
+            "title": "Share the fire officer’s finding",
+            "preview": "Electrical start, no fuel, said at the site.",
+            "consequence": "The arson posts meet a fire officer."
+          },
+          "o-d021-1-arrest": {
+            "title": "Arrest the named rival",
+            "preview": "Officers pick up the man from the post.",
+            "consequence": "A man is arrested over a blurry picture."
+          },
+          "o-d021-1-wait": {
+            "title": "Wait for the full report",
+            "preview": "Nothing official for days. The posts fill the gap.",
+            "consequence": "Two traders fight over who did it."
+          }
+        }
+      }
+    },
+    {
+      "id": "d021-2",
+      "title": "The panel in the rain",
+      "situation": "The melted panel shows a bypassed breaker. Rain is forecast. The scene is open to anyone who walks in.",
+      "district": "market",
+      "expiresAfter": 24,
+      "defaultOption": "o-d021-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d021-2-secure",
+          "title": "Seal the scene and photograph the panel",
+          "preview": "The panel is covered, photographed and logged; the scene is taped.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The cause has evidence that will survive the rain.",
+          "requiresEvidence": [
+            "ev-d021-4"
+          ],
+          "setsFlags": [
+            "checked",
+            "scene-secured"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d021-2-notices",
+          "title": "Publish the three ignored safety notices",
+          "preview": "The notices, the dates and the lack of compliance, in public.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The question moves from “who” to “why nobody fixed it”.",
+          "requiresEvidence": [
+            "ev-d021-2"
+          ],
+          "setsFlags": [
+            "notices-published"
+          ]
+        },
+        {
+          "id": "o-d021-2-accuse",
+          "title": "Announce an insurance fraud by the owner",
+          "preview": "A statement adopts the second post.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "The owner of a burned market is accused of fraud on a post.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d021-3"
+          ]
+        },
+        {
+          "id": "o-d021-2-wait",
+          "title": "Leave the scene open",
+          "preview": "Rain and scavengers take the panel.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The cause can never be proven."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "The box in the rain",
+        "situation": "The melted box shows tampering. Rain is coming. Anyone can walk in.",
+        "options": {
+          "o-d021-2-secure": {
+            "title": "Seal the scene, photograph the panel",
+            "preview": "The box is covered, photographed and logged. The scene is taped.",
+            "consequence": "The cause has proof that will survive the rain."
+          },
+          "o-d021-2-notices": {
+            "title": "Publish the ignored safety notices",
+            "preview": "The three warnings and the lack of fixes, made public.",
+            "consequence": "The question moves from “who” to “why”."
+          },
+          "o-d021-2-accuse": {
+            "title": "Announce insurance fraud",
+            "preview": "A statement repeats the second post.",
+            "consequence": "The owner is accused of fraud over a post."
+          },
+          "o-d021-2-wait": {
+            "title": "Leave the scene open",
+            "preview": "Rain and scavengers take the box.",
+            "consequence": "The cause can never be proven."
+          }
+        }
+      }
+    },
+    {
+      "id": "d021-3",
+      "title": "The rival’s shop",
+      "situation": "A crowd has gathered outside the named rival’s shop two streets away. Stones have been thrown. The man is inside with his family.",
+      "district": "market",
+      "expiresAfter": 22,
+      "defaultOption": "o-d021-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d021-3-protect",
+          "title": "Protect the shop and say publicly there is no suspect",
+          "preview": "Officers guard the shop; a statement says the post is unverified and no one is accused.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The crowd thins when the state refuses to join it.",
+          "setsFlags": [
+            "protected",
+            "no-suspect-stated"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "protect"
+            }
+          ]
+        },
+        {
+          "id": "o-d021-3-targeted",
+          "title": "Arrest the stone-throwers, not the shopkeeper",
+          "preview": "The few throwing stones are detained with footage.",
+          "authority": "Proportionality: act against the few causing harm, not the many",
+          "tags": [
+            "force",
+            "proportionate",
+            "legal-process"
+          ],
+          "effects": {
+            "safety": 6,
+            "freedom": -2,
+            "trust": 1
+          },
+          "consequence": "The violent few leave in a van. The family stays in its shop.",
+          "disproportionateEffects": {
+            "freedom": -8,
+            "trust": -7
+          },
+          "proportionateIf": {
+            "flag": "complication-live"
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "deploy"
+            }
+          ]
+        },
+        {
+          "id": "o-d021-3-detain",
+          "title": "Detain the shopkeeper “for his own safety”",
+          "preview": "The man is taken to the station; the crowd reads it as guilt.",
+          "authority": "Articles 21 and 22: liberty and safeguards on arrest",
+          "tags": [
+            "detention",
+            "force",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -13,
+            "trust": -10,
+            "safety": 3,
+            "grievance": -5
+          },
+          "consequence": "A man is held for being accused by a post.",
+          "setsFlags": [
+            "detained"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d021-3-wait",
+          "title": "Leave it to the local beat",
+          "preview": "One constable watches; the stones continue.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -3,
+            "economy": -1
+          },
+          "consequence": "A window breaks; the family flees."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d021",
+      "simple": {
+        "title": "The rival’s shop",
+        "situation": "A crowd gathers at the named man’s shop. Stones are thrown. His family is inside.",
+        "options": {
+          "o-d021-3-protect": {
+            "title": "Guard the shop; say there is no suspect",
+            "preview": "Officers guard the shop. A statement says nobody is accused.",
+            "consequence": "The crowd thins when the state will not join it."
+          },
+          "o-d021-3-targeted": {
+            "title": "Arrest the stone-throwers",
+            "preview": "The few throwing stones are held, with footage.",
+            "consequence": "The violent few leave. The family stays home."
+          },
+          "o-d021-3-detain": {
+            "title": "Detain the shopkeeper “for safety”",
+            "preview": "The man is taken to the station. The crowd reads it as guilt.",
+            "consequence": "A man is held for being accused by a post."
+          },
+          "o-d021-3-wait": {
+            "title": "Leave it to the local beat",
+            "preview": "One constable watches. The stones continue.",
+            "consequence": "A window breaks. The family flees."
+          }
+        }
+      }
+    },
+    {
+      "id": "d021-4",
+      "title": "Who fixes the market",
+      "situation": "The cause is a bypassed breaker and three ignored notices. Twenty-eight shops are uninsured. The association wants to rebuild on the same wiring.",
+      "district": "civic",
+      "expiresAfter": 24,
+      "defaultOption": "o-d021-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d021-4-rebuild",
+          "title": "Publish the cause and tie rebuilding grants to safety",
+          "preview": "The finding goes public; grants require a certified panel and clear exits.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The market rebuilds, and it will not burn the same way.",
+          "requiresEvidence": [
+            "ev-d021-4"
+          ],
+          "setsFlags": [
+            "plan-published",
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d021-4-fund",
+          "title": "Fund the uninsured shops first",
+          "preview": "The 28 uninsured shops get the first tranche of relief.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "Those with nothing get something first.",
+          "requiresEvidence": [
+            "ev-d021-5"
+          ],
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d021-4-accuse",
+          "title": "Blame the association for the fire",
+          "preview": "A statement says the association’s negligence is criminal.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "The traders who lost everything are told they did it to themselves.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d021-3"
+          ]
+        },
+        {
+          "id": "o-d021-4-wait",
+          "title": "Approve rebuilding as it was",
+          "preview": "Same wiring, same exits, same notices.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The next fire is scheduled, just not dated."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "Who fixes the market",
+        "situation": "The cause is tampered wiring and ignored warnings. Twenty-eight shops have no insurance.",
+        "options": {
+          "o-d021-4-rebuild": {
+            "title": "Publish the cause; grants need safety",
+            "preview": "The finding goes public. Grants need a safe box and clear exits.",
+            "consequence": "The market rebuilds safer."
+          },
+          "o-d021-4-fund": {
+            "title": "Help the uninsured shops first",
+            "preview": "The 28 shops with no insurance get the first money.",
+            "consequence": "Those with nothing get something first."
+          },
+          "o-d021-4-accuse": {
+            "title": "Blame the traders’ association",
+            "preview": "A statement calls the association criminal.",
+            "consequence": "The traders who lost everything are blamed."
+          },
+          "o-d021-4-wait": {
+            "title": "Rebuild it exactly as before",
+            "preview": "Same wiring. Same exits. Same warnings.",
+            "consequence": "The next fire is scheduled, just not dated."
+          }
+        }
+      }
+    },
+    {
+      "id": "d021-bait",
+      "title": "“Name the arsonist today”",
+      "situation": "Traders, the press and your superiors all want a name by evening. The investigation has a cause and no suspect.",
+      "district": "market",
+      "expiresAfter": 20,
+      "defaultOption": "o-d021-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d021-bait-name",
+          "title": "Name the rival trader as the arsonist",
+          "preview": "A press conference names him on the strength of the post.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "The city names a man the fire officer cannot connect to the fire.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d021-3"
+          ],
+          "setsFlags": [
+            "false-name"
+          ]
+        },
+        {
+          "id": "o-d021-bait-cause",
+          "title": "Announce the cause and say there is no suspect",
+          "preview": "A bypassed breaker, three notices, and no evidence of arson, said plainly.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The city gives a cause instead of a culprit.",
+          "requiresEvidence": [
+            "ev-d021-1"
+          ],
+          "setsFlags": [
+            "acknowledged",
+            "no-suspect-stated"
+          ]
+        },
+        {
+          "id": "o-d021-bait-wait",
+          "title": "Say “investigations continue”",
+          "preview": "No cause, no suspect, no relief date.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Both posts gain followers."
+        }
+      ],
+      "simple": {
+        "title": "“Name the arsonist today”",
+        "situation": "Everyone wants a name by evening. The investigation has a cause and no suspect.",
+        "options": {
+          "o-d021-bait-name": {
+            "title": "Name the rival as the arsonist",
+            "preview": "A press conference names him because of the post.",
+            "consequence": "The city names a man with no proof."
+          },
+          "o-d021-bait-cause": {
+            "title": "Announce the cause, no suspect",
+            "preview": "A tampered box, three warnings, no sign of arson, said plainly.",
+            "consequence": "The city gives a cause instead of a culprit."
+          },
+          "o-d021-bait-wait": {
+            "title": "Say “investigations continue”",
+            "preview": "No cause. No suspect. No relief date.",
+            "consequence": "Both posts gain followers."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d021",
+      "question": "A post names a trader as the arsonist and a crowd gathers at his shop. What does due process demand of the state?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Protect him, refuse to adopt the accusation without evidence, and act only on findings from the investigation.",
+          "correct": true,
+          "feedback": "Correct. The presumption of innocence binds the state; joining a mob’s accusation is itself a wrong."
+        },
+        {
+          "id": "b",
+          "text": "Detain him to calm the crowd; the investigation can sort it out later.",
+          "correct": false,
+          "feedback": "Detaining a person to satisfy a crowd punishes him for an accusation, not for evidence."
+        },
+        {
+          "id": "c",
+          "text": "Let the crowd and the trader settle it; the state should stay out.",
+          "correct": false,
+          "feedback": "The state has a duty to protect a person under threat and to prevent violence."
+        }
+      ],
+      "principle": "Article 21 protects life and liberty; the presumption of innocence means the state may not treat an accusation as a finding. It must protect the accused and follow evidence.",
+      "why": "The fire officer’s report pointed at a panel; naming a man would have turned an electrical fault into a lynching.",
+      "source": {
+        "label": "Constitution of India, Articles 21 and 22 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "A post names a trader as the arsonist and a crowd gathers at his shop. What must the state do?",
+        "options": {
+          "a": "Protect him and act only on real evidence.",
+          "b": "Lock him up to calm the crowd.",
+          "c": "Stay out of it."
+        },
+        "feedback": {
+          "a": "Yes! Everyone is innocent until proven guilty.",
+          "b": "No. Locking up an innocent man to calm a crowd is wrong.",
+          "c": "The state must protect people in danger."
+        },
+        "principle": "Everyone is innocent until proven guilty. The state must protect the accused and follow the evidence.",
+        "why": "The fire officer pointed at an electrical box. Naming a man would have turned a fault into a mob."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d021-comp",
+      "at": -1,
+      "kind": "incident",
+      "message": "A group marches from the ash to the rival’s shop chanting his name; the first stone breaks a sign.",
+      "simple": "A group marches to the rival’s shop and throws a stone.",
+      "effects": {
+        "safety": -5,
+        "trust": -1
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "market",
+          "incident": "clash"
+        }
+      ]
+    },
+    {
+      "id": "e-d021-rain",
+      "at": 34,
+      "kind": "service",
+      "message": "Rain begins over the open fire scene.",
+      "simple": "Rain starts over the open fire scene.",
+      "effects": {
+        "evidence": -2
+      },
+      "condition": {
+        "notFlag": "scene-secured"
+      }
+    }
+  ],
+  "complication": {
+    "opponent": "provocateur",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d021-comp",
+    "baitDecisionId": "d021-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "relief-started"
+        },
+        "text": "Relief and a survey began the same morning.",
+        "simple": "Relief began the same morning."
+      },
+      {
+        "condition": {
+          "flag": "scene-secured"
+        },
+        "text": "The panel was secured before the rain; the cause can be proven.",
+        "simple": "The box was saved before the rain."
+      },
+      {
+        "condition": {
+          "flag": "no-suspect-stated"
+        },
+        "text": "The state said plainly that nobody was a suspect.",
+        "simple": "The state said plainly: no suspect."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "flag": "false-name"
+        },
+        "text": "A man was named as an arsonist on the strength of a post.",
+        "simple": "A man was named arsonist over a post."
+      },
+      {
+        "condition": {
+          "notFlag": "scene-secured"
+        },
+        "text": "The cause can never be proven; the panel is gone.",
+        "simple": "The cause can never be proven."
+      },
+      {
+        "condition": {
+          "notFlag": "relief-started"
+        },
+        "text": "Forty traders are still waiting for a date.",
+        "simple": "Forty traders are still waiting."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "protected"
+        },
+        "text": "A man accused by a post was protected instead of handed over.",
+        "simple": "An accused man was protected."
+      },
+      {
+        "condition": {
+          "flag": "notices-published"
+        },
+        "text": "The ignored notices were made public.",
+        "simple": "The ignored warnings were made public."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "detained"
+        },
+        "text": "A man was detained because a post named him.",
+        "simple": "A man was held because a post named him."
+      },
+      {
+        "condition": {
+          "flag": "false-name"
+        },
+        "text": "The state joined a mob’s accusation.",
+        "simple": "The state joined the mob."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "scene-secured"
+        },
+        "text": "Seal the scene first; evidence does not wait for the press.",
+        "simple": "Seal the scene first."
+      },
+      {
+        "condition": {
+          "notFlag": "no-suspect-stated"
+        },
+        "text": "Say “no suspect” out loud; silence lets the post speak for you.",
+        "simple": "Say “no suspect” out loud."
+      },
+      {
+        "condition": {},
+        "text": "Give a cause before anyone demands a culprit.",
+        "simple": "Give a cause before a culprit."
+      }
+    ],
+    "closing": {
+      "good": "The traders got a date, the panel got a tarpaulin, and the man from the post went home to a shop with its windows intact.",
+      "mixed": "Relief came, but the scene got wet and the rival still gets looks in the lane.",
+      "poor": "The city named a man it could not prove anything about, and the market will rebuild on the same wires."
+    }
+  },
+  "simple": {
+    "title": "After the Fire",
+    "subtitle": "The cloth market burned. Everyone has a suspect.",
+    "briefing": {
+      "grievance": "Forty traders lost everything overnight. They want help this week and the real cause, not a scapegoat.",
+      "knownFacts": [
+        "Forty shops burned. Nobody died. It started near a shared electrical box.",
+        "The market got three fire-safety warnings. None were acted on.",
+        "Insurance covers only twelve shops."
+      ],
+      "unverifiedClaims": [
+        "A post names a rival trader as the arsonist.",
+        "Another post says the owner did it for insurance."
+      ],
+      "responsibility": "You run the relief and the fire investigation.",
+      "objective": "Start relief now. Protect the fire scene. Find the cause before naming anyone."
+    },
+    "closing": {
+      "good": "Traders got a date. The box was saved. The accused man went home safe.",
+      "mixed": "Relief came. The scene got wet.",
+      "poor": "The city named a man without proof."
+    },
+    "coldOpen": [
+      "Fire burns forty cloth shops.",
+      "Two posts blame two different people.",
+      "Traders stand in the ash."
+    ]
+  }
+}

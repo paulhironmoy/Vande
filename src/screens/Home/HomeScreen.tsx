@@ -154,7 +154,7 @@ export function HomeScreen() {
             <Icon name="forward" size={18} />
           </div>
         </CardButton>
-        <Button variant="link" size="sm" onClick={() => navigate({ name: 'passport' })} data-testid="home-passport" icon="sparkle">
+        <Button variant="link" size="sm" className={s.passportLink} onClick={() => navigate({ name: 'passport' })} data-testid="home-passport" icon="sparkle">
           {simple ? 'Your stamps' : 'Civic Passport'}
         </Button>
 

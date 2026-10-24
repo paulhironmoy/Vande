@@ -1,0 +1,1099 @@
+{
+  "id": "d012",
+  "version": 1,
+  "title": "The Locked Gate",
+  "subtitle": "Four hundred students have the wrong hall tickets on exam morning",
+  "dilemmaKey": "exam-cancel",
+  "themeTags": [
+    "education",
+    "fairness",
+    "assembly"
+  ],
+  "focus": "campus",
+  "institution": "campus",
+  "mood": "tense",
+  "opponents": [
+    "exploiter",
+    "overreaction"
+  ],
+  "coldOpen": [
+    "08:15. A printing error puts wrong centres on 400 tickets.",
+    "08:40. Students are locked out; the exam starts at nine.",
+    "Parents want the exam cancelled for everyone."
+  ],
+  "briefing": {
+    "grievance": "Four hundred students were sent to the wrong centre by a printing error and are locked out of a career exam. They want in, today, with the same paper as everyone else.",
+    "knownFacts": [
+      "The error affects 400 of 12,000 candidates; the board confirms it is its own mistake.",
+      "The exam has started on time at all other centres.",
+      "A second sitting is possible this afternoon with the reserve paper."
+    ],
+    "unverifiedClaims": [
+      "A post says the reserve paper has already leaked.",
+      "A message says the board will cancel the whole exam at noon."
+    ],
+    "responsibility": "You run the board’s crisis desk and the campus police liaison. Fairness to 400 and fairness to 11,600 are both your job.",
+    "objective": "Get the 400 a fair sitting today, keep the other 11,600 results valid, and keep the campus calm."
+  },
+  "evidence": [
+    {
+      "id": "ev-d012-1",
+      "title": "Board error memo",
+      "source": "Examination board secretariat",
+      "sourceType": "institution",
+      "time": "08:20",
+      "claim": "Centre codes on batch 17 (400 tickets) were misprinted; the reserve paper is sealed at the board office.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Affected",
+          "value": "Batch 17, 400 tickets"
+        },
+        {
+          "label": "Reserve paper",
+          "value": "Sealed, board office"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A memo with a batch number circled"
+      },
+      "resolutionNote": "The board’s own memo: a printing error, and a sealed reserve paper.",
+      "availableAt": 2,
+      "district": "campus",
+      "simple": {
+        "title": "The board’s memo",
+        "claim": "Batch 17, 400 tickets, were printed wrong. A spare paper is sealed at the board.",
+        "resolutionNote": "The board admits the error. A spare paper is sealed.",
+        "caption": "A memo with a batch number circled"
+      }
+    },
+    {
+      "id": "ev-d012-2",
+      "title": "Centre attendance sheet",
+      "source": "Centre superintendent",
+      "sourceType": "official",
+      "time": "08:50",
+      "claim": "Registered 1,200; present 1,180; the 400 misprinted tickets belong to this centre.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Present",
+          "value": "1,180 of 1,200"
+        },
+        {
+          "label": "Misprinted tickets",
+          "value": "Belong here"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "An attendance sheet with a gap"
+      },
+      "resolutionNote": "The locked-out students belong to this centre; their seats are empty inside.",
+      "availableAt": 6,
+      "corroboratedBy": [
+        "ev-d012-1"
+      ],
+      "district": "campus",
+      "simple": {
+        "title": "The attendance sheet",
+        "claim": "The 400 locked-out students belong to this centre. Their seats are empty.",
+        "resolutionNote": "Their seats are inside, empty.",
+        "caption": "An attendance sheet with a gap"
+      }
+    },
+    {
+      "id": "ev-d012-3",
+      "title": "“Reserve paper leaked” post",
+      "source": "Anonymous account",
+      "sourceType": "anonymous",
+      "time": "09:00",
+      "claim": "A post shows a photo of a question paper with “RESERVE” stamped on it.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Stamp",
+          "value": "Wrong font for the board’s stamp",
+          "anomaly": true
+        },
+        {
+          "label": "Questions shown",
+          "value": "From last year’s paper",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "A photo of a paper with a stamp"
+      },
+      "resolutionNote": "The “reserve” paper in the photo is last year’s paper with a fake stamp.",
+      "injectedBy": "exploiter",
+      "contradictedBy": [
+        "ev-d012-4"
+      ],
+      "district": "market",
+      "simple": {
+        "title": "The “spare paper leaked” post",
+        "claim": "A post shows a paper stamped RESERVE.",
+        "resolutionNote": "It is last year’s paper with a fake stamp.",
+        "caption": "A paper with a stamp"
+      }
+    },
+    {
+      "id": "ev-d012-4",
+      "title": "Reserve paper custody log",
+      "source": "Board strongroom",
+      "sourceType": "official",
+      "time": "09:10",
+      "claim": "Reserve set sealed since Monday; seal intact; two signatures for every access, none since.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Seal",
+          "value": "Intact"
+        },
+        {
+          "label": "Access since Monday",
+          "value": "None"
+        },
+        {
+          "label": "Custody sheet",
+          "value": "Single original, strongroom"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A custody log with an unbroken seal number"
+      },
+      "resolutionNote": "The reserve paper has not been touched. The custody sheet is the only proof and must be kept.",
+      "availableAt": 10,
+      "district": "civic",
+      "perishable": true,
+      "simple": {
+        "title": "The spare paper log",
+        "claim": "The spare paper has been sealed since Monday. Nobody opened it.",
+        "resolutionNote": "Nobody touched the spare paper. Keep the log safe.",
+        "caption": "A log with an unbroken seal number"
+      }
+    },
+    {
+      "id": "ev-d012-5",
+      "title": "Student council letter",
+      "source": "Student council",
+      "sourceType": "organizer",
+      "time": "09:30",
+      "claim": "The council asks for an afternoon sitting at the same centre and promises an orderly queue.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "metadata": [
+        {
+          "label": "Request",
+          "value": "Afternoon sitting, same centre"
+        },
+        {
+          "label": "Offer",
+          "value": "Volunteer marshals"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A letter with forty signatures"
+      },
+      "resolutionNote": "The students’ own ask is modest and organised.",
+      "availableAt": 18,
+      "district": "campus",
+      "simple": {
+        "title": "The student council letter",
+        "claim": "The council asks for an afternoon exam at the same centre and offers marshals.",
+        "resolutionNote": "The students ask for something fair and organised.",
+        "caption": "A letter with forty signatures"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d012-1",
+      "title": "Locked out at nine",
+      "situation": "Four hundred students are at the gate with the wrong tickets. The exam inside has started. Parents are shouting “cancel it for everyone”.",
+      "district": "campus",
+      "expiresAfter": 22,
+      "defaultOption": "o-d012-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d012-1-sitting",
+          "title": "Announce a 2 pm sitting on the reserve paper",
+          "preview": "The 400 sit at 2 pm, same centre, sealed reserve paper.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The gate crowd has a time. The inside exam continues.",
+          "requiresEvidence": [
+            "ev-d012-1"
+          ],
+          "setsFlags": [
+            "acknowledged",
+            "sitting-announced"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d012-1-meet",
+          "title": "Meet the council and the parents at the gate",
+          "preview": "You admit the error and ask for an hour to confirm the reserve paper.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "The admission lands. The shouting becomes a queue of questions.",
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d012-1-cancel",
+          "title": "Cancel the exam for all 12,000",
+          "preview": "The exam is stopped at every centre; a new date later.",
+          "authority": "Fairness: a remedy must not harm those who were not wronged",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -6,
+            "economy": -4
+          },
+          "consequence": "Eleven thousand six hundred students lose a valid paper to fix 400 tickets.",
+          "setsFlags": [
+            "cleared",
+            "exam-cancelled"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 16,
+              "effects": {
+                "trust": -5,
+                "grievance": -3
+              },
+              "message": "Students who finished the exam march to the board demanding their papers be counted."
+            }
+          ]
+        },
+        {
+          "id": "o-d012-1-wait",
+          "title": "Wait for the board chairman",
+          "preview": "No decision until he calls back.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -3,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The exam inside is half over and the 400 are still at the gate."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "Locked out at nine",
+        "situation": "Four hundred students have wrong tickets. The exam inside has started. Parents shout “cancel it”.",
+        "options": {
+          "o-d012-1-sitting": {
+            "title": "Announce a 2 pm exam",
+            "preview": "The 400 sit at 2 pm at the same centre with the spare paper.",
+            "consequence": "The crowd has a time. The inside exam goes on."
+          },
+          "o-d012-1-meet": {
+            "title": "Meet the students and parents",
+            "preview": "You admit the error and ask for an hour.",
+            "consequence": "The shouting becomes questions."
+          },
+          "o-d012-1-cancel": {
+            "title": "Cancel the exam for everyone",
+            "preview": "The exam is stopped everywhere. A new date later.",
+            "consequence": "Eleven thousand students lose a valid exam to fix 400 tickets."
+          },
+          "o-d012-1-wait": {
+            "title": "Wait for the chairman",
+            "preview": "No decision until he calls back.",
+            "consequence": "The 400 are still at the gate."
+          }
+        }
+      }
+    },
+    {
+      "id": "d012-2",
+      "title": "Is the reserve paper safe?",
+      "situation": "A post says the reserve paper leaked. The custody log says the seal is intact. Parents will not accept an afternoon sitting on a leaked paper.",
+      "district": "civic",
+      "expiresAfter": 24,
+      "defaultOption": "o-d012-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d012-2-verify",
+          "title": "Verify the seal with the council watching",
+          "preview": "Two council members and a parent inspect the sealed set and sign the log.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The seal is intact, witnessed. The post is answered with a signature.",
+          "requiresEvidence": [
+            "ev-d012-4"
+          ],
+          "setsFlags": [
+            "checked",
+            "seal-verified"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d012-2-escort",
+          "title": "Escort the reserve paper to the centre now",
+          "preview": "The sealed set travels under escort and is opened only in the hall.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The paper is in the building before the rumour is.",
+          "setsFlags": [
+            "served"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "protect"
+            }
+          ]
+        },
+        {
+          "id": "o-d012-2-accuse",
+          "title": "Announce the reserve paper is compromised",
+          "preview": "The board adopts the post and withdraws the afternoon sitting.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A sealed, untouched paper is declared leaked because of a photo of last year’s questions.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d012-3"
+          ]
+        },
+        {
+          "id": "o-d012-2-wait",
+          "title": "Ignore the post",
+          "preview": "Parents keep forwarding it; some pull their children out of the sitting.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Doubt spreads where facts could have."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "Is the spare paper safe?",
+        "situation": "A post says the spare paper leaked. The log says the seal is intact.",
+        "options": {
+          "o-d012-2-verify": {
+            "title": "Check the seal with witnesses",
+            "preview": "Two students and a parent see the sealed set and sign the log.",
+            "consequence": "The seal is intact, witnessed."
+          },
+          "o-d012-2-escort": {
+            "title": "Escort the spare paper now",
+            "preview": "The sealed set travels under guard and opens only in the hall.",
+            "consequence": "The paper is in the building before the rumour is."
+          },
+          "o-d012-2-accuse": {
+            "title": "Say the spare paper leaked",
+            "preview": "The board believes the post and cancels the afternoon exam.",
+            "consequence": "An untouched paper is called leaked because of an old photo."
+          },
+          "o-d012-2-wait": {
+            "title": "Ignore the post",
+            "preview": "Parents keep sharing it. Some pull their children out.",
+            "consequence": "Doubt spreads."
+          }
+        }
+      }
+    },
+    {
+      "id": "d012-3",
+      "title": "The road to the board office",
+      "situation": "Parents have blocked the road to the board office demanding the chairman. The afternoon sitting is in three hours. The campus is tense.",
+      "district": "campus",
+      "expiresAfter": 22,
+      "defaultOption": "o-d012-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d012-3-chairman",
+          "title": "Bring the chairman to the parents",
+          "preview": "He speaks at the block; marshals from the council keep one lane open.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The chairman answers in person. The block becomes a meeting.",
+          "setsFlags": [
+            "protected"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d012-3-targeted",
+          "title": "Move the few blocking the exam convoy",
+          "preview": "Officers clear only the convoy’s path, with the council watching.",
+          "authority": "Proportionality: act against the few causing harm, not the many",
+          "tags": [
+            "force",
+            "proportionate",
+            "legal-process"
+          ],
+          "effects": {
+            "safety": 6,
+            "freedom": -2,
+            "trust": 1
+          },
+          "consequence": "The paper gets through. The parents stay.",
+          "disproportionateEffects": {
+            "freedom": -8,
+            "trust": -7
+          },
+          "proportionateIf": {
+            "flag": "complication-live"
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "deploy"
+            }
+          ]
+        },
+        {
+          "id": "o-d012-3-detain",
+          "title": "Detain the parents leading the block",
+          "preview": "Twelve parents are taken to the station for obstruction.",
+          "authority": "Articles 21 and 22: liberty and safeguards on arrest",
+          "tags": [
+            "detention",
+            "force",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -13,
+            "trust": -10,
+            "safety": 3,
+            "grievance": -5
+          },
+          "consequence": "Parents of locked-out students are in cells on exam day.",
+          "setsFlags": [
+            "detained"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d012-3-wait",
+          "title": "Let the block stand",
+          "preview": "The road stays shut; the paper cannot reach the centre.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -3,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The afternoon sitting is at risk."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d012",
+      "simple": {
+        "title": "The road to the board office",
+        "situation": "Parents block the road to the board. The afternoon exam is in three hours.",
+        "options": {
+          "o-d012-3-chairman": {
+            "title": "Bring the chairman to the parents",
+            "preview": "He speaks at the block. Student marshals keep a lane open.",
+            "consequence": "The block becomes a meeting."
+          },
+          "o-d012-3-targeted": {
+            "title": "Move only the convoy blockers",
+            "preview": "Officers clear only the path for the exam convoy.",
+            "consequence": "The paper gets through. The parents stay."
+          },
+          "o-d012-3-detain": {
+            "title": "Detain the parents leading it",
+            "preview": "Twelve parents are taken to the station.",
+            "consequence": "Parents of locked-out students are in cells on exam day."
+          },
+          "o-d012-3-wait": {
+            "title": "Let the block stand",
+            "preview": "The road stays shut. The paper cannot get through.",
+            "consequence": "The afternoon exam is at risk."
+          }
+        }
+      }
+    },
+    {
+      "id": "d012-4",
+      "title": "Two o’clock",
+      "situation": "The reserve paper is at the centre. The 400 are queued with marshals. Someone has to say that both sittings count equally.",
+      "district": "campus",
+      "expiresAfter": 24,
+      "defaultOption": "o-d012-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d012-4-equal",
+          "title": "Publish that both sittings carry equal weight",
+          "preview": "A board notice: same syllabus, same marking, results together.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "Students sit knowing their paper counts the same.",
+          "requiresEvidence": [
+            "ev-d012-1"
+          ],
+          "setsFlags": [
+            "plan-published",
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d012-4-marshals",
+          "title": "Run the queue with the council’s marshals",
+          "preview": "Volunteer marshals and board staff seat the 400 by 1:45.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The sitting starts on time and without a single shout.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d012-4-accuse",
+          "title": "Blame the printing contractor by name",
+          "preview": "A statement names the firm as negligent before any inquiry.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A contractor is condemned before anyone asked who approved the proof.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d012-3"
+          ]
+        },
+        {
+          "id": "o-d012-4-wait",
+          "title": "Say nothing about marking",
+          "preview": "The sitting starts; students wonder if it counts.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Rumours about a “second-class paper” begin."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "Two o’clock",
+        "situation": "The spare paper is at the centre. The 400 are queued. Someone must say both exams count the same.",
+        "options": {
+          "o-d012-4-equal": {
+            "title": "Say both exams count the same",
+            "preview": "A notice: same syllabus, same marking, results together.",
+            "consequence": "Students sit knowing their paper counts."
+          },
+          "o-d012-4-marshals": {
+            "title": "Run the queue with student marshals",
+            "preview": "Student marshals and staff seat the 400 by 1:45.",
+            "consequence": "The exam starts on time, calmly."
+          },
+          "o-d012-4-accuse": {
+            "title": "Blame the printer by name",
+            "preview": "A statement calls the firm negligent before any inquiry.",
+            "consequence": "A company is blamed before anyone checks."
+          },
+          "o-d012-4-wait": {
+            "title": "Say nothing about marking",
+            "preview": "The exam starts. Students wonder if it counts.",
+            "consequence": "Rumours of a “second-class paper” begin."
+          }
+        }
+      }
+    },
+    {
+      "id": "d012-bait",
+      "title": "“Cancel it all, re-run next month”",
+      "situation": "A trending demand: cancel the entire exam for all 12,000 and re-run it next month “to be fair”.",
+      "district": "campus",
+      "expiresAfter": 20,
+      "defaultOption": "o-d012-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d012-bait-cancel",
+          "title": "Cancel for all 12,000",
+          "preview": "Every paper written today is void.",
+          "authority": "Fairness: a remedy must not harm those who were not wronged",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -5,
+            "economy": -5
+          },
+          "consequence": "The fix for 400 tickets costs 12,000 students a month.",
+          "setsFlags": [
+            "cleared",
+            "exam-cancelled"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 16,
+              "effects": {
+                "trust": -5
+              },
+              "message": "Students who sat the morning paper file a court challenge to the cancellation."
+            }
+          ]
+        },
+        {
+          "id": "o-d012-bait-sitting",
+          "title": "Hold the afternoon sitting as planned",
+          "preview": "The 400 sit at 2 pm; the morning papers stand.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "Two sittings, one exam, nobody loses a month.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d012-bait-wait",
+          "title": "Let the board “consider” it",
+          "preview": "No answer; the 400 do not know if 2 pm is real.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Some go home."
+        }
+      ],
+      "simple": {
+        "title": "“Cancel it all”",
+        "situation": "A trending demand: cancel the exam for all 12,000 and re-run it next month.",
+        "options": {
+          "o-d012-bait-cancel": {
+            "title": "Cancel the exam for everyone",
+            "preview": "Every paper written today is void.",
+            "consequence": "Fixing 400 tickets costs 12,000 students a month."
+          },
+          "o-d012-bait-sitting": {
+            "title": "Hold the afternoon exam",
+            "preview": "The 400 sit at 2 pm. The morning papers stand.",
+            "consequence": "Nobody loses a month."
+          },
+          "o-d012-bait-wait": {
+            "title": "Let the board “think about it”",
+            "preview": "No answer. The 400 do not know if 2 pm is real.",
+            "consequence": "Some go home."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d012",
+      "question": "A board error locked 400 students out of an exam. What does a fair remedy look like?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Restore the 400 to an equal position, with a sitting of equal weight, without harming the 11,600 who sat properly.",
+          "correct": true,
+          "feedback": "Correct. Equality means repairing the harm to those affected without creating a new harm to others."
+        },
+        {
+          "id": "b",
+          "text": "Cancel everyone’s exam so that all are treated identically.",
+          "correct": false,
+          "feedback": "Identical treatment is not equal treatment when it punishes those who were not wronged."
+        },
+        {
+          "id": "c",
+          "text": "Give the 400 bonus marks on next year’s exam.",
+          "correct": false,
+          "feedback": "A deferred, unequal remedy does not restore the right that was lost today."
+        }
+      ],
+      "principle": "Article 14 requires equal treatment, which includes an effective, proportionate remedy for those a state error has harmed, without arbitrarily harming others.",
+      "why": "An afternoon sitting of equal weight restored the 400 without voiding 11,600 valid papers.",
+      "source": {
+        "label": "Constitution of India, Article 14 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "A board mistake locked 400 students out of an exam. What is a fair fix?",
+        "options": {
+          "a": "Give the 400 an equal exam today, without hurting the other 11,600.",
+          "b": "Cancel everyone’s exam so all are treated the same.",
+          "c": "Give the 400 extra marks next year."
+        },
+        "feedback": {
+          "a": "Yes! Fix the harm without creating a new one.",
+          "b": "No. Punishing 11,600 is not fairness.",
+          "c": "A late, unequal fix does not give back what was lost today."
+        },
+        "principle": "Everyone is treated fairly. Fix a mistake for those hurt by it, without hurting others.",
+        "why": "An afternoon exam of equal weight fixed things for the 400 without cancelling 11,600 valid papers."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d012-comp",
+      "at": -1,
+      "kind": "rumor",
+      "message": "A speaker tells the parents the afternoon sitting is a trick and the paper is “already sold”.",
+      "simple": "A speaker tells parents the afternoon exam is a trick.",
+      "effects": {
+        "grievance": -4,
+        "trust": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "campus",
+          "magnitude": 0.2
+        },
+        {
+          "kind": "mood",
+          "district": "campus",
+          "mood": "volatile"
+        }
+      ]
+    },
+    {
+      "id": "e-d012-finish",
+      "at": 40,
+      "kind": "crowd",
+      "message": "The morning sitting ends; 1,180 students walk out past the 400 still at the gate.",
+      "simple": "The morning exam ends. The 400 are still at the gate.",
+      "effects": {
+        "grievance": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "campus",
+          "magnitude": 0.15
+        }
+      ],
+      "condition": {
+        "notFlag": "sitting-announced"
+      }
+    }
+  ],
+  "complication": {
+    "opponent": "exploiter",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d012-comp",
+    "baitDecisionId": "d012-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "sitting-announced"
+        },
+        "text": "The 400 got a same-day sitting on the sealed reserve paper.",
+        "simple": "The 400 got a same-day exam."
+      },
+      {
+        "condition": {
+          "flag": "seal-verified"
+        },
+        "text": "The reserve paper’s seal was verified in front of students and parents.",
+        "simple": "The spare paper was checked in front of witnesses."
+      },
+      {
+        "condition": {
+          "flag": "plan-published"
+        },
+        "text": "Both sittings were declared equal in writing.",
+        "simple": "Both exams were declared equal."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "flag": "exam-cancelled"
+        },
+        "text": "Twelve thousand students lost a valid exam to fix a printing error.",
+        "simple": "Twelve thousand students lost their exam."
+      },
+      {
+        "condition": {
+          "notFlag": "seal-verified"
+        },
+        "text": "The leak rumour was never answered; the afternoon paper carries a shadow.",
+        "simple": "The leak rumour was never answered."
+      },
+      {
+        "condition": {
+          "notFlag": "plan-published"
+        },
+        "text": "Nobody said both sittings count the same.",
+        "simple": "Nobody said both exams count the same."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "protected"
+        },
+        "text": "Parents kept their protest while the paper reached the hall.",
+        "simple": "Parents kept their protest. The paper reached the hall."
+      },
+      {
+        "condition": {
+          "flag": "acknowledged"
+        },
+        "text": "The board admitted its own error in public.",
+        "simple": "The board admitted its mistake in public."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "detained"
+        },
+        "text": "Parents were detained on their children’s exam day.",
+        "simple": "Parents were detained on exam day."
+      },
+      {
+        "condition": {
+          "flag": "exam-cancelled"
+        },
+        "text": "Students who did nothing wrong lost their results.",
+        "simple": "Innocent students lost their results."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "sitting-announced"
+        },
+        "text": "Announce the remedy before the crowd announces a demand.",
+        "simple": "Announce the fix before the crowd demands one."
+      },
+      {
+        "condition": {
+          "notFlag": "seal-verified"
+        },
+        "text": "Let witnesses see the seal; a photo of last year’s paper cannot survive that.",
+        "simple": "Let witnesses see the seal."
+      },
+      {
+        "condition": {},
+        "text": "A remedy that voids 11,600 valid papers is not fairness; it is a second error.",
+        "simple": "Cancelling everyone is a second mistake."
+      }
+    ],
+    "closing": {
+      "good": "Four hundred sat at two o’clock on a paper everyone had seen sealed, and the morning’s papers were never in doubt.",
+      "mixed": "The 400 got their sitting, but late and under a cloud, and the board still has not said the two papers are equal.",
+      "poor": "A printing error became a cancelled exam, and twelve thousand students are now the grievance."
+    }
+  },
+  "simple": {
+    "title": "The Locked Gate",
+    "subtitle": "Four hundred students cannot enter their exam.",
+    "briefing": {
+      "grievance": "Four hundred students went to the wrong centre because of a printing error. They are locked out of a big exam.",
+      "knownFacts": [
+        "The error hit 400 of 12,000 students. The board admits it.",
+        "The exam started on time elsewhere.",
+        "A second sitting is possible this afternoon."
+      ],
+      "unverifiedClaims": [
+        "A post says the spare paper already leaked.",
+        "A message says the whole exam will be cancelled at noon."
+      ],
+      "responsibility": "You run the exam board’s crisis desk and the campus police link.",
+      "objective": "Give the 400 a fair exam today. Keep everyone else’s exam valid. Keep the campus calm."
+    },
+    "closing": {
+      "good": "The 400 sat at two on a paper everyone saw sealed.",
+      "mixed": "The 400 got their exam, but late and under a cloud.",
+      "poor": "A printing error became a cancelled exam for everyone."
+    },
+    "coldOpen": [
+      "Four hundred hall tickets are wrong.",
+      "Students are locked out before the exam.",
+      "Parents want the exam cancelled."
+    ]
+  }
+}

@@ -3,6 +3,8 @@ import { useApp } from '@/app/store';
 import { SIMPLE_PACE, useSimple } from '@/app/simple';
 import type { PlayStyle, Settings, TextScale, TimerPace } from '@/engine/types';
 import { Button, Card, Dialog, Field, ScreenShell, SegmentedControl, Switch } from '@/components/ui';
+import { analyticsStatus, track } from '@/analytics';
+import { REMINDER_COPY, REMINDER_HOURS, canUseReminders, cancelDailyReminder, scheduleDailyReminder } from '@/reminders';
 import { saveTextFile } from './exportHelpers';
 import s from './SettingsScreen.module.css';
 
@@ -28,7 +30,34 @@ export function SettingsScreen() {
   const settings = useApp((st) => st.settings);
   const update = useApp((st) => st.updateSettings);
   const setPlayStyle = useApp((st) => st.setPlayStyle);
+  const setReminders = useApp((st) => st.setReminders);
+  const setCommunitySharing = useApp((st) => st.setCommunitySharing);
   const simple = useSimple();
+  const remindersPossible = canUseReminders();
+  const analytics = analyticsStatus();
+
+  const onReminders = async (enabled: boolean) => {
+    if (!enabled) {
+      setReminders(false);
+      await cancelDailyReminder();
+      track('reminder_disabled', {});
+      return;
+    }
+    const outcome = await scheduleDailyReminder(settings.reminderHour);
+    if (outcome === 'scheduled') {
+      setReminders(true, settings.reminderHour);
+      track('reminder_enabled', {});
+      toast({ text: simple ? 'Reminder set.' : 'Daily reminder set.', kind: 'success', duration: 2500 });
+    } else {
+      setReminders(false);
+      toast({ text: outcome === 'denied' ? 'Notifications are off for this app in your phone settings.' : 'Reminders are not available here.', kind: 'warning', duration: 4000 });
+    }
+  };
+
+  const onReminderHour = async (hour: number) => {
+    setReminders(settings.remindersEnabled, hour);
+    if (settings.remindersEnabled) await scheduleDailyReminder(hour);
+  };
   /** Short copy for the Simple style, fuller copy otherwise. */
   const d = (full: string, easy: string) => (simple ? easy : full);
   const back = useApp((st) => st.back);
@@ -131,11 +160,39 @@ export function SettingsScreen() {
         <p className={s.hint}>{d('Scores are not affected by the pace you choose.', 'Your score is the same at any speed.')}</p>
       </Card>
 
+      <Card padding={0} className={s.section} as="section" aria-labelledby="st-daily">
+        <h2 id="st-daily" className={s.sectionTitle}>
+          {d('Daily crisis', 'Every day')}
+        </h2>
+        {remindersPossible ? (
+          <>
+            <Field inline label={d('Daily reminder', 'Daily note')} description={REMINDER_COPY.explainNative} data-testid="setting-remindersEnabled">
+              <Switch label="Daily reminder" checked={settings.remindersEnabled} onChange={(v) => void onReminders(v)} />
+            </Field>
+            <Field label={d('Reminder time', 'When')} description={d('Local time.', 'Your local time.')} data-testid="setting-reminderHour">
+              <SegmentedControl label="Reminder time" value={settings.reminderHour} onChange={(v) => void onReminderHour(v)} options={REMINDER_HOURS} block />
+            </Field>
+          </>
+        ) : (
+          <p className={s.hint} data-testid="setting-remindersEnabled">
+            {REMINDER_COPY.explainWeb}
+          </p>
+        )}
+        <Field inline label={d('Share anonymous results', 'Count me in the totals')} description={d('Sends only your official daily score, outcome and pattern — no name, no account. Makes the community numbers real.', 'Sends just your score and pattern. No name. It makes the "everyone today" numbers real.')} data-testid="setting-communitySharing">
+          <Switch label="Share anonymous results" checked={settings.communitySharing === 'on'} onChange={(v) => setCommunitySharing(v ? 'on' : 'off')} />
+        </Field>
+        {analytics.configured && (
+          <Field inline label={d('Help improve VANDE', 'Help make VANDE better')} description={d('Counts which screens are used, never what you choose or type. Off whenever your browser asks not to be tracked.', 'Counts which screens get used. Never what you choose.')} data-testid="setting-analyticsOptOut">
+            <Switch label="Help improve VANDE" checked={!settings.analyticsOptOut} onChange={(v) => set('analyticsOptOut', !v)} />
+          </Field>
+        )}
+      </Card>
+
       <Card padding={0} className={s.section} as="section" aria-labelledby="st-data">
         <h2 id="st-data" className={s.sectionTitle}>
           Your data
         </h2>
-        <p className={s.hint}>{d('VANDE keeps progress, settings and results only in this browser or app. Nothing is uploaded.', 'Your games and settings stay on this device. Nothing is sent anywhere.')}</p>
+        <p className={s.hint}>{d('Progress, settings and results live only on this device. Anonymous results leave it only if you switch that on above.', 'Your games stay on this device. Only the anonymous score goes out, and only if you say so.')}</p>
         <div className={s.actions}>
           <Button icon="download" onClick={onExport} data-testid="settings-export">
             {d('Export local progress', 'Save a copy of my progress')}

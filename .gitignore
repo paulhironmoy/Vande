@@ -33,3 +33,7 @@ dist-visual/
 dist-sb/
 dist-axe/
 dist-verify/
+# Cloudflare Worker local state and secrets
+backend/.wrangler/
+backend/.dev.vars
+backend/.dev.vars.*

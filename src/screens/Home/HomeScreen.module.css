@@ -160,3 +160,24 @@
   line-height: var(--leading-tight);
   letter-spacing: -0.01em;
 }
+
+.inlineLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.inlineLink:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 4px;
+}
+.passportLink {
+  grid-column: 1 / -1;
+  justify-self: start;
+  min-height: var(--tap);
+  height: auto;
+}

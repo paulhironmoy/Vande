@@ -1,0 +1,1109 @@
+{
+  "id": "d009",
+  "version": 1,
+  "title": "The Sanitation Strike",
+  "subtitle": "Garbage crews strike in dengue season; the hospital is already full",
+  "dilemmaKey": "strike-vs-essential-services",
+  "themeTags": [
+    "labour",
+    "health",
+    "services"
+  ],
+  "focus": "hospital",
+  "institution": "hospital",
+  "mood": "tense",
+  "opponents": [
+    "overreaction",
+    "exploiter"
+  ],
+  "coldOpen": [
+    "Day three of a sanitation strike over safety gear.",
+    "07:00. Dengue admissions are up forty percent.",
+    "Garbage is piling up outside the hospital gate."
+  ],
+  "briefing": {
+    "grievance": "Sanitation workers want gloves, boots and a pay slip that matches their hours. They have asked for a year. Meanwhile, standing waste breeds the mosquitoes filling the wards.",
+    "knownFacts": [
+      "Crews have had no protective gear issued since last year.",
+      "Dengue admissions are up 40% in two weeks.",
+      "Waste has not been collected for three days."
+    ],
+    "unverifiedClaims": [
+      "A post says the union is being paid by a private waste firm.",
+      "A message says the city will fire all strikers tomorrow."
+    ],
+    "responsibility": "You run the city’s sanitation and the hospital liaison. The workers’ grievance and the public’s health are both real.",
+    "objective": "Get the gear and the hours on paper, get the waste moving, and keep a lawful strike from becoming a firing."
+  },
+  "evidence": [
+    {
+      "id": "ev-d009-1",
+      "title": "Gear issue register",
+      "source": "Sanitation department stores",
+      "sourceType": "official",
+      "time": "07:10",
+      "claim": "No gloves or boots issued since last March; 1,200 pairs in stock, unissued.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Last issue",
+          "value": "March last year"
+        },
+        {
+          "label": "In stock",
+          "value": "1,200 pairs"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A stores register with a long empty column"
+      },
+      "resolutionNote": "The gear exists in the store. It was never handed out.",
+      "availableAt": 2,
+      "district": "civic",
+      "simple": {
+        "title": "The gear register",
+        "claim": "No gloves or boots given out since March last year. 1,200 pairs sit in stock.",
+        "resolutionNote": "The gear is in the store. It was never given out.",
+        "caption": "A store book with an empty column"
+      }
+    },
+    {
+      "id": "ev-d009-2",
+      "title": "Hospital dengue bulletin",
+      "source": "Civil Hospital",
+      "sourceType": "institution",
+      "time": "07:30",
+      "claim": "Dengue admissions 112 this week, up 40%; the ward is at capacity.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Admissions",
+          "value": "112 this week"
+        },
+        {
+          "label": "Capacity",
+          "value": "Full"
+        }
+      ],
+      "visual": {
+        "type": "chart",
+        "caption": "A rising bar chart of admissions"
+      },
+      "resolutionNote": "The outbreak is real and growing.",
+      "availableAt": 5,
+      "district": "hospital",
+      "simple": {
+        "title": "The hospital’s dengue report",
+        "claim": "Dengue cases are 112 this week, up 40%. The ward is full.",
+        "resolutionNote": "The outbreak is real and growing.",
+        "caption": "A rising bar chart"
+      }
+    },
+    {
+      "id": "ev-d009-3",
+      "title": "Overtime timesheets",
+      "source": "Union office",
+      "sourceType": "organizer",
+      "time": "08:00",
+      "claim": "Timesheets show crews worked 60-hour weeks paid as 48; the union has copies for 300 workers.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "metadata": [
+        {
+          "label": "Workers",
+          "value": "300 with sheets"
+        },
+        {
+          "label": "Gap",
+          "value": "12 hours a week unpaid"
+        },
+        {
+          "label": "Originals",
+          "value": "Held at the depot, due for shredding"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A stack of handwritten timesheets"
+      },
+      "resolutionNote": "The pay gap is documented on sheets the depot is about to shred.",
+      "availableAt": 10,
+      "district": "transit",
+      "perishable": true,
+      "simple": {
+        "title": "The timesheets",
+        "claim": "Crews worked 60 hours but were paid for 48. The union has 300 copies.",
+        "resolutionNote": "The pay gap is on paper. The depot wants to shred the originals.",
+        "caption": "A stack of handwritten sheets"
+      }
+    },
+    {
+      "id": "ev-d009-4",
+      "title": "“Union bought by waste firm” post",
+      "source": "Anonymous account",
+      "sourceType": "anonymous",
+      "time": "07:45",
+      "claim": "A post shows a “bank transfer” from a private waste firm to the union leader.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Transfer image",
+          "value": "Bank template with mismatched fonts",
+          "anomaly": true
+        },
+        {
+          "label": "Account number",
+          "value": "Does not exist at that bank",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "A screenshot of a bank transfer"
+      },
+      "resolutionNote": "The transfer image is a template with a non-existent account; the timesheets show what the strike is about.",
+      "injectedBy": "exploiter",
+      "contradictedBy": [
+        "ev-d009-3"
+      ],
+      "district": "market",
+      "simple": {
+        "title": "The “union was paid” post",
+        "claim": "A post shows a bank transfer from a waste firm to the union leader.",
+        "resolutionNote": "The transfer picture is fake. The account does not exist.",
+        "caption": "A screenshot of a bank transfer"
+      }
+    },
+    {
+      "id": "ev-d009-5",
+      "title": "Emergency crew roster",
+      "source": "Sanitation department",
+      "sourceType": "official",
+      "time": "09:00",
+      "claim": "Forty supervisors and volunteers can clear the hospital perimeter today if given vehicles.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Available",
+          "value": "40 supervisors and volunteers"
+        },
+        {
+          "label": "Vehicles",
+          "value": "6 trucks idle"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A roster with forty names"
+      },
+      "resolutionNote": "A hospital-perimeter clearance is possible without breaking the strike.",
+      "availableAt": 22,
+      "district": "civic",
+      "simple": {
+        "title": "The emergency roster",
+        "claim": "Forty supervisors and volunteers can clear the hospital area today.",
+        "resolutionNote": "The hospital area can be cleared without breaking the strike.",
+        "caption": "A list of forty names"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d009-1",
+      "title": "Three days of garbage",
+      "situation": "The strike is lawful. The hospital gate is a dump. The workers are at the depot, waiting for someone to bring the gear they asked for a year ago.",
+      "district": "civic",
+      "expiresAfter": 22,
+      "defaultOption": "o-d009-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d009-1-gear",
+          "title": "Issue the 1,200 pairs from stock today",
+          "preview": "The stores open; gloves and boots go to every crew that signs for them.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "Workers queue at the store instead of the picket. The gear was always there.",
+          "requiresEvidence": [
+            "ev-d009-1"
+          ],
+          "setsFlags": [
+            "acknowledged",
+            "served",
+            "gear-issued"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "relief"
+            }
+          ]
+        },
+        {
+          "id": "o-d009-1-talks",
+          "title": "Open talks at the depot this morning",
+          "preview": "You sit with the union on gear, hours and a timetable.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "The talks start where the workers are.",
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d009-1-fire",
+          "title": "Issue termination notices to all strikers",
+          "preview": "Three hundred notices go out; private crews are hired.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4,
+            "economy": -4
+          },
+          "consequence": "A lawful strike becomes a mass firing. The private crews have no gear either.",
+          "setsFlags": [
+            "cleared",
+            "fired"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d009-1-wait",
+          "title": "Wait them out",
+          "preview": "No gear, no talks; the piles grow with the mosquito count.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -3,
+            "economy": -1
+          },
+          "consequence": "Day four looks like day three, with more patients."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "Three days of garbage",
+        "situation": "The strike is lawful. The hospital gate is a dump. The workers wait for the gear they asked for.",
+        "options": {
+          "o-d009-1-gear": {
+            "title": "Hand out the gear from stock",
+            "preview": "The store opens. Every crew gets gloves and boots.",
+            "consequence": "Workers queue at the store, not the picket."
+          },
+          "o-d009-1-talks": {
+            "title": "Start talks at the depot",
+            "preview": "You sit with the union on gear, hours and dates.",
+            "consequence": "Talks start where the workers are."
+          },
+          "o-d009-1-fire": {
+            "title": "Fire all the strikers",
+            "preview": "Three hundred firing notices. Private crews are hired.",
+            "consequence": "A lawful strike becomes a mass firing."
+          },
+          "o-d009-1-wait": {
+            "title": "Wait them out",
+            "preview": "No gear. No talks. The piles grow.",
+            "consequence": "Day four looks like day three, with more patients."
+          }
+        }
+      }
+    },
+    {
+      "id": "d009-2",
+      "title": "The hospital perimeter",
+      "situation": "The hospital cannot wait for the talks. A roster of supervisors and volunteers could clear the gate today without breaking the strike.",
+      "district": "hospital",
+      "expiresAfter": 24,
+      "defaultOption": "o-d009-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d009-2-perimeter",
+          "title": "Clear the hospital perimeter with supervisors",
+          "preview": "Forty supervisors and volunteers in six trucks clear the gate and ward lanes.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The gate is clean by evening. The strike line is untouched.",
+          "requiresEvidence": [
+            "ev-d009-5"
+          ],
+          "setsFlags": [
+            "served",
+            "perimeter-cleared"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "restore"
+            },
+            {
+              "kind": "service",
+              "district": "hospital",
+              "magnitude": 0.2
+            }
+          ]
+        },
+        {
+          "id": "o-d009-2-fog",
+          "title": "Map the breeding sites and fog them",
+          "preview": "Health teams map standing water around the wards and fog tonight.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "Mosquito counts start falling where it matters most.",
+          "setsFlags": [
+            "checked"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d009-2-accuse",
+          "title": "Blame the union for the outbreak",
+          "preview": "A statement says the strike caused the dengue surge and names the leader.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "The outbreak predates the strike by two weeks; the statement ignores that.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d009-4"
+          ]
+        },
+        {
+          "id": "o-d009-2-wait",
+          "title": "Ask the hospital to manage",
+          "preview": "No trucks, no fogging; the gate stays buried.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -3,
+            "economy": -1
+          },
+          "consequence": "Ambulances reverse into a wall of bags."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "The hospital gate",
+        "situation": "The hospital cannot wait. Supervisors and volunteers could clear the gate today.",
+        "options": {
+          "o-d009-2-perimeter": {
+            "title": "Clear the hospital area yourselves",
+            "preview": "Forty supervisors and volunteers clear the gate with six trucks.",
+            "consequence": "The gate is clean by evening. The strike line is untouched."
+          },
+          "o-d009-2-fog": {
+            "title": "Find and spray breeding spots",
+            "preview": "Health teams map standing water and spray tonight.",
+            "consequence": "Mosquitoes start falling where it matters."
+          },
+          "o-d009-2-accuse": {
+            "title": "Blame the union for dengue",
+            "preview": "A statement says the strike caused the outbreak.",
+            "consequence": "The outbreak started two weeks before the strike."
+          },
+          "o-d009-2-wait": {
+            "title": "Let the hospital cope",
+            "preview": "No trucks. No spraying. The gate stays buried.",
+            "consequence": "Ambulances back into bags of rubbish."
+          }
+        }
+      }
+    },
+    {
+      "id": "d009-3",
+      "title": "Strike or essential service?",
+      "situation": "A legal note says sanitation can be declared essential and the strike banned. The union says it will return the hour gear is issued and hours are honoured.",
+      "district": "transit",
+      "expiresAfter": 22,
+      "defaultOption": "o-d009-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d009-3-deal",
+          "title": "Sign gear and hours today; crews return tomorrow",
+          "preview": "A written deal: gear today, timesheet audit this week, work resumes at dawn.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "The union signs. Crews are back on the trucks at dawn.",
+          "requiresEvidence": [
+            "ev-d009-3"
+          ],
+          "setsFlags": [
+            "protected",
+            "deal-signed",
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d009-3-minimum",
+          "title": "Agree a minimum service with the union",
+          "preview": "Hospital and market routes run with volunteers; the strike continues elsewhere.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The worst piles move. The strike keeps its voice.",
+          "setsFlags": [
+            "protected"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "protect"
+            }
+          ]
+        },
+        {
+          "id": "o-d009-3-ban",
+          "title": "Declare the service essential and ban the strike",
+          "preview": "A ban order; strikers face arrest if they do not return by noon.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4,
+            "economy": -3
+          },
+          "consequence": "The ban lands on workers who asked for gloves. Half do not return.",
+          "setsFlags": [
+            "cleared",
+            "strike-banned"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d009-3-wait",
+          "title": "Refer it to a committee",
+          "preview": "A committee will report in two weeks.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -3,
+            "economy": -1
+          },
+          "consequence": "Two more weeks of garbage."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d009",
+      "simple": {
+        "title": "Strike or essential service?",
+        "situation": "A note says the strike can be banned. The union says it will return when gear and pay are fixed.",
+        "options": {
+          "o-d009-3-deal": {
+            "title": "Sign a deal: gear now, work tomorrow",
+            "preview": "Gear today, a pay check this week, work at dawn.",
+            "consequence": "The union signs. Crews return at dawn."
+          },
+          "o-d009-3-minimum": {
+            "title": "Agree a minimum service",
+            "preview": "Hospital and market routes run. The strike goes on elsewhere.",
+            "consequence": "The worst piles move. The strike keeps its voice."
+          },
+          "o-d009-3-ban": {
+            "title": "Ban the strike",
+            "preview": "A ban order. Strikers face arrest if they do not return.",
+            "consequence": "The ban hits workers who asked for gloves. Half stay away."
+          },
+          "o-d009-3-wait": {
+            "title": "Send it to a committee",
+            "preview": "A committee reports in two weeks.",
+            "consequence": "Two more weeks of garbage."
+          }
+        }
+      }
+    },
+    {
+      "id": "d009-4",
+      "title": "The timesheets",
+      "situation": "The depot is scheduling the shredding of last year’s timesheets. The union has copies. The pay gap is twelve hours a week.",
+      "district": "transit",
+      "expiresAfter": 24,
+      "defaultOption": "o-d009-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d009-4-audit",
+          "title": "Seize the originals and order a pay audit",
+          "preview": "The timesheets are sealed; an auditor compares them with pay slips.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The twelve-hour gap is now an audit finding, not a chant.",
+          "requiresEvidence": [
+            "ev-d009-3"
+          ],
+          "setsFlags": [
+            "checked",
+            "plan-published"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "legal"
+            }
+          ]
+        },
+        {
+          "id": "o-d009-4-publish",
+          "title": "Publish the gear issue and the audit timetable",
+          "preview": "What was issued, to whom, and when the audit reports.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "Workers can check their own names on the list.",
+          "requiresEvidence": [
+            "ev-d009-1"
+          ],
+          "setsFlags": [
+            "plan-published",
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d009-4-accuse",
+          "title": "Announce the union leader took money",
+          "preview": "A statement adopts the bank-transfer post.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "The “transfer” is a template with a fake account number.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d009-4"
+          ]
+        },
+        {
+          "id": "o-d009-4-wait",
+          "title": "Let the shredding go ahead",
+          "preview": "The originals are destroyed on schedule.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The pay gap becomes the union’s word against a shredder."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "The timesheets",
+        "situation": "The depot plans to shred last year’s timesheets. The union has copies. Pay is short by twelve hours a week.",
+        "options": {
+          "o-d009-4-audit": {
+            "title": "Save the sheets, order a pay audit",
+            "preview": "The sheets are sealed. An auditor checks them against pay slips.",
+            "consequence": "The pay gap is now a finding, not a chant."
+          },
+          "o-d009-4-publish": {
+            "title": "Publish the gear list and audit dates",
+            "preview": "What was handed out, to whom, and when the audit reports.",
+            "consequence": "Workers can check their own names."
+          },
+          "o-d009-4-accuse": {
+            "title": "Say the leader took money",
+            "preview": "A statement repeats the bank-transfer post.",
+            "consequence": "The transfer picture is fake."
+          },
+          "o-d009-4-wait": {
+            "title": "Let the shredding happen",
+            "preview": "The originals are destroyed.",
+            "consequence": "The pay gap becomes word against shredder."
+          }
+        }
+      }
+    },
+    {
+      "id": "d009-bait",
+      "title": "“Fire them all and hire private crews”",
+      "situation": "A proposal on your desk: terminate every striker tonight and sign a private contractor by morning.",
+      "district": "civic",
+      "expiresAfter": 20,
+      "defaultOption": "o-d009-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d009-bait-fire",
+          "title": "Terminate all strikers tonight",
+          "preview": "Three hundred letters; a contractor starts with no local crews.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4,
+            "economy": -6
+          },
+          "consequence": "The piles stay. The city has three hundred new enemies.",
+          "setsFlags": [
+            "cleared",
+            "fired"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 16,
+              "effects": {
+                "safety": -4,
+                "trust": -4
+              },
+              "message": "The private crews walk out on day one over the same missing gear."
+            }
+          ]
+        },
+        {
+          "id": "o-d009-bait-volunteers",
+          "title": "Pay volunteers for the hospital routes this week",
+          "preview": "Volunteers and supervisors cover the health routes until the deal lands.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The urgent routes run. The strike is not broken, only bypassed where lives are at stake.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d009-bait-wait",
+          "title": "Leave the proposal on the desk",
+          "preview": "No firing, no volunteers, no decision.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The hospital gate waits."
+        }
+      ],
+      "simple": {
+        "title": "“Fire them all”",
+        "situation": "A plan on your desk: fire every striker tonight and hire a private company.",
+        "options": {
+          "o-d009-bait-fire": {
+            "title": "Fire everyone tonight",
+            "preview": "Three hundred letters. A new company starts with no crews.",
+            "consequence": "The piles stay. The city made three hundred enemies."
+          },
+          "o-d009-bait-volunteers": {
+            "title": "Pay volunteers for hospital routes",
+            "preview": "Volunteers cover the health routes until the deal lands.",
+            "consequence": "The urgent routes run."
+          },
+          "o-d009-bait-wait": {
+            "title": "Leave it on the desk",
+            "preview": "No firing. No volunteers. No decision.",
+            "consequence": "The hospital gate waits."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d009",
+      "question": "Sanitation workers are on a lawful strike during a disease outbreak. What is the proportionate response?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Meet the grievance and agree a minimum service for health-critical routes, rather than banning the strike outright.",
+          "correct": true,
+          "feedback": "Correct. Essential needs can be protected by a minimum service; a blanket ban or mass firing is disproportionate."
+        },
+        {
+          "id": "b",
+          "text": "Fire everyone who does not return within the hour.",
+          "correct": false,
+          "feedback": "Mass termination for a lawful strike is punitive and leaves the service without crews."
+        },
+        {
+          "id": "c",
+          "text": "Nothing can be done until the strike ends on its own.",
+          "correct": false,
+          "feedback": "Health-critical routes can be covered by agreement or volunteers without breaking the strike."
+        }
+      ],
+      "principle": "Workers may associate and strike lawfully (Article 19(1)(c)); restrictions must be reasonable and proportionate. Essential needs are met by narrow measures, not by punishing the whole workforce.",
+      "why": "The workers asked for gloves that were sitting in a store; a minimum service kept the hospital clean while the grievance was met.",
+      "source": {
+        "label": "Constitution of India, Article 19 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "Garbage workers are on a lawful strike during a disease outbreak. What is the fair response?",
+        "options": {
+          "a": "Fix their complaint and run the hospital routes by agreement.",
+          "b": "Fire everyone who does not return within an hour.",
+          "c": "Do nothing until the strike ends."
+        },
+        "feedback": {
+          "a": "Yes! Meet the need and protect the urgent routes.",
+          "b": "No. Firing everyone is unfair and leaves nobody to work.",
+          "c": "Urgent routes can run without breaking the strike."
+        },
+        "principle": "Workers may strike lawfully. Protect urgent needs with small, fair steps, not by punishing everyone.",
+        "why": "The gloves were sitting in a store. A minimum service kept the hospital clean while the complaint was fixed."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d009-comp",
+      "at": -1,
+      "kind": "news",
+      "message": "A councillor on live TV demands every striker be fired by midnight “for the children in the wards”.",
+      "simple": "A politician on TV demands all strikers be fired tonight.",
+      "effects": {
+        "trust": -1
+      },
+      "mapEffects": [
+        {
+          "kind": "mood",
+          "district": "civic",
+          "mood": "tense"
+        }
+      ]
+    },
+    {
+      "id": "e-d009-ward",
+      "at": 30,
+      "kind": "incident",
+      "message": "The dengue ward opens a second corridor of beds; nurses report mosquitoes inside.",
+      "simple": "The dengue ward overflows into a corridor.",
+      "effects": {
+        "safety": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "service",
+          "district": "hospital",
+          "magnitude": -0.15
+        }
+      ],
+      "condition": {
+        "notFlag": "perimeter-cleared"
+      }
+    }
+  ],
+  "complication": {
+    "opponent": "overreaction",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d009-comp",
+    "baitDecisionId": "d009-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "gear-issued"
+        },
+        "text": "The gear in the store finally reached the crews.",
+        "simple": "The crews finally got their gear."
+      },
+      {
+        "condition": {
+          "flag": "perimeter-cleared"
+        },
+        "text": "The hospital perimeter was cleared without breaking the strike.",
+        "simple": "The hospital gate was cleared without breaking the strike."
+      },
+      {
+        "condition": {
+          "flag": "deal-signed"
+        },
+        "text": "A written deal brought the crews back by agreement.",
+        "simple": "A written deal brought the crews back."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "flag": "fired"
+        },
+        "text": "Three hundred workers were fired for asking for gloves.",
+        "simple": "Three hundred workers were fired for asking for gloves."
+      },
+      {
+        "condition": {
+          "notFlag": "perimeter-cleared"
+        },
+        "text": "Waste stayed at the hospital gate through the outbreak.",
+        "simple": "Waste stayed at the hospital gate."
+      },
+      {
+        "condition": {
+          "notFlag": "checked"
+        },
+        "text": "The pay gap was never audited; the timesheets may be gone.",
+        "simple": "The pay gap was never checked."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "protected"
+        },
+        "text": "The right to strike survived while urgent routes were covered.",
+        "simple": "The strike stayed lawful while urgent routes ran."
+      },
+      {
+        "condition": {
+          "flag": "acknowledged"
+        },
+        "text": "The workers were met at the depot, not summoned to a notice.",
+        "simple": "The workers were met where they were."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "strike-banned"
+        },
+        "text": "A lawful strike was banned under threat of arrest.",
+        "simple": "A lawful strike was banned."
+      },
+      {
+        "condition": {
+          "flag": "fired"
+        },
+        "text": "Workers lost their jobs for lawful collective action.",
+        "simple": "Workers lost their jobs for striking lawfully."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "gear-issued"
+        },
+        "text": "Check the store before the negotiation: the demand may already be in stock.",
+        "simple": "Check the store first. The gear was already there."
+      },
+      {
+        "condition": {
+          "notFlag": "perimeter-cleared"
+        },
+        "text": "A minimum service protects health without touching the strike.",
+        "simple": "Run the urgent routes without breaking the strike."
+      },
+      {
+        "condition": {},
+        "text": "Seize payroll records before anyone schedules a shredder.",
+        "simple": "Save payroll records before they are shredded."
+      }
+    ],
+    "closing": {
+      "good": "The gloves came out of the store, the hospital gate was clean by evening, and the crews came back under a deal they signed.",
+      "mixed": "The hospital was cleared, but the crews are still waiting for the audit and the gear list is only half issued.",
+      "poor": "The strike was broken instead of answered, and the piles are still there with new names on the trucks."
+    }
+  },
+  "simple": {
+    "title": "The Garbage Strike",
+    "subtitle": "Garbage crews strike while dengue spreads.",
+    "briefing": {
+      "grievance": "Garbage workers want gloves, boots and fair pay slips. They have asked for a year. Meanwhile, waste breeds mosquitoes.",
+      "knownFacts": [
+        "Crews got no safety gear this year.",
+        "Dengue cases are up 40%.",
+        "No garbage pickup for three days."
+      ],
+      "unverifiedClaims": [
+        "A post says a private firm pays the union.",
+        "A message says all strikers will be fired tomorrow."
+      ],
+      "responsibility": "You run the city’s garbage service and the hospital link.",
+      "objective": "Get the gear and fair pay on paper. Get the waste moving. Keep the strike lawful."
+    },
+    "closing": {
+      "good": "The gloves came out. The hospital was cleaned. The crews came back by agreement.",
+      "mixed": "The hospital was cleared. The crews still wait for the audit.",
+      "poor": "The strike was broken, not answered. The piles are still there."
+    },
+    "coldOpen": [
+      "Garbage crews strike over safety gear.",
+      "Dengue cases are rising fast.",
+      "Rubbish piles up at the hospital gate."
+    ]
+  }
+}

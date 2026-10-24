@@ -756,6 +756,8 @@ export interface ChapterResult {
   startScores: Scores;
   /** 0..100 chapter score (balance-weighted). */
   score: number;
+  /** Spoiler-free strategy fingerprint: one FingerprintCode per decision in order of appearance. */
+  fingerprint: string;
   resolved: string[];
   unresolved: string[];
   manipulations: ManipulationOutcome[];

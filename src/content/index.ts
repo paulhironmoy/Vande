@@ -1,10 +1,10 @@
-import type { Scenario, ScenarioId } from '../engine/types';
+import type { CampaignScenarioId, Scenario } from '../engine/types';
 import { validateScenario } from '../engine/validate';
 import examinationCrisis from './scenarios/examination-crisis.json';
 import electoralDispute from './scenarios/electoral-dispute.json';
 import informationStorm from './scenarios/information-storm.json';
 
-export const SCENARIOS: Record<ScenarioId, Scenario> = {
+export const SCENARIOS: Record<CampaignScenarioId, Scenario> = {
   'examination-crisis': examinationCrisis as unknown as Scenario,
   'electoral-dispute': electoralDispute as unknown as Scenario,
   'information-storm': informationStorm as unknown as Scenario,

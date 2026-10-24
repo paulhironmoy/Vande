@@ -5,7 +5,7 @@
  */
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute, type PrecacheEntry } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing';
-import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
+import { CacheFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 
 declare let self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<PrecacheEntry | string> };
@@ -59,6 +59,20 @@ registerRoute(
     denylist: [/\/[^/?]+\.[^/?]+$/],
   }),
 );
+
+// Community API (separate origin, configured at build time): never cached, never served from the app shell.
+const COMMUNITY_API_ORIGIN = (() => {
+  try {
+    const raw = (import.meta.env.VITE_COMMUNITY_API_URL as string | undefined) ?? '';
+    return raw ? new URL(raw).origin : '';
+  } catch {
+    return '';
+  }
+})();
+if (COMMUNITY_API_ORIGIN) {
+  registerRoute(({ url }) => url.origin === COMMUNITY_API_ORIGIN, new NetworkOnly(), 'GET');
+  registerRoute(({ url }) => url.origin === COMMUNITY_API_ORIGIN, new NetworkOnly(), 'POST');
+}
 
 // Fonts: cache first for a year (they are hashed/static).
 registerRoute(

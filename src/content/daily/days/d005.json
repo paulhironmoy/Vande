@@ -1,0 +1,1079 @@
+{
+  "id": "d005",
+  "version": 1,
+  "title": "The Sweet Shop Rumour",
+  "subtitle": "A poisoning rumour empties the market; the easy fix is to cut the internet",
+  "dilemmaKey": "shutdown-vs-rumour",
+  "themeTags": [
+    "rumour",
+    "economy",
+    "speech"
+  ],
+  "focus": "market",
+  "institution": "hospital",
+  "mood": "tense",
+  "opponents": [
+    "disinfo",
+    "overreaction"
+  ],
+  "coldOpen": [
+    "11:20. Six children fall sick after a school lunch.",
+    "11:50. A forward blames a sweet shop and says a child died.",
+    "By noon, the market lane is empty and the shop is boarded."
+  ],
+  "briefing": {
+    "grievance": "Parents want to know what made the children sick and whether more sweets are out there. Shop owners want the panic to stop before it ruins them.",
+    "knownFacts": [
+      "Six children are in hospital with food poisoning symptoms; all are stable.",
+      "All six ate at the same school event, not at the market.",
+      "The named shop supplied nothing to the event."
+    ],
+    "unverifiedClaims": [
+      "A forward says one child has died.",
+      "A post says the shop uses industrial dye and the city knew."
+    ],
+    "responsibility": "You coordinate the hospital, food safety and the police. Parents need facts, and a shop needs its name back.",
+    "objective": "Find the real source, stop the rumour with facts, and keep the market and the internet open."
+  },
+  "evidence": [
+    {
+      "id": "ev-d005-1",
+      "title": "Hospital case summary",
+      "source": "Civil Hospital paediatrics",
+      "sourceType": "institution",
+      "time": "11:40",
+      "claim": "Six children, mild food poisoning, all stable. Common meal: the school event lunch at 09:30.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Patients",
+          "value": "Six, all stable"
+        },
+        {
+          "label": "Common meal",
+          "value": "School event lunch, 09:30"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A ward summary with six names blurred"
+      },
+      "resolutionNote": "Six stable children who shared one school lunch. No deaths.",
+      "availableAt": 2,
+      "district": "hospital",
+      "simple": {
+        "title": "Hospital summary",
+        "claim": "Six children are mildly sick and stable. They shared one school lunch.",
+        "resolutionNote": "Six children, all stable. One shared lunch. No one died.",
+        "caption": "A ward note with six names blurred"
+      }
+    },
+    {
+      "id": "ev-d005-2",
+      "title": "Event supplier list",
+      "source": "School office",
+      "sourceType": "institution",
+      "time": "12:00",
+      "claim": "The event lunch came from a caterer on the ring road; the named sweet shop is not on the list.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Caterer",
+          "value": "Ring-road kitchen"
+        },
+        {
+          "label": "Sweet shop on list",
+          "value": "No"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A supplier list with one caterer"
+      },
+      "resolutionNote": "The food came from a caterer, not the sweet shop.",
+      "availableAt": 6,
+      "district": "campus",
+      "simple": {
+        "title": "The school’s supplier list",
+        "claim": "The lunch came from a caterer. The sweet shop is not on the list.",
+        "resolutionNote": "A caterer made the food, not the sweet shop.",
+        "caption": "A list with one caterer on it"
+      }
+    },
+    {
+      "id": "ev-d005-3",
+      "title": "“One child died” forward",
+      "source": "Forwarded message",
+      "sourceType": "anonymous",
+      "time": "11:50",
+      "claim": "A message with a photo of a shop front says a child died and the owner fled.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Photo",
+          "value": "Shop front from a different street",
+          "anomaly": true
+        },
+        {
+          "label": "Death claim",
+          "value": "Hospital: no deaths",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "message",
+        "caption": "A forward with a shop-front photo and red text"
+      },
+      "resolutionNote": "No child died, and the photo shows a different street.",
+      "injectedBy": "disinfo",
+      "contradictedBy": [
+        "ev-d005-1"
+      ],
+      "district": "market",
+      "simple": {
+        "title": "The “child died” forward",
+        "claim": "A message with a shop photo says a child died and the owner ran.",
+        "resolutionNote": "No child died. The photo is from a different street.",
+        "caption": "A forward with a shop photo and red text"
+      }
+    },
+    {
+      "id": "ev-d005-4",
+      "title": "Caterer kitchen samples",
+      "source": "Food safety inspector",
+      "sourceType": "official",
+      "time": "12:30",
+      "claim": "Samples from the caterer’s rice and curd were collected and sealed; results by evening.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Samples",
+          "value": "Rice, curd, water"
+        },
+        {
+          "label": "Chain of custody",
+          "value": "Inspector seal, 12:25"
+        }
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "Sealed sample jars on a counter"
+      },
+      "resolutionNote": "The samples point at the caterer’s curd and need to stay sealed until tested.",
+      "availableAt": 12,
+      "corroboratedBy": [
+        "ev-d005-1"
+      ],
+      "district": "market",
+      "perishable": true,
+      "simple": {
+        "title": "Kitchen samples",
+        "claim": "The inspector sealed rice and curd samples from the caterer. Results by evening.",
+        "resolutionNote": "The samples point at the caterer’s curd. They must stay sealed.",
+        "caption": "Sealed jars on a counter"
+      }
+    },
+    {
+      "id": "ev-d005-5",
+      "title": "Market committee note",
+      "source": "Market committee",
+      "sourceType": "organizer",
+      "time": "12:45",
+      "claim": "Forty sweet shops have closed; two owners report threats; the named owner is at the police station for safety.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "metadata": [
+        {
+          "label": "Shops closed",
+          "value": "40"
+        },
+        {
+          "label": "Threats reported",
+          "value": "2"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A handwritten note from the committee"
+      },
+      "resolutionNote": "The rumour has already cost a day of trade and put an owner in hiding.",
+      "availableAt": 20,
+      "district": "market",
+      "simple": {
+        "title": "The committee’s note",
+        "claim": "Forty sweet shops closed. Two owners got threats. The named owner is hiding.",
+        "resolutionNote": "The rumour already cost a day of trade.",
+        "caption": "A handwritten note"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d005-1",
+      "title": "Parents are at the hospital gate",
+      "situation": "Two hundred parents want to know if their children are next. The forward about a death is on every screen.",
+      "district": "hospital",
+      "expiresAfter": 22,
+      "defaultOption": "o-d005-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d005-1-facts",
+          "title": "Announce the case facts from the hospital",
+          "preview": "Six stable children, one shared school lunch, no deaths, said from the gate.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "Parents hear it from a doctor. The death claim loses its audience.",
+          "requiresEvidence": [
+            "ev-d005-1"
+          ],
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d005-1-meet",
+          "title": "Meet parents inside with the doctors",
+          "preview": "Parents sit with the paediatric team and hear what is known.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "The room is calmer than the street. Parents leave with a number to call.",
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d005-1-shutdown",
+          "title": "Suspend mobile internet to stop the forward",
+          "preview": "Data is cut across the district for six hours.",
+          "authority": "Article 19(1)(a): speech cannot be silenced wholesale",
+          "tags": [
+            "censorship",
+            "suppressive"
+          ],
+          "effects": {
+            "freedom": -13,
+            "trust": -8,
+            "evidence": -3,
+            "safety": 2,
+            "economy": -6
+          },
+          "consequence": "The forward keeps moving by voice call; parents lose the hospital hotline.",
+          "setsFlags": [
+            "cleared",
+            "internet-cut"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d005-1-wait",
+          "title": "Leave it to the hospital",
+          "preview": "Nobody speaks; the forward does the talking.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Parents start pulling children from other schools."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "Parents at the hospital gate",
+        "situation": "Two hundred parents want to know if their child is next. The death forward is everywhere.",
+        "options": {
+          "o-d005-1-facts": {
+            "title": "Share the hospital facts",
+            "preview": "Six stable children, one school lunch, no deaths, said at the gate.",
+            "consequence": "Parents hear it from a doctor."
+          },
+          "o-d005-1-meet": {
+            "title": "Meet parents with the doctors",
+            "preview": "Parents sit with the doctors and hear what is known.",
+            "consequence": "Parents leave with a number to call."
+          },
+          "o-d005-1-shutdown": {
+            "title": "Cut mobile internet",
+            "preview": "Data is cut across the area for six hours.",
+            "consequence": "The forward spreads by calls. Parents lose the hotline."
+          },
+          "o-d005-1-wait": {
+            "title": "Leave it to the hospital",
+            "preview": "Nobody speaks. The forward speaks for you.",
+            "consequence": "Parents pull children from other schools."
+          }
+        }
+      }
+    },
+    {
+      "id": "d005-2",
+      "title": "Which kitchen?",
+      "situation": "The school list points to a caterer, not the sweet shop. The inspector has sealed samples. Officers want to raid the sweet shop anyway.",
+      "district": "market",
+      "expiresAfter": 24,
+      "defaultOption": "o-d005-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d005-2-trace",
+          "title": "Trace the meal and test the caterer’s samples",
+          "preview": "The chain runs school → caterer → samples; the sweet shop is cleared on paper.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The investigation follows the food, not the forward.",
+          "requiresEvidence": [
+            "ev-d005-2"
+          ],
+          "setsFlags": [
+            "checked"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d005-2-clear",
+          "title": "Reopen the market lane with inspectors present",
+          "preview": "Inspectors stand at the lane; shops reopen one by one.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "Half the shutters come up. Customers return slowly.",
+          "setsFlags": [
+            "served"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "restore"
+            },
+            {
+              "kind": "service",
+              "district": "market",
+              "magnitude": 0.2
+            }
+          ]
+        },
+        {
+          "id": "o-d005-2-raid",
+          "title": "Raid the named sweet shop",
+          "preview": "Officers seal the shop and announce a poisoning case against the owner.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A shop that supplied nothing is sealed on camera.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d005-3"
+          ]
+        },
+        {
+          "id": "o-d005-2-wait",
+          "title": "Wait for the lab",
+          "preview": "Nothing moves until evening; shops stay shut.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The lane loses a full day."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "Which kitchen?",
+        "situation": "The school list points to a caterer. The inspector sealed samples. Officers want to raid the sweet shop.",
+        "options": {
+          "o-d005-2-trace": {
+            "title": "Follow the food, test the samples",
+            "preview": "School, then caterer, then samples. The sweet shop is cleared on paper.",
+            "consequence": "The check follows the food, not the forward."
+          },
+          "o-d005-2-clear": {
+            "title": "Reopen the lane with inspectors",
+            "preview": "Inspectors stand in the lane. Shops reopen one by one.",
+            "consequence": "Half the shutters come up."
+          },
+          "o-d005-2-raid": {
+            "title": "Raid the sweet shop",
+            "preview": "Officers seal the shop and name the owner.",
+            "consequence": "A shop that sold nothing to the school is sealed on camera."
+          },
+          "o-d005-2-wait": {
+            "title": "Wait for the lab",
+            "preview": "Nothing happens until evening. Shops stay shut.",
+            "consequence": "The lane loses a day."
+          }
+        }
+      }
+    },
+    {
+      "id": "d005-3",
+      "title": "Stop the rumour, or stop the speech?",
+      "situation": "The forward is still spreading. A deputy wants every post about the children removed. Reporters are asking for the hospital summary.",
+      "district": "media",
+      "expiresAfter": 22,
+      "defaultOption": "o-d005-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d005-3-correct",
+          "title": "Publish a correction and brief reporters",
+          "preview": "The hospital summary and the supplier list go to every newsroom and group.",
+          "authority": "Article 19(1)(a): freedom of the press",
+          "tags": [
+            "protect-press",
+            "transparent"
+          ],
+          "effects": {
+            "freedom": 5,
+            "trust": 3,
+            "evidence": 2
+          },
+          "consequence": "The correction travels on the same channels as the rumour.",
+          "requiresEvidence": [
+            "ev-d005-1"
+          ],
+          "setsFlags": [
+            "protected",
+            "correction-published"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "media",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d005-3-narrow",
+          "title": "Report only the fake death post to the platform",
+          "preview": "A single, specific removal request with the hospital record attached.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The one false post comes down. Everything else stays.",
+          "requiresEvidence": [
+            "ev-d005-3"
+          ],
+          "setsFlags": [
+            "checked"
+          ]
+        },
+        {
+          "id": "o-d005-3-remove",
+          "title": "Order all posts about the children removed",
+          "preview": "Platforms are told to take down everything mentioning the school.",
+          "authority": "Article 19(1)(a): speech cannot be silenced wholesale",
+          "tags": [
+            "censorship",
+            "suppressive"
+          ],
+          "effects": {
+            "freedom": -13,
+            "trust": -8,
+            "evidence": -3,
+            "safety": 2
+          },
+          "consequence": "Parents sharing real updates are silenced along with the rumour.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d005-3-wait",
+          "title": "Let the rumour burn out",
+          "preview": "No correction goes out; the forward keeps multiplying.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "By evening three more shops are named."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d005",
+      "simple": {
+        "title": "Stop the rumour or stop the talking?",
+        "situation": "The forward keeps spreading. Someone wants every post deleted. Reporters want the facts.",
+        "options": {
+          "o-d005-3-correct": {
+            "title": "Publish a correction",
+            "preview": "The hospital facts and the supplier list go to every newsroom.",
+            "consequence": "The correction travels where the rumour did."
+          },
+          "o-d005-3-narrow": {
+            "title": "Report only the fake death post",
+            "preview": "One specific removal request, with the hospital note attached.",
+            "consequence": "That one post comes down. The rest stays."
+          },
+          "o-d005-3-remove": {
+            "title": "Remove every post about it",
+            "preview": "Apps must delete everything that mentions the school.",
+            "consequence": "Parents sharing real news are silenced too."
+          },
+          "o-d005-3-wait": {
+            "title": "Let it burn out",
+            "preview": "No correction. The forward keeps growing.",
+            "consequence": "Three more shops get named."
+          }
+        }
+      }
+    },
+    {
+      "id": "d005-4",
+      "title": "The lab calls",
+      "situation": "The caterer’s curd failed the test. The sweet shop owner is still at the police station. Forty shops want to know if tomorrow is safe.",
+      "district": "market",
+      "expiresAfter": 24,
+      "defaultOption": "o-d005-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d005-4-result",
+          "title": "Publish the lab result; clear the shop",
+          "preview": "The caterer’s curd is named; the sweet shop is cleared in the same statement.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The owner walks home past open shutters.",
+          "requiresEvidence": [
+            "ev-d005-4"
+          ],
+          "setsFlags": [
+            "plan-published",
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d005-4-escort",
+          "title": "Escort the owner home and reopen the shop",
+          "preview": "Officers walk the owner back and stand outside while it reopens.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The reopening is the message.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d005-4-accuse",
+          "title": "Charge the sweet shop to be safe",
+          "preview": "A case is filed against the shop “pending the full report”.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A cleared shop is charged anyway.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d005-3"
+          ]
+        },
+        {
+          "id": "o-d005-4-wait",
+          "title": "Hold the result until morning",
+          "preview": "The lab result sits unpublished overnight.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Forty shops open to empty lanes again."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "The lab calls",
+        "situation": "The caterer’s curd failed the test. The shop owner is still hiding. Forty shops want to know about tomorrow.",
+        "options": {
+          "o-d005-4-result": {
+            "title": "Publish the result, clear the shop",
+            "preview": "The caterer’s curd is to blame. The sweet shop is cleared by name.",
+            "consequence": "The owner walks home past open shops."
+          },
+          "o-d005-4-escort": {
+            "title": "Walk the owner home, reopen",
+            "preview": "Officers walk the owner back and stand outside.",
+            "consequence": "The reopening is the message."
+          },
+          "o-d005-4-accuse": {
+            "title": "Charge the sweet shop anyway",
+            "preview": "A case is filed against the shop “just in case”.",
+            "consequence": "A cleared shop gets charged."
+          },
+          "o-d005-4-wait": {
+            "title": "Hold the result until morning",
+            "preview": "The result is not shared tonight.",
+            "consequence": "Forty shops open to empty lanes."
+          }
+        }
+      }
+    },
+    {
+      "id": "d005-bait",
+      "title": "“Ban festival sweets citywide”",
+      "situation": "A late bulletin demands every sweet shop be shut for the festival week until all are inspected.",
+      "district": "market",
+      "expiresAfter": 20,
+      "defaultOption": "o-d005-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d005-bait-ban",
+          "title": "Close every sweet shop for the festival week",
+          "preview": "Three hundred shops shut on their busiest week.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4,
+            "economy": -10
+          },
+          "consequence": "The one kitchen that failed stays open; three hundred that did not are closed.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 16,
+              "effects": {
+                "economy": -4,
+                "trust": -3
+              },
+              "message": "Shop owners march on the collectorate with their inspection certificates."
+            }
+          ]
+        },
+        {
+          "id": "o-d005-bait-inspect",
+          "title": "Inspect the caterers, keep shops open",
+          "preview": "Inspectors visit event caterers first; shops trade under their certificates.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The checks go where the risk is.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d005-bait-wait",
+          "title": "Promise a decision tomorrow",
+          "preview": "Shops do not know whether to stock up.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Many stay shut to be safe."
+        }
+      ],
+      "simple": {
+        "title": "“Ban all festival sweets”",
+        "situation": "A bulletin wants every sweet shop shut for the festival week.",
+        "options": {
+          "o-d005-bait-ban": {
+            "title": "Close every sweet shop this week",
+            "preview": "Three hundred shops shut on their busiest week.",
+            "consequence": "The one bad kitchen stays open. Three hundred good shops close."
+          },
+          "o-d005-bait-inspect": {
+            "title": "Inspect caterers, keep shops open",
+            "preview": "Inspectors check event kitchens first. Shops stay open.",
+            "consequence": "The checks go where the risk is."
+          },
+          "o-d005-bait-wait": {
+            "title": "Decide tomorrow",
+            "preview": "Shops do not know whether to stock up.",
+            "consequence": "Many stay shut to be safe."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d005",
+      "question": "A false forward is spreading panic. Can the city order all posts about the incident removed?",
+      "options": [
+        {
+          "id": "a",
+          "text": "No. It may seek removal of specific false posts and must publish corrections; it cannot silence all discussion.",
+          "correct": true,
+          "feedback": "Correct. Action against speech must be narrow and specific; the remedy for falsehood is mostly more truth."
+        },
+        {
+          "id": "b",
+          "text": "Yes. During a public-health scare, any related speech can be suspended.",
+          "correct": false,
+          "feedback": "Scares do not suspend free expression; only specific, lawful and proportionate limits apply."
+        },
+        {
+          "id": "c",
+          "text": "Yes, if the platforms agree to it.",
+          "correct": false,
+          "feedback": "A platform’s consent does not make a blanket order lawful."
+        }
+      ],
+      "principle": "Article 19(1)(a) protects expression; the Supreme Court has struck down vague, sweeping speech restrictions. Specific false posts can be addressed; whole topics cannot be banned.",
+      "why": "Parents sharing real updates were using the same channels as the rumour; a blanket order would have silenced them too.",
+      "source": {
+        "label": "Supreme Court of India — judgments",
+        "url": "https://main.sci.gov.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "A fake forward is spreading panic. Can the city delete every post about it?",
+        "options": {
+          "a": "No. Only specific false posts, and share the truth widely.",
+          "b": "Yes. In a health scare, all talk about it can be stopped.",
+          "c": "Yes, if the apps agree."
+        },
+        "feedback": {
+          "a": "Yes! Be specific, and fight lies with facts.",
+          "b": "No. A scare does not cancel free speech.",
+          "c": "Apps agreeing does not make it fair."
+        },
+        "principle": "People may speak freely. Only specific false posts can be acted on, and facts are the best answer.",
+        "why": "Parents sharing real news used the same apps as the rumour. A total ban would silence them too."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d005-comp",
+      "at": -1,
+      "kind": "news",
+      "message": "A late bulletin calls the market “poison lane” and demands every sweet shop be shut for the week.",
+      "simple": "A bulletin calls the market “poison lane”.",
+      "effects": {
+        "trust": -1
+      },
+      "mapEffects": [
+        {
+          "kind": "mood",
+          "district": "market",
+          "mood": "tense"
+        }
+      ]
+    },
+    {
+      "id": "e-d005-schools",
+      "at": 30,
+      "kind": "crowd",
+      "message": "Two more schools send children home early “as a precaution”.",
+      "simple": "Two more schools send children home early.",
+      "effects": {
+        "economy": -2,
+        "trust": -2
+      },
+      "condition": {
+        "notFlag": "acknowledged"
+      }
+    }
+  ],
+  "complication": {
+    "opponent": "overreaction",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d005-comp",
+    "baitDecisionId": "d005-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "checked"
+        },
+        "text": "The investigation followed the meal to the caterer, not the forward to the shop.",
+        "simple": "The check followed the food to the real kitchen."
+      },
+      {
+        "condition": {
+          "flag": "correction-published"
+        },
+        "text": "A correction with the hospital record reached the same channels as the rumour.",
+        "simple": "The correction reached the same places as the rumour."
+      },
+      {
+        "condition": {
+          "flag": "plan-published"
+        },
+        "text": "The lab result cleared the sweet shop by name.",
+        "simple": "The lab result cleared the shop by name."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "notFlag": "plan-published"
+        },
+        "text": "The sweet shop still carries the rumour’s name.",
+        "simple": "The sweet shop is still blamed."
+      },
+      {
+        "condition": {
+          "flag": "internet-cut"
+        },
+        "text": "The internet was cut; the hotline died with it and the forward did not.",
+        "simple": "The internet was cut. The hotline died. The forward did not."
+      },
+      {
+        "condition": {
+          "notFlag": "served"
+        },
+        "text": "The market lane stayed shut for a rumour.",
+        "simple": "The market stayed shut over a rumour."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "protected"
+        },
+        "text": "Reporters and parents could keep sharing real information.",
+        "simple": "Reporters and parents could keep sharing real news."
+      },
+      {
+        "condition": {
+          "flag": "acknowledged"
+        },
+        "text": "Parents heard the facts from a doctor before the street told them otherwise.",
+        "simple": "Parents heard the facts from a doctor."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "Speech or trade was shut down wholesale to fight one false forward.",
+        "simple": "Speech or trade was shut down to fight one forward."
+      },
+      {
+        "condition": {
+          "flag": "internet-cut"
+        },
+        "text": "A district lost its connection on the strength of a rumour.",
+        "simple": "A whole area lost its internet over a rumour."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "correction-published"
+        },
+        "text": "Put the hospital record where the forward is; a correction only works on the rumour’s own channels.",
+        "simple": "Share the facts where the rumour is."
+      },
+      {
+        "condition": {
+          "notFlag": "checked"
+        },
+        "text": "Follow the food, not the forward: the supplier list cleared the shop in minutes.",
+        "simple": "Follow the food, not the forward."
+      },
+      {
+        "condition": {},
+        "text": "Keep removal requests specific; a blanket ban silences parents too.",
+        "simple": "Delete only the false post, not all the talk."
+      }
+    ],
+    "closing": {
+      "good": "The children went home, the caterer was named, and the sweet shop opened to a queue of people who felt bad about believing it.",
+      "mixed": "The source was found, but the lane lost a day and the shop owner lost something harder to measure.",
+      "poor": "A rumour closed three hundred shops and the real kitchen kept cooking."
+    }
+  },
+  "simple": {
+    "title": "The Sweet Shop Rumour",
+    "subtitle": "A poison rumour empties the market.",
+    "briefing": {
+      "grievance": "Parents want to know what made the children sick. Shop owners want the panic to stop.",
+      "knownFacts": [
+        "Six children are in hospital. All are stable.",
+        "They all ate at a school event, not at the market.",
+        "The named shop sent nothing to that event."
+      ],
+      "unverifiedClaims": [
+        "A forward says one child died.",
+        "A post says the shop uses poison dye."
+      ],
+      "responsibility": "You work with the hospital, food safety and police.",
+      "objective": "Find the real cause. Stop the rumour with facts. Keep the market open."
+    },
+    "closing": {
+      "good": "The children went home. The real kitchen was named. The shop reopened.",
+      "mixed": "The cause was found. The lane lost a day.",
+      "poor": "A rumour closed three hundred shops. The real kitchen kept cooking."
+    },
+    "coldOpen": [
+      "Six children get sick after sweets.",
+      "A forward blames one shop.",
+      "The market lane empties."
+    ]
+  }
+}

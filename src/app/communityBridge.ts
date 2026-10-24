@@ -41,6 +41,14 @@ const idbCommunityStorage: CommunityStorage = {
 
 let started = false;
 
+function isStandalone(): boolean {
+  try {
+    return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches;
+  } catch {
+    return false;
+  }
+}
+
 export async function startCommunityAndAnalytics(input: { installId: string; appVersion: string; isNative: boolean; settings: Settings }): Promise<void> {
   try {
     setCommunityStorage(idbCommunityStorage);
@@ -51,7 +59,7 @@ export async function startCommunityAndAnalytics(input: { installId: string; app
     await configureAnalytics({
       installId: input.installId,
       appVersion: input.appVersion,
-      platform: input.isNative ? 'android' : 'web',
+      platform: input.isNative ? 'android' : isStandalone() ? 'pwa' : 'web',
       optOut: input.settings.analyticsOptOut,
       mode: input.settings.playStyle,
     });

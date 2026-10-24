@@ -1,6 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ScenarioId } from '@/engine/types';
-import { DIFFICULTY_META, decodeChallenge, getScenario, listScenarios } from '@/engine';
+import { DIFFICULTY_META, getScenario, listScenarios } from '@/engine';
+import { decodeAnyChallenge, type DailyChallengeSpec } from '@/engine/challenge';
+import { dailyDateLabel } from '@/share/dailyCard';
+import { FingerprintStrip } from '@/share/FingerprintStrip';
+import { track } from '@/analytics';
 import { SIMPLE_DIFFICULTY, scenarioTitle as simpleScenarioTitle, useSimple } from '@/app/simple';
 import { Button, ScreenShell, useApp } from '@/components/results/deps';
 import layout from '@/components/results/layout.module.css';
@@ -19,6 +23,16 @@ function scenarioTitle(id: ScenarioId, simple = false): string {
   }
 }
 
+/** Daily challenges are playable from their UTC date for one year; before that date they have not started. */
+function dailyAvailability(spec: DailyChallengeSpec, now = new Date()): 'ok' | 'future' | 'expired' {
+  const [y, m, d] = spec.dailyId.split('-').map(Number);
+  const dayStart = Date.UTC(y, m - 1, d);
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  if (dayStart > today) return 'future';
+  if (today - dayStart > 366 * 86400000) return 'expired';
+  return 'ok';
+}
+
 export function ChallengeScreen() {
   const screen = useApp((s) => s.screen);
   const reducedMotion = useApp((s) => s.reducedMotion);
@@ -29,8 +43,15 @@ export function ChallengeScreen() {
   const simple = useSimple();
 
   const code = (screen.name === 'challenge' ? screen.code : '').trim();
-  const spec = useMemo(() => (code ? decodeChallenge(code) : null), [code]);
+  const decoded = useMemo(() => (code ? decodeAnyChallenge(code) : null), [code]);
+  const spec = decoded && decoded.kind === 'campaign' ? decoded.spec : null;
+  const daily = decoded && decoded.kind === 'daily' ? decoded : null;
   const [manual, setManual] = useState('');
+  const startDailyById = useApp((s) => s.startDailyById);
+
+  useEffect(() => {
+    if (decoded) track('challenge_opened', { dailyId: daily?.dailyId, mode: simple ? 'simple' : 'full' });
+  }, [decoded, daily?.dailyId, simple]);
 
   const openManual = () => {
     const raw = manual.trim();
@@ -45,11 +66,66 @@ export function ChallengeScreen() {
   };
 
   const scenarios = spec ? (spec.scenario === 'campaign' ? listScenarios().map((s) => s.id) : [spec.scenario]) : [];
+  const dailyState = daily ? dailyAvailability(daily) : 'none';
+
+  const acceptDaily = () => {
+    if (!daily) return;
+    const ok = startDailyById(daily.dailyId, { friend: { score: daily.score ?? 0, fingerprint: daily.fingerprint ?? '', outcome: daily.outcome } });
+    if (ok) track('challenge_started', { dailyId: daily.dailyId, mode: simple ? 'simple' : 'full' });
+    else toast({ text: simple ? 'That day is not available to play.' : 'This daily crisis is not available on this version.', kind: 'warning', duration: 3200 });
+  };
 
   return (
     <ScreenShell title={simple ? 'Friend game' : 'Friend challenge'} onBack={() => (back() ? undefined : navigate({ name: 'home' }, { replace: true }))} testId="challenge-screen">
       <div className={`${layout.page} ${layout.narrow}`}>
-        {spec ? (
+        {daily ? (
+          <>
+            <header className={layout.stack}>
+              <p className={layout.kicker}>{simple ? 'A friend challenged you!' : 'Daily challenge from a friend'}</p>
+              <h1 className={layout.h1} data-testid="daily-challenge-title">
+                {simple ? `The crisis of ${dailyDateLabel(daily.dailyId)}` : `A friend challenges you to the crisis of ${dailyDateLabel(daily.dailyId)}`}
+              </h1>
+              <p className={layout.lead}>{simple ? 'Same day, same trouble. Their result shows when you finish.' : 'Same canonical day, same events. Their result unlocks when you finish.'}</p>
+            </header>
+            <section className={layout.card} aria-labelledby="ch-friend">
+              <h2 className={layout.sectionTitle} id="ch-friend">
+                {simple ? "Your friend's pattern" : "Your friend's result"}
+              </h2>
+              <div className={styles.beat}>
+                <FingerprintStrip fingerprint={daily.fingerprint ?? ''} hidden hiddenCount={daily.fingerprint ? daily.fingerprint.length : 5} simple={simple} size={24} testId="friend-fingerprint-hidden" />
+                <div className={styles.beatText}>
+                  <strong data-testid="friend-result-hidden">{simple ? 'Hidden until you finish' : 'Unlocks when you finish'}</strong>
+                  <p className={layout.body}>{simple ? 'Play first. Then compare.' : 'No spoilers: play the day first, then compare patterns and scores.'}</p>
+                </div>
+              </div>
+            </section>
+            {dailyState !== 'ok' ? (
+              <section className={`${layout.card} ${styles.error}`} role="alert">
+                <h2 className={styles.errorTitle}>
+                  <StatusIcon kind="harmed" size={20} />
+                  {dailyState === 'future' ? (simple ? 'That day has not started yet' : 'This crisis has not started yet') : simple ? 'That day is too old to play' : 'This challenge has expired'}
+                </h2>
+                <p className={layout.body}>
+                  {dailyState === 'future'
+                    ? simple
+                      ? 'Come back on that day.'
+                      : 'Daily crises unlock at 00:00 UTC on their date. Come back then.'
+                    : simple
+                      ? 'Ask your friend for a newer one.'
+                      : 'Daily challenges can be replayed for a year. Ask your friend for a newer link.'}
+                </p>
+              </section>
+            ) : null}
+            <div className={layout.actionBar}>
+              <Button variant="ghost" size="lg" onClick={() => navigate({ name: 'home' }, { replace: true })}>
+                Not now
+              </Button>
+              <Button variant="primary" size="lg" onClick={acceptDaily} disabled={dailyState !== 'ok'} data-testid="challenge-accept">
+                {simple ? "Let's play" : 'Accept challenge'}
+              </Button>
+            </div>
+          </>
+        ) : spec ? (
           <>
             <header className={layout.stack}>
               <p className={layout.kicker}>{simple ? 'A friend challenged you!' : 'You have been challenged'}</p>

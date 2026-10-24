@@ -108,7 +108,10 @@ export function validateScenario(json: unknown): { ok: boolean; errors: string[]
     }
   };
 
-  oneOf(s, 'id', 'scenario', SCENARIO_IDS);
+  // Campaign ids are fixed; compiled daily crises are addressed as `daily:<dayId>`.
+  if (!(isStr(s.id) && ((SCENARIO_IDS as readonly string[]).includes(s.id) || /^daily:[a-z0-9-]+$/.test(s.id)))) {
+    err('scenario.id', `must be one of ${SCENARIO_IDS.join('|')} or daily:<dayId>`);
+  }
   num(s, 'chapter', 'scenario', 1, 3);
   str(s, 'title', 'scenario');
   str(s, 'subtitle', 'scenario');

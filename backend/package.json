@@ -1,0 +1,16 @@
+{
+  "name": "vande-community-backend",
+  "private": true,
+  "type": "module",
+  "description": "Anonymous daily-results API for VANDE (Cloudflare Workers + D1). Scripts only; dependencies come from the root package.",
+  "scripts": {
+    "dev": "npx wrangler@latest dev",
+    "deploy": "npx wrangler@latest deploy",
+    "db:create": "npx wrangler@latest d1 create vande-community",
+    "db:migrate:local": "npx wrangler@latest d1 migrations apply vande-community --local",
+    "db:migrate": "npx wrangler@latest d1 migrations apply vande-community --remote",
+    "secret:salt": "npx wrangler@latest secret put RATE_SALT",
+    "tail": "npx wrangler@latest tail",
+    "rollback": "npx wrangler@latest rollback"
+  }
+}

@@ -1,0 +1,28 @@
+# VANDE community API (Cloudflare Workers + D1). Nothing is deployed by this file alone — see backend/README.md.
+name = "vande-community"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://paulhironmoy.github.io,https://localhost,capacitor://localhost"
+MIN_COHORT = "25"
+CONTENT_VERSIONS = ""   # comma-separated allow-list; empty = accept any well-formed version
+RATE_LIMIT_PER_MINUTE = "30"         # write cap per address per minute (salted hash, never the address)
+RATE_LIMIT_READS_PER_MINUTE = "120"  # stats reads are limited only on an edge-cache miss
+VERSION = "1.0.0"
+# RATE_SALT is a secret: `wrangler secret put RATE_SALT` (never commit it).
+# Without it the worker FAILS CLOSED: POST /results answers 503 until the salt exists.
+# Local development only: set ALLOW_UNLIMITED_WRITES = "1" (e.g. in .dev.vars) to accept writes without a salt;
+# the worker logs a warning once per isolate. Never set it in production.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "vande-community"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"   # created with `wrangler d1 create vande-community`
+migrations_dir = "migrations"
+
+[triggers]
+crons = ["17 3 * * *"]   # daily prune: rate buckets older than 24 h, results and daily_stats older than 180 days
+
+[observability]
+enabled = true

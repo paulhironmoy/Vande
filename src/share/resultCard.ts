@@ -136,7 +136,7 @@ export function shareText(model: CardModel): string {
 // Canvas rendering
 // ---------------------------------------------------------------------------
 
-const C = {
+export const C = {
   midnight: '#07111f',
   navy: '#0b1d36',
   ink700: '#0a1830',
@@ -162,18 +162,18 @@ const C = {
 
 const FONT = '"Manrope Variable", "Manrope", "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
 
-function font(weight: number, px: number): string {
+export function font(weight: number, px: number): string {
   return `${weight} ${px}px ${FONT}`;
 }
 
-function scoreColor(score: number): string {
+export function scoreColor(score: number): string {
   if (score >= 75) return C.safety;
   if (score >= 55) return C.electric;
   if (score >= 40) return C.saffron;
   return C.danger;
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
+export function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
   const rr = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
   ctx.moveTo(x + rr, y);
@@ -253,7 +253,7 @@ export function drawMark(ctx: CanvasRenderingContext2D, cx: number, cy: number, 
   ctx.restore();
 }
 
-function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+export function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number): void {
   const g = ctx.createLinearGradient(0, 0, 0, h);
   g.addColorStop(0, '#122b52');
   g.addColorStop(0.45, C.navy);
@@ -289,7 +289,7 @@ function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number): vo
   ctx.stroke();
 }
 
-function drawScoreRing(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, score: number, numberPx: number): void {
+export function drawScoreRing(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, score: number, numberPx: number): void {
   ctx.save();
   ctx.lineWidth = Math.max(8, r * 0.085);
   ctx.lineCap = 'round';

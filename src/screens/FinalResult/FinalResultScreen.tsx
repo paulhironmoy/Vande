@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { CampaignResult } from '@/engine/types';
 import { OUTCOME_LABELS } from '@/engine/types';
 import { getDailySpec, getScenario } from '@/engine';
@@ -11,10 +11,14 @@ import { DimensionBreakdown } from '@/components/results/DimensionBreakdown';
 import { Checklist } from '@/components/results/Checklist';
 import { SimulatedBand } from '@/components/results/SimulatedBand';
 import { ShareSheet } from '@/components/results/ShareSheet';
+import { encodeDailyChallenge } from '@/engine/challenge';
 import { HomeIcon, ReplayIcon, ShareIcon } from '@/components/results/icons';
 import { OUTCOME_DESCRIPTIONS, OUTCOME_TONE, copyText, dateFromKey, localDateKey } from '@/components/results/format';
 import { CityScene, sceneFromScores } from '@/components/republic/CityScene';
 import { KeyDecisionCard } from '@/components/results/KeyDecisionCard';
+import { DailyResultPanel } from '@/components/daily/DailyResultPanel';
+import { CommunitySlot } from '@/components/daily/CommunitySlot';
+import { track } from '@/analytics';
 import styles from './FinalResultScreen.module.css';
 
 function keyHeading(scenarioId: CampaignResult['chapters'][number]['scenarioId']): string {
@@ -57,7 +61,12 @@ export function FinalResultScreen() {
   const replayLast = useApp((s) => s.replayLast);
   const toast = useApp((s) => s.toast);
   const simple = useSimple();
+  const lastDaily = useApp((s) => s.lastDaily);
+  const newAccomplishments = useApp((s) => s.newAccomplishments);
   const [shareOpen, setShareOpen] = useState(false);
+  useEffect(() => {
+    if (lastDaily?.official) track('official_result_viewed', { mode: simple ? 'simple' : 'full', dailyId: lastDaily.dailyId, official: true });
+  }, [lastDaily, simple]);
 
   const resultId = screen.name === 'final-result' ? screen.resultId : undefined;
   const result = useMemo(() => {
@@ -110,6 +119,49 @@ export function FinalResultScreen() {
     const ok = await copyText(result.challengeCode);
     toast({ text: ok ? 'Challenge code copied.' : 'Could not copy the code.', kind: ok ? 'success' : 'warning', duration: 2400 });
   };
+
+  if (isDaily && lastDaily && lastDaily.result && (!resultId || lastDaily.result.completedAt === result.completedAt)) {
+    const stats = result.chapters[0]?.stats;
+    const republicDelta = (lastDaily as { republicDelta?: Partial<import('@/engine/types').RepublicCondition> }).republicDelta;
+    return (
+      <ScreenShell title={simple ? "Today's result" : 'Daily result'} onBack={() => navigate({ name: 'home' })} narrow testId="final-result-screen">
+        <div className={layout.page}>
+          <span className="sr-only" data-testid="final-score">
+            {result.score}
+          </span>
+          <DailyResultPanel
+            dailyId={lastDaily.dailyId}
+            official={lastDaily.official}
+            result={lastDaily.result}
+            record={lastDaily.record}
+            stats={stats}
+            republicDelta={republicDelta}
+            friend={lastDaily.friend}
+            newAccomplishments={newAccomplishments}
+            reducedMotion={reducedMotion}
+            onShare={() => setShareOpen(true)}
+            onCalendar={() => navigate({ name: 'calendar' })}
+            onHome={() => navigate({ name: 'home' })}
+            community={<CommunitySlot dailyId={lastDaily.dailyId} mine={lastDaily.record.official?.score} />}
+          />
+          <Button variant="ghost" size="sm" onClick={() => replayLast()} data-testid="final-replay">
+            {simple ? 'Play it again (practice)' : 'Replay as practice'}
+          </Button>
+        </div>
+        <ShareSheet
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          result={result}
+          daily={{
+            dailyId: lastDaily.dailyId,
+            result: lastDaily.result,
+            official: lastDaily.official,
+            code: encodeDailyChallenge({ dailyId: lastDaily.dailyId, score: lastDaily.result.score, fingerprint: lastDaily.result.fingerprint, outcome: lastDaily.result.outcome }),
+          }}
+        />
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell title={simple ? 'How your city did' : 'Republic result'} onBack={() => navigate({ name: 'home' })} testId="final-result-screen">

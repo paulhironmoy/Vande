@@ -133,6 +133,38 @@ function missedEvidenceOf(state: GameState, scenario: Scenario): ChapterResult['
   return out;
 }
 
+
+const FORCE_LIKE = new Set(['force', 'detention', 'suppressive']);
+
+/**
+ * Spoiler-free strategy fingerprint: one letter per resolved decision in order of appearance.
+ * X suppressive/disproportionate/censorship (or a false accusation), W waited or expired, P proportionate
+ * enforcement, E evidence or legal process, S services/relief/protection, D dialogue/transparency.
+ */
+export function computeFingerprint(state: GameState, scenario: Scenario): string {
+  const order = scenario.decisions.map((d, i) => [d.id, i] as const);
+  const index = new Map(order);
+  const resolved = Object.values(state.decisions)
+    .filter((ds) => ds.status !== 'pending' && ds.chosenOption)
+    .sort((a, b) => a.appearedAt - b.appearedAt || (index.get(a.id) ?? 0) - (index.get(b.id) ?? 0));
+  let out = '';
+  for (const ds of resolved) {
+    const decision = scenario.decisions.find((d) => d.id === ds.id);
+    const option = decision?.options.find((o) => o.id === ds.chosenOption);
+    if (!option) continue;
+    const tags = new Set(option.tags);
+    let code: string;
+    if (tags.has('disproportionate') || tags.has('suppressive') || tags.has('censorship') || ds.disproportionate || ds.falseAccusation) code = 'X';
+    else if (ds.auto || ds.status === 'expired' || tags.has('wait')) code = 'W';
+    else if ([...tags].some((t) => FORCE_LIKE.has(t))) code = 'P';
+    else if (tags.has('investigative') || tags.has('legal-process') || tags.has('accusation')) code = 'E';
+    else if (tags.has('service') || tags.has('relief') || tags.has('protect-assembly') || tags.has('protect-press')) code = 'S';
+    else code = 'D';
+    out += code;
+  }
+  return out;
+}
+
 export function computeChapterResult(state: GameState, scenario: Scenario, completedAt?: string): ChapterResult {
   const scores = roundScores(state.scores);
   const score = chapterScore(scores);
@@ -149,6 +181,7 @@ export function computeChapterResult(state: GameState, scenario: Scenario, compl
     scores,
     startScores: roundScores(state.history[0]?.scores ?? state.scores),
     score,
+    fingerprint: computeFingerprint(state, scenario),
     resolved: pick(scenario.resolution.resolved),
     unresolved: pick(scenario.resolution.unresolved),
     manipulations,

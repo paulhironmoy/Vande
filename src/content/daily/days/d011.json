@@ -1,0 +1,1118 @@
+{
+  "id": "d011",
+  "version": 1,
+  "title": "The Hospital Gate",
+  "subtitle": "A rumour of a hidden death brings families to the gate at midnight",
+  "dilemmaKey": "hospital-gate-crowd",
+  "themeTags": [
+    "health",
+    "rumour",
+    "assembly"
+  ],
+  "focus": "hospital",
+  "institution": "hospital",
+  "mood": "volatile",
+  "opponents": [
+    "provocateur",
+    "disinfo"
+  ],
+  "coldOpen": [
+    "23:10. A patient dies after a six-hour wait in casualty.",
+    "23:40. A voice note says four more deaths are hidden.",
+    "Families crowd the gate; ambulances cannot turn in."
+  ],
+  "briefing": {
+    "grievance": "Families say the casualty ward makes people wait for hours and nobody tells them anything. One death tonight turned that into a rumour of many. They want the truth and a doctor who will talk.",
+    "knownFacts": [
+      "One patient died at 23:10 after a six-hour wait; a medical review is required.",
+      "Casualty has two doctors for forty patients tonight.",
+      "Three ambulances are waiting outside the blocked gate."
+    ],
+    "unverifiedClaims": [
+      "A voice note says four bodies are being hidden in a store room.",
+      "A post says relatives beat a doctor inside."
+    ],
+    "responsibility": "You run the hospital’s night administration and police liaison. The gate must open for ambulances, and the families must get an honest account.",
+    "objective": "Reopen the gate by agreement, tell the truth about the death, and get the ward the doctors it needs."
+  },
+  "evidence": [
+    {
+      "id": "ev-d011-1",
+      "title": "Casualty register",
+      "source": "Casualty ward",
+      "sourceType": "institution",
+      "time": "23:20",
+      "claim": "One death at 23:10 after triage at 17:05; forty patients registered; two doctors on duty.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Deaths tonight",
+          "value": "One"
+        },
+        {
+          "label": "Doctors on duty",
+          "value": "Two"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A register page with one death entry"
+      },
+      "resolutionNote": "One death, a six-hour wait, two doctors for forty patients.",
+      "availableAt": 2,
+      "district": "hospital",
+      "simple": {
+        "title": "The ward register",
+        "claim": "One death at 11:10 pm after a six-hour wait. Two doctors for forty patients.",
+        "resolutionNote": "One death. Two doctors for forty people.",
+        "caption": "A register with one death entry"
+      }
+    },
+    {
+      "id": "ev-d011-2",
+      "title": "Mortuary log",
+      "source": "Hospital mortuary",
+      "sourceType": "official",
+      "time": "23:50",
+      "claim": "One body received tonight; the store room is a linen store with no refrigeration.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Bodies received",
+          "value": "One"
+        },
+        {
+          "label": "“Store room”",
+          "value": "Linen store, no refrigeration"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A mortuary log with one line"
+      },
+      "resolutionNote": "One body tonight. The “store room” is a linen cupboard.",
+      "availableAt": 8,
+      "district": "hospital",
+      "simple": {
+        "title": "The mortuary log",
+        "claim": "One body tonight. The “store room” is a linen cupboard.",
+        "resolutionNote": "One body. The store room holds sheets.",
+        "caption": "A log with one line"
+      }
+    },
+    {
+      "id": "ev-d011-3",
+      "title": "“Four bodies” voice note",
+      "source": "Forwarded voice note",
+      "sourceType": "anonymous",
+      "time": "23:40",
+      "claim": "A woman’s voice says four bodies are in the store room and the hospital is calling relatives one by one.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Background audio",
+          "value": "Same as a clip from another hospital",
+          "anomaly": true
+        },
+        {
+          "label": "Mortuary log",
+          "value": "One body",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "recording",
+        "caption": "A waveform of a 30-second voice note"
+      },
+      "resolutionNote": "The note reuses audio from another hospital and contradicts the mortuary log.",
+      "injectedBy": "disinfo",
+      "contradictedBy": [
+        "ev-d011-2"
+      ],
+      "district": "market",
+      "simple": {
+        "title": "The “four bodies” note",
+        "claim": "A voice says four bodies are hidden in a store room.",
+        "resolutionNote": "The audio is copied from elsewhere. There is one body.",
+        "caption": "A 30-second voice note"
+      }
+    },
+    {
+      "id": "ev-d011-4",
+      "title": "Casualty corridor camera",
+      "source": "Hospital security",
+      "sourceType": "official",
+      "time": "00:05",
+      "claim": "Footage shows relatives shouting at a doctor at 23:30; no blows; the doctor walks back into the ward.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Camera",
+          "value": "Casualty corridor"
+        },
+        {
+          "label": "Retention",
+          "value": "24 hours"
+        }
+      ],
+      "visual": {
+        "type": "video",
+        "caption": "A corridor still with people gesturing"
+      },
+      "resolutionNote": "Shouting, no beating. The clip is overwritten tomorrow.",
+      "availableAt": 12,
+      "district": "hospital",
+      "perishable": true,
+      "simple": {
+        "title": "The corridor camera",
+        "claim": "Relatives shout at a doctor. Nobody hits anyone. The doctor goes back in.",
+        "resolutionNote": "Shouting, no beating. The clip erases tomorrow.",
+        "caption": "A corridor picture with people gesturing"
+      }
+    },
+    {
+      "id": "ev-d011-5",
+      "title": "Duty roster",
+      "source": "Hospital administration",
+      "sourceType": "official",
+      "time": "00:20",
+      "claim": "Four doctors were rostered for casualty; two called in sick and were not replaced.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Rostered",
+          "value": "4"
+        },
+        {
+          "label": "On duty",
+          "value": "2, no replacements called"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A roster with two names crossed out"
+      },
+      "resolutionNote": "The ward was running at half strength and nobody called replacements.",
+      "availableAt": 24,
+      "district": "hospital",
+      "simple": {
+        "title": "The duty roster",
+        "claim": "Four doctors were planned. Two were sick and nobody replaced them.",
+        "resolutionNote": "The ward had half its doctors and no one called for more.",
+        "caption": "A roster with two names crossed out"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d011-1",
+      "title": "The gate",
+      "situation": "Two hundred relatives are at the gate. Three ambulances are stuck. Inside, two doctors are treating forty people.",
+      "district": "hospital",
+      "expiresAfter": 22,
+      "defaultOption": "o-d011-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d011-1-doctor",
+          "title": "Bring the senior doctor to the gate to speak",
+          "preview": "The duty consultant tells the families what happened and what is being done.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "The families hear a doctor, not a guard. The gate opens a lane for ambulances.",
+          "setsFlags": [
+            "acknowledged",
+            "lane-open"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "dialogue"
+            },
+            {
+              "kind": "road",
+              "road": "r-civic-hospital",
+              "status": "congested"
+            }
+          ]
+        },
+        {
+          "id": "o-d011-1-facts",
+          "title": "Announce the facts: one death, a review",
+          "preview": "The night administrator reads the facts and promises a review by morning.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The number is one, said aloud. The crowd argues less about numbers.",
+          "requiresEvidence": [
+            "ev-d011-1"
+          ],
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d011-1-clear",
+          "title": "Clear the gate with police",
+          "preview": "Officers push the relatives into the road.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4
+          },
+          "consequence": "The gate opens over grieving people. The voice note sounds truer than ever.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "hospital",
+              "incident": "clash"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d011-1-wait",
+          "title": "Keep the gate shut",
+          "preview": "Ambulances divert; nobody speaks.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -3,
+            "economy": -1
+          },
+          "consequence": "A patient in the third ambulance gets worse."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "The gate",
+        "situation": "Two hundred relatives block the gate. Three ambulances are stuck. Two doctors treat forty people.",
+        "options": {
+          "o-d011-1-doctor": {
+            "title": "Send the senior doctor to the gate",
+            "preview": "The doctor tells families what happened and what comes next.",
+            "consequence": "They hear a doctor, not a guard. A lane opens."
+          },
+          "o-d011-1-facts": {
+            "title": "Announce the facts: one death",
+            "preview": "The night manager reads the register and promises a review.",
+            "consequence": "The number is one, said out loud."
+          },
+          "o-d011-1-clear": {
+            "title": "Push the crowd off the gate",
+            "preview": "Officers push relatives into the road.",
+            "consequence": "The gate opens over grieving people."
+          },
+          "o-d011-1-wait": {
+            "title": "Keep the gate shut",
+            "preview": "Ambulances go elsewhere. Nobody speaks.",
+            "consequence": "A patient in an ambulance gets worse."
+          }
+        }
+      }
+    },
+    {
+      "id": "d011-2",
+      "title": "Four bodies?",
+      "situation": "The voice note names a store room. The mortuary log says one body. The relatives want to see the room.",
+      "district": "hospital",
+      "expiresAfter": 24,
+      "defaultOption": "o-d011-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d011-2-show",
+          "title": "Open the store room to two relatives",
+          "preview": "Two relatives and a reporter see the linen store and the mortuary log.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "They walk back to the gate and say what they saw: sheets.",
+          "requiresEvidence": [
+            "ev-d011-2"
+          ],
+          "setsFlags": [
+            "checked",
+            "room-shown"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d011-2-doctors",
+          "title": "Call in the two missing doctors’ replacements",
+          "preview": "The roster gap is filled from the on-call list within the hour.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "Four doctors for forty patients. The wait starts to shrink.",
+          "setsFlags": [
+            "served",
+            "doctors-called"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "restore"
+            },
+            {
+              "kind": "service",
+              "district": "hospital",
+              "magnitude": 0.2
+            }
+          ]
+        },
+        {
+          "id": "o-d011-2-accuse",
+          "title": "Announce that relatives attacked a doctor",
+          "preview": "A statement says staff were assaulted and names the family.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "The corridor camera shows shouting, not blows.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d011-3"
+          ]
+        },
+        {
+          "id": "o-d011-2-wait",
+          "title": "Refuse to discuss the room",
+          "preview": "The door stays locked; the note plays on.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Relatives try the door themselves."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "Four bodies?",
+        "situation": "The voice note names a store room. The log says one body. Relatives want to see the room.",
+        "options": {
+          "o-d011-2-show": {
+            "title": "Show two relatives the room",
+            "preview": "Two relatives and a reporter see the linen store and the log.",
+            "consequence": "They tell the crowd what they saw: sheets."
+          },
+          "o-d011-2-doctors": {
+            "title": "Call in replacement doctors",
+            "preview": "The missing doctors are replaced from the on-call list.",
+            "consequence": "Four doctors for forty patients. The wait shrinks."
+          },
+          "o-d011-2-accuse": {
+            "title": "Say relatives attacked a doctor",
+            "preview": "A statement says staff were beaten and names a family.",
+            "consequence": "The camera shows shouting, not blows."
+          },
+          "o-d011-2-wait": {
+            "title": "Refuse to discuss the room",
+            "preview": "The door stays locked. The note keeps playing.",
+            "consequence": "Relatives try the door themselves."
+          }
+        }
+      }
+    },
+    {
+      "id": "d011-3",
+      "title": "The shoving starts",
+      "situation": "A knot of men is pushing the guards at the gate. Most relatives are standing back. The lane for ambulances is closing.",
+      "district": "hospital",
+      "expiresAfter": 22,
+      "defaultOption": "o-d011-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d011-3-lane",
+          "title": "Hold the ambulance lane with family volunteers",
+          "preview": "Relatives who want the gate open form the lane with the guards.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The lane holds. The pushing group is surrounded by people who want calm.",
+          "setsFlags": [
+            "protected",
+            "lane-open"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "protect"
+            }
+          ]
+        },
+        {
+          "id": "o-d011-3-targeted",
+          "title": "Remove the few pushing the guards",
+          "preview": "Officers walk the pushing group out through the side gate.",
+          "authority": "Proportionality: act against the few causing harm, not the many",
+          "tags": [
+            "force",
+            "proportionate",
+            "legal-process"
+          ],
+          "effects": {
+            "safety": 6,
+            "freedom": -2,
+            "trust": 1
+          },
+          "consequence": "The gate is calm again. Nobody else is touched.",
+          "disproportionateEffects": {
+            "freedom": -8,
+            "trust": -7
+          },
+          "proportionateIf": {
+            "flag": "complication-live"
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "deploy"
+            }
+          ]
+        },
+        {
+          "id": "o-d011-3-lathi",
+          "title": "Baton-charge the gate",
+          "preview": "Officers charge; relatives run into the road.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": -4,
+            "grievance": -4
+          },
+          "consequence": "A grieving crowd is beaten in front of a hospital. Two people are hurt.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "hospital",
+              "incident": "clash"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d011-3-wait",
+          "title": "Let the guards cope",
+          "preview": "The lane closes; an ambulance is turned away.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -3,
+            "economy": -1
+          },
+          "consequence": "The patient inside is driven to a clinic across town."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d011",
+      "simple": {
+        "title": "The pushing starts",
+        "situation": "A few men push the guards. Most relatives stand back. The ambulance lane is closing.",
+        "options": {
+          "o-d011-3-lane": {
+            "title": "Hold the lane with volunteers",
+            "preview": "Relatives who want the gate open form the lane with guards.",
+            "consequence": "The lane holds. The pushers are outnumbered by calm people."
+          },
+          "o-d011-3-targeted": {
+            "title": "Remove only the pushers",
+            "preview": "Officers walk the pushing group out the side gate.",
+            "consequence": "The gate is calm. Nobody else is touched."
+          },
+          "o-d011-3-lathi": {
+            "title": "Charge the crowd",
+            "preview": "Officers charge. Relatives run into the road.",
+            "consequence": "A grieving crowd is beaten. Two people are hurt."
+          },
+          "o-d011-3-wait": {
+            "title": "Let the guards cope",
+            "preview": "The lane closes. An ambulance is turned away.",
+            "consequence": "The patient is driven across town."
+          }
+        }
+      }
+    },
+    {
+      "id": "d011-4",
+      "title": "The review",
+      "situation": "Morning. The register, the roster and the camera tell a clear story: one death, half the doctors, no beating. The family wants to know who answers for the wait.",
+      "district": "hospital",
+      "expiresAfter": 24,
+      "defaultOption": "o-d011-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d011-4-review",
+          "title": "Order an independent review",
+          "preview": "A senior doctor from another hospital leads it; the family is briefed weekly.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The death has a review with a name on it.",
+          "requiresEvidence": [
+            "ev-d011-5"
+          ],
+          "setsFlags": [
+            "checked",
+            "plan-published"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "hospital",
+              "action": "legal"
+            }
+          ]
+        },
+        {
+          "id": "o-d011-4-rota",
+          "title": "Fix the roster: no shift under three doctors",
+          "preview": "A written rule and an on-call list taped to the casualty desk.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The next sick call gets a replacement, not a gap.",
+          "setsFlags": [
+            "served",
+            "plan-published"
+          ]
+        },
+        {
+          "id": "o-d011-4-accuse",
+          "title": "Blame the family for the night’s disorder",
+          "preview": "A statement says the family’s relatives incited the crowd.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "The grieving family becomes the accused.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d011-3"
+          ]
+        },
+        {
+          "id": "o-d011-4-wait",
+          "title": "File the death as “natural causes”",
+          "preview": "No review of the wait or the roster.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The next six-hour wait is already starting."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "The review",
+        "situation": "Morning. One death, half the doctors, no beating. The family wants to know who answers for the wait.",
+        "options": {
+          "o-d011-4-review": {
+            "title": "Order an independent review",
+            "preview": "A doctor from another hospital leads it. The family is briefed weekly.",
+            "consequence": "The death has a real review."
+          },
+          "o-d011-4-rota": {
+            "title": "Fix the roster rule",
+            "preview": "No shift with fewer than three doctors. An on-call list at the desk.",
+            "consequence": "The next sick call gets a replacement."
+          },
+          "o-d011-4-accuse": {
+            "title": "Blame the family",
+            "preview": "A statement says the family stirred up the crowd.",
+            "consequence": "The grieving family becomes the accused."
+          },
+          "o-d011-4-wait": {
+            "title": "File it and move on",
+            "preview": "No review of the wait or the roster.",
+            "consequence": "The next six-hour wait is starting."
+          }
+        }
+      }
+    },
+    {
+      "id": "d011-bait",
+      "title": "“Ban visitors for a week”",
+      "situation": "A manager proposes banning all visitors and relatives from the hospital grounds for seven days.",
+      "district": "hospital",
+      "expiresAfter": 20,
+      "defaultOption": "o-d011-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d011-bait-ban",
+          "title": "Ban all visitors for seven days",
+          "preview": "Guards turn every relative away at the gate.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -4,
+            "safety": 4,
+            "grievance": -4
+          },
+          "consequence": "Patients lose the people who feed and watch them. The rumour fills the empty corridor.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 16,
+              "effects": {
+                "safety": -3,
+                "trust": -3
+              },
+              "message": "Patients’ families gather outside every evening; two patients leave against advice."
+            }
+          ]
+        },
+        {
+          "id": "o-d011-bait-desk",
+          "title": "Open a family information desk at the gate",
+          "preview": "A staffed desk gives updates every hour and a number to call.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "Relatives have somewhere to ask instead of someone to push.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d011-bait-wait",
+          "title": "Decide at the morning meeting",
+          "preview": "No ban, no desk; the night repeats itself.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Tomorrow’s relatives find the same gate."
+        }
+      ],
+      "simple": {
+        "title": "“Ban visitors for a week”",
+        "situation": "A manager wants all visitors banned from the hospital for seven days.",
+        "options": {
+          "o-d011-bait-ban": {
+            "title": "Ban all visitors for a week",
+            "preview": "Guards turn every relative away.",
+            "consequence": "Patients lose the people who care for them."
+          },
+          "o-d011-bait-desk": {
+            "title": "Open a family help desk",
+            "preview": "A desk at the gate gives updates every hour.",
+            "consequence": "Relatives have somewhere to ask."
+          },
+          "o-d011-bait-wait": {
+            "title": "Decide in the morning",
+            "preview": "No ban. No desk. The night repeats.",
+            "consequence": "Tomorrow’s relatives find the same gate."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d011",
+      "question": "Relatives are blocking a hospital gate after a death. What must the response respect?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The need to reopen access for ambulances with the least force, while keeping relatives informed and able to gather peacefully.",
+          "correct": true,
+          "feedback": "Correct. Life-saving access is urgent, but it is met by the least intrusive means, not by beating a grieving crowd."
+        },
+        {
+          "id": "b",
+          "text": "Nothing; a hospital gate can be cleared by any means because lives are at stake.",
+          "correct": false,
+          "feedback": "Lives at stake justify urgency, not unlimited force; proportionality still applies."
+        },
+        {
+          "id": "c",
+          "text": "Only the relatives’ wishes; ambulances must wait until they are satisfied.",
+          "correct": false,
+          "feedback": "Ambulance access is itself a matter of life; the duty is to reopen it by the least harmful route."
+        }
+      ],
+      "principle": "Article 21 protects life, which includes emergency access to care; Article 19 protects peaceful gathering. The state must secure access using the least force that works.",
+      "why": "A lane held by relatives themselves kept ambulances moving while the pushing group was isolated.",
+      "source": {
+        "label": "Constitution of India, Articles 21 and 22 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "Grieving relatives block the hospital gate. What must the response respect?",
+        "options": {
+          "a": "Open a lane for ambulances gently, keep relatives informed and let them gather.",
+          "b": "Anything goes. Lives are at stake.",
+          "c": "Only the relatives’ wishes. Ambulances wait."
+        },
+        "feedback": {
+          "a": "Yes! Open the lane the gentlest way, and keep talking.",
+          "b": "No. Urgency does not allow unlimited force.",
+          "c": "Ambulances carry lives too. Open the lane kindly, but open it."
+        },
+        "principle": "Life comes first, which means ambulances get through. Use the gentlest way that works, and keep people informed.",
+        "why": "A lane held by relatives kept ambulances moving while the pushers were isolated."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d011-comp",
+      "at": -1,
+      "kind": "incident",
+      "message": "A group of men who are not relatives arrive and start pushing the guards and shouting “open it”.",
+      "simple": "Men who are not relatives start pushing the guards.",
+      "effects": {
+        "safety": -5,
+        "trust": -1
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "hospital",
+          "incident": "clash"
+        }
+      ]
+    },
+    {
+      "id": "e-d011-ambulance",
+      "at": 32,
+      "kind": "incident",
+      "message": "An ambulance with a cardiac patient is turned away at the blocked gate.",
+      "simple": "An ambulance with a heart patient is turned away.",
+      "effects": {
+        "safety": -4,
+        "trust": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "road",
+          "road": "r-civic-hospital",
+          "status": "closed"
+        }
+      ],
+      "condition": {
+        "notFlag": "lane-open"
+      }
+    }
+  ],
+  "complication": {
+    "opponent": "provocateur",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d011-comp",
+    "baitDecisionId": "d011-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "lane-open"
+        },
+        "text": "Ambulances kept a lane through the crowd.",
+        "simple": "Ambulances kept a lane through the crowd."
+      },
+      {
+        "condition": {
+          "flag": "room-shown"
+        },
+        "text": "The “store room” was opened to the families: linen, one body in the mortuary.",
+        "simple": "The store room was shown. Sheets, not bodies."
+      },
+      {
+        "condition": {
+          "flag": "doctors-called"
+        },
+        "text": "The roster gap was filled the same night.",
+        "simple": "More doctors came the same night."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "notFlag": "doctors-called"
+        },
+        "text": "Casualty ran the whole night at half strength.",
+        "simple": "The ward had half its doctors all night."
+      },
+      {
+        "condition": {
+          "notFlag": "checked"
+        },
+        "text": "No review of the death or the wait was ordered.",
+        "simple": "The death was never reviewed."
+      },
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "A grieving crowd was cleared by force.",
+        "simple": "A grieving crowd was pushed by force."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "protected"
+        },
+        "text": "Relatives stayed, informed, while ambulances passed.",
+        "simple": "Relatives stayed and stayed informed."
+      },
+      {
+        "condition": {
+          "flag": "acknowledged"
+        },
+        "text": "A doctor spoke to the families before a guard did.",
+        "simple": "A doctor spoke to the families first."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "Force was used at a hospital gate before an answer was tried.",
+        "simple": "Force came before answers at a hospital gate."
+      },
+      {
+        "condition": {
+          "flag": "detained"
+        },
+        "text": "Relatives were detained for being at the gate.",
+        "simple": "Relatives were detained for being at the gate."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "lane-open"
+        },
+        "text": "Open an ambulance lane with the families, not against them.",
+        "simple": "Open the lane with the families."
+      },
+      {
+        "condition": {
+          "notFlag": "room-shown"
+        },
+        "text": "Show the room: a rumour about a door dies when the door opens.",
+        "simple": "Open the door. The rumour dies."
+      },
+      {
+        "condition": {},
+        "text": "Check the roster the moment the wait is blamed; the gap may be the story.",
+        "simple": "Check the roster. The gap may be the story."
+      }
+    ],
+    "closing": {
+      "good": "The families saw the room, heard a doctor, and kept the ambulance lane themselves; the review has a name on it.",
+      "mixed": "The gate reopened, but the ward ran short all night and the review is a promise.",
+      "poor": "The gate was cleared with batons and the hospital is now the place where they beat the grieving."
+    }
+  },
+  "simple": {
+    "title": "The Hospital Gate",
+    "subtitle": "A rumour brings families to the hospital gate.",
+    "briefing": {
+      "grievance": "Families say people wait for hours and nobody tells them anything. Tonight one death became a rumour of many.",
+      "knownFacts": [
+        "One patient died after a six-hour wait. A review must happen.",
+        "Two doctors are caring for forty patients.",
+        "Three ambulances are stuck outside."
+      ],
+      "unverifiedClaims": [
+        "A voice note says four bodies are hidden.",
+        "A post says relatives beat a doctor."
+      ],
+      "responsibility": "You run the hospital tonight, with police help.",
+      "objective": "Open the gate by agreement. Tell the truth. Get more doctors to the ward."
+    },
+    "closing": {
+      "good": "Families saw the room, heard a doctor and kept the lane open themselves.",
+      "mixed": "The gate reopened. The ward ran short all night.",
+      "poor": "The gate was cleared with batons."
+    },
+    "coldOpen": [
+      "A patient dies after a long wait.",
+      "A note says more deaths are hidden.",
+      "Families crowd the gate."
+    ]
+  }
+}

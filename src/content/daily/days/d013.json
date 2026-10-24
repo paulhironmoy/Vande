@@ -1,0 +1,1099 @@
+{
+  "id": "d013",
+  "version": 1,
+  "title": "The Relief List",
+  "subtitle": "Flood relief reached one lane and not the next; the list is being called rigged",
+  "dilemmaKey": "relief-fairness",
+  "themeTags": [
+    "relief",
+    "fairness",
+    "records"
+  ],
+  "focus": "transit",
+  "institution": "civic",
+  "mood": "tense",
+  "opponents": [
+    "exploiter",
+    "disinfo"
+  ],
+  "coldOpen": [
+    "Three days after the flood, relief kits reached Lane 2.",
+    "Lane 3, just as wet, got nothing.",
+    "A list with names is being passed hand to hand."
+  ],
+  "briefing": {
+    "grievance": "Families in Lane 3 lost as much as Lane 2 and received nothing. They believe the relief list was written for someone’s voters. They want kits today and the list explained.",
+    "knownFacts": [
+      "Lane 2 received 180 kits on Tuesday; Lane 3 received none.",
+      "The survey team marked Lane 3 “pending” because the lane was still flooded on survey day.",
+      "A second consignment of 400 kits is at the collectorate warehouse."
+    ],
+    "unverifiedClaims": [
+      "A post says a councillor’s relatives got double kits.",
+      "A message says Lane 3 was skipped on purpose for the way it voted."
+    ],
+    "responsibility": "You run the relief operation and the survey office. Kits and fairness both run through you.",
+    "objective": "Get Lane 3 its kits today, show how the list was made, and stop the favouritism story from becoming a fight."
+  },
+  "evidence": [
+    {
+      "id": "ev-d013-1",
+      "title": "Survey sheet, Lanes 2 and 3",
+      "source": "Relief survey team",
+      "sourceType": "official",
+      "time": "09:00",
+      "claim": "Lane 2 surveyed Monday, 180 households; Lane 3 marked “pending, water-logged”, revisit due Thursday.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Lane 2",
+          "value": "180 households, Monday"
+        },
+        {
+          "label": "Lane 3",
+          "value": "“Pending”, revisit Thursday"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A survey sheet with one lane marked pending"
+      },
+      "resolutionNote": "Lane 3 was skipped because it was still under water, not because of how it voted.",
+      "availableAt": 2,
+      "district": "transit",
+      "simple": {
+        "title": "The survey sheet",
+        "claim": "Lane 2 was surveyed Monday. Lane 3 was marked “pending” because it was flooded.",
+        "resolutionNote": "Lane 3 was skipped because it was under water.",
+        "caption": "A survey sheet with one lane marked pending"
+      }
+    },
+    {
+      "id": "ev-d013-2",
+      "title": "Warehouse stock card",
+      "source": "Collectorate warehouse",
+      "sourceType": "official",
+      "time": "09:20",
+      "claim": "400 kits received yesterday; none issued; two trucks available.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Kits in stock",
+          "value": "400"
+        },
+        {
+          "label": "Trucks",
+          "value": "2 idle"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A stock card showing 400 kits"
+      },
+      "resolutionNote": "Four hundred kits and two trucks are waiting at the warehouse.",
+      "availableAt": 6,
+      "district": "civic",
+      "simple": {
+        "title": "The warehouse card",
+        "claim": "Four hundred kits arrived yesterday. None given out. Two trucks are free.",
+        "resolutionNote": "Four hundred kits and two trucks are waiting.",
+        "caption": "A stock card showing 400 kits"
+      }
+    },
+    {
+      "id": "ev-d013-3",
+      "title": "“Double kits” post",
+      "source": "Anonymous account",
+      "sourceType": "anonymous",
+      "time": "08:30",
+      "claim": "A photo of kits stacked in a courtyard, captioned “the councillor’s family got double”.",
+      "initialState": "unverified",
+      "truth": "misleading",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Courtyard",
+          "value": "The relief distribution point, not a home",
+          "anomaly": true
+        },
+        {
+          "label": "Stack",
+          "value": "Kits awaiting handout, photographed before distribution",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "photo",
+        "caption": "Kits stacked in a courtyard"
+      },
+      "resolutionNote": "The courtyard is the distribution point; the kits were photographed before handout.",
+      "injectedBy": "disinfo",
+      "contradictedBy": [
+        "ev-d013-4"
+      ],
+      "district": "market",
+      "simple": {
+        "title": "The “double kits” post",
+        "claim": "A photo of stacked kits says the councillor’s family got double.",
+        "resolutionNote": "The yard is the handout point. The kits were waiting to be given out.",
+        "caption": "Kits stacked in a courtyard"
+      }
+    },
+    {
+      "id": "ev-d013-4",
+      "title": "Distribution register, Lane 2",
+      "source": "Relief distribution team",
+      "sourceType": "official",
+      "time": "09:40",
+      "claim": "180 kits to 180 households, one per household, signed; no name appears twice.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Entries",
+          "value": "180, signed"
+        },
+        {
+          "label": "Duplicates",
+          "value": "None"
+        },
+        {
+          "label": "Copy",
+          "value": "Single carbon copy in a wet bag"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A register with thumbprints"
+      },
+      "resolutionNote": "One kit per household, no duplicates. The only copy is in a wet bag.",
+      "availableAt": 10,
+      "district": "transit",
+      "perishable": true,
+      "simple": {
+        "title": "The handout register",
+        "claim": "One kit per family, 180 families, all signed. No name twice.",
+        "resolutionNote": "Nobody got two kits. The only copy is in a wet bag.",
+        "caption": "A register with thumbprints"
+      }
+    },
+    {
+      "id": "ev-d013-5",
+      "title": "Lane 3 residents’ list",
+      "source": "Lane 3 residents’ committee",
+      "sourceType": "organizer",
+      "time": "10:00",
+      "claim": "A handwritten list of 212 affected households in Lane 3 with signatures.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "metadata": [
+        {
+          "label": "Households",
+          "value": "212"
+        },
+        {
+          "label": "Signatures",
+          "value": "Yes, by lane elder"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A handwritten list with signatures"
+      },
+      "resolutionNote": "Lane 3 has already done the survey’s work.",
+      "availableAt": 16,
+      "corroboratedBy": [
+        "ev-d013-1"
+      ],
+      "district": "transit",
+      "simple": {
+        "title": "Lane 3’s own list",
+        "claim": "The lane wrote its own list: 212 families, with signatures.",
+        "resolutionNote": "Lane 3 did the survey’s job itself.",
+        "caption": "A handwritten list with signatures"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d013-1",
+      "title": "Lane 3 is at the warehouse gate",
+      "situation": "Residents of Lane 3 are outside the warehouse where 400 kits sit unissued. They have their own list.",
+      "district": "civic",
+      "expiresAfter": 22,
+      "defaultOption": "o-d013-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d013-1-trucks",
+          "title": "Load the two trucks for Lane 3 now",
+          "preview": "Kits roll to Lane 3 against the residents’ own list, checked at the truck.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The first kits reach Lane 3 within the hour.",
+          "requiresEvidence": [
+            "ev-d013-2"
+          ],
+          "setsFlags": [
+            "acknowledged",
+            "served",
+            "kits-sent"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "relief"
+            }
+          ]
+        },
+        {
+          "id": "o-d013-1-explain",
+          "title": "Show the survey sheet: why Lane 3 was “pending”",
+          "preview": "The sheet shows water-logging, not voting, delayed the lane.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The word “pending” gets a reason. The anger has somewhere to go.",
+          "requiresEvidence": [
+            "ev-d013-1"
+          ],
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d013-1-clear",
+          "title": "Clear the gate; official list only",
+          "preview": "Police move the residents; kits wait for Thursday’s survey.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -5
+          },
+          "consequence": "Flood victims are pushed away from a warehouse full of kits.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d013-1-wait",
+          "title": "Wait for Thursday’s survey",
+          "preview": "Kits stay in the warehouse; Lane 3 sleeps wet again.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The list on the street gets longer."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "Lane 3 at the warehouse gate",
+        "situation": "Lane 3 residents stand outside a warehouse full of kits. They have their own list.",
+        "options": {
+          "o-d013-1-trucks": {
+            "title": "Load the trucks for Lane 3 now",
+            "preview": "Kits go to Lane 3 using the residents’ own list.",
+            "consequence": "The first kits reach Lane 3 within the hour."
+          },
+          "o-d013-1-explain": {
+            "title": "Show why Lane 3 was “pending”",
+            "preview": "The sheet shows water, not votes, delayed the lane.",
+            "consequence": "The word “pending” gets a reason."
+          },
+          "o-d013-1-clear": {
+            "title": "Clear the gate",
+            "preview": "Police move the residents. Kits wait for Thursday.",
+            "consequence": "Flood victims are pushed away from a full warehouse."
+          },
+          "o-d013-1-wait": {
+            "title": "Wait for Thursday",
+            "preview": "Kits stay in the warehouse. Lane 3 stays wet.",
+            "consequence": "The street’s list gets longer."
+          }
+        }
+      }
+    },
+    {
+      "id": "d013-2",
+      "title": "Did anyone get double?",
+      "situation": "The post shows stacked kits “at the councillor’s house”. The Lane 2 register is a single carbon copy in a wet bag.",
+      "district": "transit",
+      "expiresAfter": 24,
+      "defaultOption": "o-d013-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d013-2-register",
+          "title": "Dry, copy and publish the Lane 2 register",
+          "preview": "The register is photographed, copied and pinned: 180 names, no duplicates.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "Anyone can check the list for their neighbour’s name twice. Nobody finds one.",
+          "requiresEvidence": [
+            "ev-d013-4"
+          ],
+          "setsFlags": [
+            "checked",
+            "register-published"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d013-2-locate",
+          "title": "Trace the courtyard in the photo",
+          "preview": "The courtyard is the distribution point; the stack is pre-handout.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The photo loses its caption.",
+          "requiresEvidence": [
+            "ev-d013-3"
+          ],
+          "setsFlags": [
+            "checked"
+          ]
+        },
+        {
+          "id": "o-d013-2-accuse",
+          "title": "Suspend the councillor pending inquiry",
+          "preview": "A public notice names the councillor over the double-kit claim.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A notice based on a photo of a distribution yard.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d013-3"
+          ]
+        },
+        {
+          "id": "o-d013-2-wait",
+          "title": "Leave the register in the bag",
+          "preview": "The carbon copy stays damp; the post keeps circulating.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The only proof of fair distribution is dissolving."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "Did anyone get double?",
+        "situation": "A post shows stacked kits “at the councillor’s house”. The real register is in a wet bag.",
+        "options": {
+          "o-d013-2-register": {
+            "title": "Copy and publish the register",
+            "preview": "The register is photographed and pinned: 180 names, no doubles.",
+            "consequence": "Anyone can check. Nobody finds a name twice."
+          },
+          "o-d013-2-locate": {
+            "title": "Find the courtyard in the photo",
+            "preview": "The yard is the handout point. The stack was waiting to go out.",
+            "consequence": "The photo loses its caption."
+          },
+          "o-d013-2-accuse": {
+            "title": "Suspend the councillor",
+            "preview": "A public notice names the councillor over the post.",
+            "consequence": "A notice based on a photo of a handout yard."
+          },
+          "o-d013-2-wait": {
+            "title": "Leave the register in the bag",
+            "preview": "The copy stays damp. The post keeps going.",
+            "consequence": "The only proof is dissolving."
+          }
+        }
+      }
+    },
+    {
+      "id": "d013-3",
+      "title": "Lane 2 versus Lane 3",
+      "situation": "Residents of Lane 2 are now defending their kits; Lane 3 is calling them thieves. The two lanes share one standpipe.",
+      "district": "transit",
+      "expiresAfter": 22,
+      "defaultOption": "o-d013-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d013-3-joint",
+          "title": "Hold a joint meeting at the standpipe",
+          "preview": "Both lanes hear the survey sheet and the delivery schedule together.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "Lane 2 stops defending; Lane 3 stops accusing. The schedule is on the wall.",
+          "setsFlags": [
+            "protected",
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d013-3-targeted",
+          "title": "Separate the few who started throwing stones",
+          "preview": "Officers remove the stone-throwers; the lanes keep talking.",
+          "authority": "Proportionality: act against the few causing harm, not the many",
+          "tags": [
+            "force",
+            "proportionate",
+            "legal-process"
+          ],
+          "effects": {
+            "safety": 6,
+            "freedom": -2,
+            "trust": 1
+          },
+          "consequence": "The stones stop. The meeting goes on.",
+          "disproportionateEffects": {
+            "freedom": -8,
+            "trust": -7
+          },
+          "proportionateIf": {
+            "flag": "complication-live"
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "transit",
+              "action": "deploy"
+            }
+          ]
+        },
+        {
+          "id": "o-d013-3-curfew",
+          "title": "Impose a curfew on both lanes",
+          "preview": "Nobody leaves either lane after 6 pm; relief stops too.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4,
+            "economy": -4
+          },
+          "consequence": "Flooded families are locked in without kits.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d013-3-wait",
+          "title": "Let the lanes argue",
+          "preview": "The standpipe becomes a front line.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "A pot is thrown; then a brick."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d013",
+      "simple": {
+        "title": "Lane 2 against Lane 3",
+        "situation": "Lane 2 defends its kits. Lane 3 calls them thieves. They share one tap.",
+        "options": {
+          "o-d013-3-joint": {
+            "title": "Meet both lanes together",
+            "preview": "Both lanes hear the survey and the delivery plan together.",
+            "consequence": "Lane 2 stops defending. Lane 3 stops accusing."
+          },
+          "o-d013-3-targeted": {
+            "title": "Remove only the stone-throwers",
+            "preview": "Officers remove the few throwing stones.",
+            "consequence": "The stones stop. The talking goes on."
+          },
+          "o-d013-3-curfew": {
+            "title": "Put both lanes under curfew",
+            "preview": "Nobody leaves after 6 pm. Relief stops too.",
+            "consequence": "Flooded families are locked in without kits."
+          },
+          "o-d013-3-wait": {
+            "title": "Let them argue",
+            "preview": "The standpipe becomes a front line.",
+            "consequence": "A pot flies. Then a brick."
+          }
+        }
+      }
+    },
+    {
+      "id": "d013-4",
+      "title": "The next consignment",
+      "situation": "Six more lanes are waiting. The survey is three days behind. The residents’ lists are more accurate than the survey’s.",
+      "district": "civic",
+      "expiresAfter": 24,
+      "defaultOption": "o-d013-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d013-4-schedule",
+          "title": "Publish a lane-by-lane delivery schedule",
+          "preview": "Each lane gets a date, a truck and a contact, pinned at every standpipe.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "Nobody has to guess whose turn it is.",
+          "requiresEvidence": [
+            "ev-d013-2"
+          ],
+          "setsFlags": [
+            "plan-published",
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d013-4-lists",
+          "title": "Adopt residents’ lists, checked at the truck",
+          "preview": "Lane committees’ lists are accepted with ID checks at handout.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The survey catches up by using the people who already counted.",
+          "requiresEvidence": [
+            "ev-d013-5"
+          ],
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d013-4-accuse",
+          "title": "Announce that Lane 3’s list is padded",
+          "preview": "A statement says the 212-name list includes outsiders.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "A signed list is called a fraud with nothing to show for it.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d013-3"
+          ]
+        },
+        {
+          "id": "o-d013-4-wait",
+          "title": "Stick to the survey’s pace",
+          "preview": "Six lanes wait three more days.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "More lists appear on more walls."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "The next trucks",
+        "situation": "Six more lanes are waiting. The survey is three days behind.",
+        "options": {
+          "o-d013-4-schedule": {
+            "title": "Publish a lane-by-lane schedule",
+            "preview": "Each lane gets a date, a truck and a contact.",
+            "consequence": "Nobody has to guess whose turn it is."
+          },
+          "o-d013-4-lists": {
+            "title": "Use the residents’ lists",
+            "preview": "Lane lists are accepted with ID checks at the truck.",
+            "consequence": "The survey catches up using the people who counted."
+          },
+          "o-d013-4-accuse": {
+            "title": "Say Lane 3’s list is padded",
+            "preview": "A statement says the 212 names include outsiders.",
+            "consequence": "A signed list is called a fraud without proof."
+          },
+          "o-d013-4-wait": {
+            "title": "Stick to the survey’s pace",
+            "preview": "Six lanes wait three more days.",
+            "consequence": "More lists appear on walls."
+          }
+        }
+      }
+    },
+    {
+      "id": "d013-bait",
+      "title": "“Stop all relief until the inquiry”",
+      "situation": "A demand goes viral: freeze every distribution until the favouritism inquiry reports.",
+      "district": "civic",
+      "expiresAfter": 20,
+      "defaultOption": "o-d013-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d013-bait-freeze",
+          "title": "Freeze all distribution pending inquiry",
+          "preview": "Trucks stop; 400 kits stay in the warehouse for weeks.",
+          "authority": "Duty of relief: a remedy must not deepen the harm",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": -4,
+            "grievance": -6
+          },
+          "consequence": "Flood victims wait on an inquiry into a photo.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 16,
+              "effects": {
+                "trust": -4,
+                "safety": -3
+              },
+              "message": "Two children in Lane 3 are admitted with fever from the standing water."
+            }
+          ]
+        },
+        {
+          "id": "o-d013-bait-observers",
+          "title": "Distribute with observers from every lane",
+          "preview": "Each truck carries two residents from other lanes as witnesses.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The kits move and everyone can see where.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d013-bait-wait",
+          "title": "Pause the trucks “for today”",
+          "preview": "A one-day pause that becomes two.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Lane 3 sees the trucks parked again."
+        }
+      ],
+      "simple": {
+        "title": "“Stop all relief”",
+        "situation": "A viral demand: freeze every handout until the inquiry is done.",
+        "options": {
+          "o-d013-bait-freeze": {
+            "title": "Freeze all relief for the inquiry",
+            "preview": "Trucks stop. Kits stay in the warehouse for weeks.",
+            "consequence": "Flood victims wait on an inquiry into a photo."
+          },
+          "o-d013-bait-observers": {
+            "title": "Give out kits with lane witnesses",
+            "preview": "Each truck carries two residents from other lanes as witnesses.",
+            "consequence": "The kits move. Everyone can see where."
+          },
+          "o-d013-bait-wait": {
+            "title": "Pause the trucks for today",
+            "preview": "A one-day pause that becomes two.",
+            "consequence": "Lane 3 sees the trucks parked again."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d013",
+      "question": "A lane says it was skipped for relief because of how it voted. What does equal treatment require of you?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Apply the same relief criteria to every lane, show how the list was made, and correct any gap promptly.",
+          "correct": true,
+          "feedback": "Correct. Equality is about even-handed criteria and a visible, correctable process."
+        },
+        {
+          "id": "b",
+          "text": "Give the complaining lane extra kits to settle the matter.",
+          "correct": false,
+          "feedback": "Extra kits for whoever complains loudest is itself unequal treatment."
+        },
+        {
+          "id": "c",
+          "text": "Stop all relief until the accusation is fully investigated.",
+          "correct": false,
+          "feedback": "Halting relief punishes everyone for an unproven claim and deepens the harm."
+        }
+      ],
+      "principle": "Article 14 requires equal treatment under clear criteria. Relief must follow need, with a process people can inspect, and errors must be fixed without punishing anyone.",
+      "why": "The survey had marked the lane “pending” because of water; showing the sheet and sending the trucks answered the accusation better than any inquiry.",
+      "source": {
+        "label": "Constitution of India, Article 14 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "A lane says it was skipped for help because of how it voted. What is fair?",
+        "options": {
+          "a": "Use the same rules for every lane, show how the list was made, fix gaps fast.",
+          "b": "Give the complaining lane extra kits.",
+          "c": "Stop all help until the complaint is investigated."
+        },
+        "feedback": {
+          "a": "Yes! Same rules, open process, quick fixes.",
+          "b": "No. Extra for whoever shouts loudest is unfair too.",
+          "c": "Stopping help punishes everyone for an unproven claim."
+        },
+        "principle": "Everyone gets help by the same rules. Show how the list was made and fix mistakes fast.",
+        "why": "The lane was marked “pending” because of water. Showing the sheet and sending trucks answered it."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d013-comp",
+      "at": -1,
+      "kind": "rumor",
+      "message": "A speaker at the standpipe tells Lane 3 that Lane 2 “sold its votes for kits”.",
+      "simple": "A speaker tells Lane 3 that Lane 2 sold its votes.",
+      "effects": {
+        "grievance": -4,
+        "trust": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "transit",
+          "magnitude": 0.2
+        },
+        {
+          "kind": "mood",
+          "district": "transit",
+          "mood": "volatile"
+        }
+      ]
+    },
+    {
+      "id": "e-d013-rain",
+      "at": 36,
+      "kind": "incident",
+      "message": "Rain returns; water rises again in Lane 3.",
+      "simple": "Rain returns. Water rises again in Lane 3.",
+      "effects": {
+        "safety": -3
+      },
+      "mapEffects": [
+        {
+          "kind": "mood",
+          "district": "transit",
+          "mood": "volatile"
+        }
+      ],
+      "condition": {
+        "notFlag": "kits-sent"
+      }
+    }
+  ],
+  "complication": {
+    "opponent": "exploiter",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d013-comp",
+    "baitDecisionId": "d013-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "kits-sent"
+        },
+        "text": "Lane 3 got its kits the same day from the warehouse stock.",
+        "simple": "Lane 3 got its kits that day."
+      },
+      {
+        "condition": {
+          "flag": "register-published"
+        },
+        "text": "The Lane 2 register was published: one kit per household.",
+        "simple": "The register was published. One kit per family."
+      },
+      {
+        "condition": {
+          "flag": "plan-published"
+        },
+        "text": "Every waiting lane got a date and a contact.",
+        "simple": "Every lane got a date and a contact."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "notFlag": "kits-sent"
+        },
+        "text": "Four hundred kits stayed in the warehouse while Lane 3 waited.",
+        "simple": "Four hundred kits stayed in the warehouse."
+      },
+      {
+        "condition": {
+          "notFlag": "checked"
+        },
+        "text": "The double-kit claim was never answered.",
+        "simple": "The double-kit claim was never answered."
+      },
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "Relief was stopped or residents cleared over an accusation.",
+        "simple": "Help was stopped over an accusation."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "protected"
+        },
+        "text": "Both lanes were heard together instead of set against each other.",
+        "simple": "Both lanes were heard together."
+      },
+      {
+        "condition": {
+          "flag": "acknowledged"
+        },
+        "text": "The “pending” mark was explained instead of defended.",
+        "simple": "The “pending” mark was explained."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "Flood victims were pushed away from relief or locked down.",
+        "simple": "Flood victims were pushed away from help."
+      },
+      {
+        "condition": {
+          "notFlag": "plan-published"
+        },
+        "text": "Lanes were left to guess whose turn was next.",
+        "simple": "Lanes were left guessing."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "kits-sent"
+        },
+        "text": "Send what is in the warehouse first; the survey can catch up behind the trucks.",
+        "simple": "Send the kits first. The survey can catch up."
+      },
+      {
+        "condition": {
+          "notFlag": "register-published"
+        },
+        "text": "Publish the register before the photo decides who got what.",
+        "simple": "Publish the register before the photo decides."
+      },
+      {
+        "condition": {},
+        "text": "Use residents’ own lists with checks; they are faster and often better.",
+        "simple": "Use residents’ own lists, with checks."
+      }
+    ],
+    "closing": {
+      "good": "Lane 3 got its kits from the trucks that were already there, and the register on the wall answered the photo.",
+      "mixed": "The kits arrived, but the two lanes still eye each other at the standpipe.",
+      "poor": "Relief stopped for an inquiry into a photograph, and the water came back before the trucks did."
+    }
+  },
+  "simple": {
+    "title": "The Relief List",
+    "subtitle": "Flood help reached one lane and not the next.",
+    "briefing": {
+      "grievance": "Lane 3 lost as much as Lane 2 but got nothing. They think the list was made for someone’s voters.",
+      "knownFacts": [
+        "Lane 2 got 180 kits. Lane 3 got none.",
+        "The survey team marked Lane 3 “pending” because it was still flooded.",
+        "Four hundred more kits are at the warehouse."
+      ],
+      "unverifiedClaims": [
+        "A post says a councillor’s relatives got double kits.",
+        "A message says Lane 3 was skipped on purpose."
+      ],
+      "responsibility": "You run the relief and the survey office.",
+      "objective": "Get Lane 3 its kits today. Show how the list was made. Stop the fight."
+    },
+    "closing": {
+      "good": "Lane 3 got its kits. The register answered the photo.",
+      "mixed": "Kits came. The two lanes still eye each other.",
+      "poor": "Help stopped for an inquiry into a photo. The water came back first."
+    },
+    "coldOpen": [
+      "Flood kits reached one lane.",
+      "The next lane got nothing.",
+      "A list of names is going around."
+    ]
+  }
+}

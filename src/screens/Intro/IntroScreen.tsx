@@ -59,7 +59,18 @@ export function IntroScreen() {
         <h2 id="intro-style-heading" className={s.chooserTitle}>
           How do you want to play?
         </h2>
-        <div className={s.styleGrid} role="radiogroup" aria-labelledby="intro-style-heading">
+        <div
+          className={s.styleGrid}
+          role="radiogroup"
+          aria-labelledby="intro-style-heading"
+          onKeyDown={(e) => {
+            if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+            e.preventDefault();
+            const next = playStyle === 'simple' ? 'full' : 'simple';
+            setPlayStyle(next);
+            (e.currentTarget.querySelector(`[data-testid="style-${next}"]`) as HTMLElement | null)?.focus();
+          }}
+        >
           {STYLES.map((opt) => {
             const checked = playStyle === opt.value;
             return (

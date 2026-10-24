@@ -10,6 +10,7 @@ export function chapterResult(overrides: Partial<ChapterResult> = {}): ChapterRe
     scores: SCORES,
     startScores: { freedom: 60, grievance: 40, safety: 62, evidence: 58, trust: 55, economy: 64 },
     score: 66,
+    fingerprint: 'DESDE',
     resolved: ['An independent review of the examination was announced.'],
     unresolved: ['Students still do not know when results will be re-issued.'],
     manipulations: [{ evidenceId: 'ev-fake-leak', title: 'Leaked answer key', opponent: 'disinfo', succeeded: false, note: 'Exposed by metadata inspection.' }],

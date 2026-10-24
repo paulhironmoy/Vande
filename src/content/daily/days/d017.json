@@ -1,0 +1,1115 @@
+{
+  "id": "d017",
+  "version": 1,
+  "title": "The Arrest Video",
+  "subtitle": "A clip of a student being dragged into a van is everywhere; nobody can find the student",
+  "dilemmaKey": "fake-arrest-video",
+  "themeTags": [
+    "campus",
+    "rumour",
+    "liberty"
+  ],
+  "focus": "campus",
+  "institution": "campus",
+  "mood": "volatile",
+  "opponents": [
+    "disinfo",
+    "provocateur"
+  ],
+  "coldOpen": [
+    "19:20. A 12-second clip: a student dragged into a white van.",
+    "19:45. The caption says police took him from the hostel.",
+    "Five hundred students are at the station gate by eight."
+  ],
+  "briefing": {
+    "grievance": "Students believe a classmate was taken by police without a record. The station says it has no such person. Either someone is lying, or someone is missing.",
+    "knownFacts": [
+      "The station’s custody register shows no student intake tonight.",
+      "The clip is 12 seconds, filmed at night, with no visible badges or plates.",
+      "A student named in the caption has not answered his phone since 18:00."
+    ],
+    "unverifiedClaims": [
+      "A post names an officer as the one driving the van.",
+      "A message says the student is being held at a “black site”."
+    ],
+    "responsibility": "You run the police station and the campus liaison. A missing student is a real problem; a fake video is another; both need the truth fast.",
+    "objective": "Find the student, verify the clip, keep the station gate calm, and do not let either story become the official one without evidence."
+  },
+  "evidence": [
+    {
+      "id": "ev-d017-1",
+      "title": "Custody register",
+      "source": "Police station",
+      "sourceType": "official",
+      "time": "19:50",
+      "claim": "No intakes between 17:00 and 20:00; the last entry is a traffic case at 16:40.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Intakes 17:00–20:00",
+          "value": "None"
+        },
+        {
+          "label": "Last entry",
+          "value": "16:40, traffic"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A custody register with a gap"
+      },
+      "resolutionNote": "The station recorded no student tonight.",
+      "availableAt": 2,
+      "district": "civic",
+      "simple": {
+        "title": "The custody book",
+        "claim": "No one was brought in between five and eight tonight.",
+        "resolutionNote": "The station has no student in its book.",
+        "caption": "A police book with a gap"
+      }
+    },
+    {
+      "id": "ev-d017-2",
+      "title": "The clip",
+      "source": "Forwarded video",
+      "sourceType": "anonymous",
+      "time": "19:20",
+      "claim": "Twelve seconds: a young man pulled into a white van by two men in plain clothes; no plates visible.",
+      "initialState": "unverified",
+      "truth": "misleading",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Street sign",
+          "value": "Visible at 0:04; not a campus street",
+          "anomaly": true
+        },
+        {
+          "label": "Upload",
+          "value": "First seen in another city two days ago",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "video",
+        "caption": "A dark still of a van door"
+      },
+      "resolutionNote": "The clip was first uploaded elsewhere two days ago, and the street is not on campus.",
+      "injectedBy": "disinfo",
+      "contradictedBy": [
+        "ev-d017-4"
+      ],
+      "district": "campus",
+      "simple": {
+        "title": "The clip",
+        "claim": "Twelve seconds of a young man pulled into a white van by two men.",
+        "resolutionNote": "The clip is from another city, two days old. The street is not on campus.",
+        "caption": "A dark picture of a van door"
+      }
+    },
+    {
+      "id": "ev-d017-3",
+      "title": "Hostel warden’s report",
+      "source": "Hostel warden",
+      "sourceType": "institution",
+      "time": "20:10",
+      "claim": "The named student signed out at 17:50 “going home for the weekend”; his roommate confirms a bus ticket.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Sign-out",
+          "value": "17:50, “home”"
+        },
+        {
+          "label": "Roommate",
+          "value": "Saw a bus ticket"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A sign-out register line"
+      },
+      "resolutionNote": "The student signed out to go home; his phone may simply be off on a bus.",
+      "availableAt": 8,
+      "district": "campus",
+      "simple": {
+        "title": "The warden’s report",
+        "claim": "The student signed out at 5:50 to go home. His roommate saw a bus ticket.",
+        "resolutionNote": "He went home on a bus. His phone is probably off.",
+        "caption": "A sign-out register line"
+      }
+    },
+    {
+      "id": "ev-d017-4",
+      "title": "Street camera near the hostel",
+      "source": "Municipal traffic camera",
+      "sourceType": "official",
+      "time": "20:30",
+      "claim": "No white van on the hostel road between 17:00 and 20:00; the student walks to the bus stand at 17:58.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "White vans",
+          "value": "None, 17:00–20:00"
+        },
+        {
+          "label": "Student",
+          "value": "Walking to bus stand, 17:58"
+        },
+        {
+          "label": "Retention",
+          "value": "24 hours"
+        }
+      ],
+      "visual": {
+        "type": "video",
+        "caption": "A traffic camera still of a street"
+      },
+      "resolutionNote": "The camera shows the student walking to the bus stand and no van. It deletes tomorrow.",
+      "availableAt": 12,
+      "corroboratedBy": [
+        "ev-d017-3"
+      ],
+      "district": "campus",
+      "perishable": true,
+      "simple": {
+        "title": "The street camera",
+        "claim": "No white van on the road. The student walks to the bus stand at 5:58.",
+        "resolutionNote": "He walked to the bus. There was no van. Save the clip.",
+        "caption": "A traffic camera picture"
+      }
+    },
+    {
+      "id": "ev-d017-5",
+      "title": "Bus operator manifest",
+      "source": "Intercity bus operator",
+      "sourceType": "business",
+      "time": "21:00",
+      "claim": "A passenger with the student’s name boarded the 18:30 service; the bus is in transit, phone signal poor.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "metadata": [
+        {
+          "label": "Boarded",
+          "value": "18:30 service"
+        },
+        {
+          "label": "Status",
+          "value": "In transit"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A passenger list with one name highlighted"
+      },
+      "resolutionNote": "The student is on a bus.",
+      "availableAt": 24,
+      "corroboratedBy": [
+        "ev-d017-3"
+      ],
+      "district": "transit",
+      "simple": {
+        "title": "The bus list",
+        "claim": "The student boarded the 6:30 bus. It is on the road where phones do not work.",
+        "resolutionNote": "He is on a bus.",
+        "caption": "A passenger list with one name marked"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d017-1",
+      "title": "Five hundred at the gate",
+      "situation": "Students are at the station gate demanding their classmate. The register shows nobody. The clip is on every phone.",
+      "district": "civic",
+      "expiresAfter": 22,
+      "defaultOption": "o-d017-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d017-1-register",
+          "title": "Open the custody register to students",
+          "preview": "Three students and a lawyer read the register and walk the cells.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "They come out and say it: nobody is here. The gate quietens.",
+          "requiresEvidence": [
+            "ev-d017-1"
+          ],
+          "setsFlags": [
+            "acknowledged",
+            "register-shown"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "announce"
+            }
+          ]
+        },
+        {
+          "id": "o-d017-1-search",
+          "title": "Launch a missing-person search with the students",
+          "preview": "Officers and student volunteers check the hostel, bus stand and hospitals.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The search is for the student, not against the crowd.",
+          "setsFlags": [
+            "acknowledged",
+            "served"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d017-1-disperse",
+          "title": "Disperse the students from the gate",
+          "preview": "Lines push the crowd back onto the campus road.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4
+          },
+          "consequence": "Students who came asking about a missing friend are pushed. The clip looks truer.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "civic",
+              "incident": "clash"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d017-1-wait",
+          "title": "Deny it from behind the gate",
+          "preview": "A loudspeaker says “no one is here”; nobody is shown anything.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "A denial from behind a locked gate convinces no one."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "Five hundred at the gate",
+        "situation": "Students want their classmate. The book shows nobody. The clip is on every phone.",
+        "options": {
+          "o-d017-1-register": {
+            "title": "Show students the custody book",
+            "preview": "Three students and a lawyer read the book and see the cells.",
+            "consequence": "They come out and say it: nobody is here."
+          },
+          "o-d017-1-search": {
+            "title": "Start a search with the students",
+            "preview": "Officers and students check the hostel, bus stand and hospitals.",
+            "consequence": "The search is for the student, not against the crowd."
+          },
+          "o-d017-1-disperse": {
+            "title": "Push the students away",
+            "preview": "Police push the crowd back to the campus road.",
+            "consequence": "Students asking about a missing friend are pushed."
+          },
+          "o-d017-1-wait": {
+            "title": "Deny it through the gate",
+            "preview": "A loudspeaker says no one is here. Nobody is shown anything.",
+            "consequence": "A denial from behind a locked gate convinces no one."
+          }
+        }
+      }
+    },
+    {
+      "id": "d017-2",
+      "title": "Where is the clip from?",
+      "situation": "A street sign is visible at four seconds. The hostel road camera has 24-hour retention. The named officer’s name is trending.",
+      "district": "campus",
+      "expiresAfter": 24,
+      "defaultOption": "o-d017-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d017-2-camera",
+          "title": "Pull the hostel road camera and match the clip",
+          "preview": "The camera shows no van, just the student walking to the bus.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "Two facts: the clip is not from here, and the student walked to a bus.",
+          "requiresEvidence": [
+            "ev-d017-4"
+          ],
+          "setsFlags": [
+            "checked",
+            "clip-exposed"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d017-2-warden",
+          "title": "Bring the warden and roommate to the gate",
+          "preview": "They tell the crowd he signed out to go home at 17:50.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "The people who last saw him speak for themselves.",
+          "requiresEvidence": [
+            "ev-d017-3"
+          ],
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "campus",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d017-2-accuse",
+          "title": "Suspend the named officer publicly",
+          "preview": "The trending name is suspended “pending inquiry”.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "An officer who was on leave is suspended because of a trending post.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d017-2"
+          ]
+        },
+        {
+          "id": "o-d017-2-wait",
+          "title": "Let the camera retention run",
+          "preview": "Nobody pulls the footage; it deletes tomorrow.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The one record that places the student at a bus stand disappears."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "Where is the clip from?",
+        "situation": "A street sign shows at four seconds. The road camera erases in 24 hours.",
+        "options": {
+          "o-d017-2-camera": {
+            "title": "Pull the road camera, match the clip",
+            "preview": "The camera shows no van and the student walking to the bus.",
+            "consequence": "The clip is not from here. The student took a bus."
+          },
+          "o-d017-2-warden": {
+            "title": "Bring the warden and roommate",
+            "preview": "They tell the crowd he left to go home at 5:50.",
+            "consequence": "The people who last saw him speak."
+          },
+          "o-d017-2-accuse": {
+            "title": "Suspend the named officer",
+            "preview": "The officer trending online is suspended.",
+            "consequence": "An officer on leave is suspended over a post."
+          },
+          "o-d017-2-wait": {
+            "title": "Leave the camera alone",
+            "preview": "Nobody pulls the footage. It deletes tomorrow.",
+            "consequence": "The one record of him at the bus stand disappears."
+          }
+        }
+      }
+    },
+    {
+      "id": "d017-3",
+      "title": "Bottles at the gate",
+      "situation": "A group has started throwing bottles at the station. Most students are sitting on the road with candles. Officers want to charge.",
+      "district": "civic",
+      "expiresAfter": 22,
+      "defaultOption": "o-d017-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d017-3-vigil",
+          "title": "Protect the sit-in; marshals isolate throwers",
+          "preview": "Student marshals surround the bottle-throwers; the vigil continues.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "The throwers are isolated by their own peers. The candles stay lit.",
+          "setsFlags": [
+            "protected"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "protect"
+            }
+          ]
+        },
+        {
+          "id": "o-d017-3-targeted",
+          "title": "Detain only those throwing bottles",
+          "preview": "Officers identify the throwers on camera and take them in.",
+          "authority": "Proportionality: act against the few causing harm, not the many",
+          "tags": [
+            "force",
+            "proportionate",
+            "legal-process"
+          ],
+          "effects": {
+            "safety": 6,
+            "freedom": -2,
+            "trust": 1
+          },
+          "consequence": "Six are detained with footage. Five hundred stay seated.",
+          "disproportionateEffects": {
+            "freedom": -8,
+            "trust": -7
+          },
+          "proportionateIf": {
+            "flag": "complication-live"
+          },
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "deploy"
+            }
+          ]
+        },
+        {
+          "id": "o-d017-3-charge",
+          "title": "Baton-charge the gate",
+          "preview": "Officers charge the whole crowd.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4
+          },
+          "consequence": "Students with candles are beaten on camera. The fake clip now has a real one beside it.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "civic",
+              "incident": "clash"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d017-3-wait",
+          "title": "Hold the line and take the bottles",
+          "preview": "No action; the throwing continues.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -3,
+            "economy": -1
+          },
+          "consequence": "A window shatters; an officer is cut."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d017",
+      "simple": {
+        "title": "Bottles at the gate",
+        "situation": "A few throw bottles. Most students sit with candles. Officers want to charge.",
+        "options": {
+          "o-d017-3-vigil": {
+            "title": "Protect the sit-in, isolate throwers",
+            "preview": "Student marshals surround the bottle-throwers. The vigil goes on.",
+            "consequence": "Their own peers isolate the throwers."
+          },
+          "o-d017-3-targeted": {
+            "title": "Detain only the throwers",
+            "preview": "Officers use the camera to take in the few throwing bottles.",
+            "consequence": "Six are held with proof. Five hundred stay seated."
+          },
+          "o-d017-3-charge": {
+            "title": "Charge the crowd",
+            "preview": "Officers charge everyone.",
+            "consequence": "Students with candles are beaten on camera."
+          },
+          "o-d017-3-wait": {
+            "title": "Hold the line, take the bottles",
+            "preview": "No action. The throwing goes on.",
+            "consequence": "A window breaks. An officer is cut."
+          }
+        }
+      }
+    },
+    {
+      "id": "d017-4",
+      "title": "He answers his phone",
+      "situation": "The student calls from a bus stop two hundred kilometres away. The clip is from another city. The trending officer was on leave.",
+      "district": "civic",
+      "expiresAfter": 24,
+      "defaultOption": "o-d017-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d017-4-publish",
+          "title": "Publish the full timeline",
+          "preview": "Every step from 17:50 to the phone call, with the clip’s real origin.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The story is replaced by a timeline anyone can check.",
+          "requiresEvidence": [
+            "ev-d017-4"
+          ],
+          "setsFlags": [
+            "plan-published",
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d017-4-call",
+          "title": "Put the student on the gate loudspeaker",
+          "preview": "He speaks to the crowd from the bus stop.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "Five hundred people hear his voice. Most go home.",
+          "setsFlags": [
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d017-4-accuse",
+          "title": "Charge the students who shared the clip",
+          "preview": "Cases are registered against the first fifty to forward it.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "Fifty frightened students become accused for sharing a fake they believed.",
+          "falseAccusationEffects": {
+            "freedom": -12,
+            "trust": -10,
+            "evidence": -6
+          },
+          "requiresEvidence": [
+            "ev-d017-2"
+          ]
+        },
+        {
+          "id": "o-d017-4-wait",
+          "title": "Let the news spread on its own",
+          "preview": "No timeline; the call is a rumour too.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Half the campus still believes the van."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "He answers his phone",
+        "situation": "The student calls from a bus stop far away. The clip is from another city.",
+        "options": {
+          "o-d017-4-publish": {
+            "title": "Publish the full timeline",
+            "preview": "Every step from 5:50 to the phone call, and where the clip came from.",
+            "consequence": "A timeline replaces the story."
+          },
+          "o-d017-4-call": {
+            "title": "Let him speak on the loudspeaker",
+            "preview": "He talks to the crowd from the bus stop.",
+            "consequence": "Five hundred people hear his voice."
+          },
+          "o-d017-4-accuse": {
+            "title": "Charge the students who shared it",
+            "preview": "Cases against the first fifty who forwarded the clip.",
+            "consequence": "Scared students become the accused."
+          },
+          "o-d017-4-wait": {
+            "title": "Let the news spread by itself",
+            "preview": "No timeline. The phone call becomes another rumour.",
+            "consequence": "Half the campus still believes the van."
+          }
+        }
+      }
+    },
+    {
+      "id": "d017-bait",
+      "title": "“Shut the campus and cut its internet”",
+      "situation": "A proposal: close the campus for three days and cut mobile data around it until “the lies stop”.",
+      "district": "campus",
+      "expiresAfter": 20,
+      "defaultOption": "o-d017-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d017-bait-shut",
+          "title": "Close the campus and cut data for three days",
+          "preview": "Gates lock; data drops; students cannot reach families.",
+          "authority": "Article 19(1)(a): speech cannot be silenced wholesale",
+          "tags": [
+            "censorship",
+            "suppressive"
+          ],
+          "effects": {
+            "freedom": -13,
+            "trust": -8,
+            "evidence": -3,
+            "safety": 2,
+            "economy": -3
+          },
+          "consequence": "The students who were right to worry are punished for worrying.",
+          "setsFlags": [
+            "cleared",
+            "campus-shut"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d017-bait-helpline",
+          "title": "Open a campus helpline and a daily briefing",
+          "preview": "A number for missing-person concerns and a 6 pm briefing at the gate.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The next rumour has somewhere to be checked.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d017-bait-wait",
+          "title": "Consider it overnight",
+          "preview": "No closure, no helpline; the clip keeps circulating.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Tomorrow starts with the same video."
+        }
+      ],
+      "simple": {
+        "title": "“Shut the campus and cut its internet”",
+        "situation": "A plan: close the campus for three days. Cut mobile data until the lies stop.",
+        "options": {
+          "o-d017-bait-shut": {
+            "title": "Shut the campus, cut the internet",
+            "preview": "Gates lock. Data drops. Students cannot call home.",
+            "consequence": "Students who were right to worry are punished."
+          },
+          "o-d017-bait-helpline": {
+            "title": "Open a helpline and daily briefing",
+            "preview": "A number for worries and a 6 pm update at the gate.",
+            "consequence": "The next rumour has somewhere to be checked."
+          },
+          "o-d017-bait-wait": {
+            "title": "Think about it overnight",
+            "preview": "No closure. No helpline. The clip keeps going.",
+            "consequence": "Tomorrow starts with the same video."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d017",
+      "question": "Students demand to know whether a classmate is in custody. What are they entitled to?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Prompt, verifiable information: anyone detained must be recorded, and family or friends told; a denial should be checkable.",
+          "correct": true,
+          "feedback": "Correct. Custody must be recorded and disclosed; secrecy is what makes a fake clip believable."
+        },
+        {
+          "id": "b",
+          "text": "Nothing; the police decide what to disclose about custody.",
+          "correct": false,
+          "feedback": "Arrest safeguards require records and notification; they are not optional."
+        },
+        {
+          "id": "c",
+          "text": "Only a court can tell them, after a petition.",
+          "correct": false,
+          "feedback": "Courts are a backstop; the duty to record and inform applies immediately."
+        }
+      ],
+      "principle": "Article 22 and arrest guidelines require every detention to be recorded and relatives informed. Transparency about custody is the lawful answer to a rumour of secret arrest.",
+      "why": "Opening the register and walking the cells with student representatives did what no loudspeaker denial could.",
+      "source": {
+        "label": "Constitution of India, Articles 21 and 22 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "Students want to know if their friend is in custody. What are they owed?",
+        "options": {
+          "a": "Quick, checkable answers. Every arrest must be written down and families told.",
+          "b": "Nothing. Police decide what to share.",
+          "c": "Only a court can tell them."
+        },
+        "feedback": {
+          "a": "Yes! Arrests must be recorded and shared. Secrecy feeds rumours.",
+          "b": "No. Writing down arrests and telling families is the rule.",
+          "c": "Courts help later. The duty to tell people starts right away."
+        },
+        "principle": "Every arrest must be recorded and families told. Openness is the answer to secret-arrest rumours.",
+        "why": "Showing the register to students did what no loudspeaker denial could."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d017-comp",
+      "at": -1,
+      "kind": "incident",
+      "message": "A dozen hooded figures at the back of the crowd start throwing bottles over the sit-in at the station.",
+      "simple": "Hooded figures throw bottles over the sit-in.",
+      "effects": {
+        "safety": -5,
+        "trust": -1
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "civic",
+          "incident": "clash"
+        }
+      ]
+    },
+    {
+      "id": "e-d017-vigil",
+      "at": 30,
+      "kind": "crowd",
+      "message": "Students light candles on the road outside the station; the vigil is silent.",
+      "simple": "Students light candles outside the station.",
+      "effects": {
+        "freedom": 1
+      },
+      "mapEffects": [
+        {
+          "kind": "crowd",
+          "district": "civic",
+          "magnitude": 0.15
+        },
+        {
+          "kind": "mood",
+          "district": "civic",
+          "mood": "tense"
+        }
+      ]
+    }
+  ],
+  "complication": {
+    "opponent": "provocateur",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d017-comp",
+    "baitDecisionId": "d017-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "register-shown"
+        },
+        "text": "Student representatives saw the register and the cells.",
+        "simple": "Students saw the custody book and the cells."
+      },
+      {
+        "condition": {
+          "flag": "clip-exposed"
+        },
+        "text": "The clip was traced to another city before the camera deleted.",
+        "simple": "The clip was traced to another city."
+      },
+      {
+        "condition": {
+          "flag": "plan-published"
+        },
+        "text": "A full timeline replaced the rumour.",
+        "simple": "A full timeline replaced the rumour."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "notFlag": "clip-exposed"
+        },
+        "text": "The clip was never traced; the hostel camera deleted.",
+        "simple": "The clip was never traced."
+      },
+      {
+        "condition": {
+          "flag": "campus-shut"
+        },
+        "text": "The campus was shut and cut off for a lie told about the police.",
+        "simple": "The campus was shut over a lie."
+      },
+      {
+        "condition": {
+          "notFlag": "register-shown"
+        },
+        "text": "The station denied from behind a gate and was not believed.",
+        "simple": "The station denied it from behind a gate."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "protected"
+        },
+        "text": "A silent vigil was protected while bottle-throwers were isolated.",
+        "simple": "The vigil was protected. The throwers were isolated."
+      },
+      {
+        "condition": {
+          "flag": "acknowledged"
+        },
+        "text": "Students got checkable answers instead of denials.",
+        "simple": "Students got answers they could check."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "Students holding candles were charged or dispersed.",
+        "simple": "Students with candles were charged."
+      },
+      {
+        "condition": {
+          "flag": "detained"
+        },
+        "text": "Students were detained for sharing a clip they believed.",
+        "simple": "Students were detained for sharing a clip."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "register-shown"
+        },
+        "text": "Open the register: a checkable denial beats a loud one.",
+        "simple": "Open the book. A checkable answer beats a loud one."
+      },
+      {
+        "condition": {
+          "notFlag": "clip-exposed"
+        },
+        "text": "Pull the camera before it deletes; one street sign can end a rumour.",
+        "simple": "Pull the camera before it erases."
+      },
+      {
+        "condition": {},
+        "text": "Search for the person first; the crowd came for him, not for a fight.",
+        "simple": "Look for the person first."
+      }
+    ],
+    "closing": {
+      "good": "The student called from a bus stop, the clip turned out to be two days old and two hundred kilometres away, and the candles went home unbroken.",
+      "mixed": "He was found, but the station is still the place that denied him from behind a gate.",
+      "poor": "A fake video was answered with batons, and now there is a real one."
+    }
+  },
+  "simple": {
+    "title": "The Arrest Video",
+    "subtitle": "A video shows a student dragged into a van.",
+    "briefing": {
+      "grievance": "Students think police took a classmate secretly. The station says no. Someone is lying or someone is missing.",
+      "knownFacts": [
+        "The station’s book shows no student tonight.",
+        "The clip is 12 seconds, at night, with no badges or plates.",
+        "The named student has not answered his phone since six."
+      ],
+      "unverifiedClaims": [
+        "A post names an officer as the driver.",
+        "A message says the student is at a secret jail."
+      ],
+      "responsibility": "You run the police station and the campus link.",
+      "objective": "Find the student. Check the clip. Keep the gate calm. Follow the evidence."
+    },
+    "closing": {
+      "good": "The student called from a bus stop. The clip was old and from far away.",
+      "mixed": "He was found. The station still denied him from behind a gate.",
+      "poor": "A fake video was answered with batons."
+    },
+    "coldOpen": [
+      "A student is dragged into a van.",
+      "The caption blames the police.",
+      "Five hundred students reach the station."
+    ]
+  }
+}

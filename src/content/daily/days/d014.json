@@ -1,0 +1,1106 @@
+{
+  "id": "d014",
+  "version": 1,
+  "title": "Eviction at Dawn",
+  "subtitle": "Street vendors found eviction notices at dawn; the bulldozer is due at noon",
+  "dilemmaKey": "eviction-notice",
+  "themeTags": [
+    "livelihood",
+    "process",
+    "assembly"
+  ],
+  "focus": "market",
+  "institution": "civic",
+  "mood": "volatile",
+  "opponents": [
+    "overreaction",
+    "provocateur"
+  ],
+  "coldOpen": [
+    "05:30. Eviction notices are pasted on 300 vendor carts.",
+    "08:00. The notices give no hearing date and name no law.",
+    "A bulldozer is parked at the end of the lane."
+  ],
+  "briefing": {
+    "grievance": "Three hundred licensed vendors were told at dawn to clear the lane by noon. The notices cite no order and offer no hearing. They have nowhere else to sell today.",
+    "knownFacts": [
+      "The vending zone was notified two years ago; 260 of the 300 hold valid certificates.",
+      "The notice was issued by a junior engineer without the vending committee.",
+      "A private mall opens next week across the lane."
+    ],
+    "unverifiedClaims": [
+      "A post says the mall paid for the eviction.",
+      "A message says the vendors plan to burn the bulldozer."
+    ],
+    "responsibility": "You run the municipal works office and police liaison. The lane can be managed; it cannot be bulldozed without process.",
+    "objective": "Stop an unlawful eviction, keep the lane open and orderly, and give the vendors a real hearing."
+  },
+  "evidence": [
+    {
+      "id": "ev-d014-1",
+      "title": "Vending zone notification",
+      "source": "Municipal gazette",
+      "sourceType": "official",
+      "time": "07:40",
+      "claim": "The lane was notified as a vending zone two years ago; eviction requires the vending committee and a hearing.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Notified",
+          "value": "Two years ago"
+        },
+        {
+          "label": "Eviction process",
+          "value": "Committee decision and hearing required"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A gazette page with the lane listed"
+      },
+      "resolutionNote": "Eviction from a notified zone needs a committee decision and a hearing. Neither happened.",
+      "availableAt": 2,
+      "district": "civic",
+      "simple": {
+        "title": "The vending zone notice",
+        "claim": "The lane is a legal selling zone. Eviction needs a committee and a hearing.",
+        "resolutionNote": "The eviction skipped the rules.",
+        "caption": "A gazette page with the lane listed"
+      }
+    },
+    {
+      "id": "ev-d014-2",
+      "title": "The notice",
+      "source": "Junior engineer, works office",
+      "sourceType": "official",
+      "time": "05:30",
+      "claim": "A one-line notice: “Remove all encroachments by 12:00.” No order number, no signature of the committee.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Order number",
+          "value": "None"
+        },
+        {
+          "label": "Committee",
+          "value": "Not consulted"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A one-line notice with a stamp"
+      },
+      "resolutionNote": "The notice has no legal basis on its face.",
+      "availableAt": 4,
+      "corroboratedBy": [
+        "ev-d014-1"
+      ],
+      "district": "market",
+      "simple": {
+        "title": "The notice",
+        "claim": "One line: remove everything by noon. No order number. No committee.",
+        "resolutionNote": "The notice has no legal basis.",
+        "caption": "A one-line notice with a stamp"
+      }
+    },
+    {
+      "id": "ev-d014-3",
+      "title": "“Burn the bulldozer” message",
+      "source": "Forwarded message",
+      "sourceType": "anonymous",
+      "time": "08:30",
+      "claim": "A message says vendors have bought petrol and will torch the bulldozer at noon.",
+      "initialState": "unverified",
+      "truth": "false",
+      "resolvedState": "manipulated",
+      "metadata": [
+        {
+          "label": "Vendors’ union",
+          "value": "Called for a sit-down, not fire",
+          "anomaly": true
+        },
+        {
+          "label": "Message origin",
+          "value": "Same number as last month’s hoax",
+          "anomaly": true
+        }
+      ],
+      "visual": {
+        "type": "message",
+        "caption": "A forwarded message with a flame emoji"
+      },
+      "resolutionNote": "The union’s plan is a sit-down; the number sent a hoax last month too.",
+      "injectedBy": "provocateur",
+      "contradictedBy": [
+        "ev-d014-4"
+      ],
+      "district": "market",
+      "simple": {
+        "title": "The “burn it” message",
+        "claim": "A message says sellers bought petrol to burn the bulldozer.",
+        "resolutionNote": "The sellers planned a sit-down. The number sent a hoax before.",
+        "caption": "A message with a flame emoji"
+      }
+    },
+    {
+      "id": "ev-d014-4",
+      "title": "Vendors’ union resolution",
+      "source": "Street vendors’ union",
+      "sourceType": "organizer",
+      "time": "08:00",
+      "claim": "The union resolves to sit down in the lane with certificates in hand and to keep the hospital-side footpath clear.",
+      "initialState": "unverified",
+      "truth": "true",
+      "resolvedState": "corroborated",
+      "metadata": [
+        {
+          "label": "Plan",
+          "value": "Sit-down with certificates"
+        },
+        {
+          "label": "Footpath",
+          "value": "Kept clear"
+        }
+      ],
+      "visual": {
+        "type": "document",
+        "caption": "A handwritten resolution with signatures"
+      },
+      "resolutionNote": "The vendors planned a peaceful sit-down and kept a footpath clear.",
+      "availableAt": 8,
+      "district": "market",
+      "simple": {
+        "title": "The sellers’ plan",
+        "claim": "The union will sit in the lane with certificates and keep the footpath clear.",
+        "resolutionNote": "A peaceful sit-down with the footpath kept clear.",
+        "caption": "A handwritten plan with signatures"
+      }
+    },
+    {
+      "id": "ev-d014-5",
+      "title": "Engineer’s phone log",
+      "source": "Works office IT",
+      "sourceType": "official",
+      "time": "09:30",
+      "claim": "Four calls between the engineer and the mall’s site office in the two days before the notice.",
+      "initialState": "verified",
+      "truth": "true",
+      "resolvedState": "verified",
+      "metadata": [
+        {
+          "label": "Calls",
+          "value": "4 in two days"
+        },
+        {
+          "label": "Log",
+          "value": "Office exchange, purged weekly"
+        }
+      ],
+      "visual": {
+        "type": "ledger",
+        "caption": "A call log with four highlighted rows"
+      },
+      "resolutionNote": "The engineer spoke to the mall four times before issuing the notice. The log is purged weekly.",
+      "availableAt": 20,
+      "district": "civic",
+      "perishable": true,
+      "simple": {
+        "title": "The engineer’s call log",
+        "claim": "The engineer called the mall four times before the notice.",
+        "resolutionNote": "Four calls to the mall. The log is deleted weekly.",
+        "caption": "A call log with four rows marked"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d014-1",
+      "title": "Noon",
+      "situation": "Three hundred vendors are sitting in the lane with their certificates. The bulldozer’s engine is running. The notice has no order number.",
+      "district": "market",
+      "expiresAfter": 22,
+      "defaultOption": "o-d014-1-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d014-1-stay",
+          "title": "Suspend the notice: no order, no committee",
+          "preview": "You stop the eviction in writing pending the committee and a hearing.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The engine stops. The vendors open their stalls.",
+          "requiresEvidence": [
+            "ev-d014-1"
+          ],
+          "setsFlags": [
+            "acknowledged",
+            "checked",
+            "notice-suspended"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "legal"
+            }
+          ]
+        },
+        {
+          "id": "o-d014-1-meet",
+          "title": "Meet the union in the lane",
+          "preview": "You hear the vendors and promise a hearing date today.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "The lane sees you sit where they sit. The bulldozer idles.",
+          "setsFlags": [
+            "acknowledged"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "dialogue"
+            }
+          ]
+        },
+        {
+          "id": "o-d014-1-bulldoze",
+          "title": "Proceed with the clearance",
+          "preview": "The bulldozer moves; carts are crushed; police hold the vendors back.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4,
+            "economy": -8
+          },
+          "consequence": "Three hundred livelihoods are flattened on an unsigned notice.",
+          "setsFlags": [
+            "cleared",
+            "bulldozed"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "market",
+              "incident": "vandalism"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d014-1-wait",
+          "title": "Let the deadline pass without a word",
+          "preview": "Nobody confirms or cancels; the engine keeps running.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Vendors do not know whether to pack or sell."
+        }
+      ],
+      "triggerAt": 4,
+      "simple": {
+        "title": "Noon",
+        "situation": "Three hundred sellers sit in the lane with certificates. The bulldozer’s engine is running.",
+        "options": {
+          "o-d014-1-stay": {
+            "title": "Stop the eviction: no legal order",
+            "preview": "You halt it in writing until the committee meets.",
+            "consequence": "The engine stops. The stalls open."
+          },
+          "o-d014-1-meet": {
+            "title": "Meet the sellers in the lane",
+            "preview": "You listen and promise a hearing date today.",
+            "consequence": "They see you sit where they sit."
+          },
+          "o-d014-1-bulldoze": {
+            "title": "Go ahead with the bulldozer",
+            "preview": "Carts are crushed. Police hold the sellers back.",
+            "consequence": "Three hundred livelihoods flattened on an unsigned note."
+          },
+          "o-d014-1-wait": {
+            "title": "Say nothing before noon",
+            "preview": "Nobody confirms or cancels. The engine runs.",
+            "consequence": "Sellers do not know whether to pack."
+          }
+        }
+      }
+    },
+    {
+      "id": "d014-2",
+      "title": "Who ordered this?",
+      "situation": "The notice came from a junior engineer. His phone log shows calls to the mall. The log is purged weekly.",
+      "district": "civic",
+      "expiresAfter": 24,
+      "defaultOption": "o-d014-2-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d014-2-log",
+          "title": "Preserve the call log and open an inquiry",
+          "preview": "The log is sealed; the engineer is asked to explain the calls.",
+          "authority": "Due process: establish the facts before acting on them",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 7,
+            "trust": 2,
+            "grievance": 2
+          },
+          "consequence": "The question of who ordered this has a file.",
+          "requiresEvidence": [
+            "ev-d014-5"
+          ],
+          "setsFlags": [
+            "checked",
+            "inquiry-opened"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "investigate"
+            }
+          ]
+        },
+        {
+          "id": "o-d014-2-committee",
+          "title": "Convene the vending committee this week",
+          "preview": "The committee meets Thursday with vendor and mall representatives.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The decision goes to the body that is allowed to make it.",
+          "setsFlags": [
+            "served",
+            "committee-called"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "civic",
+              "action": "legal"
+            }
+          ]
+        },
+        {
+          "id": "o-d014-2-accuse",
+          "title": "Announce the mall bribed the engineer",
+          "preview": "A statement names the mall as having bought the eviction.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "An accusation of bribery on the strength of a call log.",
+          "falseAccusationEffects": {
+            "freedom": -10,
+            "trust": -10,
+            "evidence": -8
+          },
+          "requiresEvidence": [
+            "ev-d014-5"
+          ]
+        },
+        {
+          "id": "o-d014-2-wait",
+          "title": "Let the log purge",
+          "preview": "The calls disappear on schedule.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Nobody will ever know who asked for the notice."
+        }
+      ],
+      "triggerAt": 24,
+      "simple": {
+        "title": "Who ordered this?",
+        "situation": "A junior engineer sent the notice. His phone log shows calls to the mall. It is deleted weekly.",
+        "options": {
+          "o-d014-2-log": {
+            "title": "Save the call log, start an inquiry",
+            "preview": "The log is sealed. The engineer must explain the calls.",
+            "consequence": "The question has a file now."
+          },
+          "o-d014-2-committee": {
+            "title": "Call the vending committee this week",
+            "preview": "The committee meets Thursday with sellers and the mall.",
+            "consequence": "The decision goes to the right body."
+          },
+          "o-d014-2-accuse": {
+            "title": "Say the mall paid for it",
+            "preview": "A statement names the mall as the buyer.",
+            "consequence": "A bribery charge on the strength of a call log."
+          },
+          "o-d014-2-wait": {
+            "title": "Let the log get deleted",
+            "preview": "The calls disappear on schedule.",
+            "consequence": "Nobody will know who asked for the notice."
+          }
+        }
+      }
+    },
+    {
+      "id": "d014-3",
+      "title": "Petrol",
+      "situation": "A message says vendors will burn the bulldozer. Officers want to clear the lane before noon “to prevent arson”. The union has the footpath clear.",
+      "district": "market",
+      "expiresAfter": 22,
+      "defaultOption": "o-d014-3-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d014-3-sitdown",
+          "title": "Allow the sit-down; move the bulldozer away",
+          "preview": "The machine leaves; the lane keeps its stalls and its footpath.",
+          "authority": "Article 19(1)(b): peaceful assembly, policed in proportion",
+          "tags": [
+            "protect-assembly",
+            "proportionate"
+          ],
+          "effects": {
+            "freedom": 5,
+            "safety": 3,
+            "trust": 2,
+            "grievance": 1
+          },
+          "consequence": "With no bulldozer there is nothing to burn.",
+          "setsFlags": [
+            "protected"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "protect"
+            }
+          ]
+        },
+        {
+          "id": "o-d014-3-targeted",
+          "title": "Act on the specific threat: find the sender",
+          "preview": "The number that sent the hoax is traced; the lane is left alone.",
+          "authority": "Proportionality: act against the few causing harm, not the many",
+          "tags": [
+            "force",
+            "proportionate",
+            "legal-process"
+          ],
+          "effects": {
+            "safety": 6,
+            "freedom": -2,
+            "trust": 1
+          },
+          "consequence": "One phone, one summons. Three hundred stalls untouched.",
+          "disproportionateEffects": {
+            "freedom": -8,
+            "trust": -7
+          },
+          "proportionateIf": {
+            "flag": "complication-live"
+          },
+          "requiresEvidence": [
+            "ev-d014-3"
+          ],
+          "mapEffects": [
+            {
+              "kind": "action",
+              "district": "market",
+              "action": "legal"
+            }
+          ]
+        },
+        {
+          "id": "o-d014-3-clear",
+          "title": "Clear the lane “to prevent arson”",
+          "preview": "Police remove the vendors and their carts.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4
+          },
+          "consequence": "A peaceful sit-down is cleared because of a hoax.",
+          "setsFlags": [
+            "cleared"
+          ],
+          "mapEffects": [
+            {
+              "kind": "incident",
+              "district": "market",
+              "incident": "clash"
+            }
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d014-3-wait",
+          "title": "Keep the bulldozer there, watched",
+          "preview": "The machine stays; so does the fear.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Someone throws a bottle at it after dark."
+        }
+      ],
+      "triggerAt": 46,
+      "rightsMomentId": "rm-d014",
+      "simple": {
+        "title": "Petrol",
+        "situation": "A message says sellers will burn the bulldozer. Officers want to clear the lane first.",
+        "options": {
+          "o-d014-3-sitdown": {
+            "title": "Allow the sit-down; move the bulldozer",
+            "preview": "The machine leaves. The lane keeps its stalls and footpath.",
+            "consequence": "With no bulldozer there is nothing to burn."
+          },
+          "o-d014-3-targeted": {
+            "title": "Find who sent the threat",
+            "preview": "The hoax number is traced. The lane is left alone.",
+            "consequence": "One phone, one summons. Three hundred stalls untouched."
+          },
+          "o-d014-3-clear": {
+            "title": "Clear the lane to “prevent arson”",
+            "preview": "Police remove the sellers and their carts.",
+            "consequence": "A peaceful sit-down is cleared over a hoax."
+          },
+          "o-d014-3-wait": {
+            "title": "Keep the bulldozer there, watched",
+            "preview": "The machine stays. So does the fear.",
+            "consequence": "Someone throws a bottle at it after dark."
+          }
+        }
+      }
+    },
+    {
+      "id": "d014-4",
+      "title": "The hearing",
+      "situation": "The committee can meet Thursday. The mall wants the lane. The vendors have certificates. Someone has to say what happens until then.",
+      "district": "civic",
+      "expiresAfter": 24,
+      "defaultOption": "o-d014-4-wait",
+      "urgency": "medium",
+      "options": [
+        {
+          "id": "o-d014-4-hearing",
+          "title": "Publish the hearing date and the rules",
+          "preview": "Thursday, both sides, certificates respected until a decision.",
+          "authority": "Duty of candour: say what is known and what is not",
+          "tags": [
+            "transparent",
+            "communication"
+          ],
+          "effects": {
+            "trust": 6,
+            "evidence": 3,
+            "grievance": 5
+          },
+          "consequence": "The lane trades until a lawful decision, and everyone knows it.",
+          "requiresEvidence": [
+            "ev-d014-1"
+          ],
+          "setsFlags": [
+            "plan-published",
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d014-4-redesign",
+          "title": "Agree a lane plan with vendors and the mall",
+          "preview": "Stalls on one side, a wider footpath, mall access kept.",
+          "authority": "Duty to hear grievances; Article 19(1)(a) free expression",
+          "tags": [
+            "dialogue",
+            "communication"
+          ],
+          "effects": {
+            "grievance": 7,
+            "trust": 5,
+            "freedom": 2
+          },
+          "consequence": "The lane becomes a plan both sides can live with.",
+          "setsFlags": [
+            "acknowledged"
+          ]
+        },
+        {
+          "id": "o-d014-4-accuse",
+          "title": "Declare the vendors’ certificates forged",
+          "preview": "A statement says most certificates are fake.",
+          "authority": "Due process: a public charge needs verified evidence",
+          "tags": [
+            "accusation",
+            "legal-process"
+          ],
+          "effects": {
+            "evidence": 5,
+            "trust": 4,
+            "safety": 3,
+            "grievance": 2
+          },
+          "consequence": "Two hundred and sixty valid certificates are called forgeries.",
+          "falseAccusationEffects": {
+            "freedom": -14,
+            "trust": -12,
+            "evidence": -9
+          },
+          "requiresEvidence": [
+            "ev-d014-3"
+          ]
+        },
+        {
+          "id": "o-d014-4-wait",
+          "title": "Leave the notice “under review”",
+          "preview": "No date, no rules; the engineer’s notice still hangs on the carts.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "Vendors pack up every night in case."
+        }
+      ],
+      "triggerAt": 70,
+      "simple": {
+        "title": "The hearing",
+        "situation": "The committee can meet Thursday. The mall wants the lane. The sellers have permits.",
+        "options": {
+          "o-d014-4-hearing": {
+            "title": "Publish the hearing date and rules",
+            "preview": "Thursday, both sides. Certificates count until a decision.",
+            "consequence": "The lane trades until a lawful decision."
+          },
+          "o-d014-4-redesign": {
+            "title": "Agree a lane plan with both",
+            "preview": "Stalls on one side, a wider path, mall access kept.",
+            "consequence": "A plan both sides can live with."
+          },
+          "o-d014-4-accuse": {
+            "title": "Call the certificates fake",
+            "preview": "A statement says most certificates are forged.",
+            "consequence": "Two hundred and sixty valid permits are called fake."
+          },
+          "o-d014-4-wait": {
+            "title": "Leave it “under review”",
+            "preview": "No date. No rules. The notice still hangs there.",
+            "consequence": "Sellers pack up every night, just in case."
+          }
+        }
+      }
+    },
+    {
+      "id": "d014-bait",
+      "title": "“Clear it tonight, hearing later”",
+      "situation": "A senior voice proposes clearing the lane overnight and holding the hearing afterwards “to restore order”.",
+      "district": "market",
+      "expiresAfter": 20,
+      "defaultOption": "o-d014-bait-wait",
+      "urgency": "high",
+      "options": [
+        {
+          "id": "o-d014-bait-clear",
+          "title": "Clear the lane tonight",
+          "preview": "Carts are removed in the dark; the hearing is promised for later.",
+          "authority": "Article 19(2)–(3): restrictions must be reasonable and specific",
+          "tags": [
+            "suppressive",
+            "disproportionate"
+          ],
+          "effects": {
+            "freedom": -12,
+            "trust": -9,
+            "safety": 4,
+            "grievance": -4,
+            "economy": -7
+          },
+          "consequence": "The hearing becomes a formality about an empty lane.",
+          "setsFlags": [
+            "cleared",
+            "bulldozed"
+          ],
+          "delayed": [
+            {
+              "afterTicks": 18,
+              "effects": {
+                "safety": -4,
+                "trust": -3
+              },
+              "message": "The crackdown hardens people who had stayed out of it. More arrive, angrier."
+            }
+          ]
+        },
+        {
+          "id": "o-d014-bait-footpath",
+          "title": "Enforce the footpath, leave the stalls",
+          "preview": "Officers keep the pedestrian path clear; trading continues.",
+          "authority": "Duty to keep essential services running",
+          "tags": [
+            "service",
+            "relief"
+          ],
+          "effects": {
+            "safety": 5,
+            "economy": 5,
+            "grievance": 3
+          },
+          "consequence": "The one real complaint, the footpath, is fixed without evictions.",
+          "setsFlags": [
+            "served"
+          ]
+        },
+        {
+          "id": "o-d014-bait-wait",
+          "title": "Hold the proposal",
+          "preview": "No clearance, no footpath enforcement, no answer.",
+          "authority": "No action taken",
+          "tags": [
+            "wait"
+          ],
+          "effects": {
+            "grievance": -4,
+            "trust": -3,
+            "safety": -2,
+            "economy": -1
+          },
+          "consequence": "The bulldozer sleeps at the lane’s end."
+        }
+      ],
+      "simple": {
+        "title": "“Clear it tonight”",
+        "situation": "A senior voice wants the lane cleared overnight and the hearing held later.",
+        "options": {
+          "o-d014-bait-clear": {
+            "title": "Clear the lane tonight",
+            "preview": "Carts are removed in the dark. The hearing comes later.",
+            "consequence": "The hearing becomes a formality about an empty lane."
+          },
+          "o-d014-bait-footpath": {
+            "title": "Keep the footpath clear, leave stalls",
+            "preview": "Officers keep the walking path clear. Trading goes on.",
+            "consequence": "The real complaint is fixed without evictions."
+          },
+          "o-d014-bait-wait": {
+            "title": "Hold the proposal",
+            "preview": "No clearance. No footpath fix. No answer.",
+            "consequence": "The bulldozer sleeps at the lane’s end."
+          }
+        }
+      }
+    }
+  ],
+  "rightsMoments": [
+    {
+      "id": "rm-d014",
+      "question": "Licensed vendors were told to clear a notified vending zone by noon, with no hearing. Is that lawful?",
+      "options": [
+        {
+          "id": "a",
+          "text": "No. Livelihood and due process require a lawful order, a hearing, and the procedure for notified vending zones.",
+          "correct": true,
+          "feedback": "Correct. The right to livelihood is protected by fair procedure; a one-line notice is not one."
+        },
+        {
+          "id": "b",
+          "text": "Yes. The municipality owns the pavement and can clear it at will.",
+          "correct": false,
+          "feedback": "Public ownership does not remove the duty of fair procedure toward licensed vendors."
+        },
+        {
+          "id": "c",
+          "text": "Yes, if a hearing is held afterwards.",
+          "correct": false,
+          "feedback": "A hearing after the carts are crushed cannot restore what was taken."
+        }
+      ],
+      "principle": "Article 21 protects livelihood through fair procedure; street vending in notified zones is governed by law requiring committee decisions and hearings before eviction.",
+      "why": "The notice had no order number and no committee; stopping it cost nothing and prevented an unlawful clearance.",
+      "source": {
+        "label": "Constitution of India, Articles 21 and 22 (India Code)",
+        "url": "https://www.indiacode.nic.in/"
+      },
+      "contentDate": "2026-10-24",
+      "simple": {
+        "question": "Licensed sellers were told to leave a legal selling zone by noon, with no hearing. Is that allowed?",
+        "options": {
+          "a": "No. They need a lawful order and a hearing first.",
+          "b": "Yes. The city owns the pavement.",
+          "c": "Yes, if a hearing happens afterwards."
+        },
+        "feedback": {
+          "a": "Yes! People’s livelihoods need fair steps first.",
+          "b": "No. Owning the pavement does not cancel fair process.",
+          "c": "A hearing after the carts are crushed is too late."
+        },
+        "principle": "People’s livelihoods are protected. Nobody can be evicted without a lawful order and a hearing.",
+        "why": "The notice had no order and no committee. Stopping it cost nothing."
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "e-d014-comp",
+      "at": -1,
+      "kind": "incident",
+      "message": "A bottle smashes against the bulldozer; a dozen young men who are not vendors cheer.",
+      "simple": "A bottle hits the bulldozer. Strangers cheer.",
+      "effects": {
+        "safety": -5,
+        "trust": -1
+      },
+      "mapEffects": [
+        {
+          "kind": "incident",
+          "district": "market",
+          "incident": "clash"
+        }
+      ]
+    },
+    {
+      "id": "e-d014-mall",
+      "at": 30,
+      "kind": "news",
+      "message": "The mall’s opening banner goes up across the lane: “Grand opening Saturday”.",
+      "simple": "The mall’s opening banner goes up across the lane.",
+      "effects": {
+        "grievance": -2
+      },
+      "mapEffects": [
+        {
+          "kind": "mood",
+          "district": "market",
+          "mood": "tense"
+        }
+      ]
+    }
+  ],
+  "complication": {
+    "opponent": "provocateur",
+    "earliest": 36,
+    "latest": 56,
+    "eventId": "e-d014-comp",
+    "baitDecisionId": "d014-bait"
+  },
+  "resolution": {
+    "resolved": [
+      {
+        "condition": {
+          "flag": "notice-suspended"
+        },
+        "text": "The unlawful notice was suspended before the bulldozer moved.",
+        "simple": "The unlawful notice was stopped before the bulldozer moved."
+      },
+      {
+        "condition": {
+          "flag": "inquiry-opened"
+        },
+        "text": "The calls between the engineer and the mall are now an inquiry file.",
+        "simple": "The engineer’s calls to the mall are being investigated."
+      },
+      {
+        "condition": {
+          "flag": "plan-published"
+        },
+        "text": "A hearing date and interim rules were published.",
+        "simple": "A hearing date and interim rules were published."
+      }
+    ],
+    "unresolved": [
+      {
+        "condition": {
+          "flag": "bulldozed"
+        },
+        "text": "The lane was cleared without an order or a hearing.",
+        "simple": "The lane was cleared without a lawful order."
+      },
+      {
+        "condition": {
+          "notFlag": "inquiry-opened"
+        },
+        "text": "Nobody knows who asked for the notice; the log is gone.",
+        "simple": "Nobody knows who asked for the notice."
+      },
+      {
+        "condition": {
+          "notFlag": "plan-published"
+        },
+        "text": "The vendors still do not know if tomorrow is safe.",
+        "simple": "The sellers still do not know about tomorrow."
+      }
+    ],
+    "rightsProtected": [
+      {
+        "condition": {
+          "flag": "protected"
+        },
+        "text": "A peaceful sit-down was allowed while the threat was traced.",
+        "simple": "A peaceful sit-down was allowed."
+      },
+      {
+        "condition": {
+          "flag": "acknowledged"
+        },
+        "text": "The vendors were met in the lane, not served at dawn.",
+        "simple": "The sellers were met in the lane."
+      }
+    ],
+    "rightsHarmed": [
+      {
+        "condition": {
+          "flag": "bulldozed"
+        },
+        "text": "Livelihoods were destroyed without due process.",
+        "simple": "Livelihoods were destroyed without fair process."
+      },
+      {
+        "condition": {
+          "flag": "cleared"
+        },
+        "text": "A lawful gathering was cleared on the strength of a hoax.",
+        "simple": "A lawful gathering was cleared over a hoax."
+      }
+    ],
+    "improvements": [
+      {
+        "condition": {
+          "notFlag": "notice-suspended"
+        },
+        "text": "Read the notice: no order number means no eviction.",
+        "simple": "Read the notice. No order means no eviction."
+      },
+      {
+        "condition": {
+          "notFlag": "inquiry-opened"
+        },
+        "text": "Preserve the call log before the weekly purge.",
+        "simple": "Save the call log before it is deleted."
+      },
+      {
+        "condition": {},
+        "text": "Remove the thing that could be burned, not the people accused of planning to burn it.",
+        "simple": "Move the bulldozer, not the people."
+      }
+    ],
+    "closing": {
+      "good": "The bulldozer went back to the depot, the lane traded all day, and the engineer’s phone is now the city’s business.",
+      "mixed": "The eviction stopped, but the hearing is a promise and the mall’s banner is still up.",
+      "poor": "Three hundred carts were crushed on a notice nobody signed, and the hearing will be about a lane that no longer exists."
+    }
+  },
+  "simple": {
+    "title": "Eviction at Dawn",
+    "subtitle": "Street sellers got eviction notices at dawn.",
+    "briefing": {
+      "grievance": "Three hundred licensed sellers were told to leave by noon. No law was named. No hearing offered.",
+      "knownFacts": [
+        "The lane was made a legal vending zone two years ago. Most sellers have certificates.",
+        "A junior engineer issued the notice alone.",
+        "A mall opens across the lane next week."
+      ],
+      "unverifiedClaims": [
+        "A post says the mall paid for this.",
+        "A message says the sellers will burn the bulldozer."
+      ],
+      "responsibility": "You run the city works office and police link.",
+      "objective": "Stop an unlawful eviction. Keep the lane open and calm. Give the sellers a hearing."
+    },
+    "closing": {
+      "good": "The bulldozer left. The lane traded. The engineer’s calls are being checked.",
+      "mixed": "The eviction stopped. The hearing is only a promise.",
+      "poor": "Carts were crushed on a notice nobody signed."
+    },
+    "coldOpen": [
+      "Eviction notices on 300 carts.",
+      "No hearing date. No law named.",
+      "A bulldozer waits at the lane’s end."
+    ]
+  }
+}
