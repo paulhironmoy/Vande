@@ -37,3 +37,7 @@ dist-verify/
 backend/.wrangler/
 backend/.dev.vars
 backend/.dev.vars.*
+android/.kotlin/
+dist-r1/
+dist-r2/
+dist-r3/
