@@ -46,7 +46,7 @@ export function DailyScreen() {
               About 3 minutes
             </span>
             <span>{DIFFICULTY_META[spec.difficulty]?.label ?? 'Standard'} difficulty</span>
-            <span>One scenario, one attempt counts</span>
+            <span>One scenario, your best attempt counts</span>
           </div>
         </header>
 

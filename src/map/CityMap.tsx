@@ -251,7 +251,7 @@ function DistrictButton({ district: d, pos, selected, label, side, onSelect }: D
       className={styles.district}
       style={{ left: `${pos.x}px`, top: `${pos.y}px` }}
       data-testid={`map-district-${d.id}`}
-      aria-label={districtAriaLabel(d)}
+      aria-label={label === d.name ? districtAriaLabel(d) : `${label} — ${districtAriaLabel(d)}`}
       aria-pressed={selected}
       onClick={() => onSelect(d.id)}
     >

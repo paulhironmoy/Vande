@@ -26,8 +26,8 @@ export function EvidenceCard({ item, state, onOpen, isNew }: EvidenceCardProps) 
         className={styles.card}
         data-testid={`evidence-card-${item.id}`}
         onClick={() => onOpen(item.id)}
-        aria-label={`${item.title}. ${SOURCE_LABEL[item.sourceType]}: ${item.source}, ${item.time}. ${item.claim} Status ${state.state}.${isNew ? ' New.' : ''}`}
       >
+        <span className="sr-only">{`${item.title}. ${SOURCE_LABEL[item.sourceType]}. `}</span>
         <EvidenceVisual type={item.visual.type} caption={item.visual.caption} size="thumb" className={styles.thumb} />
         <div className={styles.body}>
           <div className={styles.top}>

@@ -8,6 +8,8 @@ import { PACE_MS } from '@/engine';
 import { useApp } from './store';
 
 const INTERVAL_MS = 250;
+/** Delay between the final tick and the chapter-result screen. */
+export const END_BEAT_MS = 1100;
 
 export function useGameLoop(): void {
   useEffect(() => {
@@ -54,9 +56,12 @@ export function useGameLoop(): void {
     };
   }, []);
 
-  // When the engine reaches the end of the chapter, record the result once.
-  const ended = useApp((s) => s.game?.status === 'ended');
+  // When the engine reaches the end of the chapter, record the result once — after a short beat so the
+  // "Chapter complete" state and the closing cue are perceptible. endChapter is idempotent.
+  const ended = useApp((s) => s.game?.status === 'ended' && s.screen.name === 'play');
   useEffect(() => {
-    if (ended) useApp.getState().endChapter();
+    if (!ended) return;
+    const id = window.setTimeout(() => useApp.getState().endChapter(), END_BEAT_MS);
+    return () => window.clearTimeout(id);
   }, [ended]);
 }

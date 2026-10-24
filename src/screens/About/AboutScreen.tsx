@@ -57,7 +57,8 @@ function Privacy() {
       <h2>Nothing leaves your device</h2>
       <p>
         VANDE has no accounts, no servers, no analytics and no advertising. Your campaign progress, results, history, personal bests, Republic
-        condition and settings are stored only in your browser or in the Android app's local storage (IndexedDB).
+        condition and settings are stored only in your browser or in the Android app's local storage (IndexedDB, with a localStorage fallback when
+        IndexedDB is unavailable, for example in some private-browsing modes).
       </p>
       <h2>What is stored locally</h2>
       <ul>
@@ -70,11 +71,14 @@ function Privacy() {
       <p>
         Result cards and challenge links are generated on your device. A challenge link contains only the scenario, a seed number, the difficulty,
         the selected opponents and your score — never your name or device details. Sharing uses your device's own share sheet; nothing is sent to us.
+        On Android the result image is written to the app's own cache folder for the share sheet to read; you can clear it from system settings at
+        any time.
       </p>
       <h2>Offline by design</h2>
       <p>
-        After the first visit the game is cached so it works without a connection. The only network requests are the game's own static files.
-        Official-source links in rights moments open external government or court websites with their own privacy policies.
+        After the first visit the game is cached so it works without a connection. The only network requests are the game's own static files;
+        fonts are bundled with the game and are never fetched from a third party. Official-source links in rights moments and the support links open
+        external websites (government, court and GitHub) with their own privacy policies.
       </p>
       <h2>Export and deletion</h2>
       <p>
@@ -106,7 +110,12 @@ function Accessibility() {
       </ul>
       <h2>Known limitations</h2>
       <ul>
-        <li>The animated city map is decorative reinforcement; every event it shows is also described in the feed and in captions.</li>
+        <li>
+          The animated city map is decorative reinforcement; every district is also an ordinary labelled button, and every event the map shows is
+          described in the feed, in the live region and in captions.
+        </li>
+        <li>The Republic Pulse chart is summarised in text; the six numeric values are available on tap, focus or hover, or permanently from Settings.</li>
+        <li>Screen-reader behaviour has been verified with automated checks (axe) and keyboard testing, not yet with every screen reader and browser pairing.</li>
         <li>Very old Android WebViews without WebGL show a simplified static map.</li>
       </ul>
       <h2>Tell us what is missing</h2>
@@ -125,10 +134,12 @@ const DEPS: { name: string; licence: string; url: string }[] = [
   { name: 'Zustand', licence: 'MIT', url: 'https://github.com/pmndrs/zustand' },
   { name: 'idb', licence: 'ISC', url: 'https://github.com/jakearchibald/idb' },
   { name: 'Workbox & vite-plugin-pwa', licence: 'MIT', url: 'https://developer.chrome.com/docs/workbox' },
-  { name: 'Capacitor', licence: 'MIT', url: 'https://capacitorjs.com/' },
+  { name: 'Capacitor and plugins (App, Haptics, Share, Filesystem, Splash Screen, Status Bar)', licence: 'MIT', url: 'https://capacitorjs.com/' },
+  { name: 'Fontsource (font packaging)', licence: 'MIT', url: 'https://fontsource.org/' },
   { name: 'Manrope (Mikhail Sharanda)', licence: 'SIL Open Font License 1.1', url: 'https://fonts.google.com/specimen/Manrope' },
   { name: 'Noto Sans Devanagari (Google)', licence: 'SIL Open Font License 1.1', url: 'https://fonts.google.com/noto/specimen/Noto+Sans+Devanagari' },
   { name: 'Vitest & Playwright (development)', licence: 'MIT / Apache-2.0', url: 'https://vitest.dev/' },
+  { name: 'axe-core (development accessibility checks)', licence: 'MPL-2.0', url: 'https://github.com/dequelabs/axe-core' },
 ];
 
 function Attribution() {

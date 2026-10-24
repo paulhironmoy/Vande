@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { __resetPersistenceForTests, storage } from '@/app/persistence';
 import { __resetStoreForTests, useApp } from '@/app/store';
 import { SCENARIO_IDS } from '@/engine/types';
+import { decodeChallenge } from '@/engine';
 
 async function freshStore() {
   // close + wipe IndexedDB (fake-indexeddb) between tests
@@ -191,6 +192,119 @@ describe('app store', () => {
     expect(useApp.getState().settings.highContrast).toBe(false);
     expect(useApp.getState().firstRun).toBe(true);
     expect(await storage.getSettings()).toBeUndefined();
+  });
+
+  it('records a challenge code that reproduces the run configuration and ends a chapter only once', () => {
+    const s = useApp.getState();
+    s.completeIntro();
+    s.beginCampaignSetup();
+    useApp.getState().setIntentOpponents(['provocateur', 'sabotage', 'overreaction']);
+    useApp.getState().setIntentDifficulty('measured');
+    useApp.getState().confirmSetup();
+    const seed = useApp.getState().campaign!.config.seed;
+    for (let chapter = 0; chapter < SCENARIO_IDS.length; chapter++) {
+      useApp.getState().startChapter();
+      useApp.getState().tickGame(useApp.getState().game!.duration);
+      useApp.getState().endChapter();
+      useApp.getState().endChapter(); // second call must be a no-op
+      expect(useApp.getState().campaign?.completed.length).toBe(chapter + 1);
+      useApp.getState().nextChapter();
+    }
+    const result = useApp.getState().lastCampaign!;
+    const spec = decodeChallenge(result.challengeCode)!;
+    expect(spec).not.toBeNull();
+    expect(spec.scenario).toBe('campaign');
+    expect(spec.seed).toBe(seed);
+    expect(spec.difficulty).toBe('measured');
+    expect([...spec.opponents].sort()).toEqual(['overreaction', 'provocateur', 'sabotage']);
+    expect(spec.score).toBe(result.score);
+    // Replaying from the code reproduces chapter one exactly.
+    expect(useApp.getState().beginChallenge(result.challengeCode)).toBe(true);
+    const g = useApp.getState().game!;
+    expect(g.config.seed).toBe(seed);
+    expect(g.config.difficulty).toBe('measured');
+    expect(g.config.scenarioId).toBe(SCENARIO_IDS[0]);
+    expect(useApp.getState().plan?.scenarioIds).toEqual([...SCENARIO_IDS]);
+  });
+
+  it('keeps the best daily score for a calendar day across repeat attempts', () => {
+    const s = useApp.getState();
+    s.completeIntro();
+    s.beginDailySetup();
+    const date = useApp.getState().plan!.dailyDate!;
+    // A better earlier attempt on the same day must not be overwritten by a weaker one.
+    useApp.setState({
+      daily: [{ date, score: 99, outcome: 'resilient', completedAt: '2026-10-23T08:00:00.000Z' }],
+      bests: { ...useApp.getState().bests, daily: { score: 99, date } },
+    });
+    useApp.getState().startChapter();
+    useApp.getState().tickGame(useApp.getState().game!.duration);
+    useApp.getState().endChapter();
+    useApp.getState().nextChapter();
+    const st = useApp.getState();
+    expect(st.lastCampaign!.score).toBeLessThan(99);
+    expect(st.daily.length).toBe(1);
+    expect(st.daily[0]).toMatchObject({ date, score: 99 });
+    expect(st.bests.daily?.score).toBe(99);
+    expect(st.history[0].kind).toBe('daily');
+  });
+
+  it('leaves a paused chapter resumable: back from play pauses, back again goes home, continue returns to play', () => {
+    const s = useApp.getState();
+    s.completeIntro();
+    s.beginCampaignSetup();
+    s.confirmSetup();
+    s.startChapter();
+    s.tickGame(12);
+    expect(useApp.getState().back()).toBe(true);
+    expect(useApp.getState().game?.status).toBe('paused');
+    expect(useApp.getState().screen).toEqual({ name: 'play' });
+    expect(useApp.getState().back()).toBe(true);
+    expect(useApp.getState().screen).toEqual({ name: 'home' });
+    expect(useApp.getState().game?.tick).toBe(12);
+    useApp.getState().continueCampaign();
+    expect(useApp.getState().screen).toEqual({ name: 'play' });
+    expect(useApp.getState().game?.status).toBe('paused');
+  });
+
+  it('discards a corrupt saved session with a notice instead of crashing hydration', async () => {
+    await storage.setSession({ progress: { id: 'x', chapterIndex: 7, completed: 'nope' }, plan: { scenarioIds: ['not-a-scenario'] } } as never);
+    window.history.replaceState(null, '', '/play');
+    __resetStoreForTests();
+    await useApp.getState().hydrate();
+    const st = useApp.getState();
+    expect(st.hydrated).toBe(true);
+    expect(st.campaign).toBeUndefined();
+    expect(st.game).toBeUndefined();
+    expect(st.screen).toEqual({ name: 'home' });
+    expect(st.toasts.some((t) => /could not be restored/i.test(t.text))).toBe(true);
+    await new Promise((r) => setTimeout(r, 20));
+    expect(await storage.getSession()).toBeUndefined();
+  });
+
+  it('replays a daily as a replay run without touching daily records or bests', () => {
+    const s = useApp.getState();
+    s.completeIntro();
+    s.beginDailySetup();
+    useApp.getState().startChapter();
+    useApp.getState().tickGame(useApp.getState().game!.duration);
+    useApp.getState().endChapter();
+    useApp.getState().nextChapter();
+    const before = useApp.getState();
+    const dailyBefore = before.daily;
+    const bestsBefore = before.bests;
+    useApp.getState().replayLast();
+    expect(useApp.getState().campaign?.config.mode).toBe('replay');
+    useApp.getState().startChapter();
+    useApp.getState().tickGame(useApp.getState().game!.duration);
+    useApp.getState().endChapter();
+    useApp.getState().nextChapter();
+    const after = useApp.getState();
+    expect(after.daily).toEqual(dailyBefore);
+    expect(after.bests.daily).toEqual(bestsBefore.daily);
+    expect(after.bests.campaign).toEqual(bestsBefore.campaign);
+    expect(after.history.length).toBe(2);
+    expect(after.republic.crises).toBeGreaterThan(before.republic.crises - 1);
   });
 
   it('keeps toasts to a small queue and dismisses them', () => {

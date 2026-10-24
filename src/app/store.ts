@@ -196,12 +196,18 @@ interface RestoredSession {
 }
 
 function restoreSession(rec: SessionRecord | undefined): RestoredSession | null {
-  if (!rec?.progress || !rec.plan?.scenarioIds?.length) return null;
+  if (!rec?.progress || !Array.isArray(rec.plan?.scenarioIds) || rec.plan.scenarioIds.length === 0) return null;
   try {
+    const known = SCENARIO_IDS as readonly string[];
+    if (!rec.plan.scenarioIds.every((id) => known.includes(id))) return null;
     const { game: savedGame, ...progress } = rec.progress;
+    if (!Array.isArray(progress.completed) || typeof progress.chapterIndex !== 'number') return null;
+    if (progress.chapterIndex < 0 || progress.chapterIndex >= rec.plan.scenarioIds.length) return null;
+    if (progress.completed.length > progress.chapterIndex + 1) return null;
     let game: GameState | undefined;
     let scenario: Scenario | undefined;
-    if (savedGame && savedGame.version === 1) {
+    if (savedGame) {
+      if (savedGame.version !== 1 || !known.includes(savedGame.config?.scenarioId)) return null;
       scenario = getScenario(savedGame.config.scenarioId);
       game = savedGame.status === 'running' ? reduce(savedGame, { type: 'pause', tick: savedGame.tick }, scenario) : savedGame;
     }
@@ -608,8 +614,12 @@ export const useApp = create<State>()((set, get) => ({
     const history = [entry, ...s.history].slice(0, MAX_HISTORY);
     let daily: DailyRecord[] = s.daily;
     if (mode === 'daily' && plan.dailyDate) {
+      // One record per calendar day; a repeat attempt only replaces it when it scores higher.
       const date = plan.dailyDate;
-      daily = [{ date, score: result.score, outcome: result.outcome, completedAt }, ...s.daily.filter((d) => d.date !== date)].slice(0, 400);
+      const existing = s.daily.find((d) => d.date === date);
+      const record: DailyRecord =
+        existing && existing.score >= result.score ? existing : { date, score: result.score, outcome: result.outcome, completedAt };
+      daily = [record, ...s.daily.filter((d) => d.date !== date)].slice(0, 400);
     }
     set({
       campaign: undefined,
@@ -728,6 +738,11 @@ export const useApp = create<State>()((set, get) => ({
     return JSON.stringify({ app: 'VANDE: Republic Under Pressure', version, exportedAt: nowIso(), data }, null, 2);
   },
 
+  /**
+   * Wipes every local store (IndexedDB or the localStorage fallback) and resets in-memory state.
+   * The app then behaves like a fresh install: settings return to defaults and the intro shows on the next launch.
+   * The current screen is kept so the player sees the confirmation where they triggered it.
+   */
   async deleteAllData() {
     if (persistTimer !== undefined) {
       clearTimeout(persistTimer);
@@ -802,7 +817,10 @@ export const useApp = create<State>()((set, get) => ({
         lastCampaign: resolved.lastCampaign,
         intent: resolved.intent,
       });
-      if (!restored && session) void storage.clearSession().catch(() => undefined);
+      if (!restored && session) {
+        void storage.clearSession().catch(() => undefined);
+        get().toast({ text: 'A saved game from an older version could not be restored and was cleared.', kind: 'warning', duration: 6000 });
+      }
     })();
     return hydratePromise;
   },

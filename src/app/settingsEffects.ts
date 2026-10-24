@@ -22,7 +22,8 @@ export function applySettingsToDocument(settings: Settings, systemReduced = syst
   if (settings.colourBlindSafe) html.setAttribute('data-cb', '1');
   else html.removeAttribute('data-cb');
   html.setAttribute('data-text-scale', String(settings.textScale));
-  html.style.fontSize = `${16 * settings.textScale}px`;
+  // Percentages scale the user's own browser default (often 16px) instead of overriding it.
+  html.style.fontSize = settings.textScale === 1 ? '' : `${Math.round(settings.textScale * 100)}%`;
   const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   if (meta) meta.content = settings.highContrast ? '#050b14' : '#07111F';
   setSoundEnabled(settings.sound);

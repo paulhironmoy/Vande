@@ -272,14 +272,8 @@ export function PlayScreen() {
           >
             <PlayIcon name="tray" size={20} />
             <span className={styles.trayLabel}>Evidence</span>
-            <span className={styles.trayCount} aria-hidden="true">
-              {visibleEvidenceIds.length}
-            </span>
-            {newEvidenceIds.size > 0 ? (
-              <span className={styles.trayNew} aria-hidden="true">
-                {newEvidenceIds.size > 9 ? '9+' : newEvidenceIds.size}
-              </span>
-            ) : null}
+            <span className={styles.trayCount} aria-hidden="true" data-count={visibleEvidenceIds.length} />
+            {newEvidenceIds.size > 0 ? <span className={styles.trayNew} aria-hidden="true" data-count={newEvidenceIds.size > 9 ? '9+' : newEvidenceIds.size} /> : null}
           </button>
           {endedOverlay}
           {briefingOverlay}

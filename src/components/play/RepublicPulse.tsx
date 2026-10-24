@@ -217,6 +217,8 @@ export function RepublicPulse({ pulse, scores, variant = 'full', reducedMotion =
           <g className={styles.dir} data-trend={direction} transform={`translate(${CX}, ${CY + 28})`}>
             <PlayIcon name={TREND_ICON[direction]} size={12} x={-26} y={-9} />
             <text x={-11} y={0} className={styles.dirText}>
+              {/* Leading space keeps the visible text "55 Steady" tokenised like the accessible name (WCAG 2.5.3). */}
+              {' '}
               {TREND_LABEL[direction]}
             </text>
           </g>
