@@ -116,6 +116,23 @@ Known limitations observed on the emulator (web-layer items, tracked by the inte
 briefing and opponent screens let the card text behind them show through; `backdrop-filter` on static cards is the
 likely source of the WebView tile-memory warnings.
 
+### Verified release 1.0.0 (versionCode 1) — final bundle, 24 Oct 2026 (Simple play style default)
+
+| Check | Result |
+| --- | --- |
+| Build | `scripts/build-android.sh --skip-web` on the final `dist/` — Gradle 8.14.3 / AGP 8.13.0 / JDK 21.0.10, `BUILD SUCCESSFUL in 51s` |
+| Artifacts | `release/vande-1.0.0-1-release.apk` 6 654 356 B · `release/vande-1.0.0-1-release.aab` 6 581 367 B · `release/SHA256SUMS-1.0.0-1.txt` |
+| SHA-256 | APK `701109361304aac753d71a3ebcffd2ae13714dea701420fb889b59547946b0f0` · AAB `d6ac41907868c4c87ba323b52478cf63e8be5980f1ac7731392592c77e7e679b` |
+| Signature | Upload key `CN=VANDE Upload Key, OU=VANDE, O=VANDE, L=Kolkata, ST=West Bengal, C=IN`, cert SHA-256 `26b13e5a…667b85a0` (v1+v2 on the APK, same key on the AAB) |
+| Device | AVD `vybe-pixel-api36-arm64` — sdk_gphone64_arm64, Android 16 (API 36), host GPU, 1080×2400 |
+| Install / launch | Install over the previous build → Success; `am start -W` Status ok (TotalTime 4.9 s warm, 6.6 s after `pm clear`); `versionCode=1 versionName=1.0.0` |
+| Fresh first run | After `pm clear`: intro "Your city needs you." with the Simple chooser and the big "Start playing" button; "Who is making trouble?" with The Anger Stirrer / Grievance Exploiter, "Added", "Start chapter 1"; briefing "The Exam Leak" / "The problem" / "Let's go"; gameplay shows the map, "Clues 1", "What's happening", the **"The clock is waiting for you. Take your time."** banner and the plain-language decision "Students are gathering" with 56 px option buttons — no overflow, no blank WebView |
+| Back | During an automatic pause → Home (session kept: "Keep playing · Chapter 1 of 3 · The Exam Leak · 2:52 left") ✓ · Home → app leaves the foreground, launcher shown ✓ |
+| Logcat | No FATAL/ANR, no JS console errors, no asset 404s. Benign: `GL_INVALID_ENUM GetIntegerv` (PixiJS probe); `aw_browser_terminator: Renderer process crash detected (code -1)` logged at the exact moment of the final Back, immediately followed by `ActivityManager: Killing … sandboxed_process0 … isolated not needed` — the sandboxed WebView renderer being torn down with the finishing activity, not a crash in use |
+| Screenshots | `release/smoke-final/01-launch.png` … `07-after-back-2.png` |
+| Note | The status-bar kicker on this 411 css-px wide device shows "CHAPTER 1 · Ge…" (mood word truncated); cosmetic, reported to the integrator |
+| uiautomator | The WebView does not expose its nodes to `uiautomator dump` on this image; the smoke walk used fixed taps on the sticky footer buttons (centre x 540, y ≈ 2110–2216) |
+
 ## Troubleshooting
 
 * `Unsupported class file major version` / `invalid source release 21` → `JAVA_HOME` is not JDK 21.
