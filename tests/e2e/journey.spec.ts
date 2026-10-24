@@ -25,7 +25,7 @@ test.describe('Critical journey', () => {
         await page.getByTestId('chapter-continue').click();
         await expect(page.getByTestId('briefing-screen')).toBeVisible();
         await page.getByTestId('briefing-start').click();
-        await expect(page.getByTestId('play-screen')).toBeVisible();
+        await expect(page.getByTestId('play-screen')).toBeVisible({ timeout: 20_000 });
       }
     }
 

@@ -38,6 +38,8 @@
   min-height: 30dvh;
   overflow: hidden;
   z-index: var(--z-map);
+  /* Leave room for the floating evidence toggle so map captions never sit under it. */
+  --map-caption-right-gap: 9.5rem;
 }
 .map {
   position: absolute;
@@ -229,6 +231,7 @@
 .screen[data-layout='desktop'] .mapArea {
   flex: 1 1 62%;
   min-height: 0;
+  --map-caption-right-gap: 0px;
 }
 .rail {
   position: relative;

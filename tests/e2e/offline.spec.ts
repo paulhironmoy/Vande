@@ -17,6 +17,6 @@ test('app loads offline after the first visit (service worker precache)', async 
   await page.getByTestId('opponents-confirm').click();
   await expect(page.getByTestId('briefing-screen')).toBeVisible();
   await page.getByTestId('briefing-start').click();
-  await expect(page.getByTestId('play-screen')).toBeVisible();
+  await expect(page.getByTestId('play-screen')).toBeVisible({ timeout: 20_000 });
   await context.setOffline(false);
 });

@@ -8,7 +8,7 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : 4,
+  workers: process.env.CI ? 2 : 3,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: `http://localhost:${PORT}`,
@@ -20,7 +20,7 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 768 } } },
     ...(process.env.VISUAL
-      ? [{ name: 'visual', testDir: './tests/visual', use: { ...devices['Desktop Chrome'] } }]
+      ? [{ name: 'visual', testDir: './tests/visual', outputDir: 'test-results-visual', use: { ...devices['Desktop Chrome'] } }]
       : []),
   ],
   webServer: {

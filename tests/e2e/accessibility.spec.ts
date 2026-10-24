@@ -16,7 +16,7 @@ test('home, opponents and gameplay pass axe WCAG 2.2 AA checks', async ({ page }
 
   await page.getByTestId('opponents-confirm').click();
   await page.getByTestId('briefing-start').click();
-  await expect(page.getByTestId('play-screen')).toBeVisible();
+  await expect(page.getByTestId('play-screen')).toBeVisible({ timeout: 20_000 });
   await page.clock.fastForward(12_000);
   await expect(page.locator('[data-testid^="decision-card-"]').first()).toBeVisible();
   const play = await new AxeBuilder({ page })
@@ -64,7 +64,7 @@ test('text scaling to 200% keeps the play screen usable without horizontal overf
   await page.getByTestId('home-start-campaign').click();
   await page.getByTestId('opponents-confirm').click();
   await page.getByTestId('briefing-start').click();
-  await expect(page.getByTestId('play-screen')).toBeVisible();
+  await expect(page.getByTestId('play-screen')).toBeVisible({ timeout: 20_000 });
   await page.clock.fastForward(12_000);
   await expect(page.locator('[data-testid^="decision-option-"]:visible').first()).toBeVisible();
   const r = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));

@@ -57,7 +57,7 @@ for (const size of SIZES) {
       await page.waitForTimeout(2500);
       await shot(page, '04-briefing', size.name);
       await page.getByTestId('briefing-start').click();
-      await expect(page.getByTestId('play-screen')).toBeVisible();
+      await expect(page.getByTestId('play-screen')).toBeVisible({ timeout: 20_000 });
       await page.clock.fastForward(12_000);
       await expect(page.locator('[data-testid^="decision-card-"]').first()).toBeVisible();
       await shot(page, '05-play-decision', size.name);

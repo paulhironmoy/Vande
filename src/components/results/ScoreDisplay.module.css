@@ -37,6 +37,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.1rem;
+  max-width: 70%;
   text-align: center;
   animation: settle var(--dur-scene) var(--ease-out) both;
 }
@@ -71,9 +72,10 @@
 
 .caption {
   margin-top: 0.15rem;
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
-  letter-spacing: var(--tracking-caps);
+  letter-spacing: 0.06em;
+  line-height: 1.2;
   text-transform: uppercase;
   color: var(--t-tertiary);
 }

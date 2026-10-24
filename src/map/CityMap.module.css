@@ -241,11 +241,10 @@
 
 .caption {
   position: absolute;
-  left: 50%;
+  left: var(--gutter);
   bottom: calc(var(--s-3) + var(--safe-bottom, 0px));
-  transform: translateX(-50%);
   z-index: 5;
-  max-width: calc(100% - 2 * var(--gutter));
+  max-width: calc(100% - 2 * var(--gutter) - var(--map-caption-right-gap, 0px));
   padding: 6px 12px;
   border-radius: var(--r-pill);
   background: var(--surface-glass);
@@ -276,11 +275,11 @@
 @keyframes captionIn {
   from {
     opacity: 0;
-    transform: translate(-50%, 6px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: none;
   }
 }
 

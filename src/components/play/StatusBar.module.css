@@ -20,6 +20,9 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
   font-size: var(--text-xs);
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-caps);
@@ -28,6 +31,16 @@
 }
 .phase {
   color: var(--c-cyan);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chapter {
+  flex: none;
+}
+@media (max-width: 379px) {
+  .world {
+    display: none;
+  }
 }
 .title {
   margin: 0;

@@ -62,8 +62,18 @@
   position: sticky;
   bottom: 0;
   z-index: 5;
-  padding: var(--s-3) var(--gutter) calc(var(--safe-bottom) + var(--s-3));
-  background: linear-gradient(0deg, rgba(7, 17, 31, 0.96) 70%, rgba(7, 17, 31, 0));
+  padding: var(--s-4) var(--gutter) calc(var(--safe-bottom) + var(--s-3));
+  background: linear-gradient(0deg, rgba(7, 17, 31, 0.98) 0%, rgba(7, 17, 31, 0.96) 62%, rgba(7, 17, 31, 0.55) 88%, rgba(7, 17, 31, 0));
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .footer {
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+}
+:global(:root[data-contrast='high']) .footer {
+  background: #050b14;
+  border-top: var(--edge-line);
 }
 .footerInner {
   width: 100%;

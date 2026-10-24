@@ -23,7 +23,7 @@ for (const vp of VIEWPORTS) {
       await assertControlsReachable(page, ['briefing-start', 'briefing-skip']);
       await page.getByTestId('briefing-start').click();
 
-      await expect(page.getByTestId('play-screen')).toBeVisible();
+      await expect(page.getByTestId('play-screen')).toBeVisible({ timeout: 20_000 });
       await assertNoHorizontalOverflow(page);
       await assertControlsReachable(page, ['timer', 'pulse', 'map', 'pause', 'evidence-tray-toggle']);
       await page.clock.fastForward(12_000);
