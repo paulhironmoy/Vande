@@ -21,7 +21,7 @@ export interface FingerprintGlyphsProps {
 
 /** Spoiler-free strategy pattern: one glyph per decision in order. */
 export function FingerprintGlyphs({ fingerprint, size = 22, className, render }: FingerprintGlyphsProps) {
-  if (render) return <>{render(fingerprint)}</>;
+  if (render) return <div data-testid="fingerprint-glyphs" className={s.row}>{render(fingerprint)}</div>;
   const letters = fingerprint.split('').filter((c) => GLYPH[c]);
   if (letters.length === 0) return null;
   const alt = letters.map((c) => GLYPH[c].name).join(', ');
