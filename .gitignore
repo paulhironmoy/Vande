@@ -26,3 +26,6 @@ android/capacitor-cordova-android-plugins/
 *.jks
 *.keystore
 release/
+test-results-visual/
+test-results-exp/
+docs/perf/*.report.html
