@@ -217,7 +217,13 @@
       "setsFlagsOnResolve": [
         "leak-corroborated"
       ],
-      "resolutionNote": "The key is genuine: it matches the paper and was timestamped before the exam started."
+      "resolutionNote": "The key is genuine: it matches the paper and was timestamped before the exam started.",
+      "simple": {
+        "title": "The shared answer list",
+        "claim": "Answers were shared in a chat 23 minutes before the exam. They match 41 of 50 questions.",
+        "resolutionNote": "The list is real. It matches the paper and was shared before the exam started.",
+        "caption": "A phone picture of a fifty-line answer list in a chat"
+      }
     },
     {
       "id": "ev-organiser-statement",
@@ -256,7 +262,13 @@
         "caption": "One-page statement carrying five signatures"
       },
       "district": "campus",
-      "resolutionNote": "The council said what it would do, and the field report shows it did exactly that."
+      "resolutionNote": "The council said what it would do, and the field report shows it did exactly that.",
+      "simple": {
+        "title": "Student leaders' promise",
+        "claim": "'We will sit peacefully in Civic Square until a proper check begins. We will not damage anything.'",
+        "resolutionNote": "The leaders said what they would do. The police report shows they did it.",
+        "caption": "A one-page promise signed by five students"
+      }
     },
     {
       "id": "ev-police-field-report",
@@ -298,7 +310,13 @@
       "setsFlagsOnResolve": [
         "peaceful-confirmed"
       ],
-      "resolutionNote": "Two different groups: a large peaceful sit-in and a small crowd at the barricade. Policing has to tell them apart."
+      "resolutionNote": "Two different groups: a large peaceful sit-in and a small crowd at the barricade. Policing has to tell them apart.",
+      "simple": {
+        "title": "Police report: Civic Square",
+        "claim": "About 1,800 students sit calmly with no damage. A separate group of 20 to 30 adults pushes a barrier.",
+        "resolutionNote": "Two groups: a big peaceful crowd, and a few at the barrier. Police must tell them apart.",
+        "caption": "A sketch of the square: seated crowd, barrier line, hospital path"
+      }
     },
     {
       "id": "ev-vendor-shift-log",
@@ -342,7 +360,13 @@
         "strongroom-breach-confirmed"
       ],
       "perishable": true,
-      "resolutionNote": "The badge entry is real and unscheduled. Someone was inside the strongroom seven hours before the exam."
+      "resolutionNote": "The badge entry is real and unscheduled. Someone was inside the strongroom seven hours before the exam.",
+      "simple": {
+        "title": "Strongroom door log",
+        "claim": "A supervisor's badge opened the locked strongroom at 2:10 am. Nobody should have been there.",
+        "resolutionNote": "The badge entry is real and was not planned. Someone was inside seven hours before the exam.",
+        "caption": "The door-badge list for the night the papers were printed"
+      }
     },
     {
       "id": "ev-racket-ledger",
@@ -384,7 +408,13 @@
       "setsFlagsOnResolve": [
         "racket-evidence-verified"
       ],
-      "resolutionNote": "The bank's own alert matches the screenshots: the transfers happened, into one brand-new account."
+      "resolutionNote": "The bank's own alert matches the screenshots: the transfers happened, into one brand-new account.",
+      "simple": {
+        "title": "'Sure paper' payment pictures",
+        "claim": "Pictures show six payments of 40,000 rupees to one account. All marked 'EX-PKG', the night before the exam.",
+        "resolutionNote": "The bank's own alert matches the pictures. The payments happened, into one brand-new account.",
+        "caption": "Six payment receipts with the same note on them"
+      }
     },
     {
       "id": "ev-cctv-strongroom",
@@ -428,7 +458,13 @@
         "strongroom-breach-confirmed"
       ],
       "perishable": true,
-      "resolutionNote": "The footage lines up with the badge entry to the minute. The breach happened, and it was recorded."
+      "resolutionNote": "The footage lines up with the badge entry to the minute. The breach happened, and it was recorded.",
+      "simple": {
+        "title": "Strongroom hallway camera",
+        "claim": "The hallway camera shows someone entering the locked strongroom at 2:08 am. They hold a phone.",
+        "resolutionNote": "The video matches the door log to the minute. The break-in happened, and it was filmed.",
+        "caption": "Blurry hallway video, time 2:08:14 am"
+      }
     },
     {
       "id": "ev-bank-alert",
@@ -467,7 +503,13 @@
         "caption": "Timeline of six identical credits in one evening"
       },
       "district": "market",
-      "resolutionNote": "An eleven-day-old account filled with identical payments the night before the exam. This is the racket's cash trail."
+      "resolutionNote": "An eleven-day-old account filled with identical payments the night before the exam. This is the racket's cash trail.",
+      "simple": {
+        "title": "Bank warning",
+        "claim": "Six payments of 40,000 rupees reached one account in 95 minutes. The account was opened eleven days ago.",
+        "resolutionNote": "A brand-new account got the same payment six times in one night. This is the money trail.",
+        "caption": "A timeline of six matching payments in one evening"
+      }
     },
     {
       "id": "ev-board-forensic",
@@ -510,7 +552,13 @@
       "setsFlagsOnResolve": [
         "leak-verified"
       ],
-      "resolutionNote": "The board's own check confirms the leak and points to one batch and one night shift."
+      "resolutionNote": "The board's own check confirms the leak and points to one batch and one night shift.",
+      "simple": {
+        "title": "Exam office check note",
+        "claim": "First check: the shared answers match the paper used here. The paper codes point to one printing batch.",
+        "resolutionNote": "The exam office's own check confirms the leak. It points to one batch and one night shift.",
+        "caption": "A two-page note with a table comparing paper codes"
+      }
     },
     {
       "id": "ev-doctored-screenshot",
@@ -554,7 +602,13 @@
       "setsFlagsOnResolve": [
         "screenshot-exposed"
       ],
-      "resolutionNote": "The image was made after the exam began and shows a set never used here. It was fabricated to inflate the leak."
+      "resolutionNote": "The image was made after the exam began and shows a set never used here. It was fabricated to inflate the leak.",
+      "simple": {
+        "title": "Picture: 'whole paper online at 6 am'",
+        "claim": "A picture claims the whole question paper was online at 6 am. That is three hours before the exam.",
+        "resolutionNote": "The picture was made after the exam began. It shows a paper never used here. It is fake.",
+        "caption": "A cropped phone picture of a question paper with a code"
+      }
     },
     {
       "id": "ev-fake-circular",
@@ -598,7 +652,13 @@
       "setsFlagsOnResolve": [
         "circular-exposed"
       ],
-      "resolutionNote": "Outdated letterhead, a dead reference format and no board record: the circular is a forgery."
+      "resolutionNote": "Outdated letterhead, a dead reference format and no board record: the circular is a forgery.",
+      "simple": {
+        "title": "Notice: 'exam cancelled everywhere'",
+        "claim": "A notice on exam office paper says the exam is cancelled. It promises a new test 'within 48 hours'.",
+        "resolutionNote": "Old letterhead, a wrong file number and no record at the office. The notice is fake.",
+        "caption": "A one-page notice with a blurry stamp"
+      }
     },
     {
       "id": "ev-barricade-clip",
@@ -642,7 +702,13 @@
       "setsFlagsOnResolve": [
         "clip-exposed"
       ],
-      "resolutionNote": "The clip is real but cut to hide that the pushing group stood apart from the seated students, who never moved."
+      "resolutionNote": "The clip is real but cut to hide that the pushing group stood apart from the seated students, who never moved.",
+      "simple": {
+        "title": "Video: 'students attack police'",
+        "claim": "A nine-second video shows people pushing a barrier. The caption says 'students attack police line'.",
+        "resolutionNote": "The video is real but cut short. The pushers stood far from the seated students, who never moved.",
+        "caption": "A shaky phone video at the barrier"
+      }
     },
     {
       "id": "ev-intel-note",
@@ -687,7 +753,13 @@
       "setsFlagsOnResolve": [
         "intel-note-exposed"
       ],
-      "resolutionNote": "No unit, no file number, and a name a year out of date. The note was written to make detention look necessary."
+      "resolutionNote": "No unit, no file number, and a name a year out of date. The note was written to make detention look necessary.",
+      "simple": {
+        "title": "Unsigned 'secret note'",
+        "claim": "A note claims the leaders will 'storm the city office' tonight. It asks to lock them up first.",
+        "resolutionNote": "No office name, no file number, and an out-of-date name. It was written to make locking people up look needed.",
+        "caption": "Half a page, no letterhead, big capital letters"
+      }
     }
   ],
   "decisions": [
@@ -841,7 +913,33 @@
           ],
           "consequence": "Nobody speaks for the administration. The crowd grows, and the forwards do the talking."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Students are gathering",
+        "situation": "About 600 students are outside the exam office. They want the exam cancelled and a proper check. The exam office has said nothing yet.",
+        "options": {
+          "o-acknowledge": {
+            "title": "Meet the student leaders today",
+            "preview": "You set a meeting. The leaders promise to keep the gathering peaceful.",
+            "consequence": "A meeting is set for 10:30. The leaders promise to stay peaceful and name a helper."
+          },
+          "o-board-statement": {
+            "title": "Ask the exam office to speak",
+            "preview": "The exam office promises to share facts by noon. Students wait, unsure.",
+            "consequence": "The exam office promises a statement by noon. Students stay and wait to see."
+          },
+          "o-cordon-campus": {
+            "title": "Lock the university gates",
+            "preview": "The gates are locked. The crowd moves to Civic Square instead.",
+            "consequence": "The gates are locked. The crowd walks down the main road to Civic Square."
+          },
+          "o-wait-first": {
+            "title": "Wait for the exam office",
+            "preview": "Hours pass with no news. The crowd grows and rumours spread.",
+            "consequence": "Nobody speaks for the city. The crowd grows, and rumours do the talking."
+          }
+        }
+      }
     },
     {
       "id": "d-investigation",
@@ -977,7 +1075,33 @@
           },
           "consequence": "Nothing is secured. At the printing unit, the night shift's logs are scheduled for routine cleanup."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Who checks the leak?",
+        "situation": "The shared answers look real. The exam office wants to check itself. Students want someone independent. You choose who checks, and how fast the records are kept safe.",
+        "options": {
+          "o-independent-inquiry": {
+            "title": "Pick an independent check team",
+            "preview": "A retired judge and two experts take charge. The exam office hands over its records.",
+            "consequence": "A retired judge and two experts take charge. They get the printing records."
+          },
+          "o-police-case": {
+            "title": "Police: open a case, keep the records",
+            "preview": "Officers lock away the print shop's logs and videos right away.",
+            "consequence": "Officers reach the print shop. They seal the door logs and the camera recorder."
+          },
+          "o-board-internal": {
+            "title": "Let the exam office check itself",
+            "preview": "The exam office starts checking. Students say it is marking its own homework.",
+            "consequence": "The exam office begins its own check. Students joke it is 'marking its own homework'."
+          },
+          "o-wait-inv": {
+            "title": "Decide later",
+            "preview": "Nothing is kept safe. The print shop plans to delete its old logs.",
+            "consequence": "Nothing is kept safe. The print shop plans to delete its night logs soon."
+          }
+        }
+      }
     },
     {
       "id": "d-civic-square",
@@ -1185,7 +1309,33 @@
           ],
           "consequence": "The barricade group keeps pushing. Traffic backs up all the way to the transit hub."
         }
-      ]
+      ],
+      "simple": {
+        "title": "The gathering reaches Civic Square",
+        "situation": "About 1,800 students sit on one side of the square. Cars to the hospital are slow. Twenty adults are pushing at a barrier near the city office.",
+        "options": {
+          "o-facilitate-assembly": {
+            "title": "Keep the square open, move traffic",
+            "preview": "A clear path for ambulances is marked. The students keep it open.",
+            "consequence": "Officers mark a hospital path through the square. Student helpers keep it clear."
+          },
+          "o-separate-provocateurs": {
+            "title": "Move the barrier group aside",
+            "preview": "Officers move the barrier pushers one by one. The seated students stay.",
+            "consequence": "Officers move the barrier group aside one by one. The seated students clap."
+          },
+          "o-clear-square": {
+            "title": "Clear the square before dark",
+            "preview": "Police push everyone out in twenty minutes. Videos spread across the city.",
+            "consequence": "Police use sticks. The square empties fast, and everyone's phone shows the video."
+          },
+          "o-wait-square": {
+            "title": "Stand still and watch",
+            "preview": "The barrier group keeps pushing. Traffic backs up to the bus station.",
+            "consequence": "The barrier group keeps pushing. Traffic backs up all the way to the bus station."
+          }
+        }
+      }
     },
     {
       "id": "d-racket",
@@ -1359,7 +1509,33 @@
           },
           "consequence": "The account keeps receiving money and the screenshots keep circulating."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Someone is selling a 'sure paper'",
+        "situation": "Payment pictures show one account collecting 40,000 rupees per 'package'. Students want arrests. The owner says the money was for lessons.",
+        "options": {
+          "o-trace-first": {
+            "title": "Freeze the account, trace the payers",
+            "preview": "The bank freezes the account. Six payers are found for questions.",
+            "consequence": "The bank freezes the account within the hour. Six payers are found and questioned."
+          },
+          "o-trace-arrest": {
+            "title": "Arrest the account owner now",
+            "preview": "Officers lock up the owner, holding the payment records.",
+            "consequence": "Officers lock up the owner with the payment records in hand. The account is frozen."
+          },
+          "o-raid-centres": {
+            "title": "Raid every tuition centre",
+            "preview": "Shops across Market Street shut. Traders who did nothing wrong lose a day.",
+            "consequence": "Shops shut all along Market Street. Shopkeepers who did nothing wrong lose a day's pay."
+          },
+          "o-wait-racket": {
+            "title": "Wait for more clues",
+            "preview": "The account keeps getting money. The pictures keep spreading.",
+            "consequence": "The account keeps getting money, and the pictures keep spreading."
+          }
+        }
+      }
     },
     {
       "id": "d-communication",
@@ -1526,7 +1702,33 @@
           ],
           "consequence": "The vacuum fills with forwards. Reporters quote 'sources' instead of you."
         }
-      ]
+      ],
+      "simple": {
+        "title": "What do you tell the city?",
+        "situation": "You know some facts, but not everything. Rumours about cancelling, hidden results and 'student violence' spread faster than facts. Reporters want to hear from you.",
+        "options": {
+          "o-brief-honest": {
+            "title": "Tell people what you know and don't",
+            "preview": "You list the checked facts, the open questions and the plan. The room goes quiet.",
+            "consequence": "You list three checked facts, four open questions and the plan. The room goes quiet."
+          },
+          "o-bulletin": {
+            "title": "Post checked facts every hour",
+            "preview": "Hourly fact sheets reach notice boards and parents' chats.",
+            "consequence": "The first fact sheet goes out with times on it. Teachers pin it up in minutes."
+          },
+          "o-deny-leak": {
+            "title": "Say there was no leak",
+            "preview": "People relax for an hour. Then the strongroom log reaches the news.",
+            "consequence": "People relax for an hour. Then the strongroom log reaches a news channel."
+          },
+          "o-silence": {
+            "title": "Say nothing until the check ends",
+            "preview": "Rumours fill the silence. Reporters quote 'sources' instead of you.",
+            "consequence": "Rumours fill the silence. Reporters quote 'sources' instead of you."
+          }
+        }
+      }
     },
     {
       "id": "d-services",
@@ -1709,7 +1911,33 @@
           ],
           "consequence": "Ambulances take the long way round. Two reach the hospital late."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Keep the city moving",
+        "situation": "The bus station is jammed. The hospital says ambulances are late. Shops near the square are closing early. The student leaders offer to help keep a path open.",
+        "options": {
+          "o-corridor-with-students": {
+            "title": "Open a path with student helpers",
+            "preview": "Helpers and traffic police open two lanes. Buses move within the hour.",
+            "consequence": "Student helpers with armbands and traffic police open two lanes. Buses move again."
+          },
+          "o-divert-transit": {
+            "title": "Reroute buses, open a hospital lane",
+            "preview": "Buses go round by Market Street. A coned-off hospital lane is guarded.",
+            "consequence": "Buses loop round by Market Street. The hospital lane is coned off and guarded."
+          },
+          "o-shut-transit": {
+            "title": "Stop all buses to break the crowd",
+            "preview": "Workers get stuck, not students. Daily-wage workers crowd the station.",
+            "consequence": "Workers get stuck, not students. Daily-wage workers crowd the station with nowhere to go."
+          },
+          "o-wait-services": {
+            "title": "Leave it to traffic police",
+            "preview": "Ambulances take the long way. Two reach the hospital late.",
+            "consequence": "Ambulances take the long way round. Two reach the hospital late."
+          }
+        }
+      }
     },
     {
       "id": "d-resolution",
@@ -1887,7 +2115,33 @@
           },
           "consequence": "Night falls on an unanswered square."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Ending the day",
+        "situation": "The check team has enough to act on. The student leaders ask what happens to the exam now. And to the students who played fair? Everyone in the city will read your answer tonight.",
+        "options": {
+          "o-announce-plan": {
+            "title": "Announce the new exam plan",
+            "preview": "A new paper in three weeks and free travel. The full report in thirty days.",
+            "consequence": "New paper in three weeks, free travel, report in thirty days. The crowd stands and sings."
+          },
+          "o-partial-plan": {
+            "title": "Promise an answer after the report",
+            "preview": "Students like the honesty but not the wait. A smaller group stays overnight.",
+            "consequence": "Students accept the honesty but not the wait. A smaller group settles in for the night."
+          },
+          "o-blame-students": {
+            "title": "Blame 'outsiders' for the trouble",
+            "preview": "The word spreads in minutes, next to videos of students sitting quietly.",
+            "consequence": "'Outsiders' trends in minutes, right next to videos of students sitting quietly."
+          },
+          "o-wait-close": {
+            "title": "Say nothing tonight",
+            "preview": "Night falls on a square with no answer.",
+            "consequence": "Night falls on a square with no answer."
+          }
+        }
+      }
     },
     {
       "id": "d-bait-cancel",
@@ -1984,7 +2238,28 @@
           },
           "consequence": "The chants get louder and the forwards sharper."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Cancel it now?",
+        "situation": "A crowd chants for the exam to be cancelled right now. Messages say the office has 'already decided'. People around you want a big announcement to end the day.",
+        "options": {
+          "o-commit-timeline": {
+            "title": "Promise an answer in 48 hours",
+            "preview": "A dated promise, tied to the check. The chants soften into waiting.",
+            "consequence": "A dated promise, tied to the check. The chants soften into waiting."
+          },
+          "o-cancel-now": {
+            "title": "Cancel the exam right now",
+            "preview": "Cheers in the square, confusion everywhere else. The exam office was not asked.",
+            "consequence": "Cheers in the square. Confusion everywhere else."
+          },
+          "o-ignore-pressure": {
+            "title": "Let the pressure pass",
+            "preview": "The chants get louder and the rumours get sharper.",
+            "consequence": "The chants get louder and the rumours get sharper."
+          }
+        }
+      }
     },
     {
       "id": "d-bait-disperse",
@@ -2156,7 +2431,33 @@
           },
           "consequence": "Officers hold. The barricade group drifts away once the cameras turn toward them."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Send everyone away now?",
+        "situation": "A barrier has been pushed over near the city office. A video called 'students attack police' is spreading. Police chiefs ask for an order to clear the whole square.",
+        "options": {
+          "o-targeted-response": {
+            "title": "Hold only the barrier pushers",
+            "preview": "Six people are held, on camera. The seated students stay.",
+            "consequence": "Six barrier pushers are held on camera. The chant changes to 'we are not them'."
+          },
+          "o-verify-clip-first": {
+            "title": "Check the video first",
+            "preview": "The full video shows the pushing group far from the seated students.",
+            "consequence": "The full video shows the pushers standing far from the seated students."
+          },
+          "o-disperse-all": {
+            "title": "Clear the whole square now",
+            "preview": "Tear gas over a seated crowd. The square empties, the anger does not.",
+            "consequence": "Tear gas drifts over people sitting cross-legged. The square empties. The anger does not."
+          },
+          "o-hold-line": {
+            "title": "Hold the line and wait",
+            "preview": "Officers hold. The barrier group drifts away when the cameras turn to them.",
+            "consequence": "Officers hold. The barrier group drifts away once the cameras point at them."
+          }
+        }
+      }
     },
     {
       "id": "d-bait-shutdown",
@@ -2358,7 +2659,33 @@
           },
           "consequence": "Rumours of an imminent shutdown spread. People queue at cash machines just in case."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Calls to 'shut it all down'",
+        "situation": "Senior people want big action before night. Switch off mobile internet across the district. Lock up the student leaders 'to calm things down'.",
+        "options": {
+          "o-targeted-notices": {
+            "title": "Go after the fakes, protect leaders",
+            "preview": "Warnings go to accounts posting fakes. The leaders get a police helper, not handcuffs.",
+            "consequence": "Warnings go to the accounts posting fake notices. The leaders get a police helper, not handcuffs."
+          },
+          "o-internet-shutdown": {
+            "title": "Switch off mobile internet",
+            "preview": "Screens go dark across the district. Your checked facts reach no one.",
+            "consequence": "Screens go dark across the district. Your checked facts stop reaching anyone."
+          },
+          "o-detain-council": {
+            "title": "Lock up the student leaders",
+            "preview": "Five elected students are taken off the stage. The crowd chants their names.",
+            "consequence": "Five elected students are taken from the stage. The chant becomes their names."
+          },
+          "o-table-shutdown": {
+            "title": "Leave the idea on the table",
+            "preview": "Rumours of a shutdown spread. People queue at cash machines just in case.",
+            "consequence": "Rumours of a shutdown spread. People queue at cash machines just in case."
+          }
+        }
+      }
     }
   ],
   "rightsMoments": [
@@ -2391,7 +2718,22 @@
         "label": "Constitution of India, Article 19 (India Code)",
         "url": "https://www.indiacode.nic.in/"
       },
-      "contentDate": "2026-10-23"
+      "contentDate": "2026-10-23",
+      "simple": {
+        "question": "A peaceful group did not push the barrier. What do you need before you can stop their gathering?",
+        "options": {
+          "rm-assembly-a": "Real proof of a real, near danger to safety",
+          "rm-assembly-b": "A general worry that things might get out of hand",
+          "rm-assembly-c": "A complaint from any neighbour who finds it annoying"
+        },
+        "feedback": {
+          "rm-assembly-a": "Right. A peaceful gathering can only be stopped for real, specific reasons. Never just because others did wrong.",
+          "rm-assembly-b": "A vague worry is not enough. You need a real, specific danger.",
+          "rm-assembly-c": "A complaint can start a check. It does not let you stop a peaceful gathering."
+        },
+        "principle": "Everyone may meet peacefully without weapons. Leaders may limit this only for real, fair safety reasons. Never for whole crowds because of a few.",
+        "why": "The seated students and the barrier pushers were different people. Treating them the same punishes the peaceful for what a few did."
+      }
     },
     {
       "id": "rm-detention",
@@ -2422,7 +2764,22 @@
         "label": "Constitution of India, Articles 21 and 22 (India Code)",
         "url": "https://www.indiacode.nic.in/"
       },
-      "contentDate": "2026-10-23"
+      "contentDate": "2026-10-23",
+      "simple": {
+        "question": "Thousands of students got the shared answers. Some officers want to lock up every one of them. What does the law say?",
+        "options": {
+          "rm-detention-a": "Locking people up is fine if it lasts under 24 hours",
+          "rm-detention-b": "Each person needs a real reason, told to them, and a lawyer",
+          "rm-detention-c": "Getting the message is reason enough to hold someone"
+        },
+        "feedback": {
+          "rm-detention-a": "Time limits matter, but you still need a real, personal reason for each person.",
+          "rm-detention-b": "Right. Nobody's freedom can be taken without a lawful reason, person by person, with a lawyer.",
+          "rm-detention-c": "Getting a message is not a crime. You cannot lock up a whole crowd just in case."
+        },
+        "principle": "Nobody can be locked up without a lawful reason. Each person must be told why and may talk to a lawyer.",
+        "why": "Locking up everyone would turn the cheated students into suspects. It would destroy trust and distract from the real cheats."
+      }
     },
     {
       "id": "rm-internet",
@@ -2453,7 +2810,22 @@
         "label": "Supreme Court of India — judgments, including Anuradha Bhasin v. Union of India (2020)",
         "url": "https://main.sci.gov.in/"
       },
-      "contentDate": "2026-10-23"
+      "contentDate": "2026-10-23",
+      "simple": {
+        "question": "Officials want to cut the whole district's internet to stop rumours. What is the rule?",
+        "options": {
+          "rm-internet-a": "Any order from a senior enough official is enough",
+          "rm-internet-b": "Shutdowns are always allowed while a protest is on",
+          "rm-internet-c": "Only if truly needed and fair: the smallest step, with written reasons people can see and challenge"
+        },
+        "feedback": {
+          "rm-internet-a": "Shutdown orders must follow the rules, give reasons and be checked. Being senior is not a reason.",
+          "rm-internet-b": "A protest is not a reason to cut off a whole district's calls, shops and ambulances.",
+          "rm-internet-c": "Right. The top court says shutdowns must be truly needed, fair, written down, published and checked."
+        },
+        "principle": "Speaking and working online are protected. Internet shutdowns must be truly needed, fair, written down, published and checked.",
+        "why": "A district-wide shutdown would silence your own checked facts. It would break payments and ambulance calls. Rumours would still travel by mouth."
+      }
     }
   ],
   "events": [
@@ -2473,7 +2845,8 @@
           "district": "campus",
           "mood": "tense"
         }
-      ]
+      ],
+      "simple": "Students gather outside the exam office holding printouts of the shared answers."
     },
     {
       "id": "e-forward-spreads",
@@ -2487,7 +2860,8 @@
           "to": "market",
           "signal": "rumor"
         }
-      ]
+      ],
+      "simple": "The answer list spreads into parents' chat groups. Three different versions go round."
     },
     {
       "id": "e-march-to-square",
@@ -2510,7 +2884,8 @@
           "road": "r-campus-civic",
           "status": "congested"
         }
-      ]
+      ],
+      "simple": "The students walk from the university to Civic Square, singing."
     },
     {
       "id": "e-hospital-delay",
@@ -2526,7 +2901,8 @@
           "road": "r-civic-hospital",
           "status": "congested"
         }
-      ]
+      ],
+      "simple": "The hospital says ambulances are slow because traffic goes round the square."
     },
     {
       "id": "e-press-arrives",
@@ -2544,7 +2920,8 @@
           "to": "media",
           "signal": "verified"
         }
-      ]
+      ],
+      "simple": "Reporters set up at the Press Enclave. The first live report shows seated students."
     },
     {
       "id": "e-vendor-cleanup",
@@ -2559,7 +2936,8 @@
           "kind": "institution",
           "district": "records"
         }
-      ]
+      ],
+      "simple": "The print shop plans to delete its old logs this afternoon. Nothing is saved yet."
     },
     {
       "id": "e-looting-attempt",
@@ -2594,7 +2972,8 @@
       ],
       "setsFlags": [
         "market-looted"
-      ]
+      ],
+      "simple": "Thieves break two shop shutters on Market Street while police are busy."
     },
     {
       "id": "e-inquiry-first-note",
@@ -2619,7 +2998,8 @@
           "to": "civic",
           "signal": "official"
         }
-      ]
+      ],
+      "simple": "The check team saves the printing records. The leak points to one night shift."
     },
     {
       "id": "e-no-inquiry-rumours",
@@ -2646,7 +3026,8 @@
           "to": "civic",
           "signal": "rumor"
         }
-      ]
+      ],
+      "simple": "With no check announced, messages name 'the real culprits'. A new name every hour."
     },
     {
       "id": "e-clash",
@@ -2677,7 +3058,8 @@
       ],
       "setsFlags": [
         "violence-active"
-      ]
+      ],
+      "simple": "Stones are thrown near the bus station. Two officers and five students are hurt."
     },
     {
       "id": "e-shops-reopen",
@@ -2706,13 +3088,15 @@
           "district": "market",
           "mood": "hopeful"
         }
-      ]
+      ],
+      "simple": "Shops around the square open their shutters again. The bus station is clearing."
     },
     {
       "id": "e-night-falls",
       "at": 172,
       "kind": "news",
-      "message": "Night falls. Whatever stands in the square now will be the morning's headline."
+      "message": "Night falls. Whatever stands in the square now will be the morning's headline.",
+      "simple": "Night falls. Whatever stands in the square now will be tomorrow's headline."
     },
     {
       "id": "e-barricade-pushed",
@@ -2739,7 +3123,8 @@
       ],
       "setsFlags": [
         "barricade-pushed"
-      ]
+      ],
+      "simple": "About twenty adults push over a barrier near the city office. They film the police."
     },
     {
       "id": "e-hub-outage",
@@ -2777,7 +3162,8 @@
       ],
       "setsFlags": [
         "hub-outage"
-      ]
+      ],
+      "simple": "The signals at the bus station fail. A control box was forced open."
     },
     {
       "id": "e-shutter-smash",
@@ -2805,7 +3191,8 @@
       ],
       "setsFlags": [
         "market-looted"
-      ]
+      ],
+      "simple": "Three Market Street shutters are forced open while everyone watches the square."
     },
     {
       "id": "e-hidden-results-surge",
@@ -2832,7 +3219,8 @@
           "to": "campus",
           "signal": "rumor"
         }
-      ]
+      ],
+      "simple": "'They already have the results' spreads through parents' chats. It beats every fact sheet."
     },
     {
       "id": "e-stalling-stage",
@@ -2858,7 +3246,8 @@
           "district": "civic",
           "mood": "tense"
         }
-      ]
+      ],
+      "simple": "A second stage goes up demanding 'money now'. Speakers say the check is just a delay."
     },
     {
       "id": "e-pressure-call",
@@ -2873,7 +3262,8 @@
       },
       "setsFlags": [
         "shutdown-draft-circulated"
-      ]
+      ],
+      "simple": "A senior official calls twice about 'the problem'. A shutdown order waits on your desk."
     }
   ],
   "opponentPlays": [
@@ -3088,7 +3478,8 @@
         "condition": {
           "flag": "investigation-opened"
         },
-        "text": "A credible investigation into the leak was opened and the printing records were secured."
+        "text": "A credible investigation into the leak was opened and the printing records were secured.",
+        "simple": "A proper check of the leak began. The printing records were kept safe."
       },
       {
         "condition": {
@@ -3097,7 +3488,8 @@
             "strongroom-breach-confirmed"
           ]
         },
-        "text": "The leak was verified: a strongroom entry at 02:08, one night shift, one printing batch."
+        "text": "The leak was verified: a strongroom entry at 02:08, one night shift, one printing batch.",
+        "simple": "The leak was proven. One strongroom visit at 2:08 am, one night shift, one batch."
       },
       {
         "condition": {
@@ -3106,25 +3498,29 @@
             "racket-traced"
           ]
         },
-        "text": "The 'guaranteed paper' racket was traced through its own payment trail."
+        "text": "The 'guaranteed paper' racket was traced through its own payment trail.",
+        "simple": "The 'sure paper' sellers were caught through their own money trail."
       },
       {
         "condition": {
           "flag": "services-maintained"
         },
-        "text": "Hospital access and bus services kept running through the sit-in."
+        "text": "Hospital access and bus services kept running through the sit-in.",
+        "simple": "The hospital road and the buses kept working through the gathering."
       },
       {
         "condition": {
           "flag": "re-exam-announced"
         },
-        "text": "Candidates got a dated plan: a fresh paper, free travel and a public inquiry timetable."
+        "text": "Candidates got a dated plan: a fresh paper, free travel and a public inquiry timetable.",
+        "simple": "Students got a dated plan. A new paper, free travel and an open check."
       },
       {
         "condition": {
           "flag": "council-heard"
         },
-        "text": "The student council was heard and kept its word about a peaceful sit-in."
+        "text": "The student council was heard and kept its word about a peaceful sit-in.",
+        "simple": "The student leaders were heard. They kept their promise to stay peaceful."
       }
     ],
     "unresolved": [
@@ -3132,37 +3528,43 @@
         "condition": {
           "notFlag": "investigation-opened"
         },
-        "text": "No investigation was opened. The people who sold the paper are still unidentified."
+        "text": "No investigation was opened. The people who sold the paper are still unidentified.",
+        "simple": "No proper check began. The people who sold the paper are still unknown."
       },
       {
         "condition": {
           "notFlag": "leak-verified"
         },
-        "text": "The leak was never formally verified. The city is arguing about rumours instead of facts."
+        "text": "The leak was never formally verified. The city is arguing about rumours instead of facts.",
+        "simple": "The leak was never properly proven. The city argues about rumours, not facts."
       },
       {
         "condition": {
           "notFlag": "re-exam-announced"
         },
-        "text": "Students still do not know what happens to their exam."
+        "text": "Students still do not know what happens to their exam.",
+        "simple": "Students still do not know what happens to their exam."
       },
       {
         "condition": {
           "flag": "market-looted"
         },
-        "text": "Shops on Market Street were broken into while attention was elsewhere."
+        "text": "Shops on Market Street were broken into while attention was elsewhere.",
+        "simple": "Shops on Market Street were broken into while everyone looked elsewhere."
       },
       {
         "condition": {
           "notFlag": "services-maintained"
         },
-        "text": "Ambulances and buses lost hours to a square nobody managed."
+        "text": "Ambulances and buses lost hours to a square nobody managed.",
+        "simple": "Ambulances and buses lost hours because nobody managed the square."
       },
       {
         "condition": {
           "flag": "premature-cancellation"
         },
-        "text": "A cancellation announced without the board left candidates across the state in limbo."
+        "text": "A cancellation announced without the board left candidates across the state in limbo.",
+        "simple": "The exam was cancelled without asking the exam office. Students everywhere are confused."
       }
     ],
     "rightsProtected": [
@@ -3170,32 +3572,37 @@
         "condition": {
           "flag": "assembly-protected"
         },
-        "text": "Peaceful assembly: the sit-in stayed in the square and kept a hospital corridor open."
+        "text": "Peaceful assembly: the sit-in stayed in the square and kept a hospital corridor open.",
+        "simple": "Meeting peacefully: the students stayed in the square. They kept a hospital path open."
       },
       {
         "condition": {
           "flag": "provocateurs-separated"
         },
-        "text": "Proportionality: force was used only against those who pushed the barricade."
+        "text": "Proportionality: force was used only against those who pushed the barricade.",
+        "simple": "Fairness: force was used only on the people who pushed the barrier."
       },
       {
         "condition": {
           "flag": "honest-briefing"
         },
-        "text": "Freedom of information: the city was told what was known and what was not."
+        "text": "Freedom of information: the city was told what was known and what was not.",
+        "simple": "Right to know: the city was told what was known and unknown."
       },
       {
         "condition": {
           "flag": "targeted-notices"
         },
-        "text": "Free expression: specific incitement was addressed without cutting off a district."
+        "text": "Free expression: specific incitement was addressed without cutting off a district.",
+        "simple": "Free speech: fake posts were dealt with. The whole district stayed online."
       },
       {
         "condition": {
           "flag": "council-heard",
           "notFlag": "council-detained"
         },
-        "text": "Due process: no organiser was detained without individual grounds."
+        "text": "Due process: no organiser was detained without individual grounds.",
+        "simple": "Fair treatment: no student leader was locked up without a real reason."
       }
     ],
     "rightsHarmed": [
@@ -3203,49 +3610,57 @@
         "condition": {
           "flag": "square-cleared-by-force"
         },
-        "text": "Peaceful assembly: seated students were cleared with force."
+        "text": "Peaceful assembly: seated students were cleared with force.",
+        "simple": "Meeting peacefully: seated students were pushed out by force."
       },
       {
         "condition": {
           "flag": "internet-suspended"
         },
-        "text": "Free expression and livelihood: a district-wide internet shutdown silenced everyone, including you."
+        "text": "Free expression and livelihood: a district-wide internet shutdown silenced everyone, including you.",
+        "simple": "Free speech and work: switching off the internet silenced everyone, including you."
       },
       {
         "condition": {
           "flag": "council-detained"
         },
-        "text": "Personal liberty: elected student representatives were detained without individual grounds."
+        "text": "Personal liberty: elected student representatives were detained without individual grounds.",
+        "simple": "Freedom: elected student leaders were locked up without a real reason."
       },
       {
         "condition": {
           "flag": "students-blamed"
         },
-        "text": "Equality and dignity: peaceful students were publicly blamed for unrest they did not cause."
+        "text": "Equality and dignity: peaceful students were publicly blamed for unrest they did not cause.",
+        "simple": "Fairness: peaceful students were blamed in public for trouble they never caused."
       },
       {
         "condition": {
           "flag": "false-denial"
         },
-        "text": "Right to know: the public was told there was no leak when the evidence said otherwise."
+        "text": "Right to know: the public was told there was no leak when the evidence said otherwise.",
+        "simple": "Right to know: people were told there was no leak. The clues said otherwise."
       },
       {
         "condition": {
           "flag": "market-raided"
         },
-        "text": "Livelihood: lawful traders were raided for the actions of one account holder."
+        "text": "Livelihood: lawful traders were raided for the actions of one account holder.",
+        "simple": "Right to work: honest shopkeepers were raided because of one account owner."
       },
       {
         "condition": {
           "flag": "campus-cordoned"
         },
-        "text": "Peaceful assembly: campus gates were locked against a gathering that had harmed no one."
+        "text": "Peaceful assembly: campus gates were locked against a gathering that had harmed no one.",
+        "simple": "Meeting peacefully: the university gates were locked. The gathering had hurt no one."
       },
       {
         "condition": {
           "flag": "transit-suspended"
         },
-        "text": "Movement and livelihood: buses were stopped to starve a protest, stranding commuters instead."
+        "text": "Movement and livelihood: buses were stopped to starve a protest, stranding commuters instead.",
+        "simple": "Getting around: buses were stopped to break a protest. Workers got stuck instead."
       }
     ],
     "improvements": [
@@ -3253,56 +3668,97 @@
         "condition": {
           "notFlag": "investigation-opened"
         },
-        "text": "Open an investigation in the first half hour. Evidence is at its most perishable then."
+        "text": "Open an investigation in the first half hour. Evidence is at its most perishable then.",
+        "simple": "Start a proper check in the first half hour. Clues disappear fastest then."
       },
       {
         "condition": {
           "notFlag": "grievance-acknowledged"
         },
-        "text": "Acknowledge the grievance in the first minutes. A crowd that has been heard keeps its own rules."
+        "text": "Acknowledge the grievance in the first minutes. A crowd that has been heard keeps its own rules.",
+        "simple": "Listen to the complaint in the first minutes. A crowd that feels heard stays calm."
       },
       {
         "condition": {
           "flag": "investigation-opened",
           "notFlag": "vendor-records-secured"
         },
-        "text": "Secure and preserve the printing unit's logs and CCTV before the afternoon cleanup."
+        "text": "Secure and preserve the printing unit's logs and CCTV before the afternoon cleanup.",
+        "simple": "Keep the print shop's logs and videos safe before the afternoon clean-up."
       },
       {
         "condition": {
           "flag": "square-cleared-by-force"
         },
-        "text": "Separate the few who push barricades from the many who sit. The field report tells you who is who."
+        "text": "Separate the few who push barricades from the many who sit. The field report tells you who is who.",
+        "simple": "Separate the few who push barriers from the many who sit. The police report shows who is who."
       },
       {
         "condition": {
           "flag": "internet-suspended"
         },
-        "text": "Target specific incitement instead of switching off a district."
+        "text": "Target specific incitement instead of switching off a district.",
+        "simple": "Deal with specific fake posts instead of switching off a whole district."
       },
       {
         "condition": {
           "notFlag": "honest-briefing"
         },
-        "text": "Brief the city early with what is known and unknown. Silence gets filled by forwards."
+        "text": "Brief the city early with what is known and unknown. Silence gets filled by forwards.",
+        "simple": "Tell the city early what you know and don't know. Silence fills up with rumours."
       },
       {
         "condition": {
           "notFlag": "services-maintained"
         },
-        "text": "Keep a hospital corridor and a bus route open with the organisers' help. They want it too."
+        "text": "Keep a hospital corridor and a bus route open with the organisers' help. They want it too.",
+        "simple": "Keep a hospital path and a bus route open. The student leaders will help. They want it too."
       },
       {
         "condition": {
           "notFlag": "re-exam-announced"
         },
-        "text": "Give candidates a dated plan before nightfall. Uncertainty is the exploiter's fuel."
+        "text": "Give candidates a dated plan before nightfall. Uncertainty is the exploiter's fuel.",
+        "simple": "Give students a dated plan before night. Not knowing feeds the anger."
       }
     ],
     "closing": {
       "good": "The square emptied on its own terms: a verified leak, a dated plan, and a city that watched its officials tell the truth.",
       "mixed": "The exam will be re-held, but parts of the city still trust forwards more than bulletins. Some of today's wounds will not show until the next crisis.",
       "poor": "The paper leaked, the square was cleared, and nobody can say who sold the key. The students will remember how they were treated."
+    }
+  },
+  "simple": {
+    "title": "The Exam Leak",
+    "subtitle": "A test got out early. The city needs you.",
+    "briefing": {
+      "grievance": "Students think the big exam questions leaked early. Someone shared the answers before the test began. They want a proper check and a fair new exam. They also want to be allowed to speak up.",
+      "knownFacts": [
+        "The answers were shared at 8:52. The exam started at 9:15.",
+        "About 600 students are gathered peacefully outside the exam office.",
+        "The exam office has not said anything yet.",
+        "The question papers were printed at a locked print shop near the Records Office."
+      ],
+      "unverifiedClaims": [
+        "A picture claims the whole paper was online at 6 in the morning.",
+        "Messages say the exam is already cancelled.",
+        "Someone is selling a 'sure paper' for 40,000 rupees.",
+        "Some officials think outsiders are pushing the students."
+      ],
+      "responsibility": "You lead the city team: police, the exam office and helpers. Keep the gathering safe. Find out what really happened. Stop the cheats. Keep buses and the hospital working.",
+      "objective": "In three minutes: start a proper check and keep the gathering safe. Keep the hospital road open. Spot the fake clues.",
+      "lines": [
+        "8:52. The answers pop up in a chat group.",
+        "9:15. The exam starts anyway.",
+        "By ten, 600 students are outside the exam office.",
+        "Someone is already selling the next paper.",
+        "Freedom. Order. Your move."
+      ]
+    },
+    "closing": {
+      "good": "The students went home happy. You found the leak, made a fair plan, and told the truth.",
+      "mixed": "There will be a new exam. But many people still believe rumours more than you. Some hurt feelings will last.",
+      "poor": "The paper leaked and the square was cleared. Nobody knows who sold the answers. The students will remember this."
     }
   }
 }

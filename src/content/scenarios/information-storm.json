@@ -212,7 +212,13 @@
         "caption": "Waveform of a single continuous take"
       },
       "district": "media",
-      "resolutionNote": "Genuine audio. The full recording shows the order was a 90-minute shutoff for a burst-main repair, with tankers requested in the same call."
+      "resolutionNote": "Genuine audio. The full recording shows the order was a 90-minute shutoff for a burst-main repair, with tankers requested in the same call.",
+      "simple": {
+        "title": "The 41-second clip",
+        "claim": "A clip seems to show a boss ordering the Lower Ward water cut.",
+        "resolutionNote": "Real sound. The whole recording shows a 90-minute stop to fix a burst pipe. It also orders water trucks.",
+        "caption": "Sound wave of one unbroken recording"
+      }
     },
     {
       "id": "ev-utility-workorder",
@@ -251,7 +257,13 @@
         "caption": "Stamped work order with dispatch log"
       },
       "district": "transit",
-      "resolutionNote": "The cut was a repair, not a punishment. The tankers left ninety-five minutes late — that failure is real."
+      "resolutionNote": "The cut was a repair, not a punishment. The tankers left ninety-five minutes late — that failure is real.",
+      "simple": {
+        "title": "Burst-pipe repair order",
+        "claim": "Repair order: burst pipe at the Lower Ward junction. 90-minute water stop allowed. Trucks asked for 7:30.",
+        "resolutionNote": "The cut was a repair, not a punishment. But the water trucks left 95 minutes late. That failure is real.",
+        "caption": "Stamped repair order with times"
+      }
     },
     {
       "id": "ev-hospital-rumor",
@@ -291,7 +303,13 @@
       "setsFlagsOnResolve": [
         "hospital-rumour-exposed"
       ],
-      "resolutionNote": "A photo from a winter vaccination camp, recycled. The hospital is busy but not full."
+      "resolutionNote": "A photo from a winter vaccination camp, recycled. The hospital is busy but not full.",
+      "simple": {
+        "title": "'Hospital turning patients away'",
+        "claim": "A photo of a crowd at the hospital gate: 'Sick people being turned away. Share before they delete it.'",
+        "resolutionNote": "An old photo from a winter vaccine camp, reused. The hospital is busy but not full.",
+        "caption": "A crowd at a hospital gate — an old photo"
+      }
     },
     {
       "id": "ev-hospital-bed-data",
@@ -329,7 +347,13 @@
       "setsFlagsOnResolve": [
         "hospital-data-verified"
       ],
-      "resolutionNote": "The hospital is on amber, not full, and has refused no one."
+      "resolutionNote": "The hospital is on amber, not full, and has refused no one.",
+      "simple": {
+        "title": "Hospital live bed count",
+        "claim": "Emergency ward: 31 of 40 beds used. 37 heat patients since 6:00. Status busy, not full. No one refused.",
+        "resolutionNote": "The hospital is busy, not full, and has refused no one.",
+        "caption": "Beds used in each ward, updated 9:40"
+      }
     },
     {
       "id": "ev-ambulance-log",
@@ -364,7 +388,13 @@
         "caption": "Dispatch log with handover times"
       },
       "district": "hospital",
-      "resolutionNote": "Independent confirmation: the hospital accepted every patient brought to it."
+      "resolutionNote": "Independent confirmation: the hospital accepted every patient brought to it.",
+      "simple": {
+        "title": "Ambulance log",
+        "claim": "37 heat patients taken to the hospital since 6:00. All handed over. No ambulance was sent elsewhere.",
+        "resolutionNote": "A second source agrees: the hospital took every patient brought to it.",
+        "caption": "Ambulance trips with handover times"
+      }
     },
     {
       "id": "ev-full-recording",
@@ -407,7 +437,13 @@
       "setsFlagsOnResolve": [
         "full-recording-verified"
       ],
-      "resolutionNote": "The complete call: a repair shutoff, an order for tankers within the hour, and no 'let them learn'."
+      "resolutionNote": "The complete call: a repair shutoff, an order for tankers within the hour, and no 'let them learn'.",
+      "simple": {
+        "title": "The whole recording",
+        "claim": "3 minutes 12 seconds. The boss orders a 90-minute repair stop. He asks for water trucks within the hour.",
+        "resolutionNote": "The complete call: a repair stop and water trucks within the hour. Nobody says 'let them learn'.",
+        "caption": "The full sound wave with the 41-second part marked"
+      }
     },
     {
       "id": "ev-threat-messages",
@@ -445,7 +481,13 @@
       "setsFlagsOnResolve": [
         "threats-verified"
       ],
-      "resolutionNote": "Specific, imminent threats from accounts that also ran the contamination posts. A crime, not an opinion."
+      "resolutionNote": "Specific, imminent threats from accounts that also ran the contamination posts. A crime, not an opinion.",
+      "simple": {
+        "title": "Scary messages to the reporter",
+        "claim": "Three accounts sent her messages naming her street and saying 'tonight'. Same words, 40 seconds apart.",
+        "resolutionNote": "Real, specific threats from the same accounts that spread the water hoax. A crime, not an opinion.",
+        "caption": "Three messages, side by side"
+      }
     },
     {
       "id": "ev-posting-pattern",
@@ -489,7 +531,13 @@
       "setsFlagsOnResolve": [
         "network-pattern-verified"
       ],
-      "resolutionNote": "Automated amplification with undisclosed payment — a network, not a public mood."
+      "resolutionNote": "Automated amplification with undisclosed payment — a network, not a public mood.",
+      "simple": {
+        "title": "The 90-second swarm",
+        "claim": "212 accounts posted the same 'water is poisoned' text within 90 seconds. 14 posts were paid by a secret buyer.",
+        "resolutionNote": "Fake accounts paid to post together. A secret group, not real public feeling.",
+        "caption": "Posting times bunched in one 90-second band"
+      }
     },
     {
       "id": "ev-water-lab-result",
@@ -527,7 +575,13 @@
       "setsFlagsOnResolve": [
         "lab-verified"
       ],
-      "resolutionNote": "The water is safe. The post-repair chlorination the work order scheduled was carried out."
+      "resolutionNote": "The water is safe. The post-repair chlorination the work order scheduled was carried out.",
+      "simple": {
+        "title": "The water test",
+        "claim": "Lower Ward water tested at 4 places: enough chlorine, no germs found. The water is safe to drink.",
+        "resolutionNote": "The water is safe. The cleaning planned after the repair was done.",
+        "caption": "Test report with a map of where samples were taken"
+      }
     },
     {
       "id": "ev-platform-response",
@@ -564,7 +618,13 @@
       "setsFlagsOnResolve": [
         "network-confirmed"
       ],
-      "resolutionNote": "The swarm was bought. A narrow lawful request got the answer a takedown never would."
+      "resolutionNote": "The swarm was bought. A narrow lawful request got the answer a takedown never would.",
+      "simple": {
+        "title": "The app's answer",
+        "claim": "The app confirms: one two-day-old advertiser paid for 14 posts. 198 linked fake accounts have been suspended.",
+        "resolutionNote": "The swarm was bought. One exact legal question got an answer that deleting posts never would.",
+        "caption": "Letter from the app with an account summary"
+      }
     },
     {
       "id": "ev-spliced-clip",
@@ -610,7 +670,13 @@
       "setsFlagsOnResolve": [
         "splice-exposed"
       ],
-      "resolutionNote": "Spliced. 'Let them learn' is cut from a different sentence about training new repair crews."
+      "resolutionNote": "Spliced. 'Let them learn' is cut from a different sentence about training new repair crews.",
+      "simple": {
+        "title": "The 19-second version",
+        "claim": "A shorter clip. The boss seems to say: 'cut the water now… let them learn.'",
+        "resolutionNote": "Cut and changed. 'Let them learn' comes from a different sentence about training new repair crews.",
+        "caption": "Sound wave showing two cut points"
+      }
     },
     {
       "id": "ev-fake-lab-notice",
@@ -655,7 +721,13 @@
       "setsFlagsOnResolve": [
         "fake-notice-exposed"
       ],
-      "resolutionNote": "A forgery. No accredited lab issued it; the real result says the water is safe."
+      "resolutionNote": "A forgery. No accredited lab issued it; the real result says the water is safe.",
+      "simple": {
+        "title": "'Dirty water notice'",
+        "claim": "A notice: 'Lower Ward water is dirty with sewage. Do not drink. Boil-water order in force.'",
+        "resolutionNote": "A fake. No real lab sent it. The real test says the water is safe.",
+        "caption": "A notice with no lab number and tomorrow's date"
+      }
     },
     {
       "id": "ev-attribution-note",
@@ -697,7 +769,13 @@
       "setsFlagsOnResolve": [
         "attribution-note-exposed"
       ],
-      "resolutionNote": "Backwards causation. The commentators reacted to the panic; the paid swarm started it."
+      "resolutionNote": "Backwards causation. The commentators reacted to the panic; the paid swarm started it.",
+      "simple": {
+        "title": "Unsigned 'who started it' note",
+        "claim": "A note: 'Panic buying caused by three commentators. Lock them up now and delete all comments.'",
+        "resolutionNote": "Backwards. The commentators reacted to the panic. The paid swarm started it.",
+        "caption": "A note with no name and no proof"
+      }
     }
   ],
   "decisions": [
@@ -850,7 +928,33 @@
           ],
           "consequence": "Silence reads as confirmation. The Lower Ward hears nothing from anyone in charge."
         }
-      ]
+      ],
+      "simple": {
+        "title": "The clip is everywhere",
+        "situation": "A sound clip seems to show a boss ordering the water cut. It is spreading fast. Reporters want you to say something. You have not heard the whole recording yet.",
+        "options": {
+          "first-known-unknown": {
+            "title": "Say what you know and don't know",
+            "preview": "A short note: a cut happened, we are checking why. The whole recording is on its way.",
+            "consequence": "Reporters repeat your note word for word. People wait for the whole recording."
+          },
+          "first-deny": {
+            "title": "Say no water was cut",
+            "preview": "A quick 'no' buys an hour. It falls apart when the clip turns out to be real.",
+            "consequence": "Your 'no' is everywhere. Reporters go looking for the whole recording themselves."
+          },
+          "first-demand-takedown": {
+            "title": "Tell reporters to stop showing it",
+            "preview": "Stopping reporters hurts freedom and trust. The clip spreads even faster.",
+            "consequence": "Your demand leaks in minutes. Three more news sites show the clip."
+          },
+          "first-wait": {
+            "title": "Wait for the whole recording",
+            "preview": "You say nothing while the clip spreads. The Lower Ward gets angrier.",
+            "consequence": "Silence looks like a yes. The Lower Ward hears nothing from anyone in charge."
+          }
+        }
+      }
     },
     {
       "id": "dec-lower-ward-water",
@@ -1035,7 +1139,33 @@
           ],
           "consequence": "The queue doubles. A child faints at the standpost and the crowd turns on the utility van."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Two hours without water",
+        "situation": "Lanes behind the Transit Hub have had no water for two hours. It is 44 degrees. People gather at the Hub and ask who cut their water.",
+        "options": {
+          "water-tankers-briefing": {
+            "title": "Send water trucks and explain",
+            "preview": "Water within the hour. An officer at the tap explains the burst pipe.",
+            "consequence": "Water trucks reach the taps. An officer explains the burst pipe and takes names to follow up."
+          },
+          "water-tankers-only": {
+            "title": "Send water trucks, say nothing",
+            "preview": "Water arrives, but people keep asking who cut it and why",
+            "consequence": "Water arrives. So does the rumour that the cut was a punishment."
+          },
+          "water-disperse-crowd": {
+            "title": "Push the crowd away from the Hub",
+            "preview": "Thirsty people are pushed back from the taps while phones film everything",
+            "consequence": "The queue is pushed back. The videos are online before the officers leave."
+          },
+          "water-wait": {
+            "title": "Wait for the water company",
+            "preview": "The queue grows. So does the story that the cut was a punishment.",
+            "consequence": "The queue doubles. A child faints at the tap. The crowd turns on the water van."
+          }
+        }
+      }
     },
     {
       "id": "dec-hospital-rumour",
@@ -1209,7 +1339,33 @@
           ],
           "consequence": "The gate crowd doubles. An ambulance waits four minutes at the turn."
         }
-      ]
+      ],
+      "simple": {
+        "title": "'They are turning patients away'",
+        "situation": "A forwarded photo says the hospital is sending sick people away. Families rush to the gate to check on relatives. The hospital's own screen says busy, not full.",
+        "options": {
+          "hosp-publish-data": {
+            "title": "Show the live bed count",
+            "preview": "The hospital posts its free beds every 15 minutes. At the gate and online.",
+            "consequence": "The bed count is on every screen at the gate. Families stop rushing in to check."
+          },
+          "hosp-second-entrance": {
+            "title": "Open a second gate and help desk",
+            "preview": "A shady tent with water and a helper answering families' questions",
+            "consequence": "The crush at the main gate eases. Ambulances use the second gate."
+          },
+          "hosp-detain-forwarders": {
+            "title": "Lock up whoever shared the photo",
+            "preview": "Two worried relatives are taken away. The photo stays everywhere.",
+            "consequence": "Two relatives are locked up for sharing a photo. The photo is still everywhere."
+          },
+          "hosp-wait": {
+            "title": "Let the hospital deal with it",
+            "preview": "The crowd at the gate doubles. Ambulances slow down at the turn.",
+            "consequence": "The gate crowd doubles. An ambulance waits four minutes at the turn."
+          }
+        }
+      }
     },
     {
       "id": "dec-press-enclave",
@@ -1343,7 +1499,33 @@
           },
           "consequence": "The session runs without you. Speculation fills the empty chair."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Reporters want the recording",
+        "situation": "The reporters are checking the clip together in an open meeting. A senior colleague wants you to tell them to hold the story. 'Just until the review is done,' he says.",
+        "options": {
+          "press-share-recording": {
+            "title": "Share the whole recording",
+            "preview": "Reporters compare both clips live. The fake cut is shown to everyone.",
+            "consequence": "Reporters play both clips side by side. The fake cut is exposed in minutes."
+          },
+          "press-open-briefing": {
+            "title": "Answer questions on the record",
+            "preview": "Forty minutes of questions. You answer each one or honestly say 'not yet'.",
+            "consequence": "Forty minutes of questions. Saying 'we don't know yet' is uncomfortable, but people believe it."
+          },
+          "press-advise-hold": {
+            "title": "Tell reporters to hold the story",
+            "preview": "Your 'advice' becomes the news: a gag order. The story grows a second headline.",
+            "consequence": "Your advice is noted — and reported."
+          },
+          "press-wait": {
+            "title": "Stay away from the meeting",
+            "preview": "The meeting runs without you. Guesses fill the empty chair.",
+            "consequence": "The meeting runs without you. Guesses fill the empty chair."
+          }
+        }
+      }
     },
     {
       "id": "dec-reporter-threats",
@@ -1495,7 +1677,33 @@
           ],
           "consequence": "By evening a brick comes through the Press Club window."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Scary messages to the reporter",
+        "situation": "Reporter Nadia checked the clip first. Now three accounts have sent her scary messages. They name her street and say 'tonight'. She wants to keep reporting.",
+        "options": {
+          "threat-protect-investigate": {
+            "title": "Protect her and find the senders",
+            "preview": "Officers guard her tonight. A case is opened against the three accounts.",
+            "consequence": "Officers guard her and a case is opened for the threats. She files her next story on time."
+          },
+          "threat-ask-pause": {
+            "title": "Ask her to stop reporting for now",
+            "preview": "She says no, on air. The threats got what the law should have stopped.",
+            "consequence": "She refuses, and says so on air."
+          },
+          "threat-detain-critics": {
+            "title": "Lock up everyone who was rude to her",
+            "preview": "Dozens of critics are picked up. The three scary accounts keep posting.",
+            "consequence": "Dozens of critics are picked up. The three scary accounts keep posting."
+          },
+          "threat-wait": {
+            "title": "Write it down and wait",
+            "preview": "Nothing happens until something does. By evening a brick breaks a window.",
+            "consequence": "By evening a brick comes through the reporters' window."
+          }
+        }
+      }
     },
     {
       "id": "dec-contamination-claim",
@@ -1677,7 +1885,33 @@
           ],
           "consequence": "Bottled water runs out at the Hub. A scuffle starts over the last crate."
         }
-      ]
+      ],
+      "simple": {
+        "title": "'The water is poisoned'",
+        "situation": "A fake-looking 'lab notice' says the Lower Ward water is dirty. Hundreds of identical posts share it. Market Street shops are selling out of bottled water. Prices have tripled.",
+        "options": {
+          "contam-publish-lab": {
+            "title": "Show the water test and the map",
+            "preview": "The real test, the four places tested and the lab's number. All out together.",
+            "consequence": "The test, the places tested and the lab's number go out together. Panic buying slows."
+          },
+          "contam-free-tankers": {
+            "title": "Free water trucks; stop price cheats",
+            "preview": "Free water at three places beats the panic. Inspectors visit the worst shops.",
+            "consequence": "Free water at three places beats the panic. Inspectors visit the worst shops."
+          },
+          "contam-boil-order": {
+            "title": "Tell everyone to boil their water",
+            "preview": "An order based on a notice nobody checked. Shops empty more. The notice is fake.",
+            "consequence": "The order goes out on a notice nobody checked. Shops empty even more."
+          },
+          "contam-wait": {
+            "title": "Wait for the water company",
+            "preview": "Bottled water runs out at the Hub. A fight starts over the last crate.",
+            "consequence": "Bottled water runs out at the Hub. A fight starts over the last crate."
+          }
+        }
+      }
     },
     {
       "id": "dec-expose-network",
@@ -1841,7 +2075,33 @@
           ],
           "consequence": "The swarm shifts to a new line: 'the lab result is forged'."
         }
-      ]
+      ],
+      "simple": {
+        "title": "The rumour swarm has a buyer",
+        "situation": "Your team found 212 accounts posting the same 'poisoned water' text. All within 90 seconds. Someone secretly paid for 14 of the posts. The same accounts threatened the reporter.",
+        "options": {
+          "network-lawful-request": {
+            "title": "Ask the app one exact question",
+            "preview": "A narrow legal request about 14 paid posts and one buyer. The app answers.",
+            "consequence": "You ask only about 14 paid posts and one buyer. The app's team answers within the hour."
+          },
+          "network-publish-pattern": {
+            "title": "Show everyone the pattern",
+            "preview": "People see the swarm for themselves: the same words, 0.4 seconds apart",
+            "consequence": "People see the swarm: the same words, 0.4 seconds apart. Shares of the hoax collapse."
+          },
+          "network-mass-takedown": {
+            "title": "Delete every post about water",
+            "preview": "Thousands of posts vanish, including people asking where the water trucks are",
+            "consequence": "Thousands of posts vanish. That includes people asking where the water trucks are."
+          },
+          "network-wait": {
+            "title": "Keep watching, do nothing",
+            "preview": "The swarm switches to a new lie: 'the water test is fake'",
+            "consequence": "The swarm switches to a new line: 'the water test is fake'."
+          }
+        }
+      }
     },
     {
       "id": "dec-official-accountability",
@@ -1977,7 +2237,33 @@
           ],
           "consequence": "No answer. By evening 'cover-up' is the most shared word in the district."
         }
-      ]
+      ],
+      "simple": {
+        "title": "What happens to the boss?",
+        "situation": "You now have the whole recording and the repair order. The cut was a 90-minute stop to fix a burst pipe. But the water trucks came 95 minutes late. People want to know what happens next.",
+        "options": {
+          "acct-publish-full": {
+            "title": "Publish the recording and the timeline",
+            "preview": "The full story: a real repair, late trucks, and a named review.",
+            "consequence": "The record shows a real repair and a real failure: late trucks. A named review will look at it."
+          },
+          "acct-suspend-on-clip": {
+            "title": "Suspend the boss for the 'cruel cut'",
+            "preview": "A punishment based on a clip. The whole recording tells a different story.",
+            "consequence": "A suspension announced on a clip nobody checked. The whole recording comes out anyway."
+          },
+          "acct-quiet-inquiry": {
+            "title": "Promise a review, show nothing",
+            "preview": "'A review is under way' — a sentence nobody believes any more",
+            "consequence": "'A review is under way.' The town has heard that sentence before."
+          },
+          "acct-wait": {
+            "title": "Put off the question",
+            "preview": "Putting it off looks like hiding something",
+            "consequence": "No answer. By evening 'cover-up' is the most shared word in town."
+          }
+        }
+      }
     },
     {
       "id": "dec-blanket-denial",
@@ -2101,7 +2387,28 @@
           ],
           "consequence": "The trend hardens into a slogan painted on the Hub wall."
         }
-      ]
+      ],
+      "simple": {
+        "title": "'No one in charge is answering'",
+        "situation": "'No one in charge is answering' is trending. A colleague writes a quick statement. It says: no water was cut. No one was turned away. The water is safe. You don't know yet if two of those are true.",
+        "options": {
+          "denial-blanket": {
+            "title": "Send the quick 'all is fine' message",
+            "preview": "Three comforting sentences. Two of them will be tested within the hour.",
+            "consequence": "Three comforting sentences go out. Within the hour a photo proves the first one wrong."
+          },
+          "denial-status-board": {
+            "title": "Post a known / checking / false board",
+            "preview": "A three-column public board, updated every 20 minutes. Boring, and believed.",
+            "consequence": "A three-column board, updated every 20 minutes. Boring, and believed."
+          },
+          "denial-wait": {
+            "title": "Say nothing yet",
+            "preview": "The trend hardens into a slogan",
+            "consequence": "The trend hardens into a slogan painted on the Hub wall."
+          }
+        }
+      }
     },
     {
       "id": "dec-hospital-gate",
@@ -2267,7 +2574,28 @@
           ],
           "consequence": "The shouting turns into shoving."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Trouble at the hospital gate",
+        "situation": "At the hospital gate, a group shouts: patients are 'left to die'. They push families toward the guards. An ambulance is stuck at the turn.",
+        "options": {
+          "gate-cordon-medics": {
+            "title": "Clear the ambulance lane; send doctors",
+            "preview": "The lane opens for the ambulance. A doctor reads the bed count aloud at the gate.",
+            "consequence": "The lane opens for the ambulance. A doctor reads the live bed count aloud at the gate."
+          },
+          "gate-force-clear": {
+            "title": "Clear the whole gate by force",
+            "preview": "Families and troublemakers are pushed back together. The videos spread.",
+            "consequence": "Families and troublemakers are pushed back together. The ambulance gets through; so do the videos."
+          },
+          "gate-wait": {
+            "title": "Let the hospital guards handle it",
+            "preview": "The shouting turns into shoving. Someone gets hurt.",
+            "consequence": "The shouting turns into shoving."
+          }
+        }
+      }
     },
     {
       "id": "dec-silence-storm",
@@ -2420,7 +2748,33 @@
           },
           "consequence": "The note stays on the desk. So does the pressure."
         }
-      ]
+      ],
+      "simple": {
+        "title": "'Shut it all down'",
+        "situation": "An unsigned note blames three people online for the panic. It says: take away the reporters' passes. Delete all comments. Lock up the three people.",
+        "options": {
+          "silence-suspend-and-remove": {
+            "title": "Shut the reporters; delete comments",
+            "preview": "The team that exposed the fake clip is locked out. Corrections vanish too.",
+            "consequence": "The reporters who exposed the fake clip are locked out. Corrections vanish with the criticism."
+          },
+          "silence-detain": {
+            "title": "Lock up the three commentators",
+            "preview": "Three people are held for opinions. The paid fake accounts keep posting.",
+            "consequence": "Three people are locked up for opinions posted after the panic began. The paid swarm posts on."
+          },
+          "silence-refuse": {
+            "title": "Say no; act only on real threats",
+            "preview": "You file the note and ask who wrote it. Nobody owns up.",
+            "consequence": "You file the note and ask where it came from. Nobody owns up."
+          },
+          "silence-ignore": {
+            "title": "Leave the note unanswered",
+            "preview": "The note stays on the desk, and so does the pressure",
+            "consequence": "The note stays on the desk. So does the pressure."
+          }
+        }
+      }
     }
   ],
   "rightsMoments": [
@@ -2453,7 +2807,22 @@
         "label": "Constitution of India, Article 19 — India Code",
         "url": "https://www.indiacode.nic.in/"
       },
-      "contentDate": "2026-10-23"
+      "contentDate": "2026-10-23",
+      "simple": {
+        "question": "Reporters want to show a recording they have not fully checked. What can you lawfully do?",
+        "options": {
+          "hold": "Order them to hold the story until the review ends",
+          "inform": "Give them the whole recording and put the correct facts on record",
+          "accredit": "Take away their reporters' passes until they obey"
+        },
+        "feedback": {
+          "hold": "That is stopping news before it is out. Without a real legal reason, you can't do that.",
+          "inform": "Yes. The answer to half a story is the whole story, not a gag.",
+          "accredit": "Reporters' passes are not a tool to control the news. That is censorship with a different name."
+        },
+        "principle": "Everyone, including reporters, has the right to speak. Stopping a story before it comes out is almost never allowed.",
+        "why": "The clip was real but missing half. Sharing the whole recording fixed the story faster than any order could."
+      }
     },
     {
       "id": "rm-false-vs-criticism",
@@ -2484,7 +2853,22 @@
         "label": "Supreme Court of India — judgments, including Shreya Singhal v. Union of India (2015)",
         "url": "https://main.sci.gov.in/"
       },
-      "contentDate": "2026-10-23"
+      "contentDate": "2026-10-23",
+      "simple": {
+        "question": "Two posts spread: 'The town treats the Lower Ward as rubbish' and 'Lower Ward water is poisoned — don't drink'. Which can you act on?",
+        "options": {
+          "both": "Both — delete every post about the water",
+          "specific": "Only the false safety claim — correct it publicly and go after the accounts spreading it",
+          "neither": "Neither — nothing online can be acted on"
+        },
+        "feedback": {
+          "both": "Deleting everything silences fair complaints along with the hoax. Courts have struck down broad bans like that.",
+          "specific": "Yes. A false claim that could make people sick can be answered with facts and narrow legal action.",
+          "neither": "A false claim that endangers people can be corrected and, where the law allows, acted on. Opinions are protected; dangerous lies are not."
+        },
+        "principle": "Harsh criticism of leaders is allowed. Action must be narrow, based on facts, and aimed only at specific harmful lies.",
+        "why": "The 'poisoned water' hoax put health and shops at risk. The real test and action against the paid accounts answered it without deleting people's complaints."
+      }
     },
     {
       "id": "rm-incitement",
@@ -2515,7 +2899,22 @@
         "label": "Constitution of India, Articles 19 and 21 — India Code",
         "url": "https://www.indiacode.nic.in/"
       },
-      "contentDate": "2026-10-23"
+      "contentDate": "2026-10-23",
+      "simple": {
+        "question": "A reporter gets messages naming her street and saying 'tonight'. Another post says she 'should be run out of town'. When can police act?",
+        "options": {
+          "any": "Both — any nasty message about her",
+          "threat": "The messages naming her street and a time — a real, specific threat",
+          "wait": "Neither, until something actually happens"
+        },
+        "feedback": {
+          "any": "Nasty opinions are still opinions. Locking people up for them hurts freedom and does not stop the real threat.",
+          "threat": "Yes. A specific threat to a person is a crime to investigate. Go after the threat, not the critic.",
+          "wait": "A real, specific threat deserves protection and investigation now. Waiting for harm is not fair."
+        },
+        "principle": "Speech stops being protected when it becomes a real threat. The same goes for telling people to hurt someone soon. Rude opinions are not a crime.",
+        "why": "Officers protected the reporter and opened a case on the three accounts. The threats stopped. Nobody was locked up for an opinion."
+      }
     }
   ],
   "events": [
@@ -2548,7 +2947,8 @@
           "district": "media",
           "mood": "tense"
         }
-      ]
+      ],
+      "simple": "A clip of a boss ordering a water cut is spreading from the reporters to every district."
     },
     {
       "id": "evt-heat-alert",
@@ -2571,7 +2971,8 @@
           "district": "transit",
           "magnitude": -0.2
         }
-      ]
+      ],
+      "simple": "Heat alert: 44 degrees by noon. Hospital busy. No water in the Lower Ward since 6:50."
     },
     {
       "id": "evt-tankers-arrive",
@@ -2601,7 +3002,8 @@
           "district": "transit",
           "mood": "hopeful"
         }
-      ]
+      ],
+      "simple": "Water trucks reach the Lower Ward taps. The crowd becomes an orderly line."
     },
     {
       "id": "evt-tankers-late",
@@ -2631,7 +3033,8 @@
           "road": "r-civic-transit",
           "status": "congested"
         }
-      ]
+      ],
+      "simple": "Two hours without water. The queue at the Transit Hub turns on the water van."
     },
     {
       "id": "evt-hospital-crowding",
@@ -2660,7 +3063,8 @@
           "to": "hospital",
           "signal": "rumor"
         }
-      ]
+      ],
+      "simple": "Families rush to the hospital gate after a photo claims patients are being turned away."
     },
     {
       "id": "evt-hospital-data-live",
@@ -2694,7 +3098,8 @@
           "kind": "institution",
           "district": "hospital"
         }
-      ]
+      ],
+      "simple": "The hospital's live bed count is on every screen at the gate. The crowd thins."
     },
     {
       "id": "evt-contamination-wave",
@@ -2733,7 +3138,8 @@
           "district": "market",
           "mood": "tense"
         }
-      ]
+      ],
+      "simple": "'The water is poisoned' — hundreds of identical posts in 90 seconds. Water sells out."
     },
     {
       "id": "evt-panic-eases",
@@ -2763,7 +3169,8 @@
           "district": "market",
           "magnitude": -0.15
         }
-      ]
+      ],
+      "simple": "The real water test is pinned on every board. Bottled-water queues shrink."
     },
     {
       "id": "evt-panic-deepens",
@@ -2793,7 +3200,8 @@
           "district": "market",
           "mood": "volatile"
         }
-      ]
+      ],
+      "simple": "Shops on Market Street close early. A crate of bottled water is stolen from a truck."
     },
     {
       "id": "evt-repair-complete",
@@ -2820,7 +3228,8 @@
           "district": "transit",
           "action": "restore"
         }
-      ]
+      ],
+      "simple": "The burst pipe is fixed. Water pressure is coming back to the Lower Ward."
     },
     {
       "id": "evt-press-vigil",
@@ -2845,7 +3254,8 @@
           "district": "media",
           "mood": "tense"
         }
-      ]
+      ],
+      "simple": "Reporters stand together outside their building after its window is smashed."
     },
     {
       "id": "evt-reporter-files",
@@ -2877,7 +3287,8 @@
           "district": "media",
           "mood": "hopeful"
         }
-      ]
+      ],
+      "simple": "The reporter publishes her story: the whole recording, the fake cut and the paid swarm."
     },
     {
       "id": "evt-no-one-answering",
@@ -2906,7 +3317,8 @@
           "district": "transit",
           "mood": "volatile"
         }
-      ]
+      ],
+      "simple": "'No one in charge is answering.' The line spreads from the Hub to Market Street."
     },
     {
       "id": "evt-lower-ward-march",
@@ -2941,7 +3353,8 @@
       ],
       "setsFlags": [
         "lower-ward-march"
-      ]
+      ],
+      "simple": "Lower Ward residents march from the Hub to Civic Square carrying empty pots."
     },
     {
       "id": "evt-hospital-gate-confrontation",
@@ -2976,7 +3389,8 @@
       ],
       "setsFlags": [
         "hospital-gate-clash"
-      ]
+      ],
+      "simple": "Troublemakers at the hospital gate push families toward the guards. An ambulance is stuck."
     },
     {
       "id": "evt-transit-scuffle",
@@ -3000,7 +3414,8 @@
       ],
       "setsFlags": [
         "transit-violence"
-      ]
+      ],
+      "simple": "A fight breaks out in the tap queue. Two men who were not queuing started it."
     },
     {
       "id": "evt-agitators-media",
@@ -3030,7 +3445,8 @@
       ],
       "setsFlags": [
         "press-club-mobbed"
-      ]
+      ],
+      "simple": "A group tries to force its way into the reporters' meeting."
     },
     {
       "id": "evt-lab-forged-rumor",
@@ -3054,7 +3470,8 @@
           "to": "media",
           "signal": "manipulated"
         }
-      ]
+      ],
+      "simple": "The swarm switches lies: 'the water test is fake'. Same accounts, new words."
     },
     {
       "id": "evt-boards-tampered",
@@ -3086,7 +3503,8 @@
       ],
       "setsFlags": [
         "boards-tampered"
-      ]
+      ],
+      "simple": "Transit screens are hacked to read 'WATER UNSAFE — DO NOT DRINK'."
     },
     {
       "id": "evt-pressure-call",
@@ -3095,7 +3513,8 @@
       "message": "A senior voice on the phone: 'Shut it all down — the press, the posts, the lot. Decide now.'",
       "setsFlags": [
         "pressure-to-shut-down"
-      ]
+      ],
+      "simple": "A senior voice on the phone: 'Shut it all down — the reporters, the posts, everything.'"
     }
   ],
   "opponentPlays": [
@@ -3313,51 +3732,59 @@
         "condition": {
           "flag": "full-record-published"
         },
-        "text": "The full recording and timeline were published: the cut was a repair, and the tanker delay was named as the real failure."
+        "text": "The full recording and timeline were published: the cut was a repair, and the tanker delay was named as the real failure.",
+        "simple": "You published the whole recording and the timeline. The cut was a repair. The late trucks were the real failure."
       },
       {
         "condition": {
           "flag": "tankers-sent"
         },
-        "text": "Water reached the Lower Ward standposts within the hour."
+        "text": "Water reached the Lower Ward standposts within the hour.",
+        "simple": "Water reached the Lower Ward taps within the hour."
       },
       {
         "condition": {
           "flag": "lab-result-published"
         },
-        "text": "The contamination hoax was answered with an accredited lab result and its sampling map."
+        "text": "The contamination hoax was answered with an accredited lab result and its sampling map.",
+        "simple": "You answered the 'poisoned water' hoax with the real test and its map."
       },
       {
         "condition": {
           "flag": "reporter-protected"
         },
-        "text": "The reporter was protected and the specific threats were pursued as crimes."
+        "text": "The reporter was protected and the specific threats were pursued as crimes.",
+        "simple": "The reporter was protected and the threats were treated as crimes."
       },
       {
         "condition": {
           "flag": "network-exposed"
         },
-        "text": "The undisclosed paid network was exposed through timestamps and ad records."
+        "text": "The undisclosed paid network was exposed through timestamps and ad records.",
+        "simple": "The secret paid swarm was exposed with timestamps and payment records."
       },
       {
         "condition": {
           "flag": "hospital-data-published"
         },
-        "text": "Live hospital data replaced the 'turning patients away' rumour."
+        "text": "Live hospital data replaced the 'turning patients away' rumour.",
+        "simple": "Live hospital numbers replaced the 'turning patients away' rumour."
       },
       {
         "condition": {
           "flag": "splice-exposed",
           "opponent": "disinfo"
         },
-        "text": "The spliced clip was exposed as manipulated: two splice points, three words from another sentence."
+        "text": "The spliced clip was exposed as manipulated: two splice points, three words from another sentence.",
+        "simple": "The fake clip was exposed: two cut points, three words from another sentence."
       },
       {
         "condition": {
           "flag": "fake-notice-exposed",
           "opponent": "disinfo"
         },
-        "text": "The forged laboratory notice was caught by its missing registration and impossible date."
+        "text": "The forged laboratory notice was caught by its missing registration and impossible date.",
+        "simple": "The fake lab notice was caught by its missing number and impossible date."
       }
     ],
     "unresolved": [
@@ -3365,25 +3792,29 @@
         "condition": {
           "notFlag": "full-record-published"
         },
-        "text": "The city never heard the full recording from you. The splice kept its power."
+        "text": "The city never heard the full recording from you. The splice kept its power.",
+        "simple": "People never heard the whole recording from you. The fake clip kept its power."
       },
       {
         "condition": {
           "notFlag": "tankers-sent"
         },
-        "text": "The Lower Ward waited hours for water a tanker could have delivered."
+        "text": "The Lower Ward waited hours for water a tanker could have delivered.",
+        "simple": "The Lower Ward waited hours for water a truck could have brought."
       },
       {
         "condition": {
           "notFlag": "lab-result-published"
         },
-        "text": "The contamination claim was never publicly answered with the lab result."
+        "text": "The contamination claim was never publicly answered with the lab result.",
+        "simple": "The 'poisoned water' claim was never answered with the real test."
       },
       {
         "condition": {
           "notFlag": "reporter-protected"
         },
-        "text": "Threats against the reporter were never met with a specific, lawful response."
+        "text": "Threats against the reporter were never met with a specific, lawful response.",
+        "simple": "Threats against the reporter never got a real, lawful response."
       },
       {
         "condition": {
@@ -3392,27 +3823,31 @@
             "blanket-denial"
           ]
         },
-        "text": "A denial that proved false poisoned every true statement that followed."
+        "text": "A denial that proved false poisoned every true statement that followed.",
+        "simple": "A denial that turned out false spoiled every true thing you said after it."
       },
       {
         "condition": {
           "notFlag": "network-exposed"
         },
-        "text": "The paid swarm was never named for what it was; the next one will be cheaper."
+        "text": "The paid swarm was never named for what it was; the next one will be cheaper.",
+        "simple": "The paid swarm was never named for what it was. The next one will be cheaper."
       },
       {
         "condition": {
           "notFlag": "splice-exposed",
           "opponent": "disinfo"
         },
-        "text": "The spliced clip was never exposed as manipulated; its three invented words outlived the day."
+        "text": "The spliced clip was never exposed as manipulated; its three invented words outlived the day.",
+        "simple": "The fake clip was never exposed. Its three invented words outlived the day."
       },
       {
         "condition": {
           "notFlag": "attribution-note-exposed",
           "opponent": "overreaction"
         },
-        "text": "The unsigned note blaming commentators was never examined; it kept its influence."
+        "text": "The unsigned note blaming commentators was never examined; it kept its influence.",
+        "simple": "The unsigned note blaming commentators was never checked. It kept its power."
       }
     ],
     "rightsProtected": [
@@ -3423,31 +3858,36 @@
             "press-briefed"
           ]
         },
-        "text": "Freedom of the press: journalists received information, not instructions."
+        "text": "Freedom of the press: journalists received information, not instructions.",
+        "simple": "Free press: reporters got information, not orders."
       },
       {
         "condition": {
           "flag": "reporter-protected"
         },
-        "text": "Safety of journalists: a specific threat met a specific, lawful response."
+        "text": "Safety of journalists: a specific threat met a specific, lawful response.",
+        "simple": "Reporter safety: a real threat got a real, lawful response."
       },
       {
         "condition": {
           "flag": "refused-overreach"
         },
-        "text": "Freedom of expression: the call to detain commentators was refused."
+        "text": "Freedom of expression: the call to detain commentators was refused.",
+        "simple": "Free speech: you refused to lock up the commentators."
       },
       {
         "condition": {
           "flag": "first-update-published"
         },
-        "text": "Right to information: the public was told what was known and what was not."
+        "text": "Right to information: the public was told what was known and what was not.",
+        "simple": "Right to know: people were told what was known and what was not."
       },
       {
         "condition": {
           "flag": "gate-secured"
         },
-        "text": "Proportionate policing: the hospital lane was secured without clearing families by force."
+        "text": "Proportionate policing: the hospital lane was secured without clearing families by force.",
+        "simple": "Fair policing: the ambulance lane was cleared without pushing families by force."
       }
     ],
     "rightsHarmed": [
@@ -3458,13 +3898,15 @@
             "press-club-suspended"
           ]
         },
-        "text": "Press freedom was harmed: editors were pressured or locked out."
+        "text": "Press freedom was harmed: editors were pressured or locked out.",
+        "simple": "Press freedom was hurt: reporters were pressured or locked out."
       },
       {
         "condition": {
           "flag": "mass-takedown-ordered"
         },
-        "text": "Expression was harmed: lawful complaints vanished alongside the hoax."
+        "text": "Expression was harmed: lawful complaints vanished alongside the hoax.",
+        "simple": "Free speech was hurt: fair complaints vanished along with the hoax."
       },
       {
         "condition": {
@@ -3474,7 +3916,8 @@
             "forwarders-detained"
           ]
         },
-        "text": "Liberty was harmed: people were detained for opinions or for forwarding a photo."
+        "text": "Liberty was harmed: people were detained for opinions or for forwarding a photo.",
+        "simple": "Freedom was hurt: people were locked up for opinions or for sharing a photo."
       },
       {
         "condition": {
@@ -3483,19 +3926,22 @@
             "hub-dispersed"
           ]
         },
-        "text": "Proportionality was harmed: thirsty residents or hospital families were cleared by force."
+        "text": "Proportionality was harmed: thirsty residents or hospital families were cleared by force.",
+        "simple": "Fairness was hurt: thirsty people or hospital families were pushed away by force."
       },
       {
         "condition": {
           "flag": "official-scapegoated"
         },
-        "text": "Fair process was harmed: an official was suspended on a spliced clip."
+        "text": "Fair process was harmed: an official was suspended on a spliced clip.",
+        "simple": "Fair process was hurt: a boss was suspended because of a fake clip."
       },
       {
         "condition": {
           "flag": "reporter-asked-to-stop"
         },
-        "text": "Press freedom was harmed: the reporter was asked to stop instead of being protected."
+        "text": "Press freedom was harmed: the reporter was asked to stop instead of being protected.",
+        "simple": "Press freedom was hurt: the reporter was asked to stop instead of being protected."
       }
     ],
     "improvements": [
@@ -3503,25 +3949,29 @@
         "condition": {
           "notFlag": "full-recording-requested"
         },
-        "text": "Ask for the complete recording in your first statement. A splice loses its power the moment the original is on the table."
+        "text": "Ask for the complete recording in your first statement. A splice loses its power the moment the original is on the table.",
+        "simple": "Ask for the whole recording in your first message. A fake cut loses its power once the original is out."
       },
       {
         "condition": {
           "notFlag": "lab-result-published"
         },
-        "text": "When a safety claim spreads, publish the verified test with its sampling points and accreditation. Specifics beat reassurance."
+        "text": "When a safety claim spreads, publish the verified test with its sampling points and accreditation. Specifics beat reassurance.",
+        "simple": "When a safety rumour spreads, publish the real test with where and how it was done. Facts beat soothing words."
       },
       {
         "condition": {
           "notFlag": "reporter-protected"
         },
-        "text": "Treat a message naming a street and a time as a crime to investigate, not a reason to ask the reporter to go quiet."
+        "text": "Treat a message naming a street and a time as a crime to investigate, not a reason to ask the reporter to go quiet.",
+        "simple": "A message naming a street and a time is a crime to investigate, not a reason to ask the reporter to go quiet."
       },
       {
         "condition": {
           "notFlag": "network-exposed"
         },
-        "text": "Expose coordination with timestamps and ad records. People can see a swarm when you show them the pattern."
+        "text": "Expose coordination with timestamps and ad records. People can see a swarm when you show them the pattern.",
+        "simple": "Show the swarm with timestamps and payment records. People can see a trick when you show the pattern."
       },
       {
         "condition": {
@@ -3531,30 +3981,66 @@
             "press-pressured"
           ]
         },
-        "text": "Correct, do not censor. Every takedown of criticism became the next headline."
+        "text": "Correct, do not censor. Every takedown of criticism became the next headline.",
+        "simple": "Correct, don't delete. Every time criticism was removed, it became the next headline."
       },
       {
         "condition": {
           "notFlag": "full-recording-verified"
         },
-        "text": "Preserve and compare the full recording as soon as it arrives; perishable evidence is the first thing a saboteur reaches for."
+        "text": "Preserve and compare the full recording as soon as it arrives; perishable evidence is the first thing a saboteur reaches for.",
+        "simple": "Keep the whole recording safe and compare it as soon as it arrives. Wreckers go for clues that can vanish."
       },
       {
         "condition": {
           "notFlag": "fake-notice-exposed",
           "opponent": "disinfo"
         },
-        "text": "Inspect the metadata of anything styled as an official notice. A missing registration number or an impossible date exposes a forgery in seconds."
+        "text": "Inspect the metadata of anything styled as an official notice. A missing registration number or an impossible date exposes a forgery in seconds.",
+        "simple": "Look closely at anything styled like an official notice. A missing number or impossible date gives a fake away."
       },
       {
         "condition": {},
-        "text": "You held every line. Try it again with the Sabotage Network and the Overreaction Trap both selected at severe difficulty."
+        "text": "You held every line. Try it again with the Sabotage Network and the Overreaction Trap both selected at severe difficulty.",
+        "simple": "You held every line. Try again with The Wrecker and The Big Hammer both switched on at the hardest level."
       }
     ],
     "closing": {
       "good": "The city went to bed knowing what happened, who fixed it, and who tried to fool it.",
       "mixed": "Water came back and half the truth emerged. The next rumour will find a city unsure whom to believe.",
       "poor": "The splice, the hoax and the crackdown each won something today. The Lower Ward remembers the thirst; the press remembers the pressure."
+    }
+  },
+  "simple": {
+    "title": "The Rumour Storm",
+    "subtitle": "A true clip, a fake clip and a town full of rumours",
+    "briefing": {
+      "grievance": "The Lower Ward had no water on a very hot day. A clip seems to show a boss cutting their water on purpose. People are angry and scared.",
+      "knownFacts": [
+        "The 41-second clip is real sound.",
+        "Water stopped at 6:50. A pipe burst at 6:40.",
+        "It is very hot today: 44 degrees. The hospital is busy.",
+        "Reporters are checking the clip before they show it."
+      ],
+      "unverifiedClaims": [
+        "A shorter clip says the boss said 'let them learn'.",
+        "The hospital is sending sick people away.",
+        "The Lower Ward water is dirty.",
+        "Three people online started the panic."
+      ],
+      "responsibility": "You speak for the town and keep people safe. Protect the reporters. Check before you speak. Fix what is false. Stop real threats. Never treat complaints as crimes.",
+      "objective": "Get the whole recording. Keep the hospital gate open. Prove the water is safe. Protect the reporter. Do all this without silencing anyone.",
+      "lines": [
+        "6:50 — The Lower Ward taps go dry.",
+        "8:14 — A sound clip reaches the reporters.",
+        "8:31 — A shorter clip adds three words the boss never said.",
+        "It is very hot. Everyone is watching what you say next."
+      ]
+    },
+    "closing": {
+      "good": "Tonight the town knows what happened. It knows who fixed it and who tried to trick it.",
+      "mixed": "The water came back and half the truth came out. Next time, people may not know whom to believe.",
+      "poor": "The fake clip, the hoax and the crackdown each won today. The Lower Ward remembers the thirst. The reporters remember the pressure."
     }
   }
 }

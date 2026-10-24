@@ -216,7 +216,13 @@
       "setsFlagsOnResolve": [
         "transposition-found"
       ],
-      "resolutionNote": "The table is genuine, and it contains an error: station 9/14's 1,243 was typed as 1,423. The digits were transposed in the open hall."
+      "resolutionNote": "The table is genuine, and it contains an error: station 9/14's 1,243 was typed as 1,423. The digits were transposed in the open hall.",
+      "simple": {
+        "title": "The big results table",
+        "claim": "The big table says the gap is 311 votes. Its Ward 9 number for the leader reads 1,423.",
+        "resolutionNote": "The table is real, but it has a mistake. Station 14's 1,243 was typed as 1,423. The digits got swapped.",
+        "caption": "A table of every ward. The helpers circled Ward 9."
+      }
     },
     {
       "id": "ev-tally-sheets",
@@ -259,7 +265,13 @@
         "transposition-found"
       ],
       "perishable": true,
-      "resolutionNote": "The sheets are genuine. Station 9/14 shows 1,243; the consolidated table shows 1,423. The error is a transposition, not a different count."
+      "resolutionNote": "The sheets are genuine. Station 9/14 shows 1,243; the consolidated table shows 1,423. The error is a transposition, not a different count.",
+      "simple": {
+        "title": "Ward 9 count sheets",
+        "claim": "Fourteen signed count sheets for Ward 9. Station 14 says 1,243 for the leader.",
+        "resolutionNote": "The sheets are real. Station 14 says 1,243. The big table says 1,423. The digits were swapped, that is all.",
+        "caption": "Handwritten count sheets, signed by helpers from both sides."
+      }
     },
     {
       "id": "ev-agents-objection",
@@ -301,7 +313,13 @@
       "setsFlagsOnResolve": [
         "objection-substantiated"
       ],
-      "resolutionNote": "The objection is specific and accurate. It was filed through the proper channel and names exactly the figure that turns out to be wrong."
+      "resolutionNote": "The objection is specific and accurate. It was filed through the proper channel and names exactly the figure that turns out to be wrong.",
+      "simple": {
+        "title": "The written complaint",
+        "claim": "The helpers wrote it down. The Ward 9 number does not match station 14's sheet. They want a check today.",
+        "resolutionNote": "The complaint is exact and correct. It was filed the right way. It names the very number that turns out wrong.",
+        "caption": "Two typed pages with a receipt stamp in the corner."
+      }
     },
     {
       "id": "ev-worker-threats",
@@ -343,7 +361,13 @@
       "setsFlagsOnResolve": [
         "intimidation-corroborated"
       ],
-      "resolutionNote": "An independent report from the gate confirms the obstruction and the threats. Protecting the workers is justified; dispersing everyone is not."
+      "resolutionNote": "An independent report from the gate confirms the obstruction and the threats. Protecting the workers is justified; dispersing everyone is not.",
+      "simple": {
+        "title": "The count boss reports threats",
+        "claim": "The count boss got two scary calls. She says a crowd blocked her car at the vote office gate.",
+        "resolutionNote": "A reporter at the gate saw the same thing. Keeping workers safe is right. Clearing everyone is not.",
+        "caption": "A help-line chat with two phone call screenshots."
+      }
     },
     {
       "id": "ev-press-gate-report",
@@ -382,7 +406,13 @@
         "caption": "A stopped car, a dozen people and a camera crew at the gate."
       },
       "district": "records",
-      "resolutionNote": "The dispatch matches the supervisor's account: obstruction and threats, not violence, with the agents themselves acting lawfully."
+      "resolutionNote": "The dispatch matches the supervisor's account: obstruction and threats, not violence, with the agents themselves acting lawfully.",
+      "simple": {
+        "title": "A reporter's story from the gate",
+        "claim": "At the gate: cars held up, loud chanting, no fighting. Inside, helpers file papers.",
+        "resolutionNote": "The reporter's story matches the count boss. Blocking and threats, yes. Fighting, no. The helpers behaved.",
+        "caption": "A stopped car, a dozen people and a camera crew at the gate."
+      }
     },
     {
       "id": "ev-transfer-log",
@@ -424,7 +454,13 @@
       "setsFlagsOnResolve": [
         "transfer-verified"
       ],
-      "resolutionNote": "The night move was routine and observed. Seal numbers match the counting-hall list. Nothing was moved in secret."
+      "resolutionNote": "The night move was routine and observed. Seal numbers match the counting-hall list. Nothing was moved in secret.",
+      "simple": {
+        "title": "The box-moving log",
+        "claim": "38 locked boxes went from the depot to the vote office. It was 23:40. Guards and two watchers went along.",
+        "resolutionNote": "The night move was normal and watched. The lock numbers match the counting hall list. Nothing moved in secret.",
+        "caption": "A logbook page with lock numbers and two signatures."
+      }
     },
     {
       "id": "ev-cctv-depot",
@@ -464,7 +500,13 @@
       },
       "district": "transit",
       "perishable": true,
-      "resolutionNote": "The footage matches the transfer log minute by minute. The move was open and watched."
+      "resolutionNote": "The footage matches the transfer log minute by minute. The move was open and watched.",
+      "simple": {
+        "title": "The depot camera video",
+        "claim": "The depot video shows boxes carried to a van at 23:40. Guards are there. Two watchers stand nearby.",
+        "resolutionNote": "The video matches the log minute by minute. The move was open and watched.",
+        "caption": "Time-stamped video: van, boxes, guards, two watchers."
+      }
     },
     {
       "id": "ev-review-order",
@@ -500,7 +542,13 @@
         "caption": "The order on current letterhead, with the entry log attached."
       },
       "district": "records",
-      "resolutionNote": "Your own order, on the current letterhead, with the entry log attached. It settles who did what in the hall."
+      "resolutionNote": "Your own order, on the current letterhead, with the entry log attached. It settles who did what in the hall.",
+      "simple": {
+        "title": "Your check order and the hall log",
+        "claim": "Your Ward 9 check is open with watchers from both sides. The hall log shows who typed the table.",
+        "resolutionNote": "Your own order, on today's letterhead, with the hall log attached. It shows who did what.",
+        "caption": "The order on today's letterhead, with the log attached."
+      }
     },
     {
       "id": "ev-boxes-clip",
@@ -546,7 +594,13 @@
       "setsFlagsOnResolve": [
         "clip-exposed"
       ],
-      "resolutionNote": "The footage is real but the time was added. The move happened at 23:40 under two observers' signatures, as the log and the depot camera show."
+      "resolutionNote": "The footage is real but the time was added. The move happened at 23:40 under two observers' signatures, as the log and the depot camera show.",
+      "simple": {
+        "title": "Video: 'boxes moved at 2 AM'",
+        "claim": "A night video shows boxes going into a van. The time on screen says 02:17. 'Fixed in the dark', it says.",
+        "resolutionNote": "The video is real but the time was added later. The log and the camera agree. The move was at 23:40, with two watchers.",
+        "caption": "A night loading bay, a van, boxes, and a time stamp in a different font."
+      }
     },
     {
       "id": "ev-cancel-notice",
@@ -591,7 +645,13 @@
       "setsFlagsOnResolve": [
         "notice-exposed"
       ],
-      "resolutionNote": "The notice is forged: wrong letterhead, wrong reference format, wrong signatory. No review has been cancelled."
+      "resolutionNote": "The notice is forged: wrong letterhead, wrong reference format, wrong signatory. No review has been cancelled.",
+      "simple": {
+        "title": "Notice: 'the check is cancelled'",
+        "claim": "A notice on official-looking paper says the Ward 9 check is cancelled. It says the result is final.",
+        "resolutionNote": "The notice is fake: wrong letterhead, wrong number style, wrong signature. No check was cancelled.",
+        "caption": "A one-page notice with a stamp that is slightly the wrong shape."
+      }
     },
     {
       "id": "ev-clerk-chat",
@@ -636,7 +696,13 @@
       "setsFlagsOnResolve": [
         "chat-exposed"
       ],
-      "resolutionNote": "The screenshots are assembled, not captured: mismatched app screens and impossible timings. The named clerk never touched the table."
+      "resolutionNote": "The screenshots are assembled, not captured: mismatched app screens and impossible timings. The named clerk never touched the table.",
+      "simple": {
+        "title": "Screenshots: 'clerk paid to fix Ward 9'",
+        "claim": "Chat screenshots show a 'vote office clerk'. He agrees to 'fix Ward 9 for money'. A worker is named.",
+        "resolutionNote": "The screenshots were stitched together: different app screens and impossible times. The named clerk never touched the table.",
+        "caption": "Three chat screenshots, cropped very tightly."
+      }
     },
     {
       "id": "ev-storm-note",
@@ -680,7 +746,13 @@
       "setsFlagsOnResolve": [
         "storm-note-exposed"
       ],
-      "resolutionNote": "No author, no detail, and the reporter at the gate watched the agents filing papers. The note was bait for a crackdown."
+      "resolutionNote": "No author, no detail, and the reporter at the gate watched the agents filing papers. The note was bait for a crackdown.",
+      "simple": {
+        "title": "Note: 'storm the office at noon'",
+        "claim": "An unsigned note says one side's helpers will storm the vote office. At noon, to grab the sheets.",
+        "resolutionNote": "No name and no details. The reporter at the gate saw the helpers filing papers. The note was bait to make you overreact.",
+        "caption": "A forwarded message with no sender and a red exclamation mark."
+      }
     }
   ],
   "decisions": [
@@ -872,7 +944,33 @@
           },
           "consequence": "No answer at the gate. Rumours fill the space where a decision should be."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Helpers ask for a check",
+        "situation": "One side's helpers wrote a complaint. They say one count sheet does not match the big table. They want it checked today. Across town, the other side wants the winner named now.",
+        "options": {
+          "o-open-review": {
+            "title": "Check Ward 9 today, in the open",
+            "preview": "The check starts today. Watchers from both sides and one neutral watcher join.",
+            "consequence": "Both sides' watchers come into the hall. The Ward 9 sheets come out."
+          },
+          "o-acknowledge-schedule": {
+            "title": "Say yes, but check tomorrow",
+            "preview": "The helpers get a receipt and a date. Both crowds wait all night.",
+            "consequence": "You hand over a receipt and a date. Outside, the waiting begins."
+          },
+          "o-declare-now": {
+            "title": "Say no and name the winner",
+            "preview": "A winner tonight, with no check. One side cheers. The other side digs in.",
+            "consequence": "You name the winner. The complaint goes in a drawer. The vote office crowd gets louder."
+          },
+          "o-wait-objection": {
+            "title": "Wait for the full report",
+            "preview": "No answer yet. The crowd and the question both grow.",
+            "consequence": "No answer at the gate. Rumours fill the empty space."
+          }
+        }
+      }
     },
     {
       "id": "d-gate-threats",
@@ -1059,7 +1157,33 @@
           },
           "consequence": "Officers watch. The supervisor waits in her car. The camera loop keeps running."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Threats at the gate",
+        "situation": "The count boss got two scary phone calls. A crowd blocked her car. The depot camera wipes its video in a few hours. Inside, the helpers are quietly filing papers.",
+        "options": {
+          "o-protect-and-seal": {
+            "title": "Guard the staff and copy the video",
+            "preview": "Officers walk staff in by a side gate. The room is locked. The video is copied.",
+            "consequence": "Staff come in safely. Both sides watch the room get locked. The video is saved twice."
+          },
+          "o-trace-calls": {
+            "title": "Report the calls and trace them",
+            "preview": "You write up the threats and trace the calls. The crowd is left alone.",
+            "consequence": "The report is filed. The trace begins. The crowd stays where it is."
+          },
+          "o-clear-gate-all": {
+            "title": "Push everyone away from the gate",
+            "preview": "Police push the whole crowd back, helpers and bystanders too. Phones film every shove.",
+            "consequence": "The gate is empty in minutes. Phones recorded every shove."
+          },
+          "o-wait-gate": {
+            "title": "Watch from far away",
+            "preview": "Officers watch. The count boss waits in her car. The camera keeps wiping.",
+            "consequence": "Officers watch. The count boss waits in her car. The camera keeps wiping."
+          }
+        }
+      }
     },
     {
       "id": "d-rival-assembly",
@@ -1240,7 +1364,33 @@
           },
           "consequence": "The square fills further. No terms, no marshals, no answer."
         }
-      ]
+      ],
+      "simple": {
+        "title": "The other side fills the square",
+        "situation": "The winning side's supporters fill Civic Square. They want the result now. They shout at 'the losers'. Their helper asks to march to the vote office. The other side is waiting there.",
+        "options": {
+          "o-equal-rules": {
+            "title": "Same rules for both sides",
+            "preview": "Same hours, same noise limit, different routes. Each side signs the same page.",
+            "consequence": "Both sides get the same rules. Their leaders swap phone numbers."
+          },
+          "o-permit-march": {
+            "title": "Let them march to the vote office",
+            "preview": "A second crowd arrives where the first one waits. Two sides, one gate.",
+            "consequence": "The march sets off. Soon both sides share one gate."
+          },
+          "o-ban-second-camp": {
+            "title": "Say no to them; clear the square",
+            "preview": "One side may gather. The other may not. Police empty the square.",
+            "consequence": "Police move the second side out. Their candidate says you took sides, on camera."
+          },
+          "o-wait-civic": {
+            "title": "Wait for the square to empty",
+            "preview": "No rules, no leaders, no answer. The square fills up more.",
+            "consequence": "The square fills up more. No rules, no leaders, no answer."
+          }
+        }
+      }
     },
     {
       "id": "d-publish-reconciliation",
@@ -1363,7 +1513,28 @@
           },
           "consequence": "Nothing is published. The vacuum fills with other people's numbers."
         }
-      ]
+      ],
+      "simple": {
+        "title": "Share what people can check",
+        "situation": "Reporters and both sides want numbers. You have the box lock numbers. You have the count sheets and the moving log. Sharing invites questions. Hiding invites made-up stories.",
+        "options": {
+          "o-publish-reconciliation": {
+            "title": "Share the lock numbers and the table",
+            "preview": "Every station's number and every lock number go up. On the notice board and the website.",
+            "consequence": "The full table goes up at 11:00. Reporters photograph every page."
+          },
+          "o-publish-summary": {
+            "title": "Just say 'all was done properly'",
+            "preview": "Nice words, no numbers. People ask: what are you hiding?",
+            "consequence": "The line goes out. People ask: where are the numbers?"
+          },
+          "o-wait-publish": {
+            "title": "Share nothing until the check ends",
+            "preview": "Nothing is shared. Other people's numbers fill the gap.",
+            "consequence": "Nothing is shared. The gap fills with other people's numbers."
+          }
+        }
+      }
     },
     {
       "id": "d-announce-correction",
@@ -1571,7 +1742,33 @@
           },
           "consequence": "The wrong number stays on the board for now."
         }
-      ]
+      ],
+      "simple": {
+        "title": "You find a typing mistake in Ward 9",
+        "situation": "One count sheet says 1,243. The big table says 1,423. The gap shrinks from 311 to 131 votes. The winner stays the same. How you fix it matters. It can look like a mistake or a cover-up.",
+        "options": {
+          "o-correct-publicly": {
+            "title": "Fix it in public and explain",
+            "preview": "You show the fixed table, the real sheet and the log together.",
+            "consequence": "You read the right number out loud with both sides there. A mistake, called a mistake."
+          },
+          "o-correct-quietly": {
+            "title": "Fix the number quietly",
+            "preview": "The number is fixed. Nobody is told why it changed.",
+            "consequence": "The table changes quietly. Someone notices within the hour."
+          },
+          "o-suspend-clerk-publicly": {
+            "title": "Name the clerk and call it cheating",
+            "preview": "A worker is blamed in public before anyone knows what really happened.",
+            "consequence": "You read out a name and the chat screenshots. The staff walk out of the hall."
+          },
+          "o-wait-correction": {
+            "title": "Wait before fixing it",
+            "preview": "The wrong number stays on the board for now.",
+            "consequence": "The wrong number stays on the board for now."
+          }
+        }
+      }
     },
     {
       "id": "d-candidate-speech",
@@ -1742,7 +1939,33 @@
           },
           "consequence": "The claim runs unanswered through the evening bulletins."
         }
-      ]
+      ],
+      "simple": {
+        "title": "A candidate says 'the vote was stolen'",
+        "situation": "The losing candidate goes on live TV. He says the vote was 'stolen'. He asks supporters to stay in the streets. Your police officer asks if you want to stop him talking.",
+        "options": {
+          "o-respond-with-facts": {
+            "title": "Answer with facts, not a ban",
+            "preview": "You answer point by point with lock numbers and the typing log. He may keep talking.",
+            "consequence": "Your answer runs next to his claim. Viewers can compare both."
+          },
+          "o-warn-incitement": {
+            "title": "Warn only against calls to attack",
+            "preview": "A short note: criticise freely, but never call for attacks. His speech stays.",
+            "consequence": "A two-line note goes out: speak freely, but no calls to attack. His speech stays."
+          },
+          "o-restrict-candidate": {
+            "title": "Ban him from speaking for 2 days",
+            "preview": "A gag order. His claim becomes 'the truth they silenced'.",
+            "consequence": "The order is served. He reads it out loud on camera."
+          },
+          "o-wait-speech": {
+            "title": "Say nothing",
+            "preview": "His claim runs all evening with no answer.",
+            "consequence": "His claim runs all evening with no answer."
+          }
+        }
+      }
     },
     {
       "id": "d-market-shutdown",
@@ -1897,7 +2120,33 @@
             "bandh-risk"
           ]
         }
-      ]
+      ],
+      "simple": {
+        "title": "Shops may close tomorrow",
+        "situation": "The shop owners say half the shops will shut tomorrow. They want to know the streets will stay calm. Buses at the hub are running half empty.",
+        "options": {
+          "o-reassure-market": {
+            "title": "Meet the shop owners; share the plan",
+            "preview": "Shop owners hear the plan for both sides' routes and hours. Shutters stay up.",
+            "consequence": "Owners agree to open. The plan is pinned at the market gate."
+          },
+          "o-restore-transit": {
+            "title": "Keep buses running, officers nearby",
+            "preview": "Buses keep moving. Officers stand at the bus hub, not in the squares.",
+            "consequence": "Buses keep moving and officers stand at the hub. The city keeps moving."
+          },
+          "o-order-shops-open": {
+            "title": "Order all shops to stay open",
+            "preview": "An order nobody can make happen. Owners feel bossed around, and some close anyway.",
+            "consequence": "The order goes out. Some shutters come down anyway, now in protest."
+          },
+          "o-wait-market": {
+            "title": "Let the shops decide",
+            "preview": "No plan reaches the market. Owners play safe and close early.",
+            "consequence": "No plan reaches the market. Owners play safe and close early."
+          }
+        }
+      }
     },
     {
       "id": "d-final-declaration",
@@ -2041,7 +2290,28 @@
             "declaration-postponed"
           ]
         }
-      ]
+      ],
+      "simple": {
+        "title": "Name the result",
+        "situation": "It is evening. Both sides wait for the result. What you attach to it matters. It can end the argument or restart it.",
+        "options": {
+          "o-declare-with-record": {
+            "title": "Name it with all the numbers attached",
+            "preview": "The result lists every station, every lock number and the fix. Both sides sign it.",
+            "consequence": "You read the result with both sides and the neutral watcher. Every number is there."
+          },
+          "o-declare-bare": {
+            "title": "Name it without the numbers",
+            "preview": "A result with no numbers reopens every question from today.",
+            "consequence": "You name the result. The questions stay exactly where they were this morning."
+          },
+          "o-postpone": {
+            "title": "Wait until tomorrow",
+            "preview": "Another day of waiting. Both sides settle in for the night.",
+            "consequence": "Another day of waiting. Both sides settle in for the night."
+          }
+        }
+      }
     },
     {
       "id": "d-bait-announce-winner",
@@ -2161,7 +2431,28 @@
           },
           "consequence": "No answer. The adviser's suggestion leaks to a reporter."
         }
-      ]
+      ],
+      "simple": {
+        "title": "'End it now: name the winner'",
+        "situation": "An adviser says: end this tonight. Name the winner, check or no check. 'Certainty calms crowds,' he says. The check is not finished.",
+        "options": {
+          "o-bait-announce": {
+            "title": "Announce the winner tonight",
+            "preview": "A winner with no check. One side cheers. The other side digs in.",
+            "consequence": "You make the announcement. Cheering in one square. Anger in the other."
+          },
+          "o-bait-hold-line": {
+            "title": "Wait for the check, on a timetable",
+            "preview": "A clock everyone can see. The check ends at 3 PM. The result comes at 4 PM.",
+            "consequence": "The timetable goes up: check ends 3 PM, result 4 PM. Waiting with a clock feels different."
+          },
+          "o-bait-wait-announce": {
+            "title": "Give no answer for now",
+            "preview": "No answer. The adviser's idea leaks to a reporter.",
+            "consequence": "No answer. The adviser's idea leaks to a reporter."
+          }
+        }
+      }
     },
     {
       "id": "d-bait-clear-both",
@@ -2362,7 +2653,28 @@
           ],
           "consequence": "Officers hold their line. Punches continue by the gate."
         }
-      ]
+      ],
+      "simple": {
+        "title": "A fight at the gate: clear everyone?",
+        "situation": "A few people from each side are hitting each other. It is at the vote office gate. Most people have stepped back. Your officer asks: should we clear everyone out?",
+        "options": {
+          "o-bait-separate-detain": {
+            "title": "Split them up; arrest the fighters",
+            "preview": "Officers split the crowd. Only the people seen fighting are arrested. Others stay.",
+            "consequence": "Four people are arrested for what they did. The two sides now stand forty metres apart."
+          },
+          "o-bait-clear-both": {
+            "title": "Clear both sides completely",
+            "preview": "Everyone goes, even the peaceful people. Videos of the clearing travel far.",
+            "consequence": "The gate is empty in six minutes. The fight is over. So is the goodwill."
+          },
+          "o-bait-wait-scuffle": {
+            "title": "Hold the line and watch",
+            "preview": "Officers hold their line. The punches go on by the gate.",
+            "consequence": "Officers hold their line. The punches go on by the gate."
+          }
+        }
+      }
     },
     {
       "id": "d-bait-preempt-storm",
@@ -2606,7 +2918,33 @@
           },
           "consequence": "The note is filed. Noon passes without a storm."
         }
-      ]
+      ],
+      "simple": {
+        "title": "'They will storm the office at noon'",
+        "situation": "A forwarded note says one side's helpers will storm the vote office. It says noon. Your officer wants to arrest the helpers now. He also wants to ban all gatherings for two days.",
+        "options": {
+          "o-bait-verify-first": {
+            "title": "Check the note; talk to both sides",
+            "preview": "You check the note with the reporter and your watchers. Both sides hear the rules.",
+            "consequence": "The note has no name and no details. The leaders say nobody plans anything but waiting."
+          },
+          "o-bait-detain-agents": {
+            "title": "Arrest the helpers for spreading rumours",
+            "preview": "The people who filed a fair complaint are taken away. They become heroes.",
+            "consequence": "Three helpers are led out in front of cameras. The hall goes silent, then explodes."
+          },
+          "o-bait-ban-gatherings": {
+            "title": "Ban all gatherings for two days",
+            "preview": "Both sides break the law at once. So do the shop owners and a student club.",
+            "consequence": "Loudspeakers announce the ban. Nobody in either square goes home."
+          },
+          "o-bait-wait-storm": {
+            "title": "Ignore the note",
+            "preview": "The note goes in a drawer. Noon comes and goes. Nothing happens.",
+            "consequence": "The note goes in a drawer. Noon comes and goes. Nothing happens."
+          }
+        }
+      }
     }
   ],
   "rightsMoments": [
@@ -2639,7 +2977,22 @@
         "label": "Constitution of India, Articles 14 and 19 (India Code)",
         "url": "https://www.indiacode.nic.in/"
       },
-      "contentDate": "2026-10-23"
+      "contentDate": "2026-10-23",
+      "simple": {
+        "question": "Two rival groups want to gather today, one at Civic Square and one at the vote office. Both are peaceful. What rules can you set?",
+        "options": {
+          "ra-same": "The same fair rules for both sides. Same hours, routes and leaders.",
+          "ra-favour": "Let the winning side gather. Say no to the other side to avoid trouble.",
+          "ra-refuse": "Say no to both, to keep the city quiet."
+        },
+        "feedback": {
+          "ra-same": "Right. Treating people equally means equal rules. The rules must be fair and the same for both.",
+          "ra-favour": "Picking a side is not equal. It also makes the other side's claim of unfairness look true.",
+          "ra-refuse": "Saying no to everyone punishes people who did nothing. Limits must be needed and fair."
+        },
+        "principle": "The law says everyone is equal. People may gather peacefully. Rules may limit this only when truly needed. And the same rules for everyone.",
+        "why": "In a vote argument, fairness to both sides is proof in itself. Treat one side differently, and the fight stops being about numbers."
+      }
     },
     {
       "id": "rm-review-transparency",
@@ -2670,7 +3023,22 @@
         "label": "Election Commission of India — counting and objection procedures (reference)",
         "url": "https://www.eci.gov.in/"
       },
-      "contentDate": "2026-10-23"
+      "contentDate": "2026-10-23",
+      "simple": {
+        "question": "One side's helpers say the Ward 9 numbers do not match the count sheets. They wrote it down. What is the right answer?",
+        "options": {
+          "rr-open": "Check those exact sheets in the open, with watchers from each side. Then share what you find.",
+          "rr-court": "Name the result anyway. They can go to court later.",
+          "rr-closed": "Recount the whole city behind closed doors, just to be safe."
+        },
+        "feedback": {
+          "rr-open": "Right. A clear complaint deserves a clear check that people can watch. Openness cures distrust.",
+          "rr-court": "Courts can help later. But refusing to look today breaks trust and makes things worse.",
+          "rr-closed": "A check nobody can watch cannot be seen to be fair. Watchers and shared records make it believable."
+        },
+        "principle": "Vote rules say complaints must be heard in the open. Each side's helpers must be there. The count should be checkable.",
+        "why": "One real mistake and one fake story were solved the same way. Compare the sheets with the table in front of watchers. Then share it."
+      }
     },
     {
       "id": "rm-political-speech",
@@ -2701,7 +3069,22 @@
         "label": "Supreme Court of India: judgments",
         "url": "https://main.sci.gov.in/"
       },
-      "contentDate": "2026-10-23"
+      "contentDate": "2026-10-23",
+      "simple": {
+        "question": "A losing candidate says on live TV that the vote was 'stolen'. Can you order him to stop making public statements?",
+        "options": {
+          "rs-no": "No. Harsh criticism of officials is allowed. Only calls for violence can be limited. And only as much as needed.",
+          "rs-false": "Yes, if what he says is false. False statements are not protected.",
+          "rs-approval": "Yes. During a vote argument, all public statements need approval first."
+        },
+        "feedback": {
+          "rs-no": "Right. The answer to a false claim is the real record. Not a gag order.",
+          "rs-false": "Being wrong about a count is not a reason to silence someone. Officials fix the record. They do not silence people.",
+          "rs-approval": "Needing approval before you speak is exactly what free speech rules forbid."
+        },
+        "principle": "Everyone has the right to speak freely. Only narrow limits are allowed, like stopping calls to violence. Courts say limits must be fair and clear.",
+        "why": "A gag order would have turned a losing claim into a story. The story of silenced truth. Sharing the lock numbers let viewers compare both."
+      }
     }
   ],
   "events": [
@@ -2736,7 +3119,8 @@
           "road": "r-civic-transit",
           "status": "congested"
         }
-      ]
+      ],
+      "simple": "Two crowds form. One at the vote office gate, one at Civic Square."
     },
     {
       "id": "e-first-rumor",
@@ -2759,7 +3143,8 @@
           "to": "market",
           "signal": "rumor"
         }
-      ]
+      ],
+      "simple": "A message spreads: 'the Ward 9 numbers were changed overnight'."
     },
     {
       "id": "e-noon-crowd",
@@ -2784,7 +3169,8 @@
           "district": "records",
           "mood": "volatile"
         }
-      ]
+      ],
+      "simple": "No check has started. The crowd at the vote office doubles over lunch."
     },
     {
       "id": "e-break-in",
@@ -2813,7 +3199,8 @@
       ],
       "setsFlags": [
         "break-in-attempt"
-      ]
+      ],
+      "simple": "Someone forces a back window at the vote office. A guard raises the alarm."
     },
     {
       "id": "e-market-worry",
@@ -2839,7 +3226,8 @@
           "district": "transit",
           "magnitude": -0.1
         }
-      ]
+      ],
+      "simple": "Shop owners warn they may close tomorrow unless things calm down. Buses run half empty."
     },
     {
       "id": "e-widespread",
@@ -2873,7 +3261,8 @@
       ],
       "setsFlags": [
         "widespread-violence"
-      ]
+      ],
+      "simple": "The two sides were never separated. Fighting spreads from the gate across the yard."
     },
     {
       "id": "e-bulletin-table",
@@ -2900,7 +3289,8 @@
           "to": "records",
           "signal": "official"
         }
-      ]
+      ],
+      "simple": "Evening TV shows the station-by-station table. Two anchors read lock numbers out loud."
     },
     {
       "id": "e-bulletin-vacuum",
@@ -2927,7 +3317,8 @@
           "to": "campus",
           "signal": "rumor"
         }
-      ]
+      ],
+      "simple": "No table was shared. Evening TV runs the viral video and the cheating claim, unanswered."
     },
     {
       "id": "e-close-settled",
@@ -2972,7 +3363,8 @@
           "district": "records",
           "incident": null
         }
-      ]
+      ],
+      "simple": "Leaders from both sides shake hands at the gate. The yard empties by nightfall."
     },
     {
       "id": "e-close-open",
@@ -2997,7 +3389,8 @@
           "district": "civic",
           "mood": "tense"
         }
-      ]
+      ],
+      "simple": "Night falls on two full squares and a count still in dispute."
     },
     {
       "id": "e-coverup-rumor",
@@ -3029,7 +3422,8 @@
           "district": "records",
           "mood": "tense"
         }
-      ]
+      ],
+      "simple": "'It's a cover-up', says a message. The watchers were picked. The sheets were swapped."
     },
     {
       "id": "e-fake-marshal",
@@ -3060,7 +3454,8 @@
           "to": "records",
           "signal": "manipulated"
         }
-      ]
+      ],
+      "simple": "A man in a leader's armband shouts 'march on the office now'. Real leaders don't know him."
     },
     {
       "id": "e-scuffle",
@@ -3088,7 +3483,8 @@
       ],
       "setsFlags": [
         "scuffle-active"
-      ]
+      ],
+      "simple": "A fight starts at the vote office gate. A few people from each side. Most step back."
     },
     {
       "id": "e-outage",
@@ -3121,7 +3517,8 @@
       ],
       "setsFlags": [
         "records-outage"
-      ]
+      ],
+      "simple": "Power fails at the vote office. The hall goes dark mid-check. Backup takes 20 minutes."
     }
   ],
   "opponentPlays": [
@@ -3280,37 +3677,43 @@
         "condition": {
           "flag": "review-opened"
         },
-        "text": "A transparent Ward 9 review was opened with observers from both camps."
+        "text": "A transparent Ward 9 review was opened with observers from both camps.",
+        "simple": "You checked Ward 9 in the open, with watchers from both sides."
       },
       {
         "condition": {
           "flag": "transposition-corrected"
         },
-        "text": "The transposition error in Ward 9 was found, corrected and explained in public: a mistake, named as a mistake."
+        "text": "The transposition error in Ward 9 was found, corrected and explained in public: a mistake, named as a mistake.",
+        "simple": "You found the Ward 9 typing mistake. You fixed it and explained it in public."
       },
       {
         "condition": {
           "flag": "reconciliation-published"
         },
-        "text": "Seal numbers and the station-by-station table were published for anyone to check."
+        "text": "Seal numbers and the station-by-station table were published for anyone to check.",
+        "simple": "You shared the lock numbers and the full table. Anyone could check them."
       },
       {
         "condition": {
           "flag": "workers-protected"
         },
-        "text": "Election workers were escorted and protected without dispersing the assembly."
+        "text": "Election workers were escorted and protected without dispersing the assembly.",
+        "simple": "Vote workers were kept safe without breaking up the gathering."
       },
       {
         "condition": {
           "flag": "result-declared-after-review"
         },
-        "text": "The result was declared with the full record attached and signed by observers."
+        "text": "The result was declared with the full record attached and signed by observers.",
+        "simple": "You named the result with all the numbers attached. Watchers signed it."
       },
       {
         "condition": {
           "flag": "bandh-averted"
         },
-        "text": "Market Street stayed open after hearing the policing plan."
+        "text": "Market Street stayed open after hearing the policing plan.",
+        "simple": "Market Street stayed open after hearing the plan."
       },
       {
         "condition": {
@@ -3321,7 +3724,8 @@
             ]
           }
         },
-        "text": "The 'boxes moved at 2 AM' clip was exposed: a time overlay added to footage of an observed transfer."
+        "text": "The 'boxes moved at 2 AM' clip was exposed: a time overlay added to footage of an observed transfer.",
+        "simple": "The 'boxes moved at 2 AM' video was shown to be fake. A time stamp had been added."
       },
       {
         "condition": {
@@ -3332,7 +3736,8 @@
             ]
           }
         },
-        "text": "The forged 'review cancelled' notice was exposed before it could empty the hall."
+        "text": "The forged 'review cancelled' notice was exposed before it could empty the hall.",
+        "simple": "The fake 'check cancelled' notice was caught before it emptied the hall."
       },
       {
         "condition": {
@@ -3343,7 +3748,8 @@
             ]
           }
         },
-        "text": "The 'clerk paid to fix Ward 9' screenshots were exposed as assembled fakes."
+        "text": "The 'clerk paid to fix Ward 9' screenshots were exposed as assembled fakes.",
+        "simple": "The 'clerk paid to fix Ward 9' screenshots were fakes. They were stitched together."
       }
     ],
     "unresolved": [
@@ -3351,43 +3757,50 @@
         "condition": {
           "notFlag": "review-opened"
         },
-        "text": "No transparent review was opened. The objection was never examined in the open."
+        "text": "No transparent review was opened. The objection was never examined in the open.",
+        "simple": "No open check happened. The complaint was never looked at in public."
       },
       {
         "condition": {
           "notFlag": "transposition-corrected"
         },
-        "text": "The Ward 9 entry error was never publicly corrected. The wrong figure is still on the board."
+        "text": "The Ward 9 entry error was never publicly corrected. The wrong figure is still on the board.",
+        "simple": "The Ward 9 mistake was never fixed in public. The wrong number is still on the board."
       },
       {
         "condition": {
           "notFlag": "reconciliation-published"
         },
-        "text": "The seal numbers and station table were never published. The city argued over numbers it could not see."
+        "text": "The seal numbers and station table were never published. The city argued over numbers it could not see.",
+        "simple": "The lock numbers and table were never shared. The city argued over numbers it could not see."
       },
       {
         "condition": {
           "flag": "break-in-attempt"
         },
-        "text": "The Records Office annex was breached while the records were unsecured."
+        "text": "The Records Office annex was breached while the records were unsecured.",
+        "simple": "Someone broke into the vote office. The records were not locked up."
       },
       {
         "condition": {
           "notFlag": "result-declared-after-review"
         },
-        "text": "The result was not declared on the strength of a public record."
+        "text": "The result was not declared on the strength of a public record.",
+        "simple": "The result was named without a public record behind it."
       },
       {
         "condition": {
           "flag": "bandh-risk"
         },
-        "text": "Market Street closed early without a plan from the administration."
+        "text": "Market Street closed early without a plan from the administration.",
+        "simple": "Market Street closed early with no plan from you."
       },
       {
         "condition": {
           "flag": "winner-declared-early"
         },
-        "text": "The result was announced before the objection had been examined."
+        "text": "The result was announced before the objection had been examined.",
+        "simple": "The winner was announced before the complaint was checked."
       }
     ],
     "rightsProtected": [
@@ -3395,37 +3808,43 @@
         "condition": {
           "flag": "both-camps-equal"
         },
-        "text": "Both camps assembled under the same written terms (Article 14; Article 19(1)(b))."
+        "text": "Both camps assembled under the same written terms (Article 14; Article 19(1)(b)).",
+        "simple": "Both sides gathered under the same written rules."
       },
       {
         "condition": {
           "flag": "speech-protected"
         },
-        "text": "The candidate's criticism of the count was answered with the record, not a gag order (Article 19(1)(a))."
+        "text": "The candidate's criticism of the count was answered with the record, not a gag order (Article 19(1)(a)).",
+        "simple": "The candidate's criticism got an answer with facts, not a gag order."
       },
       {
         "condition": {
           "flag": "workers-protected"
         },
-        "text": "Election workers' safety was secured without clearing the forecourt."
+        "text": "Election workers' safety was secured without clearing the forecourt.",
+        "simple": "Vote workers were kept safe without clearing the yard."
       },
       {
         "condition": {
           "flag": "storm-note-checked"
         },
-        "text": "An unsourced 'storm' note was checked before anyone was detained."
+        "text": "An unsourced 'storm' note was checked before anyone was detained.",
+        "simple": "A note with no name was checked before anyone was arrested."
       },
       {
         "condition": {
           "flag": "narrow-notice"
         },
-        "text": "Only calls to violence were restricted; criticism was left alone."
+        "text": "Only calls to violence were restricted; criticism was left alone.",
+        "simple": "Only calls to violence were stopped. Criticism was left alone."
       },
       {
         "condition": {
           "flag": "scuffle-contained"
         },
-        "text": "Force was used only against those who attacked; both assemblies remained."
+        "text": "Force was used only against those who attacked; both assemblies remained.",
+        "simple": "Force was used only on the people who attacked. Both gatherings stayed."
       }
     ],
     "rightsHarmed": [
@@ -3433,43 +3852,50 @@
         "condition": {
           "flag": "assembly-banned"
         },
-        "text": "A blanket citywide ban treated every assembly as a threat (Article 19(1)(b))."
+        "text": "A blanket citywide ban treated every assembly as a threat (Article 19(1)(b)).",
+        "simple": "A city-wide ban treated every gathering as a danger."
       },
       {
         "condition": {
           "flag": "criticism-suppressed"
         },
-        "text": "A candidate was barred from speaking for 48 hours (Article 19(1)(a))."
+        "text": "A candidate was barred from speaking for 48 hours (Article 19(1)(a)).",
+        "simple": "A candidate was banned from speaking for two days."
       },
       {
         "condition": {
           "flag": "agents-detained"
         },
-        "text": "The agents who filed a lawful objection were detained on an unsourced note."
+        "text": "The agents who filed a lawful objection were detained on an unsourced note.",
+        "simple": "The helpers who filed a fair complaint were arrested. All over a note with no name."
       },
       {
         "condition": {
           "flag": "one-camp-favoured"
         },
-        "text": "One camp was allowed to assemble and the other refused (Article 14)."
+        "text": "One camp was allowed to assemble and the other refused (Article 14).",
+        "simple": "One side was allowed to gather and the other was refused."
       },
       {
         "condition": {
           "flag": "gate-cleared-by-force"
         },
-        "text": "The whole forecourt was cleared by force to deal with a handful of threats."
+        "text": "The whole forecourt was cleared by force to deal with a handful of threats.",
+        "simple": "The whole yard was cleared by force over a handful of threats."
       },
       {
         "condition": {
           "flag": "forecourt-cleared"
         },
-        "text": "Both camps were cleared entirely after a scuffle involving a few people."
+        "text": "Both camps were cleared entirely after a scuffle involving a few people.",
+        "simple": "Both sides were cleared out after a fight between a few people."
       },
       {
         "condition": {
           "flag": "clerk-accused"
         },
-        "text": "A staff member was publicly named for fraud before intent was established."
+        "text": "A staff member was publicly named for fraud before intent was established.",
+        "simple": "A worker was named as a cheat in public. Nobody knew the truth yet."
       }
     ],
     "improvements": [
@@ -3477,19 +3903,22 @@
         "condition": {
           "notFlag": "review-opened"
         },
-        "text": "Open a time-bound, observed review the moment a specific written objection arrives. Delay is what rumours feed on."
+        "text": "Open a time-bound, observed review the moment a specific written objection arrives. Delay is what rumours feed on.",
+        "simple": "Start an open, watched check the moment a written complaint arrives. Rumours feed on delay."
       },
       {
         "condition": {
           "flag": "agents-detained"
         },
-        "text": "Treat unsourced 'intelligence' as a claim to verify, not a reason to detain. The gate reporter and your own observers could see the hall."
+        "text": "Treat unsourced 'intelligence' as a claim to verify, not a reason to detain. The gate reporter and your own observers could see the hall.",
+        "simple": "Treat a note with no name as a claim to check. It is not a reason to arrest."
       },
       {
         "condition": {
           "flag": "criticism-suppressed"
         },
-        "text": "Answer a false claim with the record. A gag order makes the claim the story."
+        "text": "Answer a false claim with the record. A gag order makes the claim the story.",
+        "simple": "Answer a false claim with the record. A gag order makes the claim the story."
       },
       {
         "condition": {
@@ -3500,41 +3929,79 @@
             "one-camp-favoured"
           ]
         },
-        "text": "Aim enforcement at the specific people threatening or fighting. Clearing everyone punishes the peaceful majority and moves the crowd rather than ending it."
+        "text": "Aim enforcement at the specific people threatening or fighting. Clearing everyone punishes the peaceful majority and moves the crowd rather than ending it.",
+        "simple": "Aim at the people who threaten or fight. Clearing everyone punishes the peaceful."
       },
       {
         "condition": {
           "notFlag": "reconciliation-published"
         },
-        "text": "Publish seal numbers and station-by-station figures early. People stop guessing when they can check."
+        "text": "Publish seal numbers and station-by-station figures early. People stop guessing when they can check.",
+        "simple": "Share lock numbers and station numbers early. People stop guessing when they can check."
       },
       {
         "condition": {
           "flag": "quiet-correction"
         },
-        "text": "Correct errors out loud. A quiet change to a disputed figure looks like a second alteration."
+        "text": "Correct errors out loud. A quiet change to a disputed figure looks like a second alteration.",
+        "simple": "Fix mistakes out loud. A quiet change to a disputed number looks like a second trick."
       },
       {
         "condition": {
           "notFlag": "records-secured"
         },
-        "text": "Seal the records and copy perishable footage at the first sign of dispute. Evidence that disappears cannot settle anything."
+        "text": "Seal the records and copy perishable footage at the first sign of dispute. Evidence that disappears cannot settle anything.",
+        "simple": "Lock up the records and copy camera videos early. Clues that vanish settle nothing."
       },
       {
         "condition": {
           "flag": "camps-converged"
         },
-        "text": "Give rival assemblies separate routes and spaces. Two camps at one gate is a scuffle waiting to happen."
+        "text": "Give rival assemblies separate routes and spaces. Two camps at one gate is a scuffle waiting to happen.",
+        "simple": "Give rival groups separate routes and spaces. Two sides at one gate means a fight."
       },
       {
         "condition": {},
-        "text": "Keep the observers in the hall until the last page is signed. The review's credibility outlives the result."
+        "text": "Keep the observers in the hall until the last page is signed. The review's credibility outlives the result.",
+        "simple": "Keep the watchers in the hall until the last page is signed."
       }
     ],
     "closing": {
       "good": "The count was questioned, checked in the open and corrected where it was wrong. Both camps went home with the same numbers.",
       "mixed": "The dispute ended, but not everyone saw how. Some numbers were published, some rights were bent, and the city will remember both.",
       "poor": "The result stands, but trust in the office that declared it does not. Next time, the objection will not be filed in writing."
+    }
+  },
+  "simple": {
+    "title": "The Vote Count",
+    "subtitle": "Two numbers do not match. You must find out why.",
+    "briefing": {
+      "grievance": "Last night the city counted its votes. One side says a number in Ward 9 is wrong. They want it checked today, where everyone can see. The other side wants the winner named now.",
+      "knownFacts": [
+        "The count ended at 06:40. Helpers from both sides signed it.",
+        "At 07:25 one side wrote down a complaint about one count sheet.",
+        "Last night 38 locked boxes moved to the vote office. Two watchers went along.",
+        "Both sides are gathering: one at the vote office, one at Civic Square."
+      ],
+      "unverifiedClaims": [
+        "A video says the boxes moved in secret at 2 AM.",
+        "A message says a clerk changed Ward 9 for money.",
+        "A note says one side will storm the vote office at noon.",
+        "Shop owners hear that shops may be told to close."
+      ],
+      "responsibility": "You run the vote in this city. A police officer helps you. Check complaints openly. Keep the count sheets and the workers safe. Share what people can check. Treat both sides the same. Stop scaring, but never stop fair talk.",
+      "objective": "In three minutes: check Ward 9 with real clues. Keep both sides calm and equal. Name a result people can check.",
+      "lines": [
+        "The votes are counted. The gap is 311.",
+        "One side says a number is wrong.",
+        "Two crowds wait. One wants a recount, one wants a winner.",
+        "The count sheets are in your office. So is the answer."
+      ]
+    },
+    "closing": {
+      "good": "People asked questions. You checked in the open and fixed the mistake. Both sides went home with the same numbers.",
+      "mixed": "The argument ended, but not everyone saw how. You shared some numbers and bent some rules. The city remembers both.",
+      "poor": "The result stands. But people do not trust the office that gave it. Next time they may not bother to complain in writing."
     }
   }
 }
