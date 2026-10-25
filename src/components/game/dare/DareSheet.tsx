@@ -4,7 +4,8 @@ import { useApp } from '@/app/store';
 import { haptic } from '@/audio/haptics';
 import { track } from '@/analytics';
 import { APP_NAME } from '@/share/resultCard';
-import { shareCard, shareMethodOf } from '@/share/share';
+import { shareCard, shareMethodOf, type ShareMethod } from '@/share/share';
+import { FRIEND_POINTS } from '@/lite/points';
 import { DARE_HINTS, dareReplyText, dareReplyUrl, dareShareText, dareUrl, encodeDare, encodeDareReply, type Dare, type DareReply } from '@/share/dare';
 import { dareCardAlt, dareCardFileName, renderDareCard, type DareCardModel } from '@/share/dareCard';
 import { Countdown } from './Countdown';
@@ -23,6 +24,13 @@ export interface DareSheetProps {
   mode?: 'dare' | 'reply';
   /** Required for reply mode: the dare you answered plus your result on it. */
   reply?: DareReply;
+  /**
+   * Called after every successful share action in either mode (share sheet, any channel tap, copy link), with how
+   * it was shared. The Lite screen uses it to award Challenger points and record the reply as sent.
+   */
+  onShared?: (method: ShareMethod) => void;
+  /** Reply mode, trade-results experiment: hide the friend's score until this sheet has shared once. */
+  hideTheirScore?: boolean;
 }
 
 type Hint = 0 | 1 | 2 | undefined;
@@ -42,7 +50,7 @@ function PersonGlyph() {
  * "Dare 3 friends" sheet: the ice-bucket hand-off after a move. The three slots only count the player's own share
  * actions in this sheet (a personal progress hint); they never claim delivery or that anyone accepted.
  */
-export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterTitle, mode = 'dare', reply }: DareSheetProps) {
+export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterTitle, mode = 'dare', reply, onShared, hideTheirScore }: DareSheetProps) {
   const [blob, setBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
@@ -56,7 +64,7 @@ export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterT
   const url = isReply ? dareReplyUrl(code) : dareUrl(code);
   const text =
     isReply && reply
-      ? dareReplyText({ points: reply.points, best: reply.best, senderPoints: reply.dare.points, moveNumber })
+      ? dareReplyText({ points: reply.points, best: reply.best, senderPoints: reply.dare.points, moveNumber, twist: reply.twist })
       : dareShareText({ moveNumber, points: dare.points, best: dare.best, chain: dare.chain, chapterTitle });
   const card: DareCardModel = useMemo(
     () => ({ moveNumber, moveTitle, points: dare.points, best: dare.best, chain: dare.chain, deadlineLabel: 'Ends at midnight', code, chapterTitle }),
@@ -115,6 +123,7 @@ export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterT
       if (method) {
         track('lite_shared', { shareMethod: method });
         lightSlot();
+        onShared?.(method);
       }
       if (outcome === 'shared') haptic('success');
       else if (outcome === 'copied') toast(isReply ? 'Reply link copied. Paste it to your friend.' : 'Dare link copied. Paste it to a friend.');
@@ -130,6 +139,7 @@ export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterT
     track('lite_shared', { shareMethod: 'native' });
     haptic('light');
     lightSlot();
+    onShared?.('native');
   };
 
   const copyLink = async () => {
@@ -138,6 +148,7 @@ export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterT
       track('lite_shared', { shareMethod: 'clipboard' });
       haptic('success');
       lightSlot();
+      onShared?.('clipboard');
     }
     toast(ok ? (isReply ? 'Reply link copied' : 'Dare link copied') : 'Could not copy the link', ok ? 'success' : 'warning');
   };
@@ -179,7 +190,9 @@ export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterT
       <Sheet open={open} onClose={onClose} title="Send your result back" testId="reply-sheet">
         <div className={s.body}>
           <div className={s.head}>
-            <p className={s.lead}>Your friend earns Helper points when you get it right.</p>
+            <p className={s.lead} data-testid="reply-lead">
+              You can both earn points when you send it back.
+            </p>
             <Countdown deadline={dare.deadline} data-testid="reply-countdown" />
           </div>
           <div className={s.replyCard} aria-label="Your result">
@@ -195,10 +208,15 @@ export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterT
               </span>
               <span>
                 <small>Friend</small>
-                <strong>+{reply.dare.points.toLocaleString('en-US')}</strong>
+                <strong>{hideTheirScore && sent === 0 ? '?' : `+${reply.dare.points.toLocaleString('en-US')}`}</strong>
               </span>
             </span>
             {reply.best ? <span className={s.replyBest}>Best move found</span> : null}
+            {reply.twist === 'right' || reply.twist === 'wrong' ? (
+              <span className={s.replyTwist} data-tone={reply.twist} data-testid="reply-twist">
+                {reply.twist === 'right' ? 'Twist cracked' : 'Twist tried'}
+              </span>
+            ) : null}
           </div>
           <Button variant="primary" size="lg" block icon="share" onClick={share} disabled={sharing} className={s.primary} data-testid="reply-share">
             Send result back
@@ -237,7 +255,9 @@ export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterT
         </p>
         <p className={s.incentive} data-testid="dare-incentive">
           <Icon name="sparkle" size={16} />
-          <span>You earn +100 Helper points for every friend who finds the best move, +40 for every answer.</span>
+          <span>
+            +{FRIEND_POINTS.answer} when a friend answers. +{FRIEND_POINTS.understood} more when they find the best move and crack the twist. Up to {FRIEND_POINTS.perDareCap} friends per dare.
+          </span>
         </p>
 
         {!failed && (

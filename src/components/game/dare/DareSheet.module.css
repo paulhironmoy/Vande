@@ -435,7 +435,24 @@
   box-shadow: inset 0 0 0 1px rgba(46, 211, 196, 0.35);
 }
 
+.replyTwist {
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--r-pill);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: #a9e4ff;
+  background: rgba(98, 214, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(98, 214, 255, 0.32);
+}
+
+.replyTwist[data-tone='right'] {
+  color: #ffd38a;
+  background: rgba(240, 162, 74, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(240, 162, 74, 0.38);
+}
+
 :global(:root[data-contrast='high']) .hintChip,
+:global(:root[data-contrast='high']) .replyTwist,
 :global(:root[data-contrast='high']) .replyCard,
 :global(:root[data-contrast='high']) .incentive {
   background: #050b14;

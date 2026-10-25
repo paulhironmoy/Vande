@@ -974,3 +974,78 @@
 .stage h2:focus {
   outline: none;
 }
+
+/* ---------------------------------------------------------------- toughness tiers and Insight points */
+.kickerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.65rem;
+}
+.tier {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #bfe6ff;
+  background: rgba(98, 214, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(98, 214, 255, 0.28);
+}
+.tier[data-tier='tough'] {
+  color: #d3d9ff;
+  background: rgba(123, 140, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(123, 140, 255, 0.38);
+}
+.tier[data-tier='boss'] {
+  color: #1b1405;
+  background: linear-gradient(180deg, #ffe7a3, #f5c15c);
+  box-shadow: 0 0 14px rgba(245, 193, 92, 0.35);
+}
+.insightPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #d3d9ff;
+  background: rgba(123, 140, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(123, 140, 255, 0.36);
+}
+.chipInsight {
+  color: #d3d9ff;
+  background: rgba(123, 140, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(123, 140, 255, 0.36);
+}
+.insightLine {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9375rem;
+  font-weight: 750;
+  color: #d3d9ff;
+}
+.otherPict {
+  display: block;
+  flex: none;
+  width: 5rem;
+  align-self: center;
+}
+@media (forced-colors: active) {
+  .tier,
+  .insightPill,
+  .chipInsight {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+  }
+}

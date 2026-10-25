@@ -75,6 +75,11 @@ export interface TwistAttempt {
   outcome?: 'right' | 'wrong';
   /** Random per-attempt nonce (6 base36 chars) that makes this friend's reply unique. */
   nonce: string;
+  /**
+   * The friend's FIRST answer to the dared question on this device. Retaking the dare after seeing the reveal never
+   * changes it, so the best move cannot be copied from the reveal into the reply.
+   */
+  dare?: { points: number; best: boolean };
   /** Unix ms. */
   createdAt: number;
 }
@@ -89,7 +94,8 @@ export interface TwistAttempt {
  *   - twist: the friend's twist outcome
  *   - nonce: per-attempt random value from TwistAttempt.nonce
  *   - rematchDeadline: unix seconds, the friend's next local midnight when they replied
- *   - sig: optional base64url signature appended by verified dares (wave 2)
+ *   - sig: optional signature appended by verified dares (wave 2) as `_x<sig>` after the checksum. Codes are
+ *     lowercased on decode, so the signature must use a lowercase alphabet: lowercase hex (16–256 chars).
  */
 export interface DareReplyV2Fields {
   version: 2;

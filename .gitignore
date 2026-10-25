@@ -12,6 +12,7 @@ blob-report/
 .DS_Store
 .env
 .env.*
+!.env.example
 # Android build outputs and secrets
 android/app/build/
 android/build/

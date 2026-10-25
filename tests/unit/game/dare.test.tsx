@@ -349,7 +349,7 @@ describe('dare replies', () => {
     for (const r of cases) {
       const code = encodeDareReply(r);
       expect(code).toMatch(/^R1_[0-9a-z_.~-]+_[0-9a-z]{2}$/);
-      expect(decodeDareReply(code)).toEqual(r);
+      expect(decodeDareReply(code)).toEqual({ ...r, version: 1 });
     }
     expect(decodeDareReply(encodeDareReply({ ...reply, points: 50000 }))!.points).toBe(9999);
   });
@@ -375,8 +375,8 @@ describe('dare replies', () => {
     vi.stubEnv('BASE_URL', '/Vande/');
     expect(dareReplyUrl(code, 'https://paulhironmoy.github.io')).toBe(`https://paulhironmoy.github.io/Vande/lite/reply/${code}`);
     vi.unstubAllEnvs();
-    expect(decodeDareReply(`https://paulhironmoy.github.io/Vande/lite/reply/${code}?x=1#y`)).toEqual(reply);
-    expect(decodeDareReply(` ${code.toLowerCase()} `)).toEqual(reply);
+    expect(decodeDareReply(`https://paulhironmoy.github.io/Vande/lite/reply/${code}?x=1#y`)).toEqual({ ...reply, version: 1 });
+    expect(decodeDareReply(` ${code.toLowerCase()} `)).toEqual({ ...reply, version: 1 });
     // A dare link is not a reply link.
     expect(decodeDareReply(`https://vande.example/lite/dare/${encodeDare(base)}`)).toBeNull();
   });
@@ -410,7 +410,7 @@ describe('DareSheet modes', () => {
 
   it('dare mode: hint picker defaults to no hint, encodes the chosen hint and shows the Helper incentive', () => {
     render(<DareSheet open onClose={() => {}} dare={dare} moveNumber={3} moveTitle="Students are gathering" chapterTitle="The Exam Leak" />);
-    expect(screen.getByTestId('dare-incentive').textContent).toContain('+100 Helper points for every friend who finds the best move, +40 for every answer');
+    expect(screen.getByTestId('dare-incentive').textContent).toContain('+40 when a friend answers. +100 more when they find the best move and crack the twist. Up to 3 friends per dare.');
     expect(screen.getByTestId('dare-hint-none').getAttribute('aria-checked')).toBe('true');
     for (const i of [0, 1, 2]) expect(screen.getByTestId(`dare-hint-${i}`).textContent).toBe(DARE_HINTS[i]);
 
@@ -432,7 +432,8 @@ describe('DareSheet modes', () => {
     render(<DareSheet open onClose={() => {}} dare={dare} moveNumber={3} moveTitle="Students are gathering" chapterTitle="The Exam Leak" mode="reply" reply={r} />);
     expect(screen.getByTestId('reply-sheet')).toBeTruthy();
     expect(screen.getByText('Send your result back')).toBeTruthy();
-    expect(screen.getByText('Your friend earns Helper points when you get it right.')).toBeTruthy();
+    expect(screen.getByTestId('reply-lead').textContent).toBe('You can both earn points when you send it back.');
+    expect(screen.queryByTestId('reply-twist')).toBeNull();
     for (const id of ['reply-share', 'reply-share-whatsapp', 'reply-share-telegram', 'reply-share-x', 'reply-share-sms', 'reply-share-email', 'reply-share-copy']) {
       expect(screen.getByTestId(id)).toBeTruthy();
     }
@@ -445,10 +446,90 @@ describe('DareSheet modes', () => {
     fireEvent.click(screen.getByTestId('reply-share-whatsapp'));
     const wa = decodeURIComponent(String(open.mock.calls[0][0]));
     expect(wa).toContain('I took your dare on move 3: +392 vs your +196. I found the best move.');
-    expect(decodeDareReply(wa.slice(wa.indexOf('http')))).toEqual(r);
+    expect(decodeDareReply(wa.slice(wa.indexOf('http')))).toEqual({ ...r, version: 1 });
 
     fireEvent.click(screen.getByTestId('reply-share-copy'));
     await waitFor(() => expect(writeText).toHaveBeenCalled());
     expect(String(writeText.mock.calls[0][0])).toMatch(/\/lite\/reply\/R1_/);
+  });
+});
+
+describe('DareSheet: R2 replies and the onShared hook', () => {
+  let open: ReturnType<typeof vi.fn>;
+  let writeText: ReturnType<typeof vi.fn>;
+  const dare: Dare = { ...base, deadline: Math.floor(Date.now() / 1000) + 3 * 3600 };
+  const rematchDeadline = Math.floor(Date.now() / 1000) + 20 * 3600;
+
+  beforeEach(() => {
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => null);
+    open = vi.fn();
+    vi.stubGlobal('open', open);
+    writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('reply mode with a twist: shows the twist outcome, sends an R2 link with the rematch line', async () => {
+    const r: DareReply = { dare, points: 392, best: true, version: 2, twistId: 't4', twist: 'right', nonce: 'q1w2e3', rematchDeadline };
+    const onShared = vi.fn();
+    render(<DareSheet open onClose={() => {}} dare={dare} moveNumber={3} moveTitle="Students are gathering" chapterTitle="The Exam Leak" mode="reply" reply={r} onShared={onShared} />);
+    expect(screen.getByTestId('reply-twist').textContent).toBe('Twist cracked');
+    expect(screen.getByTestId('reply-twist').getAttribute('data-tone')).toBe('right');
+
+    fireEvent.click(screen.getByTestId('reply-share-whatsapp'));
+    const wa = decodeURIComponent(String(open.mock.calls[0][0]));
+    expect(wa).toContain('I found the best move. I took a twist too. Your turn: try my twist before midnight.');
+    expect(wa).not.toMatch(/cracked/i);
+    expect(wa).toContain('/lite/reply/R2_');
+    expect(decodeDareReply(wa.slice(wa.indexOf('http')))).toEqual(r);
+    expect(onShared).toHaveBeenLastCalledWith('native');
+
+    fireEvent.click(screen.getByTestId('reply-share-copy'));
+    await waitFor(() => expect(onShared).toHaveBeenLastCalledWith('clipboard'));
+    expect(String(writeText.mock.calls[0][0])).toMatch(/\/lite\/reply\/R2_/);
+
+    fireEvent.click(screen.getByTestId('reply-share'));
+    await waitFor(() => expect(onShared).toHaveBeenCalledTimes(3));
+    expect(onShared).toHaveBeenLastCalledWith('clipboard');
+  });
+
+  it('reply mode with a tried twist says so kindly; a skipped twist shows nothing', () => {
+    const tried: DareReply = { dare, points: 40, best: false, version: 2, twistId: 't4', twist: 'wrong', nonce: 'q1w2e3', rematchDeadline };
+    render(<DareSheet open onClose={() => {}} dare={dare} moveNumber={3} moveTitle="" chapterTitle="The Exam Leak" mode="reply" reply={tried} />);
+    expect(screen.getByTestId('reply-twist').textContent).toBe('Twist tried');
+    cleanup();
+    const skipped: DareReply = { dare, points: 40, best: false, version: 2, twist: 'skipped', nonce: 'q1w2e3', rematchDeadline };
+    render(<DareSheet open onClose={() => {}} dare={dare} moveNumber={3} moveTitle="" chapterTitle="The Exam Leak" mode="reply" reply={skipped} />);
+    expect(screen.queryByTestId('reply-twist')).toBeNull();
+    fireEvent.click(screen.getByTestId('reply-share-whatsapp'));
+    const wa = decodeURIComponent(String(open.mock.calls[0][0]));
+    expect(wa).not.toContain('twist');
+    expect(decodeDareReply(wa.slice(wa.indexOf('http')))).toEqual(skipped);
+  });
+
+  it('dare mode calls onShared after channel taps and copies, never before', async () => {
+    const onShared = vi.fn();
+    render(<DareSheet open onClose={() => {}} dare={dare} moveNumber={3} moveTitle="Students are gathering" chapterTitle="The Exam Leak" onShared={onShared} />);
+    expect(onShared).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId('dare-share-telegram'));
+    expect(onShared).toHaveBeenCalledWith('native');
+    fireEvent.click(screen.getByTestId('dare-share-copy'));
+    await waitFor(() => expect(onShared).toHaveBeenLastCalledWith('clipboard'));
+  });
+
+  it('does not call onShared when copying fails', async () => {
+    writeText.mockRejectedValue(new Error('denied'));
+    Object.defineProperty(document, 'execCommand', { value: () => false, configurable: true });
+    const onShared = vi.fn();
+    render(<DareSheet open onClose={() => {}} dare={dare} moveNumber={3} moveTitle="Students are gathering" chapterTitle="The Exam Leak" onShared={onShared} />);
+    fireEvent.click(screen.getByTestId('dare-share-copy'));
+    await waitFor(() => expect(writeText).toHaveBeenCalled());
+    await new Promise((r) => setTimeout(r, 20));
+    expect(onShared).not.toHaveBeenCalled();
   });
 });

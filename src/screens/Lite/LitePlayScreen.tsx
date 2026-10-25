@@ -23,7 +23,18 @@ import { DareSheet } from '@/components/game/dare/DareSheet';
 import { Countdown } from '@/components/game/dare/Countdown';
 import { decodeLiteChallenge, encodeLiteChallenge, liteChallengeUrl, type LiteChallenge } from '@/share/liteChallenge';
 import { DARE_HINTS, dareTimeLeft, decodeDare, decodeDareReply, nextLocalMidnight, type Dare, type DareReply } from '@/share/dare';
-import { LITE_POINTS, evaluateMove, isChecked, movePoints, scoreDelta, streakMultiplier, type MoveEval } from '@/lite/points';
+import { INSIGHT, LITE_POINTS, evaluateMove, insightFor, isChecked, movePoints, rankOf, scoreDelta, streakMultiplier, type InsightTier, type MoveEval } from '@/lite/points';
+import { closeCallMargin, tierOf } from '@/lite/toughness';
+import { visualPlanFor } from '@/lite/visuals';
+import { HowPointsSheet } from '@/components/game/points';
+import { Pictogram } from '@/components/game/pictograms';
+import { ReplyLanding } from './ReplyLanding';
+import { flags } from '@/app/flags';
+import { FRIEND_POINTS } from '@/lite/points';
+import { awardChallenger, readLedger, writeLedger } from '@/lite/ledger';
+import { answerTwist, dareKeyOf, drawTwist, ensureAttempt, readAttempt, recordDareAnswer, twistById } from '@/lite/twists';
+import type { FriendLedger, TwistAttempt, TwistKind } from '@/lite/contracts';
+import { TwistQuestion } from '@/components/game/twist';
 import s from './LitePlayScreen.module.css';
 
 /**
@@ -60,13 +71,20 @@ type Step =
       ranked: MoveEval[];
       bestId: string;
       dare: DareDraft;
+      /** Insight points earned on this move (own runs only). */
+      insight: number;
+      tier: InsightTier;
+      /** Ties for the top count as best (same rule as Insight). */
+      isBest: boolean;
     }
   | { kind: 'rights'; id: string }
-  | { kind: 'rights-result'; id: string; optionId: string; dare: DareDraft }
+  | { kind: 'twist' }
+  | { kind: 'rights-result'; id: string; optionId: string; dare: DareDraft; insight: number }
   | { kind: 'ended' };
 
 const MAX_TICKS = 400;
 const BEST_KEY = 'vande:lite-best';
+const BEST_INSIGHT_KEY = 'vande:lite-best-insight';
 const RUN_KEY = 'vande:lite-run';
 const PICK_MS = 340;
 const SCAN_MS = 700;
@@ -81,6 +99,18 @@ const MISSIONS: { label: string; condition: Condition }[] = [
 
 const fmt = (n: number) => Math.round(n).toLocaleString('en-IN');
 
+/** "Boss question · ×3 Insight" before answering. In a dare the multiplier is left out: dares earn no Insight. */
+function TierBadge({ stepId, own }: { stepId: string; own: boolean }) {
+  const tier = tierOf(stepId);
+  const meta = INSIGHT.tiers[tier];
+  return (
+    <span className={s.tier} data-tier={tier} data-testid="lite-tier">
+      <Icon name="pulse" size={14} strokeWidth={2.4} />
+      {meta.label} question{own ? ` · ×${meta.multiplier} ${INSIGHT.short}` : ''}
+    </span>
+  );
+}
+
 interface RunCounters {
   campaignId: string;
   points: number;
@@ -88,6 +118,17 @@ interface RunCounters {
   bugs: number;
   choices: number;
   path: string[];
+  /** Insight points so far (added later; absent in older saved runs). */
+  insight?: number;
+  /** Move questions shown with pictures / as text, and best picks on each (the bias check for pictures). */
+  visual?: VisualStats;
+}
+
+interface VisualStats {
+  vq: number;
+  vb: number;
+  tq: number;
+  tb: number;
 }
 function readRun(campaignId: string | undefined): RunCounters | undefined {
   if (!campaignId) return undefined;
@@ -105,20 +146,23 @@ function writeRun(r: RunCounters) {
     /* ignore */
   }
 }
-function readBest(): number {
+function readNumber(key: string): number {
   try {
-    return Number(localStorage.getItem(BEST_KEY) ?? 0) || 0;
+    return Number(localStorage.getItem(key) ?? 0) || 0;
   } catch {
     return 0;
   }
 }
-function writeBest(v: number) {
+function writeNumber(key: string, v: number) {
   try {
-    localStorage.setItem(BEST_KEY, String(v));
+    localStorage.setItem(key, String(v));
   } catch {
     /* ignore */
   }
 }
+const readBest = () => readNumber(BEST_KEY);
+const writeBest = (v: number) => writeNumber(BEST_KEY, v);
+const readBestInsight = () => readNumber(BEST_INSIGHT_KEY);
 function reduced(): boolean {
   try {
     return document.documentElement.getAttribute('data-motion') === 'reduced' || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -127,30 +171,6 @@ function reduced(): boolean {
   }
 }
 const later = (fn: () => void, ms: number) => (reduced() || ms <= 0 ? fn() : window.setTimeout(fn, ms));
-
-const HELPER_KEY = 'vande:lite-helper';
-interface HelperStats {
-  answers: number;
-  best: number;
-  points: number;
-  seen: string[];
-}
-function readHelper(): HelperStats {
-  try {
-    const h = JSON.parse(localStorage.getItem(HELPER_KEY) ?? 'null') as HelperStats | null;
-    if (h && Array.isArray(h.seen)) return h;
-  } catch {
-    /* ignore */
-  }
-  return { answers: 0, best: 0, points: 0, seen: [] };
-}
-function writeHelper(h: HelperStats) {
-  try {
-    localStorage.setItem(HELPER_KEY, JSON.stringify({ ...h, seen: h.seen.slice(-200) }));
-  } catch {
-    /* ignore */
-  }
-}
 
 function deltaChips(delta: Partial<Scores>, max = 3) {
   return (Object.entries(delta) as [Dimension, number][])
@@ -195,11 +215,23 @@ export function LitePlayScreen() {
   const [dareSheet, setDareSheet] = useState<{ dare: Dare; moveNumber: number; moveTitle: string } | null>(null);
   const [dareActive, setDareActive] = useState(false);
   const [dareAnswer, setDareAnswer] = useState<{ points: number; best: boolean } | null>(null);
+  /** True when this is a retake on this device: the first answer still counts. */
+  const [dareRetake, setDareRetake] = useState(false);
   const [dareError, setDareError] = useState<string | null>(null);
   const [replySheet, setReplySheet] = useState<DareReply | null>(null);
   const [hintShown, setHintShown] = useState(false);
-  const [helper, setHelper] = useState<HelperStats>(readHelper);
-  const [replyAward, setReplyAward] = useState<{ points: number; fresh: boolean } | null>(null);
+  const [ledger, setLedger] = useState<FriendLedger>(readLedger);
+  const [attempt, setAttempt] = useState<TwistAttempt | undefined>(undefined);
+  const [dareKind, setDareKind] = useState<TwistKind>('talk');
+  const [replySent, setReplySent] = useState(false);
+  const [replyStep, setReplyStep] = useState<'reply-landing' | 'rematch' | 'rematch-result'>('reply-landing');
+  const [challengerAward, setChallengerAward] = useState<{ earned: number; capped: boolean } | null>(null);
+  /** Trade-results experiment (off by default): "who won" unlocks once the friend sends their result back. */
+  const tradeResults = flags.liteTradeResults;
+  const [insight, setInsight] = useState(0);
+  const [bestInsight, setBestInsight] = useState(readBestInsight);
+  const [pointsOpen, setPointsOpen] = useState(false);
+  const visualStats = useRef<VisualStats>({ vq: 0, vb: 0, tq: 0, tb: 0 });
 
   const feedSeen = useRef(0);
   const finishedRef = useRef<string | undefined>(undefined);
@@ -238,6 +270,9 @@ export function LitePlayScreen() {
     setShareOpen(false);
     setStarsShown(0);
     setBest(readBest());
+    setInsight(restored?.insight ?? 0);
+    setBestInsight(readBestInsight());
+    visualStats.current = restored?.visual ? { ...restored.visual } : { vq: 0, vb: 0, tq: 0, tb: 0 };
     pathRef.current = restored?.path ?? pendingPath.current ?? [];
     pendingPath.current = undefined;
     prevAchieved.current = useApp.getState().game ? MISSIONS.map((m) => checkCondition(m.condition, useApp.getState().game!)) : [false, false, false];
@@ -245,30 +280,8 @@ export function LitePlayScreen() {
   }, [campaignId]);
 
   useEffect(() => {
-    if (campaignId) writeRun({ campaignId, points, streak, bugs, choices, path: pathRef.current });
-  }, [campaignId, points, streak, bugs, choices, overlay]);
-
-  useEffect(() => {
-    if (!reply || !replyCode) return;
-    const h = readHelper();
-    if (h.seen.includes(replyCode)) {
-      setReplyAward({ points: 0, fresh: false });
-      setHelper(h);
-      return;
-    }
-    const earned = 40 + (reply.best ? 100 : 0);
-    const next: HelperStats = { answers: h.answers + 1, best: h.best + (reply.best ? 1 : 0), points: h.points + earned, seen: [...h.seen, replyCode] };
-    writeHelper(next);
-    setHelper(next);
-    setReplyAward({ points: earned, fresh: true });
-    later(() => {
-      playGameSound(reply.best ? 'win' : 'coin');
-      if (reply.best) {
-        haptic('success');
-        fireConfetti({ count: 120, spread: 90 });
-      }
-    }, 400);
-  }, [reply, replyCode]);
+    if (campaignId) writeRun({ campaignId, points, streak, bugs, choices, path: pathRef.current, insight, visual: { ...visualStats.current } });
+  }, [campaignId, points, streak, bugs, choices, overlay, insight]);
 
   useEffect(() => {
     if (friend && code && openedFriend.current !== code) {
@@ -302,8 +315,8 @@ export function LitePlayScreen() {
     const done = MISSIONS.filter((m) => checkCondition(m.condition, game)).length;
     const missionBonus = done * LITE_POINTS.missionBonus;
     const total = points + missionBonus + stars * LITE_POINTS.starBonus;
-    return { result, stars, done, missionBonus, total };
-  }, [ended, game, scenario, points]);
+    return { result, stars, done, missionBonus, total, insight };
+  }, [ended, game, scenario, points, insight]);
 
   // Finish: medal drop, stars one by one, fanfare, confetti for a strong run.
   useEffect(() => {
@@ -312,7 +325,9 @@ export function LitePlayScreen() {
     const newBest = summary.total > best;
     const beatFriend = friend ? summary.total > friend.points : false;
     if (newBest) writeBest(summary.total);
-    track('lite_completed', { state: 'completed' });
+    if (summary.insight > bestInsight) writeNumber(BEST_INSIGHT_KEY, summary.insight);
+    const vs = visualStats.current;
+    track('lite_completed', { state: 'completed', visualQuestions: vs.vq, visualBest: vs.vb, textQuestions: vs.tq, textBest: vs.tb });
     for (let i = 0; i < 3; i++)
       later(() => {
         setStarsShown(i + 1);
@@ -330,6 +345,7 @@ export function LitePlayScreen() {
       }
     }, 650 + 3 * 280);
     if (reduced()) setStarsShown(3);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [summary, campaignId, best, friend]);
 
   /** Advance game time until something needs an answer, or the chapter ends. Surfaces opponent moves as bug alerts. */
@@ -414,6 +430,9 @@ export function LitePlayScreen() {
     startedHere.current = true;
     setDareActive(false);
     setDareAnswer(null);
+    setAttempt(undefined);
+    setChallengerAward(null);
+    setLedger(readLedger());
     startLite(friend ? { seed: friend.seed } : undefined);
   };
 
@@ -438,7 +457,11 @@ export function LitePlayScreen() {
       if (!ok) throw new Error('mismatch');
       setDareActive(true);
       setDareAnswer(null);
+      setDareRetake(false);
       setDareError(null);
+      setAttempt(readAttempt(dareKeyOf(incoming)));
+      setReplySent(false);
+      setChallengerAward(null);
       track('lite_challenge_opened');
     } catch {
       startedHere.current = false;
@@ -450,6 +473,17 @@ export function LitePlayScreen() {
   const leave = () => {
     abandonCampaign();
     navigate({ name: 'home' });
+  };
+
+  /** "Dare more friends" from a reply: the same move, a fresh midnight, a new chain. */
+  const dareMoreFromReply = (r: DareReply) => {
+    const scx = getScenario('examination-crisis');
+    const i = Number(r.dare.step.slice(1));
+    setDareSheet({
+      dare: { ...r.dare, deadline: nextLocalMidnight(), chain: 1 },
+      moveNumber: (r.dare.path ? r.dare.path.split('.').filter((tk) => tk.startsWith('d')).length : 0) + 1,
+      moveTitle: r.dare.step.startsWith('d') ? scx.decisions[i]?.simple?.title ?? scx.decisions[i]?.title ?? '' : scx.rightsMoments[i]?.simple?.question ?? '',
+    });
   };
 
   const playFullChapter = () => {
@@ -473,75 +507,20 @@ export function LitePlayScreen() {
       : '';
     const expired = incoming ? dareTimeLeft(incoming.deadline).expired : false;
     return (
-      <main className={s.screen} data-testid="lite-screen" data-step={reply ? 'reply-landing' : incoming ? 'dare-landing' : 'start'}>
+      <main className={s.screen} data-testid="lite-screen" data-step={reply ? replyStep : incoming ? 'dare-landing' : 'start'}>
         <div className={s.aurora} aria-hidden="true" />
+        {reply && replyCode ? (
+          <ReplyLanding reply={reply} replyCode={replyCode} onPlay={play} onDareMore={() => dareMoreFromReply(reply)} onHowPoints={() => setPointsOpen(true)} onStep={setReplyStep} />
+        ) : (
         <section className={`${s.hero} ${s.enter}`}>
-          {reply ? (
-            <>
-              <div className={s.verdictRow}>
-                <span className={s.verdictBadge} data-tone={reply.best ? 'great' : 'good'}>
-                  <Icon name={reply.best ? 'check' : 'users'} size={22} strokeWidth={2.4} />
-                </span>
-                <span className={s.kicker}>Your friend took your dare</span>
-              </div>
-              <h1 className={s.heroTitle}>{reply.best ? 'They found the best move!' : 'They answered your dare'}</h1>
-              <div className={s.versus} data-win={reply.points > reply.dare.points ? 'true' : undefined}>
-                <span>
-                  <small>Friend</small>
-                  <strong>+{fmt(reply.points)}</strong>
-                </span>
-                <span className={s.vs}>vs</span>
-                <span>
-                  <small>You</small>
-                  <strong>+{fmt(reply.dare.points)}</strong>
-                </span>
-              </div>
-              {replyAward?.fresh ? (
-                <p className={s.gain} data-tone="great" data-testid="reply-award">
-                  +{fmt(replyAward.points)}
-                </p>
-              ) : null}
-              <p className={s.lead}>
-                {replyAward?.fresh
-                  ? reply.best
-                    ? 'Helper points for teaching a friend the best move.'
-                    : 'Helper points for a friend who played. Send them a hint next time.'
-                  : 'You already counted this reply.'}
-              </p>
-              <p className={s.bestPill} data-testid="helper-stats">
-                <Icon name="users" size={16} /> Friends helped · {helper.best} of {helper.answers} · {fmt(helper.points)} Helper points
-              </p>
-              <Button
-                variant="primary"
-                size="lg"
-                block
-                icon="share"
-                onClick={() =>
-                  setDareSheet({
-                    dare: { ...reply.dare, deadline: nextLocalMidnight(), chain: 1 },
-                    moveNumber: (reply.dare.path ? reply.dare.path.split('.').filter((t) => t.startsWith('d')).length : 0) + 1,
-                    moveTitle: (() => {
-                      const scx = getScenario('examination-crisis');
-                      const i = Number(reply.dare.step.slice(1));
-                      return reply.dare.step.startsWith('d') ? scx.decisions[i]?.simple?.title ?? scx.decisions[i]?.title ?? '' : scx.rightsMoments[i]?.simple?.question ?? '';
-                    })(),
-                  })
-                }
-                data-testid="reply-dare-more"
-              >
-                Dare more friends
-              </Button>
-              <Button variant="secondary" size="lg" block icon="play" onClick={play} data-testid="lite-start">
-                Play the chapter
-              </Button>
-            </>
-          ) : incoming ? (
+          {incoming ? (
             <>
               <Countdown deadline={incoming.deadline} data-testid="dare-countdown" />
               <p className={s.kicker}>
                 Your friend dared you{incoming.chain > 1 ? ` · dare chain #${incoming.chain}` : ''}
               </p>
               <h1 className={s.heroTitle}>{dareQuestion}</h1>
+              <TierBadge stepId={(dareIsMove ? sc.decisions[dareIdx]?.id : sc.rightsMoments[dareIdx]?.id) ?? ''} own={false} />
               <p className={s.lead}>{dareIsMove ? `Move ${dareMoveNumber} of ${CHAPTER_TITLE}. One question, about 20 seconds.` : `A fair-play question from ${CHAPTER_TITLE}. About 20 seconds.`}</p>
               <p className={s.lockRow}>
                 <Icon name="lock" size={16} /> Their move and score stay hidden until you answer.
@@ -589,14 +568,19 @@ export function LitePlayScreen() {
                   <Icon name="sparkle" size={16} /> Your best · {fmt(best)}
                 </p>
               ) : null}
-              {helper.answers > 0 ? (
+              {ledger.helper.answers > 0 ? (
                 <p className={s.bestPill} data-testid="helper-stats">
-                  <Icon name="users" size={16} /> Friends helped · {helper.best} of {helper.answers}
+                  <Icon name="users" size={16} /> Friends helped {ledger.helper.answers} · understood {ledger.helper.understood}
+                </p>
+              ) : null}
+              {ledger.challenger.points > 0 ? (
+                <p className={s.bestPill} data-testid="challenger-stats">
+                  <Icon name="message" size={16} /> {fmt(ledger.challenger.points)} {FRIEND_POINTS.challengerName}
                 </p>
               ) : null}
             </>
           )}
-          {incoming || reply ? null : (
+          {incoming ? null : (
             <Button variant="primary" size="lg" block icon="play" onClick={play} data-testid="lite-start">
               {friend ? 'Accept challenge' : 'Play'}
             </Button>
@@ -607,7 +591,12 @@ export function LitePlayScreen() {
               Play
             </Button>
           ) : null}
+          <Button variant="ghost" size="md" block icon="info" onClick={() => setPointsOpen(true)} data-testid="how-points-open">
+            How points work
+          </Button>
         </section>
+        )}
+        <HowPointsSheet open={pointsOpen} onClose={() => setPointsOpen(false)} />
         {dareSheet ? (
           <DareSheet open onClose={() => setDareSheet(null)} dare={dareSheet.dare} moveNumber={dareSheet.moveNumber} moveTitle={dareSheet.moveTitle} chapterTitle={CHAPTER_TITLE} />
         ) : null}
@@ -721,12 +710,32 @@ export function LitePlayScreen() {
     setFloat({ amount: gained, tone, key: Date.now() });
     setBurst((b) => b + 1);
     const foundBest = mine.option.id === bestEval.option.id || mine.pts >= bestEval.pts;
+    const tier = tierOf(d.id);
+    const { rank, behindBest } = rankOf(evals, o.id);
+    const insightGain = dareActive ? 0 : insightFor(tier, rank, behindBest, closeCallMargin());
+    if (insightGain) setInsight((n) => n + insightGain);
+    if (!dareActive) {
+      const st = visualStats.current;
+      if (visualPlanFor(d)) {
+        st.vq += 1;
+        if (foundBest) st.vb += 1;
+      } else {
+        st.tq += 1;
+        if (foundBest) st.tb += 1;
+      }
+    }
 
     if (dareActive && incoming) {
-      setDareAnswer({ points: mine.pts, best: foundBest });
+      const first = recordDareAnswer(dareKeyOf(incoming), { points: mine.pts, best: foundBest });
+      const counted = first.dare ?? { points: mine.pts, best: foundBest };
+      setDareAnswer(counted);
+      setDareRetake(counted.points !== mine.pts || counted.best !== foundBest);
+      setAttempt(first);
+      setDareKind(actionKindOf(bestEval.option.tags));
       const won = mine.pts > incoming.points;
       const tie = mine.pts === incoming.points;
-      later(() => {
+      if (tradeResults) later(() => playGameSound('correct'), 300);
+      else later(() => {
         playGameSound(won ? 'win' : tie ? 'correct' : 'lose');
         if (won) {
           haptic('success');
@@ -757,6 +766,9 @@ export function LitePlayScreen() {
       ranked: [...evals].sort((a, b) => b.pts - a.pts),
       bestId: bestEval.option.id,
       dare: { path: pathBefore, step: `d${decisionIndex}`, points: mine.pts, best: foundBest, moveNumber, moveTitle: d.simple?.title ?? d.title },
+      insight: insightGain,
+      tier,
+      isBest: foundBest,
     });
   };
 
@@ -783,15 +795,25 @@ export function LitePlayScreen() {
       pathRef.current = [...pathRef.current, `r${rmIndex}-${optIndex}`];
       const correct = rm.options[optIndex]?.correct ?? false;
       const pts = correct ? LITE_POINTS.fairPlayCorrect : 0;
+      const rightsInsight = correct && !dareActive ? insightFor(tierOf(id), 1, 0, closeCallMargin()) : 0;
+      if (rightsInsight) setInsight((n) => n + rightsInsight);
       if (pts) {
         setPoints((p) => p + pts);
         setFloat({ amount: pts, tone: 'good', key: Date.now() });
       }
       if (dareActive && incoming) {
-        setDareAnswer({ points: pts, best: correct });
+        const first = recordDareAnswer(dareKeyOf(incoming), { points: pts, best: correct });
+        const counted = first.dare ?? { points: pts, best: correct };
+        setDareAnswer(counted);
+        setDareRetake(counted.points !== pts || counted.best !== correct);
+        setAttempt(first);
+        setDareKind('rule');
         const won = pts > incoming.points;
-        playGameSound(won ? 'win' : pts === incoming.points ? 'correct' : 'lose');
-        if (won) fireConfetti({ count: 110, spread: 90 });
+        if (tradeResults) playGameSound('correct');
+        else {
+          playGameSound(won ? 'win' : pts === incoming.points ? 'correct' : 'lose');
+          if (won) fireConfetti({ count: 110, spread: 90 });
+        }
       } else if (correct) {
         playGameSound('correct');
         playGameSound('coin', { intensity: 0.6 });
@@ -807,8 +829,80 @@ export function LitePlayScreen() {
         id,
         optionId,
         dare: { path: pathBefore, step: `r${rmIndex}`, points: pts, best: correct, moveNumber: moveNumberNow(), moveTitle: rm.simple?.question ?? rm.question },
+        insight: rightsInsight,
       });
     }, PICK_MS);
+  };
+
+  /** The friend takes one twist: drawn once per dare on this device, matched to the dared move's kind. */
+  const startTwist = () => {
+    if (!incoming) return;
+    const a = drawTwist(dareKeyOf(incoming), dareKind);
+    if (!a?.twistId || !twistById(a.twistId)) {
+      useApp.getState().toast({ text: 'No twist is ready on this device. Send your result back instead.', kind: 'info', duration: 2600 });
+      return;
+    }
+    playGameSound('flip');
+    setAttempt(a);
+    setOverlay({ kind: 'twist' });
+  };
+
+  const onTwistAnswer = (optionId: string) => {
+    if (!incoming || !attempt?.twistId || attempt.answer) return;
+    const a = answerTwist(dareKeyOf(incoming), optionId);
+    if (!a) return;
+    setAttempt(a);
+    const right = a.outcome === 'right';
+    track('lite_twist_answered', { right });
+    if (right) {
+      playGameSound('correct');
+      playGameSound('coin', { intensity: 0.6 });
+      haptic('success');
+      fireConfetti({ origin: { x: 0.5, y: 0.5 }, count: 60, spread: 70, power: 0.8 });
+    } else {
+      playGameSound('wrong');
+      haptic('warning');
+    }
+  };
+
+  /** The friend's reply (R2): the dare result, the twist outcome and the nonce that makes it unique. */
+  const buildReply = (): DareReply | null => {
+    if (!incoming || !dareAnswer) return null;
+    const a = attempt ?? ensureAttempt(dareKeyOf(incoming));
+    const answered = Boolean(a.answer && a.twistId);
+    return {
+      dare: incoming,
+      points: dareAnswer.points,
+      best: dareAnswer.best,
+      version: 2,
+      twistId: answered ? a.twistId : undefined,
+      twist: answered ? (a.outcome ?? 'wrong') : 'skipped',
+      nonce: a.nonce,
+      rematchDeadline: nextLocalMidnight(),
+    };
+  };
+
+  const openReply = () => {
+    const r = buildReply();
+    if (!r) return;
+    playGameSound('select');
+    setReplySheet(r);
+  };
+
+  /** Challenger points: once per dare, when the friend actually sends their result back. */
+  const onReplyShared = (method: 'native' | 'clipboard' | 'download') => {
+    if (!incoming || !dareAnswer) return;
+    const a = attempt ?? ensureAttempt(dareKeyOf(incoming));
+    const understood = dareAnswer.best && a.outcome === 'right';
+    const res = awardChallenger(readLedger(), dareKeyOf(incoming), understood, new Date());
+    writeLedger(res.ledger);
+    setLedger(res.ledger);
+    setReplySent(true);
+    track('lite_reply_sent', { shareMethod: method, tradeResults });
+    if (res.earned > 0) {
+      setChallengerAward({ earned: res.earned, capped: false });
+      playGameSound('coin');
+    } else if (res.capped) setChallengerAward({ earned: 0, capped: true });
   };
 
   const openDare = (draft: DareDraft) => {
@@ -844,34 +938,34 @@ export function LitePlayScreen() {
     </ul>
   );
 
-  /** The dare verdict shown after answering a friend's dare. */
-  const dareVerdict =
+  /** What the friend can do next: the twist (once), send the result back, pass the dare on. */
+  const twistDone = Boolean(attempt?.answer);
+  const dareMoveNumber = incoming ? (incoming.path ? incoming.path.split('.').filter((tk) => tk.startsWith('d')).length : 0) + 1 : 1;
+  const dareActions =
     dareActive && incoming && dareAnswer ? (
-      <div className={s.dareResult} data-win={dareAnswer.points > incoming.points ? 'true' : undefined} data-testid="dare-result">
-        <p className={s.kicker}>{dareAnswer.points > incoming.points ? 'You won the dare' : dareAnswer.points === incoming.points ? 'A perfect tie' : 'Your friend won this one'}</p>
-        <div className={s.versus}>
-          <span>
-            <small>You</small>
-            <strong>+{fmt(dareAnswer.points)}</strong>
-          </span>
-          <span className={s.vs}>vs</span>
-          <span>
-            <small>Friend</small>
-            <strong>+{fmt(incoming.points)}</strong>
-          </span>
-        </div>
-        <p className={s.leadSmall}>
-          {incoming.best && dareAnswer.best
-            ? 'You both found the best move.'
-            : incoming.best
-              ? 'Your friend found the best move. It is marked above.'
-              : dareAnswer.best
-                ? 'You found the best move. Your friend did not.'
-                : 'Neither of you found the best move. It is marked above.'}
-        </p>
-        <Button variant="primary" size="lg" block icon="share" onClick={() => { playGameSound('select'); setReplySheet({ dare: incoming, points: dareAnswer.points, best: dareAnswer.best }); }} data-testid="dare-reply">
+      <>
+        {twistDone ? null : (
+          <>
+            <Button variant="primary" size="lg" block icon="sparkle" onClick={startTwist} data-testid="twist-start">
+              {dareAnswer.best ? `Try the twist · +${FRIEND_POINTS.understood} for you both` : 'Try the twist'}
+            </Button>
+            <p className={s.incentive}>
+              {dareAnswer.best
+                ? `Same idea, new place. Get it right and you both earn +${FRIEND_POINTS.understood} more.`
+                : 'Same idea, new place. It also becomes your rematch dare.'}
+            </p>
+          </>
+        )}
+        <Button variant={twistDone ? 'primary' : 'secondary'} size="lg" block icon="share" onClick={openReply} data-testid="dare-reply">
           Send your result back
         </Button>
+        {challengerAward ? (
+          <p className={s.incentive} data-testid="challenger-award">
+            {challengerAward.earned > 0
+              ? `Sent. +${fmt(challengerAward.earned)} ${FRIEND_POINTS.challengerName}.`
+              : `You've earned ${FRIEND_POINTS.challengerName} from ${FRIEND_POINTS.perDayCap} dares today. More start at midnight.`}
+          </p>
+        ) : null}
         <Button
           variant="secondary"
           size="lg"
@@ -883,29 +977,95 @@ export function LitePlayScreen() {
               step: incoming.step,
               points: dareAnswer.points,
               best: dareAnswer.best,
-              moveNumber: (incoming.path ? incoming.path.split('.').filter((t) => t.startsWith('d')).length : 0) + 1,
-              moveTitle: current.kind === 'feedback' ? current.dare.moveTitle : current.kind === 'rights-result' ? current.dare.moveTitle : '',
+              moveNumber: dareMoveNumber,
+              moveTitle: (() => {
+                const i = Number(incoming.step.slice(1));
+                return incoming.step.startsWith('d') ? scenario.decisions[i]?.simple?.title ?? scenario.decisions[i]?.title ?? '' : scenario.rightsMoments[i]?.simple?.question ?? '';
+              })(),
             })
           }
           data-testid="dare-pass"
         >
           Dare 3 friends · before midnight
         </Button>
-        <p className={s.incentive}>Earn +100 Helper points for every friend who finds the best move.</p>
+        <p className={s.incentive}>{`+${FRIEND_POINTS.answer} for each friend who answers. +${FRIEND_POINTS.understood} more when they crack the twist.`}</p>
         <Button variant="ghost" size="md" block icon="play" onClick={playFullChapter} data-testid="dare-full">
           Play the whole chapter
         </Button>
         <Button variant="ghost" size="md" block onClick={leave}>
           Home
         </Button>
+      </>
+    ) : null;
+
+  /** The dare verdict shown after answering a friend's dare. With trade-results on, "who won" waits for the reply. */
+  const tradeLocked = tradeResults && !replySent;
+  const dareVerdict =
+    dareActive && incoming && dareAnswer ? (
+      <div className={s.dareResult} data-win={!tradeLocked && dareAnswer.points > incoming.points ? 'true' : undefined} data-testid="dare-result">
+        {dareRetake ? (
+          <p className={s.leadSmall} data-testid="dare-first-answer">
+            Your first answer on this device counts for this dare.
+          </p>
+        ) : null}
+        {tradeLocked ? (
+          <>
+            <p className={s.kicker}>Your answer is in</p>
+            <div className={s.versus}>
+              <span>
+                <small>You</small>
+                <strong>+{fmt(dareAnswer.points)}</strong>
+              </span>
+              <span className={s.vs}>vs</span>
+              <span>
+                <small>Friend</small>
+                <strong>?</strong>
+              </span>
+            </div>
+            <p className={s.leadSmall} data-testid="trade-locked">
+              Send your result back to see who won.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className={s.kicker}>{dareAnswer.points > incoming.points ? 'You won the dare' : dareAnswer.points === incoming.points ? 'A perfect tie' : 'Your friend won this one'}</p>
+            <div className={s.versus}>
+              <span>
+                <small>You</small>
+                <strong>+{fmt(dareAnswer.points)}</strong>
+              </span>
+              <span className={s.vs}>vs</span>
+              <span>
+                <small>Friend</small>
+                <strong>+{fmt(incoming.points)}</strong>
+              </span>
+            </div>
+            <p className={s.leadSmall}>
+              {incoming.best && dareAnswer.best
+                ? 'You both found the best move.'
+                : incoming.best
+                  ? 'Your friend found the best move. It is marked above.'
+                  : dareAnswer.best
+                    ? 'You found the best move. Your friend did not.'
+                    : 'Neither of you found the best move. It is marked above.'}
+            </p>
+          </>
+        )}
+        {dareActions}
       </div>
     ) : null;
 
-  const stepKey = current.kind + ('decision' in current && current.decision ? current.decision.id : '') + ('evidence' in current && current.evidence ? current.evidence.id : '') + ('id' in current ? current.id : '');
+  const stepKey =
+    current.kind +
+    ('decision' in current && current.decision ? current.decision.id : '') +
+    ('evidence' in current && current.evidence ? current.evidence.id : '') +
+    ('id' in current ? current.id : '') +
+    (current.kind === 'twist' && attempt?.answer ? '-answered' : '');
+  const dataStep = current.kind === 'twist' ? (attempt?.answer ? 'twist-result' : 'twist') : current.kind;
   focusKey.current = stepKey;
 
   return (
-    <main className={s.screen} data-testid="lite-screen" data-step={current.kind} data-dare={dareActive ? 'true' : undefined}>
+    <main className={s.screen} data-testid="lite-screen" data-step={dataStep} data-dare={dareActive ? 'true' : undefined}>
       <div className={s.aurora} aria-hidden="true" />
       <header className={s.top}>
         <button type="button" className={s.round} onClick={leave} aria-label="Leave">
@@ -920,6 +1080,9 @@ export function LitePlayScreen() {
             <span style={{ width: `${progress}%` }} />
           </div>
         )}
+        <button type="button" className={s.round} onClick={() => setPointsOpen(true)} aria-label="How points work" data-testid="how-points-open">
+          <Icon name="question" size={20} />
+        </button>
         <span className={s.points} ref={pointsRef} data-testid="lite-points" aria-label={`${points} points`}>
           <Icon name="sparkle" size={16} />
           <CountUp key={campaignId} value={points} durationMs={650} />
@@ -940,7 +1103,7 @@ export function LitePlayScreen() {
         </div>
       ) : null}
 
-      {current.kind !== 'begin' && current.kind !== 'ended' ? (
+      {current.kind !== 'begin' && current.kind !== 'ended' && current.kind !== 'twist' ? (
         <section className={s.hud} aria-label="How the city is doing">
           {bars(current.kind === 'feedback' ? current.delta : undefined)}
           <div className={s.hudRow}>
@@ -950,6 +1113,11 @@ export function LitePlayScreen() {
             {streak >= 2 && !dareActive ? (
               <span className={s.streak} key={streak}>
                 <Icon name="sparkle" size={14} /> Streak ×{streak}
+              </span>
+            ) : null}
+            {insight > 0 && !dareActive ? (
+              <span className={s.insightPill} data-testid="lite-insight" aria-label={`${insight} ${INSIGHT.name}`}>
+                <Icon name="pulse" size={14} strokeWidth={2.4} /> {fmt(insight)}
               </span>
             ) : null}
             {dareActive ? (
@@ -1042,11 +1210,15 @@ export function LitePlayScreen() {
                 <Icon name="bug" size={16} /> {alert}
               </p>
             ) : null}
-            <p className={s.kicker}>{dareActive ? 'The dare' : `Move ${choices + 1}`}</p>
+            <div className={s.kickerRow}>
+              <p className={s.kicker}>{dareActive ? 'The dare' : `Move ${choices + 1}`}</p>
+              <TierBadge stepId={current.decision.id} own={!dareActive} />
+            </div>
             <h1 className={s.title}>{current.decision.simple?.title ?? current.decision.title}</h1>
             <p className={s.lead}>{current.decision.simple?.situation ?? current.decision.situation}</p>
-            <div className={s.hand} data-count={current.decision.options.length}>
+            <div className={s.hand} data-count={current.decision.options.length} data-visual={visualPlanFor(current.decision) ? 'true' : undefined}>
               {current.decision.options.map((o, i) => {
+                const vplan = visualPlanFor(current.decision);
                 const needsClue = (o.requiresEvidence ?? []).some((id) => {
                   const es = game.evidence[id];
                   return es && es.visible && !es.destroyed && (es.state === 'unverified' || es.state === 'unknown');
@@ -1064,6 +1236,7 @@ export function LitePlayScreen() {
                     disabled={Boolean(picked)}
                     index={i}
                     testId={`lite-option-${o.id}`}
+                    visual={vplan?.[o.id]}
                   />
                 );
               })}
@@ -1080,7 +1253,7 @@ export function LitePlayScreen() {
                   <Icon name={current.tone === 'bad' ? 'alert' : 'check'} size={22} strokeWidth={2.4} />
                 </span>
                 <span className={s.kicker}>
-                  {current.bestId === current.option.id ? 'Best move!' : current.tone === 'great' ? 'Great move' : current.tone === 'good' ? 'Good move' : 'That hurt'}
+                  {current.isBest ? 'Best move!' : current.tone === 'great' ? 'Great move' : current.tone === 'good' ? 'Good move' : 'That hurt'}
                 </span>
               </div>
               <p className={s.gain} data-tone={current.tone}>
@@ -1095,6 +1268,11 @@ export function LitePlayScreen() {
                   </span>
                 ))}
                 {current.tone === 'bad' ? <span className={`${s.chip} ${s.chipWarn}`}>Streak reset · less freedom</span> : null}
+                {current.insight > 0 ? (
+                  <span className={`${s.chip} ${s.chipInsight}`} data-testid="lite-insight-gain">
+                    +{fmt(current.insight)} {INSIGHT.short} · {INSIGHT.tiers[current.tier].label}
+                  </span>
+                ) : null}
               </div>
             </section>
 
@@ -1104,10 +1282,12 @@ export function LitePlayScreen() {
               </p>
               <ul className={s.others}>
                 {current.ranked.map((m) => {
+                  const rplan = visualPlanFor(current.decision);
+                  const pict = rplan?.[m.option.id];
                   const kind = actionKindOf(m.option.tags);
                   const meta = ACTION_META[kind];
                   const mineRow = m.option.id === current.option.id;
-                  const bestRow = m.option.id === current.bestId;
+                  const bestRow = m.option.id === current.bestId || m.pts === current.ranked[0]?.pts;
                   return (
                     <li
                       key={m.option.id}
@@ -1117,9 +1297,15 @@ export function LitePlayScreen() {
                       style={{ '--kind': meta.color, '--kind-deep': meta.deep } as CSSProperties}
                       data-testid={`lite-reveal-${m.option.id}`}
                     >
-                      <span className={s.otherBadge} aria-hidden="true">
-                        <Icon name={meta.icon} size={18} strokeWidth={2.2} />
-                      </span>
+                      {pict ? (
+                        <span className={s.otherPict} aria-hidden="true">
+                          <Pictogram visual={pict.visual} size="mini" />
+                        </span>
+                      ) : (
+                        <span className={s.otherBadge} aria-hidden="true">
+                          <Icon name={meta.icon} size={18} strokeWidth={2.2} />
+                        </span>
+                      )}
                       <span className={s.otherBody}>
                         <span className={s.otherHead}>
                           <strong>{simpleOption(current.decision, m.option)?.title ?? m.option.title}</strong>
@@ -1153,7 +1339,9 @@ export function LitePlayScreen() {
                 <Button variant="secondary" size="md" block icon="clock" onClick={() => openDare(current.dare)} data-testid="lite-dare">
                   Dare friends on this move · ends at midnight
                 </Button>
-                <p className={s.incentive}>Your answer stays hidden until they play. +100 Helper points for each friend who finds the best move.</p>
+                <p className={s.incentive}>
+                  {`Your answer stays hidden until they play. +${FRIEND_POINTS.answer} for each friend who answers, +${FRIEND_POINTS.understood} more when they crack the twist.`}
+                </p>
               </div>
             )}
           </>
@@ -1170,7 +1358,15 @@ export function LitePlayScreen() {
                   <span className={s.verdictBadge} data-tone="rule">
                     <Icon name="book" size={20} strokeWidth={2.2} />
                   </span>
-                  <span className={s.kicker}>{chosenOpt ? (chosenOpt.correct ? 'Fair call · +100' : 'Not quite') : dareActive ? 'The dare · fair play' : 'Fair play · +100'}</span>
+                  <span className={s.kicker}>
+                    {chosenOpt ? (chosenOpt.correct ? `Fair call · +${LITE_POINTS.fairPlayCorrect}` : 'Not quite') : dareActive ? 'The dare · fair play' : `Fair play · +${LITE_POINTS.fairPlayCorrect}`}
+                  </span>
+                  {chosenOpt ? null : <TierBadge stepId={rm.id} own={!dareActive} />}
+                  {current.kind === 'rights-result' && current.insight > 0 ? (
+                    <span className={`${s.chip} ${s.chipInsight}`} data-testid="lite-insight-gain">
+                      +{fmt(current.insight)} {INSIGHT.short}
+                    </span>
+                  ) : null}
                 </div>
                 <h1 className={s.title}>{rm.simple?.question ?? rm.question}</h1>
                 <div className={s.hand} data-count="wide">
@@ -1209,6 +1405,36 @@ export function LitePlayScreen() {
                   </div>
                 ) : null}
               </section>
+            );
+          })()}
+
+        {current.kind === 'twist' &&
+          (() => {
+            const tw = attempt?.twistId ? twistById(attempt.twistId) : undefined;
+            if (!tw || !attempt) return null;
+            return (
+              <>
+                <TwistQuestion
+                  twist={tw}
+                  order={attempt.order ?? tw.options.map((o) => o.id)}
+                  answer={attempt.answer}
+                  onAnswer={onTwistAnswer}
+                  testIdPrefix="twist"
+                  kicker="The twist · same idea, new place"
+                />
+                {attempt.answer ? (
+                  <div className={s.dareResult} data-testid="twist-actions">
+                    <p className={s.leadSmall}>
+                      {attempt.outcome === 'right'
+                        ? dareAnswer?.best
+                          ? `You cracked the dare and the twist. Send it back: you both earn +${FRIEND_POINTS.understood} more.`
+                          : 'You cracked the twist. Send it back as your rematch dare.'
+                        : 'Not this time. Send it back anyway: your twist becomes their rematch.'}
+                    </p>
+                    {dareActions}
+                  </div>
+                ) : null}
+              </>
             );
           })()}
 
@@ -1261,6 +1487,10 @@ export function LitePlayScreen() {
                   <span className={s.chip}>Stars +{stars * LITE_POINTS.starBonus}</span>
                   {bugs ? <span className={s.chip}>{bugs === 1 ? '1 bug squashed' : `${bugs} bugs squashed`}</span> : null}
                 </div>
+                <p className={s.insightLine} data-testid="lite-result-insight" data-value={summary.insight}>
+                  <Icon name="pulse" size={16} strokeWidth={2.4} /> {INSIGHT.name} · {fmt(summary.insight)}
+                  {summary.insight > bestInsight && bestInsight > 0 ? ' · new best' : bestInsight > 0 ? ` · best ${fmt(Math.max(bestInsight, summary.insight))}` : ''}
+                </p>
                 <p className={s.outcome}>
                   {outcome.label} · city {result.score}
                 </p>
@@ -1280,6 +1510,9 @@ export function LitePlayScreen() {
                 </Button>
                 <Button variant="secondary" size="lg" block icon="refresh" onClick={play} data-testid="lite-again">
                   {newBest || beatFriend ? 'Play again' : 'Try to beat it'}
+                </Button>
+                <Button variant="ghost" size="md" block icon="info" onClick={() => setPointsOpen(true)} data-testid="how-points-result">
+                  How points work
                 </Button>
                 <Button variant="ghost" size="md" block onClick={leave} data-testid="lite-home">
                   Home
@@ -1308,11 +1541,14 @@ export function LitePlayScreen() {
       {dareSheet ? (
         <DareSheet open onClose={() => setDareSheet(null)} dare={dareSheet.dare} moveNumber={dareSheet.moveNumber} moveTitle={dareSheet.moveTitle} chapterTitle={CHAPTER_TITLE} />
       ) : null}
+      <HowPointsSheet open={pointsOpen} onClose={() => setPointsOpen(false)} />
       {replySheet ? (
         <DareSheet
           open
           mode="reply"
           reply={replySheet}
+          onShared={onReplyShared}
+          hideTheirScore={tradeResults && !replySent}
           onClose={() => setReplySheet(null)}
           dare={replySheet.dare}
           moveNumber={(replySheet.dare.path ? replySheet.dare.path.split('.').filter((t) => t.startsWith('d')).length : 0) + 1}

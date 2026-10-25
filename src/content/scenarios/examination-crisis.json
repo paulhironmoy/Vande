@@ -921,22 +921,46 @@
           "o-acknowledge": {
             "title": "Meet the student leaders today",
             "preview": "You set a meeting. The leaders promise to keep the gathering peaceful.",
-            "consequence": "A meeting is set for 10:30. The leaders promise to stay peaceful and name a helper."
+            "consequence": "A meeting is set for 10:30. The leaders promise to stay peaceful and name a helper.",
+            "label": "Meet student leaders",
+            "visual": {
+              "actor": "official",
+              "action": "meet",
+              "object": "students"
+            }
           },
           "o-board-statement": {
             "title": "Ask the exam office to speak",
             "preview": "The exam office promises to share facts by noon. Students wait, unsure.",
-            "consequence": "The exam office promises a statement by noon. Students stay and wait to see."
+            "consequence": "The exam office promises a statement by noon. Students stay and wait to see.",
+            "label": "Ask office to speak",
+            "visual": {
+              "actor": "office",
+              "action": "announce",
+              "object": "students"
+            }
           },
           "o-cordon-campus": {
             "title": "Lock the university gates",
             "preview": "The gates are locked. The crowd moves to Civic Square instead.",
-            "consequence": "The gates are locked. The crowd walks down the main road to Civic Square."
+            "consequence": "The gates are locked. The crowd walks down the main road to Civic Square.",
+            "label": "Lock university gates",
+            "visual": {
+              "actor": "police",
+              "action": "lock",
+              "object": "gate"
+            }
           },
           "o-wait-first": {
             "title": "Wait for the exam office",
             "preview": "Hours pass with no news. The crowd grows and rumours spread.",
-            "consequence": "Nobody speaks for the city. The crowd grows, and rumours do the talking."
+            "consequence": "Nobody speaks for the city. The crowd grows, and rumours do the talking.",
+            "label": "Wait for the office",
+            "visual": {
+              "actor": "official",
+              "action": "wait",
+              "object": "office"
+            }
           }
         }
       }
@@ -1919,22 +1943,46 @@
           "o-corridor-with-students": {
             "title": "Open a path with student helpers",
             "preview": "Helpers and traffic police open two lanes. Buses move within the hour.",
-            "consequence": "Student helpers with armbands and traffic police open two lanes. Buses move again."
+            "consequence": "Student helpers with armbands and traffic police open two lanes. Buses move again.",
+            "label": "Open path with students",
+            "visual": {
+              "actor": "students",
+              "action": "guide",
+              "object": "road"
+            }
           },
           "o-divert-transit": {
             "title": "Reroute buses, open a hospital lane",
             "preview": "Buses go round by Market Street. A coned-off hospital lane is guarded.",
-            "consequence": "Buses loop round by Market Street. The hospital lane is coned off and guarded."
+            "consequence": "Buses loop round by Market Street. The hospital lane is coned off and guarded.",
+            "label": "Reroute buses, hospital lane",
+            "visual": {
+              "actor": "official",
+              "action": "reroute",
+              "object": "bus"
+            }
           },
           "o-shut-transit": {
             "title": "Stop all buses to break the crowd",
             "preview": "Workers get stuck, not students. Daily-wage workers crowd the station.",
-            "consequence": "Workers get stuck, not students. Daily-wage workers crowd the station with nowhere to go."
+            "consequence": "Workers get stuck, not students. Daily-wage workers crowd the station with nowhere to go.",
+            "label": "Stop all buses",
+            "visual": {
+              "actor": "official",
+              "action": "stop",
+              "object": "bus"
+            }
           },
           "o-wait-services": {
             "title": "Leave it to traffic police",
             "preview": "Ambulances take the long way. Two reach the hospital late.",
-            "consequence": "Ambulances take the long way round. Two reach the hospital late."
+            "consequence": "Ambulances take the long way round. Two reach the hospital late.",
+            "label": "Leave to traffic police",
+            "visual": {
+              "actor": "police",
+              "action": "wait",
+              "object": "road"
+            }
           }
         }
       }

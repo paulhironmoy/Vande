@@ -120,12 +120,12 @@ test.describe('Lite dares: one question, before midnight, passed between friends
     await expect(friend.getByTestId('reply-sheet')).toBeVisible();
     await friend.getByTestId('reply-share-copy').click();
     const replyLink = await friend.evaluate(() => navigator.clipboard.readText());
-    expect(replyLink).toContain('/lite/reply/R1_');
+    expect(replyLink).toContain('/lite/reply/R2_');
 
     await page.goto(new URL(replyLink).pathname);
     await expect(screen).toHaveAttribute('data-step', 'reply-landing', { timeout: 15_000 });
     await expect(page.getByTestId('reply-award')).toBeVisible();
-    await expect(page.getByTestId('helper-stats')).toContainText('of 1');
+    await expect(page.getByTestId('helper-stats')).toContainText('Friends helped 1');
     await page.reload();
     await expect(screen).toContainText('already counted');
   });

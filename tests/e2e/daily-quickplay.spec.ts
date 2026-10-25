@@ -114,6 +114,8 @@ test.describe('daily quick play', () => {
     await expect(page.getByTestId('daily-open-screen')).toBeVisible({ timeout: 15_000 });
     await page.getByTestId('daily-open-rules').click();
     await expect(page.getByTestId('rules-card').last()).toBeVisible();
+    // Wait until the dialog has taken focus (one animation frame) before pressing Escape, as a person would.
+    await expect(page.getByRole('dialog', { name: 'Rules' }).getByRole('button', { name: 'Close' })).toBeFocused();
     await page.keyboard.press('Escape');
     // The cold open auto-starts after a few seconds; start explicitly only if it is still showing.
     const start = page.getByTestId('daily-open-start');

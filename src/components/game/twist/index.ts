@@ -1,1 +1,1 @@
-export { TwistQuestion, type TwistQuestionProps } from './TwistQuestion';
+export { TwistQuestion, orderedOptions, type TwistQuestionProps } from './TwistQuestion';

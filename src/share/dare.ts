@@ -7,9 +7,19 @@
  * Format (URL-path-safe, unreserved characters only):
  *   `I1_<seed36>_<path or ~>_<step>_<points36>_<0|1>_<deadline36>_<chain36>[_h<hint>]_<chk>`
  * where `chk` is two base36 characters of `hashString(body)`. The optional `h<0-2>` field carries a hint; codes
- * without it (the original form) still decode. Reply links use the same dare fields behind an `R1` prefix, followed by
- * the friend's points and best-move flag and their own checksum:
+ * without it (the original form) still decode.
+ *
+ * Reply links use the same dare fields. The original R1 form carries the friend's points and best-move flag:
  *   `R1_<dare fields>[_h<hint>]_<friendPoints36>_<0|1>_<chk>`
+ * R2 (current) adds the twist, a per-attempt nonce and the rematch deadline:
+ *   `R2_<dare fields>[_h<hint>]_<friendPoints36>_<0|1>_<twist36 or ~>_<r|w|s>_<nonce>_<rematchDeadline36>_<chk>[_x<sig>]`
+ *   - twist36: the twist number n of twist id `t<n>` (n = 1..1295) in base36, or `~` when no twist was taken
+ *   - r|w|s: twist right, wrong (not quite) or skipped; `s` if and only if the twist field is `~`
+ *   - nonce: exactly six base36 characters, random per friend attempt, so identical answers stay distinct replies
+ *   - rematchDeadline36: unix seconds when the rematch ends (the friend's next local midnight when they replied)
+ *   - `_x<sig>`: reserved for verified dares (wave 2). It follows the checksum and is not covered by it. Codes are
+ *     case-insensitive (decoding lowercases), so the signature must use a lowercase alphabet such as hex
+ *     (16–256 characters). It is decoded into `reply.sig` but not verified here.
  * The checksums catch typos and casual edits; they are not a security feature.
  */
 import { hashString } from '@/engine/prng';
@@ -80,6 +90,13 @@ const DARE_FIELDS = `(${B36})_(~|[a-z0-9.-]{1,${MAX_PATH}})_([dr]${IDX})_(${B36}
 const CODE_RE = new RegExp(`^i1_${DARE_FIELDS}_([0-9a-z]{2})$`);
 const REPLY_RE = new RegExp(`^r1_${DARE_FIELDS}_(${B36})_([01])_([0-9a-z]{2})$`);
 const REPLY_PREFIX = 'R1';
+const REPLY2_RE = new RegExp(`^r2_${DARE_FIELDS}_(${B36})_([01])_(~|[0-9a-z]{1,2})_([rws])_([0-9a-z]{6})_(${B36})_([0-9a-z]{2})(?:_x([0-9a-z]{16,256}))?$`);
+const REPLY2_PREFIX = 'R2';
+/** Twist ids are `t<n>`, n = 1..1295, so the number fits two base36 characters. */
+const MAX_TWIST = 1295;
+const TWIST_ID_RE = /^t([1-9]\d{0,3})$/;
+const NONCE_RE = /^[0-9a-z]{6}$/;
+const SIG_RE = /^[0-9a-z]{16,256}$/;
 
 function clampInt(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return min;
@@ -205,16 +222,97 @@ export function decodeDare(input: string): Dare | null {
   return parsed.dare;
 }
 
-/** Builds a reply code: the embedded dare's fields, then the friend's points and best-move flag, with its own checksum. */
-export function encodeDareReply(r: DareReply): string {
-  const body = [REPLY_PREFIX, ...fieldsOf(partsOf(r.dare)), clampInt(r.points, 0, MAX_POINTS).toString(36), r.best ? '1' : '0'].join('_');
-  return `${body}_${checksum(body)}`;
+/** The number n of a twist id `t<n>` (1..1295), or null for anything else. */
+export function twistNumberOf(id: string | undefined): number | null {
+  if (typeof id !== 'string') return null;
+  const m = TWIST_ID_RE.exec(id);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return n >= 1 && n <= MAX_TWIST ? n : null;
 }
 
-/** Parses a reply code (or any URL containing `/lite/reply/<code>`); null when malformed or tampered. */
+/**
+ * Builds a reply code. With a `nonce` it writes the current R2 form (and then requires a valid `rematchDeadline`, a
+ * twist outcome, and a valid `twistId` when the outcome is right or wrong); without one it writes the original R1
+ * form, kept for compatibility. Malformed R2 fields throw a RangeError so a broken link can never be shared.
+ */
+export function encodeDareReply(r: DareReply): string {
+  const dareFields = fieldsOf(partsOf(r.dare));
+  const friend36 = clampInt(r.points, 0, MAX_POINTS).toString(36);
+  const bestFlag = r.best ? '1' : '0';
+  if (r.nonce === undefined) {
+    const body = [REPLY_PREFIX, ...dareFields, friend36, bestFlag].join('_');
+    return `${body}_${checksum(body)}`;
+  }
+  const nonce = String(r.nonce).toLowerCase();
+  if (!NONCE_RE.test(nonce)) throw new RangeError(`Invalid reply nonce '${r.nonce}'`);
+  const rematch = r.rematchDeadline;
+  if (typeof rematch !== 'number' || !Number.isFinite(rematch) || Math.round(rematch) < MIN_DEADLINE || Math.round(rematch) > MAX_DEADLINE) {
+    throw new RangeError(`Invalid rematch deadline '${String(rematch)}'`);
+  }
+  const outcome = r.twist ?? (r.twistId === undefined ? 'skipped' : undefined);
+  let twistField = '~';
+  let outcomeChar = 's';
+  if (outcome === 'right' || outcome === 'wrong') {
+    const n = twistNumberOf(r.twistId);
+    if (n === null) throw new RangeError(`Invalid twist id '${String(r.twistId)}'`);
+    twistField = n.toString(36);
+    outcomeChar = outcome === 'right' ? 'r' : 'w';
+  } else if (outcome !== 'skipped') {
+    throw new RangeError(`Invalid twist outcome '${String(r.twist)}'`);
+  }
+  const body = [REPLY2_PREFIX, ...dareFields, friend36, bestFlag, twistField, outcomeChar, nonce, Math.round(rematch).toString(36)].join('_');
+  let code = `${body}_${checksum(body)}`;
+  if (r.sig !== undefined) {
+    const sig = String(r.sig).toLowerCase();
+    if (!SIG_RE.test(sig)) throw new RangeError('Invalid reply signature');
+    code += `_x${sig}`;
+  }
+  return code;
+}
+
+/** Parses an R2 reply code that has already been extracted and lowercased; null when malformed or tampered. */
+function decodeReplyV2(code: string): DareReply | null {
+  const m = REPLY2_RE.exec(code);
+  if (!m) return null;
+  const parsed = dareFrom(m.slice(1, 9));
+  if (!parsed) return null;
+  const [friend36, friendBest, twistRaw, outcomeRaw, nonce, rematch36, chk, sig] = m.slice(9, 17);
+  const points = b36(friend36, 0, MAX_POINTS);
+  const rematchDeadline = b36(rematch36, MIN_DEADLINE, MAX_DEADLINE);
+  if (points === null || rematchDeadline === null) return null;
+  // `s` (skipped) if and only if no twist is named.
+  if ((twistRaw === '~') !== (outcomeRaw === 's')) return null;
+  let twistNumber: number | null = null;
+  if (twistRaw !== '~') {
+    twistNumber = b36(twistRaw, 1, MAX_TWIST);
+    if (twistNumber === null) return null;
+  }
+  const body = [REPLY2_PREFIX, ...fieldsOf(parsed.parts), friend36, friendBest, twistRaw, outcomeRaw, nonce, rematch36].join('_');
+  if (checksum(body) !== chk) return null;
+  const reply: DareReply = {
+    dare: parsed.dare,
+    points,
+    best: friendBest === '1',
+    version: 2,
+    twist: outcomeRaw === 'r' ? 'right' : outcomeRaw === 'w' ? 'wrong' : 'skipped',
+    nonce,
+    rematchDeadline,
+  };
+  if (twistNumber !== null) reply.twistId = `t${twistNumber}`;
+  if (sig !== undefined) reply.sig = sig;
+  return reply;
+}
+
+/**
+ * Parses a reply code (or any URL containing `/lite/reply/<code>`): R2 (version 2, with the twist, nonce and
+ * rematch deadline) or the original R1 (version 1). Null when malformed or tampered.
+ */
 export function decodeDareReply(input: string): DareReply | null {
   if (typeof input !== 'string' || !input.trim()) return null;
-  const m = REPLY_RE.exec(extractCode(input, 'reply'));
+  const code = extractCode(input, 'reply');
+  if (code.startsWith('r2_')) return decodeReplyV2(code);
+  const m = REPLY_RE.exec(code);
   if (!m) return null;
   const parsed = dareFrom(m.slice(1, 9));
   if (!parsed) return null;
@@ -223,7 +321,7 @@ export function decodeDareReply(input: string): DareReply | null {
   if (points === null) return null;
   const body = [REPLY_PREFIX, ...fieldsOf(parsed.parts), friend36, friendBest].join('_');
   if (checksum(body) !== chk) return null;
-  return { dare: parsed.dare, points, best: friendBest === '1' };
+  return { dare: parsed.dare, points, best: friendBest === '1', version: 1 };
 }
 
 function basePath(): string {
@@ -279,13 +377,19 @@ export function dareShareText(input: { moveNumber: number; points: number; best:
   return lines.join('\n');
 }
 
-/** One or two short sentences for the reply (the link is added separately by the caller). */
-export function dareReplyText(input: { points: number; best: boolean; senderPoints: number; moveNumber: number }): string {
+/**
+ * A few short sentences for the reply (the link is added separately by the caller). With a twist taken (right or
+ * wrong) it also names the twist and invites the sender to the rematch; a skipped twist adds neither.
+ */
+export function dareReplyText(input: { points: number; best: boolean; senderPoints: number; moveNumber: number; twist?: TwistOutcome }): string {
   const move = clampInt(input.moveNumber, 1, 999);
   const mine = clampInt(input.points, 0, MAX_POINTS);
   const theirs = clampInt(input.senderPoints, 0, MAX_POINTS);
   const fmt = (n: number) => `+${n.toLocaleString('en-US')}`;
   const score = theirs > 0 ? `${fmt(mine)} vs your ${fmt(theirs)}` : fmt(mine);
-  const best = input.best ? ' I found the best move.' : '';
-  return `I took your dare on move ${move}: ${score}.${best}`;
+  const tookTwist = input.twist === 'right' || input.twist === 'wrong';
+  // The twist outcome is never in the message: it stays hidden until the friend answers the rematch.
+  const found = `${input.best ? ' I found the best move.' : ''}${tookTwist ? ' I took a twist too.' : ''}`;
+  const rematch = tookTwist ? ' Your turn: try my twist before midnight.' : '';
+  return `I took your dare on move ${move}: ${score}.${found}${rematch}`;
 }

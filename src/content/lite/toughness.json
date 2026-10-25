@@ -1,40 +1,90 @@
 {
   "scenarioId": "examination-crisis",
-  "contentHash": "placeholder",
+  "contentHash": "380333cef10f45ed",
   "thresholds": {
-    "closeCallMargin": 12
+    "closeCallMargin": 40,
+    "trapMargin": 1
   },
-  "seeds": [],
+  "seeds": [
+    2028655332,
+    3152203519,
+    3390881620,
+    475602713,
+    3751654721,
+    1695362590,
+    2289277426,
+    1811521865,
+    2735601552,
+    3927163571,
+    283615133,
+    4065615102,
+    447062729,
+    605221912,
+    3919493255,
+    2700013869,
+    63301348,
+    4094390901,
+    2366645160,
+    82871885,
+    1304274805,
+    657396597,
+    1080766905,
+    2777047390,
+    2941398396,
+    592830804,
+    360731702,
+    3442757889,
+    3238633152,
+    1957046746,
+    3110326822,
+    1387471875,
+    1956012213,
+    3979807419,
+    2712140084,
+    477756901,
+    105009276,
+    2527301893,
+    1018467698,
+    2634547940,
+    2626049011,
+    2569541657,
+    976124502,
+    3331776314,
+    345229230,
+    3338442392,
+    3082830966,
+    1900527738
+  ],
   "decisions": {
     "d-first-response": {
-      "tier": "tricky",
+      "tier": "boss",
       "signals": {
-        "closeCall": false,
-        "trap": false,
+        "closeCall": true,
+        "trap": true,
         "clueNeeded": false
       }
     },
     "d-investigation": {
-      "tier": "tricky",
+      "tier": "tough",
       "signals": {
         "closeCall": false,
-        "trap": false,
+        "trap": true,
         "clueNeeded": false
       }
     },
     "d-civic-square": {
-      "tier": "tricky",
+      "tier": "tough",
       "signals": {
         "closeCall": false,
         "trap": false,
-        "clueNeeded": false
+        "clueNeeded": true
       }
     },
     "d-racket": {
-      "tier": "tricky",
+      "tier": "tough",
       "signals": {
         "closeCall": false,
-        "trap": false,
+        "trap": true,
         "clueNeeded": false
       }
     },
@@ -63,10 +113,10 @@
       }
     },
     "d-bait-cancel": {
-      "tier": "tricky",
+      "tier": "tough",
       "signals": {
         "closeCall": false,
-        "trap": false,
+        "trap": true,
         "clueNeeded": false
       }
     },

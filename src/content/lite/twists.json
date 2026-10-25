@@ -1,4 +1,1143 @@
 {
   "version": 1,
-  "twists": []
+  "twists": [
+    {
+      "id": "t1",
+      "kind": "protect",
+      "title": "Flood on School Street",
+      "situation": "Heavy rain floods the road to a school. Children need to get home. Some parents want the school closed for a whole week.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Send buses on the high road",
+          "tags": [
+            "service",
+            "relief",
+            "proportionate"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Close the school for a week",
+          "tags": [
+            "disproportionate"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Ask parents what they want",
+          "tags": [
+            "dialogue"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Wait for the water to go down",
+          "tags": [
+            "wait"
+          ]
+        }
+      ],
+      "best": "a",
+      "why": "Keep children safe and moving without shutting everything."
+    },
+    {
+      "id": "t2",
+      "kind": "check",
+      "title": "The Broken Shop Window",
+      "situation": "After a football match, a shop window is broken. People blame the visiting team's fans. The fans say they did nothing.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Ban the visiting fans from town",
+          "tags": [
+            "disproportionate",
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Check the shop's camera first",
+          "tags": [
+            "investigative"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Ask both fan clubs to meet",
+          "tags": [
+            "dialogue"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Do nothing, it is only glass",
+          "tags": [
+            "wait"
+          ]
+        }
+      ],
+      "best": "b",
+      "why": "Find out what really happened before blaming a whole group."
+    },
+    {
+      "id": "t3",
+      "kind": "enforce",
+      "title": "Stones at Sports Day",
+      "situation": "At the town sports day, two men throw stones at the runners. Everyone else in the crowd is cheering peacefully.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Send the whole crowd home",
+          "tags": [
+            "disproportionate",
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Ask the crowd to calm down",
+          "tags": [
+            "communication"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Remove only the two stone throwers",
+          "tags": [
+            "force",
+            "proportionate",
+            "legal-process"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Stop the races and wait",
+          "tags": [
+            "wait"
+          ]
+        }
+      ],
+      "best": "c",
+      "why": "Stop the people doing harm. Peaceful fans can stay and cheer."
+    },
+    {
+      "id": "t4",
+      "kind": "talk",
+      "title": "The Late Band Practice",
+      "situation": "A school band practises late every evening. Neighbours are cross, and some want the band shut down.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Ban the band from playing",
+          "tags": [
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Measure the noise at night",
+          "tags": [
+            "investigative"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Ignore it for now",
+          "tags": [
+            "wait"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Meet the band and neighbours together",
+          "tags": [
+            "dialogue",
+            "communication"
+          ]
+        }
+      ],
+      "best": "d",
+      "why": "Talking together can find a practice time that works for everyone."
+    },
+    {
+      "id": "t5",
+      "kind": "rule",
+      "title": "Punish the Whole Class?",
+      "situation": "A window in Class 4 is broken. Nobody says who did it. Is it fair to punish the whole class?",
+      "options": [
+        {
+          "id": "a",
+          "title": "No, find out who did it first"
+        },
+        {
+          "id": "b",
+          "title": "Yes, everyone gets punished"
+        },
+        {
+          "id": "c",
+          "title": "Yes, if the teacher is cross"
+        },
+        {
+          "id": "d",
+          "title": "Punish the children sitting nearest"
+        }
+      ],
+      "best": "a",
+      "why": "Punish only the person who did wrong, after finding out who it was."
+    },
+    {
+      "id": "t6",
+      "kind": "protect",
+      "title": "Crowd at the Cricket Final",
+      "situation": "A big crowd waits outside the cricket ground. The gates opened late, and people at the front are being squeezed.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Cancel the match right now",
+          "tags": [
+            "disproportionate",
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Open more gates and guide the lines",
+          "tags": [
+            "service",
+            "proportionate"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Tell people to be patient",
+          "tags": [
+            "communication"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Find out who opened the gates late",
+          "tags": [
+            "investigative"
+          ]
+        }
+      ],
+      "best": "b",
+      "why": "First keep people safe and moving. Questions can wait until later."
+    },
+    {
+      "id": "t7",
+      "kind": "check",
+      "title": "The Missing Library Books",
+      "situation": "Many books are missing from the town library. A man on the radio says the night guard took them. Nobody has checked.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Fire the night guard today",
+          "tags": [
+            "accusation",
+            "disproportionate"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Tell readers you are looking into it",
+          "tags": [
+            "communication"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Check the library's lending records",
+          "tags": [
+            "investigative"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Wait for the books to come back",
+          "tags": [
+            "wait"
+          ]
+        }
+      ],
+      "best": "c",
+      "why": "A radio claim is not proof. Check the records before blaming anyone."
+    },
+    {
+      "id": "t8",
+      "kind": "enforce",
+      "title": "Fake Medicine at the Fair",
+      "situation": "A stall at the village fair sells fake medicine. Tests prove it is only chalk. Children have been buying it.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Close every stall at the fair",
+          "tags": [
+            "disproportionate",
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Put up a warning sign",
+          "tags": [
+            "communication"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Test more stalls before acting",
+          "tags": [
+            "investigative"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Stop the seller and take the medicine",
+          "tags": [
+            "detention",
+            "legal-process",
+            "proportionate"
+          ]
+        }
+      ],
+      "best": "d",
+      "why": "The tests prove it. Stop this seller, and let the fair go on."
+    },
+    {
+      "id": "t9",
+      "kind": "talk",
+      "title": "The Footbridge Repair",
+      "situation": "The footbridge to the school will close for repairs next week. Families who walk that way are worried and confused.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Explain the plan and safe route",
+          "tags": [
+            "communication",
+            "transparent"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Say nothing until it is done",
+          "tags": [
+            "wait"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Delete worried posts about the bridge",
+          "tags": [
+            "censorship"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Send guards to keep people away",
+          "tags": [
+            "force"
+          ]
+        }
+      ],
+      "best": "a",
+      "why": "When people know the plan and the safe route, they worry less."
+    },
+    {
+      "id": "t10",
+      "kind": "rule",
+      "title": "Hear Both Sides",
+      "situation": "Two neighbours argue about a tree that drops leaves. The street leader listens to only one of them, then decides. Is that fair?",
+      "options": [
+        {
+          "id": "a",
+          "title": "Yes, the first one is right"
+        },
+        {
+          "id": "b",
+          "title": "No, both neighbours should be heard"
+        },
+        {
+          "id": "c",
+          "title": "Only if the leader is busy"
+        },
+        {
+          "id": "d",
+          "title": "Yes, if one neighbour is older"
+        }
+      ],
+      "best": "b",
+      "why": "A fair decision listens to both sides before choosing."
+    },
+    {
+      "id": "t11",
+      "kind": "protect",
+      "title": "The Reporter at the Funfair",
+      "situation": "A reporter films a broken ride at the beach funfair. The ride owner's helpers try to grab her camera.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Ban cameras at the funfair",
+          "tags": [
+            "censorship",
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Ask the owner to say sorry",
+          "tags": [
+            "dialogue"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Keep the reporter and camera safe",
+          "tags": [
+            "protect-press"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Wait and see what she writes",
+          "tags": [
+            "wait"
+          ]
+        }
+      ],
+      "best": "c",
+      "why": "Reporters must be safe to show problems, so the ride gets fixed."
+    },
+    {
+      "id": "t12",
+      "kind": "check",
+      "title": "The Broken Swings",
+      "situation": "Two swings at the park broke on the same day. A post says the new paint made the chains weak.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Close every park in town",
+          "tags": [
+            "disproportionate",
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Ask the painters to explain",
+          "tags": [
+            "dialogue"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Tape off the swings and wait",
+          "tags": [
+            "wait"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Test the paint and the chains",
+          "tags": [
+            "investigative"
+          ]
+        }
+      ],
+      "best": "d",
+      "why": "Test what really broke before blaming the paint or closing every park."
+    },
+    {
+      "id": "t13",
+      "kind": "enforce",
+      "title": "Fake Tickets at the Zoo",
+      "situation": "A man sells fake tickets at the zoo gate. Guards have filmed him three times. Families lose money every day.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Stop him and call the police",
+          "tags": [
+            "detention",
+            "legal-process",
+            "proportionate"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Close the zoo gate for a week",
+          "tags": [
+            "disproportionate",
+            "suppressive"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Ask him nicely to leave",
+          "tags": [
+            "dialogue"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Wait for him to stop",
+          "tags": [
+            "wait"
+          ]
+        }
+      ],
+      "best": "a",
+      "why": "The film proves it. Stop the one person cheating, and keep the zoo open."
+    },
+    {
+      "id": "t14",
+      "kind": "talk",
+      "title": "Two Teams, One Field",
+      "situation": "Two youth teams both want the park field on Sunday. Nobody booked it. Their coaches are arguing loudly.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Ban both teams from the park",
+          "tags": [
+            "disproportionate",
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Help the coaches share the day",
+          "tags": [
+            "dialogue",
+            "communication"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Call the police to clear the field",
+          "tags": [
+            "force"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Let them sort it out alone",
+          "tags": [
+            "wait"
+          ]
+        }
+      ],
+      "best": "b",
+      "why": "Nobody booked the field. Sharing fairly beats fighting or banning."
+    },
+    {
+      "id": "t15",
+      "kind": "rule",
+      "title": "A Message Is Not Proof",
+      "situation": "A message says the fruit seller uses false scales. Nobody has checked. Should his cart be taken away today?",
+      "options": [
+        {
+          "id": "a",
+          "title": "Yes, the message says so"
+        },
+        {
+          "id": "b",
+          "title": "Yes, and every fruit cart too"
+        },
+        {
+          "id": "c",
+          "title": "No, check his scales first"
+        },
+        {
+          "id": "d",
+          "title": "Yes, if many people forward it"
+        }
+      ],
+      "best": "c",
+      "why": "A message is not proof. Check before you punish anyone."
+    },
+    {
+      "id": "t16",
+      "kind": "protect",
+      "title": "Power Cut at the Clinic",
+      "situation": "A storm cuts the power to a small clinic at night. A newborn baby needs a warm room.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Close the clinic until morning",
+          "tags": [
+            "disproportionate"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Wait for the lines to be fixed",
+          "tags": [
+            "wait"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Tell everyone to stay calm",
+          "tags": [
+            "communication"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Send the generator truck to the clinic",
+          "tags": [
+            "service",
+            "relief"
+          ]
+        }
+      ],
+      "best": "d",
+      "why": "First help the baby stay warm. Fixing blame can come later."
+    },
+    {
+      "id": "t17",
+      "kind": "check",
+      "title": "Who Won the Cycle Race?",
+      "situation": "At the school cycle race, one parent says the winner took a short cut. The winner says she rode the whole track.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Ask the marshals and check photos",
+          "tags": [
+            "investigative",
+            "legal-process"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Take her medal away now",
+          "tags": [
+            "accusation",
+            "disproportionate"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Give both riders a medal",
+          "tags": [
+            "dialogue"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Wait until everyone forgets",
+          "tags": [
+            "wait"
+          ]
+        }
+      ],
+      "best": "a",
+      "why": "Hear the marshals and see the photos before taking anything away."
+    },
+    {
+      "id": "t18",
+      "kind": "enforce",
+      "title": "The Speeding Truck",
+      "situation": "A truck speeds past the school every morning. The road camera has its number plate. Children cross there.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Ban all trucks from town",
+          "tags": [
+            "disproportionate",
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Stop the truck and fine the driver",
+          "tags": [
+            "force",
+            "legal-process",
+            "proportionate"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Ask drivers to slow down",
+          "tags": [
+            "communication"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Wait to see if it happens again",
+          "tags": [
+            "wait"
+          ]
+        }
+      ],
+      "best": "b",
+      "why": "One driver is the danger. Stop that driver, not every truck."
+    },
+    {
+      "id": "t19",
+      "kind": "talk",
+      "title": "The New Pool Rule",
+      "situation": "The town pool now needs swim caps. Many families did not know, and they are cross at the gate.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Close the pool until people calm down",
+          "tags": [
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Let guards turn people away",
+          "tags": [
+            "force"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Explain why, and start next week",
+          "tags": [
+            "communication",
+            "transparent",
+            "dialogue"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Say nothing and wait",
+          "tags": [
+            "wait"
+          ]
+        }
+      ],
+      "best": "c",
+      "why": "Explain the new rule and give people time. Then most will follow it."
+    },
+    {
+      "id": "t20",
+      "kind": "rule",
+      "title": "Grandparents With Signs",
+      "situation": "Some grandparents want to walk slowly through the park with signs asking for more benches. Is it fair to stop them?",
+      "options": [
+        {
+          "id": "a",
+          "title": "Yes, signs are not allowed"
+        },
+        {
+          "id": "b",
+          "title": "Yes, if someone dislikes benches"
+        },
+        {
+          "id": "c",
+          "title": "Only if they pay a fee"
+        },
+        {
+          "id": "d",
+          "title": "No, peaceful people may gather and ask"
+        }
+      ],
+      "best": "d",
+      "why": "People can gather peacefully to ask for things, while keeping others safe."
+    },
+    {
+      "id": "t21",
+      "kind": "protect",
+      "title": "The Farmers' Lake Walk",
+      "situation": "Farmers want to walk peacefully by the lake to ask for fair prices. They told the town office. Joggers say the path will be busy.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Let them walk, and guide the joggers",
+          "tags": [
+            "protect-assembly",
+            "service",
+            "proportionate"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Stop the walk to keep paths free",
+          "tags": [
+            "suppressive"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Ask farmers to walk next month",
+          "tags": [
+            "dialogue"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Count how many joggers use the path",
+          "tags": [
+            "investigative"
+          ]
+        }
+      ],
+      "best": "a",
+      "why": "Peaceful people can gather. Help everyone share the path."
+    },
+    {
+      "id": "t22",
+      "kind": "check",
+      "title": "Tickets That Will Not Scan",
+      "situation": "At the ferry, many tickets sold today will not scan. The ticket seller says the machine broke. A passenger says he is cheating.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Hold the ticket seller right now",
+          "tags": [
+            "detention",
+            "accusation"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Check the machine and the records",
+          "tags": [
+            "investigative"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Stop the ferry for the day",
+          "tags": [
+            "disproportionate"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Let everyone ride free today",
+          "tags": [
+            "service",
+            "relief"
+          ]
+        }
+      ],
+      "best": "b",
+      "why": "Check the machine and records first. Then you know who did wrong, if anyone."
+    },
+    {
+      "id": "t23",
+      "kind": "enforce",
+      "title": "Pushing at the Book Fair",
+      "situation": "Three men push people at the book fair gate and break the queue barrier. Guards saw exactly who did it.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Close the gate for everyone",
+          "tags": [
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Ask everyone to line up again",
+          "tags": [
+            "communication"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Move the three men away",
+          "tags": [
+            "force",
+            "proportionate"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Find out who built the barrier",
+          "tags": [
+            "investigative"
+          ]
+        }
+      ],
+      "best": "c",
+      "why": "Guards saw who did it. Move just them, and let the line move on."
+    },
+    {
+      "id": "t24",
+      "kind": "talk",
+      "title": "The Wider Footpath",
+      "situation": "The town plans a wider footpath outside the shops. Shopkeepers fear they will lose customers while the work goes on.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Start digging tonight, no questions",
+          "tags": [
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Drop the footpath plan",
+          "tags": [
+            "wait"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Count how many people walk there",
+          "tags": [
+            "investigative"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Ask shopkeepers to help plan it",
+          "tags": [
+            "dialogue",
+            "communication"
+          ]
+        }
+      ],
+      "best": "d",
+      "why": "When people help plan the work, it goes better for everyone."
+    },
+    {
+      "id": "t25",
+      "kind": "rule",
+      "title": "The Coach's Nephew",
+      "situation": "The coach's nephew misses practice but still plays every match. Other players who miss practice must sit out. Is that fair?",
+      "options": [
+        {
+          "id": "a",
+          "title": "No, the same rule for everyone"
+        },
+        {
+          "id": "b",
+          "title": "Yes, he is family"
+        },
+        {
+          "id": "c",
+          "title": "Yes, if he is the best player"
+        },
+        {
+          "id": "d",
+          "title": "Yes, if the coach says so"
+        }
+      ],
+      "best": "a",
+      "why": "Fair rules work the same for everyone, whoever they know."
+    },
+    {
+      "id": "t26",
+      "kind": "protect",
+      "title": "Lost at the Kite Festival",
+      "situation": "A small girl is lost at the kite festival. Her family is scared. Thousands of people are on the field.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Stop the festival and search everyone",
+          "tags": [
+            "disproportionate",
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Set up a help desk and announce",
+          "tags": [
+            "service",
+            "relief",
+            "communication"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Question the kite sellers",
+          "tags": [
+            "investigative",
+            "accusation"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Wait for her to come back",
+          "tags": [
+            "wait"
+          ]
+        }
+      ],
+      "best": "b",
+      "why": "Help the family fast, without scaring or stopping the whole crowd."
+    },
+    {
+      "id": "t27",
+      "kind": "check",
+      "title": "The Science Fair Prize",
+      "situation": "A judge at the science fair is the winner's uncle. Other children say the prize was unfair.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Cancel all the science fair prizes",
+          "tags": [
+            "disproportionate"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Tell the children to accept it",
+          "tags": [
+            "communication"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Ask other judges to look again",
+          "tags": [
+            "legal-process",
+            "investigative"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Wait for the complaints to stop",
+          "tags": [
+            "wait"
+          ]
+        }
+      ],
+      "best": "c",
+      "why": "A fair second look settles the doubt. Cancelling hurts every child."
+    },
+    {
+      "id": "t28",
+      "kind": "enforce",
+      "title": "The Bike Lock Cutter",
+      "situation": "Bikes keep vanishing at the station. The camera clearly shows the same man cutting the locks.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Search every bag at the station",
+          "tags": [
+            "disproportionate",
+            "suppressive"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Ask riders to buy better locks",
+          "tags": [
+            "communication"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Watch the camera for more days",
+          "tags": [
+            "investigative"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Find and stop the man on camera",
+          "tags": [
+            "detention",
+            "legal-process",
+            "proportionate"
+          ]
+        }
+      ],
+      "best": "d",
+      "why": "The camera shows who did it. Stop him, not every rider."
+    },
+    {
+      "id": "t29",
+      "kind": "talk",
+      "title": "The Very Late Train",
+      "situation": "A train will be three hours late. People on the platform are getting cross, because nobody tells them anything.",
+      "options": [
+        {
+          "id": "a",
+          "title": "Tell people the real time and why",
+          "tags": [
+            "communication",
+            "transparent"
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Clear the platform of waiting people",
+          "tags": [
+            "suppressive"
+          ]
+        },
+        {
+          "id": "c",
+          "title": "Find out who caused the delay",
+          "tags": [
+            "investigative"
+          ]
+        },
+        {
+          "id": "d",
+          "title": "Say nothing until it arrives",
+          "tags": [
+            "wait"
+          ]
+        }
+      ],
+      "best": "a",
+      "why": "Honest news calms people down. Silence makes them guess and worry."
+    },
+    {
+      "id": "t30",
+      "kind": "rule",
+      "title": "The School Paper",
+      "situation": "A girl writes in the school paper that lunch is often cold. The cook wants the article taken down. Is that fair?",
+      "options": [
+        {
+          "id": "a",
+          "title": "Yes, it hurt the cook's feelings"
+        },
+        {
+          "id": "b",
+          "title": "No, she may share honest views"
+        },
+        {
+          "id": "c",
+          "title": "Yes, only good news is allowed"
+        },
+        {
+          "id": "d",
+          "title": "Yes, if the head teacher agrees"
+        }
+      ],
+      "best": "b",
+      "why": "People may share honest views. Fix the cold lunch instead of hiding the article."
+    },
+    {
+      "id": "t31",
+      "kind": "rule",
+      "title": "Tell Him Why",
+      "situation": "A boy is told he cannot go on the class trip. Nobody tells him why, and he cannot explain his side. Is that fair?",
+      "options": [
+        {
+          "id": "a",
+          "title": "Yes, adults always know best"
+        },
+        {
+          "id": "b",
+          "title": "Yes, if he was noisy once"
+        },
+        {
+          "id": "c",
+          "title": "No, he should hear why and reply"
+        },
+        {
+          "id": "d",
+          "title": "Yes, if the bus is nearly full"
+        }
+      ],
+      "best": "c",
+      "why": "Before a punishment, people should hear the reason and get to explain."
+    }
+  ]
 }

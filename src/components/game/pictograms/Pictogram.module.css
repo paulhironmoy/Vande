@@ -1,0 +1,97 @@
+/*
+ * Pictograms: one neutral style for every answer. The tile carries its own surface and ink, so a picture reads the
+ * same on any card colour; no kind colour, no red or green, nothing that signals good or bad.
+ */
+.pictogram {
+  --pictogram-ink: #eaf1fb;
+  --pictogram-accent: #8fb0d9;
+  --pictogram-surface: #12284a;
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  border-radius: 14px;
+  color: var(--pictogram-ink);
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(143, 176, 217, 0.1) 0%, transparent 70%),
+    var(--pictogram-surface);
+  box-shadow:
+    inset 0 0 0 1px rgba(234, 241, 251, 0.08),
+    inset 0 1px 0 rgba(234, 241, 251, 0.06);
+  overflow: hidden;
+}
+.card {
+  border-radius: 14px;
+}
+.mini {
+  width: 5rem;
+  flex: none;
+  border-radius: 10px;
+}
+.svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.mini .svg {
+  stroke-width: 3.4;
+}
+/* Shared neutral tint for clothes, roofs and windows. */
+.accent {
+  fill: var(--pictogram-accent);
+  fill-opacity: 0.28;
+  stroke: none;
+}
+/* Solid surface fill that hides what is behind a shape (overlapping people, wheels, the action badge). */
+.occlude {
+  fill: var(--pictogram-surface);
+  stroke: none;
+}
+.solid {
+  fill: currentColor;
+  stroke: none;
+}
+.dots {
+  stroke-dasharray: 0.01 3.6;
+  stroke-width: 2.8;
+}
+.ground {
+  stroke: var(--pictogram-accent);
+  stroke-opacity: 0.4;
+}
+.ring {
+  fill: var(--pictogram-surface);
+  stroke: var(--pictogram-accent);
+  stroke-opacity: 0.85;
+}
+.action {
+  stroke-width: 2.1;
+}
+.mini .action {
+  stroke-width: 3;
+}
+
+:global(:root[data-contrast='high']) .pictogram {
+  --pictogram-ink: #ffffff;
+  --pictogram-accent: #d6deea;
+  --pictogram-surface: #071426;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+@media (forced-colors: active) {
+  .pictogram {
+    forced-color-adjust: none;
+    --pictogram-ink: CanvasText;
+    --pictogram-accent: CanvasText;
+    --pictogram-surface: Canvas;
+    background: Canvas;
+    box-shadow: inset 0 0 0 1px CanvasText;
+  }
+  .accent {
+    fill-opacity: 0.18;
+  }
+}
