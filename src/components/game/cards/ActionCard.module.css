@@ -30,7 +30,8 @@
     border-color 200ms var(--ease-out),
     opacity 260ms var(--ease-out),
     filter 260ms var(--ease-out);
-  animation: deal 420ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+  /* Backwards only: holding the end state ("both") would override .picked and .faded, so a pick never showed. */
+  animation: deal 420ms cubic-bezier(0.22, 1.2, 0.36, 1) backwards;
   animation-delay: calc(var(--i) * 70ms);
 }
 .wide {

@@ -51,8 +51,8 @@ async function start(e: Env, body: unknown = startBody(), now = NOW) {
   return { res, body: (await res.json()) as LiteStartResponse & { error?: string; details?: string[] } };
 }
 
-async function grade(e: Env, attemptId: string, twistAnswer: string | null, deviceKey = DEVICE_A, now = NOW) {
-  const res = await handle(post(`/v1/lite/attempts/${attemptId}/grade`, { v: 1, deviceKey, twistAnswer }), e, at(now));
+async function grade(e: Env, attemptId: string, twistAnswer: string | null, deviceKey = DEVICE_A, now = NOW, ip = '203.0.113.9') {
+  const res = await handle(post(`/v1/lite/attempts/${attemptId}/grade`, { v: 1, deviceKey, twistAnswer }, { 'cf-connecting-ip': ip }), e, at(now));
   return { res, body: (await res.json()) as LiteGradeResponse & { error?: string } };
 }
 
@@ -174,7 +174,7 @@ describe('start', () => {
 });
 
 describe('grade', () => {
-  it('grades once against the server pool, signs the reply fields, and counts the goal once', async () => {
+  it('grades once against the server pool and signs the reply fields; a claim never moves the goal', async () => {
     const e = env();
     const s = (await start(e)).body;
     const twist = twistById(s.twistId)!;
@@ -184,13 +184,25 @@ describe('grade', () => {
     expect(first.body.sig).toMatch(/^t[0-9a-f]{128}$/);
     expect(await verifies(first.body)).toBe(true);
     const db = e.DB as MemoryD1;
-    expect(db.goal.get('2026-10-26')).toMatchObject({ answers: 1, best: 1 });
+    // Marker 't': the points and best flag are the app's claim, so the shared goal does not count them.
+    expect(db.goal.size).toBe(0);
 
-    // A second grade (even with another answer) returns the stored result and never regrades or recounts.
+    // A second grade (even with another answer) returns the stored result and never regrades.
     const wrong = twist.options.find((o) => o.id !== twist.best)!.id;
     const again = await grade(e, s.attemptId, wrong);
     expect(again.res.status).toBe(200);
     expect(again.body).toMatchObject({ twist: 'right', sig: first.body.sig, graded: false });
+    expect(db.goal.size).toBe(0);
+  });
+
+  it('with replay, counts a graded answer in the goal exactly once', async () => {
+    const e = env({ LITE_VERIFY_REPLAY: '1' });
+    const s = (await start(e)).body;
+    const twist = twistById(s.twistId)!;
+    expect((await grade(e, s.attemptId, twist.best)).body).toMatchObject({ verified: 'dare+twist', graded: true });
+    const db = e.DB as MemoryD1;
+    expect(db.goal.get('2026-10-26')).toMatchObject({ answers: 1, best: 1 });
+    expect((await grade(e, s.attemptId, twist.best)).body.graded).toBe(false);
     expect(db.goal.get('2026-10-26')).toMatchObject({ answers: 1, best: 1 });
   });
 
@@ -291,13 +303,14 @@ describe('goal and cleanup', () => {
   const goal = (e: Env, opts: Parameters<typeof handle>[2] = {}, day = '2026-10-26') =>
     handle(new Request(`https://api.example/v1/lite/goal/${day}`, { headers: { origin: ORIGIN, 'cf-connecting-ip': '198.51.100.3' } }), e, { now: () => NOW, ...opts });
 
-  it('shows the share only from the minimum cohort, real numbers only, cached at the edge', async () => {
-    const e = env({ MIN_COHORT: '3' });
+  it('shows the share only from the minimum cohort of replay-verified answers, cached at the edge', async () => {
+    const e = env({ MIN_COHORT: '3', LITE_VERIFY_REPLAY: '1' });
     expect(await (await goal(e)).json()).toMatchObject({ day: '2026-10-26', answers: 0, ready: false, minCohort: 3 });
+    // Three answers from three addresses: the server's replay decides "best" (d0-0 is the best move, d0-3 is not).
     for (const [i, path] of ['d0-0', 'd0-3', 'd0-0'].entries()) {
       const device = String(i + 1).repeat(64);
-      const s = (await start(e, startBody({ deviceKey: device, answerPath: path, claim: { points: 100, best: path === 'd0-0', kind: 'protect' } }))).body;
-      await grade(e, s.attemptId, null, device);
+      const s = (await start(e, startBody({ deviceKey: device, answerPath: path, claim: { points: 1, best: false, kind: 'wait' } }))).body;
+      await grade(e, s.attemptId, null, device, NOW, `198.51.100.${10 + i}`);
       const g = (await (await goal(e)).json()) as Record<string, unknown>;
       if (i < 2) {
         expect(g).toMatchObject({ answers: i + 1, ready: false });
@@ -319,6 +332,48 @@ describe('goal and cleanup', () => {
     expect(publicGoal('2026-10-26', 0, 0, NOW, 0)).toMatchObject({ ready: true, answers: 0 });
   });
 
+  it('cannot be fabricated: claims never count, and one address adds at most 3 verified answers a day', async () => {
+    // Free-plan default ('t'): thirty scripted attempts claiming the best move leave the goal empty and hidden.
+    const t = env({ MIN_COHORT: '3' });
+    for (let i = 0; i < 30; i++) {
+      const device = (i + 16).toString(16).padStart(2, '0').repeat(32);
+      const s = (await start(t, startBody({ deviceKey: device, claim: { points: 999, best: true, kind: 'protect' } }))).body;
+      expect((await grade(t, s.attemptId, null, device)).res.status).toBe(200);
+    }
+    expect(await (await goal(t)).json()).toMatchObject({ answers: 0, ready: false });
+
+    // Replay mode: one address counts three times a day; a fourth answer is graded and signed but not counted.
+    const v = env({ MIN_COHORT: '3', LITE_VERIFY_REPLAY: '1', RATE_LIMIT_DARES_PER_MINUTE: '100' });
+    const db = v.DB as MemoryD1;
+    for (let i = 0; i < 5; i++) {
+      const device = (i + 64).toString(16).padStart(2, '0').repeat(32);
+      const s = (await start(v, startBody({ deviceKey: device }))).body;
+      const g = await grade(v, s.attemptId, null, device);
+      expect(g.body).toMatchObject({ graded: true, verified: 'dare+twist' });
+    }
+    expect(db.goal.get('2026-10-26')).toMatchObject({ answers: 3, best: 3 });
+    // Another address still counts; the cap resets on the next UTC day.
+    const other = (await start(v, startBody({ deviceKey: 'f'.repeat(64) }))).body;
+    await grade(v, other.attemptId, null, 'f'.repeat(64), NOW, '198.51.100.99');
+    expect(db.goal.get('2026-10-26')).toMatchObject({ answers: 4 });
+    const tomorrow = new Date('2026-10-27T01:00:00Z');
+    const next = (await start(v, startBody({ deviceKey: 'e'.repeat(64) }), tomorrow)).body;
+    await grade(v, next.attemptId, null, 'e'.repeat(64), tomorrow);
+    expect(db.goal.get('2026-10-27')).toMatchObject({ answers: 1 });
+    // The cap is a salted hash, never the address.
+    expect(JSON.stringify([...db.buckets.keys()])).not.toContain('203.0.113.9');
+    // Without a salt (local development only) the cap cannot be applied, so nothing is counted.
+    const open = env({ RATE_SALT: undefined, ALLOW_UNLIMITED_WRITES: '1', LITE_VERIFY_REPLAY: '1' });
+    const o = (await start(open)).body;
+    await grade(open, o.attemptId, null);
+    expect((open.DB as MemoryD1).goal.size).toBe(0);
+    // '0' switches the goal off entirely.
+    const off = env({ LITE_VERIFY_REPLAY: '1', LITE_GOAL_PER_ADDRESS_PER_DAY: '0' });
+    const z = (await start(off)).body;
+    await grade(off, z.attemptId, null);
+    expect((off.DB as MemoryD1).goal.size).toBe(0);
+  });
+
   it('deletes attempts after 7 days and goal rows after 180, keeping newer ones', async () => {
     const e = env();
     const old = new Date(NOW.getTime() - 8 * 86400000);
@@ -332,6 +387,17 @@ describe('goal and cleanup', () => {
     expect([...db.attempts.values()].map((a) => a.device_key)).toEqual([DEVICE_B]);
     await scheduled(e, new Date('2026-07-01T00:00:00Z'));
     expect([...db.goal.keys()]).toEqual(['2026-10-25']);
+
+    // The per-day goal-cap buckets go with the minute rate buckets once their day is over 24 hours old.
+    const v = env({ LITE_VERIFY_REPLAY: '1' });
+    const s = (await start(v)).body;
+    await grade(v, s.attemptId, null);
+    const vdb = v.DB as MemoryD1;
+    expect(vdb.buckets.size).toBeGreaterThan(0);
+    await scheduled(v, new Date('2026-10-26T23:00:00Z'));
+    expect([...vdb.buckets.values()].some((b) => b.window_start === Date.UTC(2026, 9, 26))).toBe(true);
+    await scheduled(v, new Date('2026-10-27T03:17:00Z'));
+    expect([...vdb.buckets.values()].some((b) => b.window_start === Date.UTC(2026, 9, 26))).toBe(false);
   });
 });
 

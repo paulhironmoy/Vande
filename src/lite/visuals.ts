@@ -29,7 +29,7 @@ function indexOf(vocabulary: Vocabulary): ReadonlyMap<string, VisualGlyph> {
 }
 const DEFAULT_INDEX = indexOf(VISUAL_VOCABULARY);
 
-/** Words in a label, split on whitespace ("Reroute buses, hospital lane" has 4). */
+/** Words in a label, split on whitespace ("Send buses another way" has 4). */
 export function labelWords(label: string): number {
   return label.trim().split(/\s+/).filter(Boolean).length;
 }

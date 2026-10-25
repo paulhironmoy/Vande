@@ -176,7 +176,7 @@
         },
         {
           "id": "c",
-          "title": "Yes, if the teacher is cross"
+          "title": "Yes, so nobody does it again"
         },
         {
           "id": "d",
@@ -249,7 +249,7 @@
         },
         {
           "id": "c",
-          "title": "Check the library's lending records",
+          "title": "Check who borrowed the books",
           "tags": [
             "investigative"
           ]
@@ -263,7 +263,7 @@
         }
       ],
       "best": "c",
-      "why": "A radio claim is not proof. Check the records before blaming anyone."
+      "why": "A radio claim is not proof. Check who borrowed them before blaming anyone."
     },
     {
       "id": "t8",
@@ -353,7 +353,7 @@
       "options": [
         {
           "id": "a",
-          "title": "Yes, the first one is right"
+          "title": "Yes, the leader knows them both"
         },
         {
           "id": "b",
@@ -361,11 +361,11 @@
         },
         {
           "id": "c",
-          "title": "Only if the leader is busy"
+          "title": "Yes, if the leader is rushed"
         },
         {
           "id": "d",
-          "title": "Yes, if one neighbour is older"
+          "title": "Yes, the louder one must be upset"
         }
       ],
       "best": "b",
@@ -585,7 +585,7 @@
         },
         {
           "id": "d",
-          "title": "Send the generator truck to the clinic",
+          "title": "Send a power truck to the clinic",
           "tags": [
             "service",
             "relief"
@@ -603,7 +603,7 @@
       "options": [
         {
           "id": "a",
-          "title": "Ask the marshals and check photos",
+          "title": "Ask the race helpers and check photos",
           "tags": [
             "investigative",
             "legal-process"
@@ -633,7 +633,7 @@
         }
       ],
       "best": "a",
-      "why": "Hear the marshals and see the photos before taking anything away."
+      "why": "Ask the helpers and look at the photos before taking anything away."
     },
     {
       "id": "t18",
@@ -728,11 +728,11 @@
         },
         {
           "id": "b",
-          "title": "Yes, if someone dislikes benches"
+          "title": "Yes, it might slow the joggers down"
         },
         {
           "id": "c",
-          "title": "Only if they pay a fee"
+          "title": "Yes, the park is for playing only"
         },
         {
           "id": "d",
@@ -826,7 +826,7 @@
       "id": "t23",
       "kind": "enforce",
       "title": "Pushing at the Book Fair",
-      "situation": "Three men push people at the book fair gate and break the queue barrier. Guards saw exactly who did it.",
+      "situation": "Three men push people at the book fair gate and knock down the line rope. Guards saw exactly who did it.",
       "options": [
         {
           "id": "a",
@@ -852,7 +852,7 @@
         },
         {
           "id": "d",
-          "title": "Find out who built the barrier",
+          "title": "Find out who set up the rope",
           "tags": [
             "investigative"
           ]
@@ -903,8 +903,8 @@
     {
       "id": "t25",
       "kind": "rule",
-      "title": "The Coach's Nephew",
-      "situation": "The coach's nephew misses practice but still plays every match. Other players who miss practice must sit out. Is that fair?",
+      "title": "The Coach's Son",
+      "situation": "The coach's son misses practice but still plays every match. Other players who miss practice must sit out. Is that fair?",
       "options": [
         {
           "id": "a",

@@ -410,7 +410,7 @@ describe('DareSheet modes', () => {
 
   it('dare mode: hint picker defaults to no hint, encodes the chosen hint and shows the Helper incentive', () => {
     render(<DareSheet open onClose={() => {}} dare={dare} moveNumber={3} moveTitle="Students are gathering" chapterTitle="The Exam Leak" />);
-    expect(screen.getByTestId('dare-incentive').textContent).toContain('+40 when a friend answers. +100 more when they find the best move and crack the twist. Up to 3 friends per dare.');
+    expect(screen.getByTestId('dare-incentive').textContent).toContain('+40 when a friend answers. +100 more when they find the best move and crack the twist. Up to 3 friends per dare and 10 a day.');
     expect(screen.getByTestId('dare-hint-none').getAttribute('aria-checked')).toBe('true');
     for (const i of [0, 1, 2]) expect(screen.getByTestId(`dare-hint-${i}`).textContent).toBe(DARE_HINTS[i]);
 

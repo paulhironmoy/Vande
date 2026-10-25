@@ -1955,7 +1955,7 @@
             "title": "Reroute buses, open a hospital lane",
             "preview": "Buses go round by Market Street. A coned-off hospital lane is guarded.",
             "consequence": "Buses loop round by Market Street. The hospital lane is coned off and guarded.",
-            "label": "Reroute buses, hospital lane",
+            "label": "Send buses another way",
             "visual": {
               "actor": "official",
               "action": "reroute",

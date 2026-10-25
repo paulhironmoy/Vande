@@ -129,9 +129,9 @@
 }
 .bar {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
-  row-gap: 0.25rem;
+  gap: 0.25rem 0.3rem;
   min-width: 0;
 }
 .barLabel {
@@ -1048,4 +1048,79 @@
     color: CanvasText;
     box-shadow: none;
   }
+}
+
+/* ---------------------------------------------------------------- phones and reduced motion (a11y pass) */
+/* Reveal rows with a picture: picture and points on top, the words full width below, so text never squeezes. */
+.other:has(> .otherPict) {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'pict pts'
+    'body body';
+  row-gap: 0.6rem;
+}
+.other:has(> .otherPict) > .otherPict {
+  grid-area: pict;
+  align-self: center;
+}
+.other:has(> .otherPict) > .otherBody {
+  grid-area: body;
+}
+.other:has(> .otherPict) > .otherPts {
+  grid-area: pts;
+  align-self: center;
+}
+/* Narrow phones: the HUD keeps label and value apart, and the dare header (countdown, help, points) fits. */
+@media (max-width: 379px) {
+  .bars {
+    column-gap: 0.6rem;
+  }
+  .barLabel {
+    font-size: 0.75rem;
+  }
+  .barValue em {
+    margin-left: 0.15rem;
+  }
+}
+@media (max-width: 349px) {
+  .bars {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 359px) {
+  .top {
+    gap: 0.4rem;
+  }
+  .topCountdown {
+    min-width: 0;
+  }
+  .points {
+    padding: 0.4rem 0.6rem;
+    font-size: 1rem;
+  }
+}
+/* Reduced motion: no slide-ins, no growing bars, no press bounce. */
+:global(:root[data-motion='reduced']) .reveal,
+:global(:root[data-motion='reduced']) .dareResult {
+  animation: none;
+}
+:global(:root[data-motion='reduced']) .round,
+:global(:root[data-motion='reduced']) .progress span,
+:global(:root[data-motion='reduced']) .barFill {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :global(:root:not([data-motion='full'])) .reveal,
+  :global(:root:not([data-motion='full'])) .dareResult {
+    animation: none;
+  }
+  :global(:root:not([data-motion='full'])) .round,
+  :global(:root:not([data-motion='full'])) .progress span,
+  :global(:root:not([data-motion='full'])) .barFill {
+    transition: none;
+  }
+}
+/* A persistent live region inside the dare result: present (and announced into) before it has text, no space while empty. */
+.liveSlot:empty {
+  margin-top: -0.7rem;
 }

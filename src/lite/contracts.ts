@@ -82,6 +82,8 @@ export interface TwistAttempt {
   dare?: { points: number; best: boolean };
   /** Unix ms. */
   createdAt: number;
+  /** Set once a reply for this attempt has been shared: its nonce never changes after that. */
+  replied?: boolean;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -136,8 +138,18 @@ export interface FriendLedger {
   perDare: Record<string, number>;
   /** Challenger side: points already awarded per dare answered (dareKey). */
   challenged: Record<string, number>;
-  /** Local-day counters; reset when `date` (local YYYY-MM-DD) changes. */
+  /** Local-day counters; reset when `date` (local YYYY-MM-DD) moves forward (never back: a clock change cannot reopen a cap). */
   day: { date: string; helper: number; challenger: number };
+  /**
+   * Dares this device sent (shared at least once), by `sentKeyOf(dare)` = `${dareKeyOf(dare)}.${chain}`; value = unix
+   * ms. Only replies to these earn Helper points (one hop, and nobody else who opens the link earns anything).
+   */
+  sent: Record<string, number>;
+  /**
+   * Helper side: the twist-dependent part of a reply (the +100, or 0) while its rematch is unanswered, by reply
+   * identity. Every tally subtracts these until `revealReply`, so the friend's twist result never shows early.
+   */
+  pending: Record<string, number>;
 }
 
 /** Result of one award attempt. */
@@ -149,8 +161,10 @@ export interface AwardResult {
   fresh: boolean;
   /** True when an already-counted attempt earned more (it now includes a right twist). */
   upgraded: boolean;
-  /** Why nothing was earned, if a cap stopped it. */
-  capped: null | 'dare' | 'day';
+  /** Why nothing was earned, if a cap or the deadline stopped it ('ended': answered after the dare ended). */
+  capped: null | 'dare' | 'day' | 'ended';
+  /** Helper side: the dare was not sent from this device, or the reply is this device's own answer. Shown, never paid. */
+  notOwner?: boolean;
 }
 
 // ---------------------------------------------------------------------------------------------------------------

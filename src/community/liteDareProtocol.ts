@@ -10,7 +10,9 @@
  *             per device key per dare; repeating the call returns the same attempt.
  *   2. grade  POST /v1/lite/attempts/<attemptId>/grade the twist answer (or null when skipped): graded once against
  *             the server's pool, then signed. Repeating the call returns the stored result, never a regrade.
- *   3. goal   GET  /v1/lite/goal/<YYYY-MM-DD>          today's real share of dare answers that found the best move.
+ *   3. goal   GET  /v1/lite/goal/<YYYY-MM-DD>          today's real share of dare answers that found the best move,
+ *             counting only replay-verified ('v') answers, at most 3 per address per UTC day (so it stays empty and
+ *             hidden while the server does not replay).
  *
  * Signature: ECDSA P-256 with SHA-256 over `liteDareCanonical(...)`, raw r||s as 128 lowercase hex characters,
  * prefixed by a one-letter marker of what the server verified. It travels in the R2 reply's `_x` field:
@@ -118,7 +120,7 @@ export interface LiteGradeResponse {
 
 export interface LiteGoalResponse {
   day: string;
-  /** Graded dare answers today (UTC). */
+  /** Replay-verified graded dare answers today (UTC), at most 3 per address. */
   answers: number;
   minCohort: number;
   ready: boolean;

@@ -315,8 +315,10 @@ and friend flow) and `src/screens/Lite/ReplyLanding.tsx` (Helper award and remat
 | `replay.ts` | Pure replay of a Lite path, mirroring the store and the screen (`startLiteGame`, `advanceToPending`, `applyToken`, `replayDare`) |
 | `twists.ts` | Twist draws matched to the dared move's kind, the one-attempt-per-device-per-dare store, rematch records (`vande:lite-twists`) |
 | `twistValidate.ts` | Twist pool validator and coverage |
-| `ledger.ts` | Helper and Challenger awards with caps, dedupe and upgrades (`vande:lite-awards`, migrated from `vande:lite-helper`) |
+| `ledger.ts` | Helper and Challenger awards with caps, dedupe and upgrades (`vande:lite-awards`, migrated from `vande:lite-helper`); the `sent` record (only replies to dares this device sent earn), pending twist bonuses hidden until the rematch (`revealReply`, `visibleHelper`), deadline and clock rules |
 | `visuals.ts` | The all-or-none picture gate `visualPlanFor`, `validateVisuals`, `visualCoverage` |
+| `order.ts` | `displayOrder(seed, questionId, n)`: the per-game shuffled card order (the same for everyone playing the same game) |
+| `localData.ts` | `wipeLiteLocalData()`, loaded lazily by Settings → Delete all local data |
 
 ### Content
 

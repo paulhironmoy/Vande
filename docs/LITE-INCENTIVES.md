@@ -73,14 +73,29 @@ does not.
 
 ## Fairness rules
 
-- **One hop only.** You earn from replies to your own dares. Passing a dare on creates a new dare owned by the person
-  passing it on, so nobody earns from a friend's friends.
+- **One hop only, and only the sender earns.** Sharing a dare records it on the sending device (`sent`, keyed by the
+  dare identity plus its chain position). Only replies to a dare this device sent earn Helper points; anyone else who
+  opens the reply link sees the result and can play the rematch for fun, but earns nothing. Passing a dare on creates
+  a new dare (the chain position changes), so nobody earns from a friend's friends, even on the same day.
+- **Your own dare is yours to share, not to answer.** Opening your own dare link offers "Send it to more friends"
+  instead of "Take the dare", and a reply carrying this device's own nonce never pays.
 - **Nothing for sending alone.** Only an answer, a reply or an understood twist earns.
 - **The same caps for everyone.** The caps cover the +40 too, so reach alone cannot out-earn understanding.
-- **Sharing never buys progress.** Helper and Challenger points are personal tallies. The start screen leads with
-  people ("Friends helped 5 · understood 3") and never ranks players.
-- **No pressure.** Deadlines are real midnights and end quietly ("This dare has ended. You can still play."). There
-  are no reminders, no nagging and no streak loss for ignoring a dare.
+- **Sharing never buys progress.** Helper and Challenger points are personal tallies. The start screen shows only
+  "Friends helped 5" (no "understood" count, which could hint at a twist result still hidden behind a rematch) and
+  never ranks players.
+- **Real deadlines, no pressure.** Deadlines are real midnights and end quietly ("This dare ended at midnight. You can
+  still play it for fun."). After the deadline (plus a 10-minute grace) a dare earns nothing: the friend's Challenger
+  award is refused, and the helper's award is refused when the reply proves it was built after the deadline (its
+  rematch deadline minus 26 hours, which allows for 25-hour days, is still after the dare's deadline; this can never
+  refuse an on-time reply, and a late reply built less than a day later can slip through). There are no reminders, no
+  nagging and no streak loss for ignoring a dare.
+- **Clock changes cannot reopen a cap.** The daily counters only roll forward; setting the clock back keeps today's
+  counts (setting it forward is an accepted limit: it only fools the player's own tally).
+- **The card order never hints.** In the authored content the best move is often listed first. Each question's cards
+  are shown in an order shuffled from the run seed and the question id (`src/lite/order.ts`), so everyone playing the
+  same game sees the same order but "always tap the first card" is not a strategy. Scoring and replay links still use
+  the content order.
 - **No contact access.** Nothing reads contacts or sends automatically. Every message goes out by the player's own
   tap through the share sheet, a channel link or copy.
 - **Hints stay encouraged.** Hints are principles ("Check the clue before you act."), never answers.
@@ -191,9 +206,20 @@ person using it. Before Helper points ever feed a leaderboard, a prize or anythi
 | Answer your own dare on a second device | Caps | Caps; cannot be fully stopped |
 | Coach the friend live | Accepted: close to real teaching | Same |
 | Guess or use an answer key | Pool of 31, shuffled options, both answers needed | Same; server-only answers before any prize |
+| Open someone else's reply link (a group chat, a forwarded reply) | Only the device that sent the dare earns; others see the result for free | Same |
+| Answer your own dare on the same device | Own dares cannot be taken; own nonce never pays | Same |
+| Edit the dare fields inside a reply to open new caps | Only replies to dares this device actually sent count | Same; signatures cover the dare identity |
+| Retake the dare after seeing the reveal | The first answer on the device counts | The server records the first answer |
+| Send back a reply long after the dare ended | Refused when the reply proves it was built late; the friend's own award is refused after the deadline | Same |
+| Set the device clock back to reopen today's caps | Counters only roll forward | Same |
+| Always tap the first card | Card order is shuffled per game | Same |
+| Script the goal line ("Today X% found the best move") | Not shown locally | Only replay-verified answers count, at most 3 per address per day |
 
-Verified dares are specified as deployment-ready and switched off; endpoints, keys and flags live in
-`docs/BACKEND.md`, `docs/PRIVACY.md` and `docs/FEATURE-FLAGS.md`. The twist answer key also ships in the app for
+Verified dares are built deployment-ready and switched off; endpoints, keys and flags live in
+`docs/BACKEND.md`, `docs/PRIVACY.md` and `docs/FEATURE-FLAGS.md`. Only a signature that vouches for both the dare and
+the twist (marker `v`, which needs `LITE_VERIFY_REPLAY=1`) counts as verified for Helper points; the default
+twist-only marker `t` trusts the friend's app for the move result, so it never does. Reply links still carry the
+sender's points and the twist outcome in plain base36: reading the URL spoils only your own rematch. The twist answer key also ships in the app for
 offline play, so anything with real value must serve twists and their answers from the server only.
 
 ## Experiments and measurement

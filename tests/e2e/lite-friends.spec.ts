@@ -151,7 +151,7 @@ test.describe('Lite friends: twist, fair points, rematch', () => {
     await page.keyboard.press('Enter');
     const sheet = page.getByTestId('how-points-sheet');
     await expect(sheet).toBeVisible();
-    for (const id of ['move', 'clue-bonus', 'streak', 'clues', 'fair-play', 'end', 'insight', 'no-loss', 'helper', 'challenger', 'sharing'])
+    for (const id of ['move', 'clue-bonus', 'streak', 'clues', 'fair-play', 'end', 'insight', 'no-loss', 'helper', 'challenger', 'dares', 'sharing'])
       await expect(page.getByTestId(`how-points-${id}`)).toBeVisible();
     await expect(sheet).toContainText('+40');
     await expect(sheet).toContainText('150');
@@ -163,6 +163,7 @@ test.describe('Lite friends: twist, fair points, rematch', () => {
     await page.getByTestId('lite-start').click();
     const screen = page.getByTestId('lite-screen');
     let insightSeen = 0;
+    let bestPicks = 0;
     let checkedTier = false;
     for (let i = 0; i < 120; i++) {
       const step = (await screen.getAttribute('data-step')) ?? '';
@@ -176,6 +177,7 @@ test.describe('Lite friends: twist, fair points, rematch', () => {
       }
       if (step === 'begin' || step === 'clue-result') await page.getByTestId('lite-next').click();
       else if (step === 'feedback' || step === 'rights-result') {
+        if (step === 'feedback') bestPicks += await page.locator('[data-testid^="lite-reveal-"][data-best="true"][data-mine="true"]').count();
         const chip = page.getByTestId('lite-insight-gain');
         if (await chip.count()) insightSeen += Number(((await chip.innerText()).match(/\+(\d+)/) ?? [])[1] ?? 0);
         await page.getByTestId('lite-next').click();
@@ -187,7 +189,8 @@ test.describe('Lite friends: twist, fair points, rematch', () => {
     await expect(page.getByTestId('lite-result')).toBeVisible();
     const resultInsight = Number(await page.getByTestId('lite-result-insight').getAttribute('data-value'));
     expect(resultInsight).toBe(insightSeen);
-    expect(resultInsight).toBeGreaterThan(0);
+    // Card order is shuffled per game, so the first card is not always best; every best pick earned Insight.
+    if (bestPicks > 0) expect(resultInsight).toBeGreaterThan(0);
     await page.getByTestId('how-points-result').click();
     await expect(page.getByTestId('how-points-sheet')).toBeVisible();
   });

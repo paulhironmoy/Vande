@@ -252,3 +252,59 @@ describe('assignTwist (verified dares)', () => {
     expect(assignTwist('k-none', 't9999')).toBeUndefined();
   });
 });
+
+describe('replied attempts keep their nonce (review fix)', () => {
+  it('marks an attempt replied once, survives a reload, and is undefined without an attempt', async () => {
+    const { markReplied, ensureAttempt, readAttempt, __resetTwistStoreForTests } = await import('@/lite/twists');
+    localStorage.clear();
+    __resetTwistStoreForTests();
+    expect(markReplied('k-none')).toBeUndefined();
+    const a = ensureAttempt('k-rep');
+    expect(a.replied).toBeUndefined();
+    const m = markReplied('k-rep');
+    expect(m?.replied).toBe(true);
+    expect(m?.nonce).toBe(a.nonce);
+    expect(markReplied('k-rep')?.replied).toBe(true);
+    __resetTwistStoreForTests();
+    expect(readAttempt('k-rep')).toMatchObject({ replied: true, nonce: a.nonce });
+  });
+
+  it('adopts the server nonce only before a reply was shared', async () => {
+    const { assignTwist, ensureAttempt, markReplied, readAttempt, __resetTwistStoreForTests } = await import('@/lite/twists');
+    localStorage.clear();
+    __resetTwistStoreForTests();
+    // Before any reply: the server's stored nonce wins (recovers an attempt after a local store loss).
+    ensureAttempt('k-fresh');
+    expect(assignTwist('k-fresh', 't1', 'srv001')?.nonce).toBe('srv001');
+    // After a reply went out with the local nonce: the nonce never changes, the twist is still stored.
+    const local = ensureAttempt('k-sent').nonce;
+    markReplied('k-sent');
+    const kept = assignTwist('k-sent', 't1', 'srv002');
+    expect(kept?.nonce).toBe(local);
+    expect(kept?.twistId).toBe('t1');
+    __resetTwistStoreForTests();
+    expect(readAttempt('k-sent')).toMatchObject({ nonce: local, replied: true, twistId: 't1' });
+  });
+
+  it('keeps replied only as a true boolean when reading storage', async () => {
+    const { readAttempt, __resetTwistStoreForTests } = await import('@/lite/twists');
+    localStorage.setItem(
+      'vande:lite-twists',
+      JSON.stringify({
+        v: 1,
+        attempts: [
+          { v: 1, dareKey: 'k-yes', nonce: 'aaaaaa', createdAt: 1, replied: true },
+          { v: 1, dareKey: 'k-str', nonce: 'bbbbbb', createdAt: 1, replied: 'yes' },
+          { v: 1, dareKey: 'k-false', nonce: 'cccccc', createdAt: 1, replied: false },
+        ],
+        seen: [],
+        rematches: [],
+      }),
+    );
+    __resetTwistStoreForTests();
+    expect(readAttempt('k-yes')?.replied).toBe(true);
+    expect(readAttempt('k-str')).toBeDefined();
+    expect(readAttempt('k-str')?.replied).toBeUndefined();
+    expect(readAttempt('k-false')?.replied).toBeUndefined();
+  });
+});

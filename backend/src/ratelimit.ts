@@ -10,12 +10,16 @@ async function sha256Hex(text: string): Promise<string> {
     .join('');
 }
 
-/**
- * Salted hash of the client address for the current one-minute window. The raw address is never stored.
- * `scope` separates write, read and dare buckets so a burst of one cannot block the others.
- */
-export type RateScope = 'write' | 'read' | 'dare';
+export type RateScope = 'write' | 'read' | 'dare' | 'goal';
 
+/** One UTC day, for per-day buckets (the goal cap). Pruned with the minute buckets once older than 24 hours. */
+export const DAY_MS = 86_400_000;
+
+/**
+ * Salted hash of the client address for the current window (one minute by default; one UTC day for the goal cap).
+ * The raw address is never stored. `scope` separates write, read, dare and goal buckets so a burst of one cannot
+ * block the others.
+ */
 export async function bucketKey(ip: string, salt: string, windowStart: number, scope: RateScope = 'write'): Promise<string> {
   return (await sha256Hex(`${salt}:${scope}:${ip}:${windowStart}`)).slice(0, 40);
 }
@@ -27,8 +31,9 @@ export async function checkRateLimit(
   limit: number,
   now = Date.now(),
   scope: RateScope = 'write',
+  windowMs: number = WINDOW_MS,
 ): Promise<{ allowed: boolean; count: number }> {
-  const windowStart = Math.floor(now / WINDOW_MS) * WINDOW_MS;
+  const windowStart = Math.floor(now / windowMs) * windowMs;
   const key = await bucketKey(ip, salt, windowStart, scope);
   const row = await db.prepare(SQL.bumpBucket).bind(key, windowStart).first<{ count: number }>();
   const count = row?.count ?? 1;

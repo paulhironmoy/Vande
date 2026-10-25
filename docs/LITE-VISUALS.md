@@ -65,7 +65,7 @@ Labels and pictures in the two picture questions:
 | Lock the university gates | Lock university gates | police · lock · gate |
 | Wait for the exam office | Wait for the office | official · wait · office |
 | Open a path with student helpers | Open path with students | students · guide · road |
-| Reroute buses, open a hospital lane | Reroute buses, hospital lane | official · reroute · bus |
+| Reroute buses, open a hospital lane | Send buses another way | official · reroute · bus |
 | Stop all buses to break the crowd | Stop all buses | official · stop · bus |
 | Leave it to traffic police | Leave to traffic police | police · wait · road |
 
@@ -133,8 +133,15 @@ against the four tests; if one fails, leave the whole question as text and add a
 - Pictures are `aria-hidden`; the card's accessible name is exactly its visible text (label, kind, Gain, Cost).
 - High contrast (`data-contrast='high'`) brightens ink and accent; forced-colours mode switches to `Canvas` and
   `CanvasText`. Nothing animates beyond the card's existing entrance, which reduced motion already turns off.
-- Two sizes: `card` (full card width, 2:1) and `mini` (5 rem wide, for the reveal list). Cards keep 44 px targets and
-  no horizontal overflow at 360 px.
+- Two sizes: `card` (full card width, 2:1) and `mini` (5 rem wide, for the reveal list). In the reveal, a row with a
+  picture puts the picture and the points on top and the words full width below, so the text never squeezes on a
+  phone.
+- After an answer, the picked card lifts and the others fade back; the card entrance animation fills backwards only,
+  so it never overrides those states.
+- `tests/e2e/lite-a11y.spec.ts` keeps all of this checked on every new Lite screen: axe WCAG 2.2 AA, a keyboard-only
+  friend loop (focus lands on each new heading; sheets close with Escape and return focus), phones at 320 (best
+  effort), 360, 390 and 412 px plus 390 px landscape (no horizontal overflow, 44 px targets, nothing clipped), reduced
+  motion (the setting and the system preference) and forced colours.
 
 ## Bias check
 
@@ -147,4 +154,6 @@ its glyphs. No per-answer or per-option data is collected.
 ## Review previews
 
 Static renders of the picture cards at 360, 390 and 412 px, in forced colours, in the picked state, next to a text
-question, and a glyph sheet: `release/lite-review/visuals/preview/`.
+question, and a glyph sheet: `release/lite-review/visuals/preview/`. In-app screenshots of every new Lite screen at
+320, 360, 390 and 412 px, 390 px landscape and forced colours: `release/lite-review/v2/` (regenerate with
+`LITE_SHOTS=1 npx playwright test tests/e2e/lite-a11y.spec.ts`).

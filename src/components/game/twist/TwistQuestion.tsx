@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { Icon } from '@/components/ui';
 import { ActionCard, actionKindOf } from '@/components/game/cards';
 import type { Twist, TwistOption } from '@/lite/contracts';
@@ -32,15 +32,35 @@ export function orderedOptions(twist: Twist, order: readonly string[]): TwistOpt
 
 /**
  * One twist question: heading, situation and answer cards, then the result. Shared by the friend's twist and the
- * helper's rematch. The result is announced politely, and right or wrong is always said in words as well as shown.
+ * helper's rematch. Right or wrong is always said in words as well as shown. When the player answers here, focus moves
+ * to the result heading ("Right!" or "Not quite", described by the why line): the picked card is disabled at that
+ * moment, so without this keyboard and screen-reader users would be dropped to the top of the page.
  */
 export function TwistQuestion({ twist, order, answer, onAnswer, testIdPrefix, kicker, disabled }: TwistQuestionProps) {
   const headingId = useId();
+  const whyId = useId();
+  const sectionRef = useRef<HTMLElement>(null);
+  const verdictRef = useRef<HTMLHeadingElement>(null);
   const options = orderedOptions(twist, order);
   const answered = answer !== undefined && twist.options.some((o) => o.id === answer);
   const right = answered && answer === twist.best;
   const isRule = twist.kind === 'rule';
   const count = isRule ? 'wide' : String(options.length);
+
+  // Only on the answer itself (not when an answered twist is shown again after a reload).
+  const wasAnswered = useRef(answered);
+  useEffect(() => {
+    const was = wasAnswered.current;
+    wasAnswered.current = answered;
+    if (!answered || was) return;
+    const active = document.activeElement;
+    const lost = !active || active === document.body;
+    const verdict = verdictRef.current;
+    if (!verdict || !(lost || sectionRef.current?.contains(active))) return;
+    verdict.focus({ preventScroll: true });
+    const r = verdict.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > window.innerHeight) verdict.scrollIntoView({ block: 'nearest' });
+  }, [answered]);
 
   const noteFor = (o: TwistOption): string | undefined => {
     if (!answered) return undefined;
@@ -51,6 +71,7 @@ export function TwistQuestion({ twist, order, answer, onAnswer, testIdPrefix, ki
 
   return (
     <section
+      ref={sectionRef}
       className={s.twist}
       aria-labelledby={headingId}
       data-testid={`${testIdPrefix}-question`}
@@ -83,16 +104,20 @@ export function TwistQuestion({ twist, order, answer, onAnswer, testIdPrefix, ki
           />
         ))}
       </div>
-      <div className={s.live} aria-live="polite">
+      <div className={s.live}>
         {answered ? (
           <div className={s.result} data-testid={`${testIdPrefix}-result`} data-right={right ? 'true' : 'false'}>
             <div className={s.verdictRow}>
               <span className={s.verdictBadge} data-tone={right ? 'good' : 'rule'} aria-hidden="true">
                 <Icon name={right ? 'check' : 'book'} size={20} strokeWidth={2.4} />
               </span>
-              <strong className={s.verdict}>{right ? 'Right!' : 'Not quite'}</strong>
+              <h2 className={s.verdict} ref={verdictRef} tabIndex={-1} aria-describedby={whyId}>
+                {right ? 'Right!' : 'Not quite'}
+              </h2>
             </div>
-            <p className={s.why}>{twist.why}</p>
+            <p className={s.why} id={whyId}>
+              {twist.why}
+            </p>
           </div>
         ) : null}
       </div>

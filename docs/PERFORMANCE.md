@@ -101,3 +101,20 @@ visit without a second fetch. Measured after the upgrade: initial transfer **430
 offline precache 1.43 MB. The remaining recommendation is to lazy-load day files (one ≈ 7 kB chunk per day, precached by
 Workbox) behind an async `loadDailyScenario(dailyId)`; the design is in `docs/CONTENT-DAILY.md`. Expected gain on slow
 4G: roughly −0.5 s LCP on first visit; no change for repeat visits (service worker cache).
+
+## Update: Lite friend incentives, Insight and pictures (2026-10-24)
+
+Everything new loads with the Lite screen, never in the entry bundle. Measured with `node scripts/check-bundle-size.mjs`
+after a production build, gzip:
+
+| | Before | After |
+| --- | --- | --- |
+| Initial transfer | 431.6 kB | 435.1 kB (budget 2048 kB) |
+| `LitePlayScreen` JS | 29.3 kB | 39.1 kB (pictograms, twist UI, reply landing, How points work) |
+| Shared Lite chunk (`ledger-*.js`: twist pool, ledger, twist store, reply codes) | — | 12.4 kB (the 31-twist pool is 5.4 kB of it) |
+| `LitePlayScreen` CSS | 9.3 kB | 10.7 kB |
+| Offline precache | 1.47 MB | 1.50 MB |
+
+So the Lite additions are about 23.6 kB gzip in total, inside the 30 kB target; the toughness manifest is 0.7 kB and the
+pictograms are inline SVG with no images and no new dependencies. Settings → Delete all local data loads the shared
+Lite chunk lazily to wipe Lite's local keys, so the twist pool stays out of the entry bundle.

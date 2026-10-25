@@ -19,7 +19,7 @@ India, any political party or any public institution.
 | Lite dares and replies (links) | only when you tap send | your device's share sheet | none. A dare link holds the game seed, the moves up to the dared question, your points on it and the midnight deadline; a reply link also holds the friend's points, best-move flag, twist result, a random 6-character code that tells two friends' replies apart, and (verified dares only) a signature | — | you choose whom to send it to |
 | Lite friend points, twists and bests (`vande:lite-awards`, `vande:lite-twists`, `vande:lite-best`, `vande:lite-best-insight`, older `vande:lite-helper`; the current run in session storage `vande:lite-run`) | while you play Lite | your device only (local storage) | none | until you delete them | Settings → Delete all local data removes every `vande:lite-*` key (local and session storage); clearing the site's or app's data does too |
 | Verified dare attempt: the dare (game seed, moves up to the dared question, dared step, deadline), a per-dare device key, your reply code, your answer (clue scans + chosen option), your app's points / best-move / move-kind result, later your twist answer | only in builds with verified dares **and** after you turn on **Share anonymous results**, when you answer a friend's dare and when you send the result back | Cloudflare Worker + D1 (`docs/BACKEND.md`) | `sha256(installation id + dare)`: different for every dare, cannot be reversed or linked across dares; the installation id itself is never sent | 7 days, then deleted | turn the setting off; nothing is sent then and dares stay fully playable |
-| Today's dare goal: number of graded dare answers and how many found the best move | same as above, updated when a dare answer is graded | Cloudflare D1 (counts only, one row per day) | none | 180 days | — |
+| Today's dare goal: number of graded dare answers and how many found the best move | same as above, updated when a dare answer is graded, and only for answers the server replayed and checked itself (at most 3 a day from one network address) | Cloudflare D1 (counts only, one row per day) | none | 180 days | — |
 | Local reminders | only if you enable them | your device's notification system | none | — | Settings → Reminders |
 
 Never collected: name, email, phone, contacts, precise location, advertising identifiers, device fingerprints, free text,
@@ -38,10 +38,13 @@ friend's dare sends the dare and your answer (game moves, never anything about y
 device as `sha256(installation id + dare)`. That key is different for every dare, so the server cannot connect your
 attempts on different dares, and your installation id never leaves your device. The server picks and checks the twist
 question, signs your reply so your friend's app can trust it without asking the server, and adds your answer to a
-daily count ("Today X% of dare answers found the best move", shown only from at least 25 answers). Attempts are deleted
+daily count ("Today X% of dare answers found the best move", shown only from at least 25 answers, and counting only
+answers the server replayed and checked itself, so in the default setup it is never shown). Attempts are deleted
 after 7 days; the daily counts hold no identifiers. Your IP address reaches Cloudflare for the duration of each
-request, like any web request, and is used only to make a salted, per-minute rate-limit key kept for 24 hours. Reading
-the daily count sends only the date. If anything fails, dares work exactly as before on your device.
+request, like any web request, and is used only to make salted rate-limit keys: per-minute keys, and one per-day key
+that stops a single network from adding more than 3 answers a day to the daily count. Each key is a one-way hash, never
+the address, and is deleted by the daily cleanup once it is more than 24 hours old. Reading the daily count sends only
+the date. If anything fails, dares work exactly as before on your device.
 
 The twist questions and their answers also ship inside the app so dares work offline; verified dares therefore prove
 that a twist was answered once on one device, not that nobody looked the answer up.

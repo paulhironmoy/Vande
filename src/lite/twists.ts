@@ -4,8 +4,8 @@
  * (bounded, every access guarded); when storage is unavailable the store falls back to memory for the session.
  *
  * Stable API used by the Lite screen: TWIST_POOL, twistById, dareIdentity, dareKeyOf, pickTwist, readAttempt,
- * ensureAttempt, drawTwist, answerTwist, outcomeOf, plus the rematch helpers ensureRematch, readRematch and
- * answerRematch.
+ * ensureAttempt, recordDareAnswer, drawTwist, assignTwist, answerTwist, markReplied, outcomeOf, plus the rematch
+ * helpers ensureRematch, readRematch and answerRematch.
  *
  * Rules (docs/prompts/LITE-INCENTIVES-AND-VISUALS-PROMPT.md, A3–A5):
  * - match the action kind of the dared move's best move; fall back to any kind only when the pool has none of it;
@@ -13,7 +13,9 @@
  * - random choice from crypto.getRandomValues (Math.random only as a fallback), options shuffled (Fisher–Yates);
  * - one attempt per device per dare: the nonce, twist and order are created once and never change; the first answer
  *   is kept. The only exception: if a stored twist id no longer exists in the pool at all (content error), a new
- *   twist is drawn so the friend is never stuck.
+ *   twist is drawn so the friend is never stuck;
+ * - once a reply for an attempt has been shared (`markReplied`), its nonce never changes: verified dares may hand back
+ *   a different server nonce, but adopting it then would make the same friend count twice at the helper.
  */
 import pool from '@/content/lite/twists.json';
 import { hashString } from '@/engine/prng';
@@ -157,6 +159,7 @@ function cleanAttempt(raw: unknown): TwistAttempt | null {
       out.outcome = a.outcome;
     }
   }
+  if (a.replied === true) out.replied = true;
   return out;
 }
 
@@ -316,7 +319,9 @@ export function drawTwist(dareKey: string, kind: TwistKind): TwistAttempt | unde
 /**
  * Verified dares: stores the server-chosen twist (and the nonce the server keeps for this attempt) once. If a twist
  * was already drawn (for example a local draw after the server timed out), the existing one is kept and returned;
- * the reply is then sent unsigned. Undefined when the id is not a live twist in this build.
+ * the reply is then sent unsigned. Once a reply for the attempt has been shared (`replied`), the nonce is kept as it
+ * is, so a reply already in the helper's hands and the next one stay the same friend. Undefined when the id is not
+ * a live twist in this build.
  */
 export function assignTwist(dareKey: string, twistId: string, nonce?: string): TwistAttempt | undefined {
   const t = twistById(twistId);
@@ -328,13 +333,28 @@ export function assignTwist(dareKey: string, twistId: string, nonce?: string): T
     s.attempts.push(a);
   }
   if (a.twistId && twistById(a.twistId)) return a;
-  if (nonce && NONCE_RE.test(nonce)) a.nonce = nonce;
+  if (nonce && NONCE_RE.test(nonce) && !a.replied) a.nonce = nonce;
   a.twistId = t.id;
   a.order = shuffle(t.options.map((o) => o.id));
   delete a.answer;
   delete a.outcome;
   s.seen = [...s.seen.filter((id) => id !== t.id), t.id];
   writeStore(s);
+  return a;
+}
+
+/**
+ * Marks that a reply for this attempt has been shared, once; from then on its nonce never changes. Undefined when the
+ * device has no attempt for the dare.
+ */
+export function markReplied(dareKey: string): TwistAttempt | undefined {
+  const s = readStore();
+  const a = s.attempts.find((x) => x.dareKey === dareKey);
+  if (!a) return undefined;
+  if (!a.replied) {
+    a.replied = true;
+    writeStore(s);
+  }
   return a;
 }
 

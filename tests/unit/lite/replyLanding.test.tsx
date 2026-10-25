@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { ReplyLanding, __resetReplyAwardMemo } from '@/screens/Lite/ReplyLanding';
-import { __resetLedgerForTests, readLedger } from '@/lite/ledger';
+import { __resetLedgerForTests, readLedger, recordSentDare, writeLedger } from '@/lite/ledger';
 import { TWIST_POOL, __resetTwistStoreForTests } from '@/lite/twists';
 import { encodeDareReply, nextLocalMidnight, type DareReply } from '@/share/dare';
 
@@ -24,6 +24,8 @@ describe('ReplyLanding', () => {
     __resetTwistStoreForTests();
     __resetReplyAwardMemo();
     document.documentElement.setAttribute('data-motion', 'reduced');
+    // This device sent the dare (only replies to sent dares earn Helper points).
+    writeLedger(recordSentDare(readLedger(), dare));
   });
   afterEach(() => {
     cleanup();
@@ -72,5 +74,15 @@ describe('ReplyLanding', () => {
     mount(bad.reply, bad.code, async () => false);
     await waitFor(() => expect(screen.getByTestId('reply-award')).toBeTruthy());
     expect(readLedger().helper.verifiedPoints).toBe(140);
+  });
+
+  it('pays nothing when this device did not send the dare, or when the reply is its own answer', async () => {
+    localStorage.clear();
+    __resetLedgerForTests();
+    const { reply, code } = replyOf({ nonce: 'eee555' });
+    mount(reply, code);
+    await waitFor(() => expect(screen.getByTestId('reply-award-note').textContent).toMatch(/Only the person who sent this dare/));
+    expect(screen.queryByTestId('reply-award')).toBeNull();
+    expect(readLedger().helper.points).toBe(0);
   });
 });

@@ -58,8 +58,9 @@
   }
 }
 
+/* The result slot takes no space while empty (the negative margin cancels the flex gap). */
 .live:empty {
-  display: none;
+  margin-top: -0.85rem;
 }
 
 .result {
@@ -105,9 +106,14 @@
 }
 
 .verdict {
+  margin: 0;
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.01em;
+}
+
+.verdict:focus {
+  outline: none;
 }
 
 .why {

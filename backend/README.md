@@ -17,7 +17,8 @@ Verified dares (Lite, off until `DARE_SIGNING_KEY` is set) add `lite_attempts`: 
 the dare's game moves, the friend's reply nonce, answer, recorded points and best flag, the drawn twist and, once
 graded, its outcome and the stored signature. The device key is `sha256(installId:dareIdentity)` made on the device, so
 one device's attempts on different dares cannot be linked. Deleted after 7 days. `lite_goal` keeps one row of counts
-per UTC day (answers, best moves found) for 180 days. Details: `docs/BACKEND.md`, "Verified dares".
+per UTC day (answers, best moves found) for 180 days; it counts only replay-verified answers, at most 3 per address per
+UTC day (a salted per-day key in `rate_buckets`). Details: `docs/BACKEND.md`, "Verified dares".
 
 ## Endpoints
 
@@ -27,7 +28,7 @@ per UTC day (answers, best moves found) for 180 days. Details: `docs/BACKEND.md`
 | GET | `/v1/daily/:dailyId/stats?cv=<contentVersion>` | `cache-control: public, max-age=300` and cached at the edge (`x-cache: hit|miss`); percentages only when `count ≥ MIN_COHORT`; `429` after `RATE_LIMIT_READS_PER_MINUTE` uncached reads per address |
 | POST | `/v1/lite/attempts` | verified dares, start: JSON ≤ 2 KB; `201` created, `200` existing attempt (idempotent per device key + dare), `400` invalid / does not replay, `429`, `503` without `DARE_SIGNING_KEY` or `RATE_SALT`, or with `KILL_LITE_DARES=1` |
 | POST | `/v1/lite/attempts/:attemptId/grade` | verified dares, grade: graded once, then the stored result (same signature); `404` unknown attempt or other device key; `409` twist gone; same `400`/`429`/`503` rules |
-| GET | `/v1/lite/goal/:day` | today's goal counts; `best`/`share` only from `MIN_COHORT` graded answers; edge-cached 300 s |
+| GET | `/v1/lite/goal/:day` | today's goal counts: replay-verified answers only (≤ `LITE_GOAL_PER_ADDRESS_PER_DAY` per address per UTC day); `best`/`share` only from `MIN_COHORT`; edge-cached 300 s. With replay off it stays at 0 and the app shows nothing |
 | GET | `/v1/health` | `{ ok, version, time }` |
 
 ## Commands (run from `backend/`)
@@ -55,7 +56,8 @@ Then build the game with `VITE_COMMUNITY_API_URL=https://vande-community.<accoun
 worker refuses writes with `503`), `ALLOW_UNLIMITED_WRITES` (`1` accepts writes without a salt, local development only;
 logged once per isolate), `VERSION`. Verified dares: `DARE_SIGNING_KEY` (secret, P-256 private JWK; required),
 `KILL_LITE_DARES` (`1` = off), `LITE_VERIFY_REPLAY` (`1` = replay before signing; Workers Paid only, see the CPU table in
-`docs/BACKEND.md`), `RATE_LIMIT_DARES_PER_MINUTE` (default 60).
+`docs/BACKEND.md`), `RATE_LIMIT_DARES_PER_MINUTE` (default 60), `LITE_GOAL_PER_ADDRESS_PER_DAY` (default 3; `0` stops
+the goal).
 
 The Worker bundles app modules (`src/engine`, `src/lite`, `src/share/dare.ts`, the twist pool) through the `@/` alias in
 `tsconfig.json`; `[define]` in `wrangler.toml` replaces Vite's `import.meta.env`. Check the bundle locally before the

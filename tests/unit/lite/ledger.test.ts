@@ -1,16 +1,24 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  DEADLINE_GRACE_SECONDS,
   LEDGER_MAX_ENTRIES,
+  MAX_LOCAL_DAY_SECONDS,
   __resetLedgerForTests,
   awardChallenger,
   awardHelperReply,
   emptyLedger,
   helperAmount,
+  isLateReply,
+  isOwnDare,
   localDate,
   migrateV1,
   readLedger,
+  recordSentDare,
   replyIdentity,
+  revealReply,
   sanitizeLedger,
+  sentKeyOf,
+  visibleHelper,
   writeLedger,
 } from '@/lite/ledger';
 import { dareKeyOf } from '@/lite/twists';
@@ -39,8 +47,9 @@ const DAY1 = new Date(2026, 9, 24, 10, 0, 0);
 const DAY1_LATE = new Date(2026, 9, 24, 23, 59, 59);
 const DAY2 = new Date(2026, 9, 25, 0, 0, 1);
 
+/** The helper sent the reply's dare from this device (the normal case), then opens the reply. */
 function award(l: FriendLedger, r: DareReply, now = DAY1, verified = false) {
-  return awardHelperReply(l, r, codeOf(r), now, verified);
+  return awardHelperReply(recordSentDare(l, r.dare, now), r, codeOf(r), now, verified);
 }
 
 beforeEach(() => {
@@ -198,8 +207,11 @@ describe('ledger storage', () => {
     expect(l.helper).toEqual({ points: 380, answers: 3, understood: 2, verifiedPoints: 0 });
     expect(l.replies[oldCode]).toBe(140);
     expect(localStorage.getItem('vande:lite-awards')).not.toBeNull();
-    const again = awardHelperReply(l, { dare: dare(), points: 196, best: true, version: 1 }, oldCode, DAY1);
-    expect(again.earned).toBe(0);
+    const again = awardHelperReply(recordSentDare(l, dare()), { dare: dare(), points: 196, best: true, version: 1 }, oldCode, DAY1);
+    expect(again).toMatchObject({ earned: 0, fresh: false });
+    expect(again.notOwner).toBeUndefined();
+    expect(l.sent).toEqual({});
+    expect(l.pending).toEqual({});
     expect(migrateV1({ answers: 1 })).toBeNull();
     expect(migrateV1(null)).toBeNull();
     // Once migrated, the new key wins.
@@ -250,5 +262,255 @@ describe('ledger storage', () => {
   it('formats the local date', () => {
     expect(localDate(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05');
     expect(localDate(new Date(2026, 11, 31, 0, 0))).toBe('2026-12-31');
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// Review fixes: ownership, lateness, pending twists, no clock rollback, challenger deadline
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Unix seconds of the first local midnight after `t` for a fixed UTC offset in minutes (no daylight saving). */
+const midnightAfter = (t: number, offsetMin: number) => {
+  const off = offsetMin * 60;
+  return (Math.floor((t + off) / 86400) + 1) * 86400 - off;
+};
+/** Every whole-hour offset from UTC−12 to UTC+14, plus the real half- and quarter-hour ones. */
+const OFFSETS = [...Array.from({ length: 27 }, (_, i) => (i - 12) * 60), -570, -210, 210, 270, 330, 345, 390, 525, 570, 630, 765, 825];
+
+describe('ownership (one hop)', () => {
+  it('pays only for replies to dares this device sent; anyone else who opens the link earns nothing', () => {
+    const reply = r2(dare(40));
+    const stranger = emptyLedger();
+    const out = awardHelperReply(stranger, reply, codeOf(reply), DAY1);
+    expect(out).toMatchObject({ earned: 0, fresh: false, upgraded: false, capped: null, notOwner: true });
+    expect(out.ledger).toEqual(stranger);
+    const owner = recordSentDare(emptyLedger(), reply.dare, DAY1);
+    expect(isOwnDare(owner, reply.dare)).toBe(true);
+    expect(isOwnDare(stranger, reply.dare)).toBe(false);
+    const paid = awardHelperReply(owner, reply, codeOf(reply), DAY1);
+    expect(paid).toMatchObject({ earned: 140, fresh: true });
+    expect(paid.notOwner).toBeUndefined();
+    // R1 replies need the sent dare too.
+    const r1: DareReply = { dare: dare(41), points: 196, best: true, version: 1 };
+    const c1 = encodeDareReply(r1);
+    expect(awardHelperReply(emptyLedger(), r1, c1, DAY1).notOwner).toBe(true);
+    expect(awardHelperReply(recordSentDare(emptyLedger(), r1.dare), r1, c1, DAY1).earned).toBe(40);
+  });
+
+  it('treats a dare passed on by a friend as a different dare, even when it ends at the same midnight', () => {
+    const original = dare(42);
+    const passedOn: Dare = { ...original, points: 100, best: false, chain: 2 };
+    expect(dareKeyOf(passedOn)).toBe(dareKeyOf(original));
+    expect(sentKeyOf(original)).toBe(`${dareKeyOf(original)}.1`);
+    expect(sentKeyOf(passedOn)).toBe(`${dareKeyOf(original)}.2`);
+    const sender = recordSentDare(emptyLedger(), original, DAY1);
+    // A reply meant for the friend who passed it on, forwarded to the original sender: a friend's friend.
+    const forwarded = r2(passedOn);
+    expect(awardHelperReply(sender, forwarded, codeOf(forwarded), DAY1).notOwner).toBe(true);
+    const passer = recordSentDare(emptyLedger(), passedOn, DAY1);
+    expect(awardHelperReply(passer, forwarded, codeOf(forwarded), DAY1).earned).toBe(140);
+    expect(isOwnDare(passer, original)).toBe(false);
+  });
+
+  it("never pays this device's own answer to its own dare", () => {
+    const d = dare(43);
+    const owner = recordSentDare(emptyLedger(), d, DAY1);
+    const own = r2(d);
+    const self = awardHelperReply(owner, own, codeOf(own), DAY1, true, { ownNonce: own.nonce });
+    expect(self).toMatchObject({ earned: 0, notOwner: true });
+    expect(self.ledger).toEqual(owner);
+    // A real friend (another nonce) still counts, and no own nonce means no self check.
+    const friend = r2(d);
+    expect(awardHelperReply(owner, friend, codeOf(friend), DAY1, false, { ownNonce: own.nonce }).earned).toBe(140);
+    expect(awardHelperReply(owner, own, codeOf(own), DAY1, false, {}).earned).toBe(140);
+    // An R1 reply has no nonce, so an own nonce never matches it.
+    const r1: DareReply = { dare: d, points: 196, best: true, version: 1 };
+    expect(awardHelperReply(owner, r1, encodeDareReply(r1), DAY1, false, { ownNonce: own.nonce }).earned).toBe(40);
+  });
+
+  it('records sent dares purely, keeps the first record, survives storage and stays bounded', () => {
+    const l = emptyLedger();
+    const frozen = JSON.stringify(l);
+    const once = recordSentDare(l, dare(44), new Date(1_000_000));
+    expect(JSON.stringify(l)).toBe(frozen);
+    const twice = recordSentDare(once, dare(44), new Date(9_000_000));
+    expect(twice.sent[sentKeyOf(dare(44))]).toBe(1_000_000);
+    writeLedger(twice);
+    __resetLedgerForTests();
+    expect(isOwnDare(readLedger(), dare(44))).toBe(true);
+    let big = emptyLedger();
+    for (let i = 0; i < LEDGER_MAX_ENTRIES + 20; i++) big = recordSentDare(big, dare(1000 + i), new Date(1_000_000 + i));
+    expect(Object.keys(big.sent)).toHaveLength(LEDGER_MAX_ENTRIES);
+    expect(isOwnDare(big, dare(1000 + LEDGER_MAX_ENTRIES + 19))).toBe(true);
+    expect(isOwnDare(big, dare(1000))).toBe(false);
+    expect(sanitizeLedger({ sent: { a: -3, b: 'x', c: 5 } }).sent).toEqual({ a: 0, b: 0, c: 5 });
+    expect(isOwnDare(sanitizeLedger({ sent: { [sentKeyOf(dare(45))]: 0 } }), dare(45))).toBe(false);
+  });
+});
+
+describe('lateness: replies built after the dare ended', () => {
+  it('never ends an on-time reply, for any sender and friend time zones from UTC−12 to UTC+14', () => {
+    const created = Math.floor(Date.UTC(2026, 9, 24, 7, 13) / 1000);
+    let checked = 0;
+    for (const sender of OFFSETS) {
+      for (let h = 0; h < 24; h += 5) {
+        const sentAt = created + h * 3600;
+        const deadline = midnightAfter(sentAt, sender);
+        for (const friend of OFFSETS) {
+          for (const at of [sentAt, deadline - 3600, deadline - 1, deadline, deadline + DEADLINE_GRACE_SECONDS - 1, deadline + DEADLINE_GRACE_SECONDS]) {
+            const reply = r2({ ...dare(46), deadline }, { rematchDeadline: midnightAfter(at, friend) });
+            expect(isLateReply(reply), `sender ${sender}, friend ${friend}, at ${at - deadline}s`).toBe(false);
+            checked++;
+          }
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(10_000);
+  });
+
+  it('stays safe on the 25-hour day when daylight saving ends, where a 24-hour bound would wrongly end the reply', () => {
+    // The friend's local day runs 25 hours; they reply 5 minutes into it, 5 minutes after the sender's deadline.
+    const dayStart = Math.floor(Date.UTC(2026, 9, 24, 23, 0) / 1000);
+    const deadline = dayStart;
+    const builtAt = dayStart + 300;
+    const rematchDeadline = dayStart + 25 * 3600;
+    expect(builtAt).toBeLessThan(deadline + DEADLINE_GRACE_SECONDS); // on time, inside the grace window
+    expect(rematchDeadline - 86_400 >= deadline + DEADLINE_GRACE_SECONDS).toBe(true); // the plain 24-hour bound misfires
+    expect(isLateReply(r2({ ...dare(47), deadline }, { rematchDeadline }))).toBe(false);
+    expect(MAX_LOCAL_DAY_SECONDS).toBeGreaterThanOrEqual(25 * 3600);
+  });
+
+  it('ends a reply built a full local day after the grace window, in every time zone', () => {
+    const deadline = Math.floor(Date.UTC(2026, 9, 25, 4, 0) / 1000);
+    for (const friend of OFFSETS) {
+      const at = deadline + DEADLINE_GRACE_SECONDS + MAX_LOCAL_DAY_SECONDS;
+      expect(isLateReply(r2({ ...dare(48), deadline }, { rematchDeadline: midnightAfter(at, friend) })), `friend ${friend}`).toBe(true);
+    }
+    // R1 replies carry no rematch deadline and are never judged late.
+    expect(isLateReply({ dare: { ...dare(48), deadline }, points: 196, best: true, version: 1 })).toBe(false);
+  });
+
+  it('records a late reply at 0 for good without using a slot, and keeps an earlier on-time count of the same attempt', () => {
+    const d = dare(49);
+    const lateRematch = d.deadline + DEADLINE_GRACE_SECONDS + MAX_LOCAL_DAY_SECONDS + 3600;
+    const owner = recordSentDare(emptyLedger(), d, DAY1);
+    const late = r2(d, { rematchDeadline: lateRematch });
+    const first = awardHelperReply(owner, late, codeOf(late), DAY2);
+    expect(first).toMatchObject({ earned: 0, fresh: true, capped: 'ended' });
+    const id = replyIdentity(late, codeOf(late));
+    expect(first.ledger.replies[id]).toBe(0);
+    expect(first.ledger.perDare[dareKeyOf(d)]).toBeUndefined();
+    expect(first.ledger.day.helper).toBe(0);
+    expect(first.ledger.pending[id]).toBeUndefined();
+    expect(awardHelperReply(first.ledger, late, codeOf(late), DAY2)).toMatchObject({ earned: 0, fresh: false, capped: 'ended' });
+
+    // On time first (twist skipped), then the same attempt comes back late with a right twist: no upgrade.
+    const nonce = nextNonce();
+    const onTime = r2(d, { nonce, twist: 'skipped', twistId: undefined });
+    const counted = awardHelperReply(owner, onTime, codeOf(onTime), DAY1).ledger;
+    const lateUpgrade = r2(d, { nonce, twist: 'right', rematchDeadline: lateRematch });
+    const res = awardHelperReply(counted, lateUpgrade, codeOf(lateUpgrade), DAY2);
+    expect(res).toMatchObject({ earned: 0, fresh: false, upgraded: false, capped: 'ended' });
+    expect(res.ledger.replies[replyIdentity(onTime, codeOf(onTime))]).toBe(40);
+    expect(res.ledger.helper.points).toBe(40);
+  });
+});
+
+describe('pending twists (hidden until the rematch is answered)', () => {
+  it('hides the +100 of a cracked twist from every tally until the reply is revealed', () => {
+    const reply = r2(dare(50));
+    const out = award(emptyLedger(), reply);
+    const id = replyIdentity(reply, codeOf(reply));
+    expect(out.ledger.pending[id]).toBe(100);
+    expect(out.ledger.helper).toMatchObject({ points: 140, understood: 1, answers: 1 });
+    expect(visibleHelper(out.ledger)).toEqual({ answers: 1, understood: 0, points: 40 });
+    const before = JSON.stringify(out.ledger);
+    const shown = revealReply(out.ledger, id);
+    expect(JSON.stringify(out.ledger)).toBe(before);
+    expect(shown.pending[id]).toBeUndefined();
+    expect(visibleHelper(shown)).toEqual({ answers: 1, understood: 1, points: 140 });
+  });
+
+  it('lists a wrong twist at 0, and nothing for skipped twists, R1, capped or late replies', () => {
+    const wrong = r2(dare(51), { twist: 'wrong' });
+    const w = award(emptyLedger(), wrong);
+    expect(w.ledger.pending[replyIdentity(wrong, codeOf(wrong))]).toBe(0);
+    expect(visibleHelper(w.ledger)).toEqual({ answers: 1, understood: 0, points: 40 });
+
+    const skipped = r2(dare(52), { twist: 'skipped', twistId: undefined });
+    expect(award(emptyLedger(), skipped).ledger.pending).toEqual({});
+
+    const r1: DareReply = { dare: dare(53), points: 196, best: true, version: 1 };
+    expect(awardHelperReply(recordSentDare(emptyLedger(), r1.dare), r1, encodeDareReply(r1), DAY1).ledger.pending).toEqual({});
+
+    let l = emptyLedger();
+    for (let i = 0; i < 3; i++) l = award(l, r2(dare(54), { twist: 'skipped', twistId: undefined })).ledger;
+    const capped = award(l, r2(dare(54)));
+    expect(capped.capped).toBe('dare');
+    expect(capped.ledger.pending).toEqual({});
+
+    const late = r2(dare(55), { rematchDeadline: dare(55).deadline + DEADLINE_GRACE_SECONDS + MAX_LOCAL_DAY_SECONDS });
+    expect(award(emptyLedger(), late, DAY2).ledger.pending).toEqual({});
+  });
+
+  it('re-hides the bonus when an answered reply is upgraded, and sums every pending reply', () => {
+    const d = dare(56);
+    const nonce = nextNonce();
+    const first = award(emptyLedger(), r2(d, { nonce, twist: 'skipped', twistId: undefined }));
+    const id = `${dareKeyOf(d)}#${nonce}`;
+    expect(first.ledger.pending[id]).toBeUndefined();
+    const up = award(first.ledger, r2(d, { nonce, twist: 'right' }));
+    expect(up).toMatchObject({ earned: 100, upgraded: true });
+    expect(up.ledger.pending[id]).toBe(100);
+    const other = award(up.ledger, r2(dare(57)));
+    expect(visibleHelper(other.ledger)).toEqual({ answers: 2, understood: 0, points: 80 });
+    expect(visibleHelper(revealReply(other.ledger, id))).toEqual({ answers: 2, understood: 1, points: 180 });
+  });
+
+  it('keeps pending entries through storage, drops orphans and clamps corrupt values', () => {
+    const reply = r2(dare(58));
+    const l = award(emptyLedger(), reply).ledger;
+    writeLedger(l);
+    __resetLedgerForTests();
+    expect(visibleHelper(readLedger())).toEqual(visibleHelper(l));
+    const repaired = sanitizeLedger({ ...l, pending: { ...l.pending, 'k-orphan#000000': 100, [replyIdentity(reply, codeOf(reply))]: 9999 } });
+    expect(repaired.pending).toEqual({ [replyIdentity(reply, codeOf(reply))]: 100 });
+    expect(visibleHelper(sanitizeLedger({ helper: { points: 10, understood: 0, answers: 1 }, replies: { x: 140 }, pending: { x: 100 } }))).toEqual({ answers: 1, understood: 0, points: 0 });
+  });
+});
+
+describe('day counters never roll back', () => {
+  it('a clock set back keeps today’s counters and cannot reopen the daily cap', () => {
+    let l = emptyLedger();
+    for (let i = 0; i < 10; i++) l = award(l, r2(dare(600 + i)), DAY2).ledger;
+    expect(l.day).toEqual({ date: localDate(DAY2), helper: 10, challenger: 0 });
+    const back = award(l, r2(dare(700)), DAY1);
+    expect(back).toMatchObject({ earned: 0, capped: 'day' });
+    expect(back.ledger.day.date).toBe(localDate(DAY2));
+    let c = l;
+    for (let i = 0; i < 10; i++) c = awardChallenger(c, `k-c${i}`, false, DAY2).ledger;
+    expect(awardChallenger(c, 'k-c-back', false, DAY1)).toMatchObject({ earned: 0, capped: 'day' });
+    // Moving forward still starts a new day.
+    expect(award(back.ledger, r2(dare(701)), new Date(2026, 9, 26, 9, 0, 0)).earned).toBe(140);
+  });
+});
+
+describe('Challenger deadline', () => {
+  it('pays until the grace window ends, then records 0 and never upgrades an earlier award', () => {
+    const deadline = Math.floor(DAY1.getTime() / 1000) + 3600;
+    const at = (s: number) => new Date(s * 1000);
+    expect(awardChallenger(emptyLedger(), 'k-ch1', true, at(deadline + DEADLINE_GRACE_SECONDS), deadline)).toMatchObject({ earned: 140, capped: null });
+    const late = awardChallenger(emptyLedger(), 'k-ch2', true, at(deadline + DEADLINE_GRACE_SECONDS + 1), deadline);
+    expect(late).toMatchObject({ earned: 0, fresh: true, capped: 'ended' });
+    expect(late.ledger.challenged['k-ch2']).toBe(0);
+    expect(late.ledger.day.challenger).toBe(0);
+    expect(awardChallenger(late.ledger, 'k-ch2', true, at(deadline + 99_999), deadline)).toMatchObject({ earned: 0, fresh: false, capped: 'ended' });
+
+    const onTime = awardChallenger(emptyLedger(), 'k-ch3', false, at(deadline - 60), deadline).ledger;
+    const afterwards = awardChallenger(onTime, 'k-ch3', true, at(deadline + DEADLINE_GRACE_SECONDS + 5), deadline);
+    expect(afterwards).toMatchObject({ earned: 0, upgraded: false, capped: 'ended' });
+    expect(afterwards.ledger.challenged['k-ch3']).toBe(40);
+    // Without a deadline nothing changes.
+    expect(awardChallenger(emptyLedger(), 'k-ch4', true, at(deadline + 99_999)).earned).toBe(140);
   });
 });

@@ -8,7 +8,11 @@
  *                             -> use the returned twistId and nonce instead of a local draw; null = local twist
  *   friend sends the reply    gradeVerifiedAttempt({ optedIn, installId, dare, attemptId, twistAnswer })
  *                             -> put points, best, twistId, twist, nonce and sig into the R2 reply; null = unsigned
- *   helper opens a reply      verifyReplySignature(reply) (offline) -> award with verified = true when it holds
+ *   helper opens a reply      replyCountsAsVerified(reply) (offline) -> award with verified = true only when it is
+ *                             true, i.e. the signature holds AND its scope is 'dare+twist'. A 't' signature
+ *                             ('twist' scope) proves the twist only; the move points and best flag in it are the
+ *                             friend's claim, so it never counts as a verified award. verifyReplySignature(reply)
+ *                             answers only "is the signature valid", for either scope.
  *   goal line                 <LiteGoal optedIn={...} /> (src/components/game/community/LiteGoal.tsx)
  * with optedIn = useApp.getState().settings.communitySharing === 'on' and installId = useApp.getState().installId.
  */
@@ -252,13 +256,31 @@ async function verifyFields(f: SignedFields, publicKeyHex: string): Promise<Veri
   }
 }
 
-/** What a signed R2 reply's signature vouches for, checked offline with the public key; null when it does not hold. */
-export async function replyVerification(reply: DareReply, publicKeyHex: string = flags.darePublicKey): Promise<VerifiedScope | null> {
+/**
+ * What a signed R2 reply's signature vouches for, checked offline with the public key: 'dare+twist' (replay-verified
+ * answer and server-graded twist), 'twist' (server-graded twist only; points and best flag are claimed), or null when
+ * there is no valid signature. For awards, only 'dare+twist' counts as verified (see replyCountsAsVerified).
+ */
+export async function replyVerifiedScope(reply: DareReply, publicKeyHex: string = flags.darePublicKey): Promise<VerifiedScope | null> {
   if (!reply || reply.version !== 2 || !reply.sig) return null;
   return verifyFields(reply, publicKeyHex);
 }
 
-/** True when the reply carries a signature from this build's key over exactly its fields (offline, no request). */
+/** Same as replyVerifiedScope (kept for existing callers). */
+export const replyVerification = replyVerifiedScope;
+
+/**
+ * True only when the reply's signature holds and its scope is 'dare+twist'. This is the check for counting an award as
+ * verified: a 'twist' signature never proves the friend's points or best move.
+ */
+export async function replyCountsAsVerified(reply: DareReply, publicKeyHex: string = flags.darePublicKey): Promise<boolean> {
+  return (await replyVerifiedScope(reply, publicKeyHex)) === 'dare+twist';
+}
+
+/**
+ * True when the reply carries a signature from this build's key over exactly its fields (offline, no request), for
+ * either scope. Not the award check: use replyCountsAsVerified for that.
+ */
 export async function verifyReplySignature(reply: DareReply, publicKeyHex: string = flags.darePublicKey): Promise<boolean> {
   return (await replyVerification(reply, publicKeyHex)) !== null;
 }

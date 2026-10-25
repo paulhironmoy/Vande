@@ -14,7 +14,9 @@ import {
   fetchLiteGoal,
   gradeVerifiedAttempt,
   liteDeviceKey,
+  replyCountsAsVerified,
   replyVerification,
+  replyVerifiedScope,
   startVerifiedAttempt,
   verifiedDaresEnabled,
   verifyReplySignature,
@@ -114,6 +116,9 @@ describe('start and grade against the real Worker', () => {
     expect(decoded.sig).toBe(g!.sig);
     expect(await verifyReplySignature(decoded, publicKeyHex)).toBe(true);
     expect(await replyVerification(decoded, publicKeyHex)).toBe('twist');
+    expect(await replyVerifiedScope(decoded, publicKeyHex)).toBe('twist');
+    // A valid 't' signature proves the twist only: it never counts as a verified award.
+    expect(await replyCountsAsVerified(decoded, publicKeyHex)).toBe(false);
 
     // Helper-side tampering is caught offline.
     expect(await verifyReplySignature({ ...decoded, points: decoded.points + 50 }, publicKeyHex)).toBe(false);
@@ -142,7 +147,13 @@ describe('start and grade against the real Worker', () => {
     expect(g1).toMatchObject({ twist: 'skipped', verified: 'dare+twist', graded: true });
     expect(g2).toMatchObject({ twist: 'skipped', sig: g1!.sig, graded: false });
     const reply: DareReply = { dare, points: g1!.points, best: g1!.best, version: 2, twist: 'skipped', nonce: g1!.nonce, rematchDeadline: DEADLINE, sig: g1!.sig };
-    expect(await replyVerification(decodeDareReply(encodeDareReply(reply))!, publicKeyHex)).toBe('dare+twist');
+    const signed = decodeDareReply(encodeDareReply(reply))!;
+    expect(await replyVerification(signed, publicKeyHex)).toBe('dare+twist');
+    expect(await replyVerifiedScope(signed, publicKeyHex)).toBe('dare+twist');
+    expect(await replyCountsAsVerified(signed, publicKeyHex)).toBe(true);
+    // Tampered or unsigned: not verified, whatever the scope letter says.
+    expect(await replyCountsAsVerified({ ...signed, points: signed.points + 1 }, publicKeyHex)).toBe(false);
+    expect(await replyCountsAsVerified({ ...signed, sig: undefined }, publicKeyHex)).toBe(false);
   });
 
   it('drops a server answer whose signature does not match the build key (misconfigured keys stay local)', async () => {

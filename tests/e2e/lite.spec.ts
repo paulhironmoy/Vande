@@ -69,7 +69,7 @@ test.describe('Lite: Chapter 1 as a game', () => {
 });
 
 test.describe('Lite dares: one question, before midnight, passed between friends', () => {
-  test('dare a friend on a move; they get the same question, see every move revealed, and send their result back for Helper points', async ({ page, context }) => {
+  test('dare a friend on a move; they get the same question, see every move revealed, and send their result back for Helper points', async ({ page, context, browser }) => {
     test.setTimeout(180_000);
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     const screen = page.getByTestId('lite-screen');
@@ -97,8 +97,9 @@ test.describe('Lite dares: one question, before midnight, passed between friends
     const dareLink = await page.evaluate(() => navigator.clipboard.readText());
     expect(dareLink).toContain('/lite/dare/I1_');
 
-    // The friend: countdown, locked answer, optional hint, same question.
-    const friend = await context.newPage();
+    // The friend, on their own device: countdown, locked answer, optional hint, same question.
+    const friendContext = await browser.newContext({ permissions: ['clipboard-read', 'clipboard-write'], colorScheme: 'dark' });
+    const friend = await friendContext.newPage();
     await friend.goto(new URL(dareLink).pathname);
     const fscreen = friend.getByTestId('lite-screen');
     await expect(fscreen).toHaveAttribute('data-step', 'dare-landing', { timeout: 15_000 });
@@ -125,6 +126,13 @@ test.describe('Lite dares: one question, before midnight, passed between friends
     await page.goto(new URL(replyLink).pathname);
     await expect(screen).toHaveAttribute('data-step', 'reply-landing', { timeout: 15_000 });
     await expect(page.getByTestId('reply-award')).toBeVisible();
+
+    // Opening your own dare link shows it as yours: you share it, you never answer it for points.
+    await page.goto(new URL(dareLink).pathname);
+    await expect(page.getByTestId('dare-own')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('dare-accept')).toHaveCount(0);
+    await page.goto(new URL(replyLink).pathname);
+    await expect(screen).toHaveAttribute('data-step', 'reply-landing', { timeout: 15_000 });
     await expect(page.getByTestId('helper-stats')).toContainText('Friends helped 1');
     await page.reload();
     await expect(screen).toContainText('already counted');

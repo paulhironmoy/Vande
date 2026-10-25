@@ -55,3 +55,8 @@ export const LITE_GOAL_RETENTION_DAYS = RESULT_RETENTION_DAYS;
 export const DEFAULT_RATE_LIMIT_DARES_PER_MINUTE = 60;
 /** Goal responses are cached at the edge (and by browsers) for this long. */
 export const LITE_GOAL_CACHE_SECONDS = 300;
+/**
+ * Graded answers one address can add to the shared goal per UTC day (salted, per-day hash in rate_buckets). Only
+ * replay-verified ('v') answers count at all, so on the free-plan default the goal never fills and stays hidden.
+ */
+export const DEFAULT_LITE_GOAL_PER_ADDRESS_PER_DAY = 3;

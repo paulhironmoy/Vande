@@ -14,6 +14,7 @@ VERSION = "1.0.0"
 RATE_LIMIT_DARES_PER_MINUTE = "60"   # start + grade per address per minute (salted hash); generous for school networks
 LITE_VERIFY_REPLAY = "0"             # "1" replays each dare before signing (marker v); needs Workers Paid CPU limits
 KILL_LITE_DARES = "0"                # "1" switches the verified-dare endpoints off (503) without removing the secret
+LITE_GOAL_PER_ADDRESS_PER_DAY = "3"  # replay-verified answers one address can add to the daily goal ("0" = goal off)
 # DARE_SIGNING_KEY is a secret: the P-256 private key as a JWK, printed by `node scripts/lite-dare-keys.mjs`.
 #   `wrangler secret put DARE_SIGNING_KEY` (never commit it). Without it the dare endpoints FAIL CLOSED (503) and
 #   the app keeps using local twists and unsigned replies.

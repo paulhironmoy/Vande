@@ -76,7 +76,8 @@ describe('TwistQuestion', () => {
     expect(result.getAttribute('data-right')).toBe('true');
     expect(result.textContent).toContain('Right!');
     expect(result.textContent).toContain(twist.why);
-    expect(result.parentElement!.getAttribute('aria-live')).toBe('polite');
+    const verdict = screen.getByRole('heading', { level: 2, name: 'Right!' });
+    expect(document.getElementById(verdict.getAttribute('aria-describedby') ?? '')?.textContent).toBe(twist.why);
     fireEvent.click(screen.getByTestId('twist-option-b'));
     expect(onAnswer).not.toHaveBeenCalled();
   });
@@ -93,6 +94,23 @@ describe('TwistQuestion', () => {
     expect(result.getAttribute('data-right')).toBe('false');
     expect(result.textContent).toContain('Not quite');
     expect(result.textContent).not.toMatch(/wrong|fail|bad/i);
+  });
+
+  it('moves focus to the result heading when the player answers here, but not when an answered twist is shown again', () => {
+    function Harness({ answer }: { answer?: string }) {
+      return <TwistQuestion twist={twist} order={['a', 'b', 'c', 'd']} answer={answer} onAnswer={() => {}} testIdPrefix="twist" kicker="The twist" />;
+    }
+    const { rerender } = render(<Harness />);
+    screen.getByTestId('twist-option-b').focus();
+    rerender(<Harness answer="b" />);
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Not quite' }));
+    cleanup();
+    const outside = document.createElement('button');
+    document.body.appendChild(outside);
+    outside.focus();
+    render(<Harness answer="a" />);
+    expect(document.activeElement).toBe(outside);
+    outside.remove();
   });
 
   it('shows fair-play twists as wide rule cards without move labels', () => {

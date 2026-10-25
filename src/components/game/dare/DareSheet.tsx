@@ -64,7 +64,7 @@ export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterT
   const url = isReply ? dareReplyUrl(code) : dareUrl(code);
   const text =
     isReply && reply
-      ? dareReplyText({ points: reply.points, best: reply.best, senderPoints: reply.dare.points, moveNumber, twist: reply.twist })
+      ? dareReplyText({ points: reply.points, best: reply.best, senderPoints: hideTheirScore && sent === 0 ? 0 : reply.dare.points, moveNumber, twist: reply.twist })
       : dareShareText({ moveNumber, points: dare.points, best: dare.best, chain: dare.chain, chapterTitle });
   const card: DareCardModel = useMemo(
     () => ({ moveNumber, moveTitle, points: dare.points, best: dare.best, chain: dare.chain, deadlineLabel: 'Ends at midnight', code, chapterTitle }),
@@ -193,7 +193,11 @@ export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterT
             <p className={s.lead} data-testid="reply-lead">
               You can both earn points when you send it back.
             </p>
-            <Countdown deadline={dare.deadline} data-testid="reply-countdown" />
+            {reply.twist !== 'skipped' && reply.rematchDeadline ? (
+              <p className={s.fine} data-testid="reply-rematch-note">
+                Your rematch dare ends at midnight.
+              </p>
+            ) : null}
           </div>
           <div className={s.replyCard} aria-label="Your result">
             <span className={s.replyMove}>Move {moveNumber}</span>
@@ -208,7 +212,16 @@ export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterT
               </span>
               <span>
                 <small>Friend</small>
-                <strong>{hideTheirScore && sent === 0 ? '?' : `+${reply.dare.points.toLocaleString('en-US')}`}</strong>
+                <strong>
+                  {hideTheirScore && sent === 0 ? (
+                    <>
+                      <span aria-hidden="true">?</span>
+                      <span className="sr-only">hidden until you send</span>
+                    </>
+                  ) : (
+                    `+${reply.dare.points.toLocaleString('en-US')}`
+                  )}
+                </strong>
               </span>
             </span>
             {reply.best ? <span className={s.replyBest}>Best move found</span> : null}
@@ -256,7 +269,7 @@ export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterT
         <p className={s.incentive} data-testid="dare-incentive">
           <Icon name="sparkle" size={16} />
           <span>
-            +{FRIEND_POINTS.answer} when a friend answers. +{FRIEND_POINTS.understood} more when they find the best move and crack the twist. Up to {FRIEND_POINTS.perDareCap} friends per dare.
+            +{FRIEND_POINTS.answer} when a friend answers. +{FRIEND_POINTS.understood} more when they find the best move and crack the twist. Up to {FRIEND_POINTS.perDareCap} friends per dare and {FRIEND_POINTS.perDayCap} a day.
           </span>
         </p>
 

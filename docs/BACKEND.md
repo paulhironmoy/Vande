@@ -126,9 +126,12 @@ friend answers the dared question      startVerifiedAttempt({ optedIn, installId
 friend answers or skips the twist,     gradeVerifiedAttempt({ optedIn, installId, dare, attemptId, twistAnswer })
 then sends the reply                   -> { points, best, twistId?, twist, nonce, verified, sig, graded }
   POST /v1/lite/attempts/:id/grade        build the R2 reply from these values + sig; null -> unsigned reply
-helper opens the reply link            verifyReplySignature(reply)   (offline, public key only)
-                                          true -> awardHelperReply(..., verified = true)
-anyone, Lite start / dare landings     <LiteGoal optedIn={...} />    GET /v1/lite/goal/:day (edge-cached)
+helper opens the reply link            replyCountsAsVerified(reply)  (offline, public key only)
+                                          true only for a valid 'dare+twist' signature
+                                          -> awardHelperReply(..., verified = true); a valid 'twist'
+                                          signature is not a verified award (points are claimed)
+anyone, Lite start / dare landings     <LiteGoal optedIn={...} />    GET /v1/lite/goal/:day (edge-cached;
+                                          replay-verified answers only, so hidden on the free-plan default)
 ```
 
 `optedIn` is `useApp.getState().settings.communitySharing === 'on'` and `installId` is `useApp.getState().installId`.
@@ -142,7 +145,7 @@ best-move flag and the action kind of the best move (`rule` for fair-play steps)
 | --- | --- | --- | --- |
 | POST | `/v1/lite/attempts` | `{ v: 1, dare: { seed, path, step, deadline }, deviceKey, nonce, answerPath, claim: { points, best, kind } }` | `201` created, `200` existing attempt (same device key + dare: same attempt, twist and nonce back, whatever the new body says), `400` invalid or does not replay, `403` origin, `413` > 2 KB, `429` > `RATE_LIMIT_DARES_PER_MINUTE`, `503` not configured / switched off |
 | POST | `/v1/lite/attempts/:attemptId/grade` | `{ v: 1, deviceKey, twistAnswer: 'a'..'d' \| null }` | `200` graded (`graded: true`) or the stored result of an earlier grade (`graded: false`, same signature, never regraded), `404` unknown attempt or a different device key (same answer, so attempt ids leak nothing), `409` twist no longer in the pool, `400`, `413`, `429`, `503` |
-| GET | `/v1/lite/goal/:day` | none (UTC `YYYY-MM-DD`) | `{ day, answers, minCohort, ready, best?, share?, asOf }`; `best` and `share` only when `answers ≥ MIN_COHORT`; `cache-control: public, max-age=300`, edge-cached like daily stats, uncached reads rate limited |
+| GET | `/v1/lite/goal/:day` | none (UTC `YYYY-MM-DD`) | `{ day, answers, minCohort, ready, best?, share?, asOf }`; `best` and `share` only when `answers ≥ MIN_COHORT`; `cache-control: public, max-age=300`, edge-cached like daily stats, uncached reads rate limited. **Counts only replay-verified (`v`) graded answers**, at most `LITE_GOAL_PER_ADDRESS_PER_DAY` (3) per address per UTC day, so a claim can never move it and one network cannot fill it; with replay off (the free-plan default) it stays at 0, never `ready`, and the app shows no goal line |
 
 `deviceKey` = `sha256(installId + ':' + dareIdentity(dare))` as 64 lowercase hex, computed on the device. The same
 device gets unrelated keys for different dares, so attempts cannot be linked across dares, and the install id never
@@ -166,9 +169,12 @@ the R2 reply's `_x` field (`sig` = marker + hex, 129 characters):
   friend's app claimed. Fair-play answers are still scored from the content (that needs no replay), and the answer
   must name a real option of the dared question.
 
-The marker is inside the signed string, so it cannot be swapped. `replyVerification(reply)` returns `'dare+twist'`,
-`'twist'` or `null`; `gradeVerifiedAttempt` checks every signature against the build's public key before returning it,
-so a key mismatch produces unsigned replies instead of links that fail later.
+The marker is inside the signed string, so it cannot be swapped. `replyVerifiedScope(reply)` (alias
+`replyVerification`) returns `'dare+twist'`, `'twist'` or `null`. **For awards only `'dare+twist'` counts as verified**
+(`replyCountsAsVerified(reply)`): a `'twist'` signature proves the server graded the twist, but the move points and
+best flag in it are the friend's claim. `verifyReplySignature(reply)` only answers whether the signature is valid, for
+either scope. `gradeVerifiedAttempt` checks every signature against the build's public key before returning it, so a
+key mismatch produces unsigned replies instead of links that fail later.
 
 ### Replay CPU, and why the free-plan default signs `t`
 
@@ -193,11 +199,16 @@ under a millisecond.
 step and deadline; nonce; answer path; recorded points and best flag; kind; twist id; marker; then, once graded, the
 twist answer, outcome `r|w|s`, the stored signature and `graded_at`) and `lite_goal` (one row per UTC day: `answers`,
 `best`, `updated_at`). Grading is a single `UPDATE … WHERE outcome IS NULL`, so concurrent grades cannot double-count;
-the goal row moves only for the call that graded. The daily cron deletes attempts after **7 days** and goal rows after
-180 days. Apply with `npx wrangler d1 migrations apply vande-community --remote` (documented; not run).
+the goal row moves only for the call that graded, only for a `v` attempt, and only while that address is under its
+daily goal cap: a salted per-day key in `rate_buckets` (scope `goal`, window = the UTC day), pruned with the minute
+buckets once its day is more than 24 hours old. Without `RATE_SALT` (local development) nothing is counted, because the
+cap could not be applied. The daily cron deletes attempts after **7 days** and goal rows after 180 days. Apply with
+`npx wrangler d1 migrations apply vande-community --remote` (documented; not run).
 
-Writes per answered dare: start = attempt insert + rate bucket (2 rows); grade = attempt update + goal upsert + rate
-bucket (3 rows): **5 rows written, 2 requests**. Goal reads: 1 rate bucket + 1 row on an edge-cache miss.
+Writes per answered dare: start = attempt insert + rate bucket (2 rows); grade = attempt update + rate bucket (2 rows),
+plus, for replay-verified attempts only, the goal-cap bucket and (under the cap) the goal upsert. **Default (`t`): 4
+rows written, 2 requests; with replay (`v`): up to 6 rows.** Goal reads: 1 rate bucket + 1 row on an edge-cache miss.
+(`docs/COST.md` still uses 5 rows per dare, which sits between the two.)
 
 ### Secrets, keys and enabling (documented, not run)
 
@@ -219,6 +230,9 @@ the app; replies signed with the old key stop verifying and simply count as loca
   signed field of a reply; (with `v`) claiming points or a best move the replay does not show.
 * **Does not stop**: a second device or a made-up install id (a new device key = a new attempt; the per-dare and daily
   caps bound the payoff); live coaching; reading answers from the app bundle.
+* **The shared goal** counts only replay-verified answers, at most 3 per address per UTC day, so claimed results (`t`)
+  can never move it and one network cannot fill it. Scripted but genuine answers from many addresses could still
+  nudge it; the cohort threshold and the per-address cap bound that.
 * **The twist answer key also ships in the app** for offline play. Anything with real value (prizes, a public
   leaderboard) must serve twists and their answers from the server only, and should require `v` signatures. See
   `docs/COMPETITION-READINESS.md`.

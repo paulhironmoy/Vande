@@ -13,6 +13,7 @@ const ICONS: Record<string, IconName> = {
   'no-loss': 'shield',
   helper: 'users',
   challenger: 'message',
+  dares: 'clock',
   sharing: 'share',
 };
 

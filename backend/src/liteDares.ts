@@ -15,6 +15,10 @@
  * the replay, records the app's claim (checking what needs no replay: indexes, fair-play correctness, kind shape) and
  * signs with marker 't' (twist graded by the server, dare part as claimed).
  *
+ * The shared goal counts only replay-verified ('v') answers, and at most LITE_GOAL_PER_ADDRESS_PER_DAY of them per
+ * address per UTC day (a salted per-day hash in rate_buckets), so a claim can never move it and one network cannot
+ * fill it. On the free-plan default the goal therefore never reaches the cohort and the app keeps the line hidden.
+ *
  * Fails closed: without RATE_SALT (and ALLOW_UNLIMITED_WRITES), without a usable DARE_SIGNING_KEY, or with
  * KILL_LITE_DARES=1, start and grade answer 503 and the app falls back to local twists and unsigned replies.
  */
@@ -43,6 +47,7 @@ import {
   type VerifiedMarker,
 } from '@/community/liteDareProtocol';
 import {
+  DEFAULT_LITE_GOAL_PER_ADDRESS_PER_DAY,
   DEFAULT_MIN_COHORT,
   DEFAULT_RATE_LIMIT_DARES_PER_MINUTE,
   DEFAULT_RATE_LIMIT_READS_PER_MINUTE,
@@ -53,7 +58,7 @@ import {
 } from './contract';
 import type { D1Like } from './d1';
 import { JSON_HEADERS, json, readBody, receivedHour } from './http';
-import { checkRateLimit } from './ratelimit';
+import { DAY_MS, checkRateLimit } from './ratelimit';
 import { signHex, signingKey } from './signing';
 import { SQL } from './sql';
 import { isRealUtcDate } from './validate';
@@ -72,6 +77,8 @@ export interface LiteEnv {
   KILL_LITE_DARES?: string;
   /** '1' replays every dare and answer before signing (marker 'v'). Needs Workers Paid CPU limits; default off ('t'). */
   LITE_VERIFY_REPLAY?: string;
+  /** Replay-verified answers one address can add to the goal per UTC day (default 3; '0' stops the goal). */
+  LITE_GOAL_PER_ADDRESS_PER_DAY?: string;
 }
 
 export interface LiteContext {
@@ -434,10 +441,26 @@ async function grade(request: Request, env: LiteEnv, ctx: LiteContext, attemptId
   const sig = `${marker}${await signHex(gate.key, canonical)}`;
   const updated = await env.DB.prepare(SQL.liteGradeAttempt).bind(attemptId, input.twistAnswer ?? '', outcome, sig, now.getTime()).run();
   const graded = (updated.meta?.changes ?? 0) > 0;
-  if (graded) await env.DB.prepare(SQL.liteBumpGoal).bind(now.toISOString().slice(0, 10), Number(row.best) === 1 ? 1 : 0, receivedHour(now)).run();
+  if (graded && row.marker === 'v') await countGoal(env, ctx, Number(row.best) === 1);
   const stored = graded ? { ...row, twist_answer: input.twistAnswer ?? '', outcome, sig, graded_at: now.getTime() } : await env.DB.prepare(SQL.liteAttemptById).bind(attemptId).first<AttemptRow>();
   if (!stored || !stored.outcome) return json({ error: 'internal error' }, 500, cors);
   return json(gradeResponse(stored, graded), 200, cors);
+}
+
+/**
+ * Adds one graded, replay-verified answer to today's goal, at most LITE_GOAL_PER_ADDRESS_PER_DAY per address per UTC
+ * day. Without a salt (local development) or an address, nothing is counted: the cap could not be applied.
+ * Returns whether the answer was counted.
+ */
+export async function countGoal(env: LiteEnv, ctx: LiteContext, best: boolean): Promise<boolean> {
+  if (!env.RATE_SALT || !ctx.ip) return false;
+  const raw = Number(env.LITE_GOAL_PER_ADDRESS_PER_DAY ?? DEFAULT_LITE_GOAL_PER_ADDRESS_PER_DAY);
+  const limit = Number.isFinite(raw) && raw >= 0 ? Math.floor(raw) : DEFAULT_LITE_GOAL_PER_ADDRESS_PER_DAY;
+  if (limit === 0) return false;
+  const cap = await checkRateLimit(env.DB, ctx.ip, env.RATE_SALT, limit, ctx.now.getTime(), 'goal', DAY_MS);
+  if (!cap.allowed) return false;
+  await env.DB.prepare(SQL.liteBumpGoal).bind(ctx.now.toISOString().slice(0, 10), best ? 1 : 0, receivedHour(ctx.now)).run();
+  return true;
 }
 
 /** Public goal numbers: the count always, the best-move share only from MIN_COHORT graded answers. */

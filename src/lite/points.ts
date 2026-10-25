@@ -183,13 +183,13 @@ export function pointsRules(): PointsRule[] {
     {
       id: 'move',
       title: 'Every move',
-      text: `${p.moveBase} points. Plus ${p.movePerBarPoint} for each step a city bar goes up, minus ${p.movePerBarPoint} for each step down. Never less than ${p.moveMin}.`,
+      text: `A move starts at ${p.moveBase}. Each step a city bar goes up adds ${p.movePerBarPoint}. Each step down takes ${p.movePerBarPoint} off that move. A move always scores at least ${p.moveMin}.`,
     },
     { id: 'clue-bonus', title: 'Clue bonus', text: `Scanned the clue a move needs? That move scores ${times(p.clueMultiplier)}.` },
     {
       id: 'streak',
       title: 'Streak',
-      text: `Fair moves in a row: ${streakSteps.slice(0, -1).join(', ')}, up to ${streakSteps[streakSteps.length - 1]}. A harsh move resets it.`,
+      text: `Fair moves in a row score a bit more each time (${streakSteps.slice(0, -1).join(', ')}), up to double (${streakSteps[streakSteps.length - 1]}). A harsh move starts it again.`,
     },
     { id: 'clues', title: 'Clues', text: `+${p.clueVerified} for checking a real clue. +${p.clueFakeCaught} for catching a fake.` },
     { id: 'fair-play', title: 'Fair-play questions', text: `+${p.fairPlayCorrect} for the fair answer.` },
@@ -210,6 +210,7 @@ export function pointsRules(): PointsRule[] {
       text: `+${f.answer} when a friend answers your dare. +${f.understood} more when they find the best move and crack the twist. Up to ${f.perDareCap} friends per dare and ${f.perDayCap} a day.`,
     },
     { id: 'challenger', title: f.challengerName, text: `Answer a friend's dare and send your result back to earn the same. Up to ${f.perDayCap} a day.` },
+    { id: 'dares', title: 'Dares and rematches', text: `No streak and no ${INSIGHT.short} points in dares, twists or rematches. A dare earns nothing after it ends.` },
     { id: 'sharing', title: 'Sharing', text: 'Sharing never changes your score, stars or medals.' },
   ];
 }

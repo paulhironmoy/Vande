@@ -8,14 +8,14 @@ import { Countdown } from '@/components/game/dare/Countdown';
 import { TwistQuestion } from '@/components/game/twist';
 import { dareTimeLeft, type DareReply } from '@/share/dare';
 import { FRIEND_POINTS } from '@/lite/points';
-import { awardHelperReply, readLedger, replyIdentity, writeLedger } from '@/lite/ledger';
-import { answerRematch, ensureRematch, readRematch, twistById, type RematchRecord } from '@/lite/twists';
+import { awardHelperReply, readLedger, replyIdentity, revealReply, visibleHelper, writeLedger } from '@/lite/ledger';
+import { answerRematch, dareKeyOf, ensureRematch, readAttempt, readRematch, twistById, type RematchRecord } from '@/lite/twists';
 import type { AwardResult, FriendLedger } from '@/lite/contracts';
 import s from './LitePlayScreen.module.css';
 
 const fmt = (n: number) => Math.round(n).toLocaleString('en-IN');
 
-type Award = Pick<AwardResult, 'earned' | 'fresh' | 'upgraded' | 'capped'>;
+type Award = Pick<AwardResult, 'earned' | 'fresh' | 'upgraded' | 'capped' | 'notOwner'>;
 
 /** One award per reply per page load, so React's development double effects never count a reply twice. */
 const awardMemo = new Map<string, Award>();
@@ -48,9 +48,13 @@ export function ReplyLanding({ reply, replyCode, onPlay, onDareMore, onHowPoints
   const replyKey = replyIdentity(reply, replyCode);
   const [rematch, setRematch] = useState<RematchRecord | undefined>(() => (twist ? readRematch(replyKey) : undefined));
   const [playing, setPlaying] = useState(false);
+  /** The helper chose to see the friend's twist result without playing the rematch. */
+  const [shownAnyway, setShownAnyway] = useState(false);
+  /** The twist-dependent bonus revealed by answering the rematch in this visit (shown in the verdict). */
+  const [revealedBonus, setRevealedBonus] = useState(0);
   const rematchExpired = reply.rematchDeadline ? dareTimeLeft(reply.rematchDeadline).expired : false;
   /** The friend took a twist the helper has not answered yet: its outcome must stay hidden. */
-  const twistPending = Boolean(twist) && !rematch?.answer;
+  const twistPending = Boolean(twist) && !rematch?.answer && !shownAnyway;
 
   useEffect(() => {
     let cancelled = false;
@@ -72,9 +76,10 @@ export function ReplyLanding({ reply, replyCode, onPlay, onDareMore, onHowPoints
       if (cancelled && awardMemo.has(replyCode)) return;
       let res = awardMemo.get(replyCode);
       if (!res) {
-        const out = awardHelperReply(readLedger(), reply, replyCode, new Date(), verified);
+        const ownNonce = readAttempt(dareKeyOf(reply.dare))?.nonce;
+        const out = awardHelperReply(readLedger(), reply, replyCode, new Date(), verified, { ownNonce });
         writeLedger(out.ledger);
-        res = { earned: out.earned, fresh: out.fresh, upgraded: out.upgraded, capped: out.capped };
+        res = { earned: out.earned, fresh: out.fresh, upgraded: out.upgraded, capped: out.capped, notOwner: out.notOwner };
         awardMemo.set(replyCode, res);
         track('lite_reply_opened', { awarded: out.earned > 0, capped: Boolean(out.capped) });
         const shown = twist && !readRematch(replyKey)?.answer ? visiblePart(res) : res.earned;
@@ -100,6 +105,8 @@ export function ReplyLanding({ reply, replyCode, onPlay, onDareMore, onHowPoints
       firstPhase.current = false;
       return;
     }
+    // On the rematch result, TwistQuestion moves focus to its own "Right!" / "Not quite" heading.
+    if (phase === 'rematch-result') return;
     const h = rootRef.current?.querySelector('h1, h2') as HTMLElement | null;
     if (h) {
       if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
@@ -108,10 +115,15 @@ export function ReplyLanding({ reply, replyCode, onPlay, onDareMore, onHowPoints
   }, [phase]);
 
   /**
-   * The part of this friend's Helper points that depends on their twist (the +100), from the ledger entry for this
-   * reply, so it stays hidden across reloads and follow-up replies until the rematch is answered.
+   * The part of this friend's Helper points that depends on their twist (the +100, or 0) stays pending in the ledger
+   * until the rematch is answered (or the helper asks to see it), and every tally leaves pending parts out.
    */
-  const hiddenBonus = twist ? Math.max(0, (ledger.replies[replyKey] ?? 0) - FRIEND_POINTS.answer) : 0;
+  const reveal = () => {
+    if (!(replyKey in readLedger().pending)) return;
+    const l = revealReply(readLedger(), replyKey);
+    writeLedger(l);
+    setLedger(l);
+  };
 
   const startRematch = () => {
     if (!twist) return;
@@ -126,9 +138,12 @@ export function ReplyLanding({ reply, replyCode, onPlay, onDareMore, onHowPoints
     if (!twist || !rematch || rematch.answer) return;
     const rec = answerRematch(replyKey, optionId) ?? { ...rematch, answer: optionId, outcome: optionId === twist.best ? ('right' as const) : ('wrong' as const) };
     setRematch({ ...rec });
+    const bonus = readLedger().pending[replyKey] ?? 0;
+    setRevealedBonus(bonus);
+    reveal();
     const mineRight = rec.answer === twist.best;
     const theirsRight = reply.twist === 'right';
-    if ((mineRight && !theirsRight) || hiddenBonus > 0) {
+    if ((mineRight && !theirsRight) || bonus > 0) {
       playGameSound('win');
       haptic('success');
       fireConfetti({ count: 120, spread: 90 });
@@ -140,14 +155,20 @@ export function ReplyLanding({ reply, replyCode, onPlay, onDareMore, onHowPoints
   const shownEarned = award ? (twistPending ? visiblePart(award) : award.earned) : 0;
   const awardLine = !award
     ? ''
-    : award.capped === 'day'
+    : award.notOwner
+      ? 'Only the person who sent this dare earns Helper points. You can still play the rematch.'
+      : award.capped === 'ended'
+        ? 'Your friend answered after the dare ended, so there are no Helper points this time.'
+        : award.capped === 'day'
       ? `You've helped ${FRIEND_POINTS.perDayCap} friends today. New Helper points start at midnight.`
       : award.capped === 'dare'
         ? `This dare already rewarded ${FRIEND_POINTS.perDareCap} friends. Dare a new move to earn more.`
         : twistPending
-          ? award.fresh
+          ? award.fresh && reply.best
             ? `Helper points for their answer. Answer their twist to see if you earned +${FRIEND_POINTS.understood} more.`
-            : 'Answer their twist to see how they did.'
+            : award.fresh
+              ? 'Helper points for their answer. Answer their twist to see how they did.'
+              : 'Answer their twist to see how they did.'
           : award.upgraded
             ? 'They came back and cracked the twist. More Helper points for you.'
             : award.fresh
@@ -156,12 +177,8 @@ export function ReplyLanding({ reply, replyCode, onPlay, onDareMore, onHowPoints
                 : 'Helper points for a friend who played. A hint can help them crack the twist next time.'
               : 'You already counted this reply.';
 
-  // While the twist is pending, the tally leaves out the hidden +100 (and its "understood" count).
-  const shownStats = {
-    answers: ledger.helper.answers,
-    understood: ledger.helper.understood - (twistPending && hiddenBonus > 0 ? 1 : 0),
-    points: ledger.helper.points - (twistPending ? hiddenBonus : 0),
-  };
+  // Every tally leaves out pending twist-dependent points (this reply's and any other unanswered rematch's).
+  const shownStats = visibleHelper(ledger);
 
   if (twist && rematch && playing) {
     const mineRight = rematch.answer ? rematch.answer === twist.best : undefined;
@@ -179,16 +196,21 @@ export function ReplyLanding({ reply, replyCode, onPlay, onDareMore, onHowPoints
     return (
       <section className={s.stage} ref={rootRef} aria-label="Rematch">
         <TwistQuestion twist={twist} order={rematch.order} answer={rematch.answer} onAnswer={onRematchAnswer} testIdPrefix="rematch" kicker="Rematch · your friend's twist" />
+        <p className="sr-only" role="status">
+          {verdict
+            ? `${verdict} ${theirsRight ? 'Your friend got this twist right.' : 'Your friend did not get this twist.'}${revealedBonus > 0 ? ` Plus ${revealedBonus} bonus Helper points.` : ''}`
+            : ''}
+        </p>
         {verdict ? (
           <div className={s.dareResult} data-win={mineRight && !theirsRight ? 'true' : undefined} data-testid="rematch-verdict">
             <p className={s.kicker}>{verdict}</p>
             <p className={s.leadSmall}>{theirsRight ? 'Your friend got this twist right.' : 'Your friend did not get this twist.'}</p>
-            {hiddenBonus > 0 ? (
+            {revealedBonus > 0 ? (
               <p className={s.gain} data-tone="great" data-testid="rematch-bonus">
-                +{fmt(hiddenBonus)}
+                +{fmt(revealedBonus)}
               </p>
             ) : null}
-            {hiddenBonus > 0 ? <p className={s.leadSmall}>Your bonus Helper points: they found the best move and cracked the twist.</p> : null}
+            {revealedBonus > 0 ? <p className={s.leadSmall}>Your bonus Helper points: they found the best move and cracked the twist.</p> : null}
             <Button variant="primary" size="lg" block icon="share" onClick={onDareMore} data-testid="reply-dare-more">
               Dare more friends
             </Button>
@@ -251,6 +273,20 @@ export function ReplyLanding({ reply, replyCode, onPlay, onDareMore, onHowPoints
           <Button variant="primary" size="lg" block icon="play" onClick={startRematch} data-testid="rematch-accept">
             {rematch?.answer ? 'See the rematch' : rematchExpired ? 'Try it anyway' : 'Answer their twist'}
           </Button>
+          {twistPending ? (
+            <Button
+              variant="ghost"
+              size="md"
+              block
+              onClick={() => {
+                setShownAnyway(true);
+                reveal();
+              }}
+              data-testid="rematch-skip"
+            >
+              Just show me how they did
+            </Button>
+          ) : null}
         </div>
       ) : null}
       <Button variant={twist ? 'secondary' : 'primary'} size="lg" block icon="share" onClick={onDareMore} data-testid="reply-dare-more">
