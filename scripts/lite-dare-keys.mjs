@@ -7,8 +7,10 @@
  *
  * - The private key (JWK) belongs only in the Worker secret DARE_SIGNING_KEY. Never commit it or put it in .env files.
  * - The public key (uncompressed point, hex) is safe to publish: it goes into the app build as VITE_DARE_PUBLIC_KEY.
- * Rotating keys: install a new pair, rebuild the app with the new public key; replies signed with the old key then stop
- * verifying and count as ordinary local replies (nothing breaks).
+ * Rotating keys: every signature names its key id (the first 8 hex of the public key's SHA-256). Add the new public
+ * key to VITE_DARE_PUBLIC_KEYS next to the old one, rebuild and ship the app, then switch the Worker secret to the new
+ * private key; once installed apps have updated, drop the old key from the list. Replies signed with a key the app does
+ * not list stop verifying and count as ordinary local replies (nothing breaks). See docs/ROLLBACK.md.
  */
 import { webcrypto } from 'node:crypto';
 
@@ -29,6 +31,7 @@ if (!(await subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, reimported, sig, p
   process.exit(1);
 }
 const fingerprint = hex(await subtle.digest('SHA-256', Buffer.from(publicHex, 'hex'))).slice(0, 16);
+const keyId = fingerprint.slice(0, 8);
 
 console.log(`VANDE verified dares: a fresh signing key pair. Nothing was written to disk or sent anywhere.
 
@@ -44,10 +47,14 @@ ${privateJwk}
      VITE_DARE_PUBLIC_KEY=${publicHex}
      VITE_LITE_VERIFIED_DARES=1
 
+   When ROTATING, keep the old key valid too: list both in VITE_DARE_PUBLIC_KEYS (comma-separated public keys),
+   ship the app, then change the Worker secret. Signatures carry key id ${keyId}.
+
    (Verified dares also need VITE_COMMUNITY_API_URL, and each player must opt in to community sharing.)
 
 3) Optional, Workers Paid only: full replay verification (signatures marked "dare+twist" instead of "twist").
    In backend/wrangler.toml [vars] set   LITE_VERIFY_REPLAY = "1"
 
+Key id (what signatures carry): ${keyId}
 Public key fingerprint (sha256, first 16 hex): ${fingerprint}
 Clear your terminal scrollback after copying the private key.`);

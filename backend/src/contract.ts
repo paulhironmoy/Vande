@@ -51,12 +51,28 @@ export const RESULT_RETENTION_DAYS = 180;
 export const LITE_ATTEMPT_RETENTION_DAYS = 7;
 /** Per-day goal rows (counts only) are kept as long as daily results. */
 export const LITE_GOAL_RETENTION_DAYS = RESULT_RETENTION_DAYS;
-/** Start and grade requests per address per minute (salted hash, never the address). Generous for school networks. */
+/** Start and grade requests per network per minute (salted hash, never the address). Generous for school networks. */
 export const DEFAULT_RATE_LIMIT_DARES_PER_MINUTE = 60;
 /** Goal responses are cached at the edge (and by browsers) for this long. */
 export const LITE_GOAL_CACHE_SECONDS = 300;
 /**
- * Graded answers one address can add to the shared goal per UTC day (salted, per-day hash in rate_buckets). Only
+ * Graded answers one network can add to the shared goal per UTC day (salted, per-day hash in rate_buckets). Only
  * replay-verified ('v') answers count at all, so on the free-plan default the goal never fills and stays hidden.
  */
 export const DEFAULT_LITE_GOAL_PER_ADDRESS_PER_DAY = 3;
+/** A goal response that says the goal is off on this deployment (no replay verification) is cached this long. */
+export const LITE_GOAL_OFF_CACHE_SECONDS = 3600;
+/**
+ * Global ceilings across every client, per minute: all POSTs together, and all uncached reads together. They bound
+ * what address rotation can cost. With the Workers Rate Limiting binding RL_GLOBAL the binding's own limit applies
+ * (per Cloudflare location); these values are for the D1 fallback. Raise them as real traffic grows.
+ */
+export const DEFAULT_RATE_LIMIT_GLOBAL_WRITES_PER_MINUTE = 1200;
+export const DEFAULT_RATE_LIMIT_GLOBAL_READS_PER_MINUTE = 2400;
+/**
+ * D1 statements one scheduled cleanup may run across all tables (`CLEANUP_MAX_QUERIES`). D1 allows 50 queries per
+ * Worker invocation on Workers Free and 1,000 on Workers Paid; 45 statements of 2,000 rows clear up to 90,000 expired
+ * rows a run, more than the free plan's 100,000 writes a day can create and later delete. Raise it on Workers Paid as
+ * traffic grows (docs/COST.md).
+ */
+export const DEFAULT_CLEANUP_MAX_QUERIES = 45;

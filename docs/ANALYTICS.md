@@ -70,7 +70,7 @@ three challenge events; Simple vs Full completion by `mode`.
 | Event | When | Properties | What it answers |
 | --- | --- | --- | --- |
 | `lite_completed` | A Lite run reaches its result card | `state: 'completed'`, `visualQuestions`, `visualBest`, `textQuestions`, `textBest` | Do pictures make move questions easier or harder? Compare best-pick rates on picture and text questions. |
-| `lite_shared` | Any successful share in the challenge, dare or reply sheet | `shareMethod` | How often players share, and how. |
+| `lite_shared` | Any successful share in the challenge, dare or reply sheet | `shareMethod` (`native`, `clipboard`, `download`, or `channel` for a messaging-app link: WhatsApp, Telegram, X, Messages, Email) | How often players share, and how. |
 | `lite_challenge_opened` | A `/lite/<code>` challenge link opens, or a friend takes a dare | none | Do shared links get opened? |
 | `lite_twist_answered` | A friend answers the twist | `right` | How often friends crack the twist. |
 | `lite_reply_sent` | Each successful share action in the reply sheet | `shareMethod`, `tradeResults` | Reply rate, with the trade-results experiment on and off. |

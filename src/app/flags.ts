@@ -18,6 +18,8 @@
  *                              also have opted in to community sharing (checked by src/community/liteDares.ts)
  *   VITE_DARE_PUBLIC_KEY       P-256 public key that checks verified-dare signatures offline: the uncompressed point
  *                              as 130 hex characters (04…), printed by scripts/lite-dare-keys.mjs. Public, not secret
+ *   VITE_DARE_PUBLIC_KEYS      More public keys (comma or space separated), e.g. old and new during a key rotation;
+ *                              every signature names its key by id, so all listed keys are accepted
  */
 const env = import.meta.env as Record<string, string | undefined>;
 
@@ -27,8 +29,13 @@ function on(value: string | undefined): boolean {
 
 const communityApiUrl = (env.VITE_COMMUNITY_API_URL ?? '').replace(/\/+$/, '');
 const communityEnabled = Boolean(env.VITE_COMMUNITY_API_URL) && !on(env.VITE_KILL_COMMUNITY);
-const darePublicKeyRaw = (env.VITE_DARE_PUBLIC_KEY ?? '').trim().toLowerCase();
-const darePublicKey = /^04[0-9a-f]{128}$/.test(darePublicKeyRaw) ? darePublicKeyRaw : '';
+const publicKeysOf = (raw: string | undefined) =>
+  (raw ?? '')
+    .split(/[\s,]+/)
+    .map((k) => k.trim().toLowerCase())
+    .filter((k) => /^04[0-9a-f]{128}$/.test(k));
+const darePublicKeys: readonly string[] = [...new Set([...publicKeysOf(env.VITE_DARE_PUBLIC_KEY), ...publicKeysOf(env.VITE_DARE_PUBLIC_KEYS)])];
+const darePublicKey = darePublicKeys[0] ?? '';
 
 export const flags = {
   communityApiUrl,
@@ -40,13 +47,15 @@ export const flags = {
   remindersEnabled: env.VITE_REMINDERS !== 'off',
   /** Lite experiment, off by default: "who won" on a dare unlocks after the friend sends their result back. */
   liteTradeResults: on(env.VITE_LITE_TRADE_RESULTS),
-  /** Verified dares public key (uncompressed P-256 point, lowercase hex), or '' when missing or malformed. */
+  /** Every accepted verified-dares public key (uncompressed P-256 points, lowercase hex); malformed ones are dropped. */
+  darePublicKeys,
+  /** The first accepted public key, or '' when none (kept for callers that only need "is a key configured"). */
   darePublicKey,
   /**
    * Verified dares are on for this build: community API configured, kill switch off, VITE_LITE_VERIFIED_DARES on and
    * a well-formed public key. Players must still opt in to community sharing (verifiedDaresEnabled in liteDares.ts).
    */
-  liteVerifiedDares: communityEnabled && Boolean(communityApiUrl) && on(env.VITE_LITE_VERIFIED_DARES) && darePublicKey !== '',
+  liteVerifiedDares: communityEnabled && Boolean(communityApiUrl) && on(env.VITE_LITE_VERIFIED_DARES) && darePublicKeys.length > 0,
   /** Minimum accepted official results before community percentages are shown (mirrors the backend default). */
   communityMinCohort: 25,
 } as const;

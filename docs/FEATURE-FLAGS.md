@@ -12,8 +12,9 @@ zero-cost app: no community submissions, no statistics requests, no analytics.
 | `VITE_KILL_ANALYTICS` | unset | `1` disables analytics even when configured. |
 | `VITE_REMINDERS` | `on` | `off` hides the reminder feature entirely. |
 | `VITE_LITE_TRADE_RESULTS` | unset (off) | Experiment: `1` makes "who won" on a Lite dare unlock only after the friend sends their result back. Their own score and the full reveal always show at once. Measure with `lite_reply_sent` (`tradeResults`). |
-| `VITE_LITE_VERIFIED_DARES` | unset (off) | `1` turns on verified dares: the community API draws and grades the friend's twist and signs the reply (`docs/BACKEND.md`). Takes effect only with `VITE_COMMUNITY_API_URL`, a valid `VITE_DARE_PUBLIC_KEY` and `VITE_KILL_COMMUNITY` unset, and only for players who switched on **Share anonymous results**. |
-| `VITE_DARE_PUBLIC_KEY` | empty | P-256 public key (uncompressed point, `04` + 128 hex) that checks verified-dare signatures offline. Public. Printed by `node scripts/lite-dare-keys.mjs`; a malformed value counts as missing (verified dares stay off). |
+| `VITE_LITE_VERIFIED_DARES` | unset (off) | `1` turns on verified dares: the community API draws and grades the friend's twist and signs the reply (`docs/BACKEND.md`). Takes effect only with `VITE_COMMUNITY_API_URL`, at least one valid public key (`VITE_DARE_PUBLIC_KEYS` or `VITE_DARE_PUBLIC_KEY`) and `VITE_KILL_COMMUNITY` unset, and only for players who switched on **Share anonymous results**. |
+| `VITE_DARE_PUBLIC_KEYS` | empty | P-256 public keys (uncompressed points, `04` + 128 hex each, separated by commas or spaces) that check verified-dare signatures offline. Public. Each signature names its key by id, so during a rotation the build lists the old and the new key (`docs/ROLLBACK.md`). Malformed entries are ignored and duplicates dropped. |
+| `VITE_DARE_PUBLIC_KEY` | empty | One public key, as printed by `node scripts/lite-dare-keys.mjs`; merged with `VITE_DARE_PUBLIC_KEYS`. A malformed value counts as missing (with no valid key, verified dares stay off). |
 
 Runtime (player-controlled) switches, all in Settings and persisted locally:
 
@@ -24,12 +25,27 @@ Runtime (player-controlled) switches, all in Settings and persisted locally:
 | Daily reminder (`remindersEnabled`, `reminderHour`) | off | Local notifications on Android only; no server. |
 | Anonymous id | generated locally | "Replace my anonymous id" in Settings; also replaced by "Delete all local data". |
 
-Backend variables (`backend/wrangler.toml` `[vars]` / secrets): `ALLOWED_ORIGINS`, `MIN_COHORT` (25), `CONTENT_VERSIONS`
-allow-list, `RATE_SALT` (secret; **required** — without it POST returns 503 unless `ALLOW_UNLIMITED_WRITES=1`),
-`RATE_LIMIT_PER_MINUTE` (30), `RATE_LIMIT_READS_PER_MINUTE` (120). Verified dares: `DARE_SIGNING_KEY` (secret, the
-P-256 private JWK; **required** — without it the dare endpoints answer 503), `KILL_LITE_DARES` (`1` = dare endpoints
-off), `LITE_VERIFY_REPLAY` (`1` = replay each dare before signing, marker `v`; needs Workers Paid; default `0` signs
-`t`), `RATE_LIMIT_DARES_PER_MINUTE` (60). See `docs/BACKEND.md`.
+Backend variables (`backend/wrangler.toml` `[vars]`, secrets and bindings; see `docs/BACKEND.md`):
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `ALLOWED_ORIGINS` | the Pages origin, `https://localhost`, `capacitor://localhost` | Browser origins allowed by CORS |
+| `MIN_COHORT` | 25 | Results needed before percentages show |
+| `CONTENT_VERSIONS` | empty | Allow-list of daily content versions; empty accepts any well-formed one |
+| `RATE_SALT` | secret, **required** | Salt for the rate-limit keys; without it POST answers 503 |
+| `ALLOW_UNLIMITED_WRITES` | unset | `1` accepts writes without a salt, for local development only (warns once per isolate) |
+| `RATE_LIMIT_PER_MINUTE` | 30 | Result submissions per network (IPv4 address or IPv6 /64) per minute, D1 fallback |
+| `RATE_LIMIT_READS_PER_MINUTE` | 120 | Uncached stats and goal reads per network per minute, D1 fallback |
+| `RATE_LIMIT_DARES_PER_MINUTE` | 60 | Verified-dare start + grade per network per minute, D1 fallback |
+| `RATE_LIMIT_GLOBAL_WRITES_PER_MINUTE` | 1200 | All POSTs together (key `all-writes`): the ceiling address rotation cannot pass, D1 fallback |
+| `RATE_LIMIT_GLOBAL_READS_PER_MINUTE` | 2400 | All uncached reads together (key `all-reads`), D1 fallback |
+| `RL_WRITE`, `RL_READ`, `RL_DARE`, `RL_GLOBAL` | bindings in `[[ratelimits]]` (30, 120, 60 and 1,200 a minute) | Workers Rate Limiting bindings: the production limiter, with no D1 writes; their own limits apply per Cloudflare location. Without one, the matching D1 fallback above applies |
+| `CLEANUP_MAX_QUERIES` | 45 | D1 statements one daily cleanup may run (2,000 rows each). Raise it on Workers Paid as traffic grows (`docs/COST.md`) |
+| `DARE_SIGNING_KEY` | secret, **required** for verified dares | P-256 private JWK; without it (or if unusable) the dare endpoints answer 503 |
+| `KILL_LITE_DARES` | `0` | `1` switches the dare endpoints off (503) |
+| `LITE_VERIFY_REPLAY` | `0` | `1` replays each dare before signing (marker `v`; needs Workers Paid); `0` signs `t` |
+| `LITE_GOAL_PER_ADDRESS_PER_DAY` | 3 | Replay-verified answers one network can add to the daily goal; `0` turns the goal off |
+| `[observability]` | `enabled = false`, `invocation_logs = false` | Workers Logs off, because they would keep per-request records. Turning them on is a privacy change: update `docs/PRIVACY.md` first (`docs/BACKEND.md`, "Logs and observability") |
 
 ## Emergency kill switches (no redeploy of the app needed where noted)
 

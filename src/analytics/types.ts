@@ -38,7 +38,8 @@ export interface AnalyticsProps {
   state?: 'completed' | 'abandoned';
   /** Days since the previous session, bucketed (1, 2, 3-6, 7+). */
   returnGap?: '1' | '2' | '3-6' | '7+';
-  shareMethod?: 'native' | 'clipboard' | 'download';
+  /** 'channel' = a messaging-app link tapped in a Lite share sheet (WhatsApp, Telegram, X, Messages, Email). */
+  shareMethod?: 'native' | 'clipboard' | 'download' | 'channel';
   /** lite_twist_answered: the twist was answered right. */
   right?: boolean;
   /** lite_reply_sent: the trade-results experiment was on. */

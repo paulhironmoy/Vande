@@ -28,7 +28,7 @@ export interface DareSheetProps {
    * Called after every successful share action in either mode (share sheet, any channel tap, copy link), with how
    * it was shared. The Lite screen uses it to award Challenger points and record the reply as sent.
    */
-  onShared?: (method: ShareMethod) => void;
+  onShared?: (method: ShareMethod | 'channel') => void;
   /** Reply mode, trade-results experiment: hide the friend's score until this sheet has shared once. */
   hideTheirScore?: boolean;
 }
@@ -136,10 +136,10 @@ export function DareSheet({ open, onClose, dare, moveNumber, moveTitle, chapterT
 
   const sendTo = (channel: DareChannel) => {
     openTarget(channelUrl(channel, text, url));
-    track('lite_shared', { shareMethod: 'native' });
+    track('lite_shared', { shareMethod: 'channel' });
     haptic('light');
     lightSlot();
-    onShared?.('native');
+    onShared?.('channel');
   };
 
   const copyLink = async () => {

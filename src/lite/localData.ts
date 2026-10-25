@@ -25,7 +25,15 @@ export function wipeLiteLocalData(): void {
   }
   __resetLedgerForTests();
   __resetTwistStoreForTests();
+  try {
+    window.dispatchEvent(new Event(LITE_WIPED_EVENT));
+  } catch {
+    /* no window (tests, workers) */
+  }
 }
+
+/** Fired after the wipe so in-memory caches (the reply landing's award memo) forget too. */
+export const LITE_WIPED_EVENT = 'vande:lite-wiped';
 
 function safe<T>(get: () => T): T | null {
   try {

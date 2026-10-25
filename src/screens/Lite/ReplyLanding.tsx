@@ -19,6 +19,12 @@ type Award = Pick<AwardResult, 'earned' | 'fresh' | 'upgraded' | 'capped' | 'not
 
 /** One award per reply per page load, so React's development double effects never count a reply twice. */
 const awardMemo = new Map<string, Award>();
+try {
+  // Settings → Delete all local data (src/lite/localData.ts) fires this; forget the memo too.
+  window.addEventListener('vande:lite-wiped', () => awardMemo.clear());
+} catch {
+  /* no window */
+}
 
 export interface ReplyLandingProps {
   reply: DareReply;

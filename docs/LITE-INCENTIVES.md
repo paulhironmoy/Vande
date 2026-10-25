@@ -213,7 +213,7 @@ person using it. Before Helper points ever feed a leaderboard, a prize or anythi
 | Send back a reply long after the dare ended | Refused when the reply proves it was built late; the friend's own award is refused after the deadline | Same |
 | Set the device clock back to reopen today's caps | Counters only roll forward | Same |
 | Always tap the first card | Card order is shuffled per game | Same |
-| Script the goal line ("Today X% found the best move") | Not shown locally | Only replay-verified answers count, at most 3 per address per day |
+| Script the goal line ("Today X% found the best move") | Not shown locally | Only replay-verified answers count, at most 3 per network (an IPv4 address or an IPv6 /64) per day, under a global ceiling |
 
 Verified dares are built deployment-ready and switched off; endpoints, keys and flags live in
 `docs/BACKEND.md`, `docs/PRIVACY.md` and `docs/FEATURE-FLAGS.md`. Only a signature that vouches for both the dare and

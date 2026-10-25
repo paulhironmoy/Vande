@@ -6,7 +6,8 @@
  *   POST /v1/lite/attempts/:attemptId/grade  verified dares: grade and sign
  *   GET  /v1/lite/goal/:day                  verified dares: today's shared goal
  *   GET  /v1/health
- * No framework, no cookies, no raw IP storage. See backend/README.md and docs/BACKEND.md.
+ * No framework, no cookies, no raw IP storage. Every limit is keyed by network (IPv4 /32, IPv6 /64) under a global
+ * ceiling, through the Workers Rate Limiting bindings when configured (guards.ts). See docs/BACKEND.md.
  */
 import {
   DEFAULT_MIN_COHORT,
@@ -18,9 +19,10 @@ import {
 } from './contract';
 import { corsHeaders, originAllowed, parseOrigins } from './cors';
 import type { D1Like } from './d1';
-import { JSON_HEADERS, clientAddress, json, receivedHour } from './http';
+import { guardRead, guardWrite } from './guards';
+import { JSON_HEADERS, clientAddress, json, readBody, receivedHour, safeDecode } from './http';
 import { handleLite, pruneLite, type LiteEnv } from './liteDares';
-import { checkRateLimit, pruneRateBuckets } from './ratelimit';
+import { pruneBudget, pruneInBatches, pruneRateBuckets, type RateLimitBinding } from './ratelimit';
 import { SQL, jsonPath } from './sql';
 import { aggregatesFromStatsRow, bandOf, publicStats, strategyClass, type Aggregates, type CountRow, type StatsRow } from './stats';
 import { isRealUtcDate, validateSubmission } from './validate';
@@ -32,11 +34,11 @@ export interface Env extends LiteEnv {
   CONTENT_VERSIONS?: string;
   RATE_LIMIT_PER_MINUTE?: string;
   RATE_LIMIT_READS_PER_MINUTE?: string;
-  /** Secret (wrangler secret put RATE_SALT). Without it, writes are refused (503) unless ALLOW_UNLIMITED_WRITES=1. */
-  RATE_SALT?: string;
-  /** Explicit opt-out of write rate limiting for local development only. */
-  ALLOW_UNLIMITED_WRITES?: string;
   VERSION?: string;
+  /** D1 statements one scheduled cleanup may run (default 45, the free plan's 50-query limit with a margin). */
+  CLEANUP_MAX_QUERIES?: string;
+  /** Workers Rate Limiting binding for result submissions per network (wrangler.toml); D1 buckets without it. */
+  RL_WRITE?: RateLimitBinding;
 }
 
 /** The slice of the Cache API the worker uses (so tests can stub it). */
@@ -52,8 +54,6 @@ export interface HandlerOptions {
   /** Lets the cache write outlive the response (Cloudflare `ctx.waitUntil`). */
   waitUntil?: (p: Promise<unknown>) => void;
 }
-
-let warnedUnlimited = false;
 
 /** Fallback only: scans the day's rows when no incremental `daily_stats` row exists (pre-migration data). */
 async function fullAggregates(db: D1Like, dailyId: string, contentVersion: string): Promise<Aggregates> {
@@ -105,8 +105,8 @@ export async function handle(request: Request, env: Env, opts: HandlerOptions = 
 
   const match = url.pathname.match(/^\/v1\/daily\/([^/]+)\/(results|stats)$/);
   if (!match) return json({ error: 'not found' }, 404, cors);
-  const dailyId = decodeURIComponent(match[1]);
-  if (!isRealUtcDate(dailyId)) return json({ error: 'invalid daily id' }, 400, cors);
+  const dailyId = safeDecode(match[1]);
+  if (dailyId === null || !isRealUtcDate(dailyId)) return json({ error: 'invalid daily id' }, 400, cors);
   const resource = match[2];
 
   if (resource === 'stats') {
@@ -121,11 +121,9 @@ export async function handle(request: Request, env: Env, opts: HandlerOptions = 
       if (hit) return new Response(hit.body, { status: hit.status, headers: { ...JSON_HEADERS, ...statsHeaders, 'x-cache': 'hit' } });
     }
     // Reads are limited only on a cache miss (the expensive path); the cap is generous.
-    if (env.RATE_SALT && ip) {
-      const limit = Number(env.RATE_LIMIT_READS_PER_MINUTE ?? DEFAULT_RATE_LIMIT_READS_PER_MINUTE) || DEFAULT_RATE_LIMIT_READS_PER_MINUTE;
-      const rl = await checkRateLimit(env.DB, ip, env.RATE_SALT, limit, now.getTime(), 'read');
-      if (!rl.allowed) return json({ error: 'rate limited' }, 429, { ...cors, 'retry-after': '60' });
-    }
+    const readLimit = Number(env.RATE_LIMIT_READS_PER_MINUTE ?? DEFAULT_RATE_LIMIT_READS_PER_MINUTE) || DEFAULT_RATE_LIMIT_READS_PER_MINUTE;
+    const refusedRead = await guardRead(env, { ip, now, cors, scope: 'read', limit: readLimit, binding: env.RL_READ });
+    if (refusedRead) return refusedRead;
     const agg = await aggregates(env.DB, dailyId, cv);
     const minCohort = Number(env.MIN_COHORT ?? DEFAULT_MIN_COHORT) || DEFAULT_MIN_COHORT;
     const stats = publicStats(dailyId, cv || '*', agg, now, minCohort);
@@ -140,25 +138,13 @@ export async function handle(request: Request, env: Env, opts: HandlerOptions = 
 
   // results
   if (request.method !== 'POST') return json({ error: 'method not allowed' }, 405, cors);
-  const lengthHeader = Number(request.headers.get('content-length') ?? '0');
-  if (lengthHeader > MAX_BODY_BYTES) return json({ error: 'payload too large' }, 413, cors);
-  const text = await request.text();
-  if (text.length > MAX_BODY_BYTES) return json({ error: 'payload too large' }, 413, cors);
+  const text = await readBody(request, MAX_BODY_BYTES);
+  if (text === null) return json({ error: 'payload too large' }, 413, cors);
 
-  if (!env.RATE_SALT) {
-    // Fail closed: an unsalted deployment cannot rate limit, so it refuses writes unless explicitly allowed.
-    if (env.ALLOW_UNLIMITED_WRITES !== '1') {
-      return json({ error: 'service not configured', detail: 'RATE_SALT is not set; writes are disabled' }, 503, { ...cors, 'retry-after': '3600' });
-    }
-    if (!warnedUnlimited) {
-      warnedUnlimited = true;
-      console.warn('[vande-community] RATE_SALT is not set and ALLOW_UNLIMITED_WRITES=1: write rate limiting is OFF. Do not run this in production.');
-    }
-  } else if (ip) {
-    const limit = Number(env.RATE_LIMIT_PER_MINUTE ?? DEFAULT_RATE_LIMIT_PER_MINUTE) || DEFAULT_RATE_LIMIT_PER_MINUTE;
-    const rl = await checkRateLimit(env.DB, ip, env.RATE_SALT, limit, now.getTime(), 'write');
-    if (!rl.allowed) return json({ error: 'rate limited' }, 429, { ...cors, 'retry-after': '60' });
-  }
+  // Fail closed without a salt (unless explicitly allowed for local development), then per-network and global limits.
+  const writeLimit = Number(env.RATE_LIMIT_PER_MINUTE ?? DEFAULT_RATE_LIMIT_PER_MINUTE) || DEFAULT_RATE_LIMIT_PER_MINUTE;
+  const refusedWrite = await guardWrite(env, { ip, now, cors, scope: 'write', limit: writeLimit, binding: env.RL_WRITE });
+  if (refusedWrite) return refusedWrite;
 
   let parsed: unknown;
   try {
@@ -202,15 +188,37 @@ export async function handle(request: Request, env: Env, opts: HandlerOptions = 
 }
 
 /**
- * Scheduled maintenance (wrangler cron): prune rate buckets, results and aggregates past retention, verified-dare
- * attempts after 7 days and goal rows after the results retention.
+ * Scheduled maintenance (wrangler cron, daily): prune verified-dare attempts after 7 days and goal rows, results and
+ * aggregates past retention, and rate buckets older than 24 hours. Deletes run in batches within one budget of D1
+ * statements (CLEANUP_MAX_QUERIES), most personal data first, so if the budget runs out it is the rate buckets that
+ * wait for the next run. Each step is caught on its own, so one failing table never stops the others. Returns rows
+ * deleted per step (-1 when a step failed), the statements left, and `cleanup_incomplete` 1 when rows were left over.
  */
-export async function scheduled(env: Env, now = new Date()): Promise<void> {
-  await pruneRateBuckets(env.DB, now.getTime());
+export async function scheduled(env: Env, now = new Date()): Promise<Record<string, number>> {
   const cutoff = receivedHour(new Date(now.getTime() - RESULT_RETENTION_DAYS * 86400000));
-  await env.DB.prepare(SQL.pruneResults).bind(cutoff).run();
-  await env.DB.prepare(SQL.pruneStats).bind(cutoff).run();
-  await pruneLite(env.DB, now);
+  const budget = pruneBudget(env.CLEANUP_MAX_QUERIES);
+  const steps: [string, () => Promise<number>][] = [
+    ['lite', async () => {
+      const r = await pruneLite(env.DB, now, budget);
+      return r.attempts + r.goal;
+    }],
+    ['daily_results', () => pruneInBatches(env.DB, SQL.pruneResults, cutoff, budget)],
+    ['daily_stats', () => pruneInBatches(env.DB, SQL.pruneStats, cutoff, budget)],
+    ['rate_buckets', () => pruneRateBuckets(env.DB, now.getTime(), budget)],
+  ];
+  const report: Record<string, number> = {};
+  for (const [name, run] of steps) {
+    try {
+      report[name] = await run();
+    } catch (e) {
+      report[name] = -1;
+      console.warn(`[vande-community] cleanup step ${name} failed: ${e instanceof Error ? e.message : 'unknown error'}`);
+    }
+  }
+  report.queries_left = budget.left;
+  report.cleanup_incomplete = budget.exhausted ? 1 : 0;
+  if (budget.exhausted) console.warn('[vande-community] cleanup budget used up; the rest waits for the next run (raise CLEANUP_MAX_QUERIES on Workers Paid)');
+  return report;
 }
 
 interface ExecutionContextLike {
@@ -220,9 +228,12 @@ interface ExecutionContextLike {
 export default {
   fetch(request: Request, env: Env, ctx?: ExecutionContextLike): Promise<Response> {
     const cache = (globalThis as { caches?: { default?: CacheLike } }).caches?.default;
-    return handle(request, env, { cache, waitUntil: ctx ? (p) => ctx.waitUntil(p) : undefined }).catch(() => json({ error: 'internal error' }, 500));
+    return handle(request, env, { cache, waitUntil: ctx ? (p) => ctx.waitUntil(p) : undefined }).catch(() =>
+      // Keep CORS on unexpected errors so the app sees a failure it can handle (and falls back to local play).
+      json({ error: 'internal error' }, 500, corsHeaders(request.headers.get('origin'), parseOrigins(env.ALLOWED_ORIGINS))),
+    );
   },
-  scheduled(_event: unknown, env: Env): Promise<void> {
-    return scheduled(env);
+  async scheduled(_event: unknown, env: Env): Promise<void> {
+    await scheduled(env);
   },
 };

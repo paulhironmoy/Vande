@@ -27,9 +27,9 @@ interface StatsRowMem {
 }
 
 interface AttemptMem {
-  attempt_id: string;
   dare_key: string;
   device_key: string;
+  attempt_id: string;
   seed: number;
   path: string;
   step: string;
@@ -44,8 +44,21 @@ interface AttemptMem {
   twist_answer: string | null;
   outcome: string | null;
   sig: string | null;
-  created_at: number;
-  graded_at: number | null;
+  created_hour: string;
+  graded_hour: string | null;
+}
+
+/** Deletes at most `limit` entries matching `pred` (the batched DELETE … IN (SELECT … LIMIT ?) statements). */
+function deleteWhere<V>(map: Map<string, V>, pred: (v: V, k: string) => boolean, limit: number): number {
+  let changes = 0;
+  for (const [k, v] of map) {
+    if (changes >= limit) break;
+    if (pred(v, k)) {
+      map.delete(k);
+      changes++;
+    }
+  }
+  return changes;
 }
 
 /** `$."key"` → `key` (mirrors what json_set/json_extract would address). */
@@ -59,7 +72,7 @@ export class MemoryD1 implements D1Like {
   results = new Map<string, ResultRow>();
   buckets = new Map<string, { window_start: number; count: number }>();
   stats = new Map<string, StatsRowMem>();
-  /** lite_attempts by attempt_id (UNIQUE dare_key + device_key enforced on insert). */
+  /** lite_attempts keyed `${dare_key}|${device_key}` (the table's primary key since migration 0004). */
   attempts = new Map<string, AttemptMem>();
   /** lite_goal by day. */
   goal = new Map<string, { answers: number; best: number; updated_at: string }>();
@@ -109,12 +122,7 @@ export class MemoryD1 implements D1Like {
           }
           case SQL.liteAttemptByPair: {
             const [dareKey, deviceKey] = params as [string, string];
-            const row = [...self.attempts.values()].find((a) => a.dare_key === dareKey && a.device_key === deviceKey);
-            return (row ? { ...row } : null) as unknown as T;
-          }
-          case SQL.liteAttemptById: {
-            const [id] = params as [string];
-            const row = self.attempts.get(id);
+            const row = self.attempts.get(`${dareKey}|${deviceKey}`);
             return (row ? { ...row } : null) as unknown as T;
           }
           case SQL.liteGoalRow: {
@@ -144,6 +152,16 @@ export class MemoryD1 implements D1Like {
             return { results: group('strategy') as unknown as T[] };
           case SQL.scoresForDay:
             return { results: group('score') as unknown as T[] };
+          case SQL.pruneLiteAttempts: {
+            // DELETE … RETURNING with a cursor: rows at or after the cursor in dare_key order, `limit` at most.
+            const [cutoff, limit, cursor] = params as [string, number, string];
+            const victims = [...self.attempts.values()]
+              .filter((a) => a.dare_key >= cursor && a.created_hour < cutoff)
+              .sort((a, b) => (a.dare_key < b.dare_key ? -1 : a.dare_key > b.dare_key ? 1 : 0))
+              .slice(0, limit);
+            for (const a of victims) self.attempts.delete(`${a.dare_key}|${a.device_key}`);
+            return { results: victims.map((a) => ({ k: a.dare_key })) as unknown as T[] };
+          }
           default:
             throw new Error(`unsupported all(): ${sql}`);
         }
@@ -174,19 +192,19 @@ export class MemoryD1 implements D1Like {
             return { meta: { changes: 1 } };
           }
           case SQL.liteInsertAttempt: {
-            const [attempt_id, dare_key, device_key, seed, path, step, deadline, nonce, answer_path, points, best, kind, twist_id, marker, created_at] = params as [
-              string, string, string, number, string, string, number, string, string, number, number, string, string, string, number,
+            const [dare_key, device_key, attempt_id, seed, path, step, deadline, nonce, answer_path, points, best, kind, twist_id, marker, created_hour] = params as [
+              string, string, string, number, string, string, number, string, string, number, number, string, string, string, string,
             ];
-            if (self.attempts.has(attempt_id)) throw new Error('UNIQUE constraint failed: lite_attempts.attempt_id');
-            if ([...self.attempts.values()].some((a) => a.dare_key === dare_key && a.device_key === device_key)) return { meta: { changes: 0 } };
-            self.attempts.set(attempt_id, { attempt_id, dare_key, device_key, seed, path, step, deadline, nonce, answer_path, points, best, kind, twist_id, marker, twist_answer: null, outcome: null, sig: null, created_at, graded_at: null });
+            const k = `${dare_key}|${device_key}`;
+            if (self.attempts.has(k)) return { meta: { changes: 0 } };
+            self.attempts.set(k, { dare_key, device_key, attempt_id, seed, path, step, deadline, nonce, answer_path, points, best, kind, twist_id, marker, twist_answer: null, outcome: null, sig: null, created_hour, graded_hour: null });
             return { meta: { changes: 1 } };
           }
           case SQL.liteGradeAttempt: {
-            const [id, twist_answer, outcome, sig, graded_at] = params as [string, string, string, string, number];
-            const row = self.attempts.get(id);
-            if (!row || row.outcome !== null) return { meta: { changes: 0 } };
-            Object.assign(row, { twist_answer, outcome, sig, graded_at });
+            const [dare_key, device_key, attempt_id, twist_answer, outcome, sig, graded_hour] = params as [string, string, string, string, string, string, string];
+            const row = self.attempts.get(`${dare_key}|${device_key}`);
+            if (!row || row.attempt_id !== attempt_id || row.outcome !== null) return { meta: { changes: 0 } };
+            Object.assign(row, { twist_answer, outcome, sig, graded_hour });
             return { meta: { changes: 1 } };
           }
           case SQL.liteBumpGoal: {
@@ -198,35 +216,22 @@ export class MemoryD1 implements D1Like {
             self.goal.set(day, row);
             return { meta: { changes: 1 } };
           }
-          case SQL.pruneLiteAttempts: {
-            const [cutoff] = params as [number];
-            let changes = 0;
-            for (const [k, v] of self.attempts) if (v.created_at < cutoff) (self.attempts.delete(k), changes++);
-            return { meta: { changes } };
-          }
           case SQL.pruneLiteGoal: {
-            const [cutoff] = params as [string];
-            let changes = 0;
-            for (const [k] of self.goal) if (k < cutoff) (self.goal.delete(k), changes++);
-            return { meta: { changes } };
+            const [cutoff, limit] = params as [string, number];
+            return { meta: { changes: deleteWhere(self.goal, (_v, k) => k < cutoff, limit) } };
           }
           case SQL.pruneBuckets: {
-            const [cutoff] = params as [number];
-            let changes = 0;
-            for (const [k, v] of self.buckets) if (v.window_start < cutoff) (self.buckets.delete(k), changes++);
-            return { meta: { changes } };
+            // Keys start with their window's minute, so the cutoff is a key prefix.
+            const [cutoff, limit] = params as [string, number];
+            return { meta: { changes: deleteWhere(self.buckets, (_v, k) => k < cutoff, limit) } };
           }
           case SQL.pruneResults: {
-            const [cutoff] = params as [string];
-            let changes = 0;
-            for (const [k, v] of self.results) if (v.received_hour < cutoff) (self.results.delete(k), changes++);
-            return { meta: { changes } };
+            const [cutoff, limit] = params as [string, number];
+            return { meta: { changes: deleteWhere(self.results, (v) => v.received_hour < cutoff, limit) } };
           }
           case SQL.pruneStats: {
-            const [cutoff] = params as [string];
-            let changes = 0;
-            for (const [k, v] of self.stats) if (v.updated_at < cutoff) (self.stats.delete(k), changes++);
-            return { meta: { changes } };
+            const [cutoff, limit] = params as [string, number];
+            return { meta: { changes: deleteWhere(self.stats, (v) => v.updated_at < cutoff, limit) } };
           }
           default:
             throw new Error(`unsupported run(): ${sql}`);

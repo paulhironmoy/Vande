@@ -57,8 +57,22 @@ to an encrypted location now.
 
 ## Backend and content rollback
 
-* Worker: `cd backend && npx wrangler rollback` (or `npx wrangler deploy` of the previous commit). D1 migrations are
-  additive; to retire a table, write a new migration rather than editing old ones.
+* Worker: `cd backend && npx wrangler rollback` (or `npx wrangler deploy` of the previous commit). To retire a table,
+  write a new migration rather than editing old ones.
+* **Migration `0004` is not additive.** It rebuilds `rate_buckets`, `lite_attempts` and `lite_goal`. A Worker from
+  before it still serves daily results, because those tables did not change. Its verified-dare endpoints would fail on
+  the new `lite_attempts` (500), and apps would fall back to local play. To go fully back, restore the database to a
+  moment before the migration and roll back the Worker with it:
+
+  ```bash
+  npx wrangler d1 time-travel restore vande-community --timestamp=<before the migration>
+  ```
+
+  Otherwise, roll forward.
+* Rate Limiting bindings: removing a `[[ratelimits]]` binding, or a binding that fails, sends that limit to the D1
+  fallback. Limits still apply, but each check then writes rows (`docs/COST.md`).
+* Logs: Workers Logs stay off (`[observability]` in `wrangler.toml`). Switching them on is a privacy change, not a
+  rollback step: see `docs/BACKEND.md`, "Logs and observability".
 * Disable without redeploying the app: remove the Worker route (dashboard) or raise `MIN_COHORT`; clients queue and
   then drop submissions, statistics show "Not enough results yet".
 * Content: revert the day file(s), keep `schedule.pinned` intact, bump `contentVersion`, run `node scripts/validate-daily.mjs`.
@@ -72,16 +86,44 @@ Switching them off never affects play: every client call falls back to the local
    `503 service not configured`; the goal endpoint keeps serving its counts.
 2. **Without removing the key:** set `KILL_LITE_DARES = "1"` in `backend/wrangler.toml` `[vars]` and
    `npx wrangler deploy` (or edit the variable in the dashboard).
-3. **Stop clients asking:** rebuild the app without `VITE_LITE_VERIFIED_DARES` (or without `VITE_DARE_PUBLIC_KEY`)
-   and redeploy the site; installed PWAs switch on their next online load.
+3. **Stop clients asking:** rebuild the app without `VITE_LITE_VERIFIED_DARES` (or without any public key) and
+   redeploy the site; installed PWAs switch on their next online load.
 4. **CPU trouble with replay:** set `LITE_VERIFY_REPLAY = "0"`; new attempts are signed `t` (twist verified) and
    skip the replay entirely.
-5. **Compromised signing key:** delete the secret, print a new pair with `node scripts/lite-dare-keys.mjs`, install the
-   new private key, rebuild the app with the new public key. Replies signed with the old key stop verifying and count
-   as ordinary local replies; no data needs repairing.
+5. **Compromised signing key:**
+   1. Delete the secret.
+   2. Print a new pair with `node scripts/lite-dare-keys.mjs` and install the new private key.
+   3. Rebuild the app with **only** the new public key in `VITE_DARE_PUBLIC_KEYS`. Drop the old key, so that anything
+      signed with it stops verifying.
+
+   Replies signed with the old key then count as ordinary local replies in updated apps. No data needs repairing.
 6. **Data:** `lite_attempts` rows disappear after 7 days by themselves; to empty them at once,
    `npx wrangler d1 execute vande-community --remote --command "DELETE FROM lite_attempts"`. Migration `0003` is
    additive; to retire the tables, write a new migration rather than editing it.
 
 Verify afterwards: open a dare link in a build with verified dares, answer it and confirm the twist still appears
 (local draw) and the reply still sends.
+
+### Rotating the signing key (planned, no compromise)
+
+Each signature names its key by a key id: 8 hex, the first 8 characters of the fingerprint the key script prints. An
+app build can trust several keys. So a rotation never breaks replies already out:
+
+1. `node scripts/lite-dare-keys.mjs` prints a new pair. Note its key id.
+2. Rebuild and deploy the app with both public keys: `VITE_DARE_PUBLIC_KEYS=<old key>,<new key>`. Wait until
+   installed apps have updated: PWAs on their next online load, Android after the store update, in practice a week
+   or two.
+3. Put the new private key in the Worker:
+
+   ```bash
+   cd backend && npx wrangler secret put DARE_SIGNING_KEY
+   ```
+
+   New replies carry the new key id, and replies signed earlier keep verifying with the old key.
+4. About 30 days later, when replies signed with the old key are long past their deadlines, rebuild the app without
+   the old key.
+
+If the new private key was pasted wrong, nothing breaks. Either the dare endpoints answer 503 (an unusable key), or the
+apps reject signatures whose key id they do not know and send unsigned replies. Paste the right key again. Cloudflare
+secrets cannot be read back, and the old private key was never stored anywhere else, so going back means running
+through these steps again with a fresh pair.

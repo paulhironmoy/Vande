@@ -9,6 +9,7 @@ vi.mock('@/app/flags', async (importOriginal) => {
 });
 
 import {
+  LITE_GOAL_OFF_KEY,
   LITE_DARE_TIMEOUT_MS,
   __resetLiteDaresForTests,
   fetchLiteGoal,
@@ -25,7 +26,7 @@ import { LiteGoal } from '@/components/game/community/LiteGoal';
 import { sha256Hex } from '@/community/hash';
 import { dareIdentity, twistById } from '@/lite/twists';
 import { decodeDareReply, encodeDareReply, type DareReply } from '@/share/dare';
-import { bytesToHex, hexToBytes, utcDay } from '@/community/liteDareProtocol';
+import { bytesToHex, darePublicKeyId, hexToBytes, issueDayOf, liteContentVersion, liteDareCanonical, signatureField, utcDay } from '@/community/liteDareProtocol';
 import { handle, type Env } from '../../../backend/src/index';
 import { __resetSigningKeyForTests, signHex, signingKey } from '../../../backend/src/signing';
 import { MemoryD1 } from '../../../backend/test/d1-memory';
@@ -103,7 +104,15 @@ describe('start and grade against the real Worker', () => {
     const s = await startVerifiedAttempt({ optedIn: true, installId: INSTALL, dare, nonce: 'Abc123', answerPath: 'd0-0', claim: { points: 196, best: true, kind: 'protect' } }, opts(f));
     expect(s).toMatchObject({ kind: 'protect', nonce: 'abc123', points: 196, best: true, verified: 'twist', created: true });
     expect(calls[0].url).toBe('https://api.example/v1/lite/attempts');
-    expect(calls[0].body).toEqual({ v: 1, dare: { seed: 42, path: '', step: 'd0', deadline: DEADLINE }, deviceKey: await liteDeviceKey(INSTALL, dare), nonce: 'abc123', answerPath: 'd0-0', claim: { points: 196, best: true, kind: 'protect' } });
+    expect(calls[0].body).toEqual({
+      v: 1,
+      contentVersion: liteContentVersion(),
+      dare: { seed: 42, path: '', step: 'd0', deadline: DEADLINE },
+      deviceKey: await liteDeviceKey(INSTALL, dare),
+      nonce: 'abc123',
+      answerPath: 'd0-0',
+      claim: { points: 196, best: true, kind: 'protect' },
+    });
     // Nothing but the protocol fields leaves the device: no install id, no chain, no hint, no sender points.
     expect(JSON.stringify(calls[0].body)).not.toContain(INSTALL);
 
@@ -201,7 +210,7 @@ describe('failures never throw and never wait long', () => {
 describe('goal', () => {
   it('reads real numbers, caches them briefly, and the component shows them only when ready', async () => {
     const day = utcDay();
-    const answer = { day, answers: 40, minCohort: 25, ready: true, best: 25, share: 62.5, asOf: new Date().toISOString() };
+    const answer = { day, active: true, answers: 40, minCohort: 25, ready: true, best: 25, share: 62.5, asOf: new Date().toISOString() };
     const f = vi.fn(async () => new Response(JSON.stringify(answer), { status: 200 })) as unknown as typeof fetch;
     expect(await fetchLiteGoal(day, true, opts(f))).toEqual(answer);
     expect(await fetchLiteGoal(day, true, opts(f))).toEqual(answer);
@@ -216,7 +225,7 @@ describe('goal', () => {
 
   it('renders nothing below the cohort, when not opted in, or when the read fails', async () => {
     const day = utcDay();
-    const notReady = vi.fn(async () => new Response(JSON.stringify({ day, answers: 3, minCohort: 25, ready: false, asOf: 'x' }), { status: 200 })) as unknown as typeof fetch;
+    const notReady = vi.fn(async () => new Response(JSON.stringify({ day, active: true, answers: 3, minCohort: 25, ready: false, asOf: 'x' }), { status: 200 })) as unknown as typeof fetch;
     vi.stubGlobal('fetch', notReady);
     const { container, rerender } = render(createElement(LiteGoal, { optedIn: true }));
     await act(async () => {
@@ -262,8 +271,74 @@ describe('key script', () => {
     expect(jwkLine).toBeTruthy();
     __resetSigningKeyForTests();
     const key = await signingKey(jwkLine);
-    const sig = await signHex(key!, 'probe');
+    expect(key!.keyId).toBe(await darePublicKeyId(pub!));
+    const sig = await signHex(key!.key, 'probe');
     const verifyKey = await crypto.subtle.importKey('raw', hexToBytes(pub!)!, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
     expect(await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, verifyKey, hexToBytes(sig)!, new TextEncoder().encode('probe'))).toBe(true);
+  });
+});
+
+describe('key rotation, issue days and content versions', () => {
+  async function pair() {
+    const k = (await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify'])) as CryptoKeyPair;
+    return { k, hex: bytesToHex(new Uint8Array(await crypto.subtle.exportKey('raw', k.publicKey))) };
+  }
+  async function signedReply(signer: { k: CryptoKeyPair; hex: string }, issueDay: string, marker: 'v' | 't' = 'v'): Promise<DareReply> {
+    const fields = { dare, points: 196, best: true, twistId: 't3', twist: 'right' as const, nonce: 'abc123' };
+    const header = { marker, keyId: await darePublicKeyId(signer.hex), issueDay };
+    const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, signer.k.privateKey, new TextEncoder().encode(liteDareCanonical(fields, header)));
+    return { ...fields, version: 2, rematchDeadline: DEADLINE + 86400, sig: signatureField(header, bytesToHex(new Uint8Array(sig))) };
+  }
+
+  it('accepts any configured key by its id, so replies signed before a rotation keep verifying', async () => {
+    const oldKey = await pair();
+    const newKey = await pair();
+    const today = issueDayOf(new Date());
+    const fromOld = await signedReply(oldKey, today);
+    const fromNew = await signedReply(newKey, today);
+    const decodedOld = decodeDareReply(encodeDareReply(fromOld))!;
+    expect(decodedOld.sig).toMatch(/^v[0-9a-f]{8}[0-9a-z]{4}[0-9a-f]{128}$/);
+    expect(await replyCountsAsVerified(decodedOld, [newKey.hex, oldKey.hex])).toBe(true);
+    expect(await replyCountsAsVerified(decodeDareReply(encodeDareReply(fromNew))!, [newKey.hex, oldKey.hex])).toBe(true);
+    // Once the old key is removed from the build, its replies count as local ones.
+    expect(await replyCountsAsVerified(decodedOld, [newKey.hex])).toBe(false);
+    // A key id that matches no configured key is never tried against another key.
+    const relabelled = { ...decodedOld, sig: `v${(await darePublicKeyId(newKey.hex))}${decodedOld.sig!.slice(9)}` };
+    expect(await replyCountsAsVerified(relabelled, [newKey.hex, oldKey.hex])).toBe(false);
+  });
+
+  it('refuses signatures dated in the future, and accepts older ones', async () => {
+    const k = await pair();
+    const day = Math.floor(Date.now() / 86_400_000);
+    const ahead = await signedReply(k, (day + 3).toString(36).padStart(4, '0'));
+    const tomorrow = await signedReply(k, (day + 1).toString(36).padStart(4, '0'));
+    const lastMonth = await signedReply(k, (day - 30).toString(36).padStart(4, '0'));
+    expect(await verifyReplySignature(decodeDareReply(encodeDareReply(ahead))!, [k.hex])).toBe(false);
+    expect(await verifyReplySignature(decodeDareReply(encodeDareReply(tomorrow))!, [k.hex])).toBe(true); // clock skew
+    expect(await verifyReplySignature(decodeDareReply(encodeDareReply(lastMonth))!, [k.hex])).toBe(true);
+    expect(await replyVerifiedScope(decodeDareReply(encodeDareReply(await signedReply(k, issueDayOf(new Date()), 't')))!, [k.hex])).toBe('twist');
+  });
+
+  it('falls back to local play when the Worker runs different content (409)', async () => {
+    const mismatch = vi.fn(async () => new Response(JSON.stringify({ error: 'content version mismatch' }), { status: 409 })) as unknown as typeof fetch;
+    expect(await startVerifiedAttempt({ optedIn: true, installId: INSTALL, dare, nonce: 'abc123', answerPath: 'd0-0', claim: { points: 196, best: true, kind: 'protect' } }, opts(mismatch))).toBeNull();
+    expect(liteContentVersion()).toBe(liteContentVersion());
+  });
+
+  it('stops asking for the goal once the server says it is off for the day', async () => {
+    const day = utcDay();
+    const off = vi.fn(async () => new Response(JSON.stringify({ day, active: false, answers: 0, minCohort: 25, ready: false, asOf: 'x' }), { status: 200 })) as unknown as typeof fetch;
+    expect(await fetchLiteGoal(day, true, opts(off))).toBeNull();
+    expect(localStorage.getItem(LITE_GOAL_OFF_KEY)).toBe(day);
+    expect(await fetchLiteGoal(day, true, opts(off))).toBeNull();
+    expect(off).toHaveBeenCalledTimes(1);
+    // A new day asks again.
+    expect(await fetchLiteGoal('2099-01-01', true, opts(off))).toBeNull();
+    expect(off).toHaveBeenCalledTimes(2);
+    // The real Worker says "off" on the free-plan default.
+    const { f } = workerFetch();
+    __resetLiteDaresForTests();
+    expect(await fetchLiteGoal(day, true, opts(f))).toBeNull();
+    expect(localStorage.getItem(LITE_GOAL_OFF_KEY)).toBe(day);
   });
 });

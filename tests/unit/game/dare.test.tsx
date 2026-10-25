@@ -487,7 +487,7 @@ describe('DareSheet: R2 replies and the onShared hook', () => {
     expect(wa).not.toMatch(/cracked/i);
     expect(wa).toContain('/lite/reply/R2_');
     expect(decodeDareReply(wa.slice(wa.indexOf('http')))).toEqual(r);
-    expect(onShared).toHaveBeenLastCalledWith('native');
+    expect(onShared).toHaveBeenLastCalledWith('channel');
 
     fireEvent.click(screen.getByTestId('reply-share-copy'));
     await waitFor(() => expect(onShared).toHaveBeenLastCalledWith('clipboard'));
@@ -517,7 +517,7 @@ describe('DareSheet: R2 replies and the onShared hook', () => {
     render(<DareSheet open onClose={() => {}} dare={dare} moveNumber={3} moveTitle="Students are gathering" chapterTitle="The Exam Leak" onShared={onShared} />);
     expect(onShared).not.toHaveBeenCalled();
     fireEvent.click(screen.getByTestId('dare-share-telegram'));
-    expect(onShared).toHaveBeenCalledWith('native');
+    expect(onShared).toHaveBeenCalledWith('channel');
     fireEvent.click(screen.getByTestId('dare-share-copy'));
     await waitFor(() => expect(onShared).toHaveBeenLastCalledWith('clipboard'));
   });

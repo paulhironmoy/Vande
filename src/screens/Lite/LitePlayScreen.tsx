@@ -1006,7 +1006,7 @@ export function LitePlayScreen() {
   };
 
   /** Challenger points: once per dare, when the friend actually sends their result back. */
-  const onReplyShared = (method: 'native' | 'clipboard' | 'download') => {
+  const onReplyShared = (method: 'native' | 'clipboard' | 'download' | 'channel') => {
     if (!incoming || !dareAnswer) return;
     const a = attempt ?? ensureAttempt(dareKeyOf(incoming));
     const understood = dareAnswer.best && a.outcome === 'right';
