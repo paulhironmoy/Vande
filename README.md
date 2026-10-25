@@ -61,6 +61,9 @@ npm run test:e2e       # Playwright journeys, viewports, a11y, offline, persiste
 
 Release, rollback and Android instructions: `docs/RELEASE.md`, `docs/ROLLBACK.md`, `docs/ANDROID.md`.
 Architecture and content authoring: `docs/ARCHITECTURE.md`. Privacy: `docs/PRIVACY.md`.
+Lite (`/lite`): points and fair friend rewards `docs/LITE-INCENTIVES.md`, toughness tiers `docs/LITE-TOUGHNESS.md`,
+pictures `docs/LITE-VISUALS.md`, and the prerequisites for any prize or leaderboard `docs/COMPETITION-READINESS.md`
+(nothing prize-related is built).
 
 ## Repository layout
 

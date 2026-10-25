@@ -67,10 +67,24 @@ three challenge events; Simple vs Full completion by `mode`.
 
 ## Lite (gamified Chapter 1) events
 
-| Event | When | Properties |
-| --- | --- | --- |
-| `lite_completed` | A Lite run reaches its result card | `mode`, `elapsedBucket`, `state: 'completed'` |
-| `lite_shared` | The player shares a Lite challenge | `shareMethod` |
-| `lite_challenge_opened` | A `/lite/<code>` challenge link is opened | none |
+| Event | When | Properties | What it answers |
+| --- | --- | --- | --- |
+| `lite_completed` | A Lite run reaches its result card | `state: 'completed'`, `visualQuestions`, `visualBest`, `textQuestions`, `textBest` | Do pictures make move questions easier or harder? Compare best-pick rates on picture and text questions. |
+| `lite_shared` | Any successful share in the challenge, dare or reply sheet | `shareMethod` | How often players share, and how. |
+| `lite_challenge_opened` | A `/lite/<code>` challenge link opens, or a friend takes a dare | none | Do shared links get opened? |
+| `lite_twist_answered` | A friend answers the twist | `right` | How often friends crack the twist. |
+| `lite_reply_sent` | Each successful share action in the reply sheet | `shareMethod`, `tradeResults` | Reply rate, with the trade-results experiment on and off. |
+| `lite_reply_opened` | The helper opens a friend's reply | `awarded`, `capped` | How many replies come back, and how often caps stop an award. |
 
-Lite challenge codes (`L1-…`) contain only a seed, a points total and a star count; no identifiers.
+Common properties (`appVersion`, `platform`, `mode`) are added as for every event.
+
+* The picture counts cover move questions in the player's own run only: `visualQuestions` and `textQuestions` are how
+  many move questions showed pictures or text, and `visualBest` and `textBest` are how many of those the player
+  answered with the best move. Fair-play questions are not counted.
+* `lite_reply_sent` fires on every successful share action, so one reply shared twice counts twice. Divide by
+  replies opened, or deduplicate per session, when computing reply rates.
+* Never sent for Lite: challenge, dare or reply codes, nonces, seeds, paths, twist or option ids, answers, points,
+  tiers, Insight, Helper or Challenger totals, free text and precise timestamps.
+
+Lite challenge codes (`L1-…`) contain only a seed, a points total and a star count; no identifiers. Rules and meaning
+of the Lite events: `docs/LITE-INCENTIVES.md` § Experiments and measurement.

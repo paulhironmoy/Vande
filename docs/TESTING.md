@@ -39,12 +39,33 @@ captures every screen at phone and desktop sizes into `test-results-visual/` for
 | Civic Passport rules, calendar derivation, reminder copy | `tests/unit/progression/**` |
 | Share fingerprint card, daily challenge codes, community client, analytics privacy, backend API | `tests/unit/share/**`, `tests/unit/community/**`, `tests/unit/analytics/**`, `backend/test/**` |
 
+### Lite: fair friend incentives, twists, Insight and pictures
+
+| Requirement | Where it is tested |
+| --- | --- |
+| Scoring extracted to `src/lite/points.ts` scores every Chapter 1 option exactly like the old inline code; constants; Insight (best, close second, never negative); the How points work text uses the same numbers | `tests/unit/lite/points.test.ts` |
+| Toughness manifest is current (fails with "run node scripts/lite-toughness.mjs"); at least one Boss and at most a third; every question covered; hashing ignores copy layers | `tests/unit/lite/toughness.test.ts` |
+| Pure replay matches the real store step for step; dare replay; invalid tokens throw | `tests/unit/lite/replay.test.ts` |
+| Twist pool passes the validator and JSON schema; coverage of every best-move kind plus fair play; best positions spread; one rejection test per validator rule | `tests/unit/lite/twistPool.test.ts` |
+| Twist draws: kind match, unseen preference, fallback, retired never drawn, one attempt per device per dare, nonce before any twist, first answer kept, storage fallback and bounds, `crypto` randomness, rematch records | `tests/unit/lite/twists.test.ts` |
+| Award ledger: +40 / +100 rules, R1 earns +40 only, dedupe by nonce, 3 per dare and 10 per day, capped replies stay at 0, upgrades, Challenger awards, v1 migration, corrupted and unavailable storage | `tests/unit/lite/ledger.test.ts` |
+| R2 reply codes: round trips, tamper and malformed rejection, R1 still decodes, the reserved signature field, reply text | `tests/unit/lite/dareReplyV2.test.ts` |
+| Picture gate (all-or-none, distinct, neutral, 2–4 word labels), validator, Chapter 1 coverage, vocabulary | `tests/unit/lite/visuals.test.ts`, `tests/unit/game/pictogram.test.tsx`, `tests/unit/game/actionCardVisual.test.tsx` |
+| Twist question component: order, one answer, Right / Not quite in words, fair-play cards | `tests/unit/game/twistQuestion.test.tsx` |
+| Dare sheet in R2 reply mode and the `onShared` hook (after channel taps and copies, never before, not on failure) | `tests/unit/game/dare.test.tsx` |
+| Screen: a dare shows who won at once and earns no Insight; with trade-results on, "who won" waits for the reply and Challenger points are awarded once | `tests/unit/lite/liteFriendsScreen.test.tsx` |
+| End to end, two separate players: both earn +140 once and the helper gets the rematch; at most three rewarded friends per dare, identical answers counted separately, a fourth reply earns nothing calmly; tiers before answering, Insight apart from the score, How points work by keyboard; no third-party requests with every flag off; axe WCAG 2.2 AA on the twist question and result, the reply landing, the rematch result, How points work and a decision with its tier badge | `tests/e2e/lite-friends.spec.ts` |
+| Lite game loop, friend challenge tie, tampered link, dare and reply round trip | `tests/e2e/lite.spec.ts` |
+| Content tools | `node scripts/lite-toughness.mjs --check` (tiers current), `node scripts/lite-visuals-report.mjs` (picture coverage; exits 1 on a bad tag) |
+
 ## Running
 
 ```bash
 npm test                       # unit, ~3 s
 npm run build && npm run test:e2e   # e2e, ~5 min on a laptop (3 workers)
 VISUAL=1 npx playwright test --project=visual   # screenshots for design review
+node scripts/lite-toughness.mjs --check          # Lite toughness tiers are current
+node scripts/lite-visuals-report.mjs             # Lite picture coverage and tagging errors
 ```
 
 Playwright uses `page.clock` to fast-forward game time deterministically; the game loop is driven by window timers for

@@ -12,6 +12,10 @@ This document is the contract between the parallel work packages. Read it fully 
 * `src/app/storeTypes.ts` — the Zustand store shape used by every screen. **Frozen** (implemented by the app-shell package).
 * `src/styles/tokens.css` — design tokens. **Frozen** (additive proposals go in your report).
 * This document.
+* `src/lite/contracts.ts` — Lite twist, ledger, toughness and picture types (lead-owned, see §12).
+
+Deliberate, additive change to `src/engine/types.ts` for Lite pictures: the optional `SimpleOption.label` and
+`SimpleOption.visual` fields and the `OptionVisual` type. Nothing existing changed shape.
 
 ## 2. Work packages & file ownership (strict)
 
@@ -228,11 +232,45 @@ Daily `daily-screen`, `daily-play`, `daily-date`. Challenge `challenge-screen`, 
 `republic-screen`, `republic-reset`, `republic-export`, `republic-delete`. History `history-screen`, `history-entry-<id>`.
 Settings `settings-screen`, `setting-<key>` (key = Settings field). About `about-screen`. `toast`, `update-banner`.
 
+**Lite** (`/lite`; new in the incentives upgrade marked ★):
+
+* Screen `lite-screen` with `data-step` = `start`, `dare-landing`, `reply-landing`, `rematch`★, `rematch-result`★,
+  `begin`, `clue`, `clue-result`, `decision`, `feedback`, `rights`, `rights-result`, `twist`★, `twist-result`★,
+  `ended`; `data-dare="true"` while a dare is being played.
+* Run `lite-start`, `lite-next`, `lite-check`, `lite-skip-clue`, `lite-option-<optionId>` (`data-visual="true"` on a
+  picture card), `lite-rights-<optionId>`, `lite-points`, `lite-reveal`, `lite-reveal-<optionId>` (`data-best`,
+  `data-mine`), `lite-dare`, `lite-tier`★ (`data-tier` = `tricky` / `tough` / `boss`), `lite-insight`★,
+  `lite-insight-gain`★.
+* Result `lite-result`, `lite-score` (`data-value`), `lite-result-insight`★ (`data-value`), `lite-challenge`,
+  `lite-again`, `lite-home`, `how-points-result`★.
+* How points work★ `how-points-open` (start screen, HUD, dare and reply landings), `how-points-sheet`,
+  `how-points-<rule>` with rule = `move`, `clue-bonus`, `streak`, `clues`, `fair-play`, `end`, `insight`, `no-loss`,
+  `helper`, `challenger`, `sharing`.
+* Start stats `helper-stats`, `challenger-stats`★.
+* Dare landing and the friend's answer `dare-countdown`, `dare-hint-reveal`, `dare-hint`, `dare-accept`,
+  `dare-result` (`data-win`), `dare-first-answer`★, `trade-locked`★, `twist-start`★, `dare-reply`,
+  `challenger-award`★, `dare-pass`, `dare-full`.
+* Twist and rematch questions★ (`TwistQuestion`): `twist-question` / `rematch-question` (`data-twist` = twist id,
+  `data-answered`), `twist-option-<a–d>` / `rematch-option-<a–d>`, `twist-result` / `rematch-result`
+  (`data-right`), `twist-actions`.
+* Dare sheet `dare-sheet`, `dare-slot-<1–3>`, `dare-incentive`, `dare-preview`, `dare-hint-none`, `dare-hint-<0–2>`,
+  `dare-share`, `dare-share-<channel>`, `dare-share-copy` (channel = `whatsapp`, `telegram`, `x`, `sms`, `email`).
+* Reply sheet `reply-sheet`, `reply-lead`★, `reply-countdown`, `reply-twist`★, `reply-share`,
+  `reply-share-<channel>`, `reply-share-copy`.
+* Reply landing `reply-twist`★, `reply-award`, `reply-award-note`★, `helper-stats`, `rematch-offer`★,
+  `rematch-countdown`★, `rematch-accept`★, `rematch-verdict`★, `reply-dare-more`, `lite-start`, `how-points-open`.
+* Challenge sheet `lite-share-sheet`, `lite-share`, `lite-share-<channel>`, `lite-share-copy`, `lite-share-save`,
+  `lite-share-preview`, `lite-share-code`, `lite-share-copy-code`.
+* Pictures carry `data-pictogram="<actor>.<action>.<object>"` on the decorative pictogram and `data-visual="true"` on
+  the question's card row.
+
 ## 9. URLs
 
 `/` launch → home; `/intro`, `/home`, `/opponents`, `/briefing`, `/play`, `/chapter`, `/result`, `/daily`, `/republic`,
 `/history`, `/settings`, `/about/<page>`, `/c/<code>` challenge. Query `?c=<code>` is also accepted (robust on any static
 host). `?screen=daily` opens the daily screen (PWA shortcut). `BASE_PATH` (e.g. `/Vande/`) prefixes all of these.
+Lite: `/lite`, `/lite/<L1 code>` friend challenge, `/lite/dare/<I1 code>` dare, `/lite/reply/<R1 or R2 code>` reply
+and rematch (§12).
 
 ## 10. Brand component contract (`src/components/brand/Logo.tsx`)
 
@@ -259,3 +297,58 @@ identical in both; only presentation and pacing change.
 * `html[data-style="simple"]` enlarges tap targets, radii and the base font (settingsEffects adds a 6.25 % boost that
   composes with the text-size setting). Test ids never change between styles; a few exact strings are kept in both
   ("Educational content—not legal advice", "Simulated range — not real players", "I held the Republic together. Can you?").
+
+## 12. Lite (gamified Chapter 1, `/lite`)
+
+Lite plays `examination-crisis` one moment at a time in `src/screens/Lite/LitePlayScreen.tsx` (the run, dare landing
+and friend flow) and `src/screens/Lite/ReplyLanding.tsx` (Helper award and rematch). Rules and numbers:
+`docs/LITE-INCENTIVES.md`. Tiers: `docs/LITE-TOUGHNESS.md`. Pictures: `docs/LITE-VISUALS.md`. Prize prerequisites:
+`docs/COMPETITION-READINESS.md`.
+
+### Modules (`src/lite/`, all pure except the two storage stores)
+
+| Module | Role |
+| --- | --- |
+| `points.ts` | Every player-visible number (`LITE_POINTS`, `INSIGHT`, `FRIEND_POINTS`), move evaluation (`evaluateMove`, `evaluateAll`, `bestOf`, `rankOf`), `insightFor`, and `pointsRules()` for the How points work card |
+| `contracts.ts` | Shared types: twists and attempts, the R2 fields, the award ledger, the toughness manifest, picture plans |
+| `toughness.ts` | `tierOf`, `closeCallMargin` from the committed manifest; the generator (`computeToughness`, `bestMoveKindSurvey`) |
+| `replay.ts` | Pure replay of a Lite path, mirroring the store and the screen (`startLiteGame`, `advanceToPending`, `applyToken`, `replayDare`) |
+| `twists.ts` | Twist draws matched to the dared move's kind, the one-attempt-per-device-per-dare store, rematch records (`vande:lite-twists`) |
+| `twistValidate.ts` | Twist pool validator and coverage |
+| `ledger.ts` | Helper and Challenger awards with caps, dedupe and upgrades (`vande:lite-awards`, migrated from `vande:lite-helper`) |
+| `visuals.ts` | The all-or-none picture gate `visualPlanFor`, `validateVisuals`, `visualCoverage` |
+
+### Content
+
+`src/content/lite/twists.json` (+ `twists.schema.json`), `src/content/lite/toughness.json` (generated),
+`src/content/lite/visualVocabulary.ts`, and the optional `label` / `visual` fields in the `simple` layer of
+`examination-crisis.json` (schema in `src/content/schema/scenario.schema.json`).
+
+### Components
+
+`src/components/game/twist/TwistQuestion` (the friend's twist and the helper's rematch), `src/components/game/points/
+HowPointsSheet`, `src/components/game/pictograms/Pictogram` (+ `glyphs.tsx`), the optional `visual` prop on
+`src/components/game/cards/ActionCard`, and `onShared` plus the reply-mode copy on `src/components/game/dare/DareSheet`.
+
+### Data flow
+
+1. **Own run.** Each decision shows its tier (`tierOf`). On an answer the screen evaluates every move from the same
+   state, scores the pick (`movePoints`, clue ×2, `streakMultiplier`) and adds Insight (`insightFor` with the reveal
+   rank). The reveal ranks every move. `visualPlanFor` decides per question whether cards show pictures. The result
+   shows the score, then Insight separately; `lite_completed` carries the picture/text counts.
+2. **Dare.** The helper shares an `I1` link (`DareSheet`). Sending a dare earns nothing.
+3. **Friend.** `/lite/dare/<code>` replays the helper's path (same seed, same moves), shows the tier without the
+   multiplier, and records the friend's first answer with a fresh nonce (`recordDareAnswer`). After the reveal the
+   friend may take one twist (`drawTwist`, `answerTwist`). The reply sheet builds an `R2` code. The first successful
+   share calls `onShared`, which awards Challenger points (`awardChallenger`) and, with trade-results on, unlocks
+   "who won".
+4. **Helper.** `/lite/reply/<code>` awards Helper points once (`awardHelperReply`: caps, dedupe, upgrades). When the
+   friend took a twist, the helper is dared back on it (`ensureRematch`, `answerRematch`). Rematches earn nothing.
+5. **Network.** None of this calls the network. Analytics events fire only when analytics are configured and allowed.
+   Verified dares (server-graded, signed replies) are specified as deployment-ready and off (`docs/BACKEND.md`).
+
+### Scripts
+
+`node scripts/lite-toughness.mjs [--check] [--survey]` regenerates or checks the toughness manifest and reports
+best-move kinds for twist coverage. `node scripts/lite-visuals-report.mjs [ids…] [--all]` prints picture coverage and
+tagging errors.
