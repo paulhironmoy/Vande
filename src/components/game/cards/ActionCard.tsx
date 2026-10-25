@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import { Icon } from '@/components/ui';
-import { ACTION_META, type ActionKind } from './actionKind';
+import { ACTION_LOGIC, ACTION_META, type ActionKind } from './actionKind';
 import s from './ActionCard.module.css';
 
 export interface ActionCardProps {
@@ -19,13 +19,18 @@ export interface ActionCardProps {
   /** Entrance stagger position. */
   index?: number;
   hideLabel?: boolean;
+  /** Show what the move does and what it costs (default true for game moves). */
+  showLogic?: boolean;
+  /** Explanation shown under the title after the answer is revealed. */
+  note?: string;
   disabled?: boolean;
   testId: string;
 }
 
 /** A playable action: app-icon badge, type, title. Feels like a card in a hand, not a quiz option. */
-export function ActionCard({ kind, title, badge, onSelect, picked, faded, verdict, layout = 'tile', index = 0, hideLabel, disabled, testId }: ActionCardProps) {
+export function ActionCard({ kind, title, badge, onSelect, picked, faded, verdict, layout = 'tile', index = 0, hideLabel, showLogic = true, note, disabled, testId }: ActionCardProps) {
   const meta = ACTION_META[kind];
+  const logic = kind !== 'rule' && showLogic ? ACTION_LOGIC[kind] : undefined;
   const style = { '--kind': meta.color, '--kind-deep': meta.deep, '--i': index } as CSSProperties;
   return (
     <button
@@ -36,7 +41,6 @@ export function ActionCard({ kind, title, badge, onSelect, picked, faded, verdic
       disabled={disabled}
       data-verdict={verdict}
       data-testid={testId}
-      aria-label={hideLabel ? title : `${meta.label}: ${title}`}
     >
       <span className={s.sheen} aria-hidden="true" />
       <span className={s.badge} aria-hidden="true">
@@ -44,11 +48,20 @@ export function ActionCard({ kind, title, badge, onSelect, picked, faded, verdic
       </span>
       <span className={s.body}>
         {hideLabel ? null : (
-          <span className={s.kind} aria-hidden="true">
-            {meta.label}
-          </span>
+          <span className={s.kind}>{meta.label}</span>
         )}
         <span className={s.title}>{title}</span>
+        {logic ? (
+          <span className={s.logic}>
+            <span className={s.gainLine}>
+              <b>Gain</b> {logic.gain}
+            </span>
+            <span className={s.costLine}>
+              <b>Cost</b> {logic.cost}
+            </span>
+          </span>
+        ) : null}
+        {note ? <span className={s.note}>{note}</span> : null}
         {badge ? (
           <span className={s.chip} data-tone={badge.tone}>
             {badge.text}

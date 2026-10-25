@@ -1,41 +1,87 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useApp } from '@/app/store';
 import { Button, Icon } from '@/components/ui';
 import { SIMPLE_DIMENSIONS, SIMPLE_OUTCOMES, SIMPLE_STATES, cityMood, starsFor } from '@/app/simple';
-import { checkCondition, classifyOutcome, computeChapterResult, evidenceActions } from '@/engine';
-import { DIMENSIONS, type Condition, type DecisionOption, type Dimension, type ScenarioDecision, type ScenarioEvidence, type Scores } from '@/engine/types';
+import { checkCondition, classifyOutcome, computeChapterResult, evidenceActions, getScenario, reduce } from '@/engine';
+import {
+  DIMENSIONS,
+  type Condition,
+  type DecisionOption,
+  type Dimension,
+  type GameState,
+  type Scenario,
+  type ScenarioDecision,
+  type ScenarioEvidence,
+  type Scores,
+} from '@/engine/types';
 import { strategicFeedback } from '@/progression/feedback';
 import { track } from '@/analytics';
 import { haptic } from '@/audio/haptics';
 import { playGameSound, unlockGameAudio } from '@/audio/gameSounds';
 import { Burst, CountUp, FloatingPoints, confettiFromElement, confettiRain, fireConfetti } from '@/components/game/fx';
-import { ActionCard, ClueCard, Medal, actionKindOf, medalTierFor, type ClueVerdict } from '@/components/game/cards';
+import { ACTION_META, ActionCard, ClueCard, Medal, actionKindOf, medalTierFor, type ClueVerdict } from '@/components/game/cards';
 import { ChallengeSheet } from '@/components/game/share/ChallengeSheet';
+import { DareSheet } from '@/components/game/dare/DareSheet';
+import { Countdown } from '@/components/game/dare/Countdown';
 import { decodeLiteChallenge, encodeLiteChallenge, liteChallengeUrl, type LiteChallenge } from '@/share/liteChallenge';
+import { DARE_HINTS, dareTimeLeft, decodeDare, decodeDareReply, nextLocalMidnight, type Dare, type DareReply } from '@/share/dare';
 import s from './LitePlayScreen.module.css';
 
 /**
  * Lite: Chapter 1 as a game you want to win. One moment at a time, self-paced.
- * City bars react to every move, points fly into the counter, fair moves chain a calm streak, scanning clues
- * squashes bugs, missions unlock with a cheer, and the finish awards a medal you can send to friends.
- * The real deterministic simulation runs underneath, so a friend's link replays the same city and events.
+ * Every move card says what it does and what it costs. After each answer, every move is revealed with what it
+ * would have done to the city, ranked, so players learn from the ones they did not pick. Points, a fair-play
+ * streak, clue scanning, missions and a medal reward good judgement. Any question can be sent to friends as a
+ * dare that ends at midnight; the friend gets the exact same moment in the exact same city.
  */
+
+interface MoveEval {
+  option: DecisionOption;
+  index: number;
+  delta: Partial<Scores>;
+  pts: number;
+  harsh: boolean;
+  consequence: string;
+}
+
+interface DareDraft {
+  path: string;
+  step: string;
+  points: number;
+  best: boolean;
+  moveNumber: number;
+  moveTitle: string;
+}
 
 type Step =
   | { kind: 'begin' }
   | { kind: 'clue'; evidence: ScenarioEvidence; decision: ScenarioDecision }
   | { kind: 'clue-result'; evidence: ScenarioEvidence; verdict: ClueVerdict }
   | { kind: 'decision'; decision: ScenarioDecision }
-  | { kind: 'feedback'; option: DecisionOption; decision: ScenarioDecision; gained: number; parts: string[]; delta: Partial<Scores>; tone: 'great' | 'good' | 'bad'; consequence: string }
+  | {
+      kind: 'feedback';
+      option: DecisionOption;
+      decision: ScenarioDecision;
+      gained: number;
+      parts: string[];
+      delta: Partial<Scores>;
+      tone: 'great' | 'good' | 'bad';
+      consequence: string;
+      ranked: MoveEval[];
+      bestId: string;
+      dare: DareDraft;
+    }
   | { kind: 'rights'; id: string }
-  | { kind: 'rights-result'; id: string; optionId: string }
+  | { kind: 'rights-result'; id: string; optionId: string; dare: DareDraft }
   | { kind: 'ended' };
 
 const MAX_TICKS = 400;
 const BEST_KEY = 'vande:lite-best';
+const RUN_KEY = 'vande:lite-run';
 const HARSH = new Set(['disproportionate', 'suppressive', 'censorship']);
 const PICK_MS = 340;
 const SCAN_MS = 700;
+const CHAPTER_TITLE = 'The Exam Leak';
 
 /** Three short missions for Chapter 1 (same conditions as the chapter's resolution rules). */
 const MISSIONS: { label: string; condition: Condition }[] = [
@@ -45,7 +91,6 @@ const MISSIONS: { label: string; condition: Condition }[] = [
 ];
 
 const fmt = (n: number) => Math.round(n).toLocaleString('en-IN');
-const RUN_KEY = 'vande:lite-run';
 
 interface RunCounters {
   campaignId: string;
@@ -53,6 +98,7 @@ interface RunCounters {
   streak: number;
   bugs: number;
   choices: number;
+  path: string[];
 }
 function readRun(campaignId: string | undefined): RunCounters | undefined {
   if (!campaignId) return undefined;
@@ -70,7 +116,6 @@ function writeRun(r: RunCounters) {
     /* ignore */
   }
 }
-
 function readBest(): number {
   try {
     return Number(localStorage.getItem(BEST_KEY) ?? 0) || 0;
@@ -94,6 +139,73 @@ function reduced(): boolean {
 }
 const later = (fn: () => void, ms: number) => (reduced() || ms <= 0 ? fn() : window.setTimeout(fn, ms));
 
+const HELPER_KEY = 'vande:lite-helper';
+interface HelperStats {
+  answers: number;
+  best: number;
+  points: number;
+  seen: string[];
+}
+function readHelper(): HelperStats {
+  try {
+    const h = JSON.parse(localStorage.getItem(HELPER_KEY) ?? 'null') as HelperStats | null;
+    if (h && Array.isArray(h.seen)) return h;
+  } catch {
+    /* ignore */
+  }
+  return { answers: 0, best: 0, points: 0, seen: [] };
+}
+function writeHelper(h: HelperStats) {
+  try {
+    localStorage.setItem(HELPER_KEY, JSON.stringify({ ...h, seen: h.seen.slice(-200) }));
+  } catch {
+    /* ignore */
+  }
+}
+
+function isChecked(state: GameState, id: string): boolean {
+  const es = state.evidence[id];
+  return Boolean(es && (es.state === 'verified' || es.state === 'corroborated' || es.state === 'manipulated'));
+}
+
+function scoreDelta(before: Scores, after: Scores) {
+  const delta: Partial<Scores> = {};
+  let pos = 0;
+  let neg = 0;
+  for (const k of DIMENSIONS) {
+    const dv = Math.round(after[k] - before[k]);
+    if (dv !== 0) delta[k] = dv;
+    if (dv > 0) pos += dv;
+    else neg -= dv;
+  }
+  return { delta, pos, neg };
+}
+
+/** What a move would do right now: city change, move value and what happens. Pure (the engine is pure). */
+function evaluateMove(state: GameState, scenario: Scenario, d: ScenarioDecision, o: DecisionOption, index: number): MoveEval {
+  let after = state;
+  try {
+    after = reduce(state, { type: 'decide', tick: state.tick, decisionId: d.id, optionId: o.id }, scenario);
+  } catch {
+    /* fall back to no change */
+  }
+  const { delta, pos, neg } = scoreDelta(state.scores, after.scores);
+  const fb = after.lastFeedback;
+  const harsh = o.tags.some((t) => HARSH.has(t)) || fb?.warning === 'disproportionate' || fb?.warning === 'false-accusation';
+  let pts = Math.max(10, 100 + pos * 8 - neg * 8);
+  const relied = (o.requiresEvidence ?? []).filter((id) => state.evidence[id]?.visible);
+  if (relied.length && relied.every((id) => isChecked(state, id))) pts *= 2;
+  const consequence = d.simple?.options[o.id]?.consequence ?? fb?.text ?? o.consequence;
+  return { option: o, index, delta, pts, harsh, consequence };
+}
+
+function deltaChips(delta: Partial<Scores>, max = 3) {
+  return (Object.entries(delta) as [Dimension, number][])
+    .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+    .slice(0, max)
+    .map(([d, v]) => ({ d, v, label: `${SIMPLE_DIMENSIONS[d].short} ${v > 0 ? '+' : '−'}${Math.abs(v)}` }));
+}
+
 export function LitePlayScreen() {
   const screen = useApp((st) => st.screen);
   const game = useApp((st) => st.game);
@@ -107,7 +219,11 @@ export function LitePlayScreen() {
   const navigate = useApp((st) => st.navigate);
 
   const code = screen.name === 'lite' ? screen.code : undefined;
+  const dareCode = screen.name === 'lite' ? screen.dare : undefined;
+  const replyCode = screen.name === 'lite' ? screen.reply : undefined;
+  const reply: DareReply | null = useMemo(() => (replyCode ? decodeDareReply(replyCode) : null), [replyCode]);
   const friend: LiteChallenge | null = useMemo(() => (code ? decodeLiteChallenge(code) : null), [code]);
+  const incoming: Dare | null = useMemo(() => (dareCode ? decodeDare(dareCode) : null), [dareCode]);
 
   const [overlay, setOverlay] = useState<Step | null>(null);
   const [choices, setChoices] = useState(0);
@@ -123,6 +239,14 @@ export function LitePlayScreen() {
   const [missionToast, setMissionToast] = useState<{ label: string; key: number } | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [starsShown, setStarsShown] = useState(0);
+  const [dareSheet, setDareSheet] = useState<{ dare: Dare; moveNumber: number; moveTitle: string } | null>(null);
+  const [dareActive, setDareActive] = useState(false);
+  const [dareAnswer, setDareAnswer] = useState<{ points: number; best: boolean } | null>(null);
+  const [dareError, setDareError] = useState<string | null>(null);
+  const [replySheet, setReplySheet] = useState<DareReply | null>(null);
+  const [hintShown, setHintShown] = useState(false);
+  const [helper, setHelper] = useState<HelperStats>(readHelper);
+  const [replyAward, setReplyAward] = useState<{ points: number; fresh: boolean } | null>(null);
 
   const feedSeen = useRef(0);
   const finishedRef = useRef<string | undefined>(undefined);
@@ -131,11 +255,17 @@ export function LitePlayScreen() {
   const missionsRef = useRef<HTMLSpanElement>(null);
   const medalRef = useRef<HTMLDivElement>(null);
   const openedFriend = useRef<string | undefined>(undefined);
-
   const startedHere = useRef(false);
-  // A stored run resumes only if it is still in progress; a friend's link always starts from its own start card.
+  /** Replay path of the current run: every scan, move and fair-play answer, in order. */
+  const pathRef = useRef<string[]>([]);
+  const focusKey = useRef('');
+  const stageRef = useRef<HTMLDivElement>(null);
+  const lastFocused = useRef('');
+  const pendingPath = useRef<string[] | undefined>(undefined);
+
+  // A stored run resumes only if it is still in progress; friend links always start from their own start card.
   const ready = Boolean(
-    plan?.lite && game && scenario && scenario.id === 'examination-crisis' && (startedHere.current || (!friend && game.status !== 'ended')),
+    plan?.lite && game && scenario && scenario.id === 'examination-crisis' && (startedHere.current || (!friend && !incoming && !reply && game.status !== 'ended')),
   );
   const ended = Boolean(ready && game?.status === 'ended');
 
@@ -155,13 +285,37 @@ export function LitePlayScreen() {
     setShareOpen(false);
     setStarsShown(0);
     setBest(readBest());
-    prevAchieved.current = [false, false, false];
+    pathRef.current = restored?.path ?? pendingPath.current ?? [];
+    pendingPath.current = undefined;
+    prevAchieved.current = useApp.getState().game ? MISSIONS.map((m) => checkCondition(m.condition, useApp.getState().game!)) : [false, false, false];
     feedSeen.current = useApp.getState().game?.feed.length ?? 0;
   }, [campaignId]);
 
   useEffect(() => {
-    if (campaignId) writeRun({ campaignId, points, streak, bugs, choices });
-  }, [campaignId, points, streak, bugs, choices]);
+    if (campaignId) writeRun({ campaignId, points, streak, bugs, choices, path: pathRef.current });
+  }, [campaignId, points, streak, bugs, choices, overlay]);
+
+  useEffect(() => {
+    if (!reply || !replyCode) return;
+    const h = readHelper();
+    if (h.seen.includes(replyCode)) {
+      setReplyAward({ points: 0, fresh: false });
+      setHelper(h);
+      return;
+    }
+    const earned = 40 + (reply.best ? 100 : 0);
+    const next: HelperStats = { answers: h.answers + 1, best: h.best + (reply.best ? 1 : 0), points: h.points + earned, seen: [...h.seen, replyCode] };
+    writeHelper(next);
+    setHelper(next);
+    setReplyAward({ points: earned, fresh: true });
+    later(() => {
+      playGameSound(reply.best ? 'win' : 'coin');
+      if (reply.best) {
+        haptic('success');
+        fireConfetti({ count: 120, spread: 90 });
+      }
+    }, 400);
+  }, [reply, replyCode]);
 
   useEffect(() => {
     if (friend && code && openedFriend.current !== code) {
@@ -176,7 +330,7 @@ export function LitePlayScreen() {
     if (!ready) return;
     const fresh = achieved.findIndex((a, i) => a && !prevAchieved.current[i]);
     prevAchieved.current = achieved;
-    if (fresh >= 0 && game?.status !== 'ended') {
+    if (fresh >= 0 && game?.status !== 'ended' && !dareActive) {
       setMissionToast({ label: MISSIONS[fresh].label, key: Date.now() });
       later(() => {
         playGameSound('mission');
@@ -238,14 +392,49 @@ export function LitePlayScreen() {
       if (useApp.getState().game?.tick === before) break;
     }
     const g = useApp.getState().game;
-    if (g && scenario) {
+    const sc = useApp.getState().scenario;
+    if (g && sc) {
       const fresh = g.feed.slice(feedSeen.current);
       feedSeen.current = g.feed.length;
       const opp = [...fresh].reverse().find((f) => f.kind === 'opponent');
       if (opp) {
-        const ev = scenario.events.find((e) => e.message === opp.text);
+        const ev = sc.events.find((e) => e.message === opp.text);
         setAlert(ev?.simple ?? opp.text);
       } else setAlert(null);
+    }
+  };
+
+  /** Scan a clue exactly the way the Scan button does (inspect, compare, keep safe). */
+  const scanEvidence = (evId: string) => {
+    const sc = useApp.getState().scenario!;
+    for (const verb of ['inspect', 'compare', 'preserve'] as const) {
+      const acts = evidenceActions(useApp.getState().game!, sc, evId).filter((a) => a.enabled && a.verb === verb);
+      for (const a of acts) dispatch({ type: 'evidence', tick: useApp.getState().game!.tick, evidenceId: evId, verb, compareWith: a.compareWith });
+    }
+  };
+
+  /** Replays one recorded token: `e<i>` scan, `d<i>-<o>` move, `r<i>-<o>` fair-play answer. Throws on anything invalid. */
+  const applyToken = (tok: string) => {
+    const sc = useApp.getState().scenario!;
+    const tick = useApp.getState().game!.tick;
+    if (/^e\d+$/.test(tok)) {
+      const ev = sc.evidence[Number(tok.slice(1))];
+      if (!ev) throw new Error('bad clue');
+      scanEvidence(ev.id);
+      return;
+    }
+    const m = /^([dr])(\d+)-(\d+)$/.exec(tok);
+    if (!m) throw new Error('bad token');
+    if (m[1] === 'd') {
+      const d = sc.decisions[Number(m[2])];
+      const o = d?.options[Number(m[3])];
+      if (!d || !o) throw new Error('bad move');
+      dispatch({ type: 'decide', tick, decisionId: d.id, optionId: o.id });
+    } else {
+      const rm = sc.rightsMoments[Number(m[2])];
+      const o = rm?.options[Number(m[3])];
+      if (!rm || !o) throw new Error('bad answer');
+      dispatch({ type: 'rights', tick, momentId: rm.id, optionId: o.id });
     }
   };
 
@@ -255,20 +444,173 @@ export function LitePlayScreen() {
     if (g && g.tick === 0 && g.status === 'running' && !g.pendingDecisionIds.length && !overlay) setOverlay({ kind: 'begin' });
   }, [ready, overlay]);
 
+  // When a new moment appears, move focus to its heading (keyboard and screen-reader users land on the new content).
+  useEffect(() => {
+    if (!ready || focusKey.current === lastFocused.current) return;
+    lastFocused.current = focusKey.current;
+    const h = stageRef.current?.querySelector('h1, h2') as HTMLElement | null;
+    if (h) {
+      if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
+      h.focus({ preventScroll: true });
+    }
+  });
+
   const play = () => {
     unlockGameAudio();
     playGameSound('select');
     startedHere.current = true;
+    setDareActive(false);
+    setDareAnswer(null);
     startLite(friend ? { seed: friend.seed } : undefined);
   };
 
-  // ------------------------------------------------------------------ start
+  const takeDare = () => {
+    if (!incoming) return;
+    unlockGameAudio();
+    playGameSound('select');
+    const tokens = incoming.path ? incoming.path.split('.') : [];
+    startedHere.current = true;
+    pendingPath.current = [...tokens];
+    startLite({ seed: incoming.seed });
+    try {
+      for (const tok of tokens) {
+        advance();
+        applyToken(tok);
+      }
+      advance();
+      const g = useApp.getState().game!;
+      const sc = useApp.getState().scenario!;
+      const idx = Number(incoming.step.slice(1));
+      const ok = incoming.step.startsWith('d') ? g.pendingDecisionIds.includes(sc.decisions[idx]?.id ?? '') : g.pendingRightsIds.includes(sc.rightsMoments[idx]?.id ?? '');
+      if (!ok) throw new Error('mismatch');
+      setDareActive(true);
+      setDareAnswer(null);
+      setDareError(null);
+      track('lite_challenge_opened');
+    } catch {
+      startedHere.current = false;
+      abandonCampaign();
+      setDareError('This dare could not be replayed on this device. Play the whole chapter instead.');
+    }
+  };
+
+  const leave = () => {
+    abandonCampaign();
+    navigate({ name: 'home' });
+  };
+
+  const playFullChapter = () => {
+    setDareActive(false);
+    setDareAnswer(null);
+    navigate({ name: 'lite' });
+    startedHere.current = true;
+    startLite();
+  };
+
+  // ------------------------------------------------------------------ start / landing
   if (!ready || !game || !scenario) {
+    const sc = getScenario('examination-crisis');
+    const dareIdx = incoming ? Number(incoming.step.slice(1)) : 0;
+    const dareIsMove = incoming ? incoming.step.startsWith('d') : false;
+    const dareMoveNumber = incoming ? (incoming.path ? incoming.path.split('.').filter((t) => t.startsWith('d')).length : 0) + 1 : 1;
+    const dareQuestion = incoming
+      ? dareIsMove
+        ? sc.decisions[dareIdx]?.simple?.title ?? sc.decisions[dareIdx]?.title ?? 'A tough call'
+        : sc.rightsMoments[dareIdx]?.simple?.question ?? sc.rightsMoments[dareIdx]?.question ?? 'A fair-play question'
+      : '';
+    const expired = incoming ? dareTimeLeft(incoming.deadline).expired : false;
     return (
-      <main className={s.screen} data-testid="lite-screen" data-step="start">
+      <main className={s.screen} data-testid="lite-screen" data-step={reply ? 'reply-landing' : incoming ? 'dare-landing' : 'start'}>
         <div className={s.aurora} aria-hidden="true" />
         <section className={`${s.hero} ${s.enter}`}>
-          {friend ? (
+          {reply ? (
+            <>
+              <div className={s.verdictRow}>
+                <span className={s.verdictBadge} data-tone={reply.best ? 'great' : 'good'}>
+                  <Icon name={reply.best ? 'check' : 'users'} size={22} strokeWidth={2.4} />
+                </span>
+                <span className={s.kicker}>Your friend took your dare</span>
+              </div>
+              <h1 className={s.heroTitle}>{reply.best ? 'They found the best move!' : 'They answered your dare'}</h1>
+              <div className={s.versus} data-win={reply.points > reply.dare.points ? 'true' : undefined}>
+                <span>
+                  <small>Friend</small>
+                  <strong>+{fmt(reply.points)}</strong>
+                </span>
+                <span className={s.vs}>vs</span>
+                <span>
+                  <small>You</small>
+                  <strong>+{fmt(reply.dare.points)}</strong>
+                </span>
+              </div>
+              {replyAward?.fresh ? (
+                <p className={s.gain} data-tone="great" data-testid="reply-award">
+                  +{fmt(replyAward.points)}
+                </p>
+              ) : null}
+              <p className={s.lead}>
+                {replyAward?.fresh
+                  ? reply.best
+                    ? 'Helper points for teaching a friend the best move.'
+                    : 'Helper points for a friend who played. Send them a hint next time.'
+                  : 'You already counted this reply.'}
+              </p>
+              <p className={s.bestPill} data-testid="helper-stats">
+                <Icon name="users" size={16} /> Friends helped · {helper.best} of {helper.answers} · {fmt(helper.points)} Helper points
+              </p>
+              <Button
+                variant="primary"
+                size="lg"
+                block
+                icon="share"
+                onClick={() =>
+                  setDareSheet({
+                    dare: { ...reply.dare, deadline: nextLocalMidnight(), chain: 1 },
+                    moveNumber: (reply.dare.path ? reply.dare.path.split('.').filter((t) => t.startsWith('d')).length : 0) + 1,
+                    moveTitle: (() => {
+                      const scx = getScenario('examination-crisis');
+                      const i = Number(reply.dare.step.slice(1));
+                      return reply.dare.step.startsWith('d') ? scx.decisions[i]?.simple?.title ?? scx.decisions[i]?.title ?? '' : scx.rightsMoments[i]?.simple?.question ?? '';
+                    })(),
+                  })
+                }
+                data-testid="reply-dare-more"
+              >
+                Dare more friends
+              </Button>
+              <Button variant="secondary" size="lg" block icon="play" onClick={play} data-testid="lite-start">
+                Play the chapter
+              </Button>
+            </>
+          ) : incoming ? (
+            <>
+              <Countdown deadline={incoming.deadline} data-testid="dare-countdown" />
+              <p className={s.kicker}>
+                Your friend dared you{incoming.chain > 1 ? ` · dare chain #${incoming.chain}` : ''}
+              </p>
+              <h1 className={s.heroTitle}>{dareQuestion}</h1>
+              <p className={s.lead}>{dareIsMove ? `Move ${dareMoveNumber} of ${CHAPTER_TITLE}. One question, about 20 seconds.` : `A fair-play question from ${CHAPTER_TITLE}. About 20 seconds.`}</p>
+              <p className={s.lockRow}>
+                <Icon name="lock" size={16} /> Their move and score stay hidden until you answer.
+              </p>
+              {incoming.hint !== undefined ? (
+                hintShown ? (
+                  <p className={s.hintBox} data-testid="dare-hint">
+                    <Icon name="sparkle" size={16} /> {DARE_HINTS[incoming.hint]}
+                  </p>
+                ) : (
+                  <Button variant="ghost" size="md" block icon="sparkle" onClick={() => setHintShown(true)} data-testid="dare-hint-reveal">
+                    Your friend left you a hint
+                  </Button>
+                )
+              ) : null}
+              <Button variant="primary" size="lg" block icon="play" onClick={takeDare} data-testid="dare-accept">
+                {expired ? 'Try it anyway' : 'Take the dare'}
+              </Button>
+              <p className={s.fine}>{expired ? 'This dare ended at midnight. You can still play it.' : 'Answer, then dare 3 friends before midnight.'}</p>
+              {dareError ? <p className={s.fine}>{dareError}</p> : null}
+            </>
+          ) : friend ? (
             <>
               <div className={s.heroMedal}>
                 <Medal tier={medalTierFor(friend.stars)} size={112} label={`Your friend's ${medalTierFor(friend.stars)} medal`} />
@@ -287,20 +629,35 @@ export function LitePlayScreen() {
           ) : (
             <>
               <p className={s.kicker}>Chapter 1</p>
-              <h1 className={s.heroTitle}>The Exam Leak</h1>
+              <h1 className={s.heroTitle}>{CHAPTER_TITLE}</h1>
               <p className={s.lead}>Keep the city calm, fair and free. Win the gold medal.</p>
               {best > 0 ? (
                 <p className={s.bestPill}>
                   <Icon name="sparkle" size={16} /> Your best · {fmt(best)}
                 </p>
               ) : null}
+              {helper.answers > 0 ? (
+                <p className={s.bestPill} data-testid="helper-stats">
+                  <Icon name="users" size={16} /> Friends helped · {helper.best} of {helper.answers}
+                </p>
+              ) : null}
             </>
           )}
-          <Button variant="primary" size="lg" block icon="play" onClick={play} data-testid="lite-start">
-            {friend ? 'Accept challenge' : 'Play'}
-          </Button>
-          {code && !friend ? <p className={s.fine}>That challenge link did not work. Start a fresh game instead.</p> : null}
+          {incoming || reply ? null : (
+            <Button variant="primary" size="lg" block icon="play" onClick={play} data-testid="lite-start">
+              {friend ? 'Accept challenge' : 'Play'}
+            </Button>
+          )}
+          {(code && !friend) || (dareCode && !incoming) || (replyCode && !reply) ? <p className={s.fine}>That link did not work. Start a fresh game instead.</p> : null}
+          {(dareCode && !incoming) || (replyCode && !reply) ? (
+            <Button variant="secondary" size="lg" block onClick={play} data-testid="lite-start">
+              Play
+            </Button>
+          ) : null}
         </section>
+        {dareSheet ? (
+          <DareSheet open onClose={() => setDareSheet(null)} dare={dareSheet.dare} moveNumber={dareSheet.moveNumber} moveTitle={dareSheet.moveTitle} chapterTitle={CHAPTER_TITLE} />
+        ) : null}
       </main>
     );
   }
@@ -308,10 +665,7 @@ export function LitePlayScreen() {
   const decisionOf = (id: string) => scenario.decisions.find((d) => d.id === id)!;
   const evidenceOf = (id: string) => scenario.evidence.find((e) => e.id === id)!;
   const simpleOption = (d: ScenarioDecision, o: DecisionOption) => d.simple?.options[o.id];
-  const clueChecked = (id: string) => {
-    const es = game.evidence[id];
-    return Boolean(es && (es.state === 'verified' || es.state === 'corroborated' || es.state === 'manipulated'));
-  };
+  const clueChecked = (id: string) => isChecked(game, id);
   const clueFor = (d: ScenarioDecision): ScenarioEvidence | undefined => {
     for (const o of d.options) {
       for (const evId of o.requiresEvidence ?? []) {
@@ -322,6 +676,7 @@ export function LitePlayScreen() {
     }
     return undefined;
   };
+  const moveNumberNow = () => pathRef.current.filter((t) => t.startsWith('d')).length + 1;
 
   const current: Step = (() => {
     if (overlay) return overlay;
@@ -349,11 +704,8 @@ export function LitePlayScreen() {
     setScanning(ev.id);
     playGameSound('scan');
     later(() => {
-      const tick = () => useApp.getState().game!.tick;
-      for (const verb of ['inspect', 'compare', 'preserve'] as const) {
-        const acts = evidenceActions(useApp.getState().game!, scenario, ev.id).filter((a) => a.enabled && a.verb === verb);
-        for (const a of acts) dispatch({ type: 'evidence', tick: tick(), evidenceId: ev.id, verb, compareWith: a.compareWith });
-      }
+      scanEvidence(ev.id);
+      pathRef.current = [...pathRef.current, `e${scenario.evidence.findIndex((x) => x.id === ev.id)}`];
       const state = useApp.getState().game!.evidence[ev.id].state;
       let gained = 0;
       let label: string = SIMPLE_STATES[state].label;
@@ -382,41 +734,54 @@ export function LitePlayScreen() {
   };
 
   const commitChoice = (d: ScenarioDecision, o: DecisionOption) => {
-    const before = useApp.getState().game!.scores;
-    dispatch({ type: 'decide', tick: useApp.getState().game!.tick, decisionId: d.id, optionId: o.id });
+    const stateBefore = useApp.getState().game!;
+    const decisionIndex = scenario.decisions.findIndex((x) => x.id === d.id);
+    const optionIndex = d.options.findIndex((x) => x.id === o.id);
+    // Every move, evaluated from the same moment, so the reveal is honest about the roads not taken.
+    const evals = d.options.map((opt, i) => evaluateMove(stateBefore, scenario, d, opt, i));
+    const mine = evals[optionIndex];
+    const bestEval = evals.reduce((a, b) => (b.pts > a.pts ? b : a), evals[0]);
+    const pathBefore = pathRef.current.join('.');
+    const moveNumber = moveNumberNow();
+
+    dispatch({ type: 'decide', tick: stateBefore.tick, decisionId: d.id, optionId: o.id });
+    pathRef.current = [...pathRef.current, `d${decisionIndex}-${optionIndex}`];
     const after = useApp.getState().game!;
-    const feedback = after.lastFeedback;
-    const delta: Partial<Scores> = {};
-    let pos = 0;
-    let neg = 0;
-    for (const k of DIMENSIONS) {
-      const dv = Math.round(after.scores[k] - before[k]);
-      if (dv !== 0) delta[k] = dv;
-      if (dv > 0) pos += dv;
-      else neg -= dv;
-    }
-    const harsh = o.tags.some((t) => HARSH.has(t)) || feedback?.warning === 'disproportionate' || feedback?.warning === 'false-accusation';
+    const { delta, pos, neg } = scoreDelta(stateBefore.scores, after.scores);
     const parts: string[] = [];
     let gained = Math.max(10, 100 + pos * 8 - neg * 8);
     parts.push(`${fmt(gained)} base`);
-    const relied = (o.requiresEvidence ?? []).filter((id) => game.evidence[id]?.visible);
-    if (relied.length && relied.every(clueChecked)) {
-      gained *= 2;
+    if (mine.pts > gained) {
+      gained = mine.pts;
       parts.push('×2 clue scanned');
     }
-    const nextStreak = harsh ? 0 : streak + 1;
-    if (nextStreak >= 2) {
+    const nextStreak = mine.harsh ? 0 : streak + 1;
+    if (nextStreak >= 2 && !dareActive) {
       const mult = 1 + 0.25 * Math.min(nextStreak - 1, 4);
       gained = Math.round(gained * mult);
       parts.push(`×${String(mult).replace(/\.?0+$/, '')} streak`);
     }
-    const tone: 'great' | 'good' | 'bad' = harsh || neg > pos ? 'bad' : gained >= 300 ? 'great' : 'good';
+    const tone: 'great' | 'good' | 'bad' = mine.harsh || neg > pos ? 'bad' : gained >= 300 ? 'great' : 'good';
     setStreak(nextStreak);
     setPoints((p) => p + gained);
     setChoices((n) => n + 1);
     setFloat({ amount: gained, tone, key: Date.now() });
     setBurst((b) => b + 1);
-    if (tone === 'bad') {
+    const foundBest = mine.option.id === bestEval.option.id || mine.pts >= bestEval.pts;
+
+    if (dareActive && incoming) {
+      setDareAnswer({ points: mine.pts, best: foundBest });
+      const won = mine.pts > incoming.points;
+      const tie = mine.pts === incoming.points;
+      later(() => {
+        playGameSound(won ? 'win' : tie ? 'correct' : 'lose');
+        if (won) {
+          haptic('success');
+          fireConfetti({ count: 120, spread: 90 });
+          confettiRain(1800);
+        }
+      }, 300);
+    } else if (tone === 'bad') {
       playGameSound('wrong');
       haptic('warning');
     } else {
@@ -424,11 +789,22 @@ export function LitePlayScreen() {
       playGameSound('coin', { intensity: 0.6 });
       haptic(tone === 'great' ? 'success' : 'light');
       if (nextStreak >= 2) later(() => playGameSound('streak', { step: nextStreak - 2 }), 260);
-      if (tone === 'great') fireConfetti({ origin: { x: 0.5, y: 0.4 }, count: 50, spread: 60, power: 0.8 });
+      if (tone === 'great' || foundBest) fireConfetti({ origin: { x: 0.5, y: 0.4 }, count: foundBest ? 70 : 50, spread: 60, power: 0.8 });
     }
-    const consequence = simpleOption(d, o)?.consequence ?? feedback?.text ?? o.consequence;
     setPicked(null);
-    setOverlay({ kind: 'feedback', option: o, decision: d, gained, parts, delta, tone, consequence });
+    setOverlay({
+      kind: 'feedback',
+      option: o,
+      decision: d,
+      gained,
+      parts,
+      delta,
+      tone,
+      consequence: mine.consequence,
+      ranked: [...evals].sort((a, b) => b.pts - a.pts),
+      bestId: bestEval.option.id,
+      dare: { path: pathBefore, step: `d${decisionIndex}`, points: mine.pts, best: foundBest, moveNumber, moveTitle: d.simple?.title ?? d.title },
+    });
   };
 
   const pickOption = (d: ScenarioDecision, o: DecisionOption) => {
@@ -446,12 +822,24 @@ export function LitePlayScreen() {
     playGameSound('select');
     setPicked(optionId);
     later(() => {
+      const rmIndex = scenario.rightsMoments.findIndex((r) => r.id === id);
+      const rm = scenario.rightsMoments[rmIndex];
+      const optIndex = rm.options.findIndex((o) => o.id === optionId);
+      const pathBefore = pathRef.current.join('.');
       dispatch({ type: 'rights', tick: useApp.getState().game!.tick, momentId: id, optionId });
-      const rm = scenario.rightsMoments.find((r) => r.id === id)!;
-      const correct = rm.options.find((o) => o.id === optionId)?.correct ?? false;
-      if (correct) {
-        setPoints((p) => p + 100);
-        setFloat({ amount: 100, tone: 'good', key: Date.now() });
+      pathRef.current = [...pathRef.current, `r${rmIndex}-${optIndex}`];
+      const correct = rm.options[optIndex]?.correct ?? false;
+      const pts = correct ? 100 : 0;
+      if (pts) {
+        setPoints((p) => p + pts);
+        setFloat({ amount: pts, tone: 'good', key: Date.now() });
+      }
+      if (dareActive && incoming) {
+        setDareAnswer({ points: pts, best: correct });
+        const won = pts > incoming.points;
+        playGameSound(won ? 'win' : pts === incoming.points ? 'correct' : 'lose');
+        if (won) fireConfetti({ count: 110, spread: 90 });
+      } else if (correct) {
         playGameSound('correct');
         playGameSound('coin', { intensity: 0.6 });
         haptic('success');
@@ -461,17 +849,26 @@ export function LitePlayScreen() {
         haptic('warning');
       }
       setPicked(null);
-      setOverlay({ kind: 'rights-result', id, optionId });
+      setOverlay({
+        kind: 'rights-result',
+        id,
+        optionId,
+        dare: { path: pathBefore, step: `r${rmIndex}`, points: pts, best: correct, moveNumber: moveNumberNow(), moveTitle: rm.simple?.question ?? rm.question },
+      });
     }, PICK_MS);
+  };
+
+  const openDare = (draft: DareDraft) => {
+    playGameSound('select');
+    setDareSheet({
+      dare: { seed: seed ?? 0, path: draft.path, step: draft.step, points: draft.points, best: draft.best, deadline: nextLocalMidnight(), chain: dareActive && incoming ? Math.min(99, incoming.chain + 1) : 1 },
+      moveNumber: draft.moveNumber,
+      moveTitle: draft.moveTitle,
+    });
   };
 
   const mood = cityMood(game.scores);
   const progress = Math.min(100, Math.round((game.tick / game.duration) * 100));
-
-  const leave = () => {
-    abandonCampaign();
-    navigate({ name: 'home' });
-  };
 
   const bars = (delta?: Partial<Scores>) => (
     <ul className={s.bars} aria-label="City bars">
@@ -494,18 +891,82 @@ export function LitePlayScreen() {
     </ul>
   );
 
+  /** The dare verdict shown after answering a friend's dare. */
+  const dareVerdict =
+    dareActive && incoming && dareAnswer ? (
+      <div className={s.dareResult} data-win={dareAnswer.points > incoming.points ? 'true' : undefined} data-testid="dare-result">
+        <p className={s.kicker}>{dareAnswer.points > incoming.points ? 'You won the dare' : dareAnswer.points === incoming.points ? 'A perfect tie' : 'Your friend won this one'}</p>
+        <div className={s.versus}>
+          <span>
+            <small>You</small>
+            <strong>+{fmt(dareAnswer.points)}</strong>
+          </span>
+          <span className={s.vs}>vs</span>
+          <span>
+            <small>Friend</small>
+            <strong>+{fmt(incoming.points)}</strong>
+          </span>
+        </div>
+        <p className={s.leadSmall}>
+          {incoming.best && dareAnswer.best
+            ? 'You both found the best move.'
+            : incoming.best
+              ? 'Your friend found the best move. It is marked above.'
+              : dareAnswer.best
+                ? 'You found the best move. Your friend did not.'
+                : 'Neither of you found the best move. It is marked above.'}
+        </p>
+        <Button variant="primary" size="lg" block icon="share" onClick={() => { playGameSound('select'); setReplySheet({ dare: incoming, points: dareAnswer.points, best: dareAnswer.best }); }} data-testid="dare-reply">
+          Send your result back
+        </Button>
+        <Button
+          variant="secondary"
+          size="lg"
+          block
+          icon="users"
+          onClick={() =>
+            openDare({
+              path: incoming.path,
+              step: incoming.step,
+              points: dareAnswer.points,
+              best: dareAnswer.best,
+              moveNumber: (incoming.path ? incoming.path.split('.').filter((t) => t.startsWith('d')).length : 0) + 1,
+              moveTitle: current.kind === 'feedback' ? current.dare.moveTitle : current.kind === 'rights-result' ? current.dare.moveTitle : '',
+            })
+          }
+          data-testid="dare-pass"
+        >
+          Dare 3 friends · before midnight
+        </Button>
+        <p className={s.incentive}>Earn +100 Helper points for every friend who finds the best move.</p>
+        <Button variant="ghost" size="md" block icon="play" onClick={playFullChapter} data-testid="dare-full">
+          Play the whole chapter
+        </Button>
+        <Button variant="ghost" size="md" block onClick={leave}>
+          Home
+        </Button>
+      </div>
+    ) : null;
+
   const stepKey = current.kind + ('decision' in current && current.decision ? current.decision.id : '') + ('evidence' in current && current.evidence ? current.evidence.id : '') + ('id' in current ? current.id : '');
+  focusKey.current = stepKey;
 
   return (
-    <main className={s.screen} data-testid="lite-screen" data-step={current.kind}>
+    <main className={s.screen} data-testid="lite-screen" data-step={current.kind} data-dare={dareActive ? 'true' : undefined}>
       <div className={s.aurora} aria-hidden="true" />
       <header className={s.top}>
         <button type="button" className={s.round} onClick={leave} aria-label="Leave">
           <Icon name="back" size={20} />
         </button>
-        <div className={s.progress} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label="Chapter progress">
-          <span style={{ width: `${progress}%` }} />
-        </div>
+        {dareActive && incoming ? (
+          <div className={s.topCountdown}>
+            <Countdown deadline={incoming.deadline} compact />
+          </div>
+        ) : (
+          <div className={s.progress} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label="Chapter progress">
+            <span style={{ width: `${progress}%` }} />
+          </div>
+        )}
         <span className={s.points} ref={pointsRef} data-testid="lite-points" aria-label={`${points} points`}>
           <Icon name="sparkle" size={16} />
           <CountUp key={campaignId} value={points} durationMs={650} />
@@ -533,21 +994,27 @@ export function LitePlayScreen() {
             <span className={s.mood} data-tone={mood.tone}>
               {mood.label}
             </span>
-            {streak >= 2 ? (
+            {streak >= 2 && !dareActive ? (
               <span className={s.streak} key={streak}>
                 <Icon name="sparkle" size={14} /> Streak ×{streak}
               </span>
             ) : null}
-            <span className={s.missions} ref={missionsRef} aria-label={`${achieved.filter(Boolean).length} of ${MISSIONS.length} missions done`}>
-              {MISSIONS.map((m, i) => (
-                <span key={i} className={s.missionDot} data-done={achieved[i] ? 'true' : undefined} title={m.label} />
-              ))}
-            </span>
+            {dareActive ? (
+              <span className={s.dareChip}>
+                <Icon name="clock" size={14} /> Dare
+              </span>
+            ) : (
+              <span className={s.missions} ref={missionsRef} aria-label={`${achieved.filter(Boolean).length} of ${MISSIONS.length} missions done`}>
+                {MISSIONS.map((m, i) => (
+                  <span key={i} className={s.missionDot} data-done={achieved[i] ? 'true' : undefined} title={m.label} />
+                ))}
+              </span>
+            )}
           </div>
         </section>
       ) : null}
 
-      <div className={s.stage} key={stepKey}>
+      <div className={s.stage} key={stepKey} ref={stageRef}>
         {current.kind === 'begin' && (
           <section className={`${s.hero} ${s.enter}`} aria-live="polite">
             <p className={s.kicker}>Chapter 1 · {friend ? `Beat ${fmt(friend.points)}` : 'Your goal'}</p>
@@ -583,7 +1050,16 @@ export function LitePlayScreen() {
               ))}
             </ol>
             {best > 0 && !friend ? <p className={s.bestPill}>Beat your best: {fmt(best)}</p> : null}
-            <Button variant="primary" size="lg" block onClick={() => { unlockGameAudio(); next(); }} data-testid="lite-next">
+            <Button
+              variant="primary"
+              size="lg"
+              block
+              onClick={() => {
+                unlockGameAudio();
+                next();
+              }}
+              data-testid="lite-next"
+            >
               Begin
             </Button>
           </section>
@@ -613,7 +1089,7 @@ export function LitePlayScreen() {
                 <Icon name="bug" size={16} /> {alert}
               </p>
             ) : null}
-            <p className={s.kicker}>Move {choices + 1}</p>
+            <p className={s.kicker}>{dareActive ? 'The dare' : `Move ${choices + 1}`}</p>
             <h1 className={s.title}>{current.decision.simple?.title ?? current.decision.title}</h1>
             <p className={s.lead}>{current.decision.simple?.situation ?? current.decision.situation}</p>
             <div className={s.hand} data-count={current.decision.options.length}>
@@ -643,157 +1119,254 @@ export function LitePlayScreen() {
         )}
 
         {current.kind === 'feedback' && (
-          <section className={`${s.hero} ${s.enter} ${current.tone === 'bad' ? s.shake : ''}`} data-tone={current.tone} aria-live="polite">
-            <Burst tone={current.tone} trigger={burst} />
-            <div className={s.verdictRow}>
-              <span className={s.verdictBadge} data-tone={current.tone}>
-                <Icon name={current.tone === 'bad' ? 'alert' : 'check'} size={22} strokeWidth={2.4} />
-              </span>
-              <span className={s.kicker}>{current.tone === 'great' ? 'Great move' : current.tone === 'good' ? 'Nice move' : 'That hurt'}</span>
-            </div>
-            <p className={s.gain} data-tone={current.tone}>
-              +{fmt(current.gained)}
-            </p>
-            <h1 className={s.titleSm}>{simpleOption(current.decision, current.option)?.title ?? current.option.title}</h1>
-            <p className={s.lead}>{current.consequence}</p>
-            <div className={s.chips}>
-              {current.parts.map((p) => (
-                <span key={p} className={s.chip}>
-                  {p}
+          <>
+            <section className={`${s.hero} ${s.enter} ${current.tone === 'bad' ? s.shake : ''}`} data-tone={current.tone} aria-live="polite">
+              <Burst tone={current.tone} trigger={burst} />
+              <div className={s.verdictRow}>
+                <span className={s.verdictBadge} data-tone={current.tone}>
+                  <Icon name={current.tone === 'bad' ? 'alert' : 'check'} size={22} strokeWidth={2.4} />
                 </span>
-              ))}
-              {current.tone === 'bad' ? <span className={`${s.chip} ${s.chipWarn}`}>Streak reset · less freedom</span> : null}
-            </div>
-            <Button variant="primary" size="lg" block onClick={next} data-testid="lite-next">
-              Next
-            </Button>
-          </section>
+                <span className={s.kicker}>
+                  {current.bestId === current.option.id ? 'Best move!' : current.tone === 'great' ? 'Great move' : current.tone === 'good' ? 'Good move' : 'That hurt'}
+                </span>
+              </div>
+              <p className={s.gain} data-tone={current.tone}>
+                +{fmt(current.gained)}
+              </p>
+              <h1 className={s.titleSm}>{simpleOption(current.decision, current.option)?.title ?? current.option.title}</h1>
+              <p className={s.lead}>{current.consequence}</p>
+              <div className={s.chips}>
+                {current.parts.map((p) => (
+                  <span key={p} className={s.chip}>
+                    {p}
+                  </span>
+                ))}
+                {current.tone === 'bad' ? <span className={`${s.chip} ${s.chipWarn}`}>Streak reset · less freedom</span> : null}
+              </div>
+            </section>
+
+            <section className={s.reveal} aria-label="What every move would have done" data-testid="lite-reveal">
+              <p className={s.revealTitle}>
+                <Icon name="eye" size={16} /> What every move would have done
+              </p>
+              <ul className={s.others}>
+                {current.ranked.map((m) => {
+                  const kind = actionKindOf(m.option.tags);
+                  const meta = ACTION_META[kind];
+                  const mineRow = m.option.id === current.option.id;
+                  const bestRow = m.option.id === current.bestId;
+                  return (
+                    <li
+                      key={m.option.id}
+                      className={s.other}
+                      data-mine={mineRow ? 'true' : undefined}
+                      data-best={bestRow ? 'true' : undefined}
+                      style={{ '--kind': meta.color, '--kind-deep': meta.deep } as CSSProperties}
+                      data-testid={`lite-reveal-${m.option.id}`}
+                    >
+                      <span className={s.otherBadge} aria-hidden="true">
+                        <Icon name={meta.icon} size={18} strokeWidth={2.2} />
+                      </span>
+                      <span className={s.otherBody}>
+                        <span className={s.otherHead}>
+                          <strong>{simpleOption(current.decision, m.option)?.title ?? m.option.title}</strong>
+                          {bestRow ? <span className={s.tagBest}>Best</span> : null}
+                          {mineRow ? <span className={s.tagMine}>Your move</span> : null}
+                        </span>
+                        {mineRow ? null : <span className={s.otherText}>{m.consequence}</span>}
+                        <span className={s.deltaRow}>
+                          {deltaChips(m.delta).map((c) => (
+                            <span key={c.d} className={c.v > 0 ? s.deltaUp : s.deltaDown}>
+                              {c.label}
+                            </span>
+                          ))}
+                          {deltaChips(m.delta).length === 0 ? <span className={s.deltaNone}>No change yet</span> : null}
+                        </span>
+                      </span>
+                      <span className={s.otherPts} data-harsh={m.harsh ? 'true' : undefined}>
+                        +{fmt(m.pts)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+
+            {dareVerdict ?? (
+              <div className={s.actions}>
+                <Button variant="primary" size="lg" block onClick={next} data-testid="lite-next">
+                  Next
+                </Button>
+                <Button variant="secondary" size="md" block icon="clock" onClick={() => openDare(current.dare)} data-testid="lite-dare">
+                  Dare friends on this move · ends at midnight
+                </Button>
+                <p className={s.incentive}>Your answer stays hidden until they play. +100 Helper points for each friend who finds the best move.</p>
+              </div>
+            )}
+          </>
         )}
 
-        {(current.kind === 'rights' || current.kind === 'rights-result') && (() => {
-          const rm = scenario.rightsMoments.find((r) => r.id === current.id)!;
-          const chosen = current.kind === 'rights-result' ? current.optionId : undefined;
-          const chosenOpt = chosen ? rm.options.find((o) => o.id === chosen) : undefined;
-          return (
-            <section className={s.decision} aria-live="polite">
-              <div className={s.verdictRow}>
-                <span className={s.verdictBadge} data-tone="rule">
-                  <Icon name="book" size={20} strokeWidth={2.2} />
-                </span>
-                <span className={s.kicker}>{chosenOpt ? (chosenOpt.correct ? 'Fair call · +100' : 'Not quite') : 'Fair play · +100'}</span>
-              </div>
-              <h1 className={s.title}>{rm.simple?.question ?? rm.question}</h1>
-              <div className={s.hand} data-count="wide">
-                {rm.options.map((o, i) => (
-                  <ActionCard
-                    key={o.id}
-                    kind="rule"
-                    layout="wide"
-                    hideLabel
-                    title={rm.simple?.options[o.id] ?? o.text}
-                    onSelect={() => answerRights(rm.id, o.id)}
-                    picked={picked === o.id || chosen === o.id}
-                    faded={(Boolean(picked) && picked !== o.id) || (Boolean(chosen) && chosen !== o.id && !o.correct)}
-                    verdict={chosen ? (o.correct ? 'right' : chosen === o.id ? 'wrong' : undefined) : undefined}
-                    disabled={Boolean(picked) || Boolean(chosen)}
-                    index={i}
-                    testId={`lite-rights-${o.id}`}
-                  />
-                ))}
-              </div>
-              {chosenOpt ? (
-                <div className={s.explain}>
-                  <p className={s.leadStrong}>{rm.simple?.principle ?? rm.principle}</p>
-                  <p className={s.fine}>Educational content—not legal advice</p>
-                  <Button variant="primary" size="lg" block onClick={next} data-testid="lite-next">
-                    Next
-                  </Button>
+        {(current.kind === 'rights' || current.kind === 'rights-result') &&
+          (() => {
+            const rm = scenario.rightsMoments.find((r) => r.id === current.id)!;
+            const chosen = current.kind === 'rights-result' ? current.optionId : undefined;
+            const chosenOpt = chosen ? rm.options.find((o) => o.id === chosen) : undefined;
+            return (
+              <section className={s.decision} aria-live="polite">
+                <div className={s.verdictRow}>
+                  <span className={s.verdictBadge} data-tone="rule">
+                    <Icon name="book" size={20} strokeWidth={2.2} />
+                  </span>
+                  <span className={s.kicker}>{chosenOpt ? (chosenOpt.correct ? 'Fair call · +100' : 'Not quite') : dareActive ? 'The dare · fair play' : 'Fair play · +100'}</span>
                 </div>
-              ) : null}
-            </section>
-          );
-        })()}
+                <h1 className={s.title}>{rm.simple?.question ?? rm.question}</h1>
+                <div className={s.hand} data-count="wide">
+                  {rm.options.map((o, i) => (
+                    <ActionCard
+                      key={o.id}
+                      kind="rule"
+                      layout="wide"
+                      hideLabel
+                      title={rm.simple?.options[o.id] ?? o.text}
+                      note={chosen ? `${o.correct ? 'Fair: ' : 'Unfair: '}${rm.simple?.feedback?.[o.id] ?? o.feedback}` : undefined}
+                      onSelect={() => answerRights(rm.id, o.id)}
+                      picked={picked === o.id || chosen === o.id}
+                      faded={Boolean(picked) && picked !== o.id}
+                      verdict={chosen ? (o.correct ? 'right' : chosen === o.id ? 'wrong' : undefined) : undefined}
+                      disabled={Boolean(picked) || Boolean(chosen)}
+                      index={i}
+                      testId={`lite-rights-${o.id}`}
+                    />
+                  ))}
+                </div>
+                {chosenOpt && current.kind === 'rights-result' ? (
+                  <div className={s.explain}>
+                    <p className={s.leadStrong}>{rm.simple?.principle ?? rm.principle}</p>
+                    <p className={s.fine}>Educational content—not legal advice</p>
+                    {dareVerdict ?? (
+                      <>
+                        <Button variant="primary" size="lg" block onClick={next} data-testid="lite-next">
+                          Next
+                        </Button>
+                        <Button variant="secondary" size="md" block icon="clock" onClick={() => openDare(current.dare)} data-testid="lite-dare">
+                          Dare friends on this question · ends at midnight
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                ) : null}
+              </section>
+            );
+          })()}
 
-        {current.kind === 'ended' && summary && (() => {
-          const { result, stars, done, missionBonus, total } = summary;
-          const outcome = SIMPLE_OUTCOMES[classifyOutcome(result.scores)];
-          const newBest = total > best;
-          const beatFriend = friend ? total > friend.points : undefined;
-          const challengeCode = encodeLiteChallenge({ seed: seed ?? 0, points: total, stars });
-          const tie = friend ? total === friend.points : false;
-          const headline = friend ? (beatFriend ? 'You beat your friend!' : tie ? 'A perfect tie!' : 'So close') : newBest ? 'Chapter complete' : stars >= 2 ? 'Well played' : 'Chapter done';
-          return (
-            <section className={`${s.hero} ${s.result} ${s.enter}`} aria-live="polite" data-testid="lite-result">
-              <div className={s.resultMedal} ref={medalRef}>
-                <Medal tier={medalTierFor(stars)} size={132} />
-                {newBest ? <span className={s.ribbon}>New best</span> : null}
-              </div>
-              <p className={s.kicker}>{headline}</p>
-              <p className={s.stars} aria-label={`${stars} of 3 stars`}>
-                {[0, 1, 2].map((i) => (
-                  <span key={i} className={i < stars && i < starsShown ? s.starOn : s.starOff} data-shown={i < starsShown ? 'true' : undefined}>
-                    ★
-                  </span>
-                ))}
-              </p>
-              <p className={s.score} data-testid="lite-score" data-value={total}>
-                <CountUp value={total} from={0} durationMs={1200} />
-                <small>points</small>
-              </p>
-              {friend ? (
-                <div className={s.versus} data-win={beatFriend ? 'true' : undefined}>
-                  <span>
-                    <small>You</small>
-                    <strong>{fmt(total)}</strong>
-                  </span>
-                  <span className={s.vs}>vs</span>
-                  <span>
-                    <small>Friend</small>
-                    <strong>{fmt(friend.points)}</strong>
-                  </span>
+        {current.kind === 'ended' &&
+          summary &&
+          (() => {
+            const { result, stars, done, missionBonus, total } = summary;
+            const outcome = SIMPLE_OUTCOMES[classifyOutcome(result.scores)];
+            const newBest = total > best;
+            const beatFriend = friend ? total > friend.points : undefined;
+            const tie = friend ? total === friend.points : false;
+            const challengeCode = encodeLiteChallenge({ seed: seed ?? 0, points: total, stars });
+            const headline = friend ? (beatFriend ? 'You beat your friend!' : tie ? 'A perfect tie!' : 'So close') : newBest ? 'Chapter complete' : stars >= 2 ? 'Well played' : 'Chapter done';
+            return (
+              <section className={`${s.hero} ${s.result} ${s.enter}`} aria-live="polite" data-testid="lite-result">
+                <div className={s.resultMedal} ref={medalRef}>
+                  <Medal tier={medalTierFor(stars)} size={132} />
+                  {newBest ? <span className={s.ribbon}>New best</span> : null}
                 </div>
-              ) : null}
-              <div className={s.chips}>
-                <span className={s.chip}>Moves {fmt(points)}</span>
-                <span className={s.chip}>
-                  Missions {done}/{MISSIONS.length} · +{missionBonus}
-                </span>
-                <span className={s.chip}>Stars +{stars * 100}</span>
-                {bugs ? <span className={s.chip}>{bugs === 1 ? '1 bug squashed' : `${bugs} bugs squashed`}</span> : null}
-              </div>
-              <p className={s.outcome}>
-                {outcome.label} · city {result.score}
-              </p>
-              <p className={s.lead}>{strategicFeedback(result.fingerprint, result, true)}</p>
-              <Button variant="primary" size="lg" block icon="share" onClick={() => { playGameSound('select'); setShareOpen(true); }} data-testid="lite-challenge">
-                Challenge friends
-              </Button>
-              <Button variant="secondary" size="lg" block icon="refresh" onClick={play} data-testid="lite-again">
-                {newBest || beatFriend ? 'Play again' : 'Try to beat it'}
-              </Button>
-              <Button variant="ghost" size="md" block onClick={leave} data-testid="lite-home">
-                Home
-              </Button>
-              <ChallengeSheet
-                open={shareOpen}
-                onClose={() => setShareOpen(false)}
-                beatFriend={beatFriend}
-                model={{
-                  points: total,
-                  stars,
-                  outcomeLabel: outcome.label,
-                  missionsDone: done,
-                  missionsTotal: MISSIONS.length,
-                  bugs,
-                  code: challengeCode,
-                  url: liteChallengeUrl(challengeCode, window.location.origin),
-                  chapterTitle: scenario.simple?.title ?? scenario.title,
-                }}
-              />
-            </section>
-          );
-        })()}
+                <p className={s.kicker}>{headline}</p>
+                <p className={s.stars} aria-label={`${stars} of 3 stars`}>
+                  {[0, 1, 2].map((i) => (
+                    <span key={i} className={i < stars && i < starsShown ? s.starOn : s.starOff} data-shown={i < starsShown ? 'true' : undefined}>
+                      ★
+                    </span>
+                  ))}
+                </p>
+                <p className={s.score} data-testid="lite-score" data-value={total}>
+                  <CountUp value={total} from={0} durationMs={1200} />
+                  <small>points</small>
+                </p>
+                {friend ? (
+                  <div className={s.versus} data-win={beatFriend ? 'true' : undefined}>
+                    <span>
+                      <small>You</small>
+                      <strong>{fmt(total)}</strong>
+                    </span>
+                    <span className={s.vs}>vs</span>
+                    <span>
+                      <small>Friend</small>
+                      <strong>{fmt(friend.points)}</strong>
+                    </span>
+                  </div>
+                ) : null}
+                <div className={s.chips}>
+                  <span className={s.chip}>Moves {fmt(points)}</span>
+                  <span className={s.chip}>
+                    Missions {done}/{MISSIONS.length} · +{missionBonus}
+                  </span>
+                  <span className={s.chip}>Stars +{stars * 100}</span>
+                  {bugs ? <span className={s.chip}>{bugs === 1 ? '1 bug squashed' : `${bugs} bugs squashed`}</span> : null}
+                </div>
+                <p className={s.outcome}>
+                  {outcome.label} · city {result.score}
+                </p>
+                <p className={s.lead}>{strategicFeedback(result.fingerprint, result, true)}</p>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  block
+                  icon="share"
+                  onClick={() => {
+                    playGameSound('select');
+                    setShareOpen(true);
+                  }}
+                  data-testid="lite-challenge"
+                >
+                  Challenge friends
+                </Button>
+                <Button variant="secondary" size="lg" block icon="refresh" onClick={play} data-testid="lite-again">
+                  {newBest || beatFriend ? 'Play again' : 'Try to beat it'}
+                </Button>
+                <Button variant="ghost" size="md" block onClick={leave} data-testid="lite-home">
+                  Home
+                </Button>
+                <ChallengeSheet
+                  open={shareOpen}
+                  onClose={() => setShareOpen(false)}
+                  beatFriend={beatFriend}
+                  model={{
+                    points: total,
+                    stars,
+                    outcomeLabel: outcome.label,
+                    missionsDone: done,
+                    missionsTotal: MISSIONS.length,
+                    bugs,
+                    code: challengeCode,
+                    url: liteChallengeUrl(challengeCode, window.location.origin),
+                    chapterTitle: scenario.simple?.title ?? scenario.title,
+                  }}
+                />
+              </section>
+            );
+          })()}
       </div>
+
+      {dareSheet ? (
+        <DareSheet open onClose={() => setDareSheet(null)} dare={dareSheet.dare} moveNumber={dareSheet.moveNumber} moveTitle={dareSheet.moveTitle} chapterTitle={CHAPTER_TITLE} />
+      ) : null}
+      {replySheet ? (
+        <DareSheet
+          open
+          mode="reply"
+          reply={replySheet}
+          onClose={() => setReplySheet(null)}
+          dare={replySheet.dare}
+          moveNumber={(replySheet.dare.path ? replySheet.dare.path.split('.').filter((t) => t.startsWith('d')).length : 0) + 1}
+          moveTitle=""
+          chapterTitle={CHAPTER_TITLE}
+        />
+      ) : null}
     </main>
   );
 }

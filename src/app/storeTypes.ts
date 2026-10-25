@@ -45,7 +45,7 @@ export type Screen =
   | { name: 'calendar' }
   | { name: 'passport' }
   /** Lite: the simplest possible presentation of Chapter 1, as a game. `code` = a friend's challenge. */
-  | { name: 'lite'; code?: string }
+  | { name: 'lite'; code?: string; dare?: string; reply?: string }
   | { name: 'challenge'; code: string }
   | { name: 'republic' }
   | { name: 'history'; entryId?: string }

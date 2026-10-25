@@ -67,3 +67,66 @@ test.describe('Lite: Chapter 1 as a game', () => {
     await expect(page.getByTestId('lite-start')).toBeVisible();
   });
 });
+
+test.describe('Lite dares: one question, before midnight, passed between friends', () => {
+  test('dare a friend on a move; they get the same question, see every move revealed, and send their result back for Helper points', async ({ page, context }) => {
+    test.setTimeout(180_000);
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    const screen = page.getByTestId('lite-screen');
+    await page.goto('/lite');
+    await page.getByTestId('lite-start').click();
+    await page.getByTestId('lite-next').click(); // Begin
+    await expect(screen).toHaveAttribute('data-step', 'decision');
+    const question = await page.locator('h1').first().innerText();
+    await page.locator('[data-testid^="lite-option-"]').first().click();
+    await expect(screen).toHaveAttribute('data-step', 'feedback');
+
+    // Every move is revealed, ranked, with the best one marked.
+    const reveal = page.getByTestId('lite-reveal');
+    await expect(reveal).toBeVisible();
+    const rows = reveal.locator('[data-testid^="lite-reveal-"]');
+    expect(await rows.count()).toBeGreaterThanOrEqual(3);
+    await expect(reveal).toContainText('Best');
+    await expect(reveal).toContainText('Your move');
+
+    // Dare a friend on this move.
+    await page.getByTestId('lite-dare').click();
+    await expect(page.getByTestId('dare-sheet')).toBeVisible();
+    await page.getByTestId('dare-hint-1').click();
+    await page.getByTestId('dare-share-copy').click();
+    const dareLink = await page.evaluate(() => navigator.clipboard.readText());
+    expect(dareLink).toContain('/lite/dare/I1_');
+
+    // The friend: countdown, locked answer, optional hint, same question.
+    const friend = await context.newPage();
+    await friend.goto(new URL(dareLink).pathname);
+    const fscreen = friend.getByTestId('lite-screen');
+    await expect(fscreen).toHaveAttribute('data-step', 'dare-landing', { timeout: 15_000 });
+    await expect(friend.getByTestId('dare-countdown')).toBeVisible();
+    await expect(fscreen).toContainText('hidden until you answer');
+    await friend.getByTestId('dare-hint-reveal').click();
+    await expect(friend.getByTestId('dare-hint')).toContainText('Check the clue');
+    await friend.getByTestId('dare-accept').click();
+    await expect(fscreen).toHaveAttribute('data-step', /decision|clue/);
+    if ((await fscreen.getAttribute('data-step')) === 'clue') await friend.getByTestId('lite-skip-clue').click();
+    await expect(friend.locator('h1').first()).toHaveText(question);
+    await friend.locator('[data-testid^="lite-option-"]').last().click();
+    await expect(fscreen).toHaveAttribute('data-step', 'feedback');
+    await expect(friend.getByTestId('dare-result')).toBeVisible();
+    await expect(friend.getByTestId('lite-reveal')).toBeVisible();
+
+    // Send the result back; the original player earns Helper points once.
+    await friend.getByTestId('dare-reply').click();
+    await expect(friend.getByTestId('reply-sheet')).toBeVisible();
+    await friend.getByTestId('reply-share-copy').click();
+    const replyLink = await friend.evaluate(() => navigator.clipboard.readText());
+    expect(replyLink).toContain('/lite/reply/R1_');
+
+    await page.goto(new URL(replyLink).pathname);
+    await expect(screen).toHaveAttribute('data-step', 'reply-landing', { timeout: 15_000 });
+    await expect(page.getByTestId('reply-award')).toBeVisible();
+    await expect(page.getByTestId('helper-stats')).toContainText('of 1');
+    await page.reload();
+    await expect(screen).toContainText('already counted');
+  });
+});
