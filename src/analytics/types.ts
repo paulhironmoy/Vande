@@ -20,7 +20,10 @@ export type AnalyticsEvent =
   | 'subsequent_day_return'
   | 'lite_completed'
   | 'lite_shared'
-  | 'lite_challenge_opened';
+  | 'lite_challenge_opened'
+  | 'lite_twist_answered'
+  | 'lite_reply_sent'
+  | 'lite_reply_opened';
 
 export type ElapsedBucket = '<10s' | '10-30s' | '30-60s' | '1-2m' | '2-3m' | '3-5m' | '>5m';
 
@@ -36,6 +39,20 @@ export interface AnalyticsProps {
   /** Days since the previous session, bucketed (1, 2, 3-6, 7+). */
   returnGap?: '1' | '2' | '3-6' | '7+';
   shareMethod?: 'native' | 'clipboard' | 'download';
+  /** lite_twist_answered: the twist was answered right. */
+  right?: boolean;
+  /** lite_reply_sent: the trade-results experiment was on. */
+  tradeResults?: boolean;
+  /** lite_reply_opened: the reply earned Helper points now. */
+  awarded?: boolean;
+  /** lite_reply_opened: a cap stopped the award. */
+  capped?: boolean;
+  /** lite_completed: questions shown with pictures, and best picks on them (bias check for pictures). */
+  visualQuestions?: number;
+  visualBest?: number;
+  /** lite_completed: questions shown as text, and best picks on them. */
+  textQuestions?: number;
+  textBest?: number;
 }
 
 export const ANALYTICS_PROP_KEYS: readonly (keyof AnalyticsProps)[] = [
@@ -49,6 +66,14 @@ export const ANALYTICS_PROP_KEYS: readonly (keyof AnalyticsProps)[] = [
   'state',
   'returnGap',
   'shareMethod',
+  'right',
+  'tradeResults',
+  'awarded',
+  'capped',
+  'visualQuestions',
+  'visualBest',
+  'textQuestions',
+  'textBest',
 ] as const;
 
 export interface AnalyticsAdapter {

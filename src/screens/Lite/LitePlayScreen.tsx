@@ -2,14 +2,12 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useApp } from '@/app/store';
 import { Button, Icon } from '@/components/ui';
 import { SIMPLE_DIMENSIONS, SIMPLE_OUTCOMES, SIMPLE_STATES, cityMood, starsFor } from '@/app/simple';
-import { checkCondition, classifyOutcome, computeChapterResult, evidenceActions, getScenario, reduce } from '@/engine';
+import { checkCondition, classifyOutcome, computeChapterResult, evidenceActions, getScenario } from '@/engine';
 import {
   DIMENSIONS,
   type Condition,
   type DecisionOption,
   type Dimension,
-  type GameState,
-  type Scenario,
   type ScenarioDecision,
   type ScenarioEvidence,
   type Scores,
@@ -25,6 +23,7 @@ import { DareSheet } from '@/components/game/dare/DareSheet';
 import { Countdown } from '@/components/game/dare/Countdown';
 import { decodeLiteChallenge, encodeLiteChallenge, liteChallengeUrl, type LiteChallenge } from '@/share/liteChallenge';
 import { DARE_HINTS, dareTimeLeft, decodeDare, decodeDareReply, nextLocalMidnight, type Dare, type DareReply } from '@/share/dare';
+import { LITE_POINTS, evaluateMove, isChecked, movePoints, scoreDelta, streakMultiplier, type MoveEval } from '@/lite/points';
 import s from './LitePlayScreen.module.css';
 
 /**
@@ -34,15 +33,6 @@ import s from './LitePlayScreen.module.css';
  * streak, clue scanning, missions and a medal reward good judgement. Any question can be sent to friends as a
  * dare that ends at midnight; the friend gets the exact same moment in the exact same city.
  */
-
-interface MoveEval {
-  option: DecisionOption;
-  index: number;
-  delta: Partial<Scores>;
-  pts: number;
-  harsh: boolean;
-  consequence: string;
-}
 
 interface DareDraft {
   path: string;
@@ -78,7 +68,6 @@ type Step =
 const MAX_TICKS = 400;
 const BEST_KEY = 'vande:lite-best';
 const RUN_KEY = 'vande:lite-run';
-const HARSH = new Set(['disproportionate', 'suppressive', 'censorship']);
 const PICK_MS = 340;
 const SCAN_MS = 700;
 const CHAPTER_TITLE = 'The Exam Leak';
@@ -161,42 +150,6 @@ function writeHelper(h: HelperStats) {
   } catch {
     /* ignore */
   }
-}
-
-function isChecked(state: GameState, id: string): boolean {
-  const es = state.evidence[id];
-  return Boolean(es && (es.state === 'verified' || es.state === 'corroborated' || es.state === 'manipulated'));
-}
-
-function scoreDelta(before: Scores, after: Scores) {
-  const delta: Partial<Scores> = {};
-  let pos = 0;
-  let neg = 0;
-  for (const k of DIMENSIONS) {
-    const dv = Math.round(after[k] - before[k]);
-    if (dv !== 0) delta[k] = dv;
-    if (dv > 0) pos += dv;
-    else neg -= dv;
-  }
-  return { delta, pos, neg };
-}
-
-/** What a move would do right now: city change, move value and what happens. Pure (the engine is pure). */
-function evaluateMove(state: GameState, scenario: Scenario, d: ScenarioDecision, o: DecisionOption, index: number): MoveEval {
-  let after = state;
-  try {
-    after = reduce(state, { type: 'decide', tick: state.tick, decisionId: d.id, optionId: o.id }, scenario);
-  } catch {
-    /* fall back to no change */
-  }
-  const { delta, pos, neg } = scoreDelta(state.scores, after.scores);
-  const fb = after.lastFeedback;
-  const harsh = o.tags.some((t) => HARSH.has(t)) || fb?.warning === 'disproportionate' || fb?.warning === 'false-accusation';
-  let pts = Math.max(10, 100 + pos * 8 - neg * 8);
-  const relied = (o.requiresEvidence ?? []).filter((id) => state.evidence[id]?.visible);
-  if (relied.length && relied.every((id) => isChecked(state, id))) pts *= 2;
-  const consequence = d.simple?.options[o.id]?.consequence ?? fb?.text ?? o.consequence;
-  return { option: o, index, delta, pts, harsh, consequence };
 }
 
 function deltaChips(delta: Partial<Scores>, max = 3) {
@@ -347,8 +300,8 @@ export function LitePlayScreen() {
     const result = computeChapterResult(game, scenario, new Date(0).toISOString());
     const stars = starsFor(result.score) as 0 | 1 | 2 | 3;
     const done = MISSIONS.filter((m) => checkCondition(m.condition, game)).length;
-    const missionBonus = done * 50;
-    const total = points + missionBonus + stars * 100;
+    const missionBonus = done * LITE_POINTS.missionBonus;
+    const total = points + missionBonus + stars * LITE_POINTS.starBonus;
     return { result, stars, done, missionBonus, total };
   }, [ended, game, scenario, points]);
 
@@ -710,14 +663,14 @@ export function LitePlayScreen() {
       let gained = 0;
       let label: string = SIMPLE_STATES[state].label;
       if (state === 'manipulated') {
-        gained = 200;
+        gained = LITE_POINTS.clueFakeCaught;
         label = 'Fake · bug squashed';
         setBugs((b) => b + 1);
         playGameSound('squash');
         haptic('success');
         fireConfetti({ origin: { x: 0.5, y: 0.45 }, count: 60, spread: 100, power: 0.9, palette: ['#ff5c75', '#ff8a9c', '#aab6c8', '#62d6ff'] });
       } else if (state === 'verified' || state === 'corroborated') {
-        gained = 50;
+        gained = LITE_POINTS.clueVerified;
         playGameSound('correct');
         haptic('light');
       } else {
@@ -749,7 +702,7 @@ export function LitePlayScreen() {
     const after = useApp.getState().game!;
     const { delta, pos, neg } = scoreDelta(stateBefore.scores, after.scores);
     const parts: string[] = [];
-    let gained = Math.max(10, 100 + pos * 8 - neg * 8);
+    let gained = movePoints(pos, neg);
     parts.push(`${fmt(gained)} base`);
     if (mine.pts > gained) {
       gained = mine.pts;
@@ -757,7 +710,7 @@ export function LitePlayScreen() {
     }
     const nextStreak = mine.harsh ? 0 : streak + 1;
     if (nextStreak >= 2 && !dareActive) {
-      const mult = 1 + 0.25 * Math.min(nextStreak - 1, 4);
+      const mult = streakMultiplier(nextStreak);
       gained = Math.round(gained * mult);
       parts.push(`×${String(mult).replace(/\.?0+$/, '')} streak`);
     }
@@ -829,7 +782,7 @@ export function LitePlayScreen() {
       dispatch({ type: 'rights', tick: useApp.getState().game!.tick, momentId: id, optionId });
       pathRef.current = [...pathRef.current, `r${rmIndex}-${optIndex}`];
       const correct = rm.options[optIndex]?.correct ?? false;
-      const pts = correct ? 100 : 0;
+      const pts = correct ? LITE_POINTS.fairPlayCorrect : 0;
       if (pts) {
         setPoints((p) => p + pts);
         setFloat({ amount: pts, tone: 'good', key: Date.now() });
@@ -1305,7 +1258,7 @@ export function LitePlayScreen() {
                   <span className={s.chip}>
                     Missions {done}/{MISSIONS.length} · +{missionBonus}
                   </span>
-                  <span className={s.chip}>Stars +{stars * 100}</span>
+                  <span className={s.chip}>Stars +{stars * LITE_POINTS.starBonus}</span>
                   {bugs ? <span className={s.chip}>{bugs === 1 ? '1 bug squashed' : `${bugs} bugs squashed`}</span> : null}
                 </div>
                 <p className={s.outcome}>

@@ -13,6 +13,7 @@
  * The checksums catch typos and casual edits; they are not a security feature.
  */
 import { hashString } from '@/engine/prng';
+import type { TwistOutcome } from '@/lite/contracts';
 
 export interface Dare {
   /** Run seed (uint32). */
@@ -46,6 +47,18 @@ export interface DareReply {
   points: number;
   /** The friend found the best move. */
   best: boolean;
+  /** 1 = an R1 code (no twist), 2 = an R2 code. Absent means 1. */
+  version?: 1 | 2;
+  /** R2: the twist the friend got (also the rematch question). */
+  twistId?: string;
+  /** R2: how the friend did on the twist. */
+  twist?: TwistOutcome;
+  /** R2: per-attempt random nonce that makes this friend's reply unique. */
+  nonce?: string;
+  /** R2: unix seconds when the rematch ends (the friend's next local midnight when they replied). */
+  rematchDeadline?: number;
+  /** R2 + verified dares: base64url signature over the reply (wave 2). */
+  sig?: string;
 }
 
 const PREFIX = 'I1';

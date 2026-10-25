@@ -62,6 +62,17 @@ export interface SimpleOption {
   title: string;
   preview: string;
   consequence?: string;
+  /** Lite pictures: a 2–4 word label shown under the picture. Only used when the whole question passes the gate. */
+  label?: string;
+  /** Lite pictures: the composed pictogram (vocabulary ids from src/content/lite/visualVocabulary.ts). */
+  visual?: OptionVisual;
+}
+
+/** A composed pictogram: who acts, the action and the object. Ids come from the Lite visual vocabulary. */
+export interface OptionVisual {
+  actor: string;
+  action: string;
+  object: string;
 }
 
 export interface SimpleDecision {

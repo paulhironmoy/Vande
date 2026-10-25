@@ -1,0 +1,116 @@
+{
+  "scenarioId": "examination-crisis",
+  "contentHash": "placeholder",
+  "thresholds": {
+    "closeCallMargin": 12
+  },
+  "seeds": [],
+  "decisions": {
+    "d-first-response": {
+      "tier": "tricky",
+      "signals": {
+        "closeCall": false,
+        "trap": false,
+        "clueNeeded": false
+      }
+    },
+    "d-investigation": {
+      "tier": "tricky",
+      "signals": {
+        "closeCall": false,
+        "trap": false,
+        "clueNeeded": false
+      }
+    },
+    "d-civic-square": {
+      "tier": "tricky",
+      "signals": {
+        "closeCall": false,
+        "trap": false,
+        "clueNeeded": false
+      }
+    },
+    "d-racket": {
+      "tier": "tricky",
+      "signals": {
+        "closeCall": false,
+        "trap": false,
+        "clueNeeded": false
+      }
+    },
+    "d-communication": {
+      "tier": "tricky",
+      "signals": {
+        "closeCall": false,
+        "trap": false,
+        "clueNeeded": false
+      }
+    },
+    "d-services": {
+      "tier": "tricky",
+      "signals": {
+        "closeCall": false,
+        "trap": false,
+        "clueNeeded": false
+      }
+    },
+    "d-resolution": {
+      "tier": "tricky",
+      "signals": {
+        "closeCall": false,
+        "trap": false,
+        "clueNeeded": false
+      }
+    },
+    "d-bait-cancel": {
+      "tier": "tricky",
+      "signals": {
+        "closeCall": false,
+        "trap": false,
+        "clueNeeded": false
+      }
+    },
+    "d-bait-disperse": {
+      "tier": "tricky",
+      "signals": {
+        "closeCall": false,
+        "trap": false,
+        "clueNeeded": false
+      }
+    },
+    "d-bait-shutdown": {
+      "tier": "tricky",
+      "signals": {
+        "closeCall": false,
+        "trap": false,
+        "clueNeeded": false
+      }
+    }
+  },
+  "rights": {
+    "rm-assembly": {
+      "tier": "tricky",
+      "signals": {
+        "closeCall": false,
+        "trap": false,
+        "clueNeeded": false
+      }
+    },
+    "rm-detention": {
+      "tier": "tricky",
+      "signals": {
+        "closeCall": false,
+        "trap": false,
+        "clueNeeded": false
+      }
+    },
+    "rm-internet": {
+      "tier": "tricky",
+      "signals": {
+        "closeCall": false,
+        "trap": false,
+        "clueNeeded": false
+      }
+    }
+  }
+}

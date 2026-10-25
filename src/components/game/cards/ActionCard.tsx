@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { Icon } from '@/components/ui';
 import { ACTION_LOGIC, ACTION_META, type ActionKind } from './actionKind';
+import type { VisualPlanEntry } from '@/lite/contracts';
 import s from './ActionCard.module.css';
 
 export interface ActionCardProps {
@@ -25,6 +26,11 @@ export interface ActionCardProps {
   note?: string;
   disabled?: boolean;
   testId: string;
+  /**
+   * Picture mode: a composed pictogram plus a 2–4 word label shown in place of `title`. Pass it only when the whole
+   * question passed the gate (`visualPlanFor`); never for a single answer.
+   */
+  visual?: VisualPlanEntry;
 }
 
 /** A playable action: app-icon badge, type, title. Feels like a card in a hand, not a quiz option. */
