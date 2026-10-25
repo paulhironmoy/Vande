@@ -63,3 +63,25 @@ to an encrypted location now.
   then drop submissions, statistics show "Not enough results yet".
 * Content: revert the day file(s), keep `schedule.pinned` intact, bump `contentVersion`, run `node scripts/validate-daily.mjs`.
 * Analytics: revoke the PostHog project key; clients fail silently.
+
+## Verified dares (Lite)
+
+Switching them off never affects play: every client call falls back to the local twist and an unsigned reply.
+
+1. **Instant, no redeploy:** `cd backend && npx wrangler secret delete DARE_SIGNING_KEY`. Start and grade answer
+   `503 service not configured`; the goal endpoint keeps serving its counts.
+2. **Without removing the key:** set `KILL_LITE_DARES = "1"` in `backend/wrangler.toml` `[vars]` and
+   `npx wrangler deploy` (or edit the variable in the dashboard).
+3. **Stop clients asking:** rebuild the app without `VITE_LITE_VERIFIED_DARES` (or without `VITE_DARE_PUBLIC_KEY`)
+   and redeploy the site; installed PWAs switch on their next online load.
+4. **CPU trouble with replay:** set `LITE_VERIFY_REPLAY = "0"`; new attempts are signed `t` (twist verified) and
+   skip the replay entirely.
+5. **Compromised signing key:** delete the secret, print a new pair with `node scripts/lite-dare-keys.mjs`, install the
+   new private key, rebuild the app with the new public key. Replies signed with the old key stop verifying and count
+   as ordinary local replies; no data needs repairing.
+6. **Data:** `lite_attempts` rows disappear after 7 days by themselves; to empty them at once,
+   `npx wrangler d1 execute vande-community --remote --command "DELETE FROM lite_attempts"`. Migration `0003` is
+   additive; to retire the tables, write a new migration rather than editing it.
+
+Verify afterwards: open a dare link in a build with verified dares, answer it and confirm the twist still appears
+(local draw) and the reply still sends.

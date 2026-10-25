@@ -26,6 +26,28 @@ interface StatsRowMem {
   updated_at: string;
 }
 
+interface AttemptMem {
+  attempt_id: string;
+  dare_key: string;
+  device_key: string;
+  seed: number;
+  path: string;
+  step: string;
+  deadline: number;
+  nonce: string;
+  answer_path: string;
+  points: number;
+  best: number;
+  kind: string;
+  twist_id: string;
+  marker: string;
+  twist_answer: string | null;
+  outcome: string | null;
+  sig: string | null;
+  created_at: number;
+  graded_at: number | null;
+}
+
 /** `$."key"` → `key` (mirrors what json_set/json_extract would address). */
 function keyOfPath(path: string): string {
   const m = /^\$\."(.*)"$/.exec(path);
@@ -37,6 +59,10 @@ export class MemoryD1 implements D1Like {
   results = new Map<string, ResultRow>();
   buckets = new Map<string, { window_start: number; count: number }>();
   stats = new Map<string, StatsRowMem>();
+  /** lite_attempts by attempt_id (UNIQUE dare_key + device_key enforced on insert). */
+  attempts = new Map<string, AttemptMem>();
+  /** lite_goal by day. */
+  goal = new Map<string, { answers: number; best: number; updated_at: string }>();
   /** Statement counters so tests can prove the cheap path was taken. */
   calls: Record<string, number> = {};
 
@@ -80,6 +106,21 @@ export class MemoryD1 implements D1Like {
               scores_json: JSON.stringify(row.scores),
               updated_at: row.updated_at,
             } as unknown as T;
+          }
+          case SQL.liteAttemptByPair: {
+            const [dareKey, deviceKey] = params as [string, string];
+            const row = [...self.attempts.values()].find((a) => a.dare_key === dareKey && a.device_key === deviceKey);
+            return (row ? { ...row } : null) as unknown as T;
+          }
+          case SQL.liteAttemptById: {
+            const [id] = params as [string];
+            const row = self.attempts.get(id);
+            return (row ? { ...row } : null) as unknown as T;
+          }
+          case SQL.liteGoalRow: {
+            const [day] = params as [string];
+            const row = self.goal.get(day);
+            return (row ? { day, ...row } : null) as unknown as T;
           }
           case SQL.bumpBucket: {
             const [key, windowStart] = params as [string, number];
@@ -131,6 +172,43 @@ export class MemoryD1 implements D1Like {
             row.updated_at = updated_at;
             self.stats.set(k, row);
             return { meta: { changes: 1 } };
+          }
+          case SQL.liteInsertAttempt: {
+            const [attempt_id, dare_key, device_key, seed, path, step, deadline, nonce, answer_path, points, best, kind, twist_id, marker, created_at] = params as [
+              string, string, string, number, string, string, number, string, string, number, number, string, string, string, number,
+            ];
+            if (self.attempts.has(attempt_id)) throw new Error('UNIQUE constraint failed: lite_attempts.attempt_id');
+            if ([...self.attempts.values()].some((a) => a.dare_key === dare_key && a.device_key === device_key)) return { meta: { changes: 0 } };
+            self.attempts.set(attempt_id, { attempt_id, dare_key, device_key, seed, path, step, deadline, nonce, answer_path, points, best, kind, twist_id, marker, twist_answer: null, outcome: null, sig: null, created_at, graded_at: null });
+            return { meta: { changes: 1 } };
+          }
+          case SQL.liteGradeAttempt: {
+            const [id, twist_answer, outcome, sig, graded_at] = params as [string, string, string, string, number];
+            const row = self.attempts.get(id);
+            if (!row || row.outcome !== null) return { meta: { changes: 0 } };
+            Object.assign(row, { twist_answer, outcome, sig, graded_at });
+            return { meta: { changes: 1 } };
+          }
+          case SQL.liteBumpGoal: {
+            const [day, best, updated_at] = params as [string, number, string];
+            const row = self.goal.get(day) ?? { answers: 0, best: 0, updated_at };
+            row.answers += 1;
+            row.best += best;
+            row.updated_at = updated_at;
+            self.goal.set(day, row);
+            return { meta: { changes: 1 } };
+          }
+          case SQL.pruneLiteAttempts: {
+            const [cutoff] = params as [number];
+            let changes = 0;
+            for (const [k, v] of self.attempts) if (v.created_at < cutoff) (self.attempts.delete(k), changes++);
+            return { meta: { changes } };
+          }
+          case SQL.pruneLiteGoal: {
+            const [cutoff] = params as [string];
+            let changes = 0;
+            for (const [k] of self.goal) if (k < cutoff) (self.goal.delete(k), changes++);
+            return { meta: { changes } };
           }
           case SQL.pruneBuckets: {
             const [cutoff] = params as [number];

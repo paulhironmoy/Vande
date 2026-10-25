@@ -11,6 +11,9 @@ zero-cost app: no community submissions, no statistics requests, no analytics.
 | `VITE_POSTHOG_HOST` / `VITE_POSTHOG_KEY` | empty | PostHog ingestion host and public write-only project key. |
 | `VITE_KILL_ANALYTICS` | unset | `1` disables analytics even when configured. |
 | `VITE_REMINDERS` | `on` | `off` hides the reminder feature entirely. |
+| `VITE_LITE_TRADE_RESULTS` | unset (off) | Experiment: `1` makes "who won" on a Lite dare unlock only after the friend sends their result back. Their own score and the full reveal always show at once. Measure with `lite_reply_sent` (`tradeResults`). |
+| `VITE_LITE_VERIFIED_DARES` | unset (off) | `1` turns on verified dares: the community API draws and grades the friend's twist and signs the reply (`docs/BACKEND.md`). Takes effect only with `VITE_COMMUNITY_API_URL`, a valid `VITE_DARE_PUBLIC_KEY` and `VITE_KILL_COMMUNITY` unset, and only for players who switched on **Share anonymous results**. |
+| `VITE_DARE_PUBLIC_KEY` | empty | P-256 public key (uncompressed point, `04` + 128 hex) that checks verified-dare signatures offline. Public. Printed by `node scripts/lite-dare-keys.mjs`; a malformed value counts as missing (verified dares stay off). |
 
 Runtime (player-controlled) switches, all in Settings and persisted locally:
 
@@ -23,7 +26,10 @@ Runtime (player-controlled) switches, all in Settings and persisted locally:
 
 Backend variables (`backend/wrangler.toml` `[vars]` / secrets): `ALLOWED_ORIGINS`, `MIN_COHORT` (25), `CONTENT_VERSIONS`
 allow-list, `RATE_SALT` (secret; **required** — without it POST returns 503 unless `ALLOW_UNLIMITED_WRITES=1`),
-`RATE_LIMIT_PER_MINUTE` (30), `RATE_LIMIT_READS_PER_MINUTE` (120). See `docs/BACKEND.md`.
+`RATE_LIMIT_PER_MINUTE` (30), `RATE_LIMIT_READS_PER_MINUTE` (120). Verified dares: `DARE_SIGNING_KEY` (secret, the
+P-256 private JWK; **required** — without it the dare endpoints answer 503), `KILL_LITE_DARES` (`1` = dare endpoints
+off), `LITE_VERIFY_REPLAY` (`1` = replay each dare before signing, marker `v`; needs Workers Paid; default `0` signs
+`t`), `RATE_LIMIT_DARES_PER_MINUTE` (60). See `docs/BACKEND.md`.
 
 ## Emergency kill switches (no redeploy of the app needed where noted)
 
@@ -33,7 +39,10 @@ allow-list, `RATE_SALT` (secret; **required** — without it POST returns 503 un
 2. **Stop submissions from clients**: rebuild with `VITE_KILL_COMMUNITY=1` (or unset the URL) and deploy; existing
    installs keep queuing locally until they update, then drop the queue.
 3. **Analytics**: rebuild with `VITE_KILL_ANALYTICS=1`, or revoke the PostHog key in PostHog (clients fail silently).
-4. **Content emergency** (a daily is wrong): edit the day file, bump `contentVersion`, keep `schedule.pinned` for past
+4. **Verified dares**: set `KILL_LITE_DARES = "1"` and redeploy the Worker, or delete the `DARE_SIGNING_KEY` secret
+   (no redeploy): start and grade answer 503 and apps fall back to local twists and unsigned replies at once. To stop
+   clients asking at all, rebuild without `VITE_LITE_VERIFIED_DARES`.
+5. **Content emergency** (a daily is wrong): edit the day file, bump `contentVersion`, keep `schedule.pinned` for past
    dates so old records stay reproducible; validate with `node scripts/validate-daily.mjs`.
 
 ## Local development

@@ -1,7 +1,10 @@
 /**
  * VANDE community API — Cloudflare Worker + D1.
- *   POST /v1/daily/:dailyId/results   accept one anonymous official result (deduped per day per install)
- *   GET  /v1/daily/:dailyId/stats     aggregate stats (percentages only from MIN_COHORT results)
+ *   POST /v1/daily/:dailyId/results          accept one anonymous official result (deduped per day per install)
+ *   GET  /v1/daily/:dailyId/stats            aggregate stats (percentages only from MIN_COHORT results)
+ *   POST /v1/lite/attempts                   verified dares: start (backend/src/liteDares.ts)
+ *   POST /v1/lite/attempts/:attemptId/grade  verified dares: grade and sign
+ *   GET  /v1/lite/goal/:day                  verified dares: today's shared goal
  *   GET  /v1/health
  * No framework, no cookies, no raw IP storage. See backend/README.md and docs/BACKEND.md.
  */
@@ -15,12 +18,14 @@ import {
 } from './contract';
 import { corsHeaders, originAllowed, parseOrigins } from './cors';
 import type { D1Like } from './d1';
+import { JSON_HEADERS, clientAddress, json, receivedHour } from './http';
+import { handleLite, pruneLite, type LiteEnv } from './liteDares';
 import { checkRateLimit, pruneRateBuckets } from './ratelimit';
 import { SQL, jsonPath } from './sql';
 import { aggregatesFromStatsRow, bandOf, publicStats, strategyClass, type Aggregates, type CountRow, type StatsRow } from './stats';
 import { isRealUtcDate, validateSubmission } from './validate';
 
-export interface Env {
+export interface Env extends LiteEnv {
   DB: D1Like;
   ALLOWED_ORIGINS?: string;
   MIN_COHORT?: string;
@@ -46,18 +51,6 @@ export interface HandlerOptions {
   cache?: CacheLike;
   /** Lets the cache write outlive the response (Cloudflare `ctx.waitUntil`). */
   waitUntil?: (p: Promise<unknown>) => void;
-}
-
-const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' };
-
-function json(body: unknown, status: number, extra: Record<string, string> = {}): Response {
-  return new Response(JSON.stringify(body), { status, headers: { ...JSON_HEADERS, ...extra } });
-}
-
-function receivedHour(now: Date): string {
-  const d = new Date(now);
-  d.setUTCMinutes(0, 0, 0);
-  return d.toISOString();
 }
 
 let warnedUnlimited = false;
@@ -106,12 +99,15 @@ export async function handle(request: Request, env: Env, opts: HandlerOptions = 
     return json({ ok: true, version: env.VERSION ?? 'dev', time: receivedHour(now) }, 200, cors);
   }
 
+  const ip = clientAddress(request);
+  const lite = await handleLite(request, env, { now, url, cors, ip, cache: opts.cache, waitUntil: opts.waitUntil });
+  if (lite) return lite;
+
   const match = url.pathname.match(/^\/v1\/daily\/([^/]+)\/(results|stats)$/);
   if (!match) return json({ error: 'not found' }, 404, cors);
   const dailyId = decodeURIComponent(match[1]);
   if (!isRealUtcDate(dailyId)) return json({ error: 'invalid daily id' }, 400, cors);
   const resource = match[2];
-  const ip = request.headers.get('cf-connecting-ip') ?? request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '';
 
   if (resource === 'stats') {
     if (request.method !== 'GET') return json({ error: 'method not allowed' }, 405, cors);
@@ -205,12 +201,16 @@ export async function handle(request: Request, env: Env, opts: HandlerOptions = 
   return json({ accepted: inserted, duplicate: !inserted }, inserted ? 201 : 200, cors);
 }
 
-/** Scheduled maintenance (wrangler cron): prune rate buckets, results and aggregates past retention. */
+/**
+ * Scheduled maintenance (wrangler cron): prune rate buckets, results and aggregates past retention, verified-dare
+ * attempts after 7 days and goal rows after the results retention.
+ */
 export async function scheduled(env: Env, now = new Date()): Promise<void> {
   await pruneRateBuckets(env.DB, now.getTime());
   const cutoff = receivedHour(new Date(now.getTime() - RESULT_RETENTION_DAYS * 86400000));
   await env.DB.prepare(SQL.pruneResults).bind(cutoff).run();
   await env.DB.prepare(SQL.pruneStats).bind(cutoff).run();
+  await pruneLite(env.DB, now);
 }
 
 interface ExecutionContextLike {

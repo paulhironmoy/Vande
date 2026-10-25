@@ -12,9 +12,11 @@ async function sha256Hex(text: string): Promise<string> {
 
 /**
  * Salted hash of the client address for the current one-minute window. The raw address is never stored.
- * `scope` separates write and read buckets so a burst of reads cannot block a submission (or vice versa).
+ * `scope` separates write, read and dare buckets so a burst of one cannot block the others.
  */
-export async function bucketKey(ip: string, salt: string, windowStart: number, scope: 'write' | 'read' = 'write'): Promise<string> {
+export type RateScope = 'write' | 'read' | 'dare';
+
+export async function bucketKey(ip: string, salt: string, windowStart: number, scope: RateScope = 'write'): Promise<string> {
   return (await sha256Hex(`${salt}:${scope}:${ip}:${windowStart}`)).slice(0, 40);
 }
 
@@ -24,7 +26,7 @@ export async function checkRateLimit(
   salt: string,
   limit: number,
   now = Date.now(),
-  scope: 'write' | 'read' = 'write',
+  scope: RateScope = 'write',
 ): Promise<{ allowed: boolean; count: number }> {
   const windowStart = Math.floor(now / WINDOW_MS) * WINDOW_MS;
   const key = await bucketKey(ip, salt, windowStart, scope);

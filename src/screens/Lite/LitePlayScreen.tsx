@@ -32,7 +32,9 @@ import { ReplyLanding } from './ReplyLanding';
 import { flags } from '@/app/flags';
 import { FRIEND_POINTS } from '@/lite/points';
 import { awardChallenger, readLedger, writeLedger } from '@/lite/ledger';
-import { answerTwist, dareKeyOf, drawTwist, ensureAttempt, readAttempt, recordDareAnswer, twistById } from '@/lite/twists';
+import { answerTwist, assignTwist, dareKeyOf, drawTwist, ensureAttempt, readAttempt, recordDareAnswer, twistById } from '@/lite/twists';
+import { gradeVerifiedAttempt, startVerifiedAttempt, verifiedDaresEnabled, verifyReplySignature } from '@/community/liteDares';
+import { LiteGoal } from '@/components/game/community/LiteGoal';
 import type { FriendLedger, TwistAttempt, TwistKind } from '@/lite/contracts';
 import { TwistQuestion } from '@/components/game/twist';
 import s from './LitePlayScreen.module.css';
@@ -226,6 +228,12 @@ export function LitePlayScreen() {
   const [replySent, setReplySent] = useState(false);
   const [replyStep, setReplyStep] = useState<'reply-landing' | 'rematch' | 'rematch-result'>('reply-landing');
   const [challengerAward, setChallengerAward] = useState<{ earned: number; capped: boolean } | null>(null);
+  /** Verified dares (off unless the build enables them and the player opted in to community sharing). */
+  const optedIn = useApp((st) => st.settings.communitySharing === 'on');
+  const verifiedRef = useRef<{ dareKey: string; attemptId: string; twistId: string } | null>(null);
+  const startPromise = useRef<Promise<void> | null>(null);
+  const [twistLoading, setTwistLoading] = useState(false);
+  const [signing, setSigning] = useState(false);
   /** Trade-results experiment (off by default): "who won" unlocks once the friend sends their result back. */
   const tradeResults = flags.liteTradeResults;
   const [insight, setInsight] = useState(0);
@@ -462,6 +470,7 @@ export function LitePlayScreen() {
       setAttempt(readAttempt(dareKeyOf(incoming)));
       setReplySent(false);
       setChallengerAward(null);
+      verifiedRef.current = null;
       track('lite_challenge_opened');
     } catch {
       startedHere.current = false;
@@ -510,7 +519,15 @@ export function LitePlayScreen() {
       <main className={s.screen} data-testid="lite-screen" data-step={reply ? replyStep : incoming ? 'dare-landing' : 'start'}>
         <div className={s.aurora} aria-hidden="true" />
         {reply && replyCode ? (
-          <ReplyLanding reply={reply} replyCode={replyCode} onPlay={play} onDareMore={() => dareMoreFromReply(reply)} onHowPoints={() => setPointsOpen(true)} onStep={setReplyStep} />
+          <ReplyLanding
+            reply={reply}
+            replyCode={replyCode}
+            onPlay={play}
+            onDareMore={() => dareMoreFromReply(reply)}
+            onHowPoints={() => setPointsOpen(true)}
+            onStep={setReplyStep}
+            verify={flags.darePublicKey ? (r) => verifyReplySignature(r) : undefined}
+          />
         ) : (
         <section className={`${s.hero} ${s.enter}`}>
           {incoming ? (
@@ -596,6 +613,7 @@ export function LitePlayScreen() {
           </Button>
         </section>
         )}
+        <LiteGoal optedIn={optedIn} />
         <HowPointsSheet open={pointsOpen} onClose={() => setPointsOpen(false)} />
         {dareSheet ? (
           <DareSheet open onClose={() => setDareSheet(null)} dare={dareSheet.dare} moveNumber={dareSheet.moveNumber} moveTitle={dareSheet.moveTitle} chapterTitle={CHAPTER_TITLE} />
@@ -732,6 +750,7 @@ export function LitePlayScreen() {
       setDareRetake(counted.points !== mine.pts || counted.best !== foundBest);
       setAttempt(first);
       setDareKind(actionKindOf(bestEval.option.tags));
+      registerVerified({ points: counted.points, best: counted.best, kind: actionKindOf(bestEval.option.tags) });
       const won = mine.pts > incoming.points;
       const tie = mine.pts === incoming.points;
       if (tradeResults) later(() => playGameSound('correct'), 300);
@@ -808,6 +827,7 @@ export function LitePlayScreen() {
         setDareRetake(counted.points !== pts || counted.best !== correct);
         setAttempt(first);
         setDareKind('rule');
+        registerVerified({ points: counted.points, best: counted.best, kind: 'rule' });
         const won = pts > incoming.points;
         if (tradeResults) playGameSound('correct');
         else {
@@ -834,9 +854,39 @@ export function LitePlayScreen() {
     }, PICK_MS);
   };
 
+  /**
+   * Verified dares: registers the friend's answer and adopts the server-chosen twist and nonce. Fire and forget;
+   * without a response the local twist is used and the reply goes unsigned. Safe to repeat (the server is idempotent),
+   * which also recovers the attempt after a reload.
+   */
+  const registerVerified = (claim: { points: number; best: boolean; kind: TwistKind }) => {
+    if (!incoming || !verifiedDaresEnabled(optedIn)) return;
+    const key = dareKeyOf(incoming);
+    const tokens = incoming.path ? incoming.path.split('.') : [];
+    const answerPath = pathRef.current.slice(tokens.length).join('.');
+    const nonce = ensureAttempt(key).nonce;
+    startPromise.current = startVerifiedAttempt({ optedIn, installId: useApp.getState().installId, dare: incoming, nonce, answerPath, claim })
+      .then((res) => {
+        if (!res) return;
+        const a = assignTwist(key, res.twistId, res.nonce);
+        if (!a) return;
+        verifiedRef.current = { dareKey: key, attemptId: res.attemptId, twistId: res.twistId };
+        setAttempt(a);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        startPromise.current = null;
+      });
+  };
+
   /** The friend takes one twist: drawn once per dare on this device, matched to the dared move's kind. */
-  const startTwist = () => {
-    if (!incoming) return;
+  const startTwist = async () => {
+    if (!incoming || twistLoading) return;
+    if (startPromise.current) {
+      setTwistLoading(true);
+      await startPromise.current;
+      setTwistLoading(false);
+    }
     const a = drawTwist(dareKeyOf(incoming), dareKind);
     if (!a?.twistId || !twistById(a.twistId)) {
       useApp.getState().toast({ text: 'No twist is ready on this device. Send your result back instead.', kind: 'info', duration: 2600 });
@@ -882,11 +932,21 @@ export function LitePlayScreen() {
     };
   };
 
-  const openReply = () => {
-    const r = buildReply();
-    if (!r) return;
+  const openReply = async () => {
+    const base = buildReply();
+    if (!base || !incoming || signing) return;
     playGameSound('select');
-    setReplySheet(r);
+    let reply = base;
+    const v = verifiedRef.current;
+    const a = readAttempt(dareKeyOf(incoming));
+    // Grade only once the twist is answered (grading is final); skipped twists go unsigned.
+    if (v && a?.answer && a.twistId === v.twistId && v.dareKey === dareKeyOf(incoming) && verifiedDaresEnabled(optedIn)) {
+      setSigning(true);
+      const res = await gradeVerifiedAttempt({ optedIn, installId: useApp.getState().installId, dare: incoming, attemptId: v.attemptId, twistAnswer: a.answer }).catch(() => null);
+      setSigning(false);
+      if (res && res.nonce === a.nonce) reply = { ...base, points: res.points, best: res.best, twistId: res.twistId, twist: res.twist, nonce: res.nonce, sig: res.sig };
+    }
+    setReplySheet(reply);
   };
 
   /** Challenger points: once per dare, when the friend actually sends their result back. */
@@ -946,8 +1006,8 @@ export function LitePlayScreen() {
       <>
         {twistDone ? null : (
           <>
-            <Button variant="primary" size="lg" block icon="sparkle" onClick={startTwist} data-testid="twist-start">
-              {dareAnswer.best ? `Try the twist · +${FRIEND_POINTS.understood} for you both` : 'Try the twist'}
+            <Button variant="primary" size="lg" block icon="sparkle" onClick={() => void startTwist()} disabled={twistLoading} aria-busy={twistLoading || undefined} data-testid="twist-start">
+              {twistLoading ? 'Getting your twist…' : dareAnswer.best ? `Try the twist · +${FRIEND_POINTS.understood} for you both` : 'Try the twist'}
             </Button>
             <p className={s.incentive}>
               {dareAnswer.best
@@ -956,8 +1016,8 @@ export function LitePlayScreen() {
             </p>
           </>
         )}
-        <Button variant={twistDone ? 'primary' : 'secondary'} size="lg" block icon="share" onClick={openReply} data-testid="dare-reply">
-          Send your result back
+        <Button variant={twistDone ? 'primary' : 'secondary'} size="lg" block icon="share" onClick={() => void openReply()} disabled={signing} aria-busy={signing || undefined} data-testid="dare-reply">
+          {signing ? 'Getting it ready…' : 'Send your result back'}
         </Button>
         {challengerAward ? (
           <p className={s.incentive} data-testid="challenger-award">

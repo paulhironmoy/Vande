@@ -1,0 +1,31 @@
+/* "Today X% of dare answers found the best move": a quiet, real-numbers-only pill. */
+.goal {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: #a9e4ff;
+  background: rgba(98, 214, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(98, 214, 255, 0.28);
+}
+
+.goal strong {
+  font-weight: 800;
+  color: var(--t-primary);
+}
+
+.goal svg {
+  flex: none;
+}
+
+:global(:root[data-contrast='high']) .goal {
+  color: #fff;
+  background: #000;
+  box-shadow: inset 0 0 0 1px #fff;
+}

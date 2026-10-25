@@ -1123,6 +1123,9 @@ export const useApp = create<State>()((set, get) => ({
     }
     await storage.clearAll().catch(() => undefined);
     await wipeCommunityData();
+    // Lite's local data (best scores, friend points, twist attempts). Loaded lazily so the Lite modules and the twist
+    // pool stay out of the entry bundle; the chunk is precached, so this also works offline.
+    await import('@/lite/localData').then((m) => m.wipeLiteLocalData()).catch(() => undefined);
     // A fresh anonymous id: nothing from the previous installation can be linked to the new one.
     metaRecord = { installId: newInstallId(), installIdRotatedAt: nowIso(), dailyMigratedV2: true };
     void storage.setMeta(metaRecord).catch(() => undefined);

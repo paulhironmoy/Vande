@@ -7,7 +7,20 @@ vi.mock('@/app/flags', async (importOriginal) => {
   return { ...mod, flags: new Proxy(mod.flags, { get: (target, key) => (key === 'liteTradeResults' ? flagState.trade : Reflect.get(target, key)) }) };
 });
 
+const verifiedMock = vi.hoisted(() => ({ on: false, start: vi.fn(), grade: vi.fn() }));
+vi.mock('@/community/liteDares', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('@/community/liteDares')>();
+  return {
+    ...mod,
+    verifiedDaresEnabled: () => verifiedMock.on,
+    startVerifiedAttempt: (...args: unknown[]) => verifiedMock.start(...args),
+    gradeVerifiedAttempt: (...args: unknown[]) => verifiedMock.grade(...args),
+  };
+});
+
 import { useApp } from '@/app/store';
+import { decodeDareReply } from '@/share/dare';
+import { TWIST_POOL } from '@/lite/twists';
 import { LitePlayScreen } from '@/screens/Lite/LitePlayScreen';
 import { encodeDare, nextLocalMidnight } from '@/share/dare';
 import { __resetLedgerForTests, readLedger } from '@/lite/ledger';
@@ -39,6 +52,9 @@ describe('Lite friends on the screen', () => {
     cleanup();
     document.documentElement.removeAttribute('data-motion');
     flagState.trade = false;
+    verifiedMock.on = false;
+    verifiedMock.start.mockReset();
+    verifiedMock.grade.mockReset();
     act(() => useApp.getState().abandonCampaign());
   });
 
@@ -69,5 +85,52 @@ describe('Lite friends on the screen', () => {
     fireEvent.click(screen.getByTestId('reply-share-copy'));
     await waitFor(() => expect(navigator.clipboard.writeText).toHaveBeenCalledTimes(2));
     expect(readLedger().challenger.points).toBe(40);
+  });
+
+  it('with verified dares on, the server picks the twist and signs the reply once the twist is answered', async () => {
+    const twist = TWIST_POOL.twists.find((x) => x.kind === 'protect')!;
+    verifiedMock.on = true;
+    verifiedMock.start.mockResolvedValue({ attemptId: 'a'.repeat(32), twistId: twist.id, kind: 'protect', nonce: 'srv123', points: 196, best: true, verified: 'twist', created: true });
+    verifiedMock.grade.mockResolvedValue({ attemptId: 'a'.repeat(32), points: 196, best: true, twistId: twist.id, twist: 'right', nonce: 'srv123', verified: 'twist', sig: `t${'f'.repeat(128)}`, graded: true });
+    act(() => useApp.getState().updateSettings({ communitySharing: 'on' }));
+    openDare();
+    await answerFirstOption();
+    await waitFor(() => expect(verifiedMock.start).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByTestId('twist-start'));
+    await waitFor(() => expect(screen.getByTestId('twist-question').getAttribute('data-twist')).toBe(twist.id));
+    fireEvent.click(screen.getByTestId(`twist-option-${twist.best}`));
+    await waitFor(() => expect(screen.getByTestId('lite-screen').getAttribute('data-step')).toBe('twist-result'));
+    fireEvent.click(screen.getByTestId('dare-reply'));
+    await waitFor(() => expect(screen.getByTestId('reply-sheet')).toBeTruthy());
+    expect(verifiedMock.grade).toHaveBeenCalledWith(expect.objectContaining({ attemptId: 'a'.repeat(32), twistAnswer: twist.best }));
+    fireEvent.click(screen.getByTestId('reply-share-copy'));
+    await waitFor(() => expect(navigator.clipboard.writeText).toHaveBeenCalled());
+    const link = vi.mocked(navigator.clipboard.writeText).mock.calls[0][0] as string;
+    const reply = decodeDareReply(link)!;
+    expect(reply.version).toBe(2);
+    expect(reply.nonce).toBe('srv123');
+    expect(reply.twistId).toBe(twist.id);
+    expect(reply.twist).toBe('right');
+    expect(reply.sig).toBe(`t${'f'.repeat(128)}`);
+  });
+
+  it('with verified dares on but the server unreachable, the friend still gets a local twist and an unsigned reply', async () => {
+    verifiedMock.on = true;
+    verifiedMock.start.mockResolvedValue(null);
+    act(() => useApp.getState().updateSettings({ communitySharing: 'on' }));
+    openDare();
+    await answerFirstOption();
+    fireEvent.click(screen.getByTestId('twist-start'));
+    await waitFor(() => expect(screen.getByTestId('lite-screen').getAttribute('data-step')).toBe('twist'));
+    const first = document.querySelector<HTMLButtonElement>('[data-testid^="twist-option-"]')!;
+    fireEvent.click(first);
+    fireEvent.click(await screen.findByTestId('dare-reply'));
+    await waitFor(() => expect(screen.getByTestId('reply-sheet')).toBeTruthy());
+    expect(verifiedMock.grade).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId('reply-share-copy'));
+    await waitFor(() => expect(navigator.clipboard.writeText).toHaveBeenCalled());
+    const reply = decodeDareReply(vi.mocked(navigator.clipboard.writeText).mock.calls[0][0] as string)!;
+    expect(reply.version).toBe(2);
+    expect(reply.sig).toBeUndefined();
   });
 });

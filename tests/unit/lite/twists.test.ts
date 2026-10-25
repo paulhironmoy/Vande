@@ -235,3 +235,20 @@ describe('rematch records', () => {
     expect(seenTwists()).toEqual(['t1', 't3']);
   });
 });
+
+describe('assignTwist (verified dares)', () => {
+  it('stores a server-chosen twist once, keeps an existing draw, and ignores unknown ids', async () => {
+    const { assignTwist, drawTwist, readAttempt, __resetTwistStoreForTests, TWIST_POOL } = await import('@/lite/twists');
+    localStorage.clear();
+    __resetTwistStoreForTests();
+    const id = TWIST_POOL.twists[0].id;
+    const a = assignTwist('k-server', id);
+    expect(a?.twistId).toBe(id);
+    expect([...(a?.order ?? [])].sort()).toEqual(TWIST_POOL.twists[0].options.map((o) => o.id).sort());
+    expect(assignTwist('k-server', TWIST_POOL.twists[1].id)?.twistId).toBe(id);
+    expect(readAttempt('k-server')?.twistId).toBe(id);
+    const local = drawTwist('k-local', 'talk');
+    expect(assignTwist('k-local', TWIST_POOL.twists[2].id)?.twistId).toBe(local?.twistId);
+    expect(assignTwist('k-none', 't9999')).toBeUndefined();
+  });
+});

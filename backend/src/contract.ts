@@ -42,3 +42,16 @@ export const DEFAULT_RATE_LIMIT_READS_PER_MINUTE = 120;
 /** Stats responses are cached at the edge (and by browsers) for this long. */
 export const STATS_CACHE_SECONDS = 300;
 export const RESULT_RETENTION_DAYS = 180;
+
+// ---------------------------------------------------------------------------------------------------------------
+// Verified dares (Lite). Wire types live in src/community/liteDareProtocol.ts (shared with the app).
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Attempts (one per device key per dare) are deleted after this many days by the scheduled cleanup. */
+export const LITE_ATTEMPT_RETENTION_DAYS = 7;
+/** Per-day goal rows (counts only) are kept as long as daily results. */
+export const LITE_GOAL_RETENTION_DAYS = RESULT_RETENTION_DAYS;
+/** Start and grade requests per address per minute (salted hash, never the address). Generous for school networks. */
+export const DEFAULT_RATE_LIMIT_DARES_PER_MINUTE = 60;
+/** Goal responses are cached at the edge (and by browsers) for this long. */
+export const LITE_GOAL_CACHE_SECONDS = 300;

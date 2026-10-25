@@ -313,6 +313,31 @@ export function drawTwist(dareKey: string, kind: TwistKind): TwistAttempt | unde
   return a;
 }
 
+/**
+ * Verified dares: stores the server-chosen twist (and the nonce the server keeps for this attempt) once. If a twist
+ * was already drawn (for example a local draw after the server timed out), the existing one is kept and returned;
+ * the reply is then sent unsigned. Undefined when the id is not a live twist in this build.
+ */
+export function assignTwist(dareKey: string, twistId: string, nonce?: string): TwistAttempt | undefined {
+  const t = twistById(twistId);
+  if (!t || t.retired) return undefined;
+  const s = readStore();
+  let a = s.attempts.find((x) => x.dareKey === dareKey);
+  if (!a) {
+    a = newAttempt(dareKey);
+    s.attempts.push(a);
+  }
+  if (a.twistId && twistById(a.twistId)) return a;
+  if (nonce && NONCE_RE.test(nonce)) a.nonce = nonce;
+  a.twistId = t.id;
+  a.order = shuffle(t.options.map((o) => o.id));
+  delete a.answer;
+  delete a.outcome;
+  s.seen = [...s.seen.filter((id) => id !== t.id), t.id];
+  writeStore(s);
+  return a;
+}
+
 /** Records the first answer to the attempt's twist; later calls keep it. Unknown option ids are ignored. */
 export function answerTwist(dareKey: string, optionId: string): TwistAttempt | undefined {
   const s = readStore();

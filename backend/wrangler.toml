@@ -10,10 +10,25 @@ CONTENT_VERSIONS = ""   # comma-separated allow-list; empty = accept any well-fo
 RATE_LIMIT_PER_MINUTE = "30"         # write cap per address per minute (salted hash, never the address)
 RATE_LIMIT_READS_PER_MINUTE = "120"  # stats reads are limited only on an edge-cache miss
 VERSION = "1.0.0"
+# Verified dares (POST /v1/lite/attempts, POST /v1/lite/attempts/:id/grade, GET /v1/lite/goal/:day).
+RATE_LIMIT_DARES_PER_MINUTE = "60"   # start + grade per address per minute (salted hash); generous for school networks
+LITE_VERIFY_REPLAY = "0"             # "1" replays each dare before signing (marker v); needs Workers Paid CPU limits
+KILL_LITE_DARES = "0"                # "1" switches the verified-dare endpoints off (503) without removing the secret
+# DARE_SIGNING_KEY is a secret: the P-256 private key as a JWK, printed by `node scripts/lite-dare-keys.mjs`.
+#   `wrangler secret put DARE_SIGNING_KEY` (never commit it). Without it the dare endpoints FAIL CLOSED (503) and
+#   the app keeps using local twists and unsigned replies.
 # RATE_SALT is a secret: `wrangler secret put RATE_SALT` (never commit it).
 # Without it the worker FAILS CLOSED: POST /results answers 503 until the salt exists.
 # Local development only: set ALLOW_UNLIMITED_WRITES = "1" (e.g. in .dev.vars) to accept writes without a salt;
 # the worker logs a warning once per isolate. Never set it in production.
+
+# The Worker bundles the app's own engine, Lite replay, scoring, card kinds and twist pool through the `@/` alias
+# (backend/tsconfig.json "paths", which wrangler's bundler reads). Those modules mention Vite's import.meta.env; it is
+# replaced here so they load in Workers exactly as in the app's production build.
+[define]
+"import.meta.env.DEV" = "false"
+"import.meta.env.PROD" = "true"
+"import.meta.env.BASE_URL" = "\"/\""
 
 [[d1_databases]]
 binding = "DB"
@@ -22,7 +37,7 @@ database_id = "REPLACE_WITH_D1_DATABASE_ID"   # created with `wrangler d1 create
 migrations_dir = "migrations"
 
 [triggers]
-crons = ["17 3 * * *"]   # daily prune: rate buckets older than 24 h, results and daily_stats older than 180 days
+crons = ["17 3 * * *"]   # daily prune: rate buckets > 24 h, results and daily_stats > 180 days, lite_attempts > 7 days, lite_goal > 180 days
 
 [observability]
 enabled = true
