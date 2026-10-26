@@ -1,0 +1,81 @@
+.card {
+  position: relative;
+  display: block;
+  border-radius: var(--r-lg);
+  border: var(--edge-line);
+  background: var(--surface-1);
+  box-shadow: var(--edge-light), var(--shadow-1);
+  padding: var(--s-4);
+  color: var(--t-primary);
+  min-width: 0;
+}
+.raised {
+  background: var(--surface-2);
+  box-shadow: var(--edge-light), var(--shadow-2);
+}
+.sunken {
+  background: var(--surface-sunken);
+  box-shadow: inset 0 1px 3px rgba(2, 1, 16, 0.5);
+}
+.glass {
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--edge-line-strong);
+}
+.pad0 {
+  padding: 0;
+}
+.pad2 {
+  padding: var(--s-2);
+}
+.pad3 {
+  padding: var(--s-3);
+}
+.pad5 {
+  padding: var(--s-5);
+}
+.pad6 {
+  padding: var(--s-6);
+}
+.accent::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: var(--s-3);
+  bottom: var(--s-3);
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--card-accent);
+}
+.interactive {
+  width: 100%;
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    transform var(--dur-control) var(--ease-out),
+    border-color var(--dur-control) var(--ease-out),
+    box-shadow var(--dur-control) var(--ease-out);
+}
+@media (hover: hover) {
+  .interactive:hover {
+    border-color: rgba(143, 135, 232, 0.45);
+  }
+}
+.interactive:active {
+  transform: scale(0.99);
+}
+.interactive[aria-pressed='true'],
+.interactive[aria-checked='true'] {
+  border: var(--edge-cyan);
+  box-shadow: var(--edge-light), var(--glow-cyan);
+}
+/* The card's own shadow would hide the global focus ring: keyboard focus stays visible on every card button. */
+.interactive:focus-visible {
+  box-shadow: var(--focus-ring), var(--edge-light), var(--shadow-1);
+}
+.interactive[aria-pressed='true']:focus-visible,
+.interactive[aria-checked='true']:focus-visible {
+  box-shadow: var(--focus-ring), var(--glow-cyan);
+}

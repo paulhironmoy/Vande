@@ -1,4 +1,17 @@
-import type { RngState } from './types';
+/**
+ * Deterministic pseudo-random numbers for the Sealed Six engine. FROZEN PRIMITIVE: replays of every engine version
+ * depend on these exact sequences. `Sfc32` is the hot-path generator (one per ball, seeded by SHA-256 of a key such
+ * as `seed|innings|ball`); the functional `createRng`/`rngFloat` API is kept for UI code that wants immutable state.
+ */
+import { sha256Words, utf8 } from './sha256';
+
+/** sfc32 generator state (four uint32 words). */
+export interface RngState {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+}
 
 /** cyrb53-derived string hash folded to a uint32. Deterministic across platforms. */
 export function hashString(input: string): number {
@@ -56,14 +69,6 @@ export function rngFloat(r: RngState): { value: number; next: RngState } {
   return { value: s.value / 4294967296, next: s.next };
 }
 
-/** Uniform integer in [minInclusive, maxInclusive]. */
-export function rngInt(r: RngState, minInclusive: number, maxInclusive: number): { value: number; next: RngState } {
-  const lo = Math.ceil(Math.min(minInclusive, maxInclusive));
-  const hi = Math.floor(Math.max(minInclusive, maxInclusive));
-  const f = rngFloat(r);
-  return { value: lo + Math.floor(f.value * (hi - lo + 1)), next: f.next };
-}
-
 /** Non-deterministic seed for new games. UI only — never used inside the simulation. */
 export function newSeed(): number {
   const g = globalThis as { crypto?: { getRandomValues?: (a: Uint32Array) => Uint32Array } };
@@ -73,4 +78,62 @@ export function newSeed(): number {
     return buf[0] >>> 0;
   }
   return Math.floor(Math.random() * 4294967296) >>> 0;
+}
+
+/** Mutable sfc32 generator (Chris Doty-Humphrey's Small Fast Counting generator, 32-bit). */
+export class Sfc32 {
+  private a: number;
+  private b: number;
+  private c: number;
+  private d: number;
+
+  constructor(a: number, b: number, c: number, d: number) {
+    this.a = a >>> 0;
+    this.b = b >>> 0;
+    this.c = c >>> 0;
+    this.d = d >>> 0;
+    for (let i = 0; i < 12; i++) this.nextU32();
+  }
+
+  /** Next uint32. */
+  nextU32(): number {
+    const t0 = (this.a + this.b) | 0;
+    this.a = this.b ^ (this.b >>> 9);
+    this.b = (this.c + (this.c << 3)) | 0;
+    this.c = (this.c << 21) | (this.c >>> 11);
+    this.d = (this.d + 1) | 0;
+    const t = (t0 + this.d) | 0;
+    this.c = (this.c + t) | 0;
+    return t >>> 0;
+  }
+
+  /** Uniform float in [0, 1). */
+  float(): number {
+    return this.nextU32() / 4294967296;
+  }
+
+  /** Uniform integer in [lo, hi] (inclusive). */
+  int(lo: number, hi: number): number {
+    return lo + Math.floor(this.float() * (hi - lo + 1));
+  }
+
+  /** Uniform element of a non-empty array. */
+  pick<T>(items: readonly T[]): T {
+    return items[Math.floor(this.float() * items.length)];
+  }
+
+  /**
+   * Approximately standard-normal draw (Irwin–Hall sum of four uniforms, rescaled). Uses only basic arithmetic so the
+   * result is bit-identical on every JavaScript engine (Math.log/Math.cos are implementation-approximated).
+   */
+  normal(): number {
+    const s = this.float() + this.float() + this.float() + this.float();
+    return (s - 2) * 1.7320508075688772;
+  }
+}
+
+/** A generator seeded from SHA-256 of `key` (the first four digest words). */
+export function rngFromKey(key: string): Sfc32 {
+  const w = sha256Words(utf8(key));
+  return new Sfc32(w[0], w[1], w[2], w[3]);
 }

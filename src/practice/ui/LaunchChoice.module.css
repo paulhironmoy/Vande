@@ -1,0 +1,104 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: calc(var(--safe-top) + var(--s-6)) calc(var(--safe-right) + var(--gutter)) calc(var(--safe-bottom) + var(--s-6)) calc(var(--safe-left) + var(--gutter));
+  background:
+    radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--c-night-600) 70%, transparent), transparent 70%),
+    radial-gradient(90% 60% at 50% 100%, color-mix(in srgb, var(--c-grass-700) 65%, transparent), transparent 75%),
+    var(--bg-app);
+  overflow-y: auto;
+}
+
+.inner {
+  width: min(100%, 26rem);
+  display: grid;
+  gap: var(--s-6);
+  justify-items: center;
+  text-align: center;
+}
+
+.logo {
+  max-width: 100%;
+}
+
+.heading {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--t-secondary);
+}
+
+.choices {
+  display: grid;
+  gap: var(--s-3);
+  width: 100%;
+}
+
+.choice {
+  display: grid;
+  gap: var(--s-1);
+  width: 100%;
+  min-height: 5.25rem;
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--edge-line);
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+  transition:
+    transform var(--dur-control) var(--ease-out),
+    box-shadow var(--dur-control) var(--ease-out);
+}
+
+.choice:active {
+  transform: scale(0.985);
+}
+
+.choice:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.practice {
+  background: linear-gradient(135deg, var(--c-cyan-500), var(--c-cyan-600));
+  color: var(--t-on-cyan);
+  border-color: transparent;
+  box-shadow: var(--glow-cyan);
+}
+
+.skip {
+  background: var(--surface-1);
+  color: var(--t-primary);
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-tight);
+}
+
+.sub {
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  opacity: 0.86;
+}
+
+.note {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--t-tertiary);
+  max-width: 22rem;
+}
+
+:global([data-contrast='high']) .choice {
+  border-width: 2px;
+  border-color: var(--t-primary);
+}
+
+:global([data-motion='reduced']) .choice {
+  transition: none;
+}

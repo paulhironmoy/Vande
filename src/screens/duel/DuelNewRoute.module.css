@@ -1,0 +1,103 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+.pitches {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+.pitch {
+  display: flex !important;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-1);
+  text-align: left;
+}
+.pitch[aria-checked='true'] {
+  border: var(--edge-cyan) !important;
+  box-shadow: var(--glow-cyan);
+}
+.pitchName {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-weight: var(--weight-bold);
+}
+.pitchHint {
+  font-size: var(--text-sm);
+  color: var(--t-secondary);
+  line-height: var(--leading-snug);
+}
+.swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  flex: none;
+}
+.swatch[data-pitch='green'] {
+  background: linear-gradient(135deg, #3a9a5c, #1f7a4a);
+}
+.swatch[data-pitch='hard'] {
+  background: linear-gradient(135deg, #e6c48c, #b98d55);
+}
+.swatch[data-pitch='slow'] {
+  background: linear-gradient(135deg, #a8743f, #7a5128);
+}
+.how {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-4);
+  border-radius: var(--r-lg);
+  background: var(--surface-sunken);
+  border: var(--edge-line);
+}
+.steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  font-size: var(--text-sm);
+  color: var(--t-secondary);
+}
+.steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  line-height: var(--leading-snug);
+}
+.steps svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--c-cyan-400);
+}
+.error {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  color: var(--c-amber-300);
+  font-size: var(--text-sm);
+}
+.success {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  font-weight: var(--weight-semibold);
+  color: var(--f-success);
+}

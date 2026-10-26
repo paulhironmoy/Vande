@@ -1,0 +1,337 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+.stageWrap {
+  position: relative;
+  height: min(62dvh, 640px);
+  min-height: 320px;
+  flex: none;
+}
+.close {
+  position: absolute;
+  top: calc(var(--s-3) + var(--safe-top));
+  right: var(--s-3);
+  z-index: 2;
+}
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--gutter) var(--s-2);
+  background: linear-gradient(180deg, rgba(6, 5, 31, 0.92), rgba(6, 5, 31, 0));
+  margin-top: -1px;
+}
+.modeRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+/* The modes keep each label on one line; with no room beside Result they take their own row. */
+.modes {
+  flex: 1 1 15rem;
+  min-width: 0;
+}
+.modes > button {
+  white-space: nowrap;
+}
+.modes > button {
+  flex: 1 1 0;
+}
+/* Buttons beside a flexible control keep their label whole (the control gives way instead). */
+.modeRow > button,
+.transport > button {
+  flex: none;
+}
+.transport {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.scrub {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-top: 16px;
+}
+.range {
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+.range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--c-cyan-500) var(--p), rgba(143, 135, 232, 0.25) var(--p));
+}
+.range::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(143, 135, 232, 0.25);
+}
+.range::-moz-range-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--c-cyan-500);
+}
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(25, 211, 250, 0.35);
+}
+.range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: #ffffff;
+}
+/* Marks for balls already played. Shape and label carry the meaning (colour only repeats it): a line for a dot or
+   runs, a rounded square "4", a hexagon "6", a diamond "W". */
+.ticks {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 0;
+  height: 16px;
+  pointer-events: none;
+}
+.tick {
+  position: absolute;
+  bottom: 2px;
+  width: 2px;
+  height: 7px;
+  border-radius: 1px;
+  transform: translateX(-50%);
+  background: rgba(189, 184, 245, 0.7);
+}
+/* A boundary or wicket that gave its label to a neighbour: a slim tick in its colour. */
+.tick[data-kind='four'] {
+  background: var(--o-four);
+}
+.tick[data-kind='six'] {
+  background: var(--o-six);
+}
+.tick[data-kind='wicket'] {
+  background: var(--o-wicket);
+  height: 9px;
+}
+.tick[data-label][data-kind='four'],
+.tick[data-label][data-kind='six'],
+.tick[data-label][data-kind='wicket'] {
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-numeric);
+  font-size: 9px;
+  font-weight: var(--weight-black);
+  line-height: 1;
+}
+.tick[data-label][data-kind='four'] {
+  border-radius: 3px;
+  background: var(--o-four);
+  color: var(--t-on-cyan);
+}
+.tick[data-label][data-kind='six'] {
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  border-radius: 0;
+  background: var(--o-six);
+  color: var(--t-on-amber);
+}
+.tick[data-label][data-kind='wicket'] {
+  width: 15px;
+  height: 15px;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  border-radius: 0;
+  background: var(--o-wicket);
+  color: #ffffff;
+  font-size: 8px;
+}
+.times {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  color: var(--t-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+.commentary {
+  display: flex;
+  gap: var(--s-2);
+  align-items: flex-start;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  background: rgba(29, 24, 88, 0.6);
+  border: var(--edge-line);
+  color: var(--t-secondary);
+  font-size: var(--text-sm);
+}
+.commentary svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--c-cyan-400);
+}
+/* The live region stays mounted (so screen readers announce its first line); empty, it takes no space. */
+.commentary[data-empty='true'] {
+  padding: 0;
+  border: 0;
+  background: none;
+  min-height: 0;
+  margin-top: calc(-1 * var(--s-3));
+}
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.h {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--t-tertiary);
+}
+.tlRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tlName {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--t-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.details {
+  padding: var(--s-2) var(--gutter) var(--s-6);
+}
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1, 4px);
+  margin-bottom: var(--s-4);
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: rgba(29, 24, 88, 0.6);
+  border: var(--edge-line);
+}
+.summaryLine {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-black);
+}
+.potm {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--t-secondary);
+  font-size: var(--text-sm);
+}
+.empty {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  color: var(--t-tertiary);
+}
+.tabs {
+  display: flex;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+  border-bottom: var(--edge-line);
+}
+.tab {
+  min-height: var(--tap);
+  padding: 0 var(--s-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--t-tertiary);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+.tab[aria-selected='true'] {
+  color: var(--t-primary);
+  border-bottom-color: var(--c-cyan-400);
+}
+.verify {
+  margin-top: var(--s-5);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  font-size: var(--text-xs);
+  color: var(--t-muted);
+}
+.verify svg {
+  color: var(--o-super);
+}
+.footer {
+  display: flex;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--gutter) var(--s-3);
+}
+.footer {
+  flex-wrap: wrap;
+}
+.footer > * {
+  flex: 1 1 auto;
+}
+/* Desktop: the stage takes most of the width and stays in view; controls, actions and the scorecard form one column. */
+@media (min-width: 1024px) {
+  .screen {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(22rem, 28rem);
+    grid-template-rows: auto auto 1fr;
+    align-items: start;
+    max-width: 120rem;
+    margin: 0 auto;
+  }
+  .stageWrap {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    position: sticky;
+    top: 1rem;
+    height: calc(100dvh - 2rem);
+    margin: 1rem;
+    border-radius: var(--r-xl);
+    overflow: hidden;
+  }
+  .controls,
+  .footer,
+  .details {
+    grid-column: 2;
+  }
+  .footer {
+    align-self: start;
+  }
+}
+/* Zone dividers on the scrubber (second innings, Super Ball if needed): fixed, the same for every match. */
+.zones {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 16px;
+  height: 44px;
+  pointer-events: none;
+}
+.zone {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 12px;
+  border-radius: 1px;
+  transform: translate(-50%, -50%);
+  background: rgba(245, 244, 255, 0.35);
+}

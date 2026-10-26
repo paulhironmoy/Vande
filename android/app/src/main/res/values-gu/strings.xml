@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- Machine-drafted; needs native-speaker QA before release (docs/LOCALIZATION.md). -->
+    <string name="notif_opponent_joined_title">તમારા પ્રતિસ્પર્ધી આવી ગયા</string>
+    <string name="notif_opponent_joined_body">તમારી મેચ શરૂ થઈ ગઈ. તમારો ભાગ રમવા માટે મેચ ખોલો.</string>
+    <string name="notif_opponent_locked_title">તેમની ઓવર સીલ થઈ ગઈ</string>
+    <string name="notif_opponent_locked_body">પ્રતિસ્પર્ધીએ પોતાનો પ્લાન લૉક કર્યો છે. આગળ વધવા માટે મેચ ખોલો.</string>
+    <string name="notif_reveal_ready_title">રિવીલ તૈયાર</string>
+    <string name="notif_reveal_ready_body">બંને ઇનિંગ્સ પૂરી થઈ. રિવીલ જોવા માટે ખોલો.</string>
+    <string name="notif_auto_over_title">ઑટો ઓવરે રમ્યું</string>
+    <string name="notif_auto_over_body">સમય પૂરો થઈ ગયો, તેથી તમારા વતી ઑટો ઓવરે રમ્યું. મેચ ચાલુ છે.</string>
+    <string name="notif_match_expired_title">મેચનો સમય પૂરો</string>
+    <string name="notif_match_expired_body">આ મેચનો સમય પૂરો થઈ ગયો. જ્યારે ઇચ્છો ત્યારે નવી મેચ શરૂ કરો.</string>
+    <string name="notif_rematch_title">ફરી રમીએ?</string>
+    <string name="notif_rematch_body">તમારા પ્રતિસ્પર્ધીને વધુ એક ઓવર જોઈએ છે.</string>
+    <string name="notif_deadline_reminder_title">તમારો વારો રાહ જુએ છે</string>
+    <string name="notif_deadline_reminder_body">સમયમર્યાદા પહેલાં તમારો ભાગ પૂરો કરો, નહીં તો ઑટો ઓવર રમશે.</string>
+    <string name="notif_new_fixture_title">નવી કપ મેચ</string>
+    <string name="notif_new_fixture_body">તમારી આગલી ગ્રુપ કપ મેચ તૈયાર છે.</string>
+    <string name="notif_final_title">તમે ફાઇનલમાં છો</string>
+    <string name="notif_final_body">તમારી ગ્રુપ કપ ફાઇનલ તૈયાર છે. તમારી શ્રેષ્ઠ ઓવર લૉક કરો.</string>
+    <string name="notif_cup_complete_title">કપ પૂરો થયો</string>
+    <string name="notif_cup_complete_body">ગ્રુપ કપ પૂરો થયો. અંતિમ કોષ્ટક જોવા માટે ખોલો.</string>
+    <string name="notif_cup_cancelled_title">કપ રદ</string>
+    <string name="notif_cup_cancelled_body">આ ગ્રુપ કપ રદ કરવામાં આવ્યો છે.</string>
+    <string name="notif_top100_title">તમે ડેઇલી ટોપ 100માં છો</string>
+    <string name="notif_top100_body">તમારો કાયમી બેજ મળી ગયો. કંઈ પણ પ્રકાશિત થાય તે પહેલાં તમારી હાઇલાઇટ જોવા માટે ખોલો.</string>
+    <string name="notif_highlight_published_title">તમારી હાઇલાઇટ લાઇવ છે</string>
+    <string name="notif_highlight_published_body">તમારી મેચની હાઇલાઇટ હવે YouTube પર છે. જોવા અને શેર કરવા માટે ખોલો.</string>
+</resources>

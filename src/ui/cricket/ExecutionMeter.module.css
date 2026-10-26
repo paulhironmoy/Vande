@@ -1,0 +1,86 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-2);
+}
+.meter {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+  outline: none;
+}
+.meter:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+.meter[data-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.meter svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.track {
+  fill: none;
+  stroke: rgba(143, 135, 232, 0.22);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.good {
+  fill: none;
+  stroke: rgba(82, 226, 255, 0.55);
+  stroke-width: 7;
+}
+.perfect {
+  fill: none;
+  stroke: var(--c-amber-500);
+  stroke-width: 9;
+  filter: drop-shadow(0 0 4px rgba(255, 170, 51, 0.8));
+}
+.fill {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.needle {
+  stroke: #ffffff;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+.core {
+  fill: var(--c-night-800);
+  stroke: rgba(82, 226, 255, 0.5);
+  stroke-width: 1;
+}
+.meter[data-holding='true'] .core {
+  fill: #221c68;
+  stroke: var(--c-cyan-400);
+}
+.center {
+  position: relative;
+  max-width: 58%;
+  text-align: center;
+  pointer-events: none;
+}
+.big {
+  font-weight: var(--weight-black);
+  font-size: var(--text-md);
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.hint {
+  max-width: 18rem;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--t-tertiary);
+}

@@ -1,147 +1,193 @@
-import { Component, Suspense, lazy, useEffect, type ErrorInfo, type ReactNode } from 'react';
-import { useApp } from '@/app/store';
-import { useSettingsEffects } from '@/app/settingsEffects';
-import { useNavigationSync } from '@/app/navigation';
-import { useGameLoop } from '@/app/gameLoop';
-import { installAudioUnlock } from '@/audio/sounds';
-import { Button, ToastHost } from '@/components/ui';
-import { LaunchScreen } from '@/screens/Launch/LaunchScreen';
-import { IntroScreen } from '@/screens/Intro/IntroScreen';
-import { HomeScreen } from '@/screens/Home/HomeScreen';
+/**
+ * Root app shell — ROOT-OWNED. Providers, the route switch, connectivity and update banners, Android Back, focus on
+ * navigation and a per-screen error boundary. Screens come from the workstreams' route tables
+ * (src/screens/routes.ts: experience, src/social/routes.ts: social); a route without a screen shows Not found.
+ * A normal start first offers the launch choice (Practice or Skip, src/practice/ui/LaunchChoice).
+ */
+import { Component, Suspense, lazy, useEffect, useRef, useState, type ComponentType, type ErrorInfo, type ReactNode } from 'react';
+import { StateView, StatusBanner, UiProvider } from '@/ui';
+import { UpdateBanner } from '@/pwa/UpdateBanner';
+import { isNativePlatform } from '@/platform';
+import { experienceRoutes } from '@/screens/routes';
+import { socialRoutes } from '@/social/routes';
+import { lazyRoute } from '@/screens/app/lazyRoute';
+import { shouldOfferLaunchChoice } from '@/practice/ui/launch';
+import { closeTopLayer } from './app/back';
+import { useRouter, type Route, type RouteTable } from './app/router';
+import { getServices } from './app/services';
+import { useApp } from './app/store';
 
-const PlayScreen = lazy(() => import('@/screens/Play/PlayScreen'));
-const OpponentSelectScreen = lazy(() => import('@/screens/OpponentSelect/OpponentSelectScreen').then((m) => ({ default: m.OpponentSelectScreen })));
-const BriefingScreen = lazy(() => import('@/screens/Briefing/BriefingScreen').then((m) => ({ default: m.BriefingScreen })));
-const ChapterResultScreen = lazy(() => import('@/screens/ChapterResult/ChapterResultScreen').then((m) => ({ default: m.ChapterResultScreen })));
-const FinalResultScreen = lazy(() => import('@/screens/FinalResult/FinalResultScreen').then((m) => ({ default: m.FinalResultScreen })));
-const DailyScreen = lazy(() => import('@/screens/Daily/DailyScreen').then((m) => ({ default: m.DailyScreen })));
-const DailyOpenScreen = lazy(() => import('@/screens/Daily/DailyOpenScreen').then((m) => ({ default: m.DailyOpenScreen })));
-const CalendarScreen = lazy(() => import('@/screens/Calendar/CalendarScreen').then((m) => ({ default: m.CalendarScreen })));
-const PassportScreen = lazy(() => import('@/screens/Passport/PassportScreen').then((m) => ({ default: m.PassportScreen })));
-const LitePlayScreen = lazy(() => import('@/screens/Lite/LitePlayScreen').then((m) => ({ default: m.LitePlayScreen })));
-const ChallengeScreen = lazy(() => import('@/screens/Challenge/ChallengeScreen').then((m) => ({ default: m.ChallengeScreen })));
-const RepublicScreen = lazy(() => import('@/screens/Republic/RepublicScreen').then((m) => ({ default: m.RepublicScreen })));
-const HistoryScreen = lazy(() => import('@/screens/History/HistoryScreen').then((m) => ({ default: m.HistoryScreen })));
-const SettingsScreen = lazy(() => import('@/screens/Settings/SettingsScreen').then((m) => ({ default: m.SettingsScreen })));
-const AboutScreen = lazy(() => import('@/screens/About/AboutScreen').then((m) => ({ default: m.AboutScreen })));
-const UpdateBanner = lazy(() => import('@/pwa/UpdateBanner').then((m) => ({ default: m.UpdateBanner })));
+const ROUTES: RouteTable = {
+  ...experienceRoutes,
+  ...socialRoutes,
+  // Practice brings its own catalog (src/i18n/practice) and needs no engine copy.
+  practice: lazyRoute(() => import('@/practice/ui/PracticeRoute'), { engine: false }),
+};
 
-function CurrentScreen() {
-  const screen = useApp((s) => s.screen);
-  const hydrated = useApp((s) => s.hydrated);
-  if (!hydrated) return <LaunchScreen />;
-  switch (screen.name) {
-    case 'launch':
-      return <LaunchScreen />;
-    case 'intro':
-      return <IntroScreen />;
-    case 'home':
-      return <HomeScreen />;
-    case 'opponents':
-      return <OpponentSelectScreen />;
-    case 'briefing':
-      return <BriefingScreen />;
-    case 'play':
-      return <PlayScreen />;
-    case 'chapter-result':
-      return <ChapterResultScreen />;
-    case 'final-result':
-      return <FinalResultScreen />;
-    case 'daily':
-      return <DailyScreen />;
-    case 'daily-open':
-      return <DailyOpenScreen />;
-    case 'calendar':
-      return <CalendarScreen />;
-    case 'passport':
-      return <PassportScreen />;
-    case 'lite':
-      return <LitePlayScreen />;
-    case 'challenge':
-      return <ChallengeScreen />;
-    case 'republic':
-      return <RepublicScreen />;
-    case 'history':
-      return <HistoryScreen />;
-    case 'settings':
-      return <SettingsScreen />;
-    case 'about':
-      return <AboutScreen />;
-    default:
-      return <HomeScreen />;
-  }
+const LaunchChoice = lazy(() => import('@/practice/ui/LaunchChoice'));
+/** How long a start waits for the services (they deliver an Android App Link) before offering the launch choice. */
+const LAUNCH_LINK_WAIT_MS = 1_500;
+
+function screenFor(route: Route): ComponentType<{ route: Route }> | null {
+  const screen = ROUTES[route.name] ?? ROUTES.not_found;
+  return (screen as ComponentType<{ route: Route }> | undefined) ?? null;
 }
 
-interface BoundaryState {
-  error: Error | null;
+interface BoundaryProps {
+  resetKey: string;
+  children: ReactNode;
 }
 
-class ErrorBoundary extends Component<{ children: ReactNode }, BoundaryState> {
-  state: BoundaryState = { error: null };
-  static getDerivedStateFromError(error: Error): BoundaryState {
-    return { error };
+/** Keeps a failing screen from blanking the app; navigating elsewhere or "Try again" re-mounts it. */
+class ScreenBoundary extends Component<BoundaryProps, { failed: boolean; key: string }> {
+  state = { failed: false, key: this.props.resetKey };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
   }
-  componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('VANDE screen error', error, info.componentStack);
+
+  static getDerivedStateFromProps(props: BoundaryProps, state: { failed: boolean; key: string }) {
+    return props.resetKey !== state.key ? { failed: false, key: props.resetKey } : null;
   }
-  private goHome = () => {
-    this.setState({ error: null });
-    useApp.getState().navigate({ name: 'home' });
-  };
-  private reload = () => {
-    location.reload();
-  };
+
+  componentDidCatch(error: unknown, info: ErrorInfo) {
+    if (import.meta.env.DEV) console.error('screen failed', error, info.componentStack);
+  }
+
   render() {
-    if (!this.state.error) return this.props.children;
+    if (!this.state.failed) return this.props.children;
     return (
-      <div role="alert" style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', padding: '1.5rem' }}>
-        <div className="panel" style={{ maxWidth: '28rem', padding: '1.5rem' }}>
-          <h1 style={{ fontSize: 'var(--text-2xl)' }}>Something went wrong</h1>
-          <p className="secondary mt-2">Your progress is saved on this device. You can return home or reload the game.</p>
-          <div className="row-wrap mt-6">
-            <Button variant="primary" onClick={this.goHome}>
-              Return home
-            </Button>
-            <Button onClick={this.reload} icon="refresh">
-              Reload
-            </Button>
-          </div>
-        </div>
-      </div>
+      <main>
+        <StateView kind="error" onAction={() => this.setState({ failed: false })} />
+      </main>
     );
   }
 }
 
-function Effects() {
-  const hydrate = useApp((s) => s.hydrate);
+/** Moves focus to the new screen's heading after an in-app navigation, so screen readers announce where they are. */
+function useFocusOnNavigate(route: Route) {
+  const first = useRef(true);
   useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
-  useEffect(() => installAudioUnlock(), []);
-  useSettingsEffects();
-  useNavigationSync();
-  useGameLoop();
-  return null;
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    window.scrollTo?.(0, 0);
+    let tries = 0;
+    let frame = 0;
+    const focus = () => {
+      const target = document.querySelector<HTMLElement>('main h1') ?? document.querySelector<HTMLElement>('main');
+      if (!target) {
+        if (++tries < 60) frame = requestAnimationFrame(focus);
+        return;
+      }
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      target.focus({ preventScroll: true });
+    };
+    frame = requestAnimationFrame(focus);
+    return () => cancelAnimationFrame(frame);
+  }, [route]);
+}
+
+/** Android Back: close the top layer, else go back, else go Home, and only exit from Home. */
+function useNativeBack() {
+  useEffect(() => {
+    if (!isNativePlatform()) return;
+    let remove: (() => void) | null = null;
+    let disposed = false;
+    void import('@capacitor/app').then(async ({ App }) => {
+      const handle = await App.addListener('backButton', () => {
+        if (closeTopLayer()) return;
+        const { route, depth, back, navigate } = useRouter.getState();
+        if (depth > 0) back();
+        else if (route.name !== 'home') navigate({ name: 'home' }, { replace: true });
+        else void App.exitApp();
+      });
+      if (disposed) void handle.remove();
+      else remove = () => void handle.remove();
+    });
+    return () => {
+      disposed = true;
+      remove?.();
+    };
+  }, []);
+}
+
+/**
+ * The launch choice, once per start that opened the app at its root (shouldOfferLaunchChoice). A deep link wins: the
+ * choice waits briefly for the services, which open an Android App Link, and gives way as soon as the route leaves
+ * home. Coming back to home later never shows it again.
+ */
+function useLaunchChoice(route: Route) {
+  const [offer, setOffer] = useState(() => shouldOfferLaunchChoice(route));
+  const [linkChecked, setLinkChecked] = useState(false);
+  useEffect(() => {
+    if (!offer) return;
+    let alive = true;
+    const done = () => alive && setLinkChecked(true);
+    const timer = setTimeout(done, LAUNCH_LINK_WAIT_MS);
+    void getServices().then(done, done);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [offer]);
+  useEffect(() => {
+    if (route.name !== 'home') setOffer(false);
+  }, [route]);
+  return { show: offer && route.name === 'home', ready: linkChecked, dismiss: () => setOffer(false) };
 }
 
 export function App() {
+  const route = useRouter((s) => s.route);
+  const online = useApp((s) => s.online);
+  const inPlay = useApp((s) => s.inPlay);
+
+  useEffect(() => {
+    void getServices();
+    const sync = () => useRouter.getState().syncFromLocation();
+    window.addEventListener('popstate', sync);
+    return () => window.removeEventListener('popstate', sync);
+  }, []);
+  useNativeBack();
+  useFocusOnNavigate(route);
+  const launch = useLaunchChoice(route);
+  const navigate = useRouter((s) => s.navigate);
+
+  const Screen = screenFor(route);
+  const key = JSON.stringify(route);
+  const loading = (
+    <main>
+      <StateView kind="loading" />
+    </main>
+  );
   return (
-    <ErrorBoundary>
-      <Effects />
-      <a href="#main" className="skip-link">
-        Skip to content
-      </a>
-      <main id="main" tabIndex={-1}>
-        <Suspense fallback={<div className="app-fallback" aria-hidden="true" />}>
-          <CurrentScreen />
+    <UiProvider>
+      <StatusBanner status={online ? 'online' : 'offline'} />
+      <ScreenBoundary resetKey={launch.show ? 'launch' : key}>
+        <Suspense fallback={loading}>
+          {launch.show ? (
+            launch.ready ? (
+              <LaunchChoice
+                onPractice={() => {
+                  launch.dismiss();
+                  navigate({ name: 'practice' }, { replace: true });
+                }}
+                onSkip={launch.dismiss}
+              />
+            ) : (
+              loading
+            )
+          ) : Screen ? (
+            <Screen key={key} route={route} />
+          ) : (
+            <main>
+              <StateView kind="error" />
+            </main>
+          )}
         </Suspense>
-      </main>
-      <ToastHost />
-      <Suspense fallback={null}>
-        <UpdateBanner />
-      </Suspense>
-    </ErrorBoundary>
+      </ScreenBoundary>
+      {!inPlay && <UpdateBanner />}
+    </UiProvider>
   );
 }
-
-export default App;

@@ -1,0 +1,9 @@
+.qr {
+  display: block;
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-2);
+}
+.placeholder {
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.08);
+}

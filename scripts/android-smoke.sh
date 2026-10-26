@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Boots the headless emulator (or uses a connected device), installs the APK, launches VANDE,
 # captures screenshots, presses hardware Back, and fails on any crash/ANR in logcat.
-# Usage: scripts/android-smoke.sh release/vande-1.0.0-1-release.apk
+# Usage: scripts/android-smoke.sh release/vande-cricket-1.0.0-1-release.apk
 set -euo pipefail
 
 APK="${1:?usage: scripts/android-smoke.sh <path-to-apk>}"
 SDK="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 AVD="${AVD:-vybe-pixel-api36-arm64}"
-PKG="in.vande.republic"
+PKG="in.vande.cricket"
 ADB="$SDK/platform-tools/adb"
 EMU="$SDK/emulator/emulator"
 OUT="${OUT:-release/smoke}"

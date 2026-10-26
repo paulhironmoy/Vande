@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- Machine-drafted; needs native-speaker QA before release (docs/LOCALIZATION.md). -->
+    <string name="notif_opponent_joined_title">உங்கள் எதிராளி வந்துவிட்டார்</string>
+    <string name="notif_opponent_joined_body">உங்கள் போட்டி தொடங்கியது. உங்கள் பங்கை ஆட போட்டியைத் திறக்கவும்.</string>
+    <string name="notif_opponent_locked_title">அவர்களின் ஓவர் சீல் ஆனது</string>
+    <string name="notif_opponent_locked_body">உங்கள் எதிராளி தங்கள் திட்டத்தை லாக் செய்துவிட்டார். தொடர போட்டியைத் திறக்கவும்.</string>
+    <string name="notif_reveal_ready_title">ரிவீல் தயார்</string>
+    <string name="notif_reveal_ready_body">இரண்டு இன்னிங்ஸும் முடிந்தது. ரிவீலைப் பார்க்கத் திறக்கவும்.</string>
+    <string name="notif_auto_over_title">ஆட்டோ ஓவர் ஆடியது</string>
+    <string name="notif_auto_over_body">நேரம் முடிந்ததால், உங்களுக்காக ஆட்டோ ஓவர் ஆடியது. போட்டி தொடர்கிறது.</string>
+    <string name="notif_match_expired_title">போட்டி நேரம் முடிந்தது</string>
+    <string name="notif_match_expired_body">இந்தப் போட்டியின் நேரம் முடிந்துவிட்டது. எப்போது வேண்டுமானாலும் புதிய போட்டியைத் தொடங்குங்கள்.</string>
+    <string name="notif_rematch_title">மீண்டும் ஆடலாமா?</string>
+    <string name="notif_rematch_body">உங்கள் எதிராளி இன்னொரு ஓவர் கேட்கிறார்.</string>
+    <string name="notif_deadline_reminder_title">உங்கள் முறை காத்திருக்கிறது</string>
+    <string name="notif_deadline_reminder_body">கெடுவுக்கு முன் உங்கள் பங்கை முடிக்கவும், இல்லையெனில் ஆட்டோ ஓவர் ஆடும்.</string>
+    <string name="notif_new_fixture_title">புதிய கப் போட்டி</string>
+    <string name="notif_new_fixture_body">உங்கள் அடுத்த குரூப் கப் போட்டி தயார்.</string>
+    <string name="notif_final_title">நீங்கள் இறுதிப் போட்டியில்</string>
+    <string name="notif_final_body">உங்கள் குரூப் கப் இறுதிப் போட்டி தயார். உங்கள் சிறந்த ஓவரை லாக் செய்யுங்கள்.</string>
+    <string name="notif_cup_complete_title">கப் நிறைவு</string>
+    <string name="notif_cup_complete_body">குரூப் கப் முடிந்தது. இறுதி அட்டவணையைப் பார்க்கத் திறக்கவும்.</string>
+    <string name="notif_cup_cancelled_title">கப் ரத்து</string>
+    <string name="notif_cup_cancelled_body">இந்த குரூப் கப் ரத்து செய்யப்பட்டது.</string>
+    <string name="notif_top100_title">நீங்கள் டெய்லி டாப் 100-இல் இருக்கிறீர்கள்</string>
+    <string name="notif_top100_body">உங்கள் நிரந்தர பேட்ஜ் கிடைத்தது. எதுவும் வெளியிடப்படும் முன் உங்கள் ஹைலைட்டைப் பார்க்கத் திறக்கவும்.</string>
+    <string name="notif_highlight_published_title">உங்கள் ஹைலைட் வெளியானது</string>
+    <string name="notif_highlight_published_body">உங்கள் போட்டியின் ஹைலைட் இப்போது YouTube-இல் உள்ளது. பார்க்கவும் பகிரவும் திறக்கவும்.</string>
+</resources>

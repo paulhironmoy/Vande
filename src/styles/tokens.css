@@ -1,95 +1,99 @@
-/* VANDE — Civic Cinematic design tokens. Frozen contract; propose additions in your report. */
+/*
+ * VANDE Cricket design tokens: "Indian night cricket".
+ * Deep indigo night, electric cyan interface accents, amber floodlight warmth. Glass and glow are restrained:
+ * glass only over the 3D stage, glow only for focus, the primary action and live moments.
+ * Every semantic colour is paired with a label and a shape in components; colour alone never carries meaning.
+ * Documented in docs/VISUAL_SYSTEM.md.
+ */
 :root {
   color-scheme: dark;
 
-  /* Primary palette */
-  --c-midnight: #07111f;
-  --c-navy: #0b1d36;
-  --c-graphite: #111820;
-  --c-blue: #136ef6;
-  --c-electric: #38a0ff;
-  --c-cyan: #62d6ff;
-  --c-paper: #f7f9fc;
-  --c-steel: #aab6c8;
+  /* Night (indigo) */
+  --c-night-990: #03021a;
+  --c-night-950: #06051f;
+  --c-night-900: #0b0929;
+  --c-night-800: #151143;
+  --c-night-600: #28216f;
+  --c-indigo-400: #5d53c8;
+  --c-indigo-300: #8f87e8;
+  --c-indigo-200: #bdb8f5;
 
-  /* Derived neutrals */
-  --c-ink-900: #050b14;
-  --c-ink-800: var(--c-midnight);
-  --c-ink-700: #0a1830;
-  --c-ink-600: var(--c-navy);
-  --c-ink-500: #142a4d;
-  --c-ink-400: #1f3a66;
-  --c-steel-700: #4c5d78;
-  --c-steel-500: #7c8ca6;
-  --c-steel-300: var(--c-steel);
-  --c-steel-100: #d6deea;
+  /* Electric cyan (interface accent) */
+  --c-cyan-600: #0aa6cc;
+  --c-cyan-500: #19d3fa;
+  --c-cyan-400: #52e2ff;
+  --c-cyan-300: #93eeff;
 
-  /* Outcome colours */
-  --o-freedom: #4da3ff;
-  --o-safety: #2ed3c4;
-  --o-trust: #7b8cff;
-  --o-economy: #2ecc8a;
-  --o-legitimacy: #a9e4ff;
-  --o-danger: #e0405a;
-  --o-danger-deep: #a8233a;
-  --o-grievance: #a9e4ff; /* grievance resolution reads as legitimacy */
-  --o-evidence: #62d6ff;
+  /* Amber (stadium light) */
+  --c-amber-500: #ffaa33;
+  --c-amber-400: #ffc266;
+  --c-amber-300: #ffdba3;
 
-  /* Restrained cultural accents (never as fills over large areas) */
-  --a-saffron: #f0a24a;
-  --a-green: #2f9e62;
+  /* Ground */
+  --c-grass-800: #08291f;
+  --c-grass-700: #0d3b2c;
+  --c-grass-400: #3a9a5c;
+  --c-clay-500: #b98d55;
+  --c-clay-400: #d2aa72;
+  --c-chalk: #f4f1e8;
 
-  /* Evidence confidence states */
-  --ev-verified: #2ed3c4;
-  --ev-corroborated: #4da3ff;
-  --ev-unverified: #aab6c8;
-  --ev-manipulated: #e0405a;
-  --ev-unknown: #7c8ca6;
+  /* Outcomes. Always rendered with a label and a distinct shape (see OutcomeBadge). */
+  --o-dot: #8e8bb8;
+  --o-run: #ecebff;
+  --o-four: #19d3fa;
+  --o-six: #ffaa33;
+  --o-wicket: #ff4d6a;
+  --o-super: #c38cff;
+
+  /* Feedback */
+  --f-success: #3ee6a8;
+  --f-warning: #ffaa33;
+  --f-danger: #ff4d6a;
 
   /* Text */
-  --t-primary: var(--c-paper);
-  --t-secondary: #c6d0df;
-  --t-tertiary: var(--c-steel);
-  --t-muted: #7c8ca6;
-  --t-on-accent: #06101c;
-  --t-link: var(--c-cyan);
+  --t-primary: #f5f4ff;
+  --t-secondary: #cac7ee;
+  --t-tertiary: #a29fd0;
+  --t-muted: #7f7cad;
+  --t-on-cyan: #03141c;
+  --t-on-amber: #1c0f00;
+  --t-link: var(--c-cyan-400);
 
   /* Surfaces */
-  --bg-app: radial-gradient(120% 80% at 50% -10%, #122b52 0%, var(--c-navy) 38%, var(--c-midnight) 100%);
-  --surface-0: rgba(7, 17, 31, 0.92);
-  --surface-1: linear-gradient(180deg, rgba(20, 42, 77, 0.7), rgba(11, 29, 54, 0.85));
-  --surface-2: linear-gradient(180deg, rgba(31, 58, 102, 0.55), rgba(15, 33, 61, 0.9));
-  --surface-glass: rgba(14, 32, 60, 0.72);
-  --surface-solid: #0e2140;
-  --surface-sunken: rgba(5, 11, 20, 0.6);
-  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  --edge-line: 1px solid rgba(170, 182, 200, 0.16);
-  --edge-line-strong: 1px solid rgba(170, 182, 200, 0.32);
-  --texture-grid: repeating-linear-gradient(0deg, rgba(98, 214, 255, 0.035) 0 1px, transparent 1px 32px),
-    repeating-linear-gradient(90deg, rgba(98, 214, 255, 0.035) 0 1px, transparent 1px 32px);
-  --texture-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  --bg-app:
+    radial-gradient(70% 38% at 50% -6%, rgba(255, 170, 51, 0.13), transparent 70%),
+    radial-gradient(60% 40% at 92% 6%, rgba(25, 211, 250, 0.08), transparent 70%),
+    radial-gradient(140% 90% at 50% 0%, #1d1858 0%, #0f0c33 46%, #06051f 100%);
+  --surface-1: linear-gradient(180deg, rgba(40, 33, 111, 0.55), rgba(21, 17, 67, 0.72));
+  --surface-2: linear-gradient(180deg, rgba(55, 45, 143, 0.5), rgba(29, 24, 88, 0.78));
+  --surface-solid: #151143;
+  --surface-sunken: rgba(3, 2, 26, 0.55);
+  --surface-glass: rgba(14, 11, 52, 0.58);
+  --glass-blur: blur(16px) saturate(150%);
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --edge-line: 1px solid rgba(143, 135, 232, 0.2);
+  --edge-line-strong: 1px solid rgba(143, 135, 232, 0.42);
+  --edge-cyan: 1px solid rgba(25, 211, 250, 0.55);
+  --texture-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.055 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
 
-  /* Glows & shadows */
-  --glow-blue: 0 0 24px rgba(56, 160, 255, 0.35);
-  --glow-cyan: 0 0 28px rgba(98, 214, 255, 0.35);
-  --glow-danger: 0 0 24px rgba(224, 64, 90, 0.35);
-  --glow-safety: 0 0 24px rgba(46, 211, 196, 0.3);
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.25);
-  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.35), 0 14px 32px rgba(0, 0, 0, 0.35);
-  --shadow-3: 0 6px 18px rgba(0, 0, 0, 0.45), 0 28px 64px rgba(0, 0, 0, 0.45);
+  /* Glow and shadow */
+  --glow-cyan: 0 0 0 1px rgba(25, 211, 250, 0.45), 0 0 22px rgba(25, 211, 250, 0.28);
+  --glow-amber: 0 0 0 1px rgba(255, 170, 51, 0.5), 0 0 26px rgba(255, 170, 51, 0.3);
+  --shadow-1: 0 1px 2px rgba(2, 1, 16, 0.45), 0 6px 16px rgba(2, 1, 16, 0.32);
+  --shadow-2: 0 2px 6px rgba(2, 1, 16, 0.5), 0 16px 36px rgba(2, 1, 16, 0.45);
+  --shadow-3: 0 8px 22px rgba(2, 1, 16, 0.55), 0 30px 70px rgba(2, 1, 16, 0.55);
 
   /* Focus */
-  --focus-ring: 0 0 0 2px var(--c-midnight), 0 0 0 4px var(--c-cyan);
+  --focus-ring: 0 0 0 2px var(--c-night-950), 0 0 0 4px var(--c-cyan-400);
 
   /* Radii */
-  --r-xs: 6px;
   --r-sm: 10px;
   --r-md: 14px;
   --r-lg: 20px;
   --r-xl: 28px;
   --r-pill: 999px;
 
-  /* Spacing (rem so it scales with text) */
+  /* Spacing (rem so it scales with text size) */
   --s-1: 0.25rem;
   --s-2: 0.5rem;
   --s-3: 0.75rem;
@@ -97,57 +101,92 @@
   --s-5: 1.25rem;
   --s-6: 1.5rem;
   --s-8: 2rem;
-  --s-10: 2.5rem;
-  --s-12: 3rem;
-  --s-16: 4rem;
 
   /* Type */
-  --font-sans: 'Manrope Variable', 'Manrope', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-devanagari: 'Noto Sans Devanagari', var(--font-sans);
-  --text-xs: 0.8125rem; /* 13px — non-essential labels only */
-  --text-sm: 0.875rem; /* 14px — minimum for essential text */
+  --text-scale: 1;
+  --font-latin: 'Manrope Variable', 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: var(--font-latin);
+  --font-numeric: 'Manrope Variable', 'Manrope', system-ui, sans-serif;
+  --text-xs: 0.75rem; /* 12px: non-essential labels only */
+  --text-sm: 0.875rem; /* 14px: minimum for essential text */
   --text-md: 1rem;
   --text-lg: 1.125rem;
   --text-xl: 1.375rem;
   --text-2xl: 1.75rem;
   --text-3xl: 2.25rem;
-  --text-4xl: 3rem;
-  --text-5xl: 4rem;
-  --leading-tight: 1.15;
-  --leading-snug: 1.3;
+  --text-display: 3.25rem;
+  --leading-tight: 1.12;
+  --leading-snug: 1.28;
   --leading-normal: 1.5;
-  --tracking-caps: 0.08em;
+  --tracking-display: -0.025em;
+  --tracking-caps: 0.12em;
   --weight-regular: 450;
   --weight-medium: 560;
   --weight-semibold: 650;
-  --weight-bold: 760;
+  --weight-bold: 750;
+  --weight-black: 820;
 
   /* Motion */
   --dur-instant: 90ms;
-  --dur-control: 180ms;
-  --dur-panel: 320ms;
-  --dur-scene: 650ms;
+  --dur-control: 170ms;
+  --dur-panel: 300ms;
+  --dur-scene: 620ms;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-spring: cubic-bezier(0.34, 1.3, 0.64, 1);
+  --ease-spring: cubic-bezier(0.34, 1.32, 0.64, 1);
 
   /* Layout */
-  --tap: 44px;
+  --tap: 48px;
+  --tap-lg: 56px;
   --gutter: 1rem;
-  --max-content: 72rem;
-  --rail-width: 26rem;
+  --max-content: 40rem;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
-  --z-map: 1;
-  --z-rail: 10;
+  --z-stage: 1;
+  --z-bar: 20;
   --z-sheet: 50;
   --z-toast: 90;
   --z-modal: 100;
 }
 
-/* Reduced motion: both the system preference and the explicit setting collapse durations. */
+/* Indic scripts: system Noto families first (Android ships them), then platform fonts. Devanagari is bundled. */
+:root:lang(hi),
+:root:lang(mr) {
+  --font-sans: 'Noto Sans Devanagari', var(--font-latin);
+}
+:root:lang(bn) {
+  --font-sans: 'Noto Sans Bengali', 'Hind Siliguri', 'Nirmala UI', 'Vrinda', 'Kohinoor Bangla', var(--font-latin);
+}
+:root:lang(te) {
+  --font-sans: 'Noto Sans Telugu', 'Nirmala UI', 'Gautami', 'Kohinoor Telugu', var(--font-latin);
+}
+:root:lang(ta) {
+  --font-sans: 'Noto Sans Tamil', 'Nirmala UI', 'Latha', 'Tamil Sangam MN', var(--font-latin);
+}
+:root:lang(gu) {
+  --font-sans: 'Noto Sans Gujarati', 'Nirmala UI', 'Shruti', 'Gujarati Sangam MN', var(--font-latin);
+}
+:root:lang(kn) {
+  --font-sans: 'Noto Sans Kannada', 'Nirmala UI', 'Tunga', 'Kannada Sangam MN', var(--font-latin);
+}
+:root:lang(ml) {
+  --font-sans: 'Noto Sans Malayalam', 'Nirmala UI', 'Kartika', 'Malayalam Sangam MN', var(--font-latin);
+}
+:root:lang(pa) {
+  --font-sans: 'Noto Sans Gurmukhi', 'Nirmala UI', 'Raavi', 'Gurmukhi Sangam MN', var(--font-latin);
+}
+/* Indic scripts need taller lines and no letter-spacing (tracking breaks conjuncts and matras). */
+:root:is(:lang(hi), :lang(mr), :lang(bn), :lang(te), :lang(ta), :lang(gu), :lang(kn), :lang(ml), :lang(pa)) {
+  --leading-tight: 1.3;
+  --leading-snug: 1.42;
+  --leading-normal: 1.65;
+  --tracking-display: 0;
+  --tracking-caps: 0;
+}
+
+/* Reduced motion: the system preference and the explicit setting both collapse durations. */
 @media (prefers-reduced-motion: reduce) {
   :root:not([data-motion='full']) {
     --dur-instant: 0.01ms;
@@ -163,47 +202,24 @@
   --dur-scene: 0.01ms;
 }
 
-/* High contrast */
+/* High contrast: solid surfaces, brighter text and lines, no glass or texture, white focus ring. */
 :root[data-contrast='high'] {
-  --c-steel: #d6deea;
-  --t-secondary: #e6ecf5;
-  --t-tertiary: #d6deea;
-  --t-muted: #b8c4d6;
-  --edge-line: 1px solid rgba(214, 222, 234, 0.55);
-  --edge-line-strong: 1px solid rgba(247, 249, 252, 0.8);
-  --surface-glass: rgba(7, 17, 31, 0.96);
-  --surface-1: linear-gradient(180deg, #112a4f, #0b1d36);
-  --surface-2: linear-gradient(180deg, #16355f, #0e2140);
-  --bg-app: #050b14;
-  --texture-grid: none;
+  --t-primary: #ffffff;
+  --t-secondary: #ecebff;
+  --t-tertiary: #dcdaf7;
+  --t-muted: #c4c1ea;
+  --o-dot: #c8c6ea;
+  --o-four: #6be8ff;
+  --o-six: #ffc266;
+  --o-wicket: #ff7a90;
+  --edge-line: 1px solid rgba(220, 218, 247, 0.6);
+  --edge-line-strong: 2px solid rgba(255, 255, 255, 0.85);
+  --edge-cyan: 2px solid #6be8ff;
+  --surface-1: #151143;
+  --surface-2: #1d1858;
+  --surface-glass: rgba(6, 5, 31, 0.96);
+  --glass-blur: none;
+  --bg-app: #06051f;
   --texture-grain: none;
-  --o-freedom: #7fc0ff;
-  --o-trust: #a4b0ff;
-  --o-danger: #ff5c75;
-  --ev-unverified: #e6ecf5;
-  --ev-unknown: #c3cfe0;
-  --focus-ring: 0 0 0 3px #050b14, 0 0 0 6px #ffffff;
-}
-
-/* Colour-blind safe variant: separates safety/economy (teal/green) and trust/freedom (violet/blue) further. */
-:root[data-cb='1'] {
-  --o-safety: #26c6da;
-  --o-economy: #8bd346;
-  --o-trust: #c084fc;
-  --o-freedom: #3b82f6;
-  --o-legitimacy: #e0f2ff;
-  --o-danger: #ff6b35;
-  --ev-manipulated: #ff6b35;
-  --ev-verified: #26c6da;
-  --ev-corroborated: #3b82f6;
-}
-
-/* Simple play style: roomier controls and softer corners for young or new players. */
-:root[data-style='simple'] {
-  --tap: 52px;
-  --r-md: 18px;
-  --r-lg: 24px;
-  --r-xl: 30px;
-  --text-sm: 0.9375rem;
-  --leading-normal: 1.55;
+  --focus-ring: 0 0 0 3px #06051f, 0 0 0 6px #ffffff;
 }

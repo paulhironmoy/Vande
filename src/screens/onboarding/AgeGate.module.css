@@ -1,0 +1,33 @@
+.legal {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0 var(--s-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--t-link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.stop {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-3);
+  margin-top: var(--s-5);
+}
+.stop .legal {
+  align-self: flex-start;
+  padding: 0;
+}
+.badge {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(25, 211, 250, 0.3), rgba(25, 211, 250, 0.06) 70%);
+  border: var(--edge-line-strong);
+  color: var(--c-cyan-300);
+}

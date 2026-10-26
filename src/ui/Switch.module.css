@@ -1,0 +1,53 @@
+.switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.track {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  border-radius: var(--r-pill);
+  background: var(--surface-sunken);
+  border: var(--edge-line-strong);
+  transition: background var(--dur-control) var(--ease-out);
+}
+.thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--c-indigo-200);
+  box-shadow: var(--shadow-1);
+  transition: transform var(--dur-control) var(--ease-spring);
+}
+.switch[aria-checked='true'] .track {
+  background: linear-gradient(180deg, #2fd9ff, #12b8e6);
+  border-color: rgba(147, 238, 255, 0.7);
+}
+.switch[aria-checked='true'] .thumb {
+  transform: translateX(22px);
+  background: #ffffff;
+}
+/* On/off is also shown by thumb position; high contrast adds a check mark. */
+:root[data-contrast='high'] .switch[aria-checked='true'] .thumb::after {
+  content: '✓';
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 13px;
+  font-weight: 800;
+  color: #03141c;
+}
+.switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

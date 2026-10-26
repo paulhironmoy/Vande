@@ -1,0 +1,129 @@
+.content {
+  display: grid;
+  gap: var(--s-4);
+  align-content: start;
+}
+
+.section {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.section h2 {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--t-tertiary);
+}
+
+.text {
+  margin: 0;
+  color: var(--t-secondary);
+  line-height: var(--leading-normal);
+}
+
+.strong {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.track {
+  position: relative;
+  width: 100%;
+  height: 9rem;
+  border-radius: var(--r-lg);
+  background: linear-gradient(180deg, var(--c-grass-700), var(--c-grass-800));
+  border: 1px solid var(--edge-line);
+  overflow: hidden;
+  touch-action: manipulation;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  padding: 0;
+}
+
+.track:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  margin-left: -1.5px;
+  background: var(--c-chalk);
+}
+
+.calBall {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: -0.875rem 0 0 -0.875rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #e9e7fb 55%, #a9a3e6);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--c-cyan-500) 60%, transparent);
+  will-change: transform;
+}
+
+.trackLabel {
+  position: absolute;
+  bottom: var(--s-2);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--t-secondary);
+}
+
+.dl {
+  display: grid;
+  grid-template-columns: minmax(8rem, auto) 1fr;
+  gap: var(--s-1) var(--s-3);
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.dl dt {
+  color: var(--t-tertiary);
+}
+
+.dl dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.hist {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 4rem;
+}
+
+.bar {
+  flex: 1;
+  min-height: 1px;
+  background: var(--c-cyan-500);
+  border-radius: 2px 2px 0 0;
+}

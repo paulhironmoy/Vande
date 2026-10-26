@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1080, initial-scale=1" />
+    <title>Stub highlight host</title>
+    <style>
+      html, body { margin: 0; background: #0a0b2e; overflow: hidden; }
+      canvas { display: block; width: 1080px; height: 1920px; }
+    </style>
+  </head>
+  <body>
+    <canvas id="c" width="1080" height="1920"></canvas>
+    <script>
+      // A stand-in for render.html (HighlightRenderHost) for the render service's own tests: a 2D canvas, fully
+      // deterministic (the picture depends only on the input and the time), 30–60 s depending on the replay.
+      (function () {
+        var canvas = document.getElementById('c');
+        var ctx = canvas.getContext('2d');
+        var state = null;
+        function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+        window.__vcHighlight = {
+          load: function (input) {
+            var balls = (input.log.events || []).filter(function (e) { return e.t === 'ball'; });
+            state = {
+              home: input.log.players[0].alias,
+              away: input.log.players[1].alias,
+              label: input.fixtureLabel,
+              cta: input.cta.url,
+              balls: balls,
+              durationMs: clamp(30000 + balls.length * 1500, 30000, 60000),
+            };
+            return Promise.resolve({ durationMs: state.durationMs, fps: 30 });
+          },
+          frame: function (tMs) {
+            if (!state) return Promise.reject(new Error('load() first'));
+            var p = clamp(tMs / state.durationMs, 0, 1);
+            var i = Math.min(state.balls.length - 1, Math.floor(p * state.balls.length));
+            var ball = state.balls[i];
+            if (ctx) {
+              ctx.fillStyle = '#0a0b2e';
+              ctx.fillRect(0, 0, 1080, 1920);
+              ctx.fillStyle = '#ffb020';
+              ctx.fillRect(0, 1880, Math.round(1080 * p), 40);
+              ctx.fillStyle = '#f5f5f0';
+              ctx.font = 'bold 72px sans-serif';
+              ctx.fillText('VANDE Cricket', 80, 200);
+              ctx.font = '56px sans-serif';
+              ctx.fillText(state.home + ' vs ' + state.away, 80, 360);
+              ctx.fillText(state.label, 80, 460);
+              if (ball) ctx.fillText('Ball ' + (ball.ball + 1) + ': ' + ball.outcome.runs + ' run(s)', 80, 960);
+              ctx.font = '44px sans-serif';
+              ctx.fillText('Can you beat them? ' + state.cta, 80, 1760);
+            }
+            return Promise.resolve();
+          },
+        };
+      })();
+    </script>
+  </body>
+</html>

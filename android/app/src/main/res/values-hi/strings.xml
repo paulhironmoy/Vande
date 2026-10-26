@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="notif_opponent_joined_title">आपके विरोधी आ गए</string>
+    <string name="notif_opponent_joined_body">मुक़ाबला शुरू हो गया। अपना हिस्सा खेलने के लिए मैच खोलें।</string>
+    <string name="notif_opponent_locked_title">उनका ओवर सील हो गया</string>
+    <string name="notif_opponent_locked_body">विरोधी ने अपना प्लान लॉक कर दिया। आगे खेलने के लिए मैच खोलें।</string>
+    <string name="notif_reveal_ready_title">रिवील तैयार है</string>
+    <string name="notif_reveal_ready_body">दोनों पारियाँ पूरी हो गईं। रिवील देखने के लिए खोलें।</string>
+    <string name="notif_auto_over_title">ऑटो ओवर ने खेला</string>
+    <string name="notif_auto_over_body">समय खत्म हो गया, इसलिए ऑटो ओवर ने आपकी जगह खेला। मैच जारी है।</string>
+    <string name="notif_match_expired_title">मैच का समय खत्म</string>
+    <string name="notif_match_expired_body">इस मैच का समय खत्म हो गया। जब चाहें नया मैच शुरू करें।</string>
+    <string name="notif_rematch_title">रीमैच?</string>
+    <string name="notif_rematch_body">आपके विरोधी एक और ओवर चाहते हैं।</string>
+    <string name="notif_deadline_reminder_title">आपकी बारी इंतज़ार में है</string>
+    <string name="notif_deadline_reminder_body">समय सीमा से पहले अपना हिस्सा पूरा करें, नहीं तो ऑटो ओवर खेलेगा।</string>
+    <string name="notif_new_fixture_title">नया कप मैच</string>
+    <string name="notif_new_fixture_body">आपका अगला ग्रुप कप मैच तैयार है।</string>
+    <string name="notif_final_title">आप फ़ाइनल में हैं</string>
+    <string name="notif_final_body">आपका ग्रुप कप फ़ाइनल तैयार है। अपना सबसे अच्छा ओवर लॉक करें।</string>
+    <string name="notif_cup_complete_title">कप पूरा हुआ</string>
+    <string name="notif_cup_complete_body">ग्रुप कप खत्म हो गया। अंतिम तालिका देखने के लिए खोलें।</string>
+    <string name="notif_cup_cancelled_title">कप रद्द</string>
+    <string name="notif_cup_cancelled_body">यह ग्रुप कप रद्द कर दिया गया।</string>
+    <string name="notif_top100_title">आप डेली टॉप 100 में हैं</string>
+    <string name="notif_top100_body">आपका स्थायी बैज मिल गया। कुछ भी प्रकाशित होने से पहले अपना हाइलाइट देखने के लिए खोलें।</string>
+    <string name="notif_highlight_published_title">आपका हाइलाइट लाइव है</string>
+    <string name="notif_highlight_published_body">आपके मैच का हाइलाइट अब YouTube पर है। देखने और शेयर करने के लिए खोलें।</string>
+</resources>

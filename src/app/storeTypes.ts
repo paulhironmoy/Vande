@@ -1,202 +1,74 @@
 /**
- * Store contract — implemented in src/app/store.ts (APP-SHELL package).
- * Screens import `useApp` from '@/app/store' and select from this shape.
+ * Root app store types — ROOT-OWNED. Only cross-cutting UI state lives here (settings, the player on this device,
+ * toasts, connectivity). Workstream state lives in each workstream's own store (session/sync in src/net, screens in
+ * src/screens).
  */
-import type {
-  CampaignProgress,
-  CampaignResult,
-  ChapterResult,
-  ChallengeSpec,
-  DailyAttemptResult,
-  DailyId,
-  DailyRecord,
-  DailyRecordV2,
-  DailyResolution,
-  DailySpec,
-  Difficulty,
-  GameState,
-  HistoryEntry,
-  MapState,
-  OpponentId,
-  PassportAccomplishment,
-  PassportState,
-  PersonalBests,
-  PlayerAction,
-  Pulse,
-  RepublicCondition,
-  Scenario,
-  Settings,
-} from '@/engine/types';
+import type { AvatarSpec, KitSpec, LocaleId, PlayerRef } from '@/contracts';
 
-export type AboutPage = 'privacy' | 'disclosure' | 'accessibility' | 'attribution' | 'support' | 'version';
-
-export type Screen =
-  | { name: 'launch' }
-  | { name: 'intro' }
-  | { name: 'home' }
-  | { name: 'opponents' }
-  | { name: 'briefing' }
-  | { name: 'play' }
-  | { name: 'chapter-result' }
-  | { name: 'final-result'; resultId?: string }
-  | { name: 'daily' }
-  /** Skippable cold open shown right before a daily attempt starts. */
-  | { name: 'daily-open' }
-  | { name: 'calendar' }
-  | { name: 'passport' }
-  /** Lite: the simplest possible presentation of Chapter 1, as a game. `code` = a friend's challenge. */
-  | { name: 'lite'; code?: string; dare?: string; reply?: string }
-  | { name: 'challenge'; code: string }
-  | { name: 'republic' }
-  | { name: 'history'; entryId?: string }
-  | { name: 'settings' }
-  | { name: 'about'; page: AboutPage };
-
-export type ScreenName = Screen['name'];
-
-/** What the player is setting up on the opponent screen. */
-export interface PendingIntent {
-  kind: 'campaign' | 'daily' | 'challenge';
-  /** Daily quick play: the resolved canonical daily and whether this attempt will be official. */
-  dailyId?: DailyId;
-  dailyResolution?: DailyResolution;
-  official?: boolean;
-  /** Daily challenge from a friend: hidden until completion. */
-  friend?: { score: number; fingerprint: string; outcome?: string };
-  seed: number;
-  difficulty: Difficulty;
-  opponents: OpponentId[];
-  /** Challenge or daily details when relevant. */
-  challenge?: ChallengeSpec;
-  daily?: DailySpec;
-}
-
+export type ToastKind = 'info' | 'success' | 'warning' | 'danger';
 export interface Toast {
   id: string;
+  kind: ToastKind;
   text: string;
-  kind: 'info' | 'success' | 'warning' | 'danger';
-  /** ms; 0 = sticky */
-  duration: number;
+  duration?: number;
   actionLabel?: string;
   onAction?: () => void;
 }
 
-export interface SessionSlice {
-  /** The current campaign/daily/challenge progress (persisted). */
-  campaign?: CampaignProgress;
-  scenario?: Scenario;
-  game?: GameState;
-  pulse?: Pulse;
-  map?: MapState;
-  /** Latest chapter result (shown on the chapter-result screen). */
-  lastChapter?: ChapterResult;
-  /** Latest campaign result (shown on the final-result screen). */
-  lastCampaign?: CampaignResult;
-  /** Chapter result awaiting the player's "continue". */
-  intent?: PendingIntent;
-  /** Set after a daily attempt completes: which record it produced and whether it was official. */
-  lastDaily?: {
-    dailyId: DailyId;
-    official: boolean;
-    result: DailyAttemptResult;
-    record: DailyRecordV2;
-    friend?: PendingIntent['friend'];
-    /** Change in the five long-term Republic measures caused by this (official) result. */
-    republicDelta?: Partial<RepublicCondition>;
-  };
-  /** Accomplishments awarded by the most recent completion (for the result screen). */
-  newAccomplishments: PassportAccomplishment[];
+export interface Settings {
+  locale: LocaleId;
+  reducedMotion: 'system' | 'on' | 'off';
+  sound: boolean;
+  haptics: boolean;
+  /** 3D quality; 'auto' lets the renderer pick from device capability and measured frame time. */
+  quality: 'auto' | 'low' | 'standard' | 'high';
+  textScale: 1 | 1.15 | 1.3;
+  highContrast: boolean;
 }
 
-export interface UiSlice {
-  screen: Screen;
-  /** Screens the player can go back to (most recent last). */
-  stack: Screen[];
-  toasts: Toast[];
-  /** Gameplay context preserved across rotation/layout changes. */
-  openEvidenceId?: string;
-  trayOpen: boolean;
-  focusDistrict?: string;
-  /** True once persistence has loaded; screens render skeleton-free after this. */
-  hydrated: boolean;
-  firstRun: boolean;
-  updateAvailable: boolean;
-  /** Reduced motion resolved against system preference. */
-  reducedMotion: boolean;
-  isNative: boolean;
-  online: boolean;
-  /** True while the clock is paused automatically for a new decision (Simple play style). */
-  autoPaused: boolean;
+export const DEFAULT_SETTINGS: Settings = {
+  locale: 'en',
+  reducedMotion: 'system',
+  sound: true,
+  haptics: true,
+  quality: 'auto',
+  textScale: 1,
+  highContrast: false,
+};
+
+/**
+ * The player on this device, chosen at onboarding. Local modes work with it offline; `id` is the server player id
+ * once the guest account exists (null before that, or in offline-only builds).
+ */
+export interface LocalPlayer {
+  id: string | null;
+  alias: string;
+  avatar: AvatarSpec;
+  kit: KitSpec;
 }
 
-export interface DataSlice {
+export interface AppState {
   settings: Settings;
-  republic: RepublicCondition;
-  bests: PersonalBests;
-  history: HistoryEntry[];
-  /** Legacy v1 records (local-date keyed); kept read-only after migration. */
-  daily: DailyRecord[];
-  /** Daily Quick Play records keyed by canonical UTC daily id. */
-  dailyV2: DailyRecordV2[];
-  passport: PassportState;
-  /** Locally generated, rotatable anonymous installation id (never sent raw). */
-  installId: string;
-}
-
-export interface Actions {
-  // navigation
-  navigate(screen: Screen, opts?: { replace?: boolean }): void;
-  back(): boolean; // returns false when at root (native layer may exit app)
-  // first run
-  completeIntro(): void;
-  // setup
-  beginCampaignSetup(): void; // -> opponents screen with campaign intent
-  beginDailySetup(): void; // legacy entry: now equivalent to startDailyQuickPlay()
-  /** Daily Quick Play: resolve today's canonical daily, prepare the session, show the cold open. No opponent setup. */
-  startDailyQuickPlay(): void;
-  /** Daily Quick Play for a specific canonical id (challenge links, calendar replays); practice when an official result exists. */
-  startDailyById(dailyId: DailyId, opts?: { friend?: PendingIntent['friend'] }): boolean;
-  /** From the cold open (or its skip) → running game. */
-  beginDailyPlay(): void;
-  /** Starts Chapter 1 as a self-paced Lite run (no setup, default opponents). A seed reproduces a friend's run. */
-  startLite(opts?: { seed?: number }): void;
-  beginChallenge(code: string): boolean; // -> briefing; false if code invalid
-  setIntentOpponents(opponents: OpponentId[]): void;
-  setIntentDifficulty(d: Difficulty): void;
-  confirmSetup(): void; // creates CampaignProgress + first chapter game -> briefing
-  // game lifecycle
-  continueCampaign(): void; // resumes persisted campaign -> briefing or play
-  startChapter(): void; // from briefing -> play (status running)
-  dispatch(action: PlayerAction): void; // engine reduce + persist
-  tickGame(n: number): void;
-  pauseGame(): void;
-  resumeGame(): void;
-  endChapter(): void; // compute ChapterResult -> chapter-result screen
-  nextChapter(): void; // from chapter-result: next chapter briefing or final result
-  abandonCampaign(): void;
-  replayLast(): void; // same seed/opponents/difficulty
-  // ui context
-  setOpenEvidence(id?: string): void;
-  setTrayOpen(open: boolean): void;
-  setFocusDistrict(id?: string): void;
-  toast(t: Omit<Toast, 'id'> & { id?: string }): void;
-  dismissToast(id: string): void;
-  setUpdateAvailable(v: boolean): void;
-  // data
+  player: LocalPlayer | null;
+  /** Effective reduced motion (settings resolved against the system preference). */
+  reducedMotion: boolean;
+  online: boolean;
+  /**
+   * True while an innings or the planner is on screen. Nothing may interrupt then: no update prompt, no permission
+   * request, no promotion (and never an ad).
+   */
+  inPlay: boolean;
+  toasts: Toast[];
   updateSettings(patch: Partial<Settings>): void;
-  /** Switches play style and applies its defaults (pace, auto-pause). */
-  setPlayStyle(style: Settings['playStyle']): void;
-  setCommunitySharing(value: 'on' | 'off'): void;
-  setReminders(enabled: boolean, hour?: number): void;
-  /** Replaces the anonymous installation id with a fresh one. */
-  rotateInstallId(): Promise<void>;
-  /** Persists newly earned accomplishments (ids already present are ignored). */
-  awardAccomplishments(items: PassportAccomplishment[]): void;
-  resetRepublic(): Promise<void>;
-  exportData(): Promise<string>; // JSON string of all local data
-  deleteAllData(): Promise<void>;
-  // hydration (called once by App)
-  hydrate(): Promise<void>;
+  /** Sets or updates the local player (null forgets it, e.g. after deleting the account). */
+  setPlayer(player: LocalPlayer | null): void;
+  setOnline(online: boolean): void;
+  setInPlay(inPlay: boolean): void;
+  toast(t: Omit<Toast, 'id'>): string;
+  dismissToast(id: string): void;
 }
 
-export type AppState = SessionSlice & UiSlice & DataSlice & Actions;
+/** The local player as a PlayerRef for local matches (Training, Practice Ghosts) and previews. */
+export function localPlayerRef(p: LocalPlayer): PlayerRef {
+  return { id: p.id ?? 'local', alias: p.alias, avatar: p.avatar, kit: p.kit, kind: 'human' };
+}

@@ -1,0 +1,62 @@
+.radar {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 15rem;
+  aspect-ratio: 1;
+}
+
+.grass {
+  fill: color-mix(in srgb, var(--c-grass-700) 85%, transparent);
+  stroke: var(--c-chalk);
+  stroke-opacity: 0.55;
+  stroke-width: 0.9;
+}
+
+.ring {
+  fill: none;
+  stroke: var(--c-chalk);
+  stroke-opacity: 0.35;
+  stroke-width: 0.7;
+  stroke-dasharray: 2.2 2.2;
+}
+
+.pitch {
+  fill: var(--c-clay-400);
+  opacity: 0.9;
+}
+
+.fielder {
+  fill: var(--c-cyan-400);
+  stroke: var(--c-night-950);
+  stroke-width: 0.8;
+}
+
+.deep {
+  fill: var(--c-amber-400);
+}
+
+.close {
+  fill: var(--c-chalk);
+}
+
+.keeper {
+  fill: var(--c-indigo-200);
+}
+
+.striker {
+  fill: var(--c-chalk);
+}
+
+.label {
+  font-size: 6px;
+  font-weight: var(--weight-bold);
+  fill: var(--t-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+:global([data-contrast='high']) .fielder {
+  stroke: var(--t-primary);
+  stroke-width: 1.2;
+}

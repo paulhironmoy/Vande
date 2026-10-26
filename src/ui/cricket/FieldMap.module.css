@@ -1,0 +1,48 @@
+.map {
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+.rope {
+  fill: none;
+  stroke: var(--c-cyan-500);
+  stroke-width: 0.8;
+}
+.ring {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 0.45;
+  stroke-dasharray: 1.2 1.6;
+}
+.pitch {
+  fill: #c9a26b;
+}
+.fielder {
+  fill: var(--c-amber-400);
+  stroke: var(--c-night-950);
+  stroke-width: 0.7;
+}
+.fielder[data-deep='true'] {
+  fill: var(--c-amber-300);
+}
+.batter {
+  fill: var(--c-cyan-400);
+  stroke: #ffffff;
+  stroke-width: 0.8;
+}
+.wedge {
+  fill: rgba(82, 226, 255, 0.28);
+  stroke: var(--c-cyan-400);
+  stroke-width: 0.6;
+}
+.label {
+  font-size: 4.2px;
+  font-weight: 700;
+  fill: rgba(255, 255, 255, 0.75);
+  paint-order: stroke;
+  stroke: rgba(6, 5, 31, 0.85);
+  stroke-width: 1.2px;
+}
+.label[data-active='true'] {
+  fill: var(--c-cyan-300);
+}

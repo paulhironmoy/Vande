@@ -1,0 +1,29 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  line-height: 1;
+}
+.logo svg {
+  flex: none;
+  filter: drop-shadow(0 2px 6px rgba(2, 1, 16, 0.5));
+}
+.word {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-latin);
+}
+.vande {
+  font-size: 1.02rem;
+  font-weight: var(--weight-black);
+  letter-spacing: 0.14em;
+  color: var(--t-primary);
+}
+.cricket {
+  font-size: 0.66rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--c-amber-400);
+}

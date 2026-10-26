@@ -1,6 +1,11 @@
 /**
  * PostHog over its public HTTP capture API (no SDK, no autocapture, no session replay, no cookies).
  * Events are batched (≤ 10) and flushed on a short timer or on pagehide with sendBeacon.
+ *
+ * IP addresses: events go from the device, so PostHog's servers see its address. Every event asks PostHog not to
+ * look it up (`$geoip_disable`), and no person profile is made; storing no address at all needs the project setting
+ * "Discard client IP data", which the owner must turn on before analytics are enabled (docs/PRIVACY_AND_CONSENT.md).
+ * The capture API has no per-event switch that stops the address being received.
  */
 import type { AnalyticsAdapter, AnalyticsEvent } from './types';
 import { coarseTimestamp } from './privacy';
@@ -35,7 +40,7 @@ export function createPostHogAdapter(opts: PostHogOptions): AnalyticsAdapter & {
         event: e.event,
         distinct_id: opts.distinctId,
         timestamp: e.timestamp,
-        properties: { ...e.properties, $lib: 'vande', $process_person_profile: false },
+        properties: { ...e.properties, $lib: 'vande', $process_person_profile: false, $geoip_disable: true },
       })),
     });
   }

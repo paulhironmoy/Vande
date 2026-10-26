@@ -9,7 +9,7 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,12 +17,18 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run typecheck
+      - run: node scripts/scan-secrets.mjs
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm run typecheck:all
       - run: npm test -- --reporter=dot
       - run: npm run build
       - run: node scripts/check-bundle-size.mjs
       - run: npx playwright install --with-deps chromium
+      - run: npm run test:render -- --reporter=dot
       - run: npm run test:e2e
+        env:
+          CI: 'true'
+      - run: npm run test:flow
         env:
           CI: 'true'
       - uses: actions/upload-artifact@v4

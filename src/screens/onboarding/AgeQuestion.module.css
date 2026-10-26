@@ -1,0 +1,67 @@
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.year {
+  width: 100%;
+  max-width: 12rem;
+  min-height: var(--tap-lg);
+  padding: 0.75rem 1rem;
+  border-radius: var(--r-md);
+  border: var(--edge-line-strong);
+  background: var(--surface-sunken);
+  color: var(--t-primary);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+.year:focus-visible,
+.select:focus-visible {
+  border: var(--edge-cyan);
+  box-shadow: var(--glow-cyan);
+  outline: none;
+}
+.year[aria-invalid='true'],
+.select[aria-invalid='true'] {
+  border-color: var(--f-danger);
+}
+.birthday {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--s-3);
+}
+.select {
+  width: 100%;
+  min-height: var(--tap-lg);
+  padding: 0 0.75rem;
+  border-radius: var(--r-md);
+  border: var(--edge-line-strong);
+  background: var(--surface-sunken);
+  color: var(--t-primary);
+  font-size: var(--text-md);
+}
+.error {
+  font-size: var(--text-sm);
+  color: #ffb3c0;
+}
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border-radius: var(--r-lg);
+  border: var(--edge-line-strong);
+  background: var(--surface-1);
+}
+.confirmText {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+.confirmRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--s-2);
+}

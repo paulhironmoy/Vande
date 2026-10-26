@@ -1,0 +1,194 @@
+.screen {
+  position: relative;
+  min-height: 100dvh;
+}
+.top {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: calc(var(--s-3) + var(--safe-top)) var(--gutter) var(--s-2);
+  background: linear-gradient(180deg, rgba(6, 5, 31, 0.96), rgba(6, 5, 31, 0.8));
+}
+.progress {
+  display: flex;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.progress li {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: var(--r-pill);
+  border: var(--edge-line);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--t-tertiary);
+}
+.progress li[data-state='current'] {
+  flex: 1 1 auto;
+  border: var(--edge-cyan);
+  color: #ffffff;
+  background: rgba(25, 211, 250, 0.12);
+}
+.progress li[data-state='done'] {
+  color: var(--f-success);
+}
+.dot {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(143, 135, 232, 0.2);
+  font-size: 11px;
+}
+/* Never truncated: the current step reads in full (it wraps at large text sizes); the others show their number. */
+.stepLabel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.progress li:not([data-state='current']) .stepLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.lede {
+  color: var(--t-secondary);
+  font-size: var(--text-sm);
+}
+.h1 {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-black);
+}
+.bowl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: var(--s-3) var(--gutter) calc(var(--s-6) + var(--safe-bottom));
+}
+.variants {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-2);
+  width: 100%;
+}
+.vName {
+  display: block;
+  font-weight: var(--weight-bold);
+}
+.vHint {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  color: var(--t-tertiary);
+}
+/* Large text: names only on the cards, the chosen delivery's hint once below them. */
+.variants[data-compact] .vName {
+  text-align: center;
+}
+.vHintOne {
+  width: 100%;
+  margin: calc(-1 * var(--s-2)) 0 0;
+  font-size: var(--text-sm);
+  color: var(--t-tertiary);
+  text-align: center;
+}
+.bowlCta {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: var(--s-3) var(--gutter) calc(var(--s-3) + var(--safe-bottom));
+  background: linear-gradient(0deg, var(--c-night-950) 72%, rgba(6, 5, 31, 0));
+}
+.result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+}
+.small {
+  font-size: var(--text-sm);
+  color: var(--t-tertiary);
+  text-align: center;
+}
+.revealCta {
+  position: sticky;
+  bottom: 0;
+  padding: var(--s-3) var(--gutter) calc(var(--s-3) + var(--safe-bottom));
+  background: linear-gradient(0deg, var(--c-night-950) 70%, rgba(6, 5, 31, 0));
+}
+.center {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: var(--gutter);
+}
+.done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+  width: min(100%, 26rem);
+  text-align: center;
+}
+.badge {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  color: var(--c-amber-400);
+  background: radial-gradient(circle at 50% 35%, rgba(255, 170, 51, 0.3), rgba(6, 5, 31, 0.6) 70%);
+  box-shadow: var(--glow-amber);
+}
+
+.banner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.recap {
+  list-style: none;
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  border-radius: var(--r-lg);
+  background: var(--surface-sunken);
+  border: var(--edge-line);
+  text-align: left;
+  font-size: var(--text-sm);
+  color: var(--t-secondary);
+}
+.recap li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  line-height: var(--leading-snug);
+}
+.recap svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--c-cyan-400);
+}

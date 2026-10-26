@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#06051f" />
+  <title>Privacy policy · VANDE Cricket</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; background: #06051f; color: #e9e8ff; font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; }
+    main { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; }
+    h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 4px; }
+    h2 { font-size: 1.2rem; margin: 2.2em 0 0.6em; color: #ffc266; }
+    p, li { color: #d6d4f5; }
+    a { color: #52e2ff; }
+    .meta { color: #a29fd0; font-size: 0.95rem; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+    th, td { text-align: left; vertical-align: top; padding: 8px; border-bottom: 1px solid #28216f; }
+    th { color: #f5f4ff; }
+    .note { background: #151143; border: 1px solid #28216f; border-radius: 12px; padding: 12px 16px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Privacy policy</h1>
+  <p class="meta">VANDE Cricket · operated by {{OPERATOR}} · last updated 25 October 2026</p>
+
+  <p class="note">The short version: VANDE Cricket needs only a nickname. We never ask for your phone number, email, real
+  name, contacts or location. We keep what the game needs to work fairly, for as long as it needs it. You can export
+  or delete your data at any time from Settings.</p>
+
+  <h2>Who can play</h2>
+  <p>VANDE Cricket is for players aged 18 and over. The app asks for your year of birth once, on first launch, and keeps
+  only the fact that you confirmed you are an adult, never the year.</p>
+
+  <h2>What we never collect</h2>
+  <p>No phone number, email address or real name. No contacts or address book. No GPS or precise location. No photos or
+  files. No advertising identifier. There are no ads. Free-text chat is off.</p>
+
+  <h2>What we collect, and why</h2>
+  <table>
+    <tr><th>Data</th><th>Why</th><th>How long</th></tr>
+    <tr><td>Your nickname, generated avatar, kit colours, language, and an optional city you pick from a list</td><td>Showing you to opponents, friends and groups; leaderboards</td><td>Until you delete your account</td></tr>
+    <tr><td>Your matches: sealed bowling plans, batting inputs (shot, aim, tap timing), results and replays</td><td>Fair, verifiable results and replays for both players</td><td>For the life of the replay; deleting your account turns you into "Deleted player"</td></tr>
+    <tr><td>Ratings, Daily Six scores, streaks, badges</td><td>Leaderboards, the Daily Top 100</td><td>Daily Six scores 90 days; the rest with your account</td></tr>
+    <tr><td>A notification token, only if you turn notifications on</td><td>Telling you when it is your turn or a reveal is ready</td><td>Until you turn them off or delete your account</td></tr>
+    <tr><td>A sign-in link (Google or a passkey), only if you add one</td><td>Recovering your account on a new phone. We keep a one-way code, never your email or name</td><td>Until you remove it or delete your account</td></tr>
+    <tr><td>Reports and blocks you make</td><td>Keeping rooms and leaderboards safe</td><td>Blocks with your account; reports until reviewed</td></tr>
+    <tr><td>Security records: hashed network or account keys for rate limits, a pseudonymous audit log</td><td>Stopping abuse and cheating</td><td>2 days (rate limits); 180 days (audit log)</td></tr>
+  </table>
+  <p>Times other players see are kept coarse on purpose. A finished over or innings shows up for your opponent only
+  after a random delay of a few minutes, so nobody learns exactly when you played.</p>
+
+  <h2>Optional: anonymous usage statistics</h2>
+  <p>Only if you say yes (you can change your mind in Settings), the app sends a small, fixed set of events, such as "a
+  tutorial was completed", to our analytics provider, with an ID that changes every month and is never linked to your
+  account. Saying no changes nothing in the game.</p>
+
+  <h2>Official YouTube highlights: only with your consent</h2>
+  <p>If one of your matches makes the Daily Top 100, you can choose to let us publish a short highlight video on the
+  official VANDE Cricket YouTube channel. Nothing is published unless every player in the match says yes and
+  confirms they are 18 or older. The video shows only nicknames and generated avatars. You can withdraw at any time,
+  and the video is removed. Your Top 100 badge is yours whether or not a video is made.</p>
+
+  <h2>Who processes your data</h2>
+  <ul>
+    <li><strong>Cloudflare</strong> runs our servers and storage (data may be processed outside India on Cloudflare's network).</li>
+    <li><strong>Google Firebase Cloud Messaging</strong> delivers notifications, if you turn them on.</li>
+    <li><strong>Google sign-in</strong>, only if you link Google to recover your account.</li>
+    <li><strong>PostHog</strong> receives usage statistics, only if you opted in.</li>
+    <li><strong>Google YouTube</strong> and <strong>Google Cloud Run</strong> handle highlight videos, only after every player consented.</li>
+  </ul>
+  <p>We do not sell your data or share it for advertising.</p>
+
+  <h2>Your rights</h2>
+  <ul>
+    <li><strong>See and correct</strong> your profile in the app (Profile and Settings).</li>
+    <li><strong>Export</strong> a copy of your data from Settings → Export my data.</li>
+    <li><strong>Delete</strong> your account and data from Settings → Delete my account. It takes effect at once. If
+      you no longer have your phone, see <a href="./delete-account.html">how to delete your account</a>.</li>
+    <li><strong>Withdraw consent</strong> for analytics, notifications or a highlight at any time.</li>
+    <li><strong>Grievances and questions:</strong> write to <a href="mailto:{{SUPPORT_EMAIL}}">{{SUPPORT_EMAIL}}</a>.
+      We reply within 30 days.</li>
+  </ul>
+
+  <h2>Security</h2>
+  <p>Everything travels over HTTPS. Sealed bowling plans are encrypted until the reveal. Session secrets are stored
+  only as one-way hashes on our side and in secure storage on your phone. Logs record only which kind of request
+  happened, never who sent it.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy changes in a way that matters, the app will tell you before the change applies.</p>
+</main>
+</body>
+</html>

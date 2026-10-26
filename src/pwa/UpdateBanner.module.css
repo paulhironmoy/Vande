@@ -8,28 +8,37 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: var(--s-3);
   padding: var(--s-3) var(--s-4);
   border-radius: var(--r-lg);
   background: var(--surface-glass);
-  border: var(--edge-line);
-  box-shadow: var(--shadow-2), var(--edge-light);
+  border: var(--edge-cyan);
+  box-shadow: var(--shadow-3), var(--edge-light);
   color: var(--t-primary);
   font-family: var(--font-sans);
   animation: update-in var(--dur-panel) var(--ease-out) both;
 }
 @supports (backdrop-filter: blur(1px)) {
   .banner {
-    backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: var(--glass-blur);
   }
+}
+.icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 50%;
+  background: rgba(25, 211, 250, 0.16);
+  color: var(--c-cyan-400);
 }
 .text {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  flex: 1 1 14rem;
+  flex: 1 1 12rem;
 }
 .title {
   font-size: var(--text-md);
@@ -38,52 +47,12 @@
 .sub {
   font-size: var(--text-sm);
   color: var(--t-secondary);
+  line-height: var(--leading-snug);
 }
 .actions {
   display: flex;
   gap: var(--s-2);
-  flex: none;
-}
-.primary,
-.secondary {
-  min-height: var(--tap);
-  min-width: var(--tap);
-  padding: 0 var(--s-4);
-  border-radius: var(--r-pill);
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: var(--weight-semibold);
-  cursor: pointer;
-  transition:
-    background var(--dur-control) var(--ease-out),
-    transform var(--dur-control) var(--ease-out);
-}
-.primary {
-  border: 0;
-  background: var(--c-blue);
-  color: var(--t-primary);
-}
-.primary:hover {
-  background: var(--c-electric);
-}
-.secondary {
-  border: var(--edge-line-strong);
-  background: transparent;
-  color: var(--t-secondary);
-}
-.primary:active,
-.secondary:active {
-  transform: scale(0.97);
-}
-.primary:focus-visible,
-.secondary:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.primary[disabled],
-.secondary[disabled] {
-  opacity: 0.6;
-  cursor: default;
+  margin-left: auto;
 }
 @keyframes update-in {
   from {

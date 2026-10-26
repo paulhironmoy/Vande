@@ -1,0 +1,214 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  border: 1px solid rgba(255, 170, 51, 0.38) !important;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(255, 170, 51, 0.2), transparent 60%),
+    linear-gradient(160deg, rgba(55, 45, 143, 0.65), rgba(16, 13, 54, 0.92)) !important;
+}
+.glow {
+  position: absolute;
+  right: -60px;
+  top: -80px;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 194, 102, 0.32), transparent 65%);
+  pointer-events: none;
+}
+.eyebrow {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--c-amber-300);
+}
+.h1 {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-black);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+}
+.body {
+  margin: 0;
+  color: var(--t-secondary);
+  line-height: var(--leading-snug);
+}
+.chips,
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-2);
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--surface-sunken);
+  border: var(--edge-line);
+  min-width: 0;
+}
+.statLabel {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--t-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+}
+.statValue {
+  font-size: var(--text-xs);
+  color: var(--t-secondary);
+}
+.big {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-black);
+  font-variant-numeric: tabular-nums;
+}
+.big svg {
+  color: var(--o-super);
+}
+.huge {
+  display: block;
+  font-size: var(--text-display);
+  font-weight: var(--weight-black);
+  line-height: 1;
+  color: var(--c-amber-400);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 28px rgba(255, 170, 51, 0.35);
+}
+.resultRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.pips {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px 0;
+}
+.pip {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--c-amber-500);
+  box-shadow: 0 0 8px rgba(255, 170, 51, 0.6);
+}
+.pip[data-used] {
+  background: transparent;
+  border: 2px solid rgba(255, 219, 163, 0.45);
+  box-shadow: none;
+}
+.resets {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--t-secondary);
+}
+.resets svg {
+  color: var(--c-amber-400);
+}
+.error {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+  margin: 0;
+  color: var(--c-amber-300);
+  font-size: var(--text-sm);
+}
+.proof {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.commits {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  font-size: var(--text-sm);
+}
+.commits code {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  color: var(--t-secondary);
+}
+.small {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--t-tertiary);
+  line-height: var(--leading-snug);
+}
+
+:global(html[data-contrast='high']) .hero {
+  background: var(--surface-1) !important;
+  border: 2px solid var(--c-amber-400) !important;
+}
+:global(html[data-contrast='high']) .glow {
+  display: none;
+}
+
+.proofLine {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--c-amber-300);
+}
+.proofLine[data-ok] {
+  color: #e2c9ff;
+}
+.proofLine svg {
+  flex: none;
+}
+.breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.innings {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+.points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--t-secondary);
+}
+.rank {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  font-weight: var(--weight-semibold);
+  color: var(--c-cyan-300);
+}

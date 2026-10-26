@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- Machine-drafted; needs native-speaker QA before release (docs/LOCALIZATION.md). -->
+    <string name="notif_opponent_joined_title">तुमचे प्रतिस्पर्धी आले</string>
+    <string name="notif_opponent_joined_body">तुमचा सामना सुरू झाला. तुमचा भाग खेळण्यासाठी सामना उघडा.</string>
+    <string name="notif_opponent_locked_title">त्यांची ओव्हर सील झाली</string>
+    <string name="notif_opponent_locked_body">प्रतिस्पर्ध्यांनी आपला प्लॅन लॉक केला. पुढे खेळण्यासाठी सामना उघडा.</string>
+    <string name="notif_reveal_ready_title">रिव्हील तयार आहे</string>
+    <string name="notif_reveal_ready_body">दोन्ही डाव पूर्ण झाले. रिव्हील पाहण्यासाठी उघडा.</string>
+    <string name="notif_auto_over_title">ऑटो ओव्हरने खेळले</string>
+    <string name="notif_auto_over_body">वेळ संपली, म्हणून ऑटो ओव्हरने तुमच्या वतीने खेळले. सामना सुरू आहे.</string>
+    <string name="notif_match_expired_title">सामन्याची वेळ संपली</string>
+    <string name="notif_match_expired_body">या सामन्याची वेळ संपली. हवे तेव्हा नवीन सामना सुरू करा.</string>
+    <string name="notif_rematch_title">पुन्हा खेळायचे?</string>
+    <string name="notif_rematch_body">तुमच्या प्रतिस्पर्ध्यांना आणखी एक ओव्हर हवी आहे.</string>
+    <string name="notif_deadline_reminder_title">तुमची पाळी वाट पाहत आहे</string>
+    <string name="notif_deadline_reminder_body">मुदतीआधी तुमचा भाग पूर्ण करा, नाहीतर ऑटो ओव्हर खेळेल.</string>
+    <string name="notif_new_fixture_title">नवीन कप सामना</string>
+    <string name="notif_new_fixture_body">तुमचा पुढचा ग्रुप कप सामना तयार आहे.</string>
+    <string name="notif_final_title">तुम्ही अंतिम फेरीत आहात</string>
+    <string name="notif_final_body">तुमचा ग्रुप कप अंतिम सामना तयार आहे. तुमची सर्वोत्तम ओव्हर लॉक करा.</string>
+    <string name="notif_cup_complete_title">कप संपला</string>
+    <string name="notif_cup_complete_body">ग्रुप कप संपला. अंतिम गुणतालिका पाहण्यासाठी उघडा.</string>
+    <string name="notif_cup_cancelled_title">कप रद्द</string>
+    <string name="notif_cup_cancelled_body">हा ग्रुप कप रद्द करण्यात आला.</string>
+    <string name="notif_top100_title">तुम्ही डेली टॉप 100 मध्ये आहात</string>
+    <string name="notif_top100_body">तुमचा कायमचा बॅज मिळाला. काहीही प्रकाशित होण्याआधी तुमचा हायलाइट पाहण्यासाठी उघडा.</string>
+    <string name="notif_highlight_published_title">तुमचा हायलाइट लाइव्ह आहे</string>
+    <string name="notif_highlight_published_body">तुमच्या सामन्याचा हायलाइट आता YouTube वर आहे. पाहण्यासाठी आणि शेअर करण्यासाठी उघडा.</string>
+</resources>

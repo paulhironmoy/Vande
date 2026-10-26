@@ -1,0 +1,98 @@
+.bug {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--r-lg);
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(82, 226, 255, 0.35);
+  box-shadow: var(--shadow-2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.team {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.alias {
+  max-width: 8.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-sm);
+}
+.score {
+  font-family: var(--font-numeric);
+  font-weight: var(--weight-black);
+  font-size: var(--text-xl);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+.target {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--c-amber-400);
+  white-space: nowrap;
+}
+.vs {
+  font-size: var(--text-xs);
+  color: var(--t-muted);
+}
+.bowler {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  opacity: 0.85;
+}
+.alias2 {
+  max-width: 5.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+.bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.balls {
+  display: inline-flex;
+  gap: 3px;
+}
+.tag {
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  background: rgba(195, 140, 255, 0.18);
+  border: 1px solid rgba(195, 140, 255, 0.6);
+  color: #e6d2ff;
+}
+.tag[data-tag='slow_mo'] {
+  background: rgba(25, 211, 250, 0.14);
+  border-color: rgba(82, 226, 255, 0.6);
+  color: var(--c-cyan-300);
+}
+.speed {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--c-cyan-300);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

@@ -1,16 +1,16 @@
 {
-  "name": "vande-community-backend",
+  "name": "vande-cricket-api",
   "private": true,
   "type": "module",
-  "description": "Anonymous daily-results API for VANDE (Cloudflare Workers + D1). Scripts only; dependencies come from the root package.",
+  "description": "VANDE Cricket API (Cloudflare Workers, Durable Objects, D1, R2, Queues). Scripts only; dependencies come from the root package. Nothing here deploys by itself.",
   "scripts": {
-    "dev": "npx wrangler@latest dev",
-    "deploy": "npx wrangler@latest deploy",
-    "db:create": "npx wrangler@latest d1 create vande-community",
-    "db:migrate:local": "npx wrangler@latest d1 migrations apply vande-community --local",
-    "db:migrate": "npx wrangler@latest d1 migrations apply vande-community --remote",
-    "secret:salt": "npx wrangler@latest secret put RATE_SALT",
-    "tail": "npx wrangler@latest tail",
-    "rollback": "npx wrangler@latest rollback"
+    "local": "node local/serve.mjs",
+    "local:fake": "node local/serve.mjs --engine fake",
+    "dev-secrets": "node local/dev-secrets.mjs",
+    "test": "cd .. && npx vitest run backend",
+    "typecheck": "cd .. && npx tsc -p backend/tsconfig.json --noEmit",
+    "wrangler:dev": "npx wrangler@4 dev --local",
+    "wrangler:check": "npx wrangler@4 deploy --dry-run --outdir .wrangler/dry-run",
+    "db:migrate:local": "npx wrangler@4 d1 migrations apply vande-cricket --local"
   }
 }

@@ -1,195 +1,142 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import { DAYS, SCHEDULE } from '@/content/daily';
-import {
-  dailyIdFor,
-  dailySeed,
-  dateKey,
-  dayIdFor,
-  dayIndex,
-  getDailyDay,
-  getDailyScenario,
-  getDailySpec,
-  getDailySpecForKey,
-  getDayScenario,
-  isDailyId,
-  listDailyDays,
-  nextDailyAt,
-  resolveDaily,
-} from '@/engine/daily';
-import { isDailyScenarioId } from '@/engine/types';
+// @vitest-environment node
+import { describe, expect, it } from 'vitest';
+import type { BattingInput, InningsState, MatchEventLog, PlayerRef } from '@/contracts';
+import { SUPER_BALL_INDEX } from '@/contracts/cricket';
+import { dailyCommits, engine } from '@/engine';
+import { sha256Hex } from '@/engine/sha256';
+import { dayIndex } from '@/engine/v1/policies';
+import { ALL_VARIANTS, clone } from './helpers';
+import golden from './fixtures/golden-v1.json';
 
-const DAY_MS = 86_400_000;
-/** Canonical id `offset` days after the schedule epoch. */
-const idAt = (offset: number) => dailyIdFor(new Date((dayIndex(SCHEDULE.epoch) + offset) * DAY_MS));
+const PLAYER: PlayerRef = { id: 'p-daily-tester', alias: 'Tester', avatar: { seed: 't' }, kit: { id: 'k', primary: '#123456', secondary: '#abcdef', pattern: 'plain' }, kind: 'human' };
+const SETTER: PlayerRef = { id: 'p-daily-six', alias: 'Daily Six', avatar: { seed: 'dailysix' }, kit: { id: 'starter', primary: '#1E2A78', secondary: '#FFB020', pattern: 'chevron' }, kind: 'daily' };
+const SALT = 'server-secret-0f3a9c';
 
-describe('canonical daily ids (UTC)', () => {
-  it('uses the UTC calendar date, not the local one', () => {
-    expect(dailyIdFor(new Date('2026-10-23T23:59:59.999Z'))).toBe('2026-10-23');
-    expect(dailyIdFor(new Date('2026-10-24T00:00:00.000Z'))).toBe('2026-10-24');
-    expect(dailyIdFor(new Date('2026-10-24T00:01:00.000Z'))).toBe('2026-10-24');
-    // 03:30 IST on the 24th is 22:00 UTC on the 23rd; 20:00 in New York on the 23rd is 01:00 UTC on the 24th.
-    expect(dailyIdFor(new Date('2026-10-24T03:30:00+05:30'))).toBe('2026-10-23');
-    expect(dailyIdFor(new Date('2026-10-23T20:00:00-05:00'))).toBe('2026-10-24');
+function playDaily(day: string, attempt: 1 | 2 | 3, seed: string, answer: (ball: number) => 'auto' | null = () => 'auto') {
+  const { conditions, overs } = engine.dailyChallenge(day, SALT);
+  const plan = overs[attempt - 1];
+  let state: InningsState = engine.startInnings(0);
+  const inputs: Array<BattingInput | null> = [];
+  while (!state.done) {
+    const d = engine.revealDelivery(plan, state.mainDone ? SUPER_BALL_INDEX : state.nextBall, conditions);
+    const input = answer(d.ball) === 'auto' ? engine.autoBat(`${seed}-${d.ball}`, d, plan.field) : null;
+    inputs.push(input);
+    state = engine.resolveNextBall(state, { seed, conditions, plan, input }).state;
+  }
+  return { state, inputs };
+}
+
+function dailyLog(day: string, attempt: 1 | 2 | 3, seed: string, answer?: (ball: number) => 'auto' | null): MatchEventLog {
+  const { state, inputs } = playDaily(day, attempt, seed, answer);
+  return engine.buildDailyLog({ attemptId: `att-${day}-${attempt}`, day, attempt, seed, serverSalt: SALT, player: PLAYER, setter: SETTER, inputs, innings: state, meta: { createdHour: `${day}T08`, revealedHour: `${day}T09` } });
+}
+
+describe('dailyChallenge with a server salt', () => {
+  it('is identical for everyone with the same salt and unpredictable without it', () => {
+    const a = engine.dailyChallenge('2026-10-25', SALT);
+    expect(engine.dailyChallenge('2026-10-25', SALT)).toEqual(a);
+    const practice = engine.dailyChallenge('2026-10-25');
+    expect(practice.overs).not.toEqual(a.overs);
+    expect(engine.dailyChallenge('2026-10-25', 'another-salt').overs).not.toEqual(a.overs);
+    for (const over of a.overs) expect(engine.validatePlan(over, ALL_VARIANTS).ok).toBe(true);
   });
 
-  it('accepts only real calendar dates in canonical form', () => {
-    expect(isDailyId('2026-10-23')).toBe(true);
-    expect(isDailyId('2028-02-29')).toBe(true);
-    expect(isDailyId('2026-02-29')).toBe(false);
-    expect(isDailyId('2026-13-01')).toBe(false);
-    expect(isDailyId('2026-04-31')).toBe(false);
-    expect(isDailyId('2026-1-1')).toBe(false);
-    expect(isDailyId('today')).toBe(false);
+  it('keeps the unsalted practice version exactly as before (deterministic, rotating pitches)', () => {
+    expect(engine.dailyChallenge('2026-10-25')).toEqual(engine.dailyChallenge('2026-10-25', ''));
+    expect(engine.dailyChallenge('2026-10-25').conditions.pitch).toBe(['green', 'hard', 'slow'][dayIndex('2026-10-25') % 3]);
   });
 
-  it('rolls over at 00:00 UTC', () => {
-    expect(nextDailyAt('2026-10-23')).toBe('2026-10-24T00:00:00.000Z');
-    expect(nextDailyAt('2026-12-31')).toBe('2027-01-01T00:00:00.000Z');
-    expect(dayIndex('1970-01-02')).toBe(1);
-    expect(dayIndex('2026-10-24') - dayIndex('2026-10-23')).toBe(1);
+  it('salts the pitch order too, but still plays each pitch once in every three-day block', () => {
+    const orders = new Set<string>();
+    for (let block = 0; block < 12; block++) {
+      const first = 20751 + block * 3 - (20751 % 3);
+      const days = [0, 1, 2].map((k) => {
+        const n = first + k;
+        const date = new Date(Date.UTC(1970, 0, 1 + n)).toISOString().slice(0, 10);
+        return engine.dailyChallenge(date, SALT).conditions.pitch;
+      });
+      expect(new Set(days).size).toBe(3);
+      orders.add(days.join(','));
+    }
+    expect(orders.size).toBeGreaterThan(1);
   });
 
-  it('keeps the deprecated local date key for legacy records', () => {
-    expect(dateKey(new Date(2026, 9, 23, 23, 55))).toBe('2026-10-23');
-    expect(dateKey(new Date(2026, 9, 23, 0, 5))).toBe('2026-10-23');
+  it('publishes one-way commits for the three overs', () => {
+    const commits = dailyCommits('2026-10-25', SALT);
+    const { overs } = engine.dailyChallenge('2026-10-25', SALT);
+    expect(commits.map((c) => c.attempt)).toEqual([1, 2, 3]);
+    commits.forEach((c, i) => {
+      expect(c.hash).toBe(sha256Hex(engine.canonicalPlan(overs[i]) + c.salt));
+      expect(c.salt).not.toContain(SALT);
+    });
   });
 });
 
-describe('schedule', () => {
-  it('has at least 30 authored days, all present and unique', () => {
-    expect(SCHEDULE.order.length).toBeGreaterThanOrEqual(30);
-    expect(new Set(SCHEDULE.order).size).toBe(SCHEDULE.order.length);
-    for (const id of SCHEDULE.order) expect(DAYS[id], id).toBeDefined();
-    expect(isDailyId(SCHEDULE.epoch)).toBe(true);
-  });
-
-  it('never repeats a dilemma inside any 30-day window of the rotation', () => {
-    const n = SCHEDULE.order.length;
-    const window = Math.min(30, n);
-    for (let i = 0; i < n; i++) {
-      const keys = Array.from({ length: window }, (_, k) => DAYS[SCHEDULE.order[(i + k) % n]].dilemmaKey);
-      expect(new Set(keys).size, `window starting at ${SCHEDULE.order[i]}`).toBe(window);
+describe('buildDailyLog', () => {
+  it('builds a solo replay that verifies and never contains the server salt', async () => {
+    for (const attempt of [1, 2, 3] as const) {
+      const log = dailyLog('2026-10-25', attempt, `seed-${attempt}`);
+      expect(log.kind).toBe('daily');
+      expect(log.players[1]).toEqual(SETTER);
+      expect(log.innings[1]).toEqual({ batter: 1, bowler: 0, balls: [], runs: 0, wickets: 0, ballsFaced: 0 });
+      expect(log.superBall).toEqual({ used: false, outcomes: null });
+      expect(log.result.decidedBy).toBe('forfeit_none');
+      expect(log.result.dailyScore).toBe(engine.dailyScore(log.innings[0]));
+      expect(log.result.marginRuns).toBe(0);
+      expect(log.events.find((e) => e.t === 'result')).toEqual({ t: 'result', result: log.result });
+      expect(log.commits[1].hash).toBe(dailyCommits('2026-10-25', SALT)[attempt - 1].hash);
+      expect(JSON.stringify(log)).not.toContain(SALT);
+      expect(log.events.some((e) => e.t === 'commentary' && e.key === 'commentary.daily_score')).toBe(true);
+      expect(await engine.verifyMatchLog(log)).toEqual({ ok: true });
+      expect(await engine.verifyMatchLog(clone(log))).toEqual({ ok: true });
     }
   });
 
-  it('lists days in schedule order', () => {
-    expect(listDailyDays().map((d) => d.id)).toEqual(SCHEDULE.order);
-    expect(getDailyDay(SCHEDULE.order[0])?.id).toBe(SCHEDULE.order[0]);
-    expect(getDailyDay('d999')).toBeUndefined();
-  });
-});
-
-describe('resolution', () => {
-  const pinnedBackup = { ...SCHEDULE.pinned };
-  const orderBackup = [...SCHEDULE.order];
-  afterEach(() => {
-    for (const k of Object.keys(SCHEDULE.pinned)) delete SCHEDULE.pinned[k];
-    Object.assign(SCHEDULE.pinned, pinnedBackup);
-    SCHEDULE.order.splice(0, SCHEDULE.order.length, ...orderBackup);
+  it('verifies attempts with unanswered balls and an all-out innings', async () => {
+    const log = dailyLog('2026-10-26', 2, 'gappy', (ball) => (ball % 2 ? null : 'auto'));
+    expect(await engine.verifyMatchLog(log)).toEqual({ ok: true });
   });
 
-  it('rotates through the schedule from the epoch', () => {
-    const n = SCHEDULE.order.length;
-    expect(dayIdFor(idAt(0))).toBe(SCHEDULE.order[0]);
-    expect(dayIdFor(idAt(1))).toBe(SCHEDULE.order[1]);
-    expect(dayIdFor(idAt(n - 1))).toBe(SCHEDULE.order[n - 1]);
-    expect(dayIdFor(idAt(n))).toBe(SCHEDULE.order[0]);
-    expect(dayIdFor(idAt(-1))).toBe(SCHEDULE.order[n - 1]);
+  it('detects tampering with the score, the over, an input or the seed', async () => {
+    const log = dailyLog('2026-10-25', 1, 'tamper-me');
+    const a = clone(log);
+    a.result.dailyScore = (a.result.dailyScore ?? 0) + 10;
+    expect(await engine.verifyMatchLog(a)).toMatchObject({ ok: false, errors: expect.arrayContaining(['result.daily_score']) });
+    const a2 = clone(log);
+    a2.result.marginRuns = a2.result.dailyScore ?? 1;
+    expect(await engine.verifyMatchLog(a2)).toMatchObject({ ok: false, errors: expect.arrayContaining(['result.daily_margin_not_zero']) });
+    const a3 = clone(log);
+    delete a3.result.dailyScore;
+    expect(await engine.verifyMatchLog(a3)).toMatchObject({ ok: false, errors: expect.arrayContaining(['result.daily_score']) });
+    const b = clone(log);
+    b.plans[1].balls[0].intent = b.plans[1].balls[0].intent === 'attack' ? 'contain' : 'attack';
+    b.plans[0] = clone(b.plans[1]);
+    expect((await engine.verifyMatchLog(b)).ok).toBe(false);
+    const c = clone(log);
+    c.plans[0].field = c.plans[0].field === 'sweeper' ? 'attacking' : 'sweeper';
+    expect((await engine.verifyMatchLog(c)).ok).toBe(false);
+    const d = clone(log);
+    d.seed = `${d.seed}x`;
+    expect((await engine.verifyMatchLog(d)).ok).toBe(false);
+    const e = clone(log);
+    if (e.inputs[0][0] && e.inputs[0][0].tapMs !== null) {
+      e.inputs[0][0].tapMs += 150;
+      e.inputs[0][0].clientElapsedMs += 200;
+      expect((await engine.verifyMatchLog(e)).ok).toBe(false);
+    }
   });
 
-  it('is deterministic and self-describing', () => {
-    const id = idAt(5);
-    const a = resolveDaily(id);
-    const b = resolveDaily(id);
-    expect(a).toEqual(b);
-    const day = DAYS[a.dayId];
-    expect(a.dailyId).toBe(id);
-    expect(a.seed).toBe(dailySeed(id, a.dayId, day.version));
-    expect([...a.opponents].sort()).toEqual([...day.opponents].sort());
-    expect(a.difficulty).toBe('standard');
-    expect(a.contentVersion).toBe(SCHEDULE.contentVersion);
-    expect(a.nextAt).toBe(nextDailyAt(id));
+  it('leaves duel and cup results without dailyScore, and rejects one added afterwards', async () => {
+    const logs = (golden as unknown as { logs: MatchEventLog[] }).logs;
+    for (const log of logs) expect('dailyScore' in log.result).toBe(false);
+    const tampered = clone(logs[0]);
+    tampered.result.dailyScore = 50;
+    expect((await engine.verifyMatchLog(tampered)).ok).toBe(false);
   });
 
-  it('gives every date its own seed even when the authored day repeats', () => {
-    const n = SCHEDULE.order.length;
-    const ids = Array.from({ length: 2 * n }, (_, i) => idAt(i));
-    expect(new Set(ids.map((id) => resolveDaily(id).seed)).size).toBe(ids.length);
-    expect(resolveDaily(idAt(0)).dayId).toBe(resolveDaily(idAt(n)).dayId);
-  });
-
-  it('reseeds a date when the day version is bumped', () => {
-    expect(dailySeed('2026-11-01', 'd001', 2)).not.toBe(dailySeed('2026-11-01', 'd001', 1));
-    expect(dailySeed('2026-11-01', 'd001', 1)).toBe(dailySeed('2026-11-01', 'd001', 1));
-  });
-
-  it('pinned dates win over the rotation', () => {
-    const id = idAt(7);
-    const rotated = dayIdFor(id);
-    const pinnedDay = SCHEDULE.order.find((d) => d !== rotated)!;
-    SCHEDULE.pinned[id] = pinnedDay;
-    expect(dayIdFor(id)).toBe(pinnedDay);
-    expect(resolveDaily(id).dayId).toBe(pinnedDay);
-    expect(dayIdFor(idAt(8))).toBe(orderBackup[8 % orderBackup.length]);
-  });
-
-  it('ignores a pin to a day that is not in the pool', () => {
-    const id = idAt(9);
-    SCHEDULE.pinned[id] = 'd999';
-    expect(dayIdFor(id)).toBe(orderBackup[9 % orderBackup.length]);
-  });
-
-  it('appending days keeps the first rotation stable, and pins protect later dates', () => {
-    const n = orderBackup.length;
-    const before = Array.from({ length: n + 5 }, (_, i) => dayIdFor(idAt(i)));
-    SCHEDULE.order.push('d998', 'd999');
-    for (let i = 0; i < n; i++) expect(dayIdFor(idAt(i))).toBe(before[i]);
-    // Dates after the first cycle move when the pool grows: that is why published dates are pinned before appending.
-    expect(dayIdFor(idAt(n))).not.toBe(before[n]);
-    for (let i = n; i < n + 5; i++) SCHEDULE.pinned[idAt(i)] = before[i];
-    for (let i = 0; i < n + 5; i++) expect(dayIdFor(idAt(i))).toBe(before[i]);
-  });
-
-  it('rejects malformed ids', () => {
-    expect(() => dayIdFor('2026-02-30')).toThrow(/Invalid daily id/);
-    expect(() => resolveDaily('nope')).toThrow(/Invalid daily id/);
-  });
-});
-
-describe('daily scenarios', () => {
-  it('compiles the resolved day into a scenario with a daily id', () => {
-    const id = idAt(2);
-    const { scenario, resolution, day } = getDailyScenario(id);
-    expect(scenario.id).toBe(`daily:${resolution.dayId}`);
-    expect(isDailyScenarioId(scenario.id)).toBe(true);
-    expect(day.id).toBe(resolution.dayId);
-    expect(getDayScenario(resolution.dayId)).toBe(scenario);
-    expect(() => getDayScenario('d999')).toThrow(/Unknown daily day/);
-  });
-
-  it('exposes the legacy spec shape derived from the v2 resolution', () => {
-    const id = idAt(4);
-    const spec = getDailySpecForKey(id);
-    const res = resolveDaily(id);
-    expect(spec.date).toBe(id);
-    expect(spec.scenarioId).toBe(`daily:${res.dayId}`);
-    expect(spec.seed).toBe(res.seed);
-    expect(spec.opponents).toEqual(res.opponents);
-    expect(spec.difficulty).toBe('standard');
-    expect(spec.title).toBe(DAYS[res.dayId].title);
-    expect(spec.simulatedBand.low).toBeLessThan(spec.simulatedBand.typical);
-    expect(spec.simulatedBand.typical).toBeLessThan(spec.simulatedBand.high);
-    expect(getDailySpecForKey(id)).toEqual(spec);
-  });
-
-  it('uses the UTC day for the date-based entry point', () => {
-    const late = new Date('2026-11-05T23:59:00Z');
-    const early = new Date('2026-11-05T00:01:00Z');
-    expect(getDailySpec(late)).toEqual(getDailySpec(early));
-    expect(getDailySpec(new Date('2026-11-06T00:01:00Z')).seed).not.toBe(getDailySpec(late).seed);
-  });
-
-  it('falls back to today for a malformed key', () => {
-    expect(getDailySpecForKey('garbage').date).toBe(dailyIdFor(new Date()));
+  it('refuses an unfinished innings', () => {
+    expect(() =>
+      engine.buildDailyLog({ attemptId: 'x', day: '2026-10-25', attempt: 1, seed: 's', serverSalt: SALT, player: PLAYER, setter: SETTER, inputs: [], innings: engine.startInnings(0), meta: { createdHour: 'h', revealedHour: 'h' } }),
+    ).toThrow();
   });
 });

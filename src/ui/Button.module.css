@@ -1,0 +1,173 @@
+.btn {
+  --btn-bg: var(--surface-2);
+  --btn-fg: var(--t-primary);
+  --btn-border: var(--edge-line);
+  --btn-shadow: var(--edge-light), var(--shadow-1);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: 0.7rem 1.25rem;
+  border-radius: var(--r-md);
+  border: var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  box-shadow: var(--btn-shadow);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-md);
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  white-space: normal;
+  /* Long words may break only when they cannot fit at all: labels never split mid-word ("Resul/t"). */
+  overflow-wrap: break-word;
+  transition:
+    transform var(--dur-control) var(--ease-out),
+    box-shadow var(--dur-control) var(--ease-out),
+    background var(--dur-control) var(--ease-out),
+    filter var(--dur-control) var(--ease-out),
+    opacity var(--dur-control) var(--ease-out);
+}
+@media (hover: hover) {
+  .btn:hover {
+    filter: brightness(1.08);
+  }
+}
+.btn:active {
+  transform: translateY(1px) scale(0.985);
+  transition-duration: var(--dur-instant);
+}
+.btn:focus-visible {
+  box-shadow: var(--focus-ring), var(--btn-shadow);
+}
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.5;
+  filter: saturate(0.6);
+  transform: none;
+}
+.btn.loading:disabled {
+  opacity: 0.85;
+  cursor: progress;
+}
+
+.primary {
+  --btn-bg: linear-gradient(180deg, #8cf0ff 0%, #2fd9ff 48%, #12b8e6 100%);
+  --btn-fg: var(--t-on-cyan);
+  --btn-border: 1px solid rgba(147, 238, 255, 0.7);
+  --btn-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 10px 28px rgba(25, 211, 250, 0.32), 0 2px 6px rgba(2, 1, 16, 0.5);
+  font-weight: var(--weight-bold);
+}
+.accent {
+  --btn-bg: linear-gradient(180deg, #ffd38a 0%, #ffaa33 52%, #ec8a14 100%);
+  --btn-fg: var(--t-on-amber);
+  --btn-border: 1px solid rgba(255, 219, 163, 0.75);
+  --btn-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 12px 32px rgba(255, 170, 51, 0.34), 0 2px 6px rgba(2, 1, 16, 0.5);
+  font-weight: var(--weight-black);
+  letter-spacing: 0.01em;
+}
+.secondary {
+  --btn-bg: linear-gradient(180deg, rgba(55, 45, 143, 0.55), rgba(29, 24, 88, 0.8));
+}
+.ghost {
+  --btn-bg: transparent;
+  --btn-border: 1px solid transparent;
+  --btn-shadow: 0 0 #0000;
+  --btn-fg: var(--t-secondary);
+}
+@media (hover: hover) {
+  .ghost:hover {
+    --btn-bg: rgba(143, 135, 232, 0.12);
+  }
+}
+.danger {
+  --btn-bg: linear-gradient(180deg, rgba(255, 77, 106, 0.24), rgba(170, 32, 60, 0.3));
+  --btn-fg: #ffd6dd;
+  --btn-border: 1px solid rgba(255, 77, 106, 0.6);
+}
+.link {
+  --btn-bg: transparent;
+  --btn-border: 1px solid transparent;
+  --btn-shadow: 0 0 #0000;
+  --btn-fg: var(--t-link);
+  padding-inline: var(--s-2);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+:root[data-contrast='high'] .primary,
+:root[data-contrast='high'] .accent {
+  --btn-shadow: 0 0 #0000;
+  --btn-border: 2px solid #ffffff;
+}
+:root[data-contrast='high'] .primary {
+  --btn-bg: #6be8ff;
+}
+:root[data-contrast='high'] .accent {
+  --btn-bg: #ffc266;
+}
+
+.sm {
+  min-height: 40px;
+  padding: 0.5rem 0.9rem;
+  font-size: var(--text-sm);
+  border-radius: var(--r-sm);
+}
+.lg {
+  min-height: var(--tap-lg);
+  padding: 0.85rem 1.5rem;
+  font-size: var(--text-lg);
+  border-radius: var(--r-lg);
+}
+.xl {
+  min-height: 64px;
+  padding: 1rem 1.75rem;
+  font-size: var(--text-xl);
+  border-radius: var(--r-lg);
+}
+.block {
+  display: flex;
+  width: 100%;
+}
+.icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+}
+.label {
+  min-width: 0;
+}
+.spinner {
+  flex: none;
+  width: 1.1em;
+  height: 1.1em;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+:root[data-motion='reduced'] .spinner {
+  animation-duration: 2.4s;
+}
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.iconBtn {
+  padding: 0;
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: var(--r-pill);
+}
+.iconBtn.lg {
+  width: var(--tap-lg);
+  height: var(--tap-lg);
+}

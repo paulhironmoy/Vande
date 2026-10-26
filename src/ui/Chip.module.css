@@ -1,0 +1,67 @@
+.chip {
+  --tone: var(--c-indigo-300);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 28px;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--r-pill);
+  border: 1px solid color-mix(in srgb, var(--tone) 55%, transparent);
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  color: color-mix(in srgb, var(--tone) 60%, white);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.lg {
+  min-height: 34px;
+  padding: 0.3rem 0.85rem;
+  font-size: var(--text-md);
+}
+.solid {
+  background: var(--tone);
+  color: var(--c-night-950);
+  border-color: transparent;
+}
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: 0 0 8px var(--tone);
+}
+/* On a solid chip the dot would vanish into its own tone. */
+.solid .dot {
+  background: var(--c-night-950);
+  box-shadow: none;
+}
+.chip[data-tone='cyan'] {
+  --tone: var(--c-cyan-500);
+}
+.chip[data-tone='amber'] {
+  --tone: var(--c-amber-500);
+}
+.chip[data-tone='success'] {
+  --tone: var(--f-success);
+}
+.chip[data-tone='danger'] {
+  --tone: var(--f-danger);
+}
+.chip[data-tone='violet'] {
+  --tone: var(--o-super);
+}
+.chip[data-tone='green'] {
+  --tone: var(--c-grass-400);
+}
+.chip[data-tone='clay'] {
+  --tone: var(--c-clay-400);
+}
+:root[data-contrast='high'] .chip {
+  color: var(--t-primary);
+  border-width: 2px;
+}
+/* Solid chips keep dark text on their bright tone in high contrast too (white on amber measures 1.9:1). */
+:root[data-contrast='high'] .solid {
+  color: var(--c-night-950);
+}

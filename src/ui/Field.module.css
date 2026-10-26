@@ -1,0 +1,58 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.inline {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  min-height: var(--tap);
+}
+.text {
+  min-width: 0;
+}
+.label {
+  display: block;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-md);
+}
+.desc {
+  margin-top: 0.15rem;
+  color: var(--t-tertiary);
+  font-size: var(--text-sm);
+}
+.control {
+  min-width: 0;
+}
+.inline .control {
+  flex: none;
+}
+/* Text input styling for inputs placed in a Field. */
+.control :global(input[type='text']),
+.control :global(input:not([type])) {
+  width: 100%;
+  min-height: var(--tap-lg);
+  padding: 0.75rem 1rem;
+  border-radius: var(--r-md);
+  border: var(--edge-line-strong);
+  background: var(--surface-sunken);
+  color: var(--t-primary);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  transition:
+    border-color var(--dur-control) var(--ease-out),
+    box-shadow var(--dur-control) var(--ease-out);
+}
+.control :global(input::placeholder) {
+  color: var(--t-muted);
+  font-weight: var(--weight-regular);
+}
+.control :global(input:focus-visible) {
+  border: var(--edge-cyan);
+  box-shadow: var(--glow-cyan);
+}
+.control :global(input[aria-invalid='true']) {
+  border-color: var(--f-danger);
+}

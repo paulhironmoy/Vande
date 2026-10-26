@@ -1,0 +1,54 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: end center;
+  padding: var(--s-4);
+  padding-bottom: calc(var(--s-4) + var(--safe-bottom));
+  background: rgba(3, 2, 18, 0.66);
+  animation: fade var(--dur-panel) var(--ease-out) both;
+}
+@media (min-width: 640px) {
+  .backdrop {
+    place-items: center;
+  }
+}
+.dialog {
+  width: min(28rem, 100%);
+  border-radius: var(--r-xl);
+  border: var(--edge-line-strong);
+  background: linear-gradient(180deg, #221c68, #120f3d);
+  box-shadow: var(--edge-light), var(--shadow-3);
+  padding: var(--s-6) var(--s-5) var(--s-5);
+  outline: none;
+  animation: rise var(--dur-panel) var(--ease-spring) both;
+}
+.title {
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+}
+.desc {
+  margin-top: var(--s-2);
+  color: var(--t-secondary);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  gap: var(--s-3);
+  margin-top: var(--s-6);
+}
+.actions > * {
+  flex: 1 1 9rem;
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+}

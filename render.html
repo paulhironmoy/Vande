@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>VANDE Cricket highlight renderer</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #06051f;
+      }
+      canvas {
+        display: block;
+        width: 1080px;
+        height: 1920px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="highlight" width="1080" height="1920"></canvas>
+    <script type="module" src="/src/highlight/render-entry.ts"></script>
+  </body>
+</html>

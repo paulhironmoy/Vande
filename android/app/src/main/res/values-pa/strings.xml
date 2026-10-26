@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- Machine-drafted; needs native-speaker QA before release (docs/LOCALIZATION.md). -->
+    <string name="notif_opponent_joined_title">ਤੁਹਾਡੇ ਵਿਰੋਧੀ ਆ ਗਏ</string>
+    <string name="notif_opponent_joined_body">ਤੁਹਾਡਾ ਮੈਚ ਸ਼ੁਰੂ ਹੋ ਗਿਆ। ਆਪਣਾ ਹਿੱਸਾ ਖੇਡਣ ਲਈ ਮੈਚ ਖੋਲ੍ਹੋ।</string>
+    <string name="notif_opponent_locked_title">ਉਹਨਾਂ ਦਾ ਓਵਰ ਸੀਲ ਹੋ ਗਿਆ</string>
+    <string name="notif_opponent_locked_body">ਤੁਹਾਡੇ ਵਿਰੋਧੀ ਨੇ ਆਪਣਾ ਪਲਾਨ ਲੌਕ ਕਰ ਦਿੱਤਾ। ਅੱਗੇ ਖੇਡਣ ਲਈ ਮੈਚ ਖੋਲ੍ਹੋ।</string>
+    <string name="notif_reveal_ready_title">ਰਿਵੀਲ ਤਿਆਰ ਹੈ</string>
+    <string name="notif_reveal_ready_body">ਦੋਵੇਂ ਪਾਰੀਆਂ ਪੂਰੀਆਂ ਹੋ ਗਈਆਂ। ਰਿਵੀਲ ਵੇਖਣ ਲਈ ਖੋਲ੍ਹੋ।</string>
+    <string name="notif_auto_over_title">ਆਟੋ ਓਵਰ ਨੇ ਖੇਡਿਆ</string>
+    <string name="notif_auto_over_body">ਸਮਾਂ ਖਤਮ ਹੋ ਗਿਆ, ਇਸ ਲਈ ਤੁਹਾਡੀ ਥਾਂ ਆਟੋ ਓਵਰ ਨੇ ਖੇਡਿਆ। ਮੈਚ ਜਾਰੀ ਹੈ।</string>
+    <string name="notif_match_expired_title">ਮੈਚ ਦਾ ਸਮਾਂ ਖਤਮ</string>
+    <string name="notif_match_expired_body">ਇਸ ਮੈਚ ਦਾ ਸਮਾਂ ਖਤਮ ਹੋ ਗਿਆ। ਜਦੋਂ ਚਾਹੋ ਨਵਾਂ ਮੈਚ ਸ਼ੁਰੂ ਕਰੋ।</string>
+    <string name="notif_rematch_title">ਦੁਬਾਰਾ ਖੇਡੀਏ?</string>
+    <string name="notif_rematch_body">ਤੁਹਾਡੇ ਵਿਰੋਧੀ ਇੱਕ ਹੋਰ ਓਵਰ ਚਾਹੁੰਦੇ ਹਨ।</string>
+    <string name="notif_deadline_reminder_title">ਤੁਹਾਡੀ ਵਾਰੀ ਉਡੀਕ ਰਹੀ ਹੈ</string>
+    <string name="notif_deadline_reminder_body">ਸਮਾਂ-ਸੀਮਾ ਤੋਂ ਪਹਿਲਾਂ ਆਪਣਾ ਹਿੱਸਾ ਪੂਰਾ ਕਰੋ, ਨਹੀਂ ਤਾਂ ਆਟੋ ਓਵਰ ਖੇਡੇਗਾ।</string>
+    <string name="notif_new_fixture_title">ਨਵਾਂ ਕੱਪ ਮੈਚ</string>
+    <string name="notif_new_fixture_body">ਤੁਹਾਡਾ ਅਗਲਾ ਗਰੁੱਪ ਕੱਪ ਮੈਚ ਤਿਆਰ ਹੈ।</string>
+    <string name="notif_final_title">ਤੁਸੀਂ ਫਾਈਨਲ ਵਿੱਚ ਹੋ</string>
+    <string name="notif_final_body">ਤੁਹਾਡਾ ਗਰੁੱਪ ਕੱਪ ਫਾਈਨਲ ਤਿਆਰ ਹੈ। ਆਪਣਾ ਸਭ ਤੋਂ ਵਧੀਆ ਓਵਰ ਲੌਕ ਕਰੋ।</string>
+    <string name="notif_cup_complete_title">ਕੱਪ ਪੂਰਾ ਹੋਇਆ</string>
+    <string name="notif_cup_complete_body">ਗਰੁੱਪ ਕੱਪ ਖਤਮ ਹੋ ਗਿਆ। ਅੰਤਿਮ ਸੂਚੀ ਵੇਖਣ ਲਈ ਖੋਲ੍ਹੋ।</string>
+    <string name="notif_cup_cancelled_title">ਕੱਪ ਰੱਦ</string>
+    <string name="notif_cup_cancelled_body">ਇਹ ਗਰੁੱਪ ਕੱਪ ਰੱਦ ਕਰ ਦਿੱਤਾ ਗਿਆ ਹੈ।</string>
+    <string name="notif_top100_title">ਤੁਸੀਂ ਡੇਲੀ ਟਾਪ 100 ਵਿੱਚ ਹੋ</string>
+    <string name="notif_top100_body">ਤੁਹਾਡਾ ਪੱਕਾ ਬੈਜ ਮਿਲ ਗਿਆ। ਕੁਝ ਵੀ ਪ੍ਰਕਾਸ਼ਿਤ ਹੋਣ ਤੋਂ ਪਹਿਲਾਂ ਆਪਣੀ ਹਾਈਲਾਈਟ ਵੇਖਣ ਲਈ ਖੋਲ੍ਹੋ।</string>
+    <string name="notif_highlight_published_title">ਤੁਹਾਡੀ ਹਾਈਲਾਈਟ ਲਾਈਵ ਹੈ</string>
+    <string name="notif_highlight_published_body">ਤੁਹਾਡੇ ਮੈਚ ਦੀ ਹਾਈਲਾਈਟ ਹੁਣ YouTube \'ਤੇ ਹੈ। ਵੇਖਣ ਅਤੇ ਸਾਂਝਾ ਕਰਨ ਲਈ ਖੋਲ੍ਹੋ।</string>
+</resources>

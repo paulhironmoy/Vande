@@ -1,0 +1,106 @@
+.badge {
+  --tone: var(--o-dot);
+  --size: 32px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--size);
+  height: var(--size);
+  color: var(--t-primary);
+}
+.sm {
+  --size: 24px;
+}
+.lg {
+  --size: 44px;
+}
+.badge svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.shape {
+  fill: color-mix(in srgb, var(--tone) 22%, var(--c-night-900));
+  stroke: var(--tone);
+  stroke-width: 1.6;
+}
+.glyph {
+  fill: none;
+  stroke: var(--tone);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.text {
+  position: relative;
+  font-family: var(--font-numeric);
+  font-weight: var(--weight-black);
+  font-size: calc(var(--size) * 0.46);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.badge[data-kind='upcoming'] .shape {
+  fill: transparent;
+  stroke: rgba(189, 184, 245, 0.35);
+  stroke-dasharray: 3 3;
+}
+.badge[data-kind='current'] {
+  --tone: var(--c-cyan-400);
+}
+.badge[data-kind='current'] .shape {
+  fill: rgba(25, 211, 250, 0.12);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 6px rgba(25, 211, 250, 0.7));
+  animation: pulse 1.4s var(--ease-in-out) infinite;
+}
+:root[data-motion='reduced'] .badge[data-kind='current'] .shape {
+  animation: none;
+}
+.badge[data-kind='sealed'] {
+  --tone: var(--c-indigo-300);
+}
+.badge[data-kind='dot'] {
+  --tone: var(--o-dot);
+}
+.badge[data-kind='dot'] .text {
+  font-size: calc(var(--size) * 0.6);
+  color: var(--o-dot);
+}
+.badge[data-kind='runs'] {
+  --tone: var(--o-run);
+}
+.badge[data-kind='four'] {
+  --tone: var(--o-four);
+}
+.badge[data-kind='four'] .shape {
+  fill: var(--o-four);
+}
+.badge[data-kind='four'] .text {
+  color: var(--t-on-cyan);
+}
+.badge[data-kind='six'] {
+  --tone: var(--o-six);
+}
+.badge[data-kind='six'] .shape {
+  fill: var(--o-six);
+}
+.badge[data-kind='six'] .text {
+  color: var(--t-on-amber);
+}
+.badge[data-kind='wicket'] {
+  --tone: var(--o-wicket);
+}
+.badge[data-kind='wicket'] .shape {
+  fill: var(--o-wicket);
+}
+.badge[data-kind='wicket'] .text {
+  color: #ffffff;
+  font-size: calc(var(--size) * 0.38);
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}

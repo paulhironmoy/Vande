@@ -19,7 +19,34 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Invite, match, cup, highlight and shared-result links open the app when installed (App Links once assetlinks.json is hosted). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="${appLinksHost}" />
+                <data android:pathPrefix="${appLinksBasePath}/i/" />
+                <data android:pathPrefix="${appLinksBasePath}/m/" />
+                <data android:pathPrefix="${appLinksBasePath}/c/" />
+                <data android:pathPrefix="${appLinksBasePath}/h/" />
+                <data android:pathPrefix="${appLinksBasePath}/s/" />
+            </intent-filter>
+
+            <!-- Custom scheme fallback: vandecricket://i/<token> -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="@string/custom_url_scheme" />
+            </intent-filter>
         </activity>
+
+        <!-- Push (FCM through @capacitor/push-notifications): match notifications use the "matches" channel. -->
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="matches" />
+        <!-- No Firebase id or token until the player turns notifications on (the push plugin enables it in register()). -->
+        <meta-data android:name="firebase_messaging_auto_init_enabled" android:value="false" />
+        <meta-data android:name="firebase_analytics_collection_enabled" android:value="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -33,4 +60,6 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Android 13+: asked only after a meaningful moment (never on first launch), see src/platform/push.ts. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 </manifest>

@@ -1,0 +1,46 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f6f7fb;
+  --fg: #14161f;
+  --muted: #5b6275;
+  --line: #d8dbe6;
+  --accent: #1e2a78;
+  --danger: #b3261e;
+  font: 14px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1020;
+    --fg: #eef0f8;
+    --muted: #9aa1b8;
+    --line: #2a2f48;
+    --accent: #8ea2ff;
+    --danger: #ff8a80;
+  }
+}
+body { margin: 0; background: var(--bg); color: var(--fg); }
+#admin { max-width: 1200px; margin: 0 auto; padding: 16px; }
+header { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+h1 { font-size: 20px; margin: 0; }
+.muted { color: var(--muted); }
+.filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
+.tabs { display: flex; gap: 4px; }
+button { font: inherit; padding: 6px 10px; border: 1px solid var(--line); background: transparent; color: var(--fg); border-radius: 6px; cursor: pointer; }
+button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+button.link { border: 0; padding: 0; color: var(--accent); text-align: left; }
+button.danger { color: var(--danger); border-color: var(--danger); }
+button:disabled { opacity: 0.5; cursor: default; }
+input, select, textarea { font: inherit; padding: 6px; border: 1px solid var(--line); background: transparent; color: var(--fg); border-radius: 6px; }
+textarea { width: 100%; box-sizing: border-box; margin: 8px 0; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.status { display: inline-block; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; white-space: nowrap; }
+.status-published, .status-approved { border-color: #2e7d32; }
+.status-rejected, .status-dead_letter, .status-upload_failed, .status-render_failed, .status-removed, .status-removal_failed, .status-open { border-color: var(--danger); }
+.status-awaiting_channel { border-color: #b26a00; }
+.message.error { color: var(--danger); }
+.detail { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 12px; }
+.description { white-space: pre-wrap; background: color-mix(in srgb, var(--line) 30%, transparent); padding: 8px; border-radius: 6px; }
+.preview { display: flex; gap: 12px; align-items: flex-end; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.settings input { margin: 4px; }

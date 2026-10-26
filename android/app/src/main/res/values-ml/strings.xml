@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- Machine-drafted; needs native-speaker QA before release (docs/LOCALIZATION.md). -->
+    <string name="notif_opponent_joined_title">നിങ്ങളുടെ എതിരാളി എത്തി</string>
+    <string name="notif_opponent_joined_body">നിങ്ങളുടെ മത്സരം തുടങ്ങി. നിങ്ങളുടെ ഭാഗം കളിക്കാൻ മത്സരം തുറക്കുക.</string>
+    <string name="notif_opponent_locked_title">അവരുടെ ഓവർ സീൽ ചെയ്തു</string>
+    <string name="notif_opponent_locked_body">നിങ്ങളുടെ എതിരാളി അവരുടെ പ്ലാൻ ലോക്ക് ചെയ്തു. തുടരാൻ മത്സരം തുറക്കുക.</string>
+    <string name="notif_reveal_ready_title">റിവീൽ തയ്യാർ</string>
+    <string name="notif_reveal_ready_body">രണ്ട് ഇന്നിംഗ്സും കഴിഞ്ഞു. റിവീൽ കാണാൻ തുറക്കുക.</string>
+    <string name="notif_auto_over_title">ഓട്ടോ ഓവർ കളിച്ചു</string>
+    <string name="notif_auto_over_body">സമയം കഴിഞ്ഞതിനാൽ നിങ്ങൾക്കുവേണ്ടി ഓട്ടോ ഓവർ കളിച്ചു. മത്സരം തുടരുന്നു.</string>
+    <string name="notif_match_expired_title">മത്സരത്തിന്റെ സമയം കഴിഞ്ഞു</string>
+    <string name="notif_match_expired_body">ഈ മത്സരത്തിന്റെ സമയം കഴിഞ്ഞു. എപ്പോൾ വേണമെങ്കിലും പുതിയ മത്സരം തുടങ്ങാം.</string>
+    <string name="notif_rematch_title">വീണ്ടും കളിക്കാമോ?</string>
+    <string name="notif_rematch_body">നിങ്ങളുടെ എതിരാളിക്ക് ഒരു ഓവർ കൂടി വേണം.</string>
+    <string name="notif_deadline_reminder_title">നിങ്ങളുടെ ഊഴം കാത്തിരിക്കുന്നു</string>
+    <string name="notif_deadline_reminder_body">സമയപരിധിക്കുള്ളിൽ നിങ്ങളുടെ ഭാഗം പൂർത്തിയാക്കുക, അല്ലെങ്കിൽ ഓട്ടോ ഓവർ കളിക്കും.</string>
+    <string name="notif_new_fixture_title">പുതിയ കപ്പ് മത്സരം</string>
+    <string name="notif_new_fixture_body">നിങ്ങളുടെ അടുത്ത ഗ്രൂപ്പ് കപ്പ് മത്സരം തയ്യാർ.</string>
+    <string name="notif_final_title">നിങ്ങൾ ഫൈനലിൽ</string>
+    <string name="notif_final_body">നിങ്ങളുടെ ഗ്രൂപ്പ് കപ്പ് ഫൈനൽ തയ്യാർ. നിങ്ങളുടെ മികച്ച ഓവർ ലോക്ക് ചെയ്യുക.</string>
+    <string name="notif_cup_complete_title">കപ്പ് പൂർത്തിയായി</string>
+    <string name="notif_cup_complete_body">ഗ്രൂപ്പ് കപ്പ് കഴിഞ്ഞു. അന്തിമ പട്ടിക കാണാൻ തുറക്കുക.</string>
+    <string name="notif_cup_cancelled_title">കപ്പ് റദ്ദാക്കി</string>
+    <string name="notif_cup_cancelled_body">ഈ ഗ്രൂപ്പ് കപ്പ് റദ്ദാക്കി.</string>
+    <string name="notif_top100_title">നിങ്ങൾ ഡെയ്‌ലി ടോപ്പ് 100-ൽ</string>
+    <string name="notif_top100_body">നിങ്ങളുടെ സ്ഥിരം ബാഡ്ജ് ലഭിച്ചു. എന്തെങ്കിലും പ്രസിദ്ധീകരിക്കുന്നതിന് മുമ്പ് നിങ്ങളുടെ ഹൈലൈറ്റ് കാണാൻ തുറക്കുക.</string>
+    <string name="notif_highlight_published_title">നിങ്ങളുടെ ഹൈലൈറ്റ് ലൈവാണ്</string>
+    <string name="notif_highlight_published_body">നിങ്ങളുടെ മത്സരത്തിന്റെ ഹൈലൈറ്റ് ഇപ്പോൾ YouTube-ൽ ഉണ്ട്. കാണാനും പങ്കിടാനും തുറക്കുക.</string>
+</resources>

@@ -1,7 +1,34 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">VANDE</string>
-    <string name="title_activity_main">VANDE</string>
-    <string name="package_name">in.vande.republic</string>
-    <string name="custom_url_scheme">in.vande.republic</string>
+    <string name="app_name">VANDE Cricket</string>
+    <string name="title_activity_main">VANDE Cricket</string>
+    <string name="package_name">in.vande.cricket</string>
+    <string name="custom_url_scheme">vandecricket</string>
+    <!-- Push copy: FCM sends only these keys (backend/src/ops/push.ts), never text or results. -->
+    <string name="notif_opponent_joined_title">Your rival is in</string>
+    <string name="notif_opponent_joined_body">Your duel has started. Open the match to play your part.</string>
+    <string name="notif_opponent_locked_title">Their over is sealed</string>
+    <string name="notif_opponent_locked_body">Your rival has locked their plan. Open the match to keep going.</string>
+    <string name="notif_reveal_ready_title">Reveal ready</string>
+    <string name="notif_reveal_ready_body">Both innings are done. Open to watch the reveal.</string>
+    <string name="notif_auto_over_title">Auto Over stepped in</string>
+    <string name="notif_auto_over_body">Time ran out, so Auto Over played your part. The match goes on.</string>
+    <string name="notif_match_expired_title">Match expired</string>
+    <string name="notif_match_expired_body">This match ran out of time. Start a new one whenever you like.</string>
+    <string name="notif_rematch_title">Rematch?</string>
+    <string name="notif_rematch_body">Your rival wants another over.</string>
+    <string name="notif_deadline_reminder_title">Your turn is waiting</string>
+    <string name="notif_deadline_reminder_body">Finish your part before the deadline, or Auto Over steps in.</string>
+    <string name="notif_new_fixture_title">New cup fixture</string>
+    <string name="notif_new_fixture_body">Your next Group Cup match is ready.</string>
+    <string name="notif_final_title">You\'re in the final</string>
+    <string name="notif_final_body">Your Group Cup final is ready. Lock your best over.</string>
+    <string name="notif_cup_complete_title">Cup complete</string>
+    <string name="notif_cup_complete_body">The Group Cup is over. Open to see the final table.</string>
+    <string name="notif_cup_cancelled_title">Cup cancelled</string>
+    <string name="notif_cup_cancelled_body">This Group Cup was called off.</string>
+    <string name="notif_top100_title">You made the Daily Top 100</string>
+    <string name="notif_top100_body">Your permanent badge is in. Open to review your highlight before anything is published.</string>
+    <string name="notif_highlight_published_title">Your highlight is live</string>
+    <string name="notif_highlight_published_body">Your match highlight is now on YouTube. Open to watch and share.</string>
 </resources>

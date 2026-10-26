@@ -1,0 +1,30 @@
+.screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  padding: calc(var(--s-8) + var(--safe-top)) var(--gutter) calc(var(--s-8) + var(--safe-bottom));
+  text-align: center;
+}
+.emblem {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 2px dashed rgba(143, 135, 232, 0.5);
+  color: var(--c-indigo-200);
+}
+.h1 {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-black);
+}
+.body {
+  margin: 0;
+  max-width: 28rem;
+  color: var(--t-secondary);
+  line-height: var(--leading-snug);
+}

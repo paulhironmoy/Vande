@@ -21,24 +21,28 @@ android/.idea/
 android/local.properties
 android/keystore.properties
 android/keystore/
+# Firebase client config for push (per-environment; supplied at release time, see docs/ANDROID_RELEASE.md)
+android/app/google-services.json
 android/app/release/
 android/app/debug/
 android/capacitor-cordova-android-plugins/
 *.jks
 *.keystore
 release/
-test-results-visual/
 test-results-exp/
-docs/perf/*.report.html
-dist-visual/
-dist-sb/
-dist-axe/
-dist-verify/
+dist-flow/
 # Cloudflare Worker local state and secrets
 backend/.wrangler/
 backend/.dev.vars
 backend/.dev.vars.*
 android/.kotlin/
-dist-r1/
-dist-r2/
-dist-r3/
+# Isolated e2e runs by parallel agents (playwright.config.ts E2E_DIST / E2E_OUT)
+test-results-*/
+test-results-*-report/
+dist-*/
+# Credentials of any kind (keystores, certificates, service accounts, Worker dev secrets)
+*.p12
+*.pem
+*.pfx
+*service-account*.json
+*.dev.vars

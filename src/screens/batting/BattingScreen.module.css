@@ -1,0 +1,312 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+/* The stage gives up height as the text grows, so the shot, BAT and Play / Next ball stay on screen at 130–150%. */
+.stageWrap {
+  position: relative;
+  height: clamp(220px, calc(54dvh - (var(--text-scale, 1) - 1) * 40dvh), 600px);
+  flex: none;
+}
+.screen[data-compact='true'] .stageWrap {
+  height: clamp(170px, calc(42dvh - (var(--text-scale, 1) - 1) * 40dvh), 460px);
+}
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.topRow {
+  position: absolute;
+  top: calc(var(--s-3) + var(--safe-top));
+  left: var(--s-3);
+  right: var(--s-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--s-3);
+}
+.ballInfo {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  border-radius: var(--r-lg);
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(82, 226, 255, 0.3);
+}
+.eyebrow {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--c-cyan-300);
+}
+.ballN {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-black);
+}
+.facing {
+  font-size: var(--text-xs);
+  color: var(--t-secondary);
+}
+.fieldBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  border-radius: var(--r-lg);
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--edge-line);
+}
+.fieldLabel {
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  color: var(--t-secondary);
+}
+.feedback {
+  position: absolute;
+  left: 50%;
+  bottom: var(--s-4);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: min(92%, 26rem);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-lg);
+  background: linear-gradient(180deg, rgba(34, 28, 104, 0.94), rgba(14, 11, 52, 0.95));
+  border: 1px solid rgba(195, 140, 255, 0.55);
+  box-shadow: 0 0 24px rgba(195, 140, 255, 0.25), var(--shadow-2);
+  animation: up var(--dur-panel) var(--ease-out) both;
+}
+.feedback svg {
+  flex: none;
+  color: var(--o-super);
+}
+.fbBody {
+  flex: 1;
+  min-width: 0;
+}
+.fbMain {
+  display: block;
+  font-size: var(--text-lg);
+}
+.fbAim {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--t-primary);
+}
+.fbSub {
+  font-size: var(--text-sm);
+  color: var(--t-secondary);
+}
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: var(--s-3);
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  background: rgba(6, 5, 31, 0.7);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--c-cyan-300);
+  white-space: nowrap;
+}
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--gutter) calc(var(--s-3) + var(--safe-bottom));
+}
+.statusRow {
+  display: flex;
+  align-items: center;
+}
+.shots {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 calc(-1 * var(--gutter));
+  padding: 2px var(--gutter);
+}
+.shots::-webkit-scrollbar {
+  display: none;
+}
+.shot {
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--r-pill);
+  border: var(--edge-line-strong);
+  background: rgba(29, 24, 88, 0.6);
+  color: var(--t-secondary);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.shot[aria-checked='true'] {
+  border: var(--edge-cyan);
+  background: linear-gradient(180deg, rgba(25, 211, 250, 0.3), rgba(25, 211, 250, 0.12));
+  color: #ffffff;
+  box-shadow: var(--glow-cyan);
+}
+.shot:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+.shotHint {
+  min-height: 1.3em;
+  font-size: var(--text-sm);
+  color: var(--t-tertiary);
+}
+.play {
+  display: flex;
+  align-items: stretch;
+  gap: var(--s-3);
+}
+.hitWrap {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  min-width: 0;
+}
+/* Play / Next ball over the BAT surface between balls. */
+.nextOver {
+  position: absolute !important;
+  inset: 0;
+  min-height: 0 !important;
+  padding: var(--s-2) !important;
+  border-radius: var(--r-xl) !important;
+  font-size: var(--text-xl) !important;
+  /* Words wrap whole ("Next / ball"), never mid-word. */
+  overflow-wrap: normal !important;
+  word-break: keep-all;
+}
+.hit {
+  flex: 1 1 auto;
+  min-height: 148px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: var(--r-xl);
+  border: 1px solid rgba(143, 135, 232, 0.35);
+  background: radial-gradient(120% 120% at 50% 0%, rgba(55, 45, 143, 0.65), rgba(14, 11, 52, 0.85));
+  color: var(--t-secondary);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+  transition:
+    box-shadow var(--dur-control) var(--ease-out),
+    border-color var(--dur-control) var(--ease-out);
+}
+.hit[data-armed='true'] {
+  border-color: rgba(82, 226, 255, 0.45);
+}
+.hit[data-live='true'] {
+  border: 2px solid var(--c-cyan-400);
+  color: #ffffff;
+  box-shadow: var(--glow-cyan);
+  background: radial-gradient(120% 120% at 50% 0%, rgba(25, 211, 250, 0.32), rgba(14, 11, 52, 0.9));
+}
+.hitLabel {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+.hitSub {
+  margin-top: calc(-1 * var(--s-1));
+  font-size: var(--text-sm);
+  color: var(--t-tertiary);
+  text-align: end;
+}
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  min-height: var(--tap);
+}
+.footer > button {
+  flex: none;
+}
+.footer > button:last-child {
+  margin-inline-start: auto;
+}
+.status {
+  flex: 1 1 8rem;
+  min-width: 0;
+  font-size: var(--text-sm);
+  color: var(--t-secondary);
+}
+.note {
+  font-size: var(--text-xs);
+  color: var(--t-muted);
+}
+.done {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border-radius: var(--r-lg);
+  border: 1px solid rgba(195, 140, 255, 0.5);
+  background: rgba(29, 24, 88, 0.6);
+}
+.done > svg {
+  color: var(--o-super);
+}
+.done > div {
+  flex: 1 1 12rem;
+}
+.doneTitle {
+  font-size: var(--text-xl);
+}
+.doneBody {
+  color: var(--t-secondary);
+}
+@keyframes up {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+}
+@media (min-width: 1024px) {
+  .screen {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(22rem, 28rem);
+    max-width: 120rem;
+    margin: 0 auto;
+  }
+  .stageWrap,
+  .screen[data-compact='true'] .stageWrap {
+    height: calc(100dvh - 2rem);
+    margin: 1rem;
+    border-radius: var(--r-xl);
+    overflow: hidden;
+  }
+  .controls {
+    justify-content: center;
+  }
+  /* The side column is narrow: shots wrap onto rows instead of scrolling off the edge. */
+  .shots {
+    flex-wrap: wrap;
+    overflow: visible;
+    margin: 0;
+    padding: 2px 0;
+  }
+}

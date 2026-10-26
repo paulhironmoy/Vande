@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- Machine-drafted; needs native-speaker QA before release (docs/LOCALIZATION.md). -->
+    <string name="notif_opponent_joined_title">আপনার প্রতিপক্ষ এসে গেছেন</string>
+    <string name="notif_opponent_joined_body">আপনার ম্যাচ শুরু হয়েছে। নিজের অংশ খেলতে ম্যাচটি খুলুন।</string>
+    <string name="notif_opponent_locked_title">ওদের ওভার সিল হয়ে গেছে</string>
+    <string name="notif_opponent_locked_body">প্রতিপক্ষ তাঁদের প্ল্যান লক করেছেন। এগিয়ে যেতে ম্যাচটি খুলুন।</string>
+    <string name="notif_reveal_ready_title">রিভিল তৈরি</string>
+    <string name="notif_reveal_ready_body">দুই ইনিংসই শেষ। রিভিল দেখতে খুলুন।</string>
+    <string name="notif_auto_over_title">অটো ওভার খেলেছে</string>
+    <string name="notif_auto_over_body">সময় শেষ হয়ে গেছে, তাই অটো ওভার আপনার হয়ে খেলেছে। ম্যাচ চলছে।</string>
+    <string name="notif_match_expired_title">ম্যাচের সময় শেষ</string>
+    <string name="notif_match_expired_body">এই ম্যাচের সময় ফুরিয়ে গেছে। যখন খুশি নতুন ম্যাচ শুরু করুন।</string>
+    <string name="notif_rematch_title">আবার খেলবেন?</string>
+    <string name="notif_rematch_body">আপনার প্রতিপক্ষ আরেকটা ওভার চান।</string>
+    <string name="notif_deadline_reminder_title">আপনার পালা অপেক্ষা করছে</string>
+    <string name="notif_deadline_reminder_body">সময়সীমার আগে নিজের অংশ শেষ করুন, না হলে অটো ওভার খেলবে।</string>
+    <string name="notif_new_fixture_title">নতুন কাপ ম্যাচ</string>
+    <string name="notif_new_fixture_body">আপনার পরের গ্রুপ কাপ ম্যাচ তৈরি।</string>
+    <string name="notif_final_title">আপনি ফাইনালে</string>
+    <string name="notif_final_body">আপনার গ্রুপ কাপ ফাইনাল তৈরি। আপনার সেরা ওভার লক করুন।</string>
+    <string name="notif_cup_complete_title">কাপ শেষ</string>
+    <string name="notif_cup_complete_body">গ্রুপ কাপ শেষ হয়েছে। চূড়ান্ত তালিকা দেখতে খুলুন।</string>
+    <string name="notif_cup_cancelled_title">কাপ বাতিল</string>
+    <string name="notif_cup_cancelled_body">এই গ্রুপ কাপটি বাতিল করা হয়েছে।</string>
+    <string name="notif_top100_title">আপনি ডেইলি টপ 100-তে</string>
+    <string name="notif_top100_body">আপনার স্থায়ী ব্যাজ এসে গেছে। কিছু প্রকাশের আগে নিজের হাইলাইট দেখতে খুলুন।</string>
+    <string name="notif_highlight_published_title">আপনার হাইলাইট লাইভ</string>
+    <string name="notif_highlight_published_body">আপনার ম্যাচের হাইলাইট এখন YouTube-এ। দেখতে ও শেয়ার করতে খুলুন।</string>
+</resources>

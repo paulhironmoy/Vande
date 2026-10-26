@@ -6,7 +6,7 @@
  *   node scripts/deploy-pages.mjs --no-build # push the existing dist-pages/
  *
  * Idempotent: if the build output is identical to what is already deployed, nothing is pushed.
- * Rollback: see docs/ROLLBACK.md (every deploy is a commit on gh-pages).
+ * Rollback: every deploy is a commit on gh-pages, so push the last good one back: git push origin <good-sha>:gh-pages --force
  */
 import { execSync, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -45,6 +45,8 @@ if (!existsSync(join(outDir, 'index.html'))) {
   console.error('✗ dist-pages/index.html not found — build first.');
   process.exit(1);
 }
+// GitHub Pages serves 404.html for unknown paths: the app itself, so a deep link (/Vande/m/<id>) opens its screen.
+cpSync(join(outDir, 'index.html'), join(outDir, '404.html'));
 writeFileSync(join(outDir, '.nojekyll'), '');
 writeFileSync(join(outDir, 'VERSION.txt'), `vande ${version} source ${sourceSha} deployed ${new Date().toISOString()}\n`);
 

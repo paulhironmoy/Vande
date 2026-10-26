@@ -1,0 +1,55 @@
+.wrap {
+  display: grid;
+  grid-template-columns: minmax(7rem, 10rem) 1fr;
+  gap: var(--s-4);
+  align-items: center;
+}
+
+.wheel {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.ground {
+  fill: color-mix(in srgb, var(--c-grass-700) 80%, transparent);
+  stroke: var(--edge-line-strong);
+  stroke-width: 0.8;
+}
+
+.sector {
+  fill: var(--c-cyan-500);
+  stroke: var(--c-night-950);
+  stroke-width: 0.6;
+}
+
+.spoke {
+  stroke: var(--edge-line);
+  stroke-width: 0.5;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--s-1);
+  font-size: var(--text-sm);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.runs {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-bold);
+}
+
+.none {
+  margin: 0;
+  color: var(--t-tertiary);
+  font-size: var(--text-sm);
+}

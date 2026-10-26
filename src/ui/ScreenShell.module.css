@@ -1,0 +1,67 @@
+.shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-bar);
+  padding-top: var(--safe-top);
+  /* Solid behind the title so scrolled content never shows through the text; a short fade below it. */
+  background: linear-gradient(180deg, var(--c-night-950) 0%, var(--c-night-950) calc(100% - var(--s-3)), rgba(6, 5, 31, 0) 100%);
+}
+.headerInner {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  max-width: var(--max-content);
+  margin: 0 auto;
+  padding: var(--s-2) var(--s-3);
+  min-height: 56px;
+}
+.title {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+}
+.eyebrow {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--c-cyan-400);
+}
+.content {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: var(--max-content);
+  margin: 0 auto;
+  padding: var(--s-2) var(--gutter) var(--s-6);
+}
+.narrow .content {
+  max-width: 36rem;
+}
+.noHeader .content {
+  padding-top: calc(var(--safe-top) + var(--s-4));
+}
+/* Thumb zone: the primary action lives in a sticky bar at the bottom. */
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-bar);
+  padding-bottom: var(--safe-bottom);
+  background: linear-gradient(0deg, var(--c-night-950) 0%, var(--c-night-950) calc(100% - var(--s-4)), rgba(6, 5, 31, 0) 100%);
+}
+.footerInner {
+  max-width: var(--max-content);
+  margin: 0 auto;
+  padding: var(--s-4) var(--gutter) var(--s-3);
+}

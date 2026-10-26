@@ -1,0 +1,167 @@
+.board {
+  display: grid;
+  gap: var(--s-1);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--surface-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--edge-light);
+  min-width: 7.5rem;
+}
+
+.scoreLine {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+.score {
+  font-family: var(--font-numeric);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-display);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.overs {
+  font-size: var(--text-sm);
+  color: var(--t-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.context {
+  font-size: var(--text-xs);
+  color: var(--t-tertiary);
+}
+
+.card {
+  display: grid;
+  gap: var(--s-1);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-lg);
+  background: var(--surface-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--edge-light);
+  border-inline-start: 4px solid var(--card-tone, var(--o-dot));
+  box-shadow: var(--shadow-2);
+}
+
+.card[data-tone='boundary'] {
+  --card-tone: var(--o-four);
+}
+
+.card[data-tone='runs'] {
+  --card-tone: var(--o-run);
+}
+
+.card[data-tone='out'] {
+  --card-tone: var(--o-wicket);
+}
+
+.card[data-tone='dot'] {
+  --card-tone: var(--o-dot);
+}
+
+.head {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--c-cyan-300);
+}
+
+.card[data-headline='early'] .head,
+.card[data-headline='late'] .head,
+.card[data-headline='beaten'] .head {
+  color: var(--c-amber-300);
+}
+
+.reason {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-display);
+  text-transform: uppercase;
+}
+
+.detail {
+  font-size: var(--text-xs);
+  color: var(--t-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-height: 2rem;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-pill);
+  background: var(--surface-1);
+  border: 1px solid var(--edge-line);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.chip b {
+  font-weight: var(--weight-black);
+}
+
+.diag {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s-1) var(--s-3);
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--surface-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--edge-light);
+  font-size: var(--text-sm);
+}
+
+.diag dt {
+  color: var(--t-tertiary);
+}
+
+.diag dd {
+  margin: 0;
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+:global([data-contrast='high']) .board,
+:global([data-contrast='high']) .card,
+:global([data-contrast='high']) .diag {
+  background: var(--surface-solid);
+  backdrop-filter: none;
+  border-width: 2px;
+}

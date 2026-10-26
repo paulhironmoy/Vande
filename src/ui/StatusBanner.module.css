@@ -1,0 +1,39 @@
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  border: 1px solid rgba(255, 170, 51, 0.55);
+  background: rgba(255, 170, 51, 0.12);
+  color: var(--c-amber-300);
+  font-size: var(--text-sm);
+}
+.banner[data-status='reconnecting'] {
+  border-color: rgba(82, 226, 255, 0.5);
+  background: rgba(25, 211, 250, 0.1);
+  color: var(--c-cyan-300);
+}
+.banner svg {
+  flex: none;
+  margin-top: 2px;
+}
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sub {
+  color: var(--t-secondary);
+}
+.spin {
+  animation: spin 1.2s linear infinite;
+}
+:root[data-motion='reduced'] .spin {
+  animation: none;
+}
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}

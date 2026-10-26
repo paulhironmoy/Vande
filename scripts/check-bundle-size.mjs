@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * Reports gzip sizes of the production build and fails when the *initial* transfer
- * (index.html + its scripts/styles/preloads + latin fonts) exceeds the 2 MB budget.
- * Lazy chunks (e.g. the PixiJS map renderer) are listed separately.
+ * (index.html + its scripts/styles/preloads + fonts the CSS references) exceeds the budget (450 kB: a guard for the
+ * <2.5 s useful-shell target; Latin-script players actually download about 190 kB, docs/VISUAL_SYSTEM.md §12).
+ * Lazy chunks (the 3D renderer, routes, locale catalogs) are listed separately.
  *
  *   node scripts/check-bundle-size.mjs [dist-dir] [--budget-kb 2048]
  */
@@ -13,7 +14,7 @@ import { gzipSync } from 'node:zlib';
 const args = process.argv.slice(2);
 const distArg = args.find((a) => !a.startsWith('--')) ?? 'dist';
 const budgetIdx = args.indexOf('--budget-kb');
-const budgetKb = budgetIdx >= 0 ? Number(args[budgetIdx + 1]) : 2048;
+const budgetKb = budgetIdx >= 0 ? Number(args[budgetIdx + 1]) : 450;
 const dist = resolve(distArg);
 
 function walk(dir, acc = []) {

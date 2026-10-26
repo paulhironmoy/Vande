@@ -116,7 +116,3 @@ export function dismissPwaUpdate(): void {
 export function usePwaStatus(): PwaStatus {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
-
-export function getPwaStatus(): PwaStatus {
-  return status;
-}

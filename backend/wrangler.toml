@@ -1,85 +1,214 @@
-# VANDE community API (Cloudflare Workers + D1). Nothing is deployed by this file alone — see backend/README.md.
-name = "vande-community"
+# VANDE Cricket API: Cloudflare Worker + Durable Objects + D1 + R2 + Queues + Rate Limiting + Analytics Engine + cron.
+# Deployment-ready and NOT deployed. Activation steps and exact commands: docs/INFRASTRUCTURE.md.
+# Secrets are never in this file: RATE_SALT, TOKEN_KEYS, DATA_KEYS, SIGNING_KEY, IDENTITY_PEPPER, DAILY_SALT_KEY,
+# RENDER_KEYS and (optional) FCM_SERVICE_ACCOUNT, YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN are set with
+# `wrangler secret put <NAME>`. Without them the routes that need them fail closed (503); without the YouTube
+# secrets the highlight pipeline runs against the mock adapter. ADMIN_TOKEN is for local development only.
+name = "vande-cricket-api"
 main = "src/index.ts"
 compatibility_date = "2026-10-01"
+# Serve on a custom domain (routes below) so zone WAF rules apply; workers.dev stays off in production.
+workers_dev = false
+# routes = [{ pattern = "api.vande.cricket", custom_domain = true }]   # uncomment with the real domain
 
 [vars]
-ALLOWED_ORIGINS = "https://paulhironmoy.github.io,https://localhost,capacitor://localhost"
-MIN_COHORT = "25"
-CONTENT_VERSIONS = ""   # comma-separated allow-list; empty = accept any well-formed version
-# Per-network limits (IPv4 /32, IPv6 /64; salted hash, never the address). These values apply to the D1 fallback; with
-# the [[ratelimits]] bindings below (the production path) each binding's own limit applies instead.
-RATE_LIMIT_PER_MINUTE = "30"         # result submissions per network per minute
-RATE_LIMIT_READS_PER_MINUTE = "120"  # stats and goal reads, limited only on an edge-cache miss
-RATE_LIMIT_GLOBAL_WRITES_PER_MINUTE = "1200"  # all POSTs together (the ceiling address rotation cannot pass)
-RATE_LIMIT_GLOBAL_READS_PER_MINUTE = "2400"   # all uncached reads together
-VERSION = "1.0.0"
-# D1 statements one daily cleanup may run (each deletes up to 2,000 rows). 45 keeps under the Free plan's 50 queries per
-# invocation and clears up to 90,000 rows a run; on Workers Paid raise it (up to 1000) past about 100,000 monthly
-# players (docs/COST.md). A run that leaves rows behind reports cleanup_incomplete and logs a warning.
-CLEANUP_MAX_QUERIES = "45"
-# Verified dares (POST /v1/lite/attempts, POST /v1/lite/attempts/:id/grade, GET /v1/lite/goal/:day).
-RATE_LIMIT_DARES_PER_MINUTE = "60"   # start + grade per network per minute (salted hash); generous for school networks
-LITE_VERIFY_REPLAY = "0"             # "1" replays each dare before signing (marker v); needs Workers Paid CPU limits
-KILL_LITE_DARES = "0"                # "1" switches the verified-dare endpoints off (503) without removing the secret
-LITE_GOAL_PER_ADDRESS_PER_DAY = "3"  # replay-verified answers one network can add to the daily goal ("0" = goal off)
-# DARE_SIGNING_KEY is a secret: the P-256 private key as a JWK, printed by `node scripts/lite-dare-keys.mjs`.
-#   `wrangler secret put DARE_SIGNING_KEY` (never commit it). Without it the dare endpoints FAIL CLOSED (503) and
-#   the app keeps using local twists and unsigned replies.
-# RATE_SALT is a secret: `wrangler secret put RATE_SALT` (never commit it).
-# Without it the worker FAILS CLOSED: POST /results answers 503 until the salt exists.
-# Local development only: set ALLOW_UNLIMITED_WRITES = "1" (e.g. in .dev.vars) to accept writes without a salt;
-# the worker logs a warning once per isolate. Never set it in production.
+ENVIRONMENT = "production"
+VERSION = "0.1.0"
+# Browsers must come from these origins (the web app, the Android WebView, a future iOS WebView).
+ALLOWED_ORIGINS = "https://vande.cricket,https://localhost,capacitor://localhost"
+# Invite links (https://<web>/i/<token>) and export download links.
+PUBLIC_WEB_ORIGIN = "https://vande.cricket"
+PUBLIC_API_ORIGIN = "https://api.vande.cricket"
+# Google linking and recovery stay off (503) until the OAuth client ids exist: "<web id>,<android id>".
+GOOGLE_CLIENT_IDS = ""
+# Passkeys stay off until a WebAuthn verifier is wired in (docs/SECURITY.md, "Passkeys").
+PASSKEYS_ENABLED = "0"
+# Players are in India: place new match objects in Asia-Pacific.
+DO_LOCATION_HINT = "apac"
+# Friend Duel windows: lock within 24 h of the invite, bat within the next 24 h.
+DUEL_LOCK_HOURS = "24"
+DUEL_BAT_HOURS = "24"
+# Activity jitter (seconds): a lock or a finished innings reaches the opponent, the cup and the room (and the
+# "opponent locked" push) this long after it happened, chosen at random per event, so nobody learns when it happened.
+ACTIVITY_JITTER_S = "60-600"
+# A duel reveals for both players at the next whole slot (seconds) at least 60 s after both innings end, so neither the
+# reveal nor its push tells when the second innings ended (cups keep their fixed reveal times). "0" reveals at once.
+DUEL_REVEAL_SLOT_S = "300"
+# A revealed ball must be answered within 20 s; a shot made in time but queued offline is accepted for 10 min.
+BALL_LIVE_MS = "20000"
+BALL_LATE_MS = "600000"
+# D1-fallback limits (the [[ratelimits]] bindings below apply their own limits). Per minute unless noted.
+RATE_NET_PER_MINUTE = "600"
+RATE_AUTH_PER_MINUTE = "30"
+RATE_INVITE_PER_MINUTE = "60"
+RATE_PLAYER_PER_MINUTE = "120"
+RATE_GLOBAL_WRITES_PER_MINUTE = "3000"
+RATE_GLOBAL_READS_PER_MINUTE = "6000"
+# Anonymous traffic (sign-up, invite lookups, public pages) and failed sign-ins spend a separate, smaller budget, so it
+# is shed first and never uses up what signed-in players need; anonymous IPv6 counts by /56 (one rented server holds
+# thousands of /64s; "48" is stricter, "64" looser).
+RATE_ANON_GLOBAL_WRITES_PER_MINUTE = "1000"
+RATE_ANON_GLOBAL_READS_PER_MINUTE = "2000"
+ANON_IPV6_PREFIX = "56"
+GUESTS_PER_NETWORK_PER_DAY = "300"
+DUELS_PER_PLAYER_PER_DAY = "100"
+GROUP_JOINS_PER_PLAYER_PER_DAY = "20"
+# D1 statements one nightly cleanup may run (Workers Paid allows 1,000 per invocation).
+CLEANUP_MAX_QUERIES = "200"
+# "1" re-verifies every revealed replay with the engine before publishing it (extra CPU; on in local runs and tests).
+VERIFY_REVEALS = "0"
+# Public keys of rotated-out commit-signing keys, still published by GET /v1/keys (comma-separated 04… hex).
+RETIRED_SIGNING_KEYS = ""
+# Cricket Rooms: predefined banter only unless "1" (short moderated free text).
+ROOM_FREE_TEXT = "0"
+# Push frequency caps per player per IST day, and the default quiet hours (IST; players can change theirs).
+NOTIFY_ROUTINE_PER_DAY = "4"
+NOTIFY_MAX_PER_DAY = "8"
+NOTIFY_QUIET_HOURS = "22:00-08:00"
+# Highlights (docs/YOUTUBE_OPERATIONS.md): admin approval after the automatic checks unless "1"; YouTube quota per
+# Pacific day, units per upload and the headroom uploads may never use (≥ 0.2); Shorts category (20 = Gaming).
+HIGHLIGHT_AUTO_APPROVE = "0"
+YT_DAILY_QUOTA = "10000"
+YT_UNITS_PER_UPLOAD = "1600"
+YT_HEADROOM = "0.2"
+YT_CATEGORY_ID = "20"
+# Daily Six replays are archived to R2 only with "1" (duel and cup replays always are).
+ARCHIVE_DAILY_LOGS = "0"
+# Admin console behind Cloudflare Access: its origin, the Access team domain and the application audience tag.
+ADMIN_ORIGIN = "https://admin.vande.cricket"
+CF_ACCESS_TEAM_DOMAIN = ""
+CF_ACCESS_AUD = ""
 
-# The Worker bundles the app's own engine, Lite replay, scoring, card kinds and twist pool through the `@/` alias
-# (backend/tsconfig.json "paths", which wrangler's bundler reads). Those modules mention Vite's import.meta.env; it is
-# replaced here so they load in Workers exactly as in the app's production build.
-[define]
-"import.meta.env.DEV" = "false"
-"import.meta.env.PROD" = "true"
-"import.meta.env.BASE_URL" = "\"/\""
+# The Worker bundles the shared engine and contracts through the `@/` alias (tsconfig paths, read by wrangler's
+# bundler).
 
-# Workers Rate Limiting bindings (the preferred limiter: no D1 writes; counters are per Cloudflare location and
-# approximate). Keys are salted hashes of the network, never addresses. namespace_id must be a positive integer unique
-# in your Cloudflare account; change these if they clash. period must be 10 or 60 seconds. Without a binding the
-# Worker falls back to D1 buckets (tests, local development). [[ratelimits]] needs wrangler 4.36.0 or later; older
-# versions spelled it [[unsafe.bindings]] with type = "ratelimit".
-[[ratelimits]]
-name = "RL_WRITE"        # result submissions per network
-namespace_id = "7301"
-simple = { limit = 30, period = 60 }
+# One Durable Object per match (duels, cup fixtures, Daily Six attempts), per Group Cup and per Cricket Room
+# (SQLite-backed storage, available on Workers Free and Paid).
+[[durable_objects.bindings]]
+name = "MATCH"
+class_name = "MatchDO"
 
-[[ratelimits]]
-name = "RL_READ"         # uncached stats and goal reads per network
-namespace_id = "7302"
-simple = { limit = 120, period = 60 }
+[[durable_objects.bindings]]
+name = "CUP"
+class_name = "CupDO"
 
-[[ratelimits]]
-name = "RL_DARE"         # verified-dare start + grade per network
-namespace_id = "7303"
-simple = { limit = 60, period = 60 }
+[[durable_objects.bindings]]
+name = "ROOM"
+class_name = "RoomDO"
 
-[[ratelimits]]
-name = "RL_GLOBAL"       # global ceilings, keys "all-writes" and "all-reads" (per Cloudflare location)
-namespace_id = "7304"
-simple = { limit = 1200, period = 60 }
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["MatchDO"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["CupDO", "RoomDO"]
 
 [[d1_databases]]
 binding = "DB"
-database_name = "vande-community"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"   # created with `wrangler d1 create vande-community`
+database_name = "vande-cricket"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"   # printed by `wrangler d1 create vande-cricket`
 migrations_dir = "migrations"
 
-[triggers]
-crons = ["17 3 * * *"]   # daily prune: lite_attempts > 7 days, results and daily_stats > 180 days, lite_goal > 180 days, rate buckets > 24 h
+# Data exports (exports/, lifecycle rule: delete after 2 days), archived replays (logs/, kept) and temporary
+# highlight videos (tmp/highlights/, deleted by the sweeper 72 h after a confirmed upload; lifecycle rule: 14 days).
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "vande-cricket-files"
 
-# Workers Logs are OFF here on purpose (new Workers have them on by default): invocation logs keep every request's
-# method and URL (which holds attempt ids) with request and response metadata for 3 days (Free) or 7 days (Paid), a
-# per-request record docs/PRIVACY.md says the backend does not keep. To debug knowingly, update docs/PRIVACY.md first,
-# set enabled = true for a short window with invocation_logs = false (only the Worker's own warnings, which never
-# contain addresses or attempt ids), then turn it off again. See docs/BACKEND.md.
+[[queues.producers]]
+binding = "NOTIFY_QUEUE"
+queue = "vande-notify"
+
+[[queues.producers]]
+binding = "MAINT_QUEUE"
+queue = "vande-maint"
+
+[[queues.consumers]]
+queue = "vande-notify"
+max_batch_size = 25
+max_batch_timeout = 5
+max_retries = 5
+retry_delay = 30
+dead_letter_queue = "vande-notify-dlq"
+
+[[queues.consumers]]
+queue = "vande-notify-dlq"
+max_batch_size = 50
+
+[[queues.consumers]]
+queue = "vande-maint"
+max_batch_size = 10
+max_retries = 8
+retry_delay = 60
+dead_letter_queue = "vande-maint-dlq"
+
+[[queues.consumers]]
+queue = "vande-maint-dlq"
+
+# Highlight uploads, removals and privacy changes: one at a time (quota and bandwidth), backoff up to an hour.
+[[queues.producers]]
+binding = "MEDIA_QUEUE"
+queue = "vande-media"
+
+[[queues.consumers]]
+queue = "vande-media"
+max_batch_size = 1
+max_concurrency = 2
+max_retries = 6
+retry_delay = 60
+dead_letter_queue = "vande-media-dlq"
+
+[[queues.consumers]]
+queue = "vande-media-dlq"
+
+# Counters (route patterns, error codes, scopes; never ids). Query with the Analytics Engine SQL API.
+[[analytics_engine_datasets]]
+binding = "METRICS"
+dataset = "vande_cricket_metrics"
+
+# Workers Rate Limiting (no D1 writes; per Cloudflare location). Keys are salted hashes of the network (IPv4 /32,
+# IPv6 /64) or of the account, never addresses. namespace_id must be unique in the account. Needs wrangler ≥ 4.36.
+[[ratelimits]]
+name = "RL_NET"        # per network: signed-in reads, writes, batting (scopes are separate keys)
+namespace_id = "7401"
+simple = { limit = 600, period = 60 }
+
+[[ratelimits]]
+name = "RL_AUTH"       # per network: guest sign-up, refresh, recovery sign-in
+namespace_id = "7402"
+simple = { limit = 30, period = 60 }
+
+[[ratelimits]]
+name = "RL_INVITE"     # per network: invite previews (enumeration resistance), export downloads
+namespace_id = "7403"
+simple = { limit = 60, period = 60 }
+
+[[ratelimits]]
+name = "RL_PLAYER"     # per account: reads (×2), writes, batting
+namespace_id = "7404"
+simple = { limit = 120, period = 60 }
+
+[[ratelimits]]
+name = "RL_GLOBAL"     # global ceilings for signed-in traffic, after the token is verified: "all-writes" / "all-reads"
+namespace_id = "7405"
+simple = { limit = 3000, period = 60 }
+
+[[ratelimits]]
+name = "RL_GLOBAL_ANON" # smaller global ceilings for anonymous traffic and failed sign-ins: "anon-writes" / "anon-reads"
+namespace_id = "7406"
+simple = { limit = 1500, period = 60 }
+
+[triggers]
+# 21:17 UTC (02:47 IST) retention cleanup; 18:30 UTC (00:00 IST) the Daily Top 100 cutoff; every 15 minutes the
+# highlight sweeper (consent timeouts, render leases, due uploads, temporary videos, view counts, cutoff retry).
+crons = ["17 21 * * *", "30 18 * * *", "*/15 * * * *"]
+
+# Structured JSON logs from the Worker itself (request id, route PATTERN, status, error code, duration; never
+# addresses, tokens or ids). Invocation logs stay OFF: they would record full URLs, which carry invite tokens.
 [observability]
-enabled = false
+enabled = true
+head_sampling_rate = 1
 
 [observability.logs]
 invocation_logs = false

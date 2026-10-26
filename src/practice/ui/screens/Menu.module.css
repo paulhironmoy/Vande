@@ -1,0 +1,63 @@
+.content {
+  display: grid;
+  gap: var(--s-4);
+  align-content: start;
+}
+
+.choice {
+  display: grid;
+  gap: var(--s-1);
+  width: 100%;
+  min-height: 5.5rem;
+  text-align: start;
+}
+
+.choiceTitle {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-display);
+}
+
+.choiceSub {
+  color: var(--t-secondary);
+}
+
+.primary {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c-cyan-500) 26%, var(--surface-1)), var(--surface-1));
+  border-color: var(--edge-cyan);
+}
+
+.resume {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.resume h2,
+.pitch h2 {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+.resume p,
+.note {
+  margin: 0;
+  color: var(--t-secondary);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.pitch {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}

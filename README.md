@@ -1,85 +1,103 @@
-# VANDE: Republic Under Pressure
+# VANDE Cricket
 
-**Freedom. Order. Your Move.**
+**Lock your over. Reveal the rivalry.**
 
-An independent civic-strategy game. In three short chapters you protect constitutional freedom, resolve a legitimate
-grievance, keep people safe, verify evidence and expose manipulation, while five rule-based opponents try to turn the
-crisis against you. You do not win by suppressing protest; you win by holding the Republic together.
+VANDE Cricket is an asynchronous cricket rivalry game for Android and the web. Its signature mode is **Sealed Six**.
+Each player plans a secret over: six deliveries plus a Super Ball, a field and a release for every ball. The player
+seals it with a cryptographic commitment, then bats against the opponent's sealed over whenever they like. Runs and
+wickets stay hidden until both innings are done. Then the server reveals one deterministic, verifiable result as a
+cinematic replay.
 
-* Play on the web: **https://paulhironmoy.github.io/Vande/** (installable PWA, works offline)
-* Android: APK and Play-ready AAB built from this repository (see `docs/ANDROID.md`)
-* No accounts, no servers, no analytics. Everything runs and stays on your device.
+* **Practice** (offline, no account): bat in first person against a full over, with real ball physics, a full field
+  and fielding, and scores that come from the physics. Offered as Practice or Skip when the app opens.
+* **Training** teaches batting, bowling and the reveal in under a minute, and works offline.
+* **Daily Six**: three attempts a day at the same sealed overs everyone faces, with honest boards (national, city,
+  college, company, friends) and a streak.
+* **Friend Duel** is played over a WhatsApp link. The friend plays in the browser with no install, and installing
+  later keeps the pending match.
+* **Group Cup**: round-robin cups for 3–10 friends, with fixed deadlines and a final. Nobody has to be online
+  together, and nobody can stall it.
+* **Practice Ghosts**: five original, deterministic rivals, fully offline.
+* **Cricket Rooms**: spoiler-safe match cards, reactions and preset banter for every group.
+* **Daily Top 100**: an anti-grinding ranking (best three of the first five eligible matches a day) and a permanent
+  badge. With every player's explicit consent, a highlight Short is rendered from the verified replay for the official
+  YouTube channel.
 
-> VANDE is an independent product. It is not affiliated with, or endorsed by, the Government of India, any political
-> party or any public institution. All scenarios, characters and organisations are fictional. Educational content is not
-> legal advice.
+The game sells nothing that affects play: no stronger players, outcomes or ranking. There are no ads in an innings and
+no loot boxes. Players need only an alias: no real name, no contacts, no location.
 
-## The game
+## Repository
 
-| Chapter | Crisis | You must |
-| --- | --- | --- |
-| 1 | Examination Crisis | Recognise the grievance, open a credible investigation, protect peaceful assembly, detect manipulated evidence, keep services running, avoid indiscriminate detention |
-| 2 | Electoral Dispute | Open a transparent review, protect records and officials, publish verifiable information, separate mistakes from fraud, preserve lawful disagreement, stop intimidation |
-| 3 | Information Storm | Protect independent journalism, verify recordings, expose undisclosed influence, correct false claims, stop threats, avoid censorship, communicate uncertainty honestly |
+| Path | What |
+| --- | --- |
+| `src/contracts/` | Shared types: rules, API, social, highlights, renderer, adapters, analytics |
+| `src/engine/` | Sealed Six rules engine (deterministic, versioned), ghosts, ranking, training, simulations |
+| `src/physics/`, `src/practice/`, `src/input/`, `src/perf/` | Practice: deterministic ball, bat and fielding physics (also used for the match replays' ball paths), overs and innings, screens, the one input model, the device benchmark and quality tiers |
+| `src/render3d/`, `src/screens/`, `src/ui/`, `src/i18n/`, `src/audio/`, `src/highlight/` | 3D renderer (Three.js, with a 2D fallback), screens, design system, 11 locales, sound and haptics, highlight composer |
+| `src/social/` | Group Cups, Cricket Rooms, leaderboards, Top 100, highlight consent and landing, profile |
+| `src/net/`, `src/platform/`, `src/analytics/` | API client with a durable outbox, session, device adapters (share, deep links, push, install referrer, secure storage, identity), consent-gated analytics |
+| `src/app/`, `src/App.tsx` | Shell, router, root store, services, Android Back |
+| `backend/` | Cloudflare Worker, Durable Objects (match, cup, room), D1, R2, Queues, crons, local harness |
+| `render-service/` | Highlight renderer (Cloud Run job: headless Chromium + ffmpeg) |
+| `admin.html`, `src/admin/` | Highlight admin console (web only, behind Cloudflare Access) |
+| `android/` | Capacitor 8 Android app `in.vande.cricket` with native plugins |
 
-Six dimensions are tracked on the **Republic Pulse**: constitutional freedom, grievance resolution, public safety,
-evidence accuracy, public trust and economic continuity. Final outcomes range from *Resilient Republic* to *Manipulated
-Republic*, *Order without Trust*, *Free but Fragile*, *Institutionally Weakened* and *Economically Disrupted*.
-
-Opponents (1–5, three difficulty levels): Grievance Exploiter, Provocateur, Disinformation Cell, Sabotage Network,
-Overreaction Trap. All of them are local, deterministic and behaviour-based. Abstract "bug" glyphs represent fabricated
-evidence and covert manipulation, never people.
-
-Also included: a deterministic **daily challenge**, **friend challenges** that reproduce the identical game from a URL
-(no backend), locally generated **share cards**, and a **persistent Republic** that evolves across sessions.
-
-**Daily Quick Play**: one tap from Home starts today's crisis (a new one every day at 00:00 UTC, identical for everyone),
-with a skippable cold open and the first choice in under 30 seconds. The first completion is the official result; replays
-are practice and never overwrite it. A civic calendar, a Civic Passport of strategy-based accomplishments, spoiler-free
-share fingerprints, friend challenges and optional anonymous community comparisons sit around that loop. See
-`docs/DAILY-DESIGN.md`, `docs/CONTENT-DAILY.md`, `docs/BACKEND.md`, `docs/ANALYTICS.md`, `docs/COST.md` and `docs/PRIVACY.md`.
-
-Two play styles share the same simulation. **Simple** (the default for new players) uses plain words an eight-year-old
-can read, bigger buttons, a clock that waits whenever something new needs an answer, and star ratings. **Full** keeps the
-complete strategist presentation with legal references and a real-time clock. Switch any time in Settings.
-
-## Stack
-
-React 19 · TypeScript · Vite 8 · PixiJS 8 (animated city) · Zustand · IndexedDB (`idb`) · Workbox service worker ·
-Capacitor 8 (Android) · Vitest · Playwright. Design language: *Civic Cinematic* (`src/styles/tokens.css`).
+Start with [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Then:
+- the game itself: [GAME_RULES](docs/GAME_RULES.md), [VISUAL_SYSTEM](docs/VISUAL_SYSTEM.md);
+- Practice: [PRACTICE](docs/PRACTICE.md), [PRACTICE_PHYSICS](docs/PRACTICE_PHYSICS.md), [PRACTICE_RULES](docs/PRACTICE_RULES.md), [PRACTICE_PRESENTATION](docs/PRACTICE_PRESENTATION.md);
+- trust and data: [SECURITY](docs/SECURITY.md), [PRIVACY_AND_CONSENT](docs/PRIVACY_AND_CONSENT.md), [ANALYTICS](docs/ANALYTICS.md);
+- running it: [INFRASTRUCTURE](docs/INFRASTRUCTURE.md), [COST_MODEL](docs/COST_MODEL.md), [YOUTUBE_OPERATIONS](docs/YOUTUBE_OPERATIONS.md);
+- shipping it: [ANDROID_RELEASE](docs/ANDROID_RELEASE.md), [STORE_LISTING](docs/STORE_LISTING.md), [TEST_REPORT](docs/TEST_REPORT.md), [LAUNCH_BLOCKERS](docs/LAUNCH_BLOCKERS.md).
 
 ## Develop
 
+Requires Node 22.6 or later.
+
 ```bash
 npm ci
-npm run dev            # http://localhost:5173
-npm run typecheck
-npm test               # unit tests (engine determinism, scoring, evidence, opponents, persistence, share card)
-npm run build          # production build → dist/
-npm run test:e2e       # Playwright journeys, viewports, a11y, offline, persistence (uses dist/ via vite preview)
+npm run dev                                   # offline-only build: Practice, Training and Practice Ghosts
+node backend/local/serve.mjs --engine real    # the whole API in process on 127.0.0.1:8787 (in-memory D1/DO/R2/Queues)
+VITE_API_LOCAL=1 npm run dev                  # the app against the local API: duels, Daily Six, cups, rooms
 ```
 
-Release, rollback and Android instructions: `docs/RELEASE.md`, `docs/ROLLBACK.md`, `docs/ANDROID.md`.
-Architecture and content authoring: `docs/ARCHITECTURE.md`. Privacy: `docs/PRIVACY.md`.
-Lite (`/lite`): points and fair friend rewards `docs/LITE-INCENTIVES.md`, toughness tiers `docs/LITE-TOUGHNESS.md`,
-pictures `docs/LITE-VISUALS.md`, and the prerequisites for any prize or leaderboard `docs/COMPETITION-READINESS.md`
-(nothing prize-related is built).
+`POST http://127.0.0.1:8787/__dev/advance?ms=…` moves the backend clock forward to try deadlines. Configuration
+lives in environment variables only (`.env.example`); nothing secret is ever committed or bundled.
 
-## Repository layout
+## Test
 
-```
-src/engine      deterministic simulation, opponents, scoring, challenge/daily codecs (pure, serialisable)
-src/content     the three scenario JSON files + JSON schema
-src/map         PixiJS city scene, SVG fallback, accessible overlay
-src/app         store, persistence, routing, game loop, settings effects
-src/screens     one folder per screen
-src/components  play / results / opponents / republic / ui / brand
-src/share       result card renderer and native/web share
-src/pwa         service worker, registration, update banner
-android         Capacitor Android project (signing config reads android/keystore.properties)
-tests           unit (Vitest) and e2e (Playwright) suites
+```bash
+npm run typecheck:all     # app, node tooling, Worker, render service
+npm test                  # unit and backend tests (Vitest)
+npm run test:render       # render service tests
+npm run build && npm run test:e2e   # browser journeys, accessibility, renderer (Playwright)
+npm run test:flow         # cross-workstream flows: two phones, real backend and engine
+npm run sim && npm run sim:golden && npm run sim:ranking   # balance, golden replays, ranking
+node scripts/practice-physics-check.mjs                     # Practice timing windows measured on the real bat geometry
+node scripts/practice-scoring-check.mjs --n=1000            # Practice scoring evidence: sixes, fours, catches, runs, replays
+node scripts/match-physics-bench.mjs                        # match replay physics within its per-ball budget
+node scripts/scan-secrets.mjs                               # no secrets in committable files
+npm run notices                                             # regenerate public/third-party-notices.txt
 ```
 
-## Licence
+## Build for Android
 
-Source code © the author. Third-party licences are listed in-app under *About → Open-source attribution*.
+```bash
+APP_LINKS_HOST=<domain> scripts/build-android.sh   # signed AAB + APK in release/ (keystore stays local)
+scripts/build-android.sh --preview                 # local test release (*-PREVIEW-*), never uploaded
+scripts/android-smoke.sh release/<apk>             # install, launch, Back, crash check on an emulator
+scripts/android-lifecycle.sh                       # real WebView on an emulator: online Daily Six, Home and kill mid-ball
+scripts/android-practice.sh                        # offline Practice on an emulator: launch choice, landscape, Home and kill mid-ball (keeps app data)
+```
+
+See [docs/ANDROID_RELEASE.md](docs/ANDROID_RELEASE.md). Production needs the external accounts listed in
+[docs/LAUNCH_BLOCKERS.md](docs/LAUNCH_BLOCKERS.md): a domain, Cloudflare, Firebase, Google sign-in, the YouTube
+channel and quota, Play Console, and a legal review of the 18+ policy and privacy notice. Nothing is deployed or
+published without the owner's authorisation.
+
+The privacy policy (`privacy.html`) and account-deletion page (`delete-account.html`) ship with every build; the
+operator name and support address come from `VITE_OPERATOR_NAME` and `VITE_SUPPORT_EMAIL`.
+
+## Independence
+
+VANDE Cricket is an independent game. It is not affiliated with or endorsed by any cricket board, league, team,
+player or broadcaster. All names, marks, players and ghosts are original.

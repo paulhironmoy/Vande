@@ -1,4 +1,5 @@
 import { ANALYTICS_PROP_KEYS, type AnalyticsProps } from './types';
+import { PROP_RULES } from './events';
 
 export const MAX_VALUE_LENGTH = 32;
 
@@ -10,16 +11,18 @@ export function privacySignalBlocks(nav: Partial<Navigator> & { globalPrivacyCon
   return false;
 }
 
-/** Keeps only dictionary keys and primitive values, truncating strings; never throws. */
+/**
+ * Keeps only dictionary keys whose values match their closed vocabulary or pattern (PROP_RULES); everything else is
+ * dropped, so free text, ids, times or hidden-strategy fields can never reach a provider. Never throws.
+ */
 export function sanitizeProps(props: AnalyticsProps | undefined): Record<string, string | number | boolean> {
   const out: Record<string, string | number | boolean> = {};
-  if (!props) return out;
+  if (!props || typeof props !== 'object') return out;
   for (const key of ANALYTICS_PROP_KEYS) {
     const value = (props as Record<string, unknown>)[key];
-    if (value === undefined || value === null) continue;
-    if (typeof value === 'string') out[key] = value.slice(0, MAX_VALUE_LENGTH);
-    else if (typeof value === 'number' && Number.isFinite(value)) out[key] = value;
-    else if (typeof value === 'boolean') out[key] = value;
+    if (typeof value !== 'string' || value.length > MAX_VALUE_LENGTH) continue;
+    const rule = PROP_RULES[key];
+    if (Array.isArray(rule) ? rule.includes(value) : (rule as RegExp).test(value)) out[key] = value;
   }
   return out;
 }

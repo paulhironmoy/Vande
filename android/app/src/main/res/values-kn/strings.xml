@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- Machine-drafted; needs native-speaker QA before release (docs/LOCALIZATION.md). -->
+    <string name="notif_opponent_joined_title">ನಿಮ್ಮ ಎದುರಾಳಿ ಬಂದಿದ್ದಾರೆ</string>
+    <string name="notif_opponent_joined_body">ನಿಮ್ಮ ಪಂದ್ಯ ಆರಂಭವಾಗಿದೆ. ನಿಮ್ಮ ಪಾಲು ಆಡಲು ಪಂದ್ಯವನ್ನು ತೆರೆಯಿರಿ.</string>
+    <string name="notif_opponent_locked_title">ಅವರ ಓವರ್ ಸೀಲ್ ಆಗಿದೆ</string>
+    <string name="notif_opponent_locked_body">ನಿಮ್ಮ ಎದುರಾಳಿ ತಮ್ಮ ಯೋಜನೆಯನ್ನು ಲಾಕ್ ಮಾಡಿದ್ದಾರೆ. ಮುಂದುವರಿಯಲು ಪಂದ್ಯವನ್ನು ತೆರೆಯಿರಿ.</string>
+    <string name="notif_reveal_ready_title">ರಿವೀಲ್ ಸಿದ್ಧ</string>
+    <string name="notif_reveal_ready_body">ಎರಡೂ ಇನ್ನಿಂಗ್ಸ್ ಮುಗಿದಿವೆ. ರಿವೀಲ್ ನೋಡಲು ತೆರೆಯಿರಿ.</string>
+    <string name="notif_auto_over_title">ಆಟೋ ಓವರ್ ಆಡಿತು</string>
+    <string name="notif_auto_over_body">ಸಮಯ ಮುಗಿಯಿತು, ಆದ್ದರಿಂದ ನಿಮ್ಮ ಪರವಾಗಿ ಆಟೋ ಓವರ್ ಆಡಿತು. ಪಂದ್ಯ ಮುಂದುವರಿದಿದೆ.</string>
+    <string name="notif_match_expired_title">ಪಂದ್ಯದ ಸಮಯ ಮುಗಿದಿದೆ</string>
+    <string name="notif_match_expired_body">ಈ ಪಂದ್ಯದ ಸಮಯ ಮುಗಿದಿದೆ. ಯಾವಾಗ ಬೇಕಾದರೂ ಹೊಸ ಪಂದ್ಯ ಆರಂಭಿಸಿ.</string>
+    <string name="notif_rematch_title">ಮತ್ತೆ ಆಡೋಣವೇ?</string>
+    <string name="notif_rematch_body">ನಿಮ್ಮ ಎದುರಾಳಿಗೆ ಇನ್ನೊಂದು ಓವರ್ ಬೇಕಂತೆ.</string>
+    <string name="notif_deadline_reminder_title">ನಿಮ್ಮ ಸರದಿ ಕಾಯುತ್ತಿದೆ</string>
+    <string name="notif_deadline_reminder_body">ಗಡುವಿನೊಳಗೆ ನಿಮ್ಮ ಪಾಲು ಮುಗಿಸಿ, ಇಲ್ಲದಿದ್ದರೆ ಆಟೋ ಓವರ್ ಆಡುತ್ತದೆ.</string>
+    <string name="notif_new_fixture_title">ಹೊಸ ಕಪ್ ಪಂದ್ಯ</string>
+    <string name="notif_new_fixture_body">ನಿಮ್ಮ ಮುಂದಿನ ಗ್ರೂಪ್ ಕಪ್ ಪಂದ್ಯ ಸಿದ್ಧವಾಗಿದೆ.</string>
+    <string name="notif_final_title">ನೀವು ಫೈನಲ್‌ನಲ್ಲಿದ್ದೀರಿ</string>
+    <string name="notif_final_body">ನಿಮ್ಮ ಗ್ರೂಪ್ ಕಪ್ ಫೈನಲ್ ಸಿದ್ಧ. ನಿಮ್ಮ ಅತ್ಯುತ್ತಮ ಓವರ್ ಲಾಕ್ ಮಾಡಿ.</string>
+    <string name="notif_cup_complete_title">ಕಪ್ ಮುಗಿಯಿತು</string>
+    <string name="notif_cup_complete_body">ಗ್ರೂಪ್ ಕಪ್ ಮುಗಿದಿದೆ. ಅಂತಿಮ ಪಟ್ಟಿ ನೋಡಲು ತೆರೆಯಿರಿ.</string>
+    <string name="notif_cup_cancelled_title">ಕಪ್ ರದ್ದಾಗಿದೆ</string>
+    <string name="notif_cup_cancelled_body">ಈ ಗ್ರೂಪ್ ಕಪ್ ರದ್ದುಗೊಂಡಿದೆ.</string>
+    <string name="notif_top100_title">ನೀವು ಡೈಲಿ ಟಾಪ್ 100ರಲ್ಲಿದ್ದೀರಿ</string>
+    <string name="notif_top100_body">ನಿಮ್ಮ ಶಾಶ್ವತ ಬ್ಯಾಡ್ಜ್ ಸಿಕ್ಕಿದೆ. ಏನನ್ನೂ ಪ್ರಕಟಿಸುವ ಮೊದಲು ನಿಮ್ಮ ಹೈಲೈಟ್ ನೋಡಲು ತೆರೆಯಿರಿ.</string>
+    <string name="notif_highlight_published_title">ನಿಮ್ಮ ಹೈಲೈಟ್ ಲೈವ್ ಆಗಿದೆ</string>
+    <string name="notif_highlight_published_body">ನಿಮ್ಮ ಪಂದ್ಯದ ಹೈಲೈಟ್ ಈಗ YouTubeನಲ್ಲಿದೆ. ನೋಡಲು ಮತ್ತು ಹಂಚಿಕೊಳ್ಳಲು ತೆರೆಯಿರಿ.</string>
+</resources>

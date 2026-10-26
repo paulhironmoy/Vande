@@ -1,0 +1,56 @@
+/* The timing meter after each ball: early on the left, perfect in the middle, late on the right. */
+.meter {
+  display: grid;
+  gap: 3px;
+  margin-top: 6px;
+}
+.bar {
+  position: relative;
+  height: 10px;
+  border-radius: var(--r-pill);
+  /* Wide (very early / very late), edge (early / late), good, perfect: brighter towards the middle. */
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.12) 0 var(--e0),
+    rgba(255, 170, 51, 0.5) var(--e0) var(--g0),
+    rgba(62, 230, 168, 0.42) var(--g0) var(--p0),
+    var(--f-success) var(--p0) var(--p1),
+    rgba(62, 230, 168, 0.42) var(--p1) var(--g1),
+    rgba(255, 170, 51, 0.5) var(--g1) var(--e1),
+    rgba(255, 255, 255, 0.12) var(--e1) 100%
+  );
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+.mark {
+  position: absolute;
+  top: -5px;
+  width: 4px;
+  height: 20px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: #ffffff;
+  box-shadow: 0 0 0 1.5px rgba(6, 5, 31, 0.9), 0 0 10px rgba(255, 255, 255, 0.7);
+  transform-origin: 50% 50%;
+  animation: pop var(--dur-control) var(--ease-out) both;
+}
+.labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  color: var(--t-secondary);
+  line-height: 1.2;
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scaleY(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+:root[data-contrast='high'] .bar {
+  box-shadow: inset 0 0 0 1px #ffffff;
+}

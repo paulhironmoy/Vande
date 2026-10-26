@@ -1,10 +1,14 @@
 apply plugin: 'com.android.application'
 
 // ---------------------------------------------------------------------------
-// Release signing: reads android/keystore.properties (gitignored). Without it,
-// release builds fall back to the debug key (installable for testing, NOT
-// uploadable to Google Play) and a warning is printed.
+// Release signing: reads android/keystore.properties (gitignored).
+// Release guards (see verifyReleaseInputs below): a release build needs the
+// upload keystore, an explicit production App Links host, and a web bundle
+// synced without the local-testing switches. `-PpreviewRelease` builds a local
+// test release instead (debug key allowed, preview host allowed); its artifacts
+// are named *-PREVIEW-* by scripts/build-android.sh and must never be uploaded.
 // ---------------------------------------------------------------------------
+def previewRelease = project.hasProperty("previewRelease")
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
 def hasReleaseKeystore = false
@@ -14,20 +18,27 @@ if (keystorePropertiesFile.exists()) {
     hasReleaseKeystore = storePath != null && rootProject.file(storePath).exists()
 }
 if (!hasReleaseKeystore) {
-    logger.warn("WARNING: android/keystore.properties or the upload keystore is missing - release builds will be signed with the DEBUG key.")
+    logger.warn("WARNING: android/keystore.properties or the upload keystore is missing - only debug and -PpreviewRelease builds are possible.")
 }
 
 android {
-    namespace = "in.vande.republic"
+    namespace = "in.vande.cricket"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "in.vande.republic"
+        applicationId "in.vande.cricket"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
-        // English-only interface: keep only English resources from AndroidX libraries.
-        resourceConfigurations += ["en"]
+        // English, Hindi and the eight Indic locales the app ships catalogs for (AndroidX strings only).
+        resourceConfigurations += ["en", "hi", "bn", "te", "mr", "ta", "gu", "kn", "ml", "pa"]
+        // App Links: https://<appLinksHost><appLinksBasePath>/{i,m,c,h}/... must match the web origin the server puts in
+        // links (PUBLIC_WEB_ORIGIN). Production: -PappLinksHost=<domain> -PappLinksBasePath= (empty at a domain root).
+        manifestPlaceholders = [
+            appLinksHost: (project.findProperty("appLinksHost") ?: "paulhironmoy.github.io"),
+            // hasProperty, not ?:, so an empty value (domain root) is kept rather than replaced by the default.
+            appLinksBasePath: (project.hasProperty("appLinksBasePath") ? project.property("appLinksBasePath") : "/Vande")
+        ]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -51,13 +62,13 @@ android {
         release {
             minifyEnabled false
             shrinkResources false
-            signingConfig hasReleaseKeystore ? signingConfigs.release : signingConfigs.debug
+            signingConfig hasReleaseKeystore ? signingConfigs.release : (previewRelease ? signingConfigs.debug : null)
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     bundle {
         language {
-            // Single-language app: ship English in the base module.
+            // Keep every locale's strings (push copy) in the base module: the in-app language is chosen in the web layer.
             enableSplit = false
         }
     }
@@ -79,6 +90,12 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    // VANDE native plugins (src/main/java/in/vande/cricket/plugins): Play Install Referrer, Google sign-in via
+    // Credential Manager. VandeSecureStorage needs only the Android SDK (Keystore).
+    implementation "com.android.installreferrer:installreferrer:2.2"
+    implementation "androidx.credentials:credentials:1.3.0"
+    implementation "androidx.credentials:credentials-play-services-auth:1.3.0"
+    implementation "com.google.android.libraries.identity.googleid:googleid:1.1.1"
 }
 
 apply from: 'capacitor.build.gradle'
@@ -91,3 +108,33 @@ try {
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
+
+// ---------------------------------------------------------------------------
+// Release guards: fail fast instead of signing something that must not ship.
+// ---------------------------------------------------------------------------
+def verifyReleaseInputs = tasks.register("verifyReleaseInputs") {
+    doLast {
+        def problems = []
+        if (!hasReleaseKeystore) problems << "the upload keystore (android/keystore.properties) is missing"
+        if (!project.hasProperty("appLinksHost")) problems << "no -PappLinksHost=<production domain> (App Links would point at the preview host)"
+        def cap = file("src/main/assets/capacitor.config.json")
+        if (!cap.exists()) {
+            problems << "the web bundle is not synced (run scripts/build-android.sh)"
+        } else {
+            def text = cap.text
+            if (text =~ /"webContentsDebuggingEnabled"\s*:\s*true/) problems << "WebView debugging is on (synced with CAP_WEBVIEW_DEBUG=1)"
+            if (text =~ /"allowMixedContent"\s*:\s*true/) problems << "mixed content is allowed (synced with CAP_LOCAL_HTTP=1)"
+        }
+        def index = file("src/main/assets/public/index.html")
+        if (index.exists() && index.text.contains("127.0.0.1")) problems << "the web bundle talks to a local API (built with VITE_API_LOCAL=1)"
+        if (previewRelease) {
+            if (!problems.isEmpty()) logger.warn("PREVIEW release (never upload it):\n - " + problems.join("\n - "))
+            return
+        }
+        if (!problems.isEmpty()) {
+            throw new GradleException("This release build must not ship:\n - " + problems.join("\n - ") + "\nFix the inputs, or pass -PpreviewRelease for a local test build that is never uploaded.")
+        }
+    }
+}
+tasks.matching { it.name in ["preReleaseBuild"] }.configureEach { dependsOn verifyReleaseInputs }
+

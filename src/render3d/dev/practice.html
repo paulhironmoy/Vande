@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>VANDE Practice stage harness (dev only)</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #06051f; overflow: hidden; }
+      canvas { display: block; width: 100vw; height: 100vh; }
+      #hud { position: fixed; left: 8px; top: 8px; font: 12px/1.3 ui-monospace, monospace; color: #9ee8ff; white-space: pre; pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <canvas id="stage"></canvas>
+    <div id="hud"></div>
+    <script type="module" src="./practice.ts"></script>
+  </body>
+</html>

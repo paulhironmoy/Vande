@@ -1,90 +1,109 @@
-# Analytics — event dictionary and privacy rules
+# Analytics
 
-Analytics are **off by default** and stay off unless a build sets `VITE_ANALYTICS_PROVIDER=posthog`,
-`VITE_POSTHOG_HOST` and `VITE_POSTHOG_KEY`. Even then: the player can opt out (Settings → Help improve VANDE), a
-Do-Not-Track or Global Privacy Control signal disables it, `VITE_KILL_ANALYTICS=1` disables it at build time, and a
-failing network never affects play. No SDK is loaded; events go to PostHog's HTTP `/batch/` endpoint (≤ 10 per batch,
-`sendBeacon` on page hide). No autocapture, no session replay, no cookies, no person profiles
-(`$process_person_profile: false`).
+Status: Phase 3. Platform-owned (the dictionary itself is the root contract `src/contracts/analytics.ts`).
 
-## Identity
+## Rules
 
-`distinct_id` = first 32 hex of `sha256(installId + ':' + YYYY-MM)` — the random installation id hashed with the
-current month, so it rotates monthly. That is enough for Day-1/Day-7 retention within a month and prevents long-term
-tracking. "Reset anonymous id" in Settings changes it immediately.
+* **Closed dictionary.** Only the 28 contract events can be sent; `src/analytics/events.ts` lists them at runtime and
+  the compiler checks the list against the contract. Unknown names are dropped.
+* **Closed property values.** Every property has a fixed vocabulary or pattern (`PROP_RULES`); anything else is
+  dropped, so free text, ids, names, times, plans or results cannot reach a provider even by mistake.
+* **Never sent**: hidden strategies (before or after a reveal), runs or wickets before a reveal, message or banter
+  text, contacts, aliases, player or match ids, exact timestamps (events carry the hour), device identifiers, IP
+  addresses (PostHog person profiles off: `$process_person_profile: false`).
+* **IP addresses.** Every event carries `$geoip_disable: true`, so PostHog derives no location from it. The capture
+  API still receives the connection's IP with each request and cannot be told per event not to keep it, so the
+  project owner must turn on **"Discard client IP data"** in the PostHog project settings before analytics is
+  enabled anywhere (a launch requirement, not optional).
+* **Off by default.** Events are sent only when (1) `VITE_ANALYTICS_PROVIDER=posthog` with `VITE_POSTHOG_HOST`
+  (https) and `VITE_POSTHOG_KEY`, (2) no `VITE_KILL_ANALYTICS=1`, (3) no Do-Not-Track / Global Privacy Control
+  signal, and (4) the player opted in (`analytics.setConsent('granted')`). Declining has no effect on gameplay,
+  rewards or features.
+* **Identity.** A random id per install that changes every calendar month (`vc:analytics-id`), never the player id;
+  withdrawing consent deletes it. Retention events are emitted by the device from its local first-open day, so no
+  long-lived id is needed.
+* **Kept on the device only, never sent**: the first-open day (`vc:first-open`, a date), which retention events
+  were sent (`vc:retention-sent`) and which cup milestones were sent (`vc:cup-events`, cup ids). Deleting the app's
+  local data deletes them.
+
+## Usage
+
+```ts
+import { connectAnalytics, createAnalytics } from '@/analytics';
+const analytics = createAnalytics({ base: () => ({ platform: 'android', appVersion: __APP_VERSION__, locale: 'hi' }) });
+connectAnalytics(analytics, platform);               // once at boot: tapped reminders and attributed installs
+analytics.setConsent('granted');                     // from the consent sheet (Experience owns the UI)
+analytics.track('invite_created', { mode: 'duel', channel: 'whatsapp' });
+```
+
+`createAnalytics` itself sends the retention events (on each app open and return to the foreground) and `crash`
+(window errors and unhandled promise rejections, at most three of each per session).
+
+`track` never throws and never blocks; PostHog events are batched (10) and flushed on a timer or on `pagehide`
+(`sendBeacon`).
 
 ## Events
 
-| Event | When | Extra properties |
+| Event | When | Useful properties |
 | --- | --- | --- |
-| `app_opened` | app shell mounted | `returnGap` |
-| `daily_entry_viewed` | Home/Daily entry rendered with today's state | `dailyId` |
-| `daily_started` | player leaves the cold open | `dailyId`, `official` |
-| `first_choice_reached` | first decision answered | `dailyId`, `elapsedBucket` |
-| `daily_completed` | daily chapter ended | `dailyId`, `official`, `elapsedBucket`, `state` |
-| `official_result_viewed` | result screen shown for an official attempt | `dailyId` |
-| `daily_shared` | share sheet action succeeded | `dailyId`, `official`, `shareMethod` |
-| `challenge_opened` | challenge screen decoded a code | `dailyId` |
-| `challenge_started` | challenge accepted | `dailyId` |
-| `challenge_completed` | challenge run finished | `dailyId`, `official` |
-| `calendar_viewed` / `passport_viewed` | screens opened | — |
-| `reminder_enabled` / `reminder_disabled` | setting toggled | — |
-| `subsequent_day_return` | first open on a later day than the previous session | `returnGap` |
+| `tutorial_started` / `tutorial_completed` | Training starts / ends | `mode: training`, `durationBucket` |
+| `first_delivery` | First ball ever bowled or faced on the device | `mode` |
+| `invite_created` / `invite_opened` / `invite_accepted` | Duel or cup invite made / link opened / accepted | `mode`, `channel`, `attribution` |
+| `over_locked` | An over is sealed | `mode`, `stage` |
+| `innings_completed` | The player finished batting | `mode`, `durationBucket` |
+| `reveal_watched` / `replay_completed` | Reveal opened / a replay played to the end | `mode`, `quality` |
+| `tournament_joined` / `tournament_completed` | The cup screen first shows a cup the player is a member of (the creator too) / that cup is complete; once per cup on the device | `mode: cup`; `stage` final (played in the final) or group, on completion |
+| `reminder_sent` / `reminder_opened` | A WhatsApp deadline reminder opened from the match screen / a deadline reminder push tapped (`connectAnalytics`) | `mode` duel or cup |
+| `share_initiated` / `share_completed` | Share sheet opened / it reported success (the once-per-moment cap is kept by the server, `POST /v1/matches/:id/moments`, and not measured here) | `channel`, `mode` |
+| `highlight_consent` | Highlight consent decided | `decision` |
+| `attributed_view` / `attributed_install` | A highlight or invite link led to a view / an install (the Play install referrer at the first launch, through `connectAnalytics`) | `attribution` |
+| `attributed_challenge` | "Challenge a friend" tapped on a highlight landing (it fires on the tap; the duel screen then creates the duel with the code, which the server counts as `match_completed` once played) | `attribution` |
+| `rematch` | Rematch requested | `mode` |
+| `retention_d1` / `retention_d7` / `retention_d30` | An app open on or after 1 / 7 / 30 days from this device's local first-open day (device-computed, once each; without consent nothing is sent or marked, so a pending one goes at the first open after opting in) | `platform` |
+| `notification_opt_out` | Notifications turned off | — |
+| `group_mute` | A Cricket Room muted | — |
+| `crash` | A window error (`reason: error`) or an unhandled promise rejection (`reason: rejection`); never a message, stack or URL; at most three of each per session | `reason`, `platform`, `appVersion` |
+| `renderer_fallback` | 3D renderer unavailable or degraded | `reason`, `quality` |
 
-Common properties on every event: `appVersion`, `platform` (`web` / `pwa` / `android`), `mode` (`simple` / `full`),
-`contentVersion` when relevant. Timestamps are rounded to the hour. The full closed list lives in
-`src/analytics/types.ts`; `sanitizeProps` drops anything else and truncates strings to 32 characters.
+A highlight going live is not a client event: it happens on the server, which counts it in Workers Analytics Engine
+(`highlight_status` published).
 
-## Never sent
+Property vocabularies: `mode` training/daily/duel/cup/ghost · `platform` web/pwa/android · `appVersion` semver ·
+`locale` the 11 locale ids · `quality` low/standard/high/2d · `channel` share_sheet/whatsapp/copy/qr · `decision`
+granted/declined/withdrawn · `stage` group/final · `durationBucket` <30s/30-60s/1-2m/2-5m/>5m · `fpsBucket`
+<20/20-29/30-44/45-59/60+ · `reason` no_webgl/context_lost/low_fps/error/rejection · `attribution` 4–16 lowercase letters or
+digits.
 
-Decision or option text, free text, names, emails, precise timestamps, location, device fingerprints, IP-derived data,
-advertising identifiers, cross-site identifiers.
+## Server-side counters (operations, not product analytics)
 
-## Retention
+The Worker counts lifecycle and abuse signals in Workers Analytics Engine (`backend/src/ops/metrics.ts`): `request`,
+`error`, `rate_limited`, `idempotent_replay`, `guest_created`, `guest_refused_age` (a sign-up without the 18+
+confirmation), `refresh_rotated`, `refresh_reuse_revoked`,
+`account_linked`, `account_deleted`, `duel_created`, `invite_accepted`, `over_locked`, `ball_revealed`,
+`ball_resolved` (live/late/expired/invalid/auto/deadline/leave), `match_revealed`, `match_expired`, `auto_over`,
+`auto_xi`, `index_sync_failed`, `notify_sent`, `notify_dead_letter`, `engine_error`, and for the social product
+`room_post` (by kind), `room_muted`, `cup_created` (by pace), `cup_joined`, `cup_started` (by size), `cup_cancelled`,
+`cup_round_revealed`, `cup_completed`, `daily_attempt`, `daily_finished`, `leaderboard_read` (by scope),
+`notify_dropped` (by reason: opt_out, room_muted, room_important_only, quiet_hours, routine_cap, daily_cap) and
+`notify_deferred` (by kind), and for wave C `timing_suspicious`, `top100_frozen`, `highlight_status` (by status),
+`render_claimed`, `upload_resumed`, `quota_overflow`, `youtube_error` (by kind), `attribution` (by event),
+`admin_action` (by action) and `media_dead_letter`, and `match_shared` (by kind), `share_moment` and
+`share_moment_refused` (by moment: the server-side share cap). Labels are route patterns, error codes, scopes and kinds; never
+ids. High-volume counters are sampled 1 in 10 with weight 10. Query examples: docs/INFRASTRUCTURE.md, "Operations".
 
-PostHog retains events per its plan (free tier: 1 year). Keep the project's data retention at the minimum the
-dashboards need (90 days is sufficient for the metrics in `docs/DAILY-DESIGN.md`).
+## Highlight attribution (server counters, not product analytics)
 
-## Replacing the provider
+`POST /v1/attribution` (anonymous) counts `landing_open`, `share` and `install` per highlight code per IST day in D1
+`attribution_daily`; the server itself adds `invite_open` and `match_completed` for duels created with
+`attributionCode`, and `views` (daily deltas from YouTube statistics). No person, device, address or session is
+stored, only (code, day, event, count), so it needs no analytics consent and works with analytics off. The client
+side is `src/net/attribution.ts` (`net.attribution.report(code, event)`: one landing open per code per app session,
+an attributed install once per device, failures silent). The consented analytics events `attributed_view`,
+`attributed_install` and `attributed_challenge` (the landing's challenge tap, before any duel exists) stay separate and
+optional. Read the counters in the admin console
+(job detail → Attribution).
 
-Implement `AnalyticsAdapter` (`src/analytics/types.ts`) and select it in `configureAnalytics` (`src/analytics/index.ts`).
-A self-hosted collector only needs an HTTP endpoint that accepts the same batch shape.
+## Tests
 
-## Metrics derived from these events (post-launch, never hard-coded)
-
-Reach-first-choice rate = `first_choice_reached` / `daily_entry_viewed`; median time to first choice from
-`elapsedBucket`; completion rate = `daily_completed(completed)` / `daily_started`; D1/D7 retention from
-`subsequent_day_return` with `returnGap`; share rate = `daily_shared` / `daily_completed`; challenge funnel from the
-three challenge events; Simple vs Full completion by `mode`.
-
-## Event timing notes
-
-* `first_choice_reached` fires when the first decision becomes visible (the player can act), with `elapsedBucket`
-  measured from `daily_started`.
-* `daily_completed` carries `elapsedBucket` measured from `daily_started` and `state: 'completed'`.
-* `platform` is `android` in the Capacitor app, `pwa` when the web app runs in standalone display mode, otherwise `web`.
-* Rotating the anonymous id in Settings reconfigures analytics immediately; the distinct id changes at once.
-
-## Lite (gamified Chapter 1) events
-
-| Event | When | Properties | What it answers |
-| --- | --- | --- | --- |
-| `lite_completed` | A Lite run reaches its result card | `state: 'completed'`, `visualQuestions`, `visualBest`, `textQuestions`, `textBest` | Do pictures make move questions easier or harder? Compare best-pick rates on picture and text questions. |
-| `lite_shared` | Any successful share in the challenge, dare or reply sheet | `shareMethod` (`native`, `clipboard`, `download`, or `channel` for a messaging-app link: WhatsApp, Telegram, X, Messages, Email) | How often players share, and how. |
-| `lite_challenge_opened` | A `/lite/<code>` challenge link opens, or a friend takes a dare | none | Do shared links get opened? |
-| `lite_twist_answered` | A friend answers the twist | `right` | How often friends crack the twist. |
-| `lite_reply_sent` | Each successful share action in the reply sheet | `shareMethod`, `tradeResults` | Reply rate, with the trade-results experiment on and off. |
-| `lite_reply_opened` | The helper opens a friend's reply | `awarded`, `capped` | How many replies come back, and how often caps stop an award. |
-
-Common properties (`appVersion`, `platform`, `mode`) are added as for every event.
-
-* The picture counts cover move questions in the player's own run only: `visualQuestions` and `textQuestions` are how
-  many move questions showed pictures or text, and `visualBest` and `textBest` are how many of those the player
-  answered with the best move. Fair-play questions are not counted.
-* `lite_reply_sent` fires on every successful share action, so one reply shared twice counts twice. Divide by
-  replies opened, or deduplicate per session, when computing reply rates.
-* Never sent for Lite: challenge, dare or reply codes, nonces, seeds, paths, twist or option ids, answers, points,
-  tiers, Insight, Helper or Challenger totals, free text and precise timestamps.
-
-Lite challenge codes (`L1-…`) contain only a seed, a points total and a star count; no identifiers. Rules and meaning
-of the Lite events: `docs/LITE-INCENTIVES.md` § Experiments and measurement.
+`tests/unit/platform/analytics.test.ts`: the dictionary size, value filtering, consent/kill-switch/DNT gating,
+monthly id rotation and deletion on withdrawal, the PostHog batch shape (hour timestamps, no person profiles).
