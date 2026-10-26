@@ -34,7 +34,12 @@ export default defineConfig({
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
   workers: FLOW ? 1 : 2,
-  reporter: [['list'], ['html', { open: 'never', outputFolder: process.env.E2E_OUT ? `${process.env.E2E_OUT}-report` : 'playwright-report' }]],
+  // On GitHub, failures also become annotations on the run.
+  reporter: [
+    ['list'],
+    ...(process.env.GITHUB_ACTIONS ? [['github'] as ['github']] : []),
+    ['html', { open: 'never', outputFolder: process.env.E2E_OUT ? `${process.env.E2E_OUT}-report` : 'playwright-report' }],
+  ],
   ...(process.env.E2E_OUT ? { outputDir: process.env.E2E_OUT } : {}),
   use: {
     baseURL: `http://localhost:${PORT}`,

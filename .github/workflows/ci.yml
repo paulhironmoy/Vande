@@ -20,11 +20,12 @@ jobs:
       - run: node scripts/scan-secrets.mjs
       - run: npm audit --omit=dev --audit-level=high
       - run: npm run typecheck:all
-      - run: npm test -- --reporter=dot
+      # The github-actions reporter turns each failure into an annotation on the run (readable without the log).
+      - run: npm test -- --reporter=dot --reporter=github-actions
       - run: npm run build
       - run: node scripts/check-bundle-size.mjs
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:render -- --reporter=dot
+      - run: npm run test:render -- --reporter=dot --reporter=github-actions
       - run: npm run test:e2e
         env:
           CI: 'true'
