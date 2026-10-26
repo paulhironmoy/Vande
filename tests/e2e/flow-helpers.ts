@@ -65,14 +65,18 @@ export async function planAndLock(page: Page): Promise<void> {
   await expect(page.getByTestId('match-sealed').or(page.getByTestId('match-bat-card'))).toBeVisible({ timeout: 20_000 });
 }
 
-/** Bats a whole innings: plays every ball as it comes and taps while it is live. */
+/**
+ * Bats a whole innings: plays every ball as it comes and taps while it is live. Returns the balls faced as the screen
+ * counts them (`data-balls`), not the taps: on a slow machine a ball can be over before it is seen live, and the
+ * screen then plays it as a leave, which is fine for these flows.
+ */
 export async function batInnings(page: Page): Promise<number> {
   const screen = page.getByTestId('batting-screen');
   await expect(screen).toBeVisible({ timeout: 20_000 });
-  let balls = 0;
-  for (let guard = 0; guard < 14; guard++) {
+  const state = async () => ({ phase: await screen.getAttribute('data-phase'), balls: await screen.getAttribute('data-balls') });
+  for (let guard = 0; guard < 20; guard++) {
     await expect(screen).toHaveAttribute('data-phase', /ready|feedback|live|done|error/, { timeout: 30_000 });
-    const phase = await screen.getAttribute('data-phase');
+    const { phase, balls } = await state();
     if (phase === 'done') break;
     if (phase === 'error') {
       await page.getByTestId('bat-retry').click();
@@ -80,19 +84,24 @@ export async function batInnings(page: Page): Promise<number> {
     }
     if (phase === 'ready' || phase === 'feedback') {
       await page.getByTestId('bat-next').click();
-      await expect(screen).toHaveAttribute('data-phase', /live|done|error/, { timeout: 30_000 });
+      // This ball is live, or already over (counted) if it was missed, or the innings ended.
+      await expect
+        .poll(async () => {
+          const s = await state();
+          return s.phase === 'live' || s.phase === 'done' || s.phase === 'error' || (s.balls !== balls && (s.phase === 'feedback' || s.phase === 'ready'));
+        }, { timeout: 30_000 })
+        .toBe(true);
       if ((await screen.getAttribute('data-phase')) !== 'live') continue;
     }
-    // A short, human reaction before the tap (the timing grade does not matter here). A fast ball may already be
-    // past the bat by then; the screen then plays it as a leave, which is fine for these flows.
+    // A short, human reaction before the tap (the timing grade does not matter here).
     await page.waitForTimeout(120 + ((guard * 37) % 150));
     await page.getByTestId('bat-hit').click({ timeout: 3_000 }).catch(() => undefined);
-    balls++;
     await expect(screen).toHaveAttribute('data-phase', /feedback|done|error/, { timeout: 30_000 });
   }
   await expect(page.getByTestId('bat-done')).toBeVisible({ timeout: 30_000 });
+  const faced = Number(await screen.getAttribute('data-balls'));
   await page.getByTestId('bat-done').click();
-  return balls;
+  return faced;
 }
 
 /** The result line of a reveal ("X won by N runs", a tie...), for comparing what two players see. */

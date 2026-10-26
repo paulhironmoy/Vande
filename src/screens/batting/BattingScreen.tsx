@@ -272,7 +272,7 @@ export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit,
               : '';
 
   return (
-    <main className={s.screen} data-compact={compact || undefined} data-testid="batting-screen" data-phase={phase}>
+    <main className={s.screen} data-compact={compact || undefined} data-testid="batting-screen" data-phase={phase} data-balls={playedCount}>
       <section className={s.stageWrap}>
         <MatchStage
           live={setup}

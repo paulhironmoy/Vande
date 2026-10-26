@@ -91,11 +91,39 @@ test('first run: the age question, alias, Training (bat, bowl, reveal) in under 
   await page.getByTestId('onboarding-submit').click();
   await expect(page).toHaveURL(/\/train$/);
   await page.getByTestId('bat-next').click();
-  await swing(page);
+  // Training shows the batting feedback for 1.5 s and moves on to bowling, which can be quicker than a slow runner
+  // (software GL) can poll for it. So the page itself watches for it, armed before the swing.
+  const feedback = page.evaluate(
+    () =>
+      new Promise<{ detail: string; meter: boolean }>((resolve, reject) => {
+        const shown = (el: Element | null) => !!el && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+        const check = () => {
+          const detail = document.querySelector('[data-testid=bat-feedback-detail]');
+          const meter = document.querySelector('[data-testid=bat-timing-meter]');
+          if (shown(detail) && shown(meter)) {
+            observer.disconnect();
+            clearTimeout(timer);
+            resolve({ detail: detail!.textContent ?? '', meter: true });
+          }
+        };
+        const observer = new MutationObserver(check);
+        const timer = setTimeout(() => {
+          observer.disconnect();
+          reject(new Error('the batting feedback with its timing meter never appeared'));
+        }, 45_000);
+        observer.observe(document.body, { subtree: true, childList: true, attributes: true, characterData: true });
+        check();
+      }),
+  );
+  await page.locator('[data-testid=bat-hit][data-live]').waitFor({ timeout: 30_000 });
+  await page.waitForTimeout(300);
+  await page.getByTestId('bat-hit').focus();
+  await page.keyboard.press('Space');
   // Timing, contact and aim with the meter: never runs or wickets.
-  await expect(page.getByTestId('bat-feedback-detail')).toBeVisible();
-  await expect(page.getByTestId('bat-timing-meter')).toBeVisible();
-  await page.screenshot({ path: join(SHOTS, 'journey-training-bat.png') });
+  const seen = await feedback;
+  expect(seen.meter).toBe(true);
+  expect(seen.detail).not.toMatch(/\d+\s*runs?|wicket|four|six/i);
+  expect(seen.detail.trim().length).toBeGreaterThan(0);
   await expect(page.getByTestId('execution-meter')).toBeVisible({ timeout: 10_000 });
   await release(page);
   await page.getByTestId('training-to-reveal').click();

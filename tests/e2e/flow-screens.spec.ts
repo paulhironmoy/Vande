@@ -19,6 +19,14 @@ async function phone(browser: Browser) {
     serviceWorkers: 'block',
     colorScheme: 'dark',
   });
+  // The store shows the 3D stage, even from a browser that draws WebGL in software ('auto' uses the 2D view there).
+  await context.addInitScript(() => {
+    try {
+      if (!localStorage.getItem('vc:settings')) localStorage.setItem('vc:settings', JSON.stringify({ quality: 'standard' }));
+    } catch {
+      /* storage unavailable */
+    }
+  });
   return { context, page: await context.newPage() };
 }
 

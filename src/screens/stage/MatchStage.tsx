@@ -4,6 +4,7 @@ import { useApp } from '@/app/store';
 import { useT } from '@/i18n';
 import { createMatchRenderer, type FallbackReason, type StageRenderer } from '@/render3d';
 import { MatchAudio } from '@/audio';
+import { loadCachedAssessment, probeGpu } from '@/perf';
 import { StateView } from '@/ui';
 import s from './MatchStage.module.css';
 
@@ -33,18 +34,30 @@ export interface MatchStageProps {
 }
 
 /**
- * The match stage: lazy-loads the 3D renderer (or the 2D view when WebGL is missing or fails), keeps it in sync
+ * The match stage: lazy-loads the 3D renderer (or the 2D view when WebGL is missing, fails, or is drawn in software
+ * with quality on 'auto'), keeps it in sync
  * with the player's settings, plays synthesised audio, and recovers from a lost WebGL context by switching to
  * the 2D view at the same replay time.
  */
+/**
+ * Whether this device draws WebGL in software (no usable graphics chip: a blocklisted phone GPU, an emulator, a CI
+ * runner). The 3D stage then runs at a few frames a second, which makes live batting unfair, so 'auto' quality uses
+ * the 2D view there, as Practice plays Classic. The device check's cached answer (src/perf) wins when there is one.
+ */
+function softwareGraphics(): boolean {
+  const assessed = loadCachedAssessment(__APP_VERSION__);
+  return assessed ? !assessed.hardware : !probeGpu().hardware;
+}
+
 export function MatchStage({ replay, live, onReady, onTime, onBall, onEnd, onFallback, forceFallback, overlay, className }: MatchStageProps) {
   const { t } = useT();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<StageRenderer | null>(null);
   const resumeAt = useRef(0);
-  const [fallback, setFallback] = useState(Boolean(forceFallback));
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const quality = useApp((st) => st.settings.quality);
+  // A quality the player chose always gets the 3D stage; 'auto' on software graphics gets the 2D view.
+  const [fallback, setFallback] = useState(() => Boolean(forceFallback) || (quality === 'auto' && softwareGraphics()));
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const reducedMotion = useApp((st) => st.reducedMotion);
   const cb = useRef({ onReady, onTime, onBall, onEnd, onFallback });
   cb.current = { onReady, onTime, onBall, onEnd, onFallback };

@@ -214,7 +214,10 @@ the live region follows the same rule. The highlight starts its result card afte
 
 `auto` probes the GPU before creating the WebGL context (MSAA cannot change later) and starts from the device
 assessment `src/perf` measured for this app version (Below plays Low; the Lite, Standard and High profiles play Low,
-Standard and High); with no assessment yet it starts in Standard, or in Low on a software renderer (`isSoftwareRenderer`).
+Standard and High); with no assessment yet it starts in Standard. On software graphics (the assessment found no
+graphics chip, or none has run and `isSoftwareRenderer` matches the GPU) the match stage uses the 2D view from the
+start, as Practice plays Classic there: the 3D stage would run at a few frames a second and make live timing unfair. A
+quality the player chose always gets the 3D stage.
 It then samples real frame intervals: after a 45-frame grace period, two seconds of p75 above budget (20 ms at 60,
 40 ms at 30: `src/perf`'s 50 fps floor) steps down one level, never up (no oscillation). In Low, sustained frames over
 40 ms lower the render resolution in 20% steps to 0.6; only frames over 50 ms (`src/perf`'s spike) at that floor
@@ -362,7 +365,7 @@ Analytics events sent through `services.analytics` (never with hidden choices):
 | Duel and invite | `duel-new-screen`, `duel-pitch-any`, `duel-pitch-green`, `duel-pitch-hard`, `duel-pitch-slow`, `duel-create`, `invite-panel`, `invite-whatsapp`, `invite-share`, `invite-sent`, `invite-copy`, `invite-qr`, `invite-qr-code`, `invite-plan`, `invite-screen`, `invite-preview`, `invite-age-year`, `invite-age-confirm`, `invite-age-confirm-yes`, `invite-age-confirm-change`, `invite-age-stop`, `invite-alias`, `invite-accept`, `invite-install`, `invite-language`, `invite-privacy` |
 | Match | `match-screen`, `match-phase` (with `data-phase`), `match-plan-card`, `match-plan`, `match-sealed`, `match-commit`, `match-bat-card`, `match-bat-start`, `match-awaiting-reveal`, `match-reveal-countdown` (with `data-reveal-at`), `match-rivalry`, `match-nudge`, `match-training`, `push-prompt`, `push-accept`, `push-decline` |
 | Planner | `planner-screen`, `plan-ball-0`..`plan-ball-6` (with `data-done`), `execution-meter`, `plan-lock`, `plan-lock-dialog`, `plan-lock-dialog-confirm`, `plan-lock-dialog-cancel`, `planner-locked`, `plan-coach`, `plan-coach-ok` |
-| Batting | `batting-screen` (with `data-phase`: loading, ready, fetching, runup, live, submitting, feedback, done, error), `bat-hit` (with `data-live` while the ball is live), `bat-shot-<shot>`, `bat-next`, `bat-retry`, `bat-done`, `bat-coach`, `bat-feedback`, `bat-feedback-detail`, `bat-timing-meter` |
+| Batting | `batting-screen` (with `data-phase`: loading, ready, fetching, runup, live, submitting, feedback, done, error, and `data-balls`: balls faced so far), `bat-hit` (with `data-live` while the ball is live), `bat-shot-<shot>`, `bat-next`, `bat-retry`, `bat-done`, `bat-coach`, `bat-feedback`, `bat-feedback-detail`, `bat-timing-meter` |
 | Reveal | `reveal-screen`, `reveal-play`, `reveal-skip`, `reveal-scrub`, `reveal-ticks`, `reveal-elapsed`, `reveal-total` (only once the result is known), `reveal-breath` (the held breath), `reveal-result-card`, `reveal-share`, `reveal-rematch` (with `data-state`: idle, sent, offered) |
 | Shared match | `shared-screen`, `shared-landing`, `shared-watch`, `shared-practice-0`, `shared-practice-1`, `shared-practice-result`, `shared-play` |
 | Daily Six | `daily-screen`, `daily-attempts`, `daily-start`, `daily-resume`, `daily-proof`, `daily-result-screen`, `daily-result`, `daily-breakdown`, `daily-rank`, `daily-watch`, `daily-share`, `daily-leaderboards`, `daily-again` |
