@@ -210,6 +210,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
+    // Simulation sweeps and audio mastering take seconds here and several times longer on shared CI runners.
+    testTimeout: 30_000,
     include: ['tests/unit/**/*.test.{ts,tsx}', 'backend/test/**/*.test.ts'],
     css: false,
     restoreMocks: true,
