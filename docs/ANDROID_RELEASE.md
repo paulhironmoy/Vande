@@ -12,7 +12,7 @@ Credential Manager) and FCM push.
 | Version | `versionName` in `android/app/build.gradle` (keep equal to `package.json` `version`), `versionCode` +1 per upload |
 | SDK levels | min 28, target 36, compile 36 (`android/variables.gradle`) |
 | Toolchain | JDK 21 (Android Studio's bundled JBR), Android SDK at `~/Library/Android/sdk` |
-| Permissions (merged manifest) | `INTERNET`, `ACCESS_NETWORK_STATE`; `POST_NOTIFICATIONS` (asked only after a meaningful moment, never on first launch); `VIBRATE` (haptics); FCM's `WAKE_LOCK` and `c2dm.permission.RECEIVE`; the Play install referrer's `BIND_GET_INSTALL_REFERRER_SERVICE`; AndroidX's app-private `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. No location, contacts, camera, storage or advertising id |
+| Permissions (merged manifest) | `INTERNET`, `ACCESS_NETWORK_STATE`; `POST_NOTIFICATIONS` (asked only after a meaningful moment, never on first launch); `VIBRATE` (haptics); `CAMERA` (optional Camera batting: asked only after the player chooses Camera and has read the consent screen; `camera`, `camera.front` and `camera.autofocus` are declared `required="false"`, so no phone is filtered out; see below); FCM's `WAKE_LOCK` and `c2dm.permission.RECEIVE`; the Play install referrer's `BIND_GET_INSTALL_REFERRER_SERVICE`; AndroidX's app-private `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. No microphone, location, contacts, storage or advertising id |
 | Locales | `en`, `hi`, `bn`, `te`, `mr`, `ta`, `gu`, `kn`, `ml`, `pa` resources (push copy); all locales stay in the base module |
 
 ## Before the first production build
@@ -53,6 +53,7 @@ APP_LINKS_HOST=<domain> APP_LINKS_BASE_PATH= scripts/build-android.sh --unity  #
 
 scripts/build-android.sh --preview            # local retained-renderer package: never upload
 scripts/build-android.sh --preview --unity    # local Unity-linked package: never upload
+scripts/build-android.sh --preview --unity --everything   # the owner's sideload test app (see the next section): never upload
 ```
 
 `--unity` does not create or repair a Unity export. After syncing Capacitor (Gradle cannot configure the project on a
@@ -111,6 +112,95 @@ Practice lifecycle, renderer-selection and physical-device matrix again.
 
 Firebase is configured not to create an installation id or token until the player turns notifications on (manifest
 `firebase_messaging_auto_init_enabled=false`; the push plugin enables it on `register()`).
+
+## Camera permission and the optional payloads (the sideload "everything" build)
+
+**This section is the single source for the flag names** (`--camera-bundle`, `--venue-bake`, `--everything`, `VITE_CAMERA_BUNDLED`,
+`VITE_VENUE_BAKED`); other documents point here.
+
+### The camera permission
+
+- The manifest declares `CAMERA` and, as `required="false"`, `android.hardware.camera`, `android.hardware.camera.front` and
+  `android.hardware.camera.autofocus`. Without those three lines aapt2 turns the permission into a required back-camera feature (measured:
+  `uses-implied-feature ... requested android.permission.CAMERA permission`) and Android's documentation says it also implies a required
+  autofocus; Play would then filter out phones without them. `scripts/check-android-release-compat.mjs` (rule `camera-permission-shape`) fails
+  a build that declares `CAMERA` without the three optional features, and any build that declares `RECORD_AUDIO` (nothing records sound).
+- The page asks only after the player chooses Camera and accepts the consent screen. Capacitor's `BridgeWebChromeClient.onPermissionRequest`
+  turns `getUserMedia({ video })` into the system dialog and then grants or denies the WebView request; the WebView keeps no grant, so every
+  `getUserMedia` call goes through that path again. What that path cannot do is tell the page that the system will not ask again, or open
+  this app's page in Settings (Capacitor hands any other URL to `ACTION_VIEW`; there is no web route). So a small native permission helper,
+  `VandeCameraAccess` (`plugins/CameraAccessPlugin.java`, rulings R-14 and R-38), answers three questions and does nothing else:
+  `getStatus()` returns `{camera: 'granted'|'prompt'|'prompt-with-rationale'|'denied', hasFrontCamera, hasAnyCamera}` without a dialog, `request()` shows
+  the system dialog when the system will show one (it asks the system in every state except granted, so a stale remembered refusal cannot lock a player
+  out) and resolves with the status, `openSettings()` opens this app's page in Settings. It opens no camera, sees no frame and writes no file; there is no
+  capture code anywhere in `android/` (a test scans for it). The Troubleshooting screen also carries the words-only steps for Android, so the helper is an
+  extra, not a dependency. R8 keeps it by name (Capacitor's consumer rule; `scripts/check-unity-r8.mjs` proves it in the Unity-linked, minified build).
+- Frames never leave the WebView, are never stored and never reach native code.
+
+### Gesture exclusion while batting
+
+The system's inward Back swipe (gesture navigation, Android 10 and later) must not steal a stroke that starts near a side edge. The page tells the
+native plugin `VandeSystemGestures` (`plugins/SystemGesturesPlugin.java`; page side `src/practice/ui/controls/gestureExclusion.ts`; request CONTROLS-3)
+when a ball is being played: `setBattingExclusion({ active, heightFraction })`. While `active`, the two side strips of the lower part of the screen
+(`BattingExclusion.rectangles`: band height at most 200 dp, strips 96 dp or a third of the width) are given to the app on the activity's decor view, so the
+Web view and the Unity overlay are both covered; the rectangles are recomputed on every layout and rotation, cleared while the activity is paused and applied
+again on resume. At the dead ball, in menus and in settings Back works as usual. The bottom home gesture cannot be excluded by any app; immersive mode is what
+keeps a swipe there from leaving the game at once. No camera, no frame, no permission, no storage; a JUnit test covers the arithmetic.
+
+### The optional payloads
+
+Two payloads are kept out of every default build so the first-ball install does not carry them:
+
+| Payload | Web build variable | Script flag | Where it lives in the artifacts |
+| --- | --- | --- | --- |
+| Camera pack: pose engine, worker, model (downloaded on demand by a store build; not exercised, nothing is deployed) | `VITE_CAMERA_BUNDLED=1` | `--camera-bundle` | `assets/public/models/pose/<id>/` (APK), `base/assets/public/models/pose/<id>/` (AAB), with a `MANIFEST.json` of names, byte counts and sha256 |
+| Baked venue (web): the stadium GLB files and the two small chunks that load them (ruling R-41) | `VITE_VENUE_BAKED=1` | `--venue-bake` | `assets/public/assets/venue-p-*.glb`, `venue-b-*.glb` (hashed names, 164,412 B raw with the chunks `venueBaked-*.js` and `venuePacks-*.js`; APK), `base/...` (AAB) |
+| Baked venue (Unity): compiled meshes and an atlas in the Unity player data (ruling R-48) | `VANDE_UNITY_VENUE=1` when the Unity export is made (not a build variable of this script) | none: the export that is bound decides | `assets/bin/Data/<hash>` (5 files, 114,608 B raw on the final export; APK), `base/assets/bin/Data/<hash>` (AAB); receipt `.vande-venue-addon.properties` (Unity writes it into the export folder, see below) |
+
+`VITE_VENUE_OFF=1` drops the baked web venue from any build (the stand-in, Classic's painted bowl and the two 1280 px hero plates, 115,452 B, stay; they are part of the first-ball install). A `--venue-bake` build made with it stops at the `dist` check because no `.glb` file exists.
+
+`--everything` sets both; every one of the three needs `--preview` (the script refuses otherwise), and `--camera-bundle` refuses a build that also sets
+`VITE_CAMERA_MODEL_BASE_URL`. Artifact names carry `-EVERYTHING`, `-CAMERA` or `-VENUE` after `-PREVIEW` (and `-UNITY`), for example
+`vande-cricket-<version>-<code>-<build-slug>-PREVIEW-UNITY-EVERYTHING-<invocation>-release.{apk,aab}`. Both variables are recorded in the sealed Unity
+invocation. The build fails before Gradle if `dist` holds the camera pack or a `.glb` without its flag, or lacks them with it.
+
+What the preflights do with these builds:
+
+- `check-android-release-compat.mjs` (rules `<archive>-camera-payload`, `<archive>-venue-payload`) fails any APK or AAB that carries the camera pack
+  or a `.glb` in its web payload unless `--allow-camera-payload` / `--allow-venue-payload` is passed, which the script does only for the matching flag.
+- `check-android-size.mjs` keeps the 50,000,000-byte ceiling for everything except the declared add-on (ruling R-15). `--addon camera` / `--addon venue`
+  apply **only** to a `-PREVIEW-` artifact that carries the matching tag, exempt only files the pack's `MANIFEST.json` declares (byte count and sha256 verified)
+  or the venue's `.glb` files (and, with `--unity-export`, the Unity venue's compiled data files, see below), each within a stored-byte cap (camera 16,000,000; web venue 4,000,000; Unity venue 1,000,000), and always print both numbers: the ceiling check
+  without the add-ons, and each add-on's bytes on its own line, with the label `SIDELOAD-EVERYTHING, NOT A RELEASE`. A release-named file, an undeclared
+  file, a file outside those folders or a manifest mismatch stays in the remainder the ceiling is applied to. The tests build real zip files for each case.
+- **The Unity venue add-on (ruling R-48).** An export made with `VANDE_UNITY_VENUE=1` (Unity batch mode, `-executeMethod Vande.Practice.Editor.VandeAndroidLibraryExporter.Export`; `docs/UNITY_PRACTICE_STATUS.md`)
+  adds five compiled data files under `unityLibrary/src/main/assets/bin/Data/` (the three wedge meshes, the atlas and a small add-on object) and writes
+  `.vande-venue-addon.properties` (`schema=vande-venue-addon-1`, `sideload=true`, the bytes and sha256 of its four SOURCE files) into the export folder; the export's
+  `sourceTreeSha256` does not change. **The sealed Gradle check of the export (`android/settings.gradle`) compares every file of `Builds/Android` with the files listed in
+  `.vande-export.properties` and rejects any other, this receipt included** (measured 2026-11-08T13:32Z: `unexpected=[.vande-venue-addon.properties]`), so for the Gradle run the receipt must sit
+  BESIDE the folder as `Builds/Android.vande-venue-addon.properties`. Ruling R-56: `build-android.sh` moves it there itself when it binds the export (`venue_receipt_aside`) and puts it back when the
+  script ends (`venue_receipt_restore`, run by the EXIT trap; INT, TERM and HUP end the script through `exit`, so a failed build and an interrupted one restore it too. Only SIGKILL cannot: the receipt then
+  stays beside the folder, where the script, its guard and `check-android-size.mjs` (`--unity-venue-receipt`) find it, and `Builds/Android` is a default export again). The policy tests run the real script in
+  scratch trees (a failing build, SIGINT, SIGTERM and SIGHUP while it runs, a default export, a non-Unity build) and the two functions themselves (already beside, both present, no overwrite). The clone driver
+  for the debug variant of build c sources the same two functions. Three rules keep it out of everything but the owner's sideload build:
+  1. `scripts/build-android.sh` refuses (exit 2, before any work) to bind an export that carries that receipt (inside or beside the folder) unless the build is `--preview` with `--venue-bake` or `--everything`.
+     The standard preview (build b) and every release candidate use the export made without the variable; the sideload build (c) uses the venue export. The script binds only
+     `unity/VandePractice/Builds/Android`, so the two exports are swapped by rename (never copy: 284 MB each): `mv Builds/Android Builds/Android.final-default && mv Builds/Android.final-venue Builds/Android`,
+     build, then swap back.
+  2. `check-android-size.mjs --addon venue --unity-export <bound export> [--unity-default-export <default export>]` (the script passes both; the second is
+     `Builds/Android.final-default` when that folder holds a `.vande-export.properties`) validates the venue receipt (schema, `sideload=true`, sums, and that its four sha256 are the
+     source files in the source tree the export was bound to), then finds the compiled files by comparing the two export receipts: the files only the venue export has under
+     `unityLibrary/src/main/assets` (the default export must be of the same `sourceTreeSha256`, must carry no venue receipt, and must lack nothing the venue export has).
+     Each is looked up in the artifact (`assets/<path>`, `base/assets/<path>`), compared by sha256 with the export receipt and exempted by its stored bytes within a cap of 1,000,000 B.
+     The receipt alone cannot name them: it lists the four source files, which a player build does not store as FBX or PNG.
+  3. Everything else stays in the remainder the ceiling is applied to: Unity files the venue export only *changes* (`globalgamemanagers`, `boot.config`, `unity_app_guid`), files it adds outside
+     the assets folder, a file that is missing or differs, the whole add-on when no default export is given (the report says so), and everything in a release-named artifact.
+  The size report gets a line `add-on venue-unity (...)` with the file count and bytes, `Unity venue receipt: ...`, and the changed or non-exempt files. Measured on the final
+  exports (Editor, 2026-11-08): 5 added data files, 114,608 B raw, plus 3 changed files (`globalgamemanagers` +384 B, `boot.config`, `unity_app_guid`) and the receipt; APK/AAB/Play bytes are measured by the Step 2 builds, not here.
+- Size reports always give two lines (ruling R-1): the first-ball install without the camera add-on is the SIZE-50 figure; the second line is the figure with it
+  (bytes in the APK for the sideload build; bytes on disk after the download for a store build; the pack's download size on its own).
+
+A sideload build is signed with the debug key, runs on the owner's own phone, and is **never** uploaded. It does not show the first-ball install size.
 
 ## Verify before uploading
 

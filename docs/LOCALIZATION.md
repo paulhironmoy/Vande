@@ -21,7 +21,7 @@ No machine-drafted language may be called native-reviewed in a store listing or 
 
 | What | Files | Status |
 | --- | --- | --- |
-| Practice screens (Stage 1), keys `practice.*` | `src/i18n/practice/en/<area>.ts` (start, play, coach, field, deliveries, settings), joined in `en.ts`; `hi/` and `hi-Latn/` mirror it. `usePracticeT()` in `src/i18n/practice/index.ts` reads them | `src/i18n/practice/STATUS.md` |
+| Practice screens (Stage 1), keys `practice.*` | `src/i18n/practice/en/<area>.ts` (start, play, coach, field, deliveries, settings, chase, lesson, camera, controls), joined in `en.ts`; `hi/` and `hi-Latn/` mirror it. `usePracticeT()` in `src/i18n/practice/index.ts` reads them | `src/i18n/practice/STATUS.md` |
 | App shell, onboarding, settings, legacy screens | `src/i18n/catalogs/<locale>.ts` | `src/i18n/STATUS.md` |
 | Cricket vocabulary: commentary, explanations, hints | `src/i18n/engine/<locale>.json` | `src/i18n/engine/STATUS.md` |
 | Social features | `src/i18n/social/<locale>.ts` | `src/i18n/social/STATUS.md` |

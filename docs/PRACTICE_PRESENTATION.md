@@ -979,6 +979,30 @@ Notes on the table:
   clock for exact screenshots: `?stage=3d|2d&profile=…&hand=…&family=pace|spin&clock=manual|real&learn=1`.
   Deliveries come from the real `flight()`; until `resolveDelivery` is complete, results come from the test fixtures.
 
+## The venue (stand-in, baked wedges, Classic's painted bowl, hero plates; ASSETS-VENUE, 2026-11-08T09:34Z; builder-measured, not evaluator-verified)
+
+What the player sees of the bowl depends on the shot: the live batter's eye at a 20:9 phone shows only the lower tier, the sight screen and the boards (a band about 17% of the frame
+height; the upper tier, roof, sky and floodlights are in the establishing, boundary and replay shots and on the first screens). Numbers and captures: `release/product-sequence/stage-3-chase/ASSETS-VENUE/`.
+
+| Piece | Where | When it shows | Bytes |
+| --- | --- | --- | --- |
+| Stand-in (the whole procedural stadium) | `three/stadium.ts` | always first, every Three.js tier, and the guaranteed offline path | 0 asset bytes |
+| Baked wedges (stands, back wall, parapet, roof; 6 degree wedge at three levels of detail, instanced around the bowl; the crowd is an atlas) | `three/venue.ts` (controller), `venueBaked.ts`, `venueGlb.ts`, packs in `three/venue/pack/` | Premium (High) and Balanced Standard, after the first idle frame, never while a delivery is live; Lite and Classic keep the stand-in | Premium 110,348 B, Balanced Standard 45,232 B, lazy code about 4.2 kB gzip |
+| Classic's painted bowl | `fallback2d/venuePaint.ts` (strip painted once at mount, drawn through the live camera in 24 slices) | Classic's batter view | 0 asset bytes, about 2.2 kB gzip of code |
+| Hero plates | `public/practice/venue/` (1280 px, with the 2048 px plates in `wide/`, web only) | Practice home, setup and the Chase screens (CSS in `PremiumShellBackdrop`) | at most 60,000 B and 130,000 B each |
+
+Rules the code keeps (rubric PERF2 and PERF4, Definition of Done VEN-03): the first interactive frame never waits for the venue; the download starts only at an idle frame and is aborted when a delivery
+starts (tried again later, up to 6 times); the program is compiled and the atlas uploaded between balls; the swap is a 500 ms dithered dissolve (instant under Reduced Motion), frozen during a delivery;
+the stand-in's stands, back wall, parapet and roof are hidden only when the dissolve ends; any failure, a corrupt or oversized pack, a missing stand-in, a Data Saver browser, or a lower quality
+(Lite, Classic) leaves or restores the stand-in. Context loss: three.js re-uploads the geometry and the atlas (pixel-identical in the gallery check). The baked tiers carry a static painted crowd:
+the arms-up and wave animation stays on the instanced front rows and on the stand-in, and phone lights follow the same hash and excitement as the painted stands.
+
+Build switches: the baked venue and its controller are compiled out of the default Android build (`VITE_BUILD_TARGET=android` without `VITE_VENUE_BAKED=1`) and out of any build made with `VITE_VENUE_OFF=1` (the lead's switch to drop the baked venue without deleting it; the stand-in, Classic's painted bowl and the plates stay); `docs/ANDROID_RELEASE.md` names the sideload flag.
+Test builds (`VITE_PRACTICE_TEST_HOOKS=1`) honour `?venue=off` (one build compared with itself) and mirror the venue's state in `canvas.dataset.venue`.
+
+Regenerate: `Blender -b --factory-startup --python scripts/blender/venue/build_venue.py -- OUT --fbx`, copy `OUT/wedge.json` to `assets-src/venue/`, then `node scripts/venue/pack.mjs` (`--check` compares with the files in place);
+stills and plates: `scripts/venue/capture.mjs` and `scripts/venue/plate.mjs` against a Vite dev server. Provenance and licences: `docs/ASSET_REGISTER.md` "Venue, hero plates and crowd".
+
 ## Known limitations
 
 - The instant of contact is not visible in first person (see the geometry note). It is shown by the edge flash, the

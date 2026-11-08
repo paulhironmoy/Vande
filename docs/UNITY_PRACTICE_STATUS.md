@@ -1,6 +1,45 @@
 # Unity Practice implementation status
 
-Last updated: 2026-11-03 (the wedge section below); the sections after it are as of 2026-10-31.
+Last updated: 2026-11-08 (the Chase section and the result moments section below), 2026-11-03 (the wedge section); the sections after it are as of 2026-10-31.
+
+## Chase update (2026-11-08): bridge contract v7 and the chase HUD line
+
+Builder evidence only (`release/product-sequence/stage-3-chase/UNITY/`, `BRIDGE-V7.md`); Unity Editor on Mono, one Mac; no phone, emulator, IL2CPP or WebGL figure: **UNPROVEN**.
+- **Contract 6 to 7** (TypeScript `UNITY_PRACTICE_CONTRACT_VERSION`, C# `BridgeConstants.ContractVersion`; the Java constant moves with ANDROID, request UNITY-3). One new OPTIONAL
+  block, `chase` (`target`, `maxBalls`, `runsNeeded`, `ballsLeft`, `outcome`, `requiredRateX100`: integers and a closed code, no text), on `host.scene` and on the resolution of `host.result` and
+  `host.replay`; never on a Coach demonstration, never in a Practice packet. Every receiver still tests the version for equality, so a stale v6 export refuses a v7 host (fail closed to the web renderer).
+  `replayDigest` does not cover the block. The C# lifecycle refuses a result whose chase disagrees with the scene's (presence, target, balls); the validators refuse a block that contradicts itself or its score.
+- **What a Practice packet is now**: the 28 golden packets differ from the v6 corpus by the version digit alone (28 characters in 6,028,442 bytes) and the SHA-256s that cover it
+  (`proof/golden-v6-to-v7.txt`). The BridgeEquivalence recording was re-recorded with a written allow-list: of its 5,471 decisions every accept stays an accept (395), every reject keeps its exact
+  reason (1,517), the 1,478 JSON answers and 2,080 session states are identical; `contractVersion~7` flips to accepted on purpose and `~6`/`simVersion~6` are new rejected cases (`proof/bridge-equivalence-v6-to-v7.txt`).
+- **Fixtures** (committed growth 13,702 B + 19,096 B + 3,195 B generated C#; `practice-v3.json` unchanged in size): `tests/fixtures/unity-practice/chase-v7.json` holds RECIPES on packets the Practice fixture already has
+  (insert the block, replace the score, seal) with the length and SHA-256 TypeScript recorded, plus a 39-row rule table; the C# test re-derives the packets and must reproduce the bytes.
+  `chase-copy.json` is what the web prints for the chase HUD from the COPY sheet; `ProductionHudChaseCopy.Generated.cs` is generated from the same sheet.
+- **HUD**: the existing conditions rail speaks the chase ("Need 14 off 9 balls" / "9.3 an over"; after the deciding ball "Target reached" / "N runs short"), in English, Hindi and Hinglish, with no rect moved
+  (so nothing enters the delivery corridor) and the same text floors as the Practice copy. The wording is the web COPY sheet's, character for character on a 754-string grid. Win and loss panels: the existing dead-ball panel with the host's localized text.
+- **Camera (R-9)**: a camera swing is a plain NormalizedSwing across the bridge. Unity's own `unity.pointer`/`unity.gesture` keep the four native kinds and refuse `camera` on purpose (`UnityPracticeNativePointer`).
+- **Not done / UNPROVEN**: any phone, emulator, IL2CPP run or WebGL figure; the look and feel of the clips and of the venue to a human. The result moments and the venue are in the next section.
+
+## Result moments and the venue add-on (2026-11-08, UNITY-CLIPS): UNI-07
+
+Builder evidence only (`release/product-sequence/stage-3-chase/UNITY-CLIPS/INDEX.txt`; decisions UC-01 to UC-14); Unity Editor on Mono and Metal, one Mac; no phone, no emulator, no human result: **UNPROVEN**.
+- **The four clips play in Unity** (`result_moments` pack, through the C# VMP reader): won = striker `bat_celebrate_win` + bowler `bowl_disappointed`; lost on a wicket or on balls = striker `bat_walk_off`
+  + bowler `bowl_celebrate_defend`, on the live deciding ball and on its replay. The verdict is the host's `chase.outcome` (bridge v7); Unity decides nothing. Start = the physics event (the last run, the
+  boundary, the stumps, the catch, the lbw decision, the dead ball) + 200/300 ms (striker, win), 250 ms (wicket), 400 ms (balls), bowler 450/400/600 ms, and never before the actor's own stroke, run (and its
+  0.8 s pull-up) or follow-through is over, nor before the result arrived. 260 ms inertial hand-over at the least (longer, to 1.0 s at most, when a bone has far to turn: UC-11), one-shots holding the last frame, Reduced Motion holds the `peak`/`slump` frame (400 ms ease), the left-hander
+  and the left-arm bowler are the canonical mirror at sampling, the walk-off root follows the clip's ground track (2.45 m x 0.9836) along his stance heading. Code: `ProductionResultMoments.cs` (pure),
+  `ProceduralPracticeWorld.ResultMoments.cs` and small hooks in `ProceduralPracticeWorld.cs`; a Practice ball, a chase in progress and `ResultMomentsEnabled = false` draw the same frames as before (tested).
+- **The bat stays in the bottom hand's character grip** (not set from the clip's bat keys, which flipped the hero's elbow; UC-02); the striker's root stays on his stance.
+- **Tests**: 22 new EditMode tests for the clips (`ProductionResultMomentTests`: scheduling, hand-over, mirror, Reduced Motion, replay, the verdict on the wire, dismissals, a missed swing and a thin edge's runs, no pop) and 5 for the venue;
+  the suite is 1,433 tests, 1,429 passed (1,402 + these 27) with the same 4 known stale failures (was 1,406 total), PlayMode 2 of 2, a fresh import with no Library is clean (0 errors, 0 files generated, 0 byte changes); the C# reader equals vmp.ts on `result_moments` (error 0 on 1,654 samples).
+- **Pops** (the MOTION-SPEC section 9 definitions, `VandeHumansEvidence.PopScan`, every run against a control run of the same ball with no verdict, matched by role, kind, bone and frame): a wide scan of all 7 golden deliveries x
+  won / lost on a wicket / lost on balls x both hands x Director on and off x Reduced Motion on and off (224 runs) first found 82 pops the control had not (a one-frame hips step when a clip begins late, a hand step after a missed swing,
+  leg steps after a thin edge's runs). UC-11 to UC-13 removed them: the hand-over is as long as its furthest bone needs, the arms' memory is held through the follow-through, the hand-over source is taken again after the foot lock.
+  Now 1,753 pops in the clip windows against 2,355 in the controls and none new, except one pre-existing wrist episode whose scanner label moved (the left-hander's, 100.1 degrees in the control too). lbw, bowled and caught behind: none new.
+  The pops that remain are the base build's own, present in the controls (the stroke's hand flips and wrist episodes; a 35 degree step of the bowler's left leg 1.9 s after an lbw).
+- **The venue** (ASSETS-VENUE's wedge FBX and atlas) is a **sideload add-on** that a default Unity export does not carry: the files sit outside any Resources folder; `VANDE_UNITY_VENUE=1` on the export
+  creates and removes the ScriptableObject that makes the ring (60 wedges, levels 0/1/2, sight-screen gaps) and the stage hides its own tiers, backdrop and crowd. Measured on the Android unityLibrary export
+  (Editor, final tree): default export 283,838,465 B (+314,040 B over export #1: the clips' and the loader's IL2CPP code, and any other change in the tree since); the same export carrying the venue +116,445 B and 6 files. Nothing is measured on a device, in an APK or in Play: UNPROVEN.
 
 ## Wedge update (2026-11-07): the result-arrival chain and the live batter
 

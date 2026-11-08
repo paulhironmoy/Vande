@@ -4,6 +4,8 @@ The one input model for every batting screen. Touch, mouse, pen and keyboard bec
 (`src/contracts/practice.ts`), which is the only batting input the physics sees. The input owner holds `src/input/**`,
 `tests/unit/input/**` and this document.
 
+> **Camera input (owner decision, 2026-11-08; built 2026-11-08, evidence and open risks in `docs/PRACTICE_CAMERA_INPUT.md`).** A camera (the webcam on the web, the front camera on Android) is one more input type, `pointer: 'camera'`. The player chooses it; it is never the default (web: mouse; Android: touch; keyboard stays the accessible equivalent). Pose landmarks become the `GestureSample`s of one virtual contact on a fixed 640 x 260 surface, fed to the same `GestureTracker` and `normalizeGesture` (`src/input/camera/**`; section "Camera" below). There is no second authority and no hidden assistance, and replays store the `NormalizedSwing`, never video.
+
 This model answers findings F-002 (gesture read), F-003 (cadence), F-027 (touch footwork) and F-028 (calibration per
 modality), under the lead's binding decisions of 2026-10-26.
 
@@ -247,6 +249,30 @@ starts at the first key's own timestamp. Auto-repeat is ignored, and so is a sec
 
 Suggested help text: "Space to defend. Arrows to hit, two for a diagonal. Hold Shift to loft. W forward, S back."
 
+## The control choice (`src/practice/ui/controls`, owner decision 2026-11-08)
+
+"How do you want to bat?" lets a device pick **Mouse**, **Touch** or **Camera**. The keyboard is always an equivalent and is not a choice. The choice decides what is taught, calibrated
+and felt; it never decides a delivery, a timing window or an outcome, and nothing in `src/physics`, `src/practice/game`, `src/practice/coach` or the flow's rules reads it
+(`tests/unit/practice/ui/controls/no-coupling.test.ts`). Every pointer type is read at all times by the one `GestureSurface`: a mouse works on a "touch" device and the reverse.
+
+| Device | Offered (default first) |
+| --- | --- |
+| Web with a mouse or trackpad | Mouse, Camera |
+| Android shell, touch-only devices | Touch, Camera (the shell offers no mouse even if one is attached) |
+| A finger and a mouse (touch laptop, iPad with a trackpad) | its main pointer, the other pointer, Camera |
+
+- **Asked once, never a screen of its own:** a compact row on the Setup screen until the device has answered. `PracticeSettings.controlChosen` is derived from `demoSeen` when absent, so a returning
+  player and every script that seeds `demoSeen` never meet it; bowling the first ball with the row untouched keeps the default. `PracticeSettings.control` is the stored choice (per device); a stored
+  choice the device cannot offer falls back to its default.
+- **Camera:** never the default, never required. Its own consent, download and guide screens open only after the Camera chip is tapped (`controls/cameraPort.ts`); it becomes the control only when they say
+  "ready"; "Bat with mouse/touch" is one tap anywhere in them. Shown switched off, with a plain reason, where the browser has no camera API.
+- **Changed between balls only:** Settings and the quiet "Batting: ..." chip in the over's setup; `setControl()` refuses while `flow.busy()`.
+- **Depends on the choice:** the first-ball lesson (what it teaches), haptics (touch only: `src/audio/haptics.ts` `setHapticsInputAllowed`; mouse and camera get sound and picture), the camera (stopped when the
+  control moves away).
+- **Surface rules this adds:** the main mouse button only; no browser context menu over an armed surface; the pointer is captured so a stroke that leaves the surface or the window still arrives; the page sets
+  `overscroll-behavior: none` while Practice is open; on Android the side Back swipe is excluded over the batting band while a delivery is under way (a native plugin; the bottom home swipe cannot be excluded by any app).
+- **Verified:** `tests/unit/practice/ui/controls/*`, `tests/e2e/controls-*.spec.ts` (Chromium; Firefox and WebKit for the mouse via `playwright.controls.config.ts`). Real mice and trackpads, Edge, Safari and real phones: UNPROVEN.
+
 ## Calibration per modality (CTL9, F-028)
 
 Each modality (touch, mouse, pen, keyboard) has its own offset, measured with that input. A swing is corrected only by
@@ -272,6 +298,15 @@ when it is given, and otherwise `calibrationMs` (the old single offset).
 
 A legacy `{ offsetMs, attempts }` is migrated to the modality it was most likely measured with: touch where
 `matchMedia('(any-pointer: coarse)')` matches, else mouse.
+
+## Camera (the fifth input type)
+
+The camera's contact opens at the first sign of intentional movement while a delivery is live and is read by the unchanged tracker: hands rising are the pullback (the virtual point moves down), hands held at the top are `tracking`, hands coming down fast are the forward stroke (the first 40 ms read: direction, power, loft), a small backlift followed by a gentle push is the defence (a tap at the onset), hands brought back slowly are a leave. Body movement is in shoulder widths, so distance from the camera does not change power. Timestamps are the camera frame's capture time on the performance clock.
+
+- Constants (surface, gains, thresholds): `src/input/camera/constants.ts`; the mapping table, direction estimate, smoothing cost and latency are in `docs/PRACTICE_CAMERA_INPUT.md`.
+- Calibration: `camera` is a fifth modality in `MODALITIES` and `resolveCalibrations`; 0 until measured, never borrowed.
+- The camera cannot meet CTL1 as written (the frame that proves a movement arrives 66 to 100 ms into it at 30 fps); it is reported, not relaxed (section 8 of the camera document).
+- Tests: `tests/unit/input/camera/*` (synthetic landmark traces: classes, no-swing, mirrored, left-handed, near and far, noise, dropped and late frames, lost tracking, the frozen physics and replay, the worker host, loader, capture and session with fakes). They show the mapping is stable, not that a person can control it.
 
 ## Cadence: the same motion reads the same
 

@@ -55,6 +55,34 @@ The two paths of the dual rubric:
   field → deliberate footwork, timing, direction, elevation and power → a credible outcome → exact evidence → retry →
   mastery → a harder over.
 
+### The first-ball lesson (2026-11-08; owner brief, Stage 1)
+
+Before the very first ball a player ever faces, and only then, a card (`src/practice/ui/lesson`) teaches the control in
+use: a ghost finger, pointer, pen, key press or pair of hands doing the move in a loop that waits. It is pre-delivery
+pacing and presentation only: the ball is not bowled while the card is open, and the delivery, its physics and its result
+are the same with or without it (`tests/e2e/lesson-first-ball.spec.ts`, same seed and swing, same flight and result).
+
+- **The move** is the one the game reads (docs/PRACTICE_INPUT.md): pull down, hold, flick up; the start of the flick sets
+  direction, power and loft (three short words on the picture). The drawn stroke is replayed through the real tracker
+  and normalizer in a unit test on five screen sizes and both hands (a firm, grounded drive 12° to the off side).
+- **The player may try it** on the real batting area: a dry swing, read by the same tracker and normalizer, said back as
+  "You played: ...", nothing bowled. A tap, a pull-back let go, or Space gets one plain line and costs nothing. Doing
+  nothing changes nothing: no timer, no penalty; the ghost goes on. Ball 1 starts when the player presses "Bowl the first
+  ball". "Skip all teaching" ends it for good. The card follows the input actually used (a moving mouse, a pen, a key, a
+  finger) and starts on the control chosen for the device.
+- **After the ball**, for the first over (six balls) with teaching on, the dead-ball card says the timing in plain words
+  in proportion to the error: the size is the measured error inside the bands the delivery was judged by (on time, a
+  touch, early or late, much too early or late: the same comparison as the physics' `classifyTiming`, so it only grows
+  with the error), the side is the sign of the error, with the coach's number and the bands drawn as a scale. It appears
+  with the dead-ball card (after the outcome is shown) and stays as long as the card does; early and late differ in
+  words and in which side of the scale the marker sits, never by colour alone. There is no cue during the run-up or the
+  flight (Delivery Quiet Mode). A press before the bowler released is said once on that dead ball ("Too soon ... try
+  again"): it was not a shot, the ball is bowled and scored exactly as with no input, and "Practice this ball" retries the
+  identical ball without touching the score.
+- **Reduced Motion** draws the move as a still with numbered points; screen readers get the lesson as text. The card is
+  a lazy chunk, absent from the initial transfer. Whether new players understand the first ball is UNPROVEN until
+  observed (`release/player-experience/shared/playtest/`).
+
 ## 2. System-to-perception dependency map
 
 | Perception | Breaks when… | Owner (files) | Criteria | Evidence so far |

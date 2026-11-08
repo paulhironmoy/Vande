@@ -25,7 +25,7 @@ under `unity/VandePractice/Assets/VandePractice/Runtime/Presentation/Resources/`
 
 ## 2. Unused exports and types: a ceiling that does not rise
 
-`npx knip@6.42.1 --reporter json` with the root `knip.json` reports **381 unused exports and 246 unused types**, 0 unused
+`npx knip@6.42.1 --reporter json` with the root `knip.json` reports **404 unused exports and 255 unused types** (381 and 246 before the Target Chase and camera program of 2026-11-08; the 23 and 9 new names are listed by owner in `release/product-sequence/stage-3-chase/QA-INTEGRATION/INT-1-RESULTS.md`, row C4), 0 unused
 dependencies or devDependencies, and one `unlisted` name (`@tests/unit` in `scripts/director-corpus-export.ts`, an alias
 that the script's own Vitest config resolves: a false positive). Rule: neither count may grow. A change that adds an export
 nothing imports removes another, or raises the ceiling here with its reason. Knip is not a dependency of this repository;
@@ -45,13 +45,14 @@ npx knip@6.42.1 --reporter json | node -e 'const r=JSON.parse(require("fs").read
 | i18n catalogues (`src/i18n`) | 12 | 12 | 2 and 5 | Catalogue modules are loaded by `import.meta.glob`, which knip does not follow |
 | Legacy backend and render service | 7 | 0 | 7 and 0 | The closed Sealed Six product ([docs/README.md](README.md)) |
 | Other, named by folder | 114 | 47 | 93 and 43 | Exports mostly in `src/render3d/practice` (16), `src/render3d/core` (15), `src/practice/coach` (13), `src/engine/sim` (12) and `src/practice/game` (11). Most are used inside their own file, so only the `export` keyword is surplus; the rest are debt to prune when the file is next touched |
+| Target Chase, camera, controls, lesson and venue modules (2026-11-08) | 23 | 9 | not counted | Small public helpers and types of the new modules that nothing imports yet (for example `chase/index.ts`, `ui/camera/panelViews.tsx`, `ui/lesson/timing.ts`); raised by the lead at the first integration pass with the owners listed in INT-1-RESULTS C4, to be pruned in the next hygiene pass because pruning now would touch finished agents' code before the freeze |
 
 "Used inside their own file" counts a name that appears at least twice in its file; it is approximate and informative, not
-a rule. The class totals add up to 381 and 246.
+a rule. The class totals add up to 404 and 255.
 
 ## 3. Files that production never reaches
 
-`npx knip@6.42.1 --production --reporter json` (entries marked `!` in `knip.json`) must report exactly these 10 files and
+`npx knip@6.42.1 --production --reporter json` (entries marked `!` in `knip.json`) must report exactly these 13 files and
 no other. A file joins the list only with a row here.
 
 | File | Kind | Why it exists | Used by |
@@ -66,6 +67,9 @@ no other. A file joins the list only with a row here.
 | `src/screens/dev/fixtures.ts` | test fixtures | A hand-written revealed match; never imported by shipped screens | `scripts/perf/highlight.mjs`, unit and e2e tests |
 | `src/screens/dev/gallery.tsx` | dev gallery | Screens rendered with fixtures; page `gallery.html` | `tests/e2e/ux-renderer.spec.ts` |
 | `src/screens/dev/harness.ts` | dev harness | Drives the renderer for screenshots and performance runs; page `harness.html` | `scripts/brand/build.mjs`, `scripts/perf/contact.mjs`, `ux-renderer.spec.ts` |
+| `src/input/camera/simulate.ts` | test and examiner tool | Synthetic pose traces and a replay through the real camera batter (the camera counterpart of `src/input/simulate.ts`); never shipped | `tests/unit/input/camera`, `tests/unit/camera-fixtures`, examiner scripts |
+| `src/practice/chase/derive.ts` | derivation tool | The target method: the reference-batter sweep that writes `targets.ts` (policy `best-play-timing-20` v2); not needed at run time | `scripts/chase-targets.mjs`, `tests/unit/practice/chase` |
+| `src/practice/chase/reference.ts` | derivation tool | The reference batter (20 ms timing, best of the coach's three responses); never imported by the app | `derive.ts`, `scripts/chase-*.mjs`, `tests/unit/practice/chase` |
 
 The four `.html` pages are served by the Vite dev server only; `pageInputs` in `vite.config.ts` does not build them.
 

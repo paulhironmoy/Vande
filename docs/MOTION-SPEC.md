@@ -1,6 +1,13 @@
 # MOTION-SPEC: the shared VANDE human-motion format (VC17 skeleton, VMP1 packs)
 
-Owner: MOTION. Status: **v1.3.1**, 2026-11-04 (UTC). Every human clip for either renderer follows this spec.
+Owner: MOTION. Status: **v1.3.2**, 2026-11-08 (UTC). Every human clip for either renderer follows this spec.
+
+Changes in v1.3.2 (ASSETS-MOTION, Target Chase; additive, no change to the binary format or to any existing pack).
+- §4, §10, §11: a new pack `result_moments` holds the four Chase result-moment clips, `bat_celebrate_win`, `bat_walk_off`,
+  `bowl_celebrate_defend` and `bowl_disappointed`. They sit inside every existing cap and are NOT in the explosive class (lead
+  ruling 2026-11-08: no jump, no leap). A pack may hold more than one clip prefix.
+- §5.5: one-handed bat clips (the top hand free), named by a short table in each reader.
+- §9: `scripts/motion/popscan.mjs` applies the pose-pop definition below to one decoded clip at 60 Hz.
 
 Changes in v1.3.1 (lead ruling). No pack or format change.
 - §6: the v1.2.1 striker footwork exception is SUPERSEDED as of 2026-11-04 04:59Z.
@@ -179,6 +186,9 @@ unique across all packs:
 - `ns_*`
 - `bat_*`
 
+Packs added since: `batter_strokes` (`bat_*`), `fielder_actions` (`fld_*`) and, in v1.3.2, `result_moments` (`bat_*` and `bowl_*`,
+the Chase result moments). The prefix names the clip's role; it does not have to match the pack.
+
 Building: `node scripts/motion/export.mjs [--pack <name>] [--check]`. The build reads
 `assets-src/motion/<pack>/*.vms.json` and writes both outputs byte-identically. With `--check` it verifies that the
 committed outputs match and exits non-zero otherwise.
@@ -320,6 +330,12 @@ Other names need MOTION's approval. A bat track never replaces the physics bat: 
 `batAt` (frozen `frame.ts`), and the body's hands reach it with IK.
 
 **`bat.face` must survive blends (WEB-FIX-A, 2026-11-07).** A reader that rebuilds the bat key at an inertial switch must keep the face (it decays with the blade, not instantly), and a cross-fade between a clip with a face and one without blends the one-sided face with the other side's hint (the direction the grip would give), never switches at w = 0.5. Without this the leave's bat turned 72.6° about its blade in one frame at the input and the gloves closed with their backs to the face; the glove roll is also a state (it drifts at most 360°/s and is held inside the wrist arc on the circle), not a clamp chosen by the sign of the wanted angle, which flips by 120° where that angle crosses ±180°.
+
+**One-handed bat clips (v1.3.2).** A clip with a bat key is drawn with both hands on the handle. Two clips of `result_moments` are held
+in the bottom hand only, with the top hand and arm left to the clip's own bones: `bat_celebrate_win` and `bat_walk_off`. Each reader
+names them in a short table (web: `ONE_HAND_BAT_CLIPS` in `src/render3d/core/motion/library.ts`, which sets `MotionSource.oneHand`;
+Unity: the one-hand carry, `BatterOneHandCarry`). Their `bat.grip` is the bottom hand's palm centre as before; `bat.dir` and `bat.face`
+are keyed so the bat trails the arm. No format field is added.
 
 ## 6. Sampling and use
 
@@ -524,7 +540,7 @@ Every clip reports its values in `release/product-sequence/stage-1-practice/wedg
 with the build id, UTC time and `uptime`. A failing clip does not ship. These are measurements, not certification:
 the independent evaluators score naturalness.
 
-**Pose pop (whole-delivery scan; UNITY-9, 2026-11-07, optional gate).** A bone's one-frame turn at or above the smaller of 25° and its per-frame cap and at least 3 times its quiet neighbours' steps (arms 25°, legs 20°, hips, spine and chest 10°, neck and head 12° a frame); any one-frame step of 60° or more; a hips or root displacement change over 5 cm in a frame; a head turning faster than 720°/s in the world; a glove more than 2 cm off the grip; a wrist swing over 85°. The scanner is `Editor/Evidence/VandeHumansEvidence.Pops.cs` (Unity) and `S/humans/webfix/{A,B}` harnesses (web); both report measurements, not certification.
+**Pose pop (whole-delivery scan; UNITY-9, 2026-11-07, optional gate).** A bone's one-frame turn at or above the smaller of 25° and its per-frame cap and at least 3 times its quiet neighbours' steps (arms 25°, legs 20°, hips, spine and chest 10°, neck and head 12° a frame); any one-frame step of 60° or more; a hips or root displacement change over 5 cm in a frame; a head turning faster than 720°/s in the world; a glove more than 2 cm off the grip; a wrist swing over 85°. The scanner is `Editor/Evidence/VandeHumansEvidence.Pops.cs` (Unity) and `S/humans/webfix/{A,B}` harnesses (web); both report measurements, not certification. v1.3.2: `scripts/motion/popscan.mjs` applies the same SPIKE, HUGE, HIPSJUMP and HEADWORLD definitions to one decoded clip at 60 Hz (a clip alone, not a whole delivery); `result_moments` is clean under it.
 
 ## 10. Size budgets
 
@@ -536,6 +552,7 @@ the independent evaluators score naturalness.
 | `keeper.vmp` | ≤ 40 KB |
 | `bowler.vmp` | ≤ 72 KB (73,728 B). Raised twice by lead ruling on 2026-11-04: to 64 KB, then to 72 KB for the bouncer. Any further bowler clip needs a new ruling |
 | `nonstriker.vmp` and `batter.vmp` | ≤ 48 KB each |
+| `result_moments.vmp` | ≤ 72 KB (73,728 B), set by ASSETS-MOTION on 2026-11-08 and asked of the lead (request ASSETS-MOTION-1); 60,911 B at its first bake (42,575 B gzip) |
 | Unity (`Resources/Motion/*.bytes`) | the same bytes; MOTION's three packs total ≤ 152 KB raw |
 
 The Unity total is reported as raw and as deflate bytes against the 2.37 MB APK headroom. SIZE-50 and REACH-90 stay
@@ -577,6 +594,29 @@ is dropped; playing the 90° turn twice covers it. No backpedal.
 the high catch and the celebration as they pass.
 
 **`keeper.vmp`** (MOTION-KEEPER): the `kp_*` ids as briefed.
+
+**`result_moments.vmp`** (ASSETS-MOTION, v1.3.2; Chase result moments, all right-handed, 30 Hz, codec 2, one-shots that hold their last frame)
+
+| id | what |
+| --- | --- |
+| `bat_celebrate_win` | 3.6 s, in place, one-handed bat: the winning run. Markers `peak` 0.95, `fist` 1.35, `rest` 2.30 |
+| `bat_walk_off` | 5.4 s, one-handed bat, 2.45 m straight ahead at about 1.0 m/s and 96 steps/min, ends in a stop: the chase is lost. Markers `slump` 0.90, `step` 1.55, `stop` 4.90 |
+| `bowl_celebrate_defend` | 3.4 s, in place: the chase is defended. Markers `peak` 0.85, `clap` 1.85, `rest` 2.40 |
+| `bowl_disappointed` | 3.4 s, in place: the batter wins. Markers `slump` 0.70, `rest` 2.60 |
+
+Played only after the physics event that earns them (`src/render3d/practice/resultMoments.ts`, input `chaseMoment` of the deciding
+ball's script, the replay option `chaseMoment`, and `presentChaseMoment` for the live ball). Reduced Motion holds the `peak` or `slump`
+frame. Provenance and measurements: `assets-src/motion/result_moments/SOURCE.md`.
+
+| result (CHASE-API `ChaseState.result`) | striker | bowler | earliest start, after |
+| --- | --- | --- | --- |
+| `won` (the winning run: a boundary or the last run) | `bat_celebrate_win` | `bowl_disappointed` | the boundary + 200 ms, or the last run + 300 ms, and his stroke or run is over; the bowler 450 ms, after his follow-through |
+| `lost_wicket` (bowled, caught or lbw on the deciding ball) | `bat_walk_off` | `bowl_celebrate_defend` | the stumps, the catch or the lbw decision + 250 ms (bowler 400 ms) |
+| `lost_balls` (the 12th ball bowled, the target not reached) | `bat_walk_off` | `bowl_celebrate_defend` | the dead ball (or the last run) + 400 ms (bowler 600 ms) |
+
+Never sooner than 180 ms after the outcome (the Director's honesty rule). The striker's physics-body fit is released at the start. With
+the pack missing the striker has built-in stand-ins (`bat_raise`, `dejected`); the bowler has none and walks back as ever (decision D2
+cuts his two clips by `INCLUDE_BOWLER` in `scripts/blender/motion/result_moments.py`, 24,120 B raw and 15,986 B gzip of the pack).
 
 **Other packs**
 - `batter.vmp` and `batter_strokes.vmp`: TRACKB.

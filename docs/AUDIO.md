@@ -67,8 +67,9 @@ The machine is a pure, deterministic state machine with two kinds of input.
 - **Moments.** The stage's `StageMoment`s, each at the instant it physically happened. Structurally they are
   `EmotionMoment = { kind, intensity, contact?, timing?, dismissal?, runs? }`, and a type test enforces the
   compatibility.
-- **Match context.** `DeliveryContext = { pressure?, milestone?, wicketEndsInnings?, runs? }`, built by
-  `deliveryContext(situation)`.
+- **Match context.** `DeliveryContext = { pressure?, milestone?, wicketEndsInnings?, runs?, target?, ballsLeft? }`, built by
+  `deliveryContext(situation)`. A chase adds `target` (the runs that win it) and `ballsLeft` (the legal balls left, this ball
+  included): the scoreboard the crowd can read before the ball, never a forecast of it.
 
 Its output is `CrowdEmotion`:
 
@@ -124,6 +125,9 @@ before and just after.
 | `dot` after a leave | outcome, murmur | rest − 0.04 | Restrained: the crowd quietly resettles. |
 | `runs` | outcome, applause | 0.40 + 0.05·runs + 0.06·pressure, at most 0.6, at least rest + 0.1 | Acknowledgement: applause. |
 | milestone (a four, six or runs passing 50 or 100) | ovation | +0.05, a long hold | `ovation`, with caption `milestone_fifty` or `milestone_hundred`. |
+| chase: the `four`, `six` or `runs` that reach the target | outcome, ovation (last over) or celebration | `CROWD.winFour` 0.82, `winSix` 0.90, `winRuns` 0.62, each + 0.10 (runs: + 0.25) × the closeness of the finish − 0.06·fatigue (so six > four > runs at every closeness), never below the routine peak | The closeness is 0 with 12 balls left and 1 on the last ball; 6 balls left or fewer (the last over) is an `ovation` with caption `crowd_ovation`, before that a `cheer` (or `eruption` for a six). `state.verdict` is `won`. |
+| chase: the last ball (`ballsLeft` 1) when the runs do not reach the target | outcome, applause → dismay | the routine peak × `CROWD.lostShare` 0.6 for a `four`, `six` or `runs` (a run is applauded at 0.24 at least); a dot groans at 0.2 only after an attempt, so six > four > run > dot holds in the lost chase too | Polite applause (`crowd_applauds`), then the mood turns to `dismay` and the ground is subdued (as after a wicket). No dhol. `state.verdict` is `lost`. |
+| chase: a `wicket` | as any wicket | as any wicket | The crowd's curve is exactly a plain wicket's (decisive silence within 150 ms, then dismay); `state.verdict` is `lost`. |
 | `reflection` | reflection → between | → rest, τ 3.2 s | The settle before the next ball. Back to `between` after 4.2 s. |
 
 **Proportional feedback (the experience constitution, EMO1).** The peaks sit in bands that never overlap, whatever
@@ -169,18 +173,29 @@ stays below 1.0. Only a boundary under real pressure (a close chase, a milestone
 ### Match context (`src/audio/situation.ts`)
 
 `deliveryContext({ runs, wicketsInHand, ballsLeft, target?, batterRuns? })` returns
-`{ pressure, milestone, wicketEndsInnings, runs }`. The UX controller passes it to `stage.bowl(flight, ctx)`, and the
-stage forwards it to `sink.context(ctx)`. Pressure (0..1) is the sum of:
+`{ pressure, milestone, wicketEndsInnings, runs }`, plus `target` and `ballsLeft` when there is a chase (a finite target
+and at least one ball left). The UX controller passes it to `stage.bowl(flight, ctx)`, and the stage forwards it to
+`sink.context(ctx)`. A chase builds it from `audioSituation(state)` of `src/practice/chase` (CHASE-CORE's text-free
+situation). Pressure (0..1) is the sum of:
 
 | Situation | Pressure |
 | --- | --- |
 | Final over (1–6 balls left) | +0.25; the last ball +0.35 |
-| A chase that can still be won (at most 6 a ball) | +0.20 … +0.65: most with few balls left, less when almost won |
+| A chase that can still be won (at most 6 a ball) | +0.20 … +0.65: most with few balls left, less when almost won, and less when the ask is easy (the swing is 0.7 of the full amount at no runs a ball, the full amount at 2 a ball or more) |
 | A chase beyond reach | +0.10 |
 | The last wicket in a chase | +0.10 (a Practice innings is always one wicket, which is not extra pressure) |
 | A milestone within a boundary (44–49, 94–99, …) | +0.12 |
 
 The pressure, deliberately, changes nothing in the simulation. The same ball is bowled and judged whatever it is.
+
+**The chase, and what the crowd may know.** Before the outcome is confirmed, a chase changes nothing beyond the pressure
+above: a ball that will win and a ball that will not give the crowd the same curve to the instant of the rope (a test
+compares them sample for sample). The scoreboard is used only at a confirmed outcome (`chaseVerdict` in
+`emotionMachine.ts`): the runs of the four, the six or the run(s) are compared with the target, and the last ball is
+the only ball where falling short ends the chase. A wicket needs no scoreboard. Nothing in the chase is scripted: the
+same deliveries and the same swings give the same crowd. The existing `chase` emotion phase is the ball's flight to the
+rope (it is unrelated to a Target Chase); the Target Chase reaches the crowd only through the context and these
+verdicts. A replay ("Watch the deciding ball") sends no moments to the crowd (`session.replay()` draws the script and never calls the sink), and practising the deciding ball is an ordinary `bowl()` whose context carries no target, so neither can sound like a chase result.
 
 ## The mix (`src/audio/engine.ts`)
 
@@ -447,7 +462,7 @@ AUDIO_SETTINGS_KEY, AUDIO_LEVELS, DEFAULT_AUDIO_SETTINGS, type AudioSettings
 onCaption(fn: (c: Caption) => void): () => void; CAPTION_KEYS; type Caption, CaptionKey, CaptionKind
 playUiCue(cue: 'select' | 'confirm' | 'lock'): void           // silent in Delivery Quiet Mode, never vibrates
 playMasteryFeel(event?: 'mastered' | 'stage_up'): void       // on the coach's masteryEvent only
-deliveryContext(s: MatchSituation): Required<DeliveryContext> // for stage.bowl(flight, ctx)
+deliveryContext(s: MatchSituation): StageContext              // for stage.bowl(flight, ctx); a chase adds target and ballsLeft
 installMatchAudioUnlock()                                     // unchanged
 ```
 
@@ -464,6 +479,8 @@ One command runs them: `npx vitest run tests/unit/audio`, under `nice -n 15` on 
 | `emotion.test.ts` | The rhythm of a delivery and continuity. Natural decay, habituation and the non-overlapping bands. Pressure and milestones. The wicket's silence within 150 ms and its shift, a catch in the deep, close calls and frustration. The half-life of 2–8 s, no reaction before the event (early delivery), determinism, purity, the zero-allocation sample, the StageMoment type contract and import safety. |
 | `contact-feel.test.ts` | F-022: a defended middle is a block, an attack keeps the sweet spot, and every bat feel carries its contact. |
 | `practice-sink.test.ts` | COH6 timing, called ahead and on time. FBK1 signatures, a miss with no contact sound or vibration, the §13 ducks, Delivery Quiet Mode and mastery deferral. A six end to end (crowd, dhol, haptic, captions, nothing before the rope). A wicket end to end (impact, decisive haptic, silence, shift). The bus levels and haptic settings, the machine with the sound off, the background, and the Sealed Six fallback. |
+| `chase-situation.test.ts` | The pressure of a chase (rises as balls run out and with the ask, falls out of reach, stays in 0..1, pure; the Sealed Six reference points). The delivery context of a chase. The ball that wins it (ovation in the last over, cheer before, louder the closer, exact edge), the last ball that cannot (polite applause, subdued, dismay, order six > four > run kept), a wicket (the plain wicket's curve), no look-ahead (sample for sample), determinism and purity, an innings without a target unchanged. |
+| `chase-sink.test.ts` | The sink at the end of a chase: a six that wins is an ovation with the drums and its caption; the same six on the last ball that cannot win gets applause, no drums, and turns to dismay; an innings without a target keeps its eruption; a wicket in a chase. |
 | `haptics.test.ts` | The §12 map: one pattern each, in proportion and ordered. Native steps, and the Vibration and background rules. |
 | `crowdVoices.test.ts` | Deterministic crowd renders at their loudness and under their peak, chunked equal to whole, distinct timbres and shapes. The sprite layout, the offline render, two-node playback, and the idle crowd build pausing in quiet. |
 | `settings.test.ts` | Validated storage, the stable snapshot, notifications, reset, no storage. Captions only while on, and the closed keys. Match pressure and milestones. |

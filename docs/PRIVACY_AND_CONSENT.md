@@ -101,6 +101,22 @@ contact or recipient; a cache of the server's share cap).
   conditions, both players' current aliases and the replay, and names a player who deleted their account "Deleted
   player".
 
+## Camera batting (Practice, on the device only)
+
+Camera batting is an input choice in Practice. It is **off by default**; the camera starts only after the player taps "Use camera" and has seen the consent (what it is for, that the pictures stay on this device and are never saved or sent, how to stop it). The browser or Android then asks for the camera.
+
+| What | Where | Kept | Sent |
+| --- | --- | --- | --- |
+| Camera pictures | memory of the page and of a Web Worker, for the moment of one detection | Never: each picture is closed after use; nothing is drawn to a canvas, encoded, recorded or stored (`toBlob`, `toDataURL`, `MediaRecorder` and `captureStream` are not used) | Never |
+| Pose landmarks (numbers) and the swing's virtual samples | a ring of a few frames in memory | Never stored or logged; only the `NormalizedSwing` of a played ball is kept, like every input | Never |
+| The pose engine and model (static files) | IndexedDB `vande-camera` in app storage | Until "Clear Practice data" or a newer pack replaces them (about 9.1 MB) | Downloaded from the app's own origin (or the configured pack origin) with no identifier; nothing is uploaded |
+| "Consent seen" and the control choice | `vc:practice:camera`, the Practice settings | On the device | Never |
+
+- The camera light or system indicator is on while it runs; the app also shows "Camera on". It stops when the player leaves the live screen, turns it off, or the page is hidden.
+- The pose model's card says any form of surveillance or identity recognition is out of scope; nothing here identifies a person. Only the body's landmarks are read, only to make a swing.
+- **Android:** the app declares the CAMERA permission with the camera features marked not required (so no phone is filtered out); the system asks at the moment the player chooses Camera. Play data-safety draft (not submitted): the app uses the camera for an on-device feature the player turns on; no camera data is collected or shared. Wording for the store listing and `privacy.html`: COPY's `practice.camera.privacy.*` strings. Not submitted; the owner decides.
+- The Hindi and Hinglish wording of the consent is marked for native-speaker review (COPY-REVIEW).
+
 ## Rights: access, export, correction, deletion
 
 * **See and correct**: `GET /v1/me`, `PATCH /v1/me` (alias, avatar, kit, locale, city; from a device that is still
