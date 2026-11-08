@@ -1,14 +1,22 @@
 /**
  * Synthesised cricket sounds (original, no recordings). Every voice schedules Web Audio nodes at `when` on any
  * BaseAudioContext, so the same code plays live and renders offline (OfflineAudioContext) for highlight videos.
- * `pitch` < 1 lowers and lengthens impacts for slow motion.
+ * `pitch` < 1 lowers and lengthens impacts for slow motion. Live, the bank (src/audio/bank.ts) pre-renders them once
+ * in idle time, so a delivery plays each cue from one buffer; these node graphs are its source and its fallback.
  */
 import { Sfc32, createRng } from '@/engine/prng';
 
 export interface VoiceTarget {
   ctx: BaseAudioContext;
+  /** Where the voice plays (the effects bus live; the whole action offline). */
   out: AudioNode;
   noise: AudioBuffer;
+  /** Optional per-bus outputs (live): crowd swells, music (the dhol, the riser) and interface chimes. */
+  crowd?: AudioNode;
+  music?: AudioNode;
+  ui?: AudioNode;
+  /** Live: every source is registered, so going to the background can stop it. */
+  track?: (node: AudioScheduledSourceNode, end: number) => void;
 }
 
 export function makeNoise(ctx: BaseAudioContext, seconds = 2): AudioBuffer {
@@ -22,13 +30,13 @@ export function makeNoise(ctx: BaseAudioContext, seconds = 2): AudioBuffer {
   return buf;
 }
 
-function env(g: GainNode, when: number, attack: number, peak: number, decay: number) {
+export function env(g: GainNode, when: number, attack: number, peak: number, decay: number) {
   g.gain.setValueAtTime(0.0001, when);
   g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), when + attack);
   g.gain.exponentialRampToValueAtTime(0.0001, when + attack + decay);
 }
 
-function noiseBurst(v: VoiceTarget, when: number, opts: { type: BiquadFilterType; freq: number; q: number; attack: number; decay: number; gain: number; offset?: number }) {
+export function noiseBurst(v: VoiceTarget, when: number, opts: { type: BiquadFilterType; freq: number; q: number; attack: number; decay: number; gain: number; offset?: number }, out: AudioNode = v.out) {
   const { ctx } = v;
   const src = ctx.createBufferSource();
   src.buffer = v.noise;
@@ -38,12 +46,13 @@ function noiseBurst(v: VoiceTarget, when: number, opts: { type: BiquadFilterType
   f.Q.value = opts.q;
   const g = ctx.createGain();
   env(g, when, opts.attack, opts.gain, opts.decay);
-  src.connect(f).connect(g).connect(v.out);
+  src.connect(f).connect(g).connect(out);
   src.start(when, opts.offset ?? 0.1 + ((when * 7.3) % 1.5));
   src.stop(when + opts.attack + opts.decay + 0.05);
+  v.track?.(src, when + opts.attack + opts.decay + 0.05);
 }
 
-function tone(v: VoiceTarget, when: number, freq: number, opts: { type?: OscillatorType; attack?: number; decay: number; gain: number; glideTo?: number }) {
+export function tone(v: VoiceTarget, when: number, freq: number, opts: { type?: OscillatorType; attack?: number; decay: number; gain: number; glideTo?: number }, out: AudioNode = v.out) {
   const { ctx } = v;
   const o = ctx.createOscillator();
   o.type = opts.type ?? 'sine';
@@ -51,9 +60,10 @@ function tone(v: VoiceTarget, when: number, freq: number, opts: { type?: Oscilla
   if (opts.glideTo) o.frequency.exponentialRampToValueAtTime(opts.glideTo, when + (opts.attack ?? 0.004) + opts.decay);
   const g = ctx.createGain();
   env(g, when, opts.attack ?? 0.004, opts.gain, opts.decay);
-  o.connect(g).connect(v.out);
+  o.connect(g).connect(out);
   o.start(when);
   o.stop(when + (opts.attack ?? 0.004) + opts.decay + 0.05);
+  v.track?.(o, when + (opts.attack ?? 0.004) + opts.decay + 0.05);
 }
 
 export const voices = {
@@ -127,18 +137,20 @@ export const voices = {
       g.gain.exponentialRampToValueAtTime(gain * intensity, when + 0.35);
       g.gain.setValueAtTime(gain * intensity, when + length * 0.45);
       g.gain.exponentialRampToValueAtTime(0.0001, when + length);
-      src.connect(f).connect(g).connect(v.out);
+      src.connect(f).connect(g).connect(v.crowd ?? v.out);
       src.start(when, (freq / 1000) % 1.5);
       src.stop(when + length + 0.1);
+      v.track?.(src, when + length + 0.1);
     }
   },
   /** A celebratory drum pattern (generic dhol-style rhythm, synthesised). */
   drums(v: VoiceTarget, when: number, intensity: number) {
     const pattern = [0, 0.18, 0.36, 0.45, 0.63, 0.81, 0.9, 1.08, 1.26, 1.35];
+    const out = v.music ?? v.out;
     pattern.forEach((dt, i) => {
       const low = i % 3 !== 2;
-      tone(v, when + dt, low ? 92 : 210, { decay: low ? 0.22 : 0.09, gain: (low ? 0.42 : 0.24) * intensity, glideTo: low ? 62 : 180 });
-      if (!low) noiseBurst(v, when + dt, { type: 'bandpass', freq: 2400, q: 1.4, attack: 0.001, decay: 0.05, gain: 0.12 * intensity });
+      tone(v, when + dt, low ? 92 : 210, { decay: low ? 0.22 : 0.09, gain: (low ? 0.42 : 0.24) * intensity, glideTo: low ? 62 : 180 }, out);
+      if (!low) noiseBurst(v, when + dt, { type: 'bandpass', freq: 2400, q: 1.4, attack: 0.001, decay: 0.05, gain: 0.12 * intensity }, out);
     });
   },
   fireworks(v: VoiceTarget, when: number, intensity: number) {
@@ -173,22 +185,25 @@ export const voices = {
     g.gain.setValueAtTime(0.0001, when);
     g.gain.exponentialRampToValueAtTime(0.16, when + length * 0.92);
     g.gain.exponentialRampToValueAtTime(0.0001, when + length + 0.05);
-    o.connect(f).connect(g).connect(v.out);
+    const out = v.music ?? v.out;
+    o.connect(f).connect(g).connect(out);
     o.start(when);
     o.stop(when + length + 0.1);
+    v.track?.(o, when + length + 0.1);
     // A heartbeat under it.
-    for (let k = 0; k * 0.5 < length - 0.2; k++) tone(v, when + k * 0.5, 62, { decay: 0.16, gain: 0.22 + k * 0.03, glideTo: 48 });
+    for (let k = 0; k * 0.5 < length - 0.2; k++) tone(v, when + k * 0.5, 62, { decay: 0.16, gain: 0.22 + k * 0.03, glideTo: 48 }, out);
   },
   /** The result lands: one big hit and a crowd swell. */
   resultHit(v: VoiceTarget, when: number) {
-    tone(v, when, 82, { decay: 0.6, gain: 0.5, glideTo: 44 });
-    noiseBurst(v, when, { type: 'lowpass', freq: 900, q: 0.7, attack: 0.002, decay: 0.3, gain: 0.35 });
+    tone(v, when, 82, { decay: 0.6, gain: 0.5, glideTo: 44 }, v.music ?? v.out);
+    noiseBurst(v, when, { type: 'lowpass', freq: 900, q: 0.7, attack: 0.002, decay: 0.3, gain: 0.35 }, v.music ?? v.out);
     voices.roar(v, when + 0.05, 0.9, 3);
   },
   /** Sealed: the brand chime when an over locks or a shot is sealed. */
   seal(v: VoiceTarget, when: number) {
-    tone(v, when, 659.25, { decay: 0.22, gain: 0.16, type: 'triangle' });
-    tone(v, when + 0.09, 987.77, { decay: 0.42, gain: 0.14, type: 'triangle' });
-    tone(v, when + 0.09, 1975.5, { decay: 0.2, gain: 0.03 });
+    const out = v.ui ?? v.out;
+    tone(v, when, 659.25, { decay: 0.22, gain: 0.16, type: 'triangle' }, out);
+    tone(v, when + 0.09, 987.77, { decay: 0.42, gain: 0.14, type: 'triangle' }, out);
+    tone(v, when + 0.09, 1975.5, { decay: 0.2, gain: 0.03 }, out);
   },
 };

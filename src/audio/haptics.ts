@@ -3,7 +3,8 @@
  * setting (setHapticsEnabled), never fires while the app is in the background, and is never the only signal for
  * anything. On Android the system's own "Vibration and haptics" switch also applies (the Vibrator honours it).
  */
-import { FEEL_PATTERNS, type FeelPattern } from './feel';
+import { FEEL_PATTERNS, createFeelScheduler, type FeelPattern, type NativeStep } from './feel';
+import { logAudio } from './timingLog';
 
 export type HapticKind = 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error';
 
@@ -19,11 +20,36 @@ export function setHapticsNative(v: boolean): void {
   native = v;
 }
 
+let nativeMod: typeof import('@capacitor/haptics') | null = null;
+
 function loadNative() {
   if (!hapticsModule) {
-    hapticsModule = import('@capacitor/haptics').catch(() => null);
+    hapticsModule = import('@capacitor/haptics')
+      .then((mod) => (nativeMod = mod))
+      .catch(() => null);
   }
   return hapticsModule;
+}
+
+const hidden = () => typeof document !== 'undefined' && document.visibilityState === 'hidden';
+
+/** One native step of a pattern (setTimeout passes the step: no closure per step). */
+function nativeStep(step: NativeStep): void {
+  const mod = nativeMod;
+  if (!mod || !enabled || hidden()) return;
+  try {
+    if (step[1] === 'vibrate') void mod.Haptics.vibrate({ duration: step[2] });
+    else void mod.Haptics.impact({ style: step[1] === 'light' ? mod.ImpactStyle.Light : step[1] === 'medium' ? mod.ImpactStyle.Medium : mod.ImpactStyle.Heavy });
+  } catch {
+    /* ignore */
+  }
+}
+
+function playNative(steps: readonly NativeStep[]): void {
+  for (const step of steps) {
+    if (step[0] <= 0) nativeStep(step);
+    else setTimeout(nativeStep, step[0], step);
+  }
 }
 
 const WEB_PATTERNS: Record<HapticKind, number | number[]> = {
@@ -64,25 +90,12 @@ export function haptic(kind: HapticKind): void {
 
 /** One of the batter's patterns (src/audio/feel.ts), as written: the web's vibrate pattern, or timed native impacts. */
 export function hapticPattern(pattern: FeelPattern): void {
-  if (!enabled || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
+  if (!enabled || hidden()) return;
+  logAudio('haptic', pattern, typeof performance !== 'undefined' ? performance.now() : Date.now());
   const spec = FEEL_PATTERNS[pattern];
   if (native) {
-    void loadNative().then((mod) => {
-      if (!mod) return;
-      const { Haptics, ImpactStyle } = mod;
-      const style = { light: ImpactStyle.Light, medium: ImpactStyle.Medium, heavy: ImpactStyle.Heavy } as const;
-      for (const [at, s] of spec.native) {
-        const go = () => {
-          try {
-            void Haptics.impact({ style: style[s] });
-          } catch {
-            /* ignore */
-          }
-        };
-        if (at <= 0) go();
-        else setTimeout(go, at);
-      }
-    });
+    if (nativeMod) playNative(spec.native);
+    else void loadNative().then((mod) => mod && playNative(spec.native));
     return;
   }
   try {
@@ -91,3 +104,18 @@ export function hapticPattern(pattern: FeelPattern): void {
     /* ignore */
   }
 }
+
+/** Every pattern goes through one scheduler, so no two ever start within 60 ms of each other (src/audio/feel.ts). */
+const scheduler = createFeelScheduler({
+  now: () => (typeof performance !== 'undefined' ? performance.now() : Date.now()),
+  setTimer: (fn, ms) => setTimeout(fn, ms),
+  clearTimer: (id) => clearTimeout(id as ReturnType<typeof setTimeout>),
+  emit: (pattern) => hapticPattern(pattern),
+});
+
+/** Plays a pattern through the shared scheduler (nothing while Vibration is off). */
+export function playFeel(pattern: FeelPattern): void {
+  if (enabled) scheduler.play(pattern);
+}
+
+export const hapticsEnabled = () => enabled;
