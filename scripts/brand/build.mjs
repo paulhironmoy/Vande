@@ -13,7 +13,6 @@
  * own Vite dev server on a free local port (to load mark.ts and to serve the harness) and stops it when done.
  *
  * Writes, relative to the repo root:
- *   public/brand        logo, logo-dark, logo-light, logo-mono, lockup, lockup-on-light, lockup-social (SVG)
  *   store-assets        icon-1024.png (Play listing icon), feature-graphic.png (1024 x 500): outside public/, so
  *                       they never ship in the APK or the service-worker precache
  *   public/icons        favicon.svg, favicon-32, icon-192, icon-512, maskable-512, apple-touch-icon (PNG)
@@ -90,10 +89,6 @@ function artwork(MARK, C) {
     else bg = tileBg(id, size, size, o.rx ?? 0);
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><defs>${markDefs(id)}${bg}${markAt(id, off, off + m * 0.01, m, { stitches: o.stitches })}</svg>`;
   }
-  /** The mark alone in its 120-unit box. */
-  function logoSvg() {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 120 120" role="img" aria-labelledby="t"><title id="t">VANDE Cricket</title><defs>${markDefs('m')}</defs>${markBody('m')}</svg>`;
-  }
   /** Horizontal lockup: mark, VANDE (Manrope 800) and CRICKET (Manrope 700, tracked out). */
   function lockupSvg(onLight = false) {
     const vande = textPath(f800, 'VANDE', 100, 150, 86, 6);
@@ -104,18 +99,6 @@ function artwork(MARK, C) {
   /** One colour (white) for monochrome uses: the seal outline and the ball, with the seam cut out. */
   function monoSvg() {
     return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 120 120" role="img" aria-labelledby="t"><title id="t">VANDE Cricket</title><defs><mask id="m"><rect width="120" height="120" fill="#fff"/><path d="${MARK.seam}" fill="none" stroke="#000" stroke-width="6.5" stroke-linecap="round"/></mask></defs><path d="${MARK.hex}" fill="none" stroke="#ffffff" stroke-width="6" stroke-linejoin="round"/><circle cx="${MARK.ball.cx}" cy="${MARK.ball.cy}" r="${MARK.ball.r}" fill="#ffffff" mask="url(#m)"/></svg>`;
-  }
-  /** 1200 x 630 vector social card (lockup and tagline over the floodlit night). */
-  function socialSvg() {
-    const W = 1200;
-    const H = 630;
-    const vande = textPath(f800, 'VANDE', 150, 0, 0, 10);
-    const tag = textPath(f700, 'Lock your over. Reveal the rivalry.', 44, 0, 0, 0);
-    const left = (W - (200 + 40 + vande.width)) / 2;
-    const tv = textPath(f800, 'VANDE', 150, left + 240, 300, 10);
-    const tc = textPath(f700, 'CRICKET', 50, left + 245, 372, 23);
-    const tt = textPath(f700, 'Lock your over. Reveal the rivalry.', 44, (W - tag.width) / 2, 520, 0);
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="t"><title id="t">VANDE Cricket. Lock your over. Reveal the rivalry.</title><defs>${markDefs('s')}<radialGradient id="sbg" cx="50%" cy="0%" r="120%"><stop offset="0" stop-color="#2b2378"/><stop offset="0.45" stop-color="#100d36"/><stop offset="1" stop-color="${C.night}"/></radialGradient><radialGradient id="sfl" cx="12%" cy="0%" r="55%"><stop offset="0" stop-color="${C.amber}" stop-opacity="0.38"/><stop offset="1" stop-color="${C.amber}" stop-opacity="0"/></radialGradient><radialGradient id="sfr" cx="88%" cy="0%" r="55%"><stop offset="0" stop-color="${C.amber}" stop-opacity="0.38"/><stop offset="1" stop-color="${C.amber}" stop-opacity="0"/></radialGradient></defs><rect width="${W}" height="${H}" fill="url(#sbg)"/><rect width="${W}" height="${H}" fill="url(#sfl)"/><rect width="${W}" height="${H}" fill="url(#sfr)"/><ellipse cx="600" cy="${H + 260}" rx="760" ry="420" fill="#0d3b2c" opacity="0.85"/><ellipse cx="600" cy="${H + 260}" rx="760" ry="420" fill="none" stroke="#3a9a5c" stroke-opacity="0.35" stroke-width="3"/>${markAt('s', left, 175, 200)}<path d="${tv.d}" fill="${C.chalk}"/><path d="${tc.d}" fill="${C.amber}"/><path d="${tt.d}" fill="#cac7ee"/></svg>`;
   }
   /** Android splash: the mark above the stacked wordmark, centred on the floodlit night. */
   function splashSvg(w, h) {
@@ -135,7 +118,7 @@ function artwork(MARK, C) {
     const inner = monoSvg().replace(/^<svg[^>]*>|<\/svg>$/g, '').replace(/<title[^<]*<\/title>/, '');
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${L}" height="${L}" viewBox="0 0 ${L} ${L}"><g transform="translate(${L * 0.22} ${L * 0.22}) scale(${(L * 0.56) / 120})">${inner}</g></svg>`;
   }
-  return { iconSvg, logoSvg, lockupSvg, monoSvg, socialSvg, splashSvg, layerBackgroundSvg, layerMonochromeSvg };
+  return { iconSvg, lockupSvg, splashSvg, layerBackgroundSvg, layerMonochromeSvg };
 }
 
 // ---- photographic compositions (3D frames + typography, rendered by Chromium) ------------------------------------
@@ -182,13 +165,6 @@ async function photo(page, origin, o) {
 const png = (svg, size) => sharp(Buffer.from(svg), { density: 300 }).resize(size, size).png({ compressionLevel: 9 }).toBuffer();
 
 async function writeVectorAndIcons(art) {
-  write('public/brand/logo.svg', art.logoSvg());
-  write('public/brand/logo-dark.svg', art.iconSvg(512, 0.8, { rx: 112 }));
-  write('public/brand/logo-light.svg', art.logoSvg());
-  write('public/brand/logo-mono.svg', art.monoSvg());
-  write('public/brand/lockup.svg', art.lockupSvg(false));
-  write('public/brand/lockup-on-light.svg', art.lockupSvg(true));
-  write('public/brand/lockup-social.svg', art.socialSvg());
   write('public/icons/favicon.svg', art.iconSvg(64, 0.84, { rx: 14, stitches: false }));
 
   // PWA and browser icons (drawn large, then downsampled).
