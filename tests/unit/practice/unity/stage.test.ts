@@ -397,7 +397,9 @@ describe('Unity Practice stage adapter', () => {
     stage.setInputSink({
       onSwingStart: () => input.push('start'),
       onGestureCancel: () => input.push('cancel'),
-      onSwing: () => input.push('swing'),
+      onSwing: () => {
+        input.push('swing');
+      },
     });
     await mountAndScene(stage);
     const canvas = bridge.canvas;
@@ -539,7 +541,9 @@ describe('Unity Practice stage adapter', () => {
       onGestureCancel: () => {
         cancels += 1;
       },
-      onSwing: (swing) => swings.push(swing),
+      onSwing: (swing) => {
+        swings.push(swing);
+      },
       onPauseRequest: () => {
         pauseRequests += 1;
       },
@@ -624,6 +628,101 @@ describe('Unity Practice stage adapter', () => {
     stage.dispose();
     await stage.whenDisposed();
     expect(bridge.unloads).toBe(1);
+  });
+
+  describe("a swing the flow did not take as the ball's swing", () => {
+    /** One tap as Unity reports it: the pointer going down, then the gesture. */
+    async function tap(bridge: StageBridge, deliveryId: string): Promise<void> {
+      await bridge.emit(
+        'unity.pointer',
+        { phase: 'down', atUnityMs: 2_010, clockSampleId: bridge.selectedClockId!, pointer: 'touch' },
+        deliveryId,
+      );
+      await bridge.emit(
+        'unity.gesture',
+        {
+          retention: 'memory-until-resolution',
+          clockSampleId: bridge.selectedClockId!,
+          input: {
+            pointer: 'touch',
+            surface: { width: 400, height: 800 },
+            samples: [
+              { t: 2_010, x: 100, y: 500 },
+              { t: 2_020, x: 101, y: 501 },
+            ],
+          },
+        },
+        deliveryId,
+      );
+    }
+
+    it('is never promised to Unity, so the leave the flow settles still reaches its dead ball (FA-3)', async () => {
+      const { bridge, stage } = makeStage();
+      const answers: Array<boolean | void> = [];
+      stage.setInputSink({
+        onSwingStart: vi.fn(),
+        onGestureCancel: vi.fn(),
+        // A tap that began after the ball passed the stumps: the flow settles the ball as a leave and says so.
+        onSwing: () => {
+          answers.push(false);
+          return false;
+        },
+      });
+      await mountAndScene(stage);
+      const flight = fixtureFlight({ seed: 'stage-late-tap' });
+      const released = await bowlAndRelease(stage, bridge, flight);
+      await tap(bridge, released.deliveryId);
+      await spinUntil(() => answers.length === 1);
+
+      const leave = await makeResolution(flight, 0, 0, null);
+      stage.supplyResolution(leave);
+      // Before the fix the provisional swing was already sent, the guard refused the leave as a different swing, play()
+      // rejected with "result failed" and the whole Unity runtime was unloaded (no unity.dead).
+      await stage.play(leave.result);
+
+      expect(bridge.sent.filter((message) => message.type === 'host.provisional_swing')).toHaveLength(0);
+      expect(bridge.sent.filter((message) => message.type === 'host.result')).toHaveLength(1);
+      expect(bridge.unloads).toBe(0);
+      expect(stage.snapshot()).toMatchObject({ retainingFinalPose: true, coordinatorStatus: 'dead_ball' });
+      expect(stage.snapshot().diagnostics).toEqual([]);
+      stage.dispose();
+      await stage.whenDisposed();
+      expect(bridge.unloads).toBe(1);
+    });
+
+    it.each([
+      ['takes it', () => true],
+      ['does not say', () => undefined],
+    ])('is promised to Unity, once, when the flow %s', async (_name, answer) => {
+      const { bridge, stage } = makeStage();
+      const swings: Array<Parameters<UnityPracticeInputSink['onSwing']>[0]> = [];
+      stage.setInputSink({
+        onSwingStart: vi.fn(),
+        onGestureCancel: vi.fn(),
+        onSwing: (swing) => {
+          swings.push(swing);
+          return answer();
+        },
+      });
+      await mountAndScene(stage);
+      const flight = fixtureFlight({ seed: 'stage-taken-tap' });
+      const released = await bowlAndRelease(stage, bridge, flight);
+      await tap(bridge, released.deliveryId);
+      await spinUntil(() => swings.length === 1);
+      await spinUntil(() => bridge.sent.some((message) => message.type === 'host.provisional_swing'));
+
+      const promised = bridge.sent.filter((message) => message.type === 'host.provisional_swing');
+      expect(promised).toHaveLength(1);
+      expect(promised[0].payload).toMatchObject({ swing: swings[0] });
+      const resolution = await makeResolution(flight, 0, 0, swings[0]);
+      stage.supplyResolution(resolution);
+      await stage.play(resolution.result);
+      expect(bridge.sent.filter((message) => message.type === 'host.result')).toHaveLength(1);
+      expect(bridge.unloads).toBe(0);
+      expect(stage.snapshot().diagnostics).toEqual([]);
+      stage.dispose();
+      await stage.whenDisposed();
+    });
   });
 
   it('re-arms only the next acknowledged delivery and restores a frozen pose after pause/resume', async () => {

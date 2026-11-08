@@ -79,7 +79,8 @@ export interface BallOutcome {
 
 interface SwingWaiter {
   gesture(input: GestureInput): void;
-  normalized(swing: NormalizedSwing | null): void;
+  /** Whether the swing is the ball's swing (it began no later than the leave deadline); the ball settles either way. */
+  normalized(swing: NormalizedSwing | null): boolean;
   interrupt(): void;
 }
 
@@ -424,7 +425,11 @@ export class DeliveryRunner {
           }
         },
         // Native input is normalized exactly once by UnityPracticeSessionCoordinator.
-        normalized: (swing) => finish(swing && !startedInTime(swing) ? null : swing),
+        normalized: (swing) => {
+          const counts = swing !== null && startedInTime(swing);
+          finish(counts ? swing : null);
+          return counts;
+        },
         interrupt: () => finish(null),
       };
       if (injected && injected !== 'leave' && injectedStart !== null && injectedStart <= deadline) {
@@ -444,17 +449,19 @@ export class DeliveryRunner {
     });
   }
 
-  private acceptNativeInput(event: PendingNativeInput): void {
+  /** Whether the flow took the event; for a swing, whether it is this ball's swing (see StageInputSink.onSwing). */
+  private acceptNativeInput(event: PendingNativeInput): boolean {
     if (this.waiter) {
       if (event.type === 'start') this.onSwingStart(event.atPerfMs, event.pointer);
       else if (event.type === 'cancel') this.onGestureCancel();
-      else this.waiter.normalized(event.swing);
-      return;
+      else return this.waiter.normalized(event.swing);
+      return true;
     }
     // Before release or after resolution input is inert. `runup` is the narrow hand-off window in which Unity has
     // released the ball but the JavaScript continuation has not yet installed its waiter.
-    if (this.core.getState().phase !== 'runup') return;
-    if (this.pendingNativeInput.length < 8) this.pendingNativeInput.push(event);
+    if (this.core.getState().phase !== 'runup' || this.pendingNativeInput.length >= 8) return false;
+    this.pendingNativeInput.push(event);
+    return true;
   }
 
   /** The offset of one input modality: the armed delivery's, else read from storage (between deliveries). */

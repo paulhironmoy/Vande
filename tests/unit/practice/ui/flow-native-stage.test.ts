@@ -34,6 +34,8 @@ class NativeInputStage extends FakeStage {
   readonly readyPresentation: boolean[] = [];
   readonly deadBallUi: StageDeadBallUi[] = [];
   readonly scenes: StageScene[] = [];
+  /** What the flow answered to each native swing: true when it took the swing as the ball's swing, false when not. */
+  readonly swingAnswers: Array<boolean | void> = [];
 
   constructor(
     store: ReturnType<typeof memoryStore>,
@@ -74,7 +76,7 @@ class NativeInputStage extends FakeStage {
         return;
       }
       this.sink?.onSwingStart(released.releasePerfMs + 380, 'touch');
-      this.sink?.onSwing(this.nativeSwing);
+      this.swingAnswers.push(this.sink?.onSwing(this.nativeSwing));
     };
     // Both schedules are legal: multiple native messages can be delivered before the promise continuation created
     // by the release message gets a turn.
@@ -522,6 +524,51 @@ describe('native Practice-stage integration', () => {
     stage.sink?.onDeadBallAction?.('next_ball');
     stage.sink?.onDeadBallAction?.('next_ball');
     expect(next).toHaveBeenCalledTimes(1);
+    flow.dispose();
+  });
+
+  it('tells the native stage the flow took a swing that began before the leave deadline', async () => {
+    const store = nativeStore();
+    const nativeSwing = attack(0.64, 18);
+    const stage = new NativeInputStage(store, nativeSwing);
+    const { flow } = setup({
+      store,
+      deps: { createStage: async () => stage, benchmark: async () => qualifiedNativeAssessment() },
+    });
+
+    flow.init();
+    flow.prepareOver({ kind: 'random' });
+    await until(() => flow.getState().stageReady);
+    void flow.play();
+    await until(() => flow.getState().phase === 'dead');
+
+    expect(stage.swingAnswers).toEqual([true]);
+    expect(flow.getState().last?.record.swing).toEqual(nativeSwing);
+    flow.dispose();
+  });
+
+  it('tells the native stage the flow did not take a swing that began after the leave deadline: the ball is a leave (FA-3)', async () => {
+    const store = nativeStore();
+    // Far past the ball's arrival at the stumps and the grace after it, as a tap about 1.2 s after release is for the
+    // first ball of a Random Over. The stage must not promise this swing to its renderer: the result is a leave.
+    const lateSwing: NormalizedSwing = { ...attack(0.64, 18), startT: 5 };
+    const stage = new NativeInputStage(store, lateSwing);
+    const { flow, engine } = setup({
+      store,
+      deps: { createStage: async () => stage, benchmark: async () => qualifiedNativeAssessment() },
+    });
+    const resolve = vi.spyOn(engine, 'resolveDelivery');
+
+    flow.init();
+    flow.prepareOver({ kind: 'random' });
+    await until(() => flow.getState().stageReady);
+    void flow.play();
+    await until(() => flow.getState().phase === 'dead');
+
+    expect(stage.swingAnswers).toEqual([false]);
+    expect(resolve.mock.calls.at(-1)?.[0].swing).toBeNull();
+    expect(flow.getState().last?.record.swing).toBeNull();
+    expect(stage.resolutions[0].record.swing).toBeNull();
     flow.dispose();
   });
 

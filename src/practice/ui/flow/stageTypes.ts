@@ -82,7 +82,11 @@ export interface StageDeliveryContext {
 export interface StageInputSink {
   onSwingStart(atPerfMs: number, pointer: GestureInput['pointer']): void;
   onGestureCancel(): void;
-  onSwing(swing: NormalizedSwing | null): void;
+  /**
+   * False when the flow did not take the swing as this ball's swing: it began after the leave deadline (the ball is a
+   * leave) or the ball is already settled. A native stage promises its renderer only a swing the flow took.
+   */
+  onSwing(swing: NormalizedSwing | null): boolean | void;
   /** Native HUD pause. During a live ball the flow settles a leave before pausing, so it cannot be exploited. */
   onPauseRequest?(): void;
   /** A validated native dead-ball choice. TypeScript remains the sole gameplay authority. */

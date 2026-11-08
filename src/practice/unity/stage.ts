@@ -84,8 +84,11 @@ function coachDemonstrationMatchesResult(option: CoachOption, result: DeliveryRe
 export interface UnityPracticeInputSink {
   onSwingStart(atPerfMs: number, pointer: GestureInput['pointer']): void;
   onGestureCancel(): void;
-  /** Already normalized once by the authoritative TypeScript input module; never normalize it again. */
-  onSwing(swing: NormalizedSwing | null): void;
+  /**
+   * Already normalized once by the authoritative TypeScript input module; never normalize it again. False means the
+   * flow did not take it as the ball's swing (it began after the leave deadline, or the ball is already settled).
+   */
+  onSwing(swing: NormalizedSwing | null): boolean | void;
   onPauseRequest?(): void;
   onDeadBallAction?(action: UnityPracticeDeadBallAction): void;
 }
@@ -1038,14 +1041,17 @@ export class UnityPracticeStage implements PracticeStageLike {
       case 'gesture': {
         const active = this.active;
         if (!active || active.id !== event.deliveryId) return;
-        if (event.swing) {
+        // A provisional swing promises Unity the ball's swing: the contract (and Unity) refuse a result whose record
+        // carries any other, which fails the whole runtime closed. Only the flow knows whether a swing counts (one that
+        // began after the leave deadline is a leave), so it answers first and a swing it did not take is never promised.
+        const taken = this.inputSink?.onSwing(event.swing);
+        if (event.swing && taken !== false) {
           void this.coordinator?.sendProvisionalSwing(event.deliveryId, {
             atPerfMs: this.simToPerf(event.swing.startT),
             calibrationMs: 0,
             swing: event.swing,
           });
         }
-        this.inputSink?.onSwing(event.swing);
         return;
       }
       case 'protected_regions':
