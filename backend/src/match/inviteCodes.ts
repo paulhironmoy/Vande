@@ -20,7 +20,7 @@ import { SQL } from '../storage/sql';
 export const INVITE_CODE_GONE = 'this invite link has expired or is not valid';
 
 /** 10 base32 characters from 56 random bits (the first 50 are kept). */
-export function newInviteCode(): string {
+function newInviteCode(): string {
   return toBase32(randomBytes(7)).slice(0, 10);
 }
 

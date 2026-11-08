@@ -27,14 +27,14 @@ export interface PublicKeyRecord {
 }
 
 /** Uncompressed public point of a P-256 JWK, as hex. */
-export function publicHexOfJwk(jwk: JsonWebKey): string {
+function publicHexOfJwk(jwk: JsonWebKey): string {
   const x = fromBase64Url(jwk.x ?? '');
   const y = fromBase64Url(jwk.y ?? '');
   if (!x || !y || x.length !== 32 || y.length !== 32) throw new Error('bad P-256 coordinates');
   return `04${toHex(x)}${toHex(y)}`;
 }
 
-export async function keyIdOf(publicHex: string): Promise<string> {
+async function keyIdOf(publicHex: string): Promise<string> {
   const raw = fromHex(publicHex);
   if (!raw) throw new Error('bad public key');
   return toHex((await sha256(raw)).slice(0, 4));

@@ -4,8 +4,8 @@
  */
 import type { DailyView, MatchView, PlayerRef } from '@/contracts';
 
-export type MatchStatus = 'invite' | 'lock' | 'sealed_waiting' | 'bat' | 'batted_waiting' | 'reveal_at' | 'reveal_ready' | 'rematch_offer' | 'replay' | 'expired';
-export type CardTone = 'action' | 'waiting' | 'ready' | 'done' | 'expired';
+type MatchStatus = 'invite' | 'lock' | 'sealed_waiting' | 'bat' | 'batted_waiting' | 'reveal_at' | 'reveal_ready' | 'rematch_offer' | 'replay' | 'expired';
+type CardTone = 'action' | 'waiting' | 'ready' | 'done' | 'expired';
 
 export interface MatchCardModel {
   matchId: string;

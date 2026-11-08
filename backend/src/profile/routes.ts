@@ -366,7 +366,7 @@ function newGroupCode(): string {
 }
 
 /** "ABCDE-FGHJK" for display; stored and compared without the hyphen. */
-export function formatGroupCode(code: string): string {
+function formatGroupCode(code: string): string {
   return `${code.slice(0, 5)}-${code.slice(5)}`;
 }
 

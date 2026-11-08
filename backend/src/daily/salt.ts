@@ -13,7 +13,7 @@ import { hmac, hmacKeyFor } from '../security/crypto';
 import { toHex, utf8 } from '../security/encoding';
 import { dailySaltKey } from '../security/secrets';
 
-export const DAILY_SALT_GENERATION = 1;
+const DAILY_SALT_GENERATION = 1;
 
 export async function dailySalt(env: Env, log: Logger): Promise<string> {
   const key = dailySaltKey(env, log);

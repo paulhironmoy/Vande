@@ -61,7 +61,7 @@ export const COMMENTARY_KEYS: readonly string[] = [
 ];
 
 /** Expected further runs per remaining ball with two / one wickets in hand (from the balance simulation). */
-export const EXPECTED_RUNS_PER_BALL: Record<1 | 2, number> = { 2: 1.9, 1: 1.6 };
+const EXPECTED_RUNS_PER_BALL: Record<1 | 2, number> = { 2: 1.9, 1: 1.6 };
 /** Expected Super Ball runs (presentation of the projected margin only). */
 const EXPECTED_SUPER_BALL = 1.8;
 

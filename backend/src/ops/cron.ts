@@ -20,14 +20,14 @@ import { pacificDay } from '../highlights/quota';
  * attempt object keeps its replay 30 days after its reveal and account deletion finds the objects through these rows.
  * Scores and their histogram 90 days (boards show 30).
  */
-export const DAILY_ATTEMPT_RETENTION_DAYS = 32;
-export const DAILY_SCORE_RETENTION_DAYS = 90;
+const DAILY_ATTEMPT_RETENTION_DAYS = 32;
+const DAILY_SCORE_RETENTION_DAYS = 90;
 /** Attribution counters (per code per day, no personal data) are kept 400 days. */
-export const ATTRIBUTION_RETENTION_DAYS = 400;
+const ATTRIBUTION_RETENTION_DAYS = 400;
 /** Closed highlight jobs (declined, rejected, removed) and their consent and moderation records: 400 days. */
-export const HIGHLIGHT_RETENTION_DAYS = 400;
+const HIGHLIGHT_RETENTION_DAYS = 400;
 /** The share cap's records (who opened which moment of which match or cup): 90 days, longer than any match or cup. */
-export const SHARE_MOMENT_RETENTION_DAYS = 90;
+const SHARE_MOMENT_RETENTION_DAYS = 90;
 
 export const CLEANUP_CRON = '17 21 * * *';
 export const DAILY_CUTOFF_CRON = '30 18 * * *';

@@ -1,7 +1,7 @@
 import { ANALYTICS_PROP_KEYS, type AnalyticsProps } from './types';
 import { PROP_RULES } from './events';
 
-export const MAX_VALUE_LENGTH = 32;
+const MAX_VALUE_LENGTH = 32;
 
 /** True when the browser asks not to be tracked (Do Not Track or Global Privacy Control). */
 export function privacySignalBlocks(nav: Partial<Navigator> & { globalPrivacyControl?: boolean } = typeof navigator !== 'undefined' ? navigator : {}): boolean {

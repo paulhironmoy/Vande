@@ -1,5 +1,5 @@
 /**
- * Module resolution for running the TypeScript engine directly on Node (>= 23.6 strips types natively): maps the
+ * Module resolution for running the TypeScript engine directly on Node (22.18+ and 23.6+ strip types natively): maps the
  * `@/` alias to `src/` and resolves extensionless relative imports to `.ts` / `index.ts`, like Vite does.
  * Import this file first, then load TypeScript modules with a dynamic `import()`.
  */

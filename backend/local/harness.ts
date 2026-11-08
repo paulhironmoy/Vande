@@ -162,12 +162,12 @@ export async function createLocalBackend(opts: LocalBackendOptions = {}): Promis
     mode === 'bindings'
       ? Object.fromEntries(Object.entries(limits).map(([name, limit]) => [name, new MemoryRateLimiter(limit, clock)]))
       : {};
-  let env: Env;
   const background = new BackgroundWork();
+  // The namespaces read env lazily (when an object is first used), so they may be built before it.
   const matches = new MemoryDONamespace(app.MatchDO, () => env, background);
   const cups = new MemoryDONamespace(app.CupDO, () => env, background);
   const rooms = new MemoryDONamespace(app.RoomDO, () => env, background);
-  env = {
+  const env: Env = {
     DB: db,
     MATCH: matches,
     CUP: cups,

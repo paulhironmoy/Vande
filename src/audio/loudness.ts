@@ -8,8 +8,8 @@
  * Pure functions over Float32Array channels: no Web Audio, so it runs in tests, in Node and in a worker.
  */
 
-export const TARGET_LUFS = -14;
-export const CEILING_DBTP = -1;
+const TARGET_LUFS = -14;
+const CEILING_DBTP = -1;
 
 export interface LoudnessReport {
   /** Integrated loudness, LUFS (-Infinity for silence). */
@@ -153,7 +153,7 @@ const PHASES: Float64Array[] = (() => {
 })();
 
 /** Per input sample, the largest reconstructed magnitude in [k, k+1) across channels (linked). */
-export function truePeakEnvelope(channels: readonly Float32Array[]): Float32Array {
+function truePeakEnvelope(channels: readonly Float32Array[]): Float32Array {
   const n = channels[0]?.length ?? 0;
   const env = new Float32Array(n);
   for (const x of channels) {

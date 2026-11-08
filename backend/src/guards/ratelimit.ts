@@ -31,16 +31,16 @@ export type RateScope =
   | 'day-notify';
 
 /** A window's start minute in base 36, six characters, so bucket keys sort by time and cleanup deletes a key range. */
-export function windowPrefix(ms: number): string {
+function windowPrefix(ms: number): string {
   return Math.floor(ms / MINUTE_MS).toString(36).padStart(6, '0');
 }
 
-export async function bucketKey(key: string, salt: string, windowStart: number, scope: RateScope): Promise<string> {
+async function bucketKey(key: string, salt: string, windowStart: number, scope: RateScope): Promise<string> {
   return `${windowPrefix(windowStart)}:${(await sha256Hex(`${salt}:${scope}:${key}:${windowStart}`)).slice(0, 32)}`;
 }
 
 /** D1 fallback: bumps the window's bucket and reports whether the count is still within `limit`. */
-export async function checkRateLimit(db: D1Like, key: string, salt: string, limit: number, now: number, scope: RateScope, windowMs = MINUTE_MS): Promise<{ allowed: boolean; count: number }> {
+async function checkRateLimit(db: D1Like, key: string, salt: string, limit: number, now: number, scope: RateScope, windowMs = MINUTE_MS): Promise<{ allowed: boolean; count: number }> {
   const windowStart = Math.floor(now / windowMs) * windowMs;
   const bucket = await bucketKey(key, salt, windowStart, scope);
   const row = await db.prepare(SQL.bumpBucket).bind(bucket, windowStart).first<{ count: number }>();

@@ -78,7 +78,7 @@ function RivalryLine({ rivalry, name }: { rivalry: Rivalry | null; name: string 
 }
 
 /** A commit hash as proof that an over is sealed (shortened, copyable, explained). */
-export function SealProof({ hash, label }: { hash: string; label: string }) {
+function SealProof({ hash, label }: { hash: string; label: string }) {
   const { t } = useT();
   const toast = useApp((st) => st.toast);
   return (

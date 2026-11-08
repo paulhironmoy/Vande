@@ -27,7 +27,7 @@ export function engineRegistry(engines: readonly SealedSixEngineApi[]): EngineRe
 }
 
 /** What the engine's `timingAudit` reports for one innings. */
-export interface TimingAuditResult {
+interface TimingAuditResult {
   taps: number;
   bullseyes: number;
   meanAbsErrorMs: number;

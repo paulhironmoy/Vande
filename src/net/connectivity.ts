@@ -5,7 +5,7 @@
  */
 
 /** The bits of `window` / `document` used here (structural, so tests can pass fakes). */
-export interface EventSourceLike {
+interface EventSourceLike {
   addEventListener(type: string, listener: () => void): void;
   removeEventListener(type: string, listener: () => void): void;
 }
@@ -28,7 +28,7 @@ export interface Connectivity {
   stop(): void;
 }
 
-export const FAILURES_BEFORE_OFFLINE = 2;
+const FAILURES_BEFORE_OFFLINE = 2;
 
 export function startConnectivity(o: ConnectivityOptions): Connectivity {
   const target = o.target ?? (typeof window !== 'undefined' ? window : undefined);

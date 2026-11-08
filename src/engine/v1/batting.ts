@@ -75,8 +75,8 @@ export function validateBattingInput(input: BattingInput, delivery: RevealedDeli
  * contact moment to within a few milliseconds ball after ball; a client that reads the revealed timing and taps
  * automatically does. `suspicious` when at least `SUPERHUMAN_TAPS` taps land within ±`SUPERHUMAN_TAP_MS` of ideal.
  */
-export const SUPERHUMAN_TAP_MS = 3;
-export const SUPERHUMAN_TAPS = 5;
+const SUPERHUMAN_TAP_MS = 3;
+const SUPERHUMAN_TAPS = 5;
 export function timingAudit(pairs: ReadonlyArray<{ input: BattingInput; delivery: RevealedDelivery }>): { taps: number; bullseyes: number; meanAbsErrorMs: number; suspicious: boolean } {
   let taps = 0;
   let bullseyes = 0;

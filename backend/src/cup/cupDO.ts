@@ -37,7 +37,7 @@ export interface CupDeps {
   metrics: Metrics;
 }
 
-export interface CupObject {
+interface CupObject {
   fetch(request: Request): Promise<Response>;
   alarm(): Promise<void>;
 }

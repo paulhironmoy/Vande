@@ -15,9 +15,9 @@ import { requireAccount } from '../profile/model';
 import { isIsoDay, istDay } from '../time';
 
 const SCOPES: readonly LeaderboardScope[] = ['national', 'city', 'college', 'company', 'friends'];
-export const LEADERBOARD_SIZE = 100;
+const LEADERBOARD_SIZE = 100;
 /** How far back a leaderboard can be read (days). */
-export const LEADERBOARD_HISTORY_DAYS = 30;
+const LEADERBOARD_HISTORY_DAYS = 30;
 
 interface Row {
   uid: string;

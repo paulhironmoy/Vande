@@ -88,8 +88,8 @@ export class MemoryMetrics implements Metrics {
  * High-volume counters are written to Analytics Engine for 1 in SAMPLE_EVERY events with the weight SAMPLE_EVERY (an
  * unbiased estimate at a tenth of the data points); everything else is written every time.
  */
-export const SAMPLED: ReadonlySet<MetricName> = new Set(['request', 'ball_revealed', 'ball_resolved', 'idempotent_replay', 'refresh_rotated']);
-export const SAMPLE_EVERY = 10;
+const SAMPLED: ReadonlySet<MetricName> = new Set(['request', 'ball_revealed', 'ball_resolved', 'idempotent_replay', 'refresh_rotated']);
+const SAMPLE_EVERY = 10;
 
 export function analyticsEngineMetrics(dataset: AnalyticsEngineLike | undefined, fallback: Metrics, random: () => number = Math.random): Metrics {
   if (!dataset) return fallback;

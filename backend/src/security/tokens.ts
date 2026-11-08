@@ -118,7 +118,7 @@ export async function verifyBallToken(ring: Keyring, token: unknown): Promise<Ba
 // Invite tokens (compact so WhatsApp links stay short): 38-byte payload + 16-byte MAC → 74 characters.
 // ---------------------------------------------------------------------------------------------------------------
 
-export type InviteKind = 'duel' | 'cup';
+type InviteKind = 'duel' | 'cup';
 const KIND_BYTE: Record<InviteKind, number> = { duel: 1, cup: 2 };
 const INVITE_VERSION = 1;
 

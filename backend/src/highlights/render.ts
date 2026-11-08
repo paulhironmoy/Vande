@@ -24,18 +24,18 @@ import { JOB_ID_RE, videoKeyFor, type JobRow } from './model';
 import { getJob, scheduleUpload } from './pipeline';
 import { HSQL } from './sql';
 
-export const RENDER_LEASE_MS = 20 * MINUTE_MS;
-export const RENDER_MAX_ATTEMPTS = 3;
-export const MAX_VIDEO_BYTES = 95 * 1024 * 1024;
+const RENDER_LEASE_MS = 20 * MINUTE_MS;
+const RENDER_MAX_ATTEMPTS = 3;
+const MAX_VIDEO_BYTES = 95 * 1024 * 1024;
 const CLOCK_WINDOW_MS = 5 * MINUTE_MS;
 const NONCE_RE = /^[A-Za-z0-9-]{16,64}$/;
 
-export function renderCanonical(method: string, path: string, ts: string, nonce: string, bodySha256: string): string {
+function renderCanonical(method: string, path: string, ts: string, nonce: string, bodySha256: string): string {
   return `${method.toUpperCase()}\n${path}\n${ts}\n${nonce}\n${bodySha256}`;
 }
 
 /** Verifies a signed render-service request. `bodyHash` is the hash of the JSON body (null: the header is used). */
-export async function verifyInternal(ctx: RequestContext, bodyHash: string | null): Promise<void> {
+async function verifyInternal(ctx: RequestContext, bodyHash: string | null): Promise<void> {
   const ring = parseKeyring(ctx.env.RENDER_KEYS);
   if (!ring) {
     warnOnce(ctx.deps.logger, 'RENDER_KEYS', 'RENDER_KEYS is missing or malformed; the render API is disabled');

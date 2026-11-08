@@ -31,7 +31,7 @@ export type AuditAction =
   | 'admin_action'
   | 'admin_report';
 
-export const SQL_INSERT_AUDIT = 'INSERT INTO audit_log (at_ms, actor_ref, action, target, detail) VALUES (?1, ?2, ?3, ?4, ?5)';
+const SQL_INSERT_AUDIT = 'INSERT INTO audit_log (at_ms, actor_ref, action, target, detail) VALUES (?1, ?2, ?3, ?4, ?5)';
 
 export async function actorRef(uid: string): Promise<string> {
   return (await sha256Hex(`audit:${uid}`)).slice(0, 16);

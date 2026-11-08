@@ -103,7 +103,7 @@ export function sha256Words(data: Uint8Array): Uint32Array {
 }
 
 /** Lowercase hex of a SHA-256 digest given as words. */
-export function wordsToHex(words: Uint32Array): string {
+function wordsToHex(words: Uint32Array): string {
   let s = '';
   for (let i = 0; i < words.length; i++) s += (words[i] >>> 0).toString(16).padStart(8, '0');
   return s;

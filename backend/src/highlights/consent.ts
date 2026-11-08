@@ -111,7 +111,7 @@ export async function withdrawConsent(ctx: RequestContext): Promise<Reply> {
  * before it publishes; scheduling refuses the job. A compare-and-swap that loses the race re-reads the job and acts on
  * what it is now, and anything still moving is left to the uploader and the sweeper, which remove it.
  */
-export async function applyWithdrawal(env: Env, deps: WorkerDeps, row: JobRow, reason: string): Promise<void> {
+async function applyWithdrawal(env: Env, deps: WorkerDeps, row: JobRow, reason: string): Promise<void> {
   await env.DB.prepare(HSQL.markWithdraw).bind(row.job_id, deps.now()).run();
   let current: JobRow | null = { ...row, withdraw_pending: 1 };
   for (let i = 0; i < 4 && current; i++) {

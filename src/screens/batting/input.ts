@@ -40,7 +40,7 @@ function trimmed(g: Gesture): InputTrace {
 }
 
 /** The evidence trace for a chosen zone: the full swipe when it agrees with the zone, else the release as a tap. */
-export function traceFor(g: Gesture | null, zone: FieldZone | null): InputTrace {
+function traceFor(g: Gesture | null, zone: FieldZone | null): InputTrace {
   if (!g || g.samples.length === 0) return { pointer: 'touch', samples: [] };
   const swiped = swipeZone(g);
   if (!zone || !swiped || sectorDistance(swiped, zone) <= 1) return trimmed(g);

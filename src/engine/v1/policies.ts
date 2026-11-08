@@ -116,7 +116,7 @@ export function battingInputFor(rng: Sfc32, delivery: RevealedDelivery, shot: Sh
 }
 
 /** Tap time for a batter with timing spread `sigma` (and a bias, negative = early). */
-export function tapFor(rng: Sfc32, delivery: RevealedDelivery, sigma: number, bias = 0): number {
+function tapFor(rng: Sfc32, delivery: RevealedDelivery, sigma: number, bias = 0): number {
   return delivery.timing.releaseToContactMs + bias + rng.normal() * sigma;
 }
 

@@ -21,7 +21,7 @@ import type { JobRow } from './model';
 import { HSQL } from './sql';
 import { fixtureLabel, highlightDescription, highlightTitle, safeAlias } from './templates';
 
-export const CONSENT_WINDOW_MS = 48 * HOUR_MS;
+const CONSENT_WINDOW_MS = 48 * HOUR_MS;
 
 /** A day's result row joined with both accounts (HSQL.dayResults). */
 export interface DayResultRow {
@@ -92,12 +92,12 @@ export function highlightTexts(
 }
 
 /** Deterministic, so a cutoff that runs twice writes the same rows (and the second write is a no-op). */
-export async function jobIdFor(day: string, matchId: string): Promise<string> {
+async function jobIdFor(day: string, matchId: string): Promise<string> {
   return `j${toBase32(await sha256(`vande/job|${day}|${matchId}`)).slice(0, 26)}`;
 }
 
 /** Short public code (https://<web>/h/<code>), keyed so it cannot be derived from the match id alone. */
-export async function codeFor(env: Env, deps: WorkerDeps, day: string, matchId: string): Promise<string> {
+async function codeFor(env: Env, deps: WorkerDeps, day: string, matchId: string): Promise<string> {
   const key = await hmacKeyFor(utf8(identityPepper(env, deps.logger)), 'pepper', 'highlight');
   return toBase32(await hmac(key, `code|${day}|${matchId}`)).slice(0, 10);
 }

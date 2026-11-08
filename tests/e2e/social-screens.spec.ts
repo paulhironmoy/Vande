@@ -158,7 +158,9 @@ const PENDING = job(`j${'p'.repeat(26)}`, 'pending_consent');
 
 // ---- mocked API -----------------------------------------------------------------------------------------------------
 
-type Req = { method: string; path: string; params: Record<string, string>; query: URLSearchParams; body: any };
+/** A request body as the app posted it (JSON); the handlers read only the fields of the routes that take one. */
+type Body = Record<string, unknown>;
+type Req = { method: string; path: string; params: Record<string, string>; query: URLSearchParams; body: Body };
 type Reply = { status: number; json?: unknown; headers?: Record<string, string> };
 type Handler = (req: Req) => unknown;
 const reply = (status: number, json?: unknown, headers?: Record<string, string>): Reply & { __reply: true } => ({ __reply: true, status, json, headers });
@@ -173,11 +175,11 @@ const DEFAULTS: Record<string, Handler> = {
 };
 
 interface Mock {
-  calls: Array<{ key: string; path: string; body: any }>;
+  calls: Array<{ key: string; path: string; body: Body | null }>;
   unmocked: string[];
   thirdParty: string[];
   count(key: string): number;
-  last(key: string): { key: string; path: string; body: any } | undefined;
+  last(key: string): { key: string; path: string; body: Body | null } | undefined;
 }
 
 async function mockApi(page: Page, handlers: Record<string, Handler> = {}): Promise<Mock> {
@@ -217,14 +219,14 @@ async function mockApi(page: Page, handlers: Record<string, Handler> = {}): Prom
     }
     const m = hit.re.exec(url.pathname) as RegExpExecArray;
     const params = Object.fromEntries(hit.names.map((n, i) => [n, decodeURIComponent(m[i + 1])]));
-    let body: unknown = null;
+    let body: Body | null = null;
     try {
       body = req.postDataJSON();
     } catch {
       /* no body */
     }
     calls.push({ key: hit.key, path: `${url.pathname}${url.search}`, body });
-    const out = (await hit.h({ method: req.method(), path: url.pathname, params, query: url.searchParams, body })) as (Reply & { __reply?: true }) | unknown;
+    const out = (await hit.h({ method: req.method(), path: url.pathname, params, query: url.searchParams, body: body as Body })) as (Reply & { __reply?: true }) | unknown;
     const r: Reply = out && typeof out === 'object' && (out as { __reply?: true }).__reply ? (out as Reply) : { status: 200, json: out };
     return route.fulfill({ status: r.status, headers: { ...cors, 'content-type': 'application/json', ...(r.headers ?? {}) }, body: r.json === undefined ? '' : JSON.stringify(r.json) });
   });
@@ -448,7 +450,7 @@ test('leaderboards: five boards, my pinned row, a city from the fixed list and p
     'GET /v1/me': () => profile,
     'PATCH /v1/me': ({ body }) => (profile = { ...profile, ...body }),
     'GET /v1/leaderboards/:scope': ({ params }) => (params.scope === 'friends' ? board('friends', { entries: [], me: null, total: 0 }) : board(params.scope as LeaderboardView['scope'])),
-    'POST /v1/groups': ({ body }) => ((profile = { ...profile, groups: [{ groupId: 'grp000001', kind: body.kind, name: body.name }] }), { groupId: 'grp000001', code: 'ABCD-EFGH-JK' }),
+    'POST /v1/groups': ({ body }) => ((profile = { ...profile, groups: [{ groupId: 'grp000001', kind: body.kind as Profile['groups'][number]['kind'], name: body.name as string }] }), { groupId: 'grp000001', code: 'ABCD-EFGH-JK' }),
     'POST /v1/report': () => ({ ok: true }),
   });
   await page.goto('/leaderboards/national');
@@ -551,7 +553,7 @@ test('highlight consent: every status, the exact cut, 18+ and a visibility to gr
       return preview(j, j.jobId === PENDING.jobId ? decided : j.status === 'consent_declined' ? 'declined' : 'granted');
     },
     'POST /v1/highlights/:jobId/consent': ({ body, params }) => {
-      decided = body.decision;
+      decided = body.decision as HighlightPreview['myDecision'];
       return { jobId: params.jobId, playerId: 'pme', decision: body.decision, adultConfirmed: body.adultConfirmed, approvedTitle: PENDING.title, approvedVisibility: body.visibility, decidedHour: '2026-10-26T09' };
     },
     'POST /v1/highlights/:jobId/withdraw': ({ params }) => {

@@ -4,9 +4,9 @@
  */
 import type { KitSpec } from '@/contracts';
 
-export const KIT_PALETTE = ['#1E2A78', '#00B8D9', '#FFB020', '#E5484D', '#2EAD5B', '#7C4DFF', '#FF6B9A', '#F5F5F0', '#14161F', '#FF7A1A', '#0E7C86', '#C9A227'] as const;
-export const KIT_PATTERNS: readonly KitSpec['pattern'][] = ['plain', 'stripes', 'hoops', 'chevron', 'sash'];
-export const STARTER_KIT_ID = 'starter';
+const KIT_PALETTE = ['#1E2A78', '#00B8D9', '#FFB020', '#E5484D', '#2EAD5B', '#7C4DFF', '#FF6B9A', '#F5F5F0', '#14161F', '#FF7A1A', '#0E7C86', '#C9A227'] as const;
+const KIT_PATTERNS: readonly KitSpec['pattern'][] = ['plain', 'stripes', 'hoops', 'chevron', 'sash'];
+const STARTER_KIT_ID = 'starter';
 
 /** Avatar seeds: 8–32 lowercase letters and digits (the renderer derives an original face and colours from it). */
 export const AVATAR_SEED_RE = /^[a-z0-9]{8,32}$/;

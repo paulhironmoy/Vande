@@ -16,7 +16,7 @@ import { clamp, hash32 } from './math';
 import { engineBallTimeline } from './engineBridge';
 import { familyOf } from './trajectory';
 
-export type SegmentKind = 'intro' | 'innings_start' | 'ball' | 'innings_end' | 'super_start' | 'result';
+type SegmentKind = 'intro' | 'innings_start' | 'ball' | 'innings_end' | 'super_start' | 'result';
 
 export interface Score {
   runs: number;
@@ -77,7 +77,7 @@ function teamLook(log: MatchEventLog, team: 0 | 1, slot: string, gear: Look['gea
   return { seed: hero ? p.avatar.seed : `${p.id}:${slot}`, team, gear, hero };
 }
 
-export function castFor(log: MatchEventLog, batting: 0 | 1, bowling: 0 | 1, striker: number, nonStriker: number): Cast {
+function castFor(log: MatchEventLog, batting: 0 | 1, bowling: 0 | 1, striker: number, nonStriker: number): Cast {
   const batterLook = (n: number): Look => (n === 0 ? teamLook(log, batting, 'b0', 'batter', true) : teamLook(log, batting, `b${n}`, 'batter'));
   return {
     bowler: teamLook(log, bowling, 'bowler', 'bowler', true),

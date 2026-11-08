@@ -24,7 +24,7 @@ function appVersion(): string {
   }
 }
 
-export function isAllowedApiUrl(url: string): boolean {
+function isAllowedApiUrl(url: string): boolean {
   return /^https:\/\/[a-z0-9.-]+(:\d+)?(\/[^\s]*)?$/i.test(url) || /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(url);
 }
 

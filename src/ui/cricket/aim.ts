@@ -34,7 +34,7 @@ export function legalZones(shot: ShotType): readonly FieldZone[] {
 }
 
 /** Sector 0-7 clockwise from straight up (x right, y down) using the engine's exact comparisons; -1 for no swipe. */
-export function localSectorOf(dx: number, dy: number): number {
+function localSectorOf(dx: number, dy: number): number {
   const X = dx;
   const Y = -dy;
   if (X === 0 && Y === 0) return -1;

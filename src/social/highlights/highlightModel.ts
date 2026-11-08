@@ -30,7 +30,7 @@ export function statusGroup(status: HighlightStatus): StatusGroup {
 }
 
 /** Consent closes 48 hours after the 00:00 IST cutoff that ended the job's day. */
-export const CONSENT_HOURS = 48;
+const CONSENT_HOURS = 48;
 export function consentDeadline(job: Pick<HighlightJob, 'day'>): string {
   return new Date(Date.parse(`${job.day}T18:30:00Z`) + CONSENT_HOURS * 3_600_000).toISOString();
 }

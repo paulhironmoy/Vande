@@ -20,12 +20,12 @@
  * (docs/SECURITY.md). The lists are data, reviewed like code; never echo which word matched.
  */
 
-export const ALIAS_MIN = 3;
+const ALIAS_MIN = 3;
 export const ALIAS_MAX = 20;
-export const GROUP_NAME_MIN = 3;
-export const GROUP_NAME_MAX = 40;
+const GROUP_NAME_MIN = 3;
+const GROUP_NAME_MAX = 40;
 
-export type NameRejection = 'length' | 'characters' | 'contact' | 'reserved' | 'offensive';
+type NameRejection = 'length' | 'characters' | 'contact' | 'reserved' | 'offensive';
 export type NameCheck = { ok: true; value: string } | { ok: false; reason: NameRejection };
 
 const SUBSTRING_ROOTS = [
@@ -120,7 +120,7 @@ const HAS_LETTER_RE = /\p{L}/u;
 const SEPARATORS_RE = /[\s_.'&(),-]+/u;
 
 /** NFKC, joiners removed, trimmed, inner whitespace collapsed to one space. */
-export function tidyName(input: string): string {
+function tidyName(input: string): string {
   return input.normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g, '').trim().replace(/\s+/g, ' ');
 }
 
@@ -205,7 +205,7 @@ export function checkGroupName(input: unknown): NameCheck {
   return checkName(input, GROUP_NAME_MIN, GROUP_NAME_MAX, GROUP_ALLOWED_RE);
 }
 
-export const MESSAGE_MAX = 140;
+const MESSAGE_MAX = 140;
 const MESSAGE_ALLOWED_RE = /^[\p{L}\p{M}\p{Nd}\p{Zs} _.,!?'"&():;+-]+$/u;
 
 /** Free-text room messages (only when a deployment enables them): same filters, a little more punctuation. */

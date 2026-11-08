@@ -47,9 +47,9 @@ export interface YouTubePublisher {
   statistics(videoIds: readonly string[]): Promise<Map<string, number>>;
 }
 
-export const UPLOAD_SESSION_PREFIX = 'https://www.googleapis.com/upload/youtube/v3/videos?';
+const UPLOAD_SESSION_PREFIX = 'https://www.googleapis.com/upload/youtube/v3/videos?';
 
-export function isYouTubeSessionUri(uri: string): boolean {
+function isYouTubeSessionUri(uri: string): boolean {
   if (!uri.startsWith(UPLOAD_SESSION_PREFIX)) return false;
   try {
     const u = new URL(uri);

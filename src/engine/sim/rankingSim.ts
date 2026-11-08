@@ -9,7 +9,7 @@ import { rankTop100, top100DayScore, type Top100MatchInput, type Top100PlayerDay
 import { engineV1 as engine } from '../v1';
 import { hexSeed, playMatch, type SimPlayer } from './harness';
 
-export const RANK_TYPES: Record<string, SimPlayer & { rating: number }> = {
+const RANK_TYPES: Record<string, SimPlayer & { rating: number }> = {
   skilled: { bat: { strategy: 'oracle', skill: 'skilled' }, bowl: { strategy: 'starter_mix', skill: 'skilled' }, rating: 1400 },
   average: { bat: { strategy: 'heuristic', skill: 'average' }, bowl: { strategy: 'starter_mix', skill: 'average' }, rating: 1200 },
   casual: { bat: { strategy: 'heuristic', skill: 'unskilled' }, bowl: { strategy: 'random', skill: 'unskilled' }, rating: 1050 },
@@ -20,7 +20,7 @@ export const RANK_TYPES: Record<string, SimPlayer & { rating: number }> = {
 };
 export const HONEST = ['skilled', 'average', 'casual'] as const;
 
-export interface PoolRecord {
+interface PoolRecord {
   result: 'won' | 'lost' | 'tied';
   perf: { tacticalEfficiency: number; clutch: number; execution: number };
   oppPerf: { tacticalEfficiency: number; clutch: number; execution: number };
@@ -83,7 +83,7 @@ function pickOpp(rng: Sfc32): string {
 }
 
 /** `n` honest matches for a player of `type` against random honest opponents. */
-export function honestDay(pool: Pool, type: string, n: number, rng: Sfc32, day: string, startOrder = 0): Top100MatchInput[] {
+function honestDay(pool: Pool, type: string, n: number, rng: Sfc32, day: string, startOrder = 0): Top100MatchInput[] {
   const out: Top100MatchInput[] = [];
   for (let k = 0; k < n; k++) {
     const opp = pickOpp(rng);

@@ -17,15 +17,15 @@ export const TIMING_PROPS: readonly TimingProp[] = ['early', 'on_time', 'late', 
 export const INTENT_MATCHES: readonly IntentMatch[] = ['on_target', 'near', 'off_target', 'none'];
 export const LATENCY_BUCKETS: readonly LatencyBucket[] = ['<50ms', '50-70ms', '70-100ms', '>100ms'];
 export const TTFD_BUCKETS: readonly TtfdBucket[] = ['<5s', '5-10s', '10-20s', '>20s'];
-export const OUTCOME_PROPS: readonly OutcomeProp[] = ['dot', 'runs', 'four', 'six', 'out'];
+const OUTCOME_PROPS: readonly OutcomeProp[] = ['dot', 'runs', 'four', 'six', 'out'];
 export const CONTACT_KINDS: readonly ContactKind[] = ['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge', 'pad', 'body', 'miss', 'leave'];
 /** Timing-error histogram: 25 ms bins from −200 to +200 ms, plus one bin each side for anything beyond. */
-export const TIMING_BIN_MS = 25;
-export const TIMING_RANGE_MS = 200;
+const TIMING_BIN_MS = 25;
+const TIMING_RANGE_MS = 200;
 export const TIMING_BINS = (2 * TIMING_RANGE_MS) / TIMING_BIN_MS + 2;
 /** Intended direction within this many degrees of the actual exit direction is on target; within NEAR is near. */
-export const INTENT_ON_TARGET_DEG = 15;
-export const INTENT_NEAR_DEG = 35;
+const INTENT_ON_TARGET_DEG = 15;
+const INTENT_NEAR_DEG = 35;
 
 export function ttfdBucket(ms: number): TtfdBucket {
   return ms < 5000 ? '<5s' : ms < 10000 ? '5-10s' : ms < 20000 ? '10-20s' : '>20s';

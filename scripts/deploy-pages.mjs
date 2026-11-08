@@ -52,7 +52,7 @@ writeFileSync(join(outDir, 'VERSION.txt'), `vande ${version} source ${sourceSha}
 
 // Prepare a worktree on gh-pages (existing history) or an orphan branch.
 const wt = mkdtempSync(join(tmpdir(), 'vande-gh-pages-'));
-let remoteExists = false;
+let remoteExists;
 try {
   sh(`git fetch origin ${BRANCH}`);
   remoteExists = true;

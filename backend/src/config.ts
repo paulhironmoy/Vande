@@ -48,10 +48,10 @@ function num(raw: string | undefined, fallback: number, min: number, max: number
 }
 
 /** IPv6 prefix that counts as one network for anonymous routes (sign-up, invite lookups, public pages). */
-export type AnonV6Prefix = 48 | 56 | 64;
+type AnonV6Prefix = 48 | 56 | 64;
 
 /** "60-600" (seconds, a range) or "0" (off; local development and tests): the activity jitter, see below. */
-export function parseJitter(raw: string | undefined): { minMs: number; maxMs: number } {
+function parseJitter(raw: string | undefined): { minMs: number; maxMs: number } {
   const m = /^\s*(\d{1,5})(?:\s*-\s*(\d{1,5}))?\s*$/.exec(raw ?? '');
   if (!m) return { minMs: 60_000, maxMs: 600_000 };
   const lo = Number(m[1]) * 1000;

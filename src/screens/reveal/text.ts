@@ -7,7 +7,7 @@ import type { MessageKey, Translator } from '@/i18n';
 
 type Params = Record<string, string | number | undefined>;
 
-export function resolveParams(params: Params | undefined, log: MatchEventLog, t: Translator): Record<string, string | number> {
+function resolveParams(params: Params | undefined, log: MatchEventLog, t: Translator): Record<string, string | number> {
   const out: Record<string, string | number> = {};
   if (!params) return out;
   for (const [k, v] of Object.entries(params)) {

@@ -30,9 +30,9 @@ export const UNLOCKS: Readonly<Record<UnlockableVariant, UnlockAchievement>> = {
   legspin: 'spin_wicket',
 };
 /** Official matches the server reveals: only these count towards unlocks. */
-export const UNLOCK_MATCH_KINDS: readonly MatchKind[] = ['duel', 'cup'];
+const UNLOCK_MATCH_KINDS: readonly MatchKind[] = ['duel', 'cup'];
 /** Most runs a batter may score off the player's over for `tight_over`. */
-export const TIGHT_OVER_RUNS = 6;
+const TIGHT_OVER_RUNS = 6;
 
 /** How a locked delivery is earned (null for a starter). */
 export function unlockHint(variant: DeliveryVariant): AdviceLine | null {

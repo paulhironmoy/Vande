@@ -4,7 +4,7 @@ import { inviteUrl } from '@/net/shared/ids';
 import { minuteIso } from '../http/http';
 
 /** The match as a whole; the per-viewer phase is derived (batting vs awaiting_reveal). */
-export type GlobalPhase = 'open' | 'planning' | 'batting' | 'revealed' | 'expired';
+type GlobalPhase = 'open' | 'planning' | 'batting' | 'revealed' | 'expired';
 
 export interface MatchMeta {
   v: 1;
@@ -96,7 +96,7 @@ export interface CommitState {
   auto: boolean;
 }
 
-export interface Outstanding {
+interface Outstanding {
   ball: number;
   /** Token id inside the signed ball token. */
   tid: string;
@@ -110,7 +110,7 @@ export interface Outstanding {
 /** How a ball was settled: answered in time, a queued answer that arrived late, or never answered. */
 export type AnswerHow = 'live' | 'late' | 'expired' | 'invalid' | 'auto' | 'deadline';
 
-export interface AnsweredBall {
+interface AnsweredBall {
   tid: string | null;
   how: AnswerHow;
   response: ShotResponse;
@@ -164,14 +164,14 @@ export interface LoadedMatch {
 }
 
 /** Whether a seat's lock is visible to the other player and to third parties at `now` (always once the match is over). */
-export function lockVisible(m: LoadedMatch, seat: 0 | 1, now: number): boolean {
+function lockVisible(m: LoadedMatch, seat: 0 | 1, now: number): boolean {
   if (m.commits[seat] === null) return false;
   if (m.meta.phase === 'revealed' || m.meta.phase === 'expired') return true;
   return (m.meta.visibleAt?.lock[seat] ?? 0) <= now;
 }
 
 /** Whether a seat's finished innings is visible to the other player and to third parties at `now`. */
-export function doneVisible(m: LoadedMatch, seat: 0 | 1, now: number): boolean {
+function doneVisible(m: LoadedMatch, seat: 0 | 1, now: number): boolean {
   if (!inningsOver(m.meta.kind, m.inn[seat].state)) return false;
   if (m.meta.phase === 'revealed' || m.meta.phase === 'expired') return true;
   return (m.meta.visibleAt?.done[seat] ?? 0) <= now;
@@ -205,7 +205,7 @@ export function opponentKnown(m: LoadedMatch, viewer: 0 | 1, now: number): { loc
  * lock became visible to them, or their own lock completed the pair. The first locker waits for the jitter, so the
  * moment their phase changes never tells when the opponent locked.
  */
-export function viewerPhase(m: LoadedMatch, seat: 0 | 1, now: number): MatchPhase {
+function viewerPhase(m: LoadedMatch, seat: 0 | 1, now: number): MatchPhase {
   switch (m.meta.phase) {
     case 'open':
       return 'awaiting_opponent';
@@ -271,7 +271,7 @@ export function inviteLinkToken(meta: Pick<MatchMeta, 'inviteCode' | 'inviteToke
  * the opponent gets the same link, to accept through the invite flow (they have no seat in the new match until then).
  * Null for cup fixtures, before anyone asked and once the offer expired.
  */
-export function rematchOffer(m: LoadedMatch, seat: 0 | 1, webOrigin: string, now: number): MatchView['rematch'] {
+function rematchOffer(m: LoadedMatch, seat: 0 | 1, webOrigin: string, now: number): MatchView['rematch'] {
   const r = m.meta.rematch;
   if (m.meta.kind !== 'duel' || !r || (r.expMs !== undefined && now >= r.expMs)) return null;
   return { matchId: r.matchId, inviteUrl: inviteUrl(webOrigin, r.inviteToken), fromMe: r.by === seat };

@@ -11,8 +11,8 @@ export const FPS = 30 as const;
 export const MIN_MS = 30_000;
 export const MAX_MS = 60_000;
 
-export type SceneKind = 'hook' | 'intro' | 'ball' | 'result' | 'potm' | 'standings' | 'cta';
-export type BallTag = 'turning' | 'wicket' | 'six' | 'four' | 'best' | 'super';
+type SceneKind = 'hook' | 'intro' | 'ball' | 'result' | 'potm' | 'standings' | 'cta';
+type BallTag = 'turning' | 'wicket' | 'six' | 'four' | 'best' | 'super';
 
 export interface Scene {
   kind: SceneKind;
@@ -35,7 +35,7 @@ export interface HighlightPlan {
 
 const CARD = { intro: 4200, result: 4200, potm: 3400, standings: 3800, cta: 5200 };
 /** The hook: the top moment's decisive instant, from just before it, before anything else. */
-export const HOOK_MS = 1800;
+const HOOK_MS = 1800;
 const HOOK_LEAD_MS = 1000;
 /** A ball clip runs from just before the release to after the decisive moment (with its own slow motion). */
 const LEAD_MS = 900;
@@ -72,7 +72,7 @@ function score(o: BallOutcome, turning: boolean, superBall: boolean): { value: n
 }
 
 /** The replay window of a ball clip: lead-in before the release, through the decisive moment and its aftermath. */
-export function ballWindow(seg: Segment, timelineTimeOf: (seg: Segment, scene: number) => number): { r0: number; r1: number } {
+function ballWindow(seg: Segment, timelineTimeOf: (seg: Segment, scene: number) => number): { r0: number; r1: number } {
   const times = seg.script.times;
   const r0 = Math.max(seg.t0, timelineTimeOf(seg, Math.max(seg.sceneStart, times.release - LEAD_MS)));
   const end = Math.min(seg.t0 + seg.dur, timelineTimeOf(seg, Math.min(seg.sceneEnd, times.decisive + TAIL_MS)));
@@ -143,7 +143,7 @@ export function planHighlight(log: MatchEventLog, tl: Timeline, opts: { standing
 }
 
 /** The hook's replay window: the ball's decisive instant, a second in, then most of a second of what follows. */
-export function hookWindow(seg: Segment, timelineTimeOf: (seg: Segment, scene: number) => number): { r0: number; r1: number } {
+function hookWindow(seg: Segment, timelineTimeOf: (seg: Segment, scene: number) => number): { r0: number; r1: number } {
   const decisive = timelineTimeOf(seg, seg.script.times.decisive);
   const r0 = Math.max(seg.t0, decisive - HOOK_LEAD_MS);
   return { r0, r1: Math.min(seg.t0 + seg.dur, r0 + HOOK_MS) };

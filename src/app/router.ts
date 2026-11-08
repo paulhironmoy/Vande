@@ -42,15 +42,15 @@ const DAY = /^\d{4}-\d{2}-\d{2}$/;
 /** Highlight and attribution codes (same shape as src/net/shared/ids.ts ATTRIBUTION_RE). */
 const CODE = /^[a-z0-9]{4,16}$/;
 
-export type RouteName = Route['name'];
+type RouteName = Route['name'];
 export type RouteOf<N extends RouteName> = Extract<Route, { name: N }>;
 /** A route-level screen: it receives its parsed route and reads services, the store and the router itself. */
-export type RouteComponent<N extends RouteName> = ComponentType<{ route: RouteOf<N> }>;
+type RouteComponent<N extends RouteName> = ComponentType<{ route: RouteOf<N> }>;
 /** Route name → screen; each workstream exports its part and the root shell (src/App.tsx) merges them. */
 export type RouteTable = { [N in RouteName]?: RouteComponent<N> | LazyExoticComponent<RouteComponent<N>> };
 
 export function basePath(): string {
-  let base = '/';
+  let base: string;
   try {
     base = (import.meta.env?.BASE_URL as string | undefined) || '/';
   } catch {

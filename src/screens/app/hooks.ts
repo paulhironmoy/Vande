@@ -190,14 +190,15 @@ export function useLoad<T>(fn: (() => Promise<T>) | null, deps: unknown[], opts:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [online]);
 
+  const hasFn = Boolean(fn);
   useEffect(() => {
     const ms = opts.pollMs;
-    if (!ms || !fn) return;
+    if (!ms || !hasFn) return;
     const id = setInterval(() => {
       if (typeof document === 'undefined' || document.visibilityState === 'visible') reload();
     }, ms);
     return () => clearInterval(id);
-  }, [opts.pollMs, Boolean(fn), reload]);
+  }, [opts.pollMs, hasFn, reload]);
 
   return { data, error, loading, reload };
 }

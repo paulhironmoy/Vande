@@ -175,7 +175,7 @@ export abstract class SessionBase implements StageRenderer {
 
   /** 'auto': the device assessment src/perf measured for this app version, else what the GPU probe says. */
   protected estimate(): RenderQuality {
-    let assessment = null;
+    let assessment: ReturnType<typeof loadCachedAssessment>;
     try {
       assessment = loadCachedAssessment(typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '');
     } catch {

@@ -16,7 +16,7 @@ import { playerRefOf, requireAccount } from '../profile/model';
 import { istDay, nextIstMidnight, previousDay } from '../time';
 import { dailySalt } from './salt';
 
-export const DAILY_ATTEMPTS = 3;
+const DAILY_ATTEMPTS = 3;
 
 /** The day's conditions and the commits of its three sealed overs (hashes only), cached per isolate. */
 const challengeCache = new Map<string, { conditions: DailyView['conditions']; overCommits: DailyView['overCommits'] }>();

@@ -53,9 +53,9 @@ export interface ModelInput {
   intentMult?: { wicket: number; boundary: number };
 }
 
-export type AtomKind = 'dot_block' | 'dot_beaten' | 'dot_fielded' | 'runs' | 'four' | 'six' | 'wicket';
+type AtomKind = 'dot_block' | 'dot_beaten' | 'dot_fielded' | 'runs' | 'four' | 'six' | 'wicket';
 /** Which part of the model produced the atom (used by explanations). */
-export type AtomTag = 'gap' | 'ring' | 'deep' | 'both' | 'slips' | 'close' | 'stumps' | 'scramble' | 'leave' | 'edge' | 'block' | 'none';
+type AtomTag = 'gap' | 'ring' | 'deep' | 'both' | 'slips' | 'close' | 'stumps' | 'scramble' | 'leave' | 'edge' | 'block' | 'none';
 
 export interface Atom {
   p: number;
@@ -104,7 +104,7 @@ export interface Evaluation {
 const clamp = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
 
-export function lengthClass(variant: DeliveryCore['variant'], length: DeliveryCore['length']): 'full' | 'good' | 'short' {
+function lengthClass(variant: DeliveryCore['variant'], length: DeliveryCore['length']): 'full' | 'good' | 'short' {
   if (variant === 'yorker') return 'full';
   if (variant === 'bouncer') return 'short';
   return length;
@@ -131,7 +131,7 @@ export function matchupOf(shot: AttackShot, zone: FieldZone | null, d: DeliveryC
   return { m: clamp(m, -1, 1), natural };
 }
 
-export function pitchEffect(d: DeliveryCore, shot: ShotType, cond: Conditions, ctx: BallContext): number {
+function pitchEffect(d: DeliveryCore, shot: ShotType, cond: Conditions, ctx: BallContext): number {
   let p = T.PITCH_VAR[cond.pitch][d.variant];
   // Swing and seam need a full or good length; a short swing ball does not move.
   if (T.FAMILY[d.variant] === 'swing' && d.length === 'short' && p < 0) p *= T.SHORT_SWING_MULT;
@@ -142,7 +142,7 @@ export function pitchEffect(d: DeliveryCore, shot: ShotType, cond: Conditions, c
   return clamp(p, -1, 1);
 }
 
-export function executionEffect(grade: ExecutionGrade, d: DeliveryCore, shot: ShotType): number {
+function executionEffect(grade: ExecutionGrade, d: DeliveryCore, shot: ShotType): number {
   if (grade === 'perfect') return clamp(T.PERFECT_EFFECT * T.PRECISION[d.variant], -1, 1);
   if (grade === 'loose') return clamp(T.LOOSE_EFFECT * T.LOOSE_SEVERITY[d.variant] * T.LOOSE_LINE[d.line] * T.LOOSE_SHOT[shot], -1, 1);
   return (T.GOOD_EFFECT[d.variant] ?? 0) * (shot === 'leave' ? 0 : T.LOOSE_SHOT[shot]);
@@ -165,7 +165,7 @@ export function contrasts(prev: PrevBall, d: DeliveryCore): boolean {
   return li >= 2 || li <= -2;
 }
 
-export function sequenceEffect(d: DeliveryCore, ctx: BallContext): { s: number; setupStrength: number } {
+function sequenceEffect(d: DeliveryCore, ctx: BallContext): { s: number; setupStrength: number } {
   let s = 0;
   let setupStrength = 0;
   // A setup pays off only on the strike ball that follows it (intent attack), never in chains of setups.

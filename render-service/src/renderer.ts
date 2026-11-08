@@ -13,7 +13,7 @@ import { ffmpegArgs } from './ffmpeg.ts';
 import { HEIGHT, WIDTH, frameTimes, timeline, type Timeline } from './schedule.ts';
 import { JOB_ID_RE } from './workerClient.ts';
 
-export const CHROMIUM_ARGS = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox', '--no-first-run', '--mute-audio', '--disable-background-timer-throttling', '--disable-renderer-backgrounding'];
+const CHROMIUM_ARGS = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox', '--no-first-run', '--mute-audio', '--disable-background-timer-throttling', '--disable-renderer-backgrounding'];
 
 export interface RenderOptions {
   origin: string;

@@ -17,7 +17,7 @@ import s from './SharedRoute.module.css';
 const GUEST_KIT = { id: 'starter', primary: '#1E2A78', secondary: '#00B8D9', pattern: 'chevron' } as const;
 
 /** The log as the public sees it: the moderated display names, never the match-time aliases inside the log. */
-export function withSharedNames(log: MatchEventLog, aliases: [string, string]): MatchEventLog {
+function withSharedNames(log: MatchEventLog, aliases: [string, string]): MatchEventLog {
   return { ...log, players: [{ ...log.players[0], alias: aliases[0] }, { ...log.players[1], alias: aliases[1] }] };
 }
 

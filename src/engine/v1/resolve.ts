@@ -81,7 +81,7 @@ function goodness(a: Atom): number {
  * is the most common grade, so it only explains a result when it clearly dominated. Some results explain themselves
  * (a catch in the deep, a slip catch, a stumping, a run out, a leave).
  */
-export function explainKeyFor(inp: ModelInput, ev: Evaluation, atom: Atom): string {
+function explainKeyFor(inp: ModelInput, ev: Evaluation, atom: Atom): string {
   const { d, shot, timing, cond, ctx, field } = inp;
   if (timing === 'interrupted') return 'explain.unanswered';
   if (shot === 'leave') return atom.wicket ? 'explain.leave_straight' : ev.pWicket > 0 ? 'explain.leave_survived' : 'explain.leave_safe';
@@ -171,12 +171,12 @@ export function contextFor(ball: number, previous: readonly BallOutcome[], d: De
 }
 
 /** Execution quality of a sealed delivery (an implausible trace counts as a loose ball). */
-export function deliveryExecution(gesture: OverPlan['balls'][number]['gesture']): { quality: number; grade: ExecutionGrade } {
+function deliveryExecution(gesture: OverPlan['balls'][number]['gesture']): { quality: number; grade: ExecutionGrade } {
   const ex = executionQuality(gesture);
   return ex.ok ? { quality: ex.quality, grade: ex.grade } : { quality: 0, grade: 'loose' };
 }
 
-export function modelInputFor(
+function modelInputFor(
   d: DeliveryCore,
   grade: ExecutionGrade,
   shot: ShotType,

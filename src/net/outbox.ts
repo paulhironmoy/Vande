@@ -13,7 +13,7 @@ import { ApiClientError, isApiClientError } from './errors';
 import { openNetDb } from './idb';
 import { newIdempotencyKey } from './routes';
 
-export const OUTBOX_MAX_AGE_MS = 7 * 24 * 3_600_000;
+const OUTBOX_MAX_AGE_MS = 7 * 24 * 3_600_000;
 
 export interface OutboxEntry {
   /** Equal to the Idempotency-Key. */
@@ -177,7 +177,7 @@ export class Outbox {
       return this.flushing;
     }
     this.flushing = (async () => {
-      let total = { sent: 0, failed: 0, waiting: 0 };
+      let total: { sent: number; failed: number; waiting: number };
       do {
         this.again = false;
         total = await this.runOnce();
@@ -238,7 +238,10 @@ export class Outbox {
     }
     const waiters = this.waiters.get(r.id) ?? [];
     this.waiters.delete(r.id);
-    for (const w of waiters) (r.ok ? w.resolve(r.response) : w.reject(r.error));
+    for (const w of waiters) {
+      if (r.ok) w.resolve(r.response);
+      else w.reject(r.error);
+    }
   }
 
   private async runOnce(): Promise<{ sent: number; failed: number; waiting: number }> {

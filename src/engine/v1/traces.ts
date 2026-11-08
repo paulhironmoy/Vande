@@ -106,7 +106,7 @@ export function qualityFromRelease(release: number): { quality: number; grade: E
   return { quality: q, grade: gradeOf(q) };
 }
 
-export function gradeOf(q: number): ExecutionGrade {
+function gradeOf(q: number): ExecutionGrade {
   return q >= METER.perfectQuality ? 'perfect' : q >= METER.goodQuality ? 'good' : 'loose';
 }
 

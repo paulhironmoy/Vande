@@ -27,7 +27,7 @@ import { SQL } from '../storage/sql';
 import { loadLog } from '../highlights/jobs';
 
 /** The match's one public code: 10 base32 characters ([a-z2-7], within the 4–16 [a-z0-9] link shape). */
-export async function sharedCodeFor(env: Env, deps: WorkerDeps, matchId: string): Promise<string> {
+async function sharedCodeFor(env: Env, deps: WorkerDeps, matchId: string): Promise<string> {
   const key = await hmacKeyFor(utf8(identityPepper(env, deps.logger)), 'pepper', 'share');
   return toBase32(await hmac(key, `share|${matchId}`)).slice(0, 10);
 }

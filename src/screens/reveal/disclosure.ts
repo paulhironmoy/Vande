@@ -90,7 +90,7 @@ export function resultShown(at: Located): boolean {
   return at.seg.kind === 'result' && at.scene >= (at.seg.beat ?? 0);
 }
 
-export interface InningsView {
+interface InningsView {
   /** The innings card (or a later event) has played. */
   started: boolean;
   /** The whole innings has played: the ball that ended it (no balls left), its end card, or anything later. */

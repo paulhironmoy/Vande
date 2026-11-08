@@ -40,7 +40,7 @@ interface Row {
   created_ms: number;
 }
 
-export async function requestHash(route: string, fingerprint: string): Promise<string> {
+async function requestHash(route: string, fingerprint: string): Promise<string> {
   return sha256Hex(`${route}\n${fingerprint}`);
 }
 

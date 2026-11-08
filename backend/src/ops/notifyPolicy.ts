@@ -16,7 +16,7 @@ export interface Quiet {
   end: number;
 }
 
-export function defaultQuietHours(env: Env): Quiet {
+function defaultQuietHours(env: Env): Quiet {
   const m = /^(\d\d):(\d\d)-(\d\d):(\d\d)$/.exec(env.NOTIFY_QUIET_HOURS ?? '22:00-08:00');
   if (!m) return { start: 22 * 60, end: 8 * 60 };
   return { start: Number(m[1]) * 60 + Number(m[2]), end: Number(m[3]) * 60 + Number(m[4]) };

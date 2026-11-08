@@ -22,8 +22,8 @@ import { istDay, previousDay } from '../time';
 import { jobStatements, type DayResultRow } from '../highlights/jobs';
 import { HSQL } from '../highlights/sql';
 
-export const TOP100_LIMIT = 100;
-export const TOP100_BADGE = 'youtube_top100';
+const TOP100_LIMIT = 100;
+const TOP100_BADGE = 'youtube_top100';
 /** A long-term effort baseline needs this many rated matches behind it. */
 const BASELINE_MIN_MATCHES = 5;
 const PAGE = 2000;

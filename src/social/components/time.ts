@@ -5,7 +5,7 @@ import type { SocialT } from '../i18n';
 const LATIN = new Set(['en', 'hi-Latn']);
 
 /** The time-of-day options for this locale (src/screens/app/deadline.ts `clockText` is the reference). */
-export function timeOptions(tr: Pick<SocialT, 'locale'>, withMinutes = true): Intl.DateTimeFormatOptions {
+function timeOptions(tr: Pick<SocialT, 'locale'>, withMinutes = true): Intl.DateTimeFormatOptions {
   if (LATIN.has(tr.locale)) return withMinutes ? { hour: '2-digit', minute: '2-digit' } : { hour: 'numeric' };
   return withMinutes ? { hour: 'numeric', minute: '2-digit', dayPeriod: 'short' } : { hour: 'numeric', dayPeriod: 'short' };
 }

@@ -26,10 +26,10 @@ import { HSQL } from './sql';
 import { publisherFor } from './uploader';
 
 export const SWEEP_CRON = '*/15 * * * *';
-export const VIDEO_RECOVERY_MS = 72 * HOUR_MS;
+const VIDEO_RECOVERY_MS = 72 * HOUR_MS;
 const STALL_MS = 30 * MINUTE_MS;
 /** A failed removal is tried again this long after its last attempt. */
-export const REMOVAL_RETRY_MS = HOUR_MS;
+const REMOVAL_RETRY_MS = HOUR_MS;
 const VIEWS_EVERY_MS = DAY_MS;
 const VIEWS_FOR_MS = 30 * DAY_MS;
 

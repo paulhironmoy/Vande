@@ -15,7 +15,7 @@ import { applyCompressor, MIX } from '@/audio/mix';
 import { integratedLoudness, measure, normalise, type LoudnessReport } from '@/audio/loudness';
 import type { HighlightPlan } from './plan';
 
-export const AUDIO_RATE = 44100;
+const AUDIO_RATE = 44100;
 
 /** Rendered PCM, shaped like the parts of an AudioBuffer that wavBase64 reads. */
 export interface PcmAudio {

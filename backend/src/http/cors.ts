@@ -7,10 +7,10 @@ export function parseList(value: string | undefined): string[] {
     .filter(Boolean);
 }
 
-export const ALLOWED_METHODS = 'GET, POST, PATCH, DELETE, OPTIONS';
-export const ALLOWED_HEADERS = 'authorization, content-type, idempotency-key, x-request-id, x-vande-client';
+const ALLOWED_METHODS = 'GET, POST, PATCH, DELETE, OPTIONS';
+const ALLOWED_HEADERS = 'authorization, content-type, idempotency-key, x-request-id, x-vande-client';
 /** x-decided-at: when a sealed Top 100 day is decided (GET /v1/top100/:day answers 409 before the cutoff). */
-export const EXPOSED_HEADERS = 'x-request-id, retry-after, x-decided-at';
+const EXPOSED_HEADERS = 'x-request-id, retry-after, x-decided-at';
 
 export function corsHeaders(origin: string | null, allowed: string[]): Record<string, string> {
   const headers: Record<string, string> = { Vary: 'Origin' };

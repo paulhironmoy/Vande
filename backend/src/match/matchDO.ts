@@ -65,7 +65,7 @@ export interface MatchDeps {
   metrics: Metrics;
 }
 
-export interface MatchObject {
+interface MatchObject {
   fetch(request: Request): Promise<Response>;
   alarm(): Promise<void>;
 }
@@ -86,7 +86,7 @@ const IDEM_KEEP_MS = DAY_MS;
 const IDEM_MAX = 64;
 const SYNC_RETRY_MS = 30_000;
 /** A Daily Six attempt's object deletes itself this long after its reveal (its score lives on in D1). */
-export const DAILY_ATTEMPT_KEEP_MS = 30 * DAY_MS;
+const DAILY_ATTEMPT_KEEP_MS = 30 * DAY_MS;
 const KNOWN_VARIANTS: readonly DeliveryVariant[] = ['yorker', 'good_length', 'bouncer', 'slower', 'inswing', 'outswing', 'offspin', 'legspin'];
 
 export function createMatchObjectClass(deps: MatchDeps): MatchObjectClass {

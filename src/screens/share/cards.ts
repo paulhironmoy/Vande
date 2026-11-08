@@ -9,8 +9,8 @@ import type { MessageKey, Translator } from '@/i18n';
 import { drawMark } from '@/ui/brand/mark';
 import { avatarImage } from '@/ui/avatar/avatarSvg';
 
-export const CARD_W = 1080;
-export const CARD_H = 1350;
+const CARD_W = 1080;
+const CARD_H = 1350;
 
 export interface CardPlayer {
   alias: string;
@@ -243,7 +243,7 @@ async function drawPortrait(ctx: CanvasRenderingContext2D, p: CardPlayer, cx: nu
 }
 
 /** Draws a card model into a canvas (exported for previews and tests in real browsers). */
-export async function drawCard(canvas: HTMLCanvasElement, m: CardModel, locale: string): Promise<void> {
+async function drawCard(canvas: HTMLCanvasElement, m: CardModel, locale: string): Promise<void> {
   await fontsReady(locale);
   canvas.width = CARD_W;
   canvas.height = CARD_H;

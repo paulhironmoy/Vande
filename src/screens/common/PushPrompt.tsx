@@ -7,7 +7,7 @@ import s from './Prompts.module.css';
 
 const ASKED = 'vc:push-asked';
 
-export function pushAsked(): boolean {
+function pushAsked(): boolean {
   try {
     return localStorage.getItem(ASKED) === '1';
   } catch {

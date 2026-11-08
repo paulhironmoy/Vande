@@ -4,7 +4,7 @@
  */
 import { openDB, type IDBPDatabase } from 'idb';
 
-export const NET_DB = 'vande-net';
+const NET_DB = 'vande-net';
 const VERSION = 1;
 
 export interface KeyValue {

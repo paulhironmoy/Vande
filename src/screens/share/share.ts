@@ -18,7 +18,7 @@ export function __setShareLedger(l: ShareLedger | null): void {
 }
 
 /** The platform's message builder, translated with the app's catalogs (falls back to its built-in copy). */
-export function shareTranslate(t: Translator) {
+function shareTranslate(t: Translator) {
   return (key: string, params: Record<string, string>) => (t.has(key) ? t.tk(key, params) : null);
 }
 

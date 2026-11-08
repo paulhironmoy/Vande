@@ -156,6 +156,7 @@ export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit,
         setPhase('error');
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onBallFeedback is only read when the ball resolves; callers pass an inline function, so listing it would change finishBall (and bowlNext) on every render
     [submitShot],
   );
 

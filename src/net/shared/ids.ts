@@ -13,7 +13,6 @@ export const MATCH_ID_RE = /^m[a-z2-7]{26}$/;
 export const PLAYER_ID_RE = /^p[a-z2-7]{26}$/;
 export const CUP_ID_RE = /^c[a-z2-7]{26}$/;
 export const GROUP_ID_RE = /^g[a-z2-7]{26}$/;
-export const ROOM_ID_RE = /^r[a-z2-7]{26}$/;
 
 /** The Cricket Room of a duel (from its match id) or a cup (from its cup id); a cup's fixtures share the cup's room. */
 export function roomIdFor(matchOrCupId: string): string {
@@ -34,9 +33,9 @@ export const SHARED_CODE_RE = ATTRIBUTION_RE;
 /** Idempotency keys: UUIDs (any version) or other 16–64 character keys of letters, digits and hyphens. */
 export const IDEMPOTENCY_KEY_RE = /^[A-Za-z0-9-]{16,64}$/;
 
-export const INVITE_PATH = '/i/';
-export const HIGHLIGHT_PATH = '/h/';
-export const SHARED_PATH = '/s/';
+const INVITE_PATH = '/i/';
+const HIGHLIGHT_PATH = '/h/';
+const SHARED_PATH = '/s/';
 export const CUSTOM_SCHEMES = ['vandecricket', 'in.vande.cricket'] as const;
 
 export function inviteUrl(webOrigin: string, token: string, attribution?: string): string {

@@ -19,7 +19,7 @@ const isObj = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 
 const finite = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
 
 /** A trace with 0..MAX_TRACE_SAMPLES samples (a leave has none; bowling gestures need at least one). */
-export function cleanTrace(x: unknown, minSamples = 0): InputTrace | null {
+function cleanTrace(x: unknown, minSamples = 0): InputTrace | null {
   if (!isObj(x) || !POINTERS.has(x.pointer as string) || !Array.isArray(x.samples)) return null;
   if (x.samples.length < minSamples || x.samples.length > MAX_TRACE_SAMPLES) return null;
   const samples: Array<[number, number, number]> = [];

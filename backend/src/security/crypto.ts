@@ -84,7 +84,7 @@ export function hmacKeyFor(material: Bytes, kid: string, purpose: KeyPurpose): P
 }
 
 /** AES-256-GCM key for one purpose and context (for example one match), derived from a keyring entry. */
-export function aesKeyFor(material: Bytes, kid: string, purpose: KeyPurpose, context: string): Promise<CryptoKey> {
+function aesKeyFor(material: Bytes, kid: string, purpose: KeyPurpose, context: string): Promise<CryptoKey> {
   return remember(`a|${kid}|${purpose}|${context}|${toBase64Url(material).slice(0, 12)}`, async () =>
     crypto.subtle.deriveKey(
       { name: 'HKDF', hash: 'SHA-256', salt: HKDF_SALT, info: utf8(`aes|${purpose}|${context}`) },

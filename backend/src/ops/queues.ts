@@ -80,7 +80,7 @@ async function checkDailyCapFor(db: Env['DB'], key: string, salt: string, limit:
  * The FCM collapse key: the message's dedupe key without the recipient's internal account id (collapse keys act per
  * device anyway), so Google never receives the uid.
  */
-export function collapseKeyOf(msg: Pick<NotifyMessage, 'dedupe' | 'uid'>): string {
+function collapseKeyOf(msg: Pick<NotifyMessage, 'dedupe' | 'uid'>): string {
   return msg.dedupe
     .split(':')
     .filter((part) => part !== msg.uid)
@@ -88,7 +88,7 @@ export function collapseKeyOf(msg: Pick<NotifyMessage, 'dedupe' | 'uid'>): strin
 }
 
 /** Delivers one notification to every registered device of the recipient. Throws to ask for a retry. */
-export async function deliverNotification(env: Env, deps: WorkerDeps, msg: NotifyMessage, attempts = 1): Promise<'sent' | 'skipped' | 'deferred'> {
+async function deliverNotification(env: Env, deps: WorkerDeps, msg: NotifyMessage, attempts = 1): Promise<'sent' | 'skipped' | 'deferred'> {
   if (msg?.v !== 1 || !KINDS.has(msg.kind) || typeof msg.uid !== 'string' || (msg.matchId !== undefined && typeof msg.matchId !== 'string')) return 'skipped';
   const decision = await decide(env, deps, msg, attempts <= 1);
   if (decision === 'drop') return 'skipped';

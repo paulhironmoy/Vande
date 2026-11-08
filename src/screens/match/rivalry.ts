@@ -26,7 +26,7 @@ function read(): Record<string, Outcome> {
   }
 }
 
-export function outcomeFor(log: MatchEventLog, me: 0 | 1): Outcome {
+function outcomeFor(log: MatchEventLog, me: 0 | 1): Outcome {
   const r = log.result;
   return r.tie || r.winner === null ? 'tied' : r.winner === me ? 'won' : 'lost';
 }

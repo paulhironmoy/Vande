@@ -14,7 +14,7 @@ export interface TimingMark {
 }
 
 /** Half the meter's width, in ms: the edge band plus room for very early and very late. */
-export function meterRange(timing: DeliveryTiming): number {
+function meterRange(timing: DeliveryTiming): number {
   return Math.max(timing.edgeMs * 1.6, timing.goodMs + 60);
 }
 

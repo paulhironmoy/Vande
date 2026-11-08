@@ -7,7 +7,7 @@
  *   node scripts/simulate-balance.mjs --json=sim-report.json       # also write the full results
  *   options: --workers=N (default: CPU count − 1), --key=<string> (changes every random draw)
  *
- * Runs the real engine (TypeScript, loaded natively by Node >= 23.6 through scripts/simulate-loader.mjs) across
+ * Runs the real engine (TypeScript, loaded natively by Node 22.22.2+ or 23.6+ through scripts/simulate-loader.mjs) across
  * mixed player populations, every pitch and weather, and reports outcome distributions, strategy win rates,
  * dominant-strategy detection, first-player advantage, Super Ball frequency and impossible-outcome checks. Exits
  * with status 1 when a hard fairness check fails.
@@ -99,7 +99,6 @@ class Pool {
 const f2 = (x) => (Number.isFinite(x) ? x.toFixed(2) : String(x));
 const pct = (x) => `${(100 * x).toFixed(1)}%`;
 const mean = (c) => c.runs / Math.max(1, c.innings);
-const sd = (c) => Math.sqrt(Math.max(0, c.runsSq / Math.max(1, c.innings) - mean(c) ** 2));
 
 async function main() {
   const { H, E } = await load();

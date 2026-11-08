@@ -1,10 +1,10 @@
 /**
  * The VANDE Cricket mark: a white match ball whose seam forms a V, inside an amber hexagon seal (six sides for the
  * Sealed Six). Original artwork defined in code so the app, the share cards, the highlight overlays and every
- * exported brand file (public/brand, public/icons, Android launcher and splash) draw the same geometry.
+ * exported brand file (public/icons, Android launcher and splash) draws the same geometry.
  */
 
-export const MARK_VIEWBOX = 120;
+const MARK_VIEWBOX = 120;
 
 type P = [number, number];
 

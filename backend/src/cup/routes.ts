@@ -13,7 +13,7 @@ import { playerRefOf, requireAccount, requireSocial } from '../profile/model';
 import { callCup } from './client';
 import { MAX_CUP_PLAYERS, MIN_CUP_PLAYERS, PACES } from './schedule';
 
-export const CUPS_PER_PLAYER_PER_DAY = 10;
+const CUPS_PER_PLAYER_PER_DAY = 10;
 
 export async function createCup(ctx: RequestContext): Promise<Reply> {
   const actor = requireActor(ctx);

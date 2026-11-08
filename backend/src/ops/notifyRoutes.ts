@@ -12,7 +12,7 @@ const HHMM = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const toMinutes = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
 const toHHMM = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 
-export async function readSettings(ctx: RequestContext, uid: string): Promise<PushSettings> {
+async function readSettings(ctx: RequestContext, uid: string): Promise<PushSettings> {
   const row = await ctx.env.DB.prepare(SQL.notifyPrefs).bind(uid).first<{ enabled: number; quiet_start: number | null; quiet_end: number | null }>();
   const quiet = quietOf(ctx.env, row);
   return { enabled: row ? row.enabled === 1 : true, quietHours: quiet ? { start: toHHMM(quiet.start), end: toHHMM(quiet.end) } : null };

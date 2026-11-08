@@ -57,16 +57,16 @@ export type SkillId = 'unskilled' | 'average' | 'skilled';
  * Batting: timing spread (ms) and anchoring on the previous ball's flight time (a fraction of the difference, capped at
  * ANCHOR_CAP_MS): after a fast ball a batter tends to be early on a slow one.
  */
-export const BAT_SKILLS: Record<SkillId, { sigma: number; anchor: number }> = {
+const BAT_SKILLS: Record<SkillId, { sigma: number; anchor: number }> = {
   unskilled: { sigma: 95, anchor: 0.15 },
   average: { sigma: 55, anchor: 0.1 },
   skilled: { sigma: 30, anchor: 0.05 },
 };
 /** Bowling: release-meter spread (ms). */
-export const BOWL_SKILLS: Record<SkillId, number> = { unskilled: 70, average: 35, skilled: 18 };
-export const ANCHOR_CAP_MS = 40;
+const BOWL_SKILLS: Record<SkillId, number> = { unskilled: 70, average: 35, skilled: 18 };
+const ANCHOR_CAP_MS = 40;
 /** Timing bias (ms, negative = early) from expecting the previous ball's pace. */
-export function anchorBias(anchor: number, flightMs: number, prevFlightMs: number): number {
+function anchorBias(anchor: number, flightMs: number, prevFlightMs: number): number {
   const b = -anchor * (flightMs - prevFlightMs);
   return b > ANCHOR_CAP_MS ? ANCHOR_CAP_MS : b < -ANCHOR_CAP_MS ? -ANCHOR_CAP_MS : b;
 }
@@ -85,7 +85,7 @@ function phi(x: number): number {
 export const GRADES: readonly TimingGrade[] = ['perfect', 'good', 'early', 'late', 'very_early', 'very_late'];
 
 /** Probability of each timing grade when the tap error is N(bias, sigma). */
-export function timingDistribution(t: DeliveryTiming, sigma: number, bias: number): number[] {
+function timingDistribution(t: DeliveryTiming, sigma: number, bias: number): number[] {
   const c = (x: number) => phi((x - bias) / sigma);
   const p = t.perfectMs;
   const g = t.goodMs;
@@ -129,7 +129,7 @@ function ctxFor(ball: number, phase: 'early' | 'mid' | 'last', repeats: number, 
 }
 
 /** Probability of a perfect, good and loose release for a bowler with release spread `sigma` ms. */
-export function execProbs(sigma: number): [number, number, number] {
+function execProbs(sigma: number): [number, number, number] {
   const perfect = 2 * phi(24 / sigma) - 1;
   const good = 2 * phi(80 / sigma) - 1 - perfect;
   return [perfect, good, Math.max(0, 1 - perfect - good)];
@@ -146,7 +146,7 @@ const UNKNOWN_INTENT = {
  * (averaged over attack/contain/setup) and the execution is unknown (an average bowler's release distribution).
  */
 const tableCache = new Map<string, Float32Array>();
-export function optionTable(d: DeliveryCore, field: FieldSetting, cond: Conditions, phase: 'early' | 'mid' | 'last', repeats: number, superBall: boolean): Float32Array {
+function optionTable(d: DeliveryCore, field: FieldSetting, cond: Conditions, phase: 'early' | 'mid' | 'last', repeats: number, superBall: boolean): Float32Array {
   const key = `${d.variant}|${d.line}|${d.length}|${d.intensity}|${field}|${cond.pitch}|${cond.weather}|${phase}|${repeats}|${superBall ? 1 : 0}`;
   const hit = tableCache.get(key);
   if (hit) return hit;
@@ -184,13 +184,13 @@ export function optionTable(d: DeliveryCore, field: FieldSetting, cond: Conditio
  * Runs a wicket is expected to cost from here, for a batter who cannot see the (sealed) wickets: the first wicket is
  * cheap, the second ends the innings, and the chance that one has already fallen grows ball by ball.
  */
-export function lambdaFor(ball: number, ballsLeftAfter: number, superBall: boolean): number {
+function lambdaFor(ball: number, ballsLeftAfter: number, superBall: boolean): number {
   if (superBall || ballsLeftAfter <= 0) return 0;
   const likelyOneDown = Math.min(0.6, 0.09 * ball);
   return (0.5 + 1.2 * likelyOneDown) * ballsLeftAfter;
 }
 
-export function bestOption(table: Float32Array, probs: number[], lambda: number, allowed?: (o: Option) => boolean): { index: number; value: number } {
+function bestOption(table: Float32Array, probs: number[], lambda: number, allowed?: (o: Option) => boolean): { index: number; value: number } {
   let best = -1;
   let bestV = Number.NEGATIVE_INFINITY;
   for (let i = 0; i < OPTIONS.length; i++) {
@@ -216,7 +216,7 @@ function core(d: RevealedDelivery): DeliveryCore {
 // Batting strategies
 // ---------------------------------------------------------------------------------------------------------------
 
-export type BatStrategyId =
+type BatStrategyId =
   | 'random'
   | 'heuristic'
   | 'oracle'
@@ -229,7 +229,7 @@ export interface BatPolicy {
   skill: SkillId;
 }
 
-export function chooseShot(policy: BatPolicy, view: BatView, rng: Sfc32): Option {
+function chooseShot(policy: BatPolicy, view: BatView, rng: Sfc32): Option {
   const d = view.delivery;
   switch (policy.strategy) {
     case 'random': {
@@ -261,7 +261,7 @@ export function chooseShot(policy: BatPolicy, view: BatView, rng: Sfc32): Option
 }
 
 /** Tap time for a simulated human: N(ideal + anchoring bias, sigma). */
-export function humanTap(policy: BatPolicy, view: BatView, rng: Sfc32): number {
+function humanTap(policy: BatPolicy, view: BatView, rng: Sfc32): number {
   const skill = BAT_SKILLS[policy.skill];
   const d = view.delivery;
   const prevFlight = view.prev ? view.prev.timing.releaseToContactMs : 600;
@@ -269,7 +269,7 @@ export function humanTap(policy: BatPolicy, view: BatView, rng: Sfc32): number {
   return d.timing.releaseToContactMs + bias + rng.normal() * skill.sigma;
 }
 
-export function batInput(policy: BatPolicy, view: BatView, rng: Sfc32, seed: string): BattingInput {
+function batInput(policy: BatPolicy, view: BatView, rng: Sfc32, seed: string): BattingInput {
   if (policy.strategy === 'auto') return engine.autoBat(seed, view.delivery, view.field);
   if (policy.strategy.startsWith('ghost:')) return engine.ghostBat(policy.strategy.slice(6), seed, view.delivery, view.field);
   const o = chooseShot(policy, view, rng);
@@ -281,7 +281,7 @@ export function batInput(policy: BatPolicy, view: BatView, rng: Sfc32, seed: str
 // Bowling strategies
 // ---------------------------------------------------------------------------------------------------------------
 
-export type BowlStrategyId =
+type BowlStrategyId =
   | 'random'
   | 'stock'
   | 'pace_barrage'
@@ -394,7 +394,7 @@ export function randomOverSpec(rng: Sfc32, variants: readonly DeliveryVariant[] 
   };
 }
 
-export function specToPlan(rng: Sfc32, spec: OverSpec, sigma: number): OverPlan {
+function specToPlan(rng: Sfc32, spec: OverSpec, sigma: number): OverPlan {
   const balls = fitBudget(spec.balls);
   const sb = fitSuperBall(spec.superBall);
   const g = (d: DeliverySpec) => ({ ...d, gesture: synthExecutionTrace(rng, releaseFor(rng, sigma)) });
@@ -405,7 +405,7 @@ export function specToPlan(rng: Sfc32, spec: OverSpec, sigma: number): OverPlan 
 // Analytic over value and the optimiser (finds the strongest over for given conditions)
 // ---------------------------------------------------------------------------------------------------------------
 
-export const REFERENCE_BATTER = { sigma: BAT_SKILLS.average.sigma, lambda: 1.2 };
+const REFERENCE_BATTER = { sigma: BAT_SKILLS.average.sigma, lambda: 1.2 };
 
 /**
  * Expected batting value conceded by an over against an oracle batter of average skill (lower is better for the
@@ -472,7 +472,7 @@ const legal = (balls: DeliverySpec[]) => balls.reduce((s, b) => s + energyCost(b
  * Simulated-annealing search for the over that concedes the least value; deterministic for a given key. The first
  * restart begins from the best hand-made archetype that only uses allowed variants, the others from random overs.
  */
-export function optimiseOver(cond: Conditions, field: FieldSetting, variants: readonly DeliveryVariant[], key: string, iterations = 1200, restarts = 4): { spec: OverSpec; value: number } {
+function optimiseOver(cond: Conditions, field: FieldSetting, variants: readonly DeliveryVariant[], key: string, iterations = 1200, restarts = 4): { spec: OverSpec; value: number } {
   const rng = rngFromKey(`sim/optimise|${key}|${cond.pitch}|${cond.weather}|${field}|${variants.join(',')}`);
   const allowedArchetypes = Object.values(ARCHETYPES).filter((a) => a.balls.every((b) => variants.includes(b.variant)));
   let best: OverSpec | null = null;
@@ -531,7 +531,7 @@ export function optimisedSpec(cond: Conditions, starters: boolean, iterations = 
 }
 
 /** Best Super Ball within the allowance (the batter goes all out: no wicket cost). */
-export function bestSuperBall(cond: Conditions, field: FieldSetting, variants: readonly DeliveryVariant[]): DeliverySpec {
+function bestSuperBall(cond: Conditions, field: FieldSetting, variants: readonly DeliveryVariant[]): DeliverySpec {
   let best: DeliverySpec | null = null;
   let bestV = Number.POSITIVE_INFINITY;
   for (const variant of variants)
@@ -594,7 +594,7 @@ const PLAYERS: [PlayerRef, PlayerRef] = [0, 1].map((i) => ({
 const VALID_RUNS = new Set([0, 1, 2, 3, 4, 6]);
 
 /** Impossible-outcome checks for one ball. */
-export function checkOutcome(o: BallOutcome, d: RevealedDelivery): string[] {
+function checkOutcome(o: BallOutcome, d: RevealedDelivery): string[] {
   const errs: string[] = [];
   if (!VALID_RUNS.has(o.runs)) errs.push(`runs ${o.runs}`);
   if (o.wicket && o.runs !== 0) errs.push('runs on a wicket');

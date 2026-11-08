@@ -22,7 +22,7 @@ export interface RoomDeps {
   metrics: Metrics;
 }
 
-export interface RoomObject {
+interface RoomObject {
   fetch(request: Request): Promise<Response>;
 }
 export type RoomObjectClass = new (state: DOStateLike, env: Env) => RoomObject;

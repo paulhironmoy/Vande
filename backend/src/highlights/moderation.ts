@@ -88,7 +88,7 @@ async function duplicate(env: Env, row: JobRow): Promise<{ ok: boolean; notes: s
   return earlier.length ? { ok: false, notes: [`duplicate of ${earlier.map((d) => d.job_id).join(', ')}`] } : { ok: true, notes: [] };
 }
 
-export async function autoModerate(env: Env, deps: WorkerDeps, cfg: Config, row: JobRow): Promise<ModerationResult> {
+async function autoModerate(env: Env, deps: WorkerDeps, cfg: Config, row: JobRow): Promise<ModerationResult> {
   const aliasNotes: string[] = [];
   // Exactly the names the renderer draws (renderInputFor uses displayAliases too), never the replay's match-time aliases.
   if (!displayAliases(row).every((a) => checkAlias(a).ok)) aliasNotes.push('an alias no longer passes the filter');

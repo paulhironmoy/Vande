@@ -100,7 +100,7 @@ export function neutralTrack(tl: Timeline, opts: { innings: 1 | 2; superBall: bo
   return { pos, time, zones: zones.map((k) => starts[index.get(k) ?? 0] / total) };
 }
 
-export type TickKind = 'ball' | 'four' | 'six' | 'wicket';
+type TickKind = 'ball' | 'four' | 'six' | 'wicket';
 export interface TickIn {
   /** 0–1 on the track. */
   pos: number;

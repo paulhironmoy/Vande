@@ -61,14 +61,14 @@ const BOWL_MIX: Weighted<BowlPolicy['strategy']> = [
 const BOWL_MIX_NO_OPTIMISER = BOWL_MIX.filter(([s]) => s !== 'optimised' && s !== 'optimised_starters');
 
 /** A random player from the mixed population (`optimiser: false` leaves out the optimiser-built overs: CI speed). */
-export function samplePlayer(rng: Sfc32, opts: { optimiser?: boolean } = {}): SimPlayer {
+function samplePlayer(rng: Sfc32, opts: { optimiser?: boolean } = {}): SimPlayer {
   return {
     bat: { strategy: pickWeighted(rng, BAT_MIX), skill: rng.pick(SKILLS) },
     bowl: { strategy: pickWeighted(rng, opts.optimiser === false ? BOWL_MIX_NO_OPTIMISER : BOWL_MIX), skill: rng.pick(SKILLS) },
   };
 }
 
-export function sampleConditions(rng: Sfc32): Conditions {
+function sampleConditions(rng: Sfc32): Conditions {
   return { pitch: rng.pick(PITCHES), weather: rng.pick(WEATHERS) };
 }
 
@@ -76,13 +76,13 @@ export function sampleConditions(rng: Sfc32): Conditions {
  * Reference batters used to judge bowling policies: best-response (oracle) batters across the skill range, so that a
  * "dominant" over is one that beats informed batting, not one that exploits a simple scripted batter.
  */
-export const REFERENCE_BATTERS: Weighted<BatPolicy> = [
+const REFERENCE_BATTERS: Weighted<BatPolicy> = [
   [{ strategy: 'oracle', skill: 'average' }, 60],
   [{ strategy: 'oracle', skill: 'skilled' }, 20],
   [{ strategy: 'oracle', skill: 'unskilled' }, 20],
 ];
 /** Reference bowling used to judge batting policies. */
-export const REFERENCE_BOWLERS: Weighted<BowlPolicy> = [
+const REFERENCE_BOWLERS: Weighted<BowlPolicy> = [
   [{ strategy: 'random', skill: 'average' }, 15],
   ...Object.keys(ARCHETYPES).map((a): [BowlPolicy, number] => [{ strategy: a as BowlPolicy['strategy'], skill: 'average' }, 35 / Object.keys(ARCHETYPES).length]),
   [{ strategy: 'optimised', skill: 'average' }, 20],
@@ -97,7 +97,7 @@ export const AVERAGE_HUMAN: SimPlayer = { bat: { strategy: 'heuristic', skill: '
 // ---------------------------------------------------------------------------------------------------------------
 
 /** Outcome counts: [balls, dots, 1s, 2s, 3s, 4s, 6s, wickets]. */
-export type OutcomeCounts = [number, number, number, number, number, number, number, number];
+type OutcomeCounts = [number, number, number, number, number, number, number, number];
 const zeroCounts = (): OutcomeCounts => [0, 0, 0, 0, 0, 0, 0, 0];
 function addOutcome(c: OutcomeCounts, o: BallOutcome): void {
   c[0]++;
@@ -111,7 +111,7 @@ function addOutcome(c: OutcomeCounts, o: BallOutcome): void {
 }
 
 /** Per-strategy innings and match record. */
-export interface Record_ {
+interface Record_ {
   innings: number;
   runs: number;
   runsSq: number;
@@ -257,7 +257,7 @@ const PLAYERS: [PlayerRef, PlayerRef] = [0, 1].map((i) => ({
 })) as [PlayerRef, PlayerRef];
 
 /** Builds a revealed log with real commit hashes and verifies it (the full audit path). */
-export async function buildAndVerify(rec: ReturnType<typeof playMatch>): Promise<string | null> {
+async function buildAndVerify(rec: ReturnType<typeof playMatch>): Promise<string | null> {
   const seed = rec.seed;
   const salts = [`salt-${seed}-0`, `salt-${seed}-1`];
   const commits = (await Promise.all(
@@ -472,7 +472,7 @@ export function dailyExperiment(bat: BatPolicy, firstDay: string, days: number, 
 }
 
 /** YYYY-MM-DD for a day number since 1970-01-01 (civil-from-days, pure integer arithmetic). */
-export function dayString(days: number): string {
+function dayString(days: number): string {
   const z = days + 719468;
   const era = Math.floor(z / 146097);
   const doe = z - era * 146097;

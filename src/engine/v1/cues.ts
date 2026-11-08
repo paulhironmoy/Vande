@@ -50,7 +50,7 @@ export function bowlerActionFor(d: Core): BowlerAction {
   }
 }
 
-export function footworkFor(d: Core, shot: ShotType): BallCues['footwork'] {
+function footworkFor(d: Core, shot: ShotType): BallCues['footwork'] {
   const short = d.variant === 'bouncer' || (d.variant !== 'yorker' && d.length === 'short');
   if (shot === 'leave') return 'still';
   if (shot === 'sweep') return 'across';
@@ -59,7 +59,7 @@ export function footworkFor(d: Core, shot: ShotType): BallCues['footwork'] {
   return 'forward';
 }
 
-export function batterAnimFor(shot: ShotType, zone: FieldZone | null, atom: Atom, leaving: boolean): BatterAnim {
+function batterAnimFor(shot: ShotType, zone: FieldZone | null, atom: Atom, leaving: boolean): BatterAnim {
   if (leaving) return 'leave';
   if (atom.contact === 'miss' || atom.contact === 'pad') return 'miss';
   if (atom.contact === 'thick_edge' || atom.contact === 'thin_edge') return 'edge';
@@ -81,7 +81,7 @@ export function batterAnimFor(shot: ShotType, zone: FieldZone | null, atom: Atom
   }
 }
 
-export function fateFor(atom: Atom, sixDistance: number): BallFate {
+function fateFor(atom: Atom, sixDistance: number): BallFate {
   switch (atom.kind) {
     case 'wicket':
       return { kind: 'wicket', wicket: atom.wicket ?? 'bowled', zone: atom.fielder };
@@ -113,7 +113,7 @@ export interface BallTimeline {
   endMs: number;
 }
 
-export function timelineFor(action: BowlerAction, path: BallPath, flightMs: number, fate: BallFate, celebration: BallCues['celebration']): BallTimeline {
+function timelineFor(action: BowlerAction, path: BallPath, flightMs: number, fate: BallFate, celebration: BallCues['celebration']): BallTimeline {
   const releaseAtMs = RUN_UP_MS[action];
   const travel = path.bounceAtM - 1.2;
   const bounceAtMs = releaseAtMs + Math.round((flightMs * (travel > 0 ? travel : 0)) / 17.7);

@@ -21,7 +21,7 @@ import type { Reply } from '../http/router';
 import { SQL } from '../storage/sql';
 
 /** Re-opening the same moment soon after (a cancelled share sheet, another chat) is still that one moment. */
-export const SHARE_MOMENT_GRACE_MS = 10 * 60_000;
+const SHARE_MOMENT_GRACE_MS = 10 * 60_000;
 
 export async function claimShareMoment(ctx: RequestContext): Promise<Reply> {
   const actor = requireActor(ctx);
