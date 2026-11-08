@@ -73,9 +73,11 @@ npm run test:render       # render-service unit tests
 node scripts/scan-secrets.mjs        # no secrets in committable files
 ```
 
-`npm test` currently ends with one known failure, `tests/unit/physics/shot.test.ts` ("cuts the short wide ball": a named limitation of
-physics freeze 5f, left unskipped on purpose). It is the only failing test in the clean-copy run recorded in
-[docs/TEST_REPORT.md](docs/TEST_REPORT.md), and CI shows it as the one red test.
+`npm test` ends with one known failure, `tests/unit/physics/shot.test.ts` ("cuts the short wide ball": a named limitation of
+physics freeze 5f, left unskipped on purpose), so the CI unit job is red until it is resolved. A second test, the Director
+size budget (`tests/unit/render3d/director/cost.test.ts`), failed on Node 22 until it was changed to count gzip with fflate;
+it now passes alone on Node 22.23.4 and 26.0.0. The latest full run, with its build id, is in
+[docs/TEST_REPORT.md](docs/TEST_REPORT.md).
 
 Do not run two Playwright runs or two Gradle builds at once, and do not rebuild `dist/` under a running preview.
 Configuration is environment variables only ([.env.example](.env.example)); nothing secret is committed or bundled.
@@ -98,9 +100,15 @@ generated files: change a source, then rebuild.
 **Other checks that CI runs:** `npm run scripts:test` runs every tooling test that can pass on a checkout (the Android policy
 and evidence tools, the motion pipeline, the textures and the portable audio tools; `npm run scripts:test -- --list` names the
 files it leaves out, with the reason), `npm run practice:goldens:check` (the frozen Practice golden fixtures still equal what
-the engine produces) and `npm run motion:test:py`. The full audio tool tests (`npm run audio:tools:test`) need ffmpeg 9.x,
-whose encoder tag the shipped MP3s carry, and one reads local evidence under `release/`, so they run on a developer machine
-only. `npm run notices` regenerates `public/third-party-notices.txt`.
+the engine produces) and `npm run motion:test:py`. The full audio tool tests (`npm run audio:tools:test`) are not run by CI,
+and 5 of their 21 tests fail in a plain clone (ffmpeg 9.0.1, Node 22.23.4), because they need the ignored sound folder
+`release/product-sequence/stage-1-practice/wedge/sound/`: four read its REGISTER.md or FREESOUND-SEARCH.md, and the placeholder
+render test falls back to a default level without its `placeholders/synth-levels.json`, so its MP3s differ from the shipped
+ones. With that folder in place all of them pass on ffmpeg 9.0.1 (the shipped MP3s carry its encoder tag Lavc63.1; other
+versions are not measured). `npm run notices` regenerates `public/third-party-notices.txt` with `--android`, so it runs
+Gradle: it needs a JDK, the Gradle cache and `android/capacitor-cordova-android-plugins/`, which `cap sync` writes and git
+ignores. In a clean clone it exits with 1 and leaves the file unchanged until `npm run android:sync` has run; that it then
+reproduces the committed file is UNPROVEN.
 
 **Unity.** The project is `unity/VandePractice`. Its EditMode tests, the WebGL and Android exports and the debug spike are
 described in [unity/VandePractice/README.md](unity/VandePractice/README.md). The web preview of the Unity view
