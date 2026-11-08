@@ -144,6 +144,9 @@ test('replay frames are identical at the same replay time', async ({ page }) => 
       const result = h.result('drive', 0, 15);
       const start = h.now();
       void h.replay(result, 'side', 0.3);
+      // Render the frames as in play: the Director bakes a delivery's script over its first frames, so one jump of the
+      // manual clock to the offset can show a script that is not baked yet (the first delivery of a page only).
+      for (let t = start + 50; t < start + offset; t += 50) await h.step(t);
       await h.step(start + offset);
     }, offset);
     return page.screenshot();
