@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "index.html!", "admin.html!", "render.html!", "privacy.html!", "delete-account.html!",
+    "src/**/*.worker.ts!", "src/sw.ts!", "backend/src/index.ts!", "render-service/src/main.ts!",
+    "vite.config.ts", "playwright.config.ts", "render-service/vitest.config.ts",
+    "tests/**/*.{ts,tsx}", "scripts/**/*.{mjs,mts,js,ts}", "docs/**/*.mjs",
+    "backend/local/*.{mjs,ts}", "backend/test/**/*.ts", "render-service/test/**/*.ts"
+  ],
+  "project": ["src/**/*.{ts,tsx}!", "backend/src/**/*.ts!", "render-service/src/**/*.ts!", "scripts/**/*.{mjs,mts,js,ts}"],
+  "ignoreDependencies": ["@capacitor/splash-screen", "@capacitor/status-bar", "@fontsource/noto-sans-devanagari"]
+}
