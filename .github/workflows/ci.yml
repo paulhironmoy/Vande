@@ -1,13 +1,65 @@
 name: CI
 
+# Four jobs that run side by side, so one failure never hides the others: static checks, unit tests, script tests, and the
+# production build with the browser journeys. Inside a job, independent steps still run after a failed one.
+# Known red: tests/unit/physics/shot.test.ts, "cuts the short wide ball" (unit job): a documented limitation of the
+# physics freeze 5f (docs/TEST_REPORT.md). Nothing else is expected to fail on a clean checkout.
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+  workflow_dispatch:
+
+# The jobs only read the repository.
+permissions:
+  contents: read
+
+# A newer push to a pull request replaces the run still going for it; runs on main always finish.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # vite.config.ts (so vitest, the build and the Playwright servers) takes the build identity from BUILD_ID; unset, it runs
+  # scripts/build-id.sh, which needs only the checkout. CI pins the commit under test (7 to 40 hex digits).
+  BUILD_ID: ${{ github.sha }}
 
 jobs:
-  verify:
+  static:
+    name: Static checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # Keep in step with .nvmrc. `22` resolves to the latest 22.x; package.json "engines" needs 22.22.2 or later.
+          node-version: 22
+          cache: npm
+      # These three need no installed packages. Every check in this job runs even when an earlier one failed.
+      - run: node scripts/scan-secrets.mjs
+      - run: npm audit --omit=dev --audit-level=high
+        if: ${{ !cancelled() }}
+      # The build id tool works in a bare checkout: the short commit hash, plus "+" and 12 hex digits for a dirty tree.
+      - run: scripts/build-id.sh | grep -E '^[0-9a-f]{7,40}(\+[0-9a-f]{12})?$'
+        if: ${{ !cancelled() }}
+      - run: npm ci
+        id: install
+        if: ${{ !cancelled() }}
+      - run: npm run typecheck:all
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      # ESLint (eslint.config.js); --max-warnings 0, so a warning fails the step as well.
+      - run: npm run lint
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      # The motion packs (assets-src/motion -> public/practice/motion/*.vmp and the Unity *.bytes twins) equal what their
+      # sources build, and the frozen Practice golden fixtures equal what the production engine produces.
+      - run: npm run motion:check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - run: npm run practice:goldens:check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+
+  unit:
+    name: Unit tests
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -17,19 +69,63 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node scripts/scan-secrets.mjs
-      - run: npm audit --omit=dev --audit-level=high
-      - run: npm run typecheck:all
+        id: install
+      # A clone sets no BUILD_ID, so vite.config.ts must start without it (the id then comes from scripts/build-id.sh).
+      - run: env -u BUILD_ID npx vitest run tests/unit/engine/primitives.test.ts
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
       # The github-actions reporter turns each failure into an annotation on the run (readable without the log).
       - run: npm test -- --reporter=dot --reporter=github-actions
-      - run: npm run build
-      - run: node scripts/check-bundle-size.mjs
-      - run: npx playwright install --with-deps chromium
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
       - run: npm run test:render -- --reporter=dot --reporter=github-actions
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+
+  scripts:
+    name: Script tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        id: install
+      # Every scripts/**/*.test.mjs that can pass on a checkout: the Android policy and evidence tools, the motion pipeline,
+      # the texture and portable audio tools and the rest. `npm run scripts:test -- --list` shows what is excluded and why
+      # (the audio tests that need ffmpeg 9.x or a local report, and one whose provenance pins are stale).
+      - run: npm run scripts:test
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      # Python unittest (python3 is on the runner, standard library only): the canonical form of the motion sources.
+      - run: npm run motion:test:py
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+
+  build:
+    name: Build and browser tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        id: install
+      - run: npm run build
+        id: build
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - run: node scripts/check-bundle-size.mjs
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+      - run: npx playwright install --with-deps chromium
+        id: browsers
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
       - run: npm run test:e2e
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.browsers.outcome == 'success' }}
         env:
           CI: 'true'
       - run: npm run test:flow
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.browsers.outcome == 'success' }}
         env:
           CI: 'true'
       - uses: actions/upload-artifact@v4

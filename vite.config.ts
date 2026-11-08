@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
@@ -14,6 +15,11 @@ const base = process.env.BASE_PATH || '/';
  * render page only in web builds (never packaged into the Android app, never precached by the service worker).
  */
 const ANDROID = process.env.VITE_BUILD_TARGET === 'android';
+// Unity remains an explicit candidate lane until the ADR's physical-device and
+// web-feasibility gates pass. When selected, the artifact gate below fails
+// closed rather than silently launching a stale Unity player.
+const UNITY_PRACTICE_WEB = !ANDROID && process.env.VITE_UNITY_PRACTICE_WEB === '1';
+const UNITY_PRACTICE = (ANDROID && process.env.VITE_UNITY_PRACTICE === '1') || UNITY_PRACTICE_WEB;
 const legalPages = ['privacy.html', 'delete-account.html'];
 const webOnlyPages = ANDROID ? [] : ['admin.html', 'render.html'];
 const pageInputs = Object.fromEntries(
@@ -48,7 +54,11 @@ function legalPlaceholders(): Plugin {
   };
 }
 
-/** Android builds ship no web-only social card images (they exist for link previews on the web). */
+/**
+ * Android builds ship neither web-only social cards nor the WebGL Unity player. Native Android links Unity through
+ * unityLibrary; copying the separate WebGL wasm/data payload into the APK would be dead weight and duplicate engine
+ * code. The retained Three.js/Classic chunks stay because they are the required device fallback.
+ */
 function dropWebOnlyAssets(): Plugin {
   let outDir = 'dist';
   return {
@@ -59,14 +69,67 @@ function dropWebOnlyAssets(): Plugin {
     },
     closeBundle() {
       if (!ANDROID) return;
-      for (const rel of ['og']) rmSync(resolve(outDir, rel), { recursive: true, force: true });
+      for (const rel of ['og', 'unity']) rmSync(resolve(outDir, rel), { recursive: true, force: true });
     },
   };
 }
 const now = new Date();
-const buildId =
-  process.env.BUILD_ID ||
-  `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, '0')}${String(now.getUTCDate()).padStart(2, '0')}.${String(now.getUTCHours()).padStart(2, '0')}${String(now.getUTCMinutes()).padStart(2, '0')}`;
+/**
+ * The identity stamped into the bundle (__BUILD_ID__) and checked against the Unity player: BUILD_ID from the
+ * environment (CI sets the commit), otherwise scripts/build-id.sh, which prints the short commit plus a fingerprint of
+ * any uncommitted changes and needs a git checkout.
+ */
+function repositoryBuildId(): string {
+  if (process.env.BUILD_ID) return process.env.BUILD_ID;
+  try {
+    return execFileSync('bash', [fileURLToPath(new URL('./scripts/build-id.sh', import.meta.url))], {
+      cwd: fileURLToPath(new URL('.', import.meta.url)),
+      encoding: 'utf8',
+    }).trim();
+  } catch (error) {
+    throw new Error(
+      'Cannot derive the build ID with scripts/build-id.sh (it needs a git checkout). Set BUILD_ID instead, for ' +
+        'example BUILD_ID=$(git rev-parse --short HEAD), or any 7 to 40 hex digits.',
+      { cause: error },
+    );
+  }
+}
+const buildId = repositoryBuildId();
+if (!/^[0-9a-f]{7,40}(?:\+[0-9a-f]{12})?$/.test(buildId)) {
+  throw new Error(`Invalid repository build ID: ${buildId}`);
+}
+
+/**
+ * A Unity-default web bundle must never silently publish an old player. The
+ * verifier binds the manifest, every runtime artifact and the complete Unity
+ * source tree to the same repository build identity. Vitest is excluded
+ * because its bridge tests provide isolated manifests and never launch Vite's
+ * player.
+ */
+function verifiedUnityWebGl(): Plugin {
+  const verify = () => {
+    execFileSync(process.execPath, [
+      fileURLToPath(new URL('./scripts/verify-unity-webgl.mjs', import.meta.url)),
+      '--root',
+      fileURLToPath(new URL('./public/unity', import.meta.url)),
+      '--expected-build-id',
+      buildId,
+    ], {
+      cwd: fileURLToPath(new URL('.', import.meta.url)),
+      stdio: 'inherit',
+    });
+  };
+  return {
+    name: 'vande:verified-unity-webgl',
+    apply: () => UNITY_PRACTICE_WEB,
+    configResolved(config) {
+      if (config.command === 'serve' && config.mode !== 'test') verify();
+    },
+    buildStart() {
+      verify();
+    },
+  };
+}
 
 /**
  * Preloads the Latin subset of the primary typeface so the first text paint uses Manrope instead of swapping in later.
@@ -148,12 +211,15 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(pkg.version),
     __BUILD_ID__: JSON.stringify(buildId),
     __BUILD_DATE__: JSON.stringify(now.toISOString()),
+    __UNITY_PRACTICE_ENABLED__: JSON.stringify(UNITY_PRACTICE),
+    __UNITY_PRACTICE_WEB_ENABLED__: JSON.stringify(UNITY_PRACTICE_WEB),
   },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   plugins: [
     react(),
+    verifiedUnityWebGl(),
     preloadPrimaryFont(),
     contentSecurityPolicy(),
     legalPlaceholders(),
@@ -189,8 +255,8 @@ export default defineConfig({
         ],
       },
       injectManifest: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2,webmanifest}'],
-        globIgnores: ['admin.html', 'render.html', 'assets/admin-*', 'assets/render-*', 'og/**'],
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2,webmanifest,mp3}'],
+        globIgnores: ['admin.html', 'render.html', 'assets/admin-*', 'assets/render-*', 'og/**', 'unity/**'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
       devOptions: { enabled: false },
