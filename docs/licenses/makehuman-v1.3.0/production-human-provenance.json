@@ -1,0 +1,851 @@
+{
+  "schema": "vande-production-human-provenance/v1",
+  "assetId": "VANDE-HUMAN-ANATOMY-CC0-001",
+  "status": "TECHNICAL COMPONENT CANDIDATE / CURRENT PRESENTATION REJECTED",
+  "purpose": "Stage 1 Unity anatomy-only presentation candidate for fictional cricket characters",
+  "generatedAt": "deterministic-no-wall-clock",
+  "creationAcquisition": {
+    "sourceAcquiredAtUtc": "2026-10-30T05:23:42Z",
+    "derivativeCreatedAtUtc": "2026-10-30T05:29:46Z",
+    "skinSourceAcquiredAtUtc": "2026-10-30T09:26:27Z",
+    "skinDerivativeCreatedAtUtc": "2026-10-30T09:28:42Z",
+    "acquisitionTimestampBasis": "UTC conversion of the checksum-verified pinned mesh master filesystem timestamp immediately after download; source remains in /private/tmp/vande-production-art-source",
+    "skinAcquisitionTimestampBasis": "UTC recorded immediately after the official no-account CC0 archive was checksum-verified and the single selected texture was extracted",
+    "sourceLocation": "/private/tmp/vande-production-art-source (production scratch; not a shipped runtime path; full system-assets archive removed after verification/extraction and remains recoverable from its recorded URL/hash)"
+  },
+  "rightsOwner": "MakeHuman asset copyright holders named in the pinned source; derivative treatment by VANDE",
+  "license": "CC0-1.0",
+  "rightsScope": "CC0 worldwide, perpetual, all-platform commercial use, modification and redistribution as source or in a compiled game; no attribution required",
+  "attribution": "none",
+  "likenessRelease": "not supplied or claimed; generic fictional-athlete use only, no real-player reference or likeness claim; independent identity review UNPROVEN",
+  "trademarksEmbeddedWorks": "the CC0 source atlas contains its own PUBLICDOMAIN MAKEHUMAN.ORG notice in a non-skin UV corner; no team, sponsor or manufacturer mark was added; independent derivative review NOT RUN",
+  "aiStatus": "no generative-AI image or real-player image was used; deterministic geometry transforms and Lanczos image resampling only",
+  "upstream": {
+    "repository": "https://github.com/makehumancommunity/makehuman",
+    "tag": "v1.3.0",
+    "commit": "1f508f6083b2f823dab15de924b3bde72e08d77c",
+    "files": {
+      "mesh": {
+        "path": "makehuman/data/3dobjs/base.obj",
+        "sha256": "8e761e6624b8f54536409135d1636da63b32486a90d4897f84e121d144f6fb4c",
+        "bytes": 1749303,
+        "rawUrl": "https://github.com/makehumancommunity/makehuman/raw/1f508f6083b2f823dab15de924b3bde72e08d77c/makehuman/data/3dobjs/base.obj"
+      },
+      "skeleton": {
+        "path": "makehuman/data/rigs/default.mhskel",
+        "sha256": "99f179bce0aa850b45d4191a1d0d234c5851f881c057439470ded3bddf729a24",
+        "bytes": 117790,
+        "rawUrl": "https://github.com/makehumancommunity/makehuman/raw/1f508f6083b2f823dab15de924b3bde72e08d77c/makehuman/data/rigs/default.mhskel"
+      },
+      "weights": {
+        "path": "makehuman/data/rigs/default_weights.mhw",
+        "sha256": "0f3641d651ae3d00ad6b4ccee43142edb109d3bd909d27d9e4139ef1beed8625",
+        "bytes": 897521,
+        "rawUrl": "https://github.com/makehumancommunity/makehuman/raw/1f508f6083b2f823dab15de924b3bde72e08d77c/makehuman/data/rigs/default_weights.mhw"
+      },
+      "licenseSummary": {
+        "path": "LICENSE.md",
+        "sha256": "edd99571ca62698f78c943fd4fffb159a413c315fa0d4819d3cec5cadaf8b4f1",
+        "bytes": 3598,
+        "rawUrl": "https://github.com/makehumancommunity/makehuman/raw/1f508f6083b2f823dab15de924b3bde72e08d77c/LICENSE.md"
+      },
+      "licenseAssets": {
+        "path": "LICENSE.ASSETS.md",
+        "sha256": "f6089cba01cb570a24712b41ab8a586ccd3cc5ef53dc266ca50b95c288956d2c",
+        "bytes": 6962,
+        "rawUrl": "https://github.com/makehumancommunity/makehuman/raw/1f508f6083b2f823dab15de924b3bde72e08d77c/LICENSE.ASSETS.md"
+      },
+      "skin": {
+        "path": "skins/young_caucasian_male/young_lightskinned_male_diffuse.png",
+        "sha256": "862a26e335e958b70534cb5f0d7c47ef30ab148a56c42b3e9da969cf76f12963",
+        "bytes": 3693828,
+        "rawUrl": "https://files2.makehumancommunity.org/asset_packs/makehuman_system_assets/makehuman_system_assets_cc0.zip",
+        "archiveEntry": "skins/young_caucasian_male/young_lightskinned_male_diffuse.png"
+      }
+    },
+    "systemAssets": {
+      "relationshipToApplicationTag": "the pinned v1.3.0 application delegates bundled graphical assets to its official makehuman-assets source; this exact official CC0 pack index commit predates the v1.3.0 release by one month",
+      "officialIndexUrl": "https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html",
+      "officialIndexRepository": "https://github.com/makehumancommunity/makehuman-static-website",
+      "officialIndexCommit": "09ec378f9aff822a1c95d55bac19e6367ff92e12",
+      "officialIndexPath": "content/Assets/AssetPacks/makehuman_system_assets.md",
+      "officialIndexSha256": "eb034452e780c06ef4ed042d4408ee34f43add9984c1803e69025ef6432316dd",
+      "archiveUrl": "https://files2.makehumancommunity.org/asset_packs/makehuman_system_assets/makehuman_system_assets_cc0.zip",
+      "archiveSha256": "b542127a8e25547c7c29c19f2d1d2adb9a664c80396ecd694095dbc8028a0107",
+      "archiveBytes": 280737770,
+      "archiveLastModifiedUtc": "2024-04-14T13:28:46Z",
+      "accountOrTermsAcceptance": "none; direct public URLs",
+      "repositoryLimitation": "the historical makehuman-assets Git repository named by the pinned application bootstrap is no longer publicly addressable; archive bytes and official index commit are pinned instead of inventing an asset-repository commit"
+    },
+    "archivedExactTerms": [
+      {
+        "path": "docs/licenses/makehuman-v1.3.0/LICENSE.md",
+        "sha256": "edd99571ca62698f78c943fd4fffb159a413c315fa0d4819d3cec5cadaf8b4f1"
+      },
+      {
+        "path": "docs/licenses/makehuman-v1.3.0/LICENSE.ASSETS.md",
+        "sha256": "f6089cba01cb570a24712b41ab8a586ccd3cc5ef53dc266ca50b95c288956d2c"
+      },
+      {
+        "path": "docs/licenses/makehuman-v1.3.0/SYSTEM-ASSET-SKIN-SNAPSHOT.md",
+        "sha256": "e932cbb0e6222fdea072cd24c4d6576e68d991e8b5819b3a4eadf44252cccfdf",
+        "appliesTo": "official CC0 system skin acquisition, exact pack/entry hashes, deterministic downscale and non-claims"
+      },
+      {
+        "path": "docs/licenses/meshoptimizer-1.1.1/LICENSE.md",
+        "sha256": "f03037ca7bad1e3eb7f4a63fa6084a8baabd5ba30d3c239a9a7f35705d873e26",
+        "appliesTo": "offline LOD simplifier only; not a human-source asset or shipped runtime library"
+      }
+    ],
+    "sourceCopyrightNotice": [
+      "Copyright (C) 2020 Data Collection AB",
+      "Copyright (C) 2020 Joel Palmius",
+      "Copyright (C) 2020 Jonas Hauquier",
+      "(c) 2021 Data Collection AB, Joel Palmius, Jonas Hauquier"
+    ],
+    "sourceCopyrightNoticesByFile": {
+      "mesh": [
+        "Copyright (C) 2020 Data Collection AB, https://www.datacollection.se",
+        "Copyright (C) 2020 Joel Palmius",
+        "Copyright (C) 2020 Jonas Hauquier"
+      ],
+      "skeleton": "(c) 2020 Data Collection AB, Joel Palmius, Jonas Hauquier",
+      "weights": "(c) 2021 Data Collection AB, Joel Palmius, Jonas Hauquier",
+      "skin": "official MakeHuman system asset; exact index identifies makehuman_system as author/source and CC0 as licence"
+    }
+  },
+  "modifications": {
+    "tool": "scripts/export-unity-production-human.mjs",
+    "toolSha256": "84c5dca20c4fcea97261fd9bddbb1fd041ce78d94a6be51d8a04c997f6d930be",
+    "toolchain": [
+      {
+        "path": "scripts/export-unity-production-human.mjs",
+        "bytes": 60267,
+        "sha256": "84c5dca20c4fcea97261fd9bddbb1fd041ce78d94a6be51d8a04c997f6d930be"
+      },
+      {
+        "path": "package.json",
+        "bytes": 4761,
+        "sha256": "b42b6a379081795c37ce4823e54cea58b28dbba912e55090cbc6f552c0829435"
+      },
+      {
+        "path": "package-lock.json",
+        "bytes": 330224,
+        "sha256": "e87b7c8b0c8f1d11be6cb90654bf8fe33b4e31ef56d4ff723255bfcafb136d74"
+      },
+      {
+        "path": "node_modules/meshoptimizer/package.json",
+        "bytes": 1311,
+        "sha256": "ef1028bdc0d4c114c578cb7836e555170eabada69661cf790b2b6fc91691747a"
+      },
+      {
+        "path": "node_modules/meshoptimizer/meshopt_simplifier.js",
+        "bytes": 55154,
+        "sha256": "d2e80c60a84c700947f97ab4678cc222a5b9ab409a0745eef2dcaa79bb1ef922"
+      },
+      {
+        "path": "node_modules/meshoptimizer/LICENSE.md",
+        "bytes": 1079,
+        "sha256": "f03037ca7bad1e3eb7f4a63fa6084a8baabd5ba30d3c239a9a7f35705d873e26"
+      },
+      {
+        "path": "docs/licenses/meshoptimizer-1.1.1/LICENSE.md",
+        "bytes": 1079,
+        "sha256": "f03037ca7bad1e3eb7f4a63fa6084a8baabd5ba30d3c239a9a7f35705d873e26"
+      }
+    ],
+    "bakeRuntime": {
+      "node": "v26.0.0",
+      "v8": "14.6.202.33-node.19",
+      "platform": "darwin",
+      "architecture": "arm64",
+      "baselinePolicy": "baker refuses a different runtime until its output is independently compared and the provenance baseline is reviewed",
+      "sameRuntimeRepeatability": "PASS — repeated v26.0.0/darwin/arm64 bake was byte-identical",
+      "crossRuntimePlatformDeterminism": "UNPROVEN — no second Node runtime, operating system or architecture was tested"
+    },
+    "sourcePose": "MakeHuman neutral A-pose",
+    "targetSkeleton": "VANDE ProductionCharacterJoint 17-joint presentation rig",
+    "weightPolicy": "collapse by source hierarchy, normalize, retain strongest two influences",
+    "restPosePolicy": "per-joint axial length map plus front-preserving orthonormal basis",
+    "sourceGeometryPolicy": {
+      "admittedFaceGroup": "body",
+      "excludedPolicy": "all joint-* and helper-* groups plus every other non-body face group are excluded",
+      "scaleCalibration": "vertical span of admitted body referenced vertices only",
+      "sourceTriangleGroups": {
+        "body": 26756,
+        "helper-genital": 364,
+        "helper-hair": 396,
+        "helper-l-eye": 140,
+        "helper-l-eyelashes-1": 88,
+        "helper-l-eyelashes-2": 96,
+        "helper-lower-teeth": 96,
+        "helper-r-eye": 140,
+        "helper-r-eyelashes-1": 88,
+        "helper-r-eyelashes-2": 96,
+        "helper-skirt": 1368,
+        "helper-tights": 5300,
+        "helper-tongue": 448,
+        "helper-upper-teeth": 96,
+        "joint-ground": 12,
+        "joint-head": 12,
+        "joint-head-2": 12,
+        "joint-jaw": 12,
+        "joint-l-ankle": 12,
+        "joint-l-clavicle": 12,
+        "joint-l-elbow": 12,
+        "joint-l-eye": 12,
+        "joint-l-eye-target": 12,
+        "joint-l-finger-1-1": 12,
+        "joint-l-finger-1-2": 12,
+        "joint-l-finger-1-3": 12,
+        "joint-l-finger-1-4": 12,
+        "joint-l-finger-2-1": 12,
+        "joint-l-finger-2-2": 12,
+        "joint-l-finger-2-3": 12,
+        "joint-l-finger-2-4": 12,
+        "joint-l-finger-3-1": 12,
+        "joint-l-finger-3-2": 12,
+        "joint-l-finger-3-3": 12,
+        "joint-l-finger-3-4": 12,
+        "joint-l-finger-4-1": 12,
+        "joint-l-finger-4-2": 12,
+        "joint-l-finger-4-3": 12,
+        "joint-l-finger-4-4": 12,
+        "joint-l-finger-5-1": 12,
+        "joint-l-finger-5-2": 12,
+        "joint-l-finger-5-3": 12,
+        "joint-l-finger-5-4": 12,
+        "joint-l-foot-1": 12,
+        "joint-l-foot-2": 12,
+        "joint-l-hand": 12,
+        "joint-l-hand-2": 12,
+        "joint-l-hand-3": 12,
+        "joint-l-knee": 12,
+        "joint-l-lowerlid": 12,
+        "joint-l-scapula": 12,
+        "joint-l-shoulder": 12,
+        "joint-l-toe-1-1": 12,
+        "joint-l-toe-1-2": 12,
+        "joint-l-toe-1-3": 12,
+        "joint-l-toe-2-1": 12,
+        "joint-l-toe-2-2": 12,
+        "joint-l-toe-2-3": 12,
+        "joint-l-toe-2-4": 12,
+        "joint-l-toe-3-1": 12,
+        "joint-l-toe-3-2": 12,
+        "joint-l-toe-3-3": 12,
+        "joint-l-toe-3-4": 12,
+        "joint-l-toe-4-1": 12,
+        "joint-l-toe-4-2": 12,
+        "joint-l-toe-4-3": 12,
+        "joint-l-toe-4-4": 12,
+        "joint-l-toe-5-1": 12,
+        "joint-l-toe-5-2": 12,
+        "joint-l-toe-5-3": 12,
+        "joint-l-toe-5-4": 12,
+        "joint-l-upper-leg": 12,
+        "joint-l-upperlid": 12,
+        "joint-mouth": 12,
+        "joint-neck": 12,
+        "joint-pelvis": 12,
+        "joint-r-ankle": 12,
+        "joint-r-clavicle": 12,
+        "joint-r-elbow": 12,
+        "joint-r-eye": 12,
+        "joint-r-eye-target": 12,
+        "joint-r-finger-1-1": 12,
+        "joint-r-finger-1-2": 12,
+        "joint-r-finger-1-3": 12,
+        "joint-r-finger-1-4": 12,
+        "joint-r-finger-2-1": 12,
+        "joint-r-finger-2-2": 12,
+        "joint-r-finger-2-3": 12,
+        "joint-r-finger-2-4": 12,
+        "joint-r-finger-3-1": 12,
+        "joint-r-finger-3-2": 12,
+        "joint-r-finger-3-3": 12,
+        "joint-r-finger-3-4": 12,
+        "joint-r-finger-4-1": 12,
+        "joint-r-finger-4-2": 12,
+        "joint-r-finger-4-3": 12,
+        "joint-r-finger-4-4": 12,
+        "joint-r-finger-5-1": 12,
+        "joint-r-finger-5-2": 12,
+        "joint-r-finger-5-3": 12,
+        "joint-r-finger-5-4": 12,
+        "joint-r-foot-1": 12,
+        "joint-r-foot-2": 12,
+        "joint-r-hand": 12,
+        "joint-r-hand-2": 12,
+        "joint-r-hand-3": 12,
+        "joint-r-knee": 12,
+        "joint-r-lowerlid": 12,
+        "joint-r-scapula": 12,
+        "joint-r-shoulder": 12,
+        "joint-r-toe-1-1": 12,
+        "joint-r-toe-1-2": 12,
+        "joint-r-toe-1-3": 12,
+        "joint-r-toe-2-1": 12,
+        "joint-r-toe-2-2": 12,
+        "joint-r-toe-2-3": 12,
+        "joint-r-toe-2-4": 12,
+        "joint-r-toe-3-1": 12,
+        "joint-r-toe-3-2": 12,
+        "joint-r-toe-3-3": 12,
+        "joint-r-toe-3-4": 12,
+        "joint-r-toe-4-1": 12,
+        "joint-r-toe-4-2": 12,
+        "joint-r-toe-4-3": 12,
+        "joint-r-toe-4-4": 12,
+        "joint-r-toe-5-1": 12,
+        "joint-r-toe-5-2": 12,
+        "joint-r-toe-5-3": 12,
+        "joint-r-toe-5-4": 12,
+        "joint-r-upper-leg": 12,
+        "joint-r-upperlid": 12,
+        "joint-spine-1": 12,
+        "joint-spine-2": 12,
+        "joint-spine-3": 12,
+        "joint-spine-4": 12,
+        "joint-tongue-1": 12,
+        "joint-tongue-2": 12,
+        "joint-tongue-3": 12,
+        "joint-tongue-4": 12
+      },
+      "admittedSourceTriangles": 26756,
+      "sourcePositionCount": 19158,
+      "sourceTexcoordCount": 21334,
+      "admittedReferencedVertices": 13380,
+      "admittedRenderVerticesAfterUvSeams": 14517,
+      "uvSeamDuplicateVertices": 1137,
+      "excludedUnreferencedVertices": 5778,
+      "excludedSourceTriangles": 10216
+    },
+    "fictionalIdentity": {
+      "id": "vande-fictional-athlete-a-001",
+      "sourceReference": "none",
+      "symmetry": "bilateral",
+      "shoulderWidthScale": 1.045,
+      "waistWidthScale": 0.975,
+      "calfWidthScale": 1.018,
+      "jawWidthScale": 1.022,
+      "chinWidthScale": 0.992,
+      "cheekWidthScale": 1.012,
+      "cheekDepthScale": 1.015,
+      "browDepthScale": 1.012
+    },
+    "uvPolicy": "preserve each admitted OBJ position/texture-coordinate corner pair; duplicate render vertices at UV seams while welding source-position identity for normals and topology evidence",
+    "texturePolicy": "sample the pinned CC0 1024px albedo only for region 0 (head, neck, forearms and hands); retain VANDE original unbranded procedural kit/trousers/shoes for regions 1–3; missing texture or retained VPM1 UV flag fails closed to procedural skin",
+    "skinTextureDerivative": {
+      "sourcePath": "skins/young_caucasian_male/young_lightskinned_male_diffuse.png",
+      "sourceSha256": "862a26e335e958b70534cb5f0d7c47ef30ab148a56c42b3e9da969cf76f12963",
+      "sourceBytes": 3693828,
+      "sourceDimensions": [
+        2048,
+        2048
+      ],
+      "outputPath": "unity/VandePractice/Assets/VandePractice/Runtime/Presentation/Resources/ProductionCharacters/human-skin-albedo-1024.png",
+      "outputSha256": "a7700f7a538fa723647296416b77713aefda9e6ad3ba037f30bf4c9eab6ad0d0",
+      "outputBytes": 1065858,
+      "outputDimensions": [
+        1024,
+        1024
+      ],
+      "tool": "ffmpeg 9.0.1 (Apple clang 17.0.0)",
+      "command": "ffmpeg -hide_banner -loglevel error -i <source> -vf scale=1024:1024:flags=lanczos -frames:v 1 -compression_level 9 -pred mixed -update 1 <output>",
+      "modifications": "Lanczos downscale from 2048x2048 to 1024x1024 and PNG recompression; no retouch, recolour, generated pixels, likeness reference or separate eye/hair texture",
+      "sourceAIStatus": "not AI-generated; exact MakeHuman system-asset derivative"
+    },
+    "normalPolicy": "source OBJ has no vertex normals; deterministic area-weighted normals are derived after posing and after topology-restricted LOD simplification",
+    "regionPolicy": "four role-generic shader regions: skin=0, shirt=1, trousers=2, shoes=3",
+    "lowLodPolicy": "meshoptimizer 1.1.1 topology-restricted simplifyWithAttributes on the original seam-split vertices with UV weight 10 and no permissive, prune or regularize flags; compact original vertices; reject unless every welded undirected edge has exactly two incident faces and every UV edge is at most 0.25",
+    "simplifier": {
+      "package": "meshoptimizer",
+      "version": "1.1.1",
+      "license": "MIT",
+      "implementationSha256": "d2e80c60a84c700947f97ab4678cc222a5b9ab409a0745eef2dcaa79bb1ef922",
+      "licenseSha256": "f03037ca7bad1e3eb7f4a63fa6084a8baabd5ba30d3c239a9a7f35705d873e26",
+      "archivedTerms": "docs/licenses/meshoptimizer-1.1.1/LICENSE.md",
+      "relativeErrorLimit": 0.05,
+      "flags": [],
+      "api": "simplifyWithAttributes",
+      "attributeWeights": {
+        "uv": 10
+      },
+      "maximumUvEdgeLength": 0.25,
+      "vertexLock": null,
+      "crossRuntimePlatformDeterminism": "UNPROVEN; bake runtime is pinned above"
+    }
+  },
+  "technicalBudget": {
+    "highTriangleMaximum": 40000,
+    "lowTriangleMaximum": 4000,
+    "premiumFarTriangleMaximum": 2000,
+    "balancedLiteFarTriangleMaximum": 1200,
+    "boneCount": 17,
+    "influencesPerVertex": 2,
+    "format": "VPM2/version-2/52-byte-vertex with UV0; Unity decoder remains compatible with VPM1/version-1/44-byte-vertex retained assets",
+    "textureBytes": 1065858,
+    "rawMeshDerivativeBytes": 1184104,
+    "rawDerivativeBytes": 2249962,
+    "deltaFromPreUvCandidate": {
+      "previousVpm1MeshBytes": 951184,
+      "currentVpm2MeshBytes": 1184104,
+      "meshBytesDelta": 232920,
+      "texturePngBytesDelta": 1065858,
+      "totalRepositoryPayloadBytesDelta": 1298778,
+      "installedPlaySplitDelta": "UNPROVEN",
+      "runtimeCpuGpuMemoryDelta": "UNPROVEN"
+    },
+    "textureMemoryContract": {
+      "sourceDimensions": [
+        2048,
+        2048
+      ],
+      "shippedDimensions": [
+        1024,
+        1024
+      ],
+      "shippedPngBytes": 1065858,
+      "maximumUncompressedRgba32MipChainBytes": 5592404,
+      "importerMaximumSize": 1024,
+      "mipmaps": true,
+      "readable": false,
+      "androidCompression": "Unity normal-quality platform compression requested; exact format/bytes UNPROVEN until an Android release artifact is inspected",
+      "webglCompression": "Unity normal-quality platform compression requested; exact format/bytes UNPROVEN until a WebGL release artifact is inspected"
+    },
+    "materials": 1,
+    "editorRuntimeFootprint": {
+      "status": "PRE-VPM2 HISTORICAL EDITOR-ONLY / NON-CURRENT — not Android, installed-size, texture-memory, peak-memory or physical-device proof; fresh post-upgrade measurement NOT RUN",
+      "buildId": "38924bd+3c7bb1b48a98",
+      "observedAtUtc": "2026-10-30T05:58:55Z",
+      "resourcePayloadBytes": 951184,
+      "sharedTeamMeshObjectsBytes": 2864016,
+      "dynamicBowlerMeshObjectsBytes": 2589360,
+      "combinedMeshObjectsBytes": 5453376,
+      "rendererCount": 619,
+      "materialCount": 30,
+      "decodedMeshCount": 4,
+      "lazyFarMeshCount": 2,
+      "evidence": "/private/tmp/vande-production-human-full-graphics-final.xml"
+    },
+    "editorLoadCost": {
+      "status": "INDICATIVE ONLY — one-minute load average 29.01 exceeded the constitution threshold; no device claim",
+      "baseDecodeMilliseconds": 5.752,
+      "firstFarPairDecodeMilliseconds": 1.068,
+      "teamExpansionMilliseconds": 7.441,
+      "dynamicOwnerMilliseconds": 6.083,
+      "evidence": "/private/tmp/vande-production-human-full-graphics-final.xml"
+    },
+    "androidRuntimeMemory": "UNPROVEN",
+    "androidInstalledSizeDelta": "UNPROVEN — source PNG and VPM2 byte deltas are repository facts, not Play-split/fresh-installed evidence",
+    "indiaWeightedReach": "UNPROVEN",
+    "physicalDeviceLoadCost": "UNPROVEN"
+  },
+  "repositoryPaths": {
+    "runtimeDirectory": "unity/VandePractice/Assets/VandePractice/Runtime/Presentation/Resources/ProductionCharacters",
+    "manifest": "docs/licenses/makehuman-v1.3.0/production-human-provenance.json",
+    "archivedTerms": "docs/licenses/makehuman-v1.3.0/",
+    "simplifierArchivedTerms": "docs/licenses/meshoptimizer-1.1.1/",
+    "bakeTool": "scripts/export-unity-production-human.mjs"
+  },
+  "buildExposure": {
+    "stage": "Stage 1 Practice only",
+    "scene": "Unity Practice production-character path",
+    "roles": [
+      "batter",
+      "pace bowler",
+      "spin bowler",
+      "keeper",
+      "fielder"
+    ],
+    "qualityTiers": {
+      "LOD0": "human-lod0.bytes; 26,756 triangles; near Premium hero only",
+      "LOD1": "human-lod1.bytes; 4,000 triangles; Balanced/Medium, every wicketkeeper, every fielder below 30 m, and pace/spin bowler at or beyond 12 m (live bowler approximately 20 m)",
+      "LOD2": "human-lod2.bytes; 2,000 triangles; fielder at or beyond 30 m in High/Premium",
+      "LOD3": "human-lod3.bytes; 1,200 triangles; fielder at or beyond 30 m in Balanced/Medium or Lite/Low"
+    },
+    "distancePolicy": {
+      "measure": "actual planar distance from the striker presentation reference",
+      "boundaryMetres": 30,
+      "wiring": "live scene, quality profile and benchmark all pass the actual planar distance into character selection",
+      "automatedEvidence": "/private/tmp/vande-production-human-world-final.xml"
+    },
+    "loadingPolicy": {
+      "farMeshes": "lazy-decode on first actual fielder, then shared by the team resource owner",
+      "dynamicBowlerOwner": "loads LOD0 and LOD1 only",
+      "runtimeClustering": "none"
+    },
+    "fallbackOrderByRole": {
+      "Batter": [
+        "licensed anatomy candidate",
+        "retained VANDE VPM1 batter mesh",
+        "procedural emergency geometry"
+      ],
+      "PaceBowler": [
+        "licensed anatomy candidate",
+        "retained VANDE VPM1 bowler mesh",
+        "procedural emergency geometry"
+      ],
+      "SpinBowler": [
+        "licensed anatomy candidate",
+        "retained VANDE VPM1 bowler mesh",
+        "procedural emergency geometry"
+      ],
+      "Wicketkeeper": [
+        "licensed anatomy candidate",
+        "procedural emergency geometry"
+      ],
+      "Fielder": [
+        "licensed anatomy candidate",
+        "procedural emergency geometry"
+      ]
+    },
+    "exactBuildBinding": "UNPROVEN — each evidence build must bind these derivative hashes independently"
+  },
+  "reviewerStatus": {
+    "owner": "Unity presentation",
+    "independentReviewer": "/root/production_art_independent_audit",
+    "recordedAtUtc": "2026-10-30T06:16:11Z",
+    "readinessStatus": "TECHNICAL COMPONENT CANDIDATE / CURRENT PRESENTATION REJECTED",
+    "independentDecision": "REJECT / REWORK — exact Unity WebGL diagnostic exposed the licensed anatomy but failed production-art presentation review"
+  },
+  "evidence": {
+    "rightsAndSource": [
+      "docs/licenses/makehuman-v1.3.0/README.md",
+      "docs/licenses/makehuman-v1.3.0/LICENSE.md",
+      "docs/licenses/makehuman-v1.3.0/LICENSE.ASSETS.md",
+      "docs/licenses/makehuman-v1.3.0/SYSTEM-ASSET-SKIN-SNAPSHOT.md",
+      "docs/licenses/makehuman-v1.3.0/production-human-provenance.json",
+      "docs/licenses/meshoptimizer-1.1.1/README.md",
+      "docs/licenses/meshoptimizer-1.1.1/LICENSE.md"
+    ],
+    "deterministicContract": "scripts/export-unity-production-human.test.mjs",
+    "automatedResults": [
+      {
+        "path": "/private/tmp/vande-production-human-offline-lods-focused.xml",
+        "log": "/private/tmp/vande-production-human-offline-lods-focused.log",
+        "buildId": "38924bd+fc1ad02ac011",
+        "recordedAtUtc": "2026-10-30T05:56:16Z",
+        "method": "Unity 6000.3.27f1 arm64 batchmode+nographics EditMode; Vande.Practice.Tests.ProductionCharacterDimensionsTests",
+        "expected": "31 pass / 0 fail",
+        "observed": "31 pass / 0 fail",
+        "status": "PASS; automated builder evidence, not visual/device/human acceptance"
+      },
+      {
+        "path": "/private/tmp/vande-production-human-world-final.xml",
+        "log": "/private/tmp/vande-production-human-world-final.log",
+        "buildId": "38924bd+3c7bb1b48a98",
+        "recordedAtUtc": "2026-10-30T05:58:39Z",
+        "method": "Unity 6000.3.27f1 arm64 batchmode+nographics EditMode; exact world distance-policy filter; two workers",
+        "expected": "1 pass / 0 fail",
+        "observed": "1 pass / 0 fail",
+        "status": "PASS; automated builder evidence, not visual/device/human acceptance"
+      },
+      {
+        "path": "/private/tmp/vande-production-human-full-graphics-final.xml",
+        "log": "/private/tmp/vande-production-human-full-graphics-final.log",
+        "buildId": "38924bd+3c7bb1b48a98",
+        "recordedAtUtc": "2026-10-30T05:58:55Z",
+        "method": "Unity 6000.3.27f1 arm64 with graphics, EditMode all, two workers",
+        "expected": "0 failures",
+        "observed": "272 pass / 0 fail",
+        "status": "PASS; timing indicative because one-minute load average was 29.01; not visual/device/human acceptance"
+      }
+    ],
+    "testDevice": "MacBookPro18,1; Apple M1 Pro 10-core; 32 GB; macOS 15.7.4 (24G517); Unity 6000.3.27f1 arm64",
+    "independentVisual": {
+      "status": "REJECT / REWORK",
+      "buildId": "38924bd+efc5ca4ae735",
+      "recordedAtUtc": "2026-10-30T06:07:30Z",
+      "method": "independent original-detail review of the exact Unity WebGL diagnostic frame at 844x390 during run-up",
+      "expected": "production-grade character, equipment, pose, coupling, layering and scene match with no Critical/High visual blocker",
+      "observed": "licensed anatomy is live, but flat materials, primitive procedural gear, weak face/cloth detail, pose and bat coupling, visible layer merging/overlap, robot-like distant players and scene-light mismatch remain",
+      "evidence": "release/production-art/unity-webgl-diagnostic-efc5ca4ae735-20261030T060700Z/live-frame.png",
+      "limitation": "one frame does not establish all animation, lighting, clipping or LOD states"
+    },
+    "physicalDevice": "NOT RUN",
+    "androidInstalledSize": "UNPROVEN",
+    "indiaWeightedReach": "UNPROVEN",
+    "humanPlayer": "NOT RUN"
+  },
+  "outputs": [
+    {
+      "path": "unity/VandePractice/Assets/VandePractice/Runtime/Presentation/Resources/ProductionCharacters/human-lod0.bytes",
+      "lod": 0,
+      "bytes": 915436,
+      "sha256": "1434513f204f06980e4d7e4b81a07052fc967c534c56d668ca84af1157071e0d",
+      "vertexCount": 14517,
+      "indexCount": 80268,
+      "triangleCount": 26756,
+      "simplification": null,
+      "topology": {
+        "vertices": 14517,
+        "geometricVertices": 13380,
+        "triangles": 26756,
+        "unusedVertices": 0,
+        "degenerateTriangles": 0,
+        "undirectedEdges": 40134,
+        "boundaryEdges": 0,
+        "nonManifoldEdges": 0,
+        "maximumEdgeValence": 2
+      },
+      "uv": {
+        "minimum": [
+          0.009208,
+          0.009607
+        ],
+        "maximum": [
+          0.993515,
+          0.973856
+        ],
+        "maximumEdgeLength": 0.06222518482093885,
+        "maximumAllowedEdgeLength": 0.25,
+        "edgesOverLimit": 0
+      },
+      "bounds": {
+        "minimum": [
+          -0.2648544776962529,
+          -0.017389380243751,
+          -0.12475251932307126
+        ],
+        "maximum": [
+          0.2648544776962529,
+          1.7594151153533915,
+          0.2093424725303776
+        ],
+        "size": [
+          0.5297089553925058,
+          1.7768044955971425,
+          0.3340949918534489
+        ],
+        "centre": [
+          0,
+          0.8710128675548202,
+          0.042294976603653174
+        ]
+      }
+    },
+    {
+      "path": "unity/VandePractice/Assets/VandePractice/Runtime/Presentation/Resources/ProductionCharacters/human-lod1.bytes",
+      "lod": 1,
+      "bytes": 145280,
+      "sha256": "479f641cf20358a8b426b7e8825718f3acf7a6752a35ea05d7a6cf6d288e139f",
+      "vertexCount": 2332,
+      "indexCount": 12000,
+      "triangleCount": 4000,
+      "simplification": {
+        "algorithm": "meshoptimizer-1.1.1 topology-restricted simplifyWithAttributes on seam-split render vertices",
+        "flags": [],
+        "attributeWeights": {
+          "uv": 10
+        },
+        "vertexLock": null,
+        "targetTriangles": 4000,
+        "achievedTriangles": 4000,
+        "maximumRelativeError": 0.05,
+        "observedRelativeError": 0.0015049806097522378
+      },
+      "topology": {
+        "vertices": 2332,
+        "geometricVertices": 2002,
+        "triangles": 4000,
+        "unusedVertices": 0,
+        "degenerateTriangles": 0,
+        "undirectedEdges": 6000,
+        "boundaryEdges": 0,
+        "nonManifoldEdges": 0,
+        "maximumEdgeValence": 2
+      },
+      "uv": {
+        "minimum": [
+          0.009208,
+          0.009935
+        ],
+        "maximum": [
+          0.992106,
+          0.973856
+        ],
+        "maximumEdgeLength": 0.1109458538432149,
+        "maximumAllowedEdgeLength": 0.25,
+        "edgesOverLimit": 0
+      },
+      "bounds": {
+        "minimum": [
+          -0.2648544776962529,
+          -0.017389380243751,
+          -0.12475251932307126
+        ],
+        "maximum": [
+          0.2648544776962529,
+          1.7594151153533915,
+          0.20891982673188092
+        ],
+        "size": [
+          0.5297089553925058,
+          1.7768044955971425,
+          0.33367234605495216
+        ],
+        "centre": [
+          0,
+          0.8710128675548202,
+          0.04208365370440483
+        ]
+      }
+    },
+    {
+      "path": "unity/VandePractice/Assets/VandePractice/Runtime/Presentation/Resources/ProductionCharacters/human-lod2.bytes",
+      "lod": 2,
+      "bytes": 75924,
+      "sha256": "c5de2b10e4cab76bcc9dedbd5662c0cf7c7b9b38d7d297d9eb2cadf151ee1d3d",
+      "vertexCount": 1229,
+      "indexCount": 6000,
+      "triangleCount": 2000,
+      "simplification": {
+        "algorithm": "meshoptimizer-1.1.1 topology-restricted simplifyWithAttributes on seam-split render vertices",
+        "flags": [],
+        "attributeWeights": {
+          "uv": 10
+        },
+        "vertexLock": null,
+        "targetTriangles": 2000,
+        "achievedTriangles": 2000,
+        "maximumRelativeError": 0.05,
+        "observedRelativeError": 0.002925782697275281
+      },
+      "topology": {
+        "vertices": 1229,
+        "geometricVertices": 1002,
+        "triangles": 2000,
+        "unusedVertices": 0,
+        "degenerateTriangles": 0,
+        "undirectedEdges": 3000,
+        "boundaryEdges": 0,
+        "nonManifoldEdges": 0,
+        "maximumEdgeValence": 2
+      },
+      "uv": {
+        "minimum": [
+          0.009208,
+          0.009935
+        ],
+        "maximum": [
+          0.992106,
+          0.973856
+        ],
+        "maximumEdgeLength": 0.12691295689566132,
+        "maximumAllowedEdgeLength": 0.25,
+        "edgesOverLimit": 0
+      },
+      "bounds": {
+        "minimum": [
+          -0.2635799488751651,
+          -0.015474248285697795,
+          -0.12475251932307126
+        ],
+        "maximum": [
+          0.2635799488751651,
+          1.7594151153533915,
+          0.2087261863749131
+        ],
+        "size": [
+          0.5271598977503302,
+          1.7748893636390892,
+          0.3334787056979844
+        ],
+        "centre": [
+          0,
+          0.8719704335338468,
+          0.041986833525920926
+        ]
+      }
+    },
+    {
+      "path": "unity/VandePractice/Assets/VandePractice/Runtime/Presentation/Resources/ProductionCharacters/human-lod3.bytes",
+      "lod": 3,
+      "bytes": 47464,
+      "sha256": "976edf587f052b1d0517ae6c16ed133ca7ee78d07c4f92fb71a988b13b12d9da",
+      "vertexCount": 774,
+      "indexCount": 3600,
+      "triangleCount": 1200,
+      "simplification": {
+        "algorithm": "meshoptimizer-1.1.1 topology-restricted simplifyWithAttributes on seam-split render vertices",
+        "flags": [],
+        "attributeWeights": {
+          "uv": 10
+        },
+        "vertexLock": null,
+        "targetTriangles": 1200,
+        "achievedTriangles": 1200,
+        "maximumRelativeError": 0.05,
+        "observedRelativeError": 0.004358871374279261
+      },
+      "topology": {
+        "vertices": 774,
+        "geometricVertices": 602,
+        "triangles": 1200,
+        "unusedVertices": 0,
+        "degenerateTriangles": 0,
+        "undirectedEdges": 1800,
+        "boundaryEdges": 0,
+        "nonManifoldEdges": 0,
+        "maximumEdgeValence": 2
+      },
+      "uv": {
+        "minimum": [
+          0.009208,
+          0.009935
+        ],
+        "maximum": [
+          0.992106,
+          0.973856
+        ],
+        "maximumEdgeLength": 0.1569250005384738,
+        "maximumAllowedEdgeLength": 0.25,
+        "edgesOverLimit": 0
+      },
+      "bounds": {
+        "minimum": [
+          -0.2635799488751651,
+          -0.015474248285697795,
+          -0.12253037065987764
+        ],
+        "maximum": [
+          0.2635799488751651,
+          1.7594151153533915,
+          0.2087261863749131
+        ],
+        "size": [
+          0.5271598977503302,
+          1.7748893636390892,
+          0.33125655703479073
+        ],
+        "centre": [
+          0,
+          0.8719704335338468,
+          0.043097907857517735
+        ]
+      }
+    }
+  ],
+  "textureOutput": {
+    "path": "unity/VandePractice/Assets/VandePractice/Runtime/Presentation/Resources/ProductionCharacters/human-skin-albedo-1024.png",
+    "bytes": 1065858,
+    "sha256": "a7700f7a538fa723647296416b77713aefda9e6ad3ba037f30bf4c9eab6ad0d0",
+    "width": 1024,
+    "height": 1024,
+    "colourSpace": "sRGB",
+    "mipmaps": true,
+    "sourceAIStatus": "not AI-generated; exact MakeHuman system-asset derivative"
+  },
+  "acceptance": {
+    "sourceLicenseReview": "BUILDER SOURCE CHECK COMPLETE; independent legal review NOT RUN",
+    "deterministicBake": "BUILDER TEST PASS (not an acceptance decision)",
+    "independentVisual": "REJECT / REWORK — current exact WebGL presentation failed independent production-art review",
+    "clipping": "VISUAL LAYERING REJECTED IN CAPTURE — pad/leg/crease/stump visually merge or overlap; full 3D clipping matrix NOT RUN",
+    "androidInstalledDelta": "UNPROVEN",
+    "indiaWeightedReach": "UNPROVEN",
+    "physicalDevice": "NOT RUN",
+    "humanPlayer": "NOT RUN"
+  }
+}

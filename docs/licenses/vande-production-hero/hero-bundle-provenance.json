@@ -1,0 +1,3647 @@
+{
+  "status": "TECHNICAL HERO FOUNDATION / NOT PLAYER-FACING ACCEPTED",
+  "generatedAtUtc": "1970-01-01T00:00:00.000Z",
+  "format": "VSK1 skeleton + one combined body/kit VPM3 per LOD + one shared protected eye VPM3",
+  "source": {
+    "makeHumanVersion": "1.3.0",
+    "repository": "https://github.com/makehumancommunity/makehuman",
+    "tag": "v1.3.0",
+    "commit": "1f508f6083b2f823dab15de924b3bde72e08d77c",
+    "coreAssetLicense": "CC0-1.0",
+    "pinnedCoreFiles": {
+      "mesh": {
+        "localName": "base.obj",
+        "upstreamPath": "makehuman/data/3dobjs/base.obj",
+        "sha256": "8e761e6624b8f54536409135d1636da63b32486a90d4897f84e121d144f6fb4c",
+        "rawUrl": "https://github.com/makehumancommunity/makehuman/raw/1f508f6083b2f823dab15de924b3bde72e08d77c/makehuman/data/3dobjs/base.obj"
+      },
+      "skeleton": {
+        "localName": "default.mhskel",
+        "upstreamPath": "makehuman/data/rigs/default.mhskel",
+        "sha256": "99f179bce0aa850b45d4191a1d0d234c5851f881c057439470ded3bddf729a24",
+        "rawUrl": "https://github.com/makehumancommunity/makehuman/raw/1f508f6083b2f823dab15de924b3bde72e08d77c/makehuman/data/rigs/default.mhskel"
+      },
+      "weights": {
+        "localName": "default_weights.mhw",
+        "upstreamPath": "makehuman/data/rigs/default_weights.mhw",
+        "sha256": "0f3641d651ae3d00ad6b4ccee43142edb109d3bd909d27d9e4139ef1beed8625",
+        "rawUrl": "https://github.com/makehumancommunity/makehuman/raw/1f508f6083b2f823dab15de924b3bde72e08d77c/makehuman/data/rigs/default_weights.mhw"
+      }
+    },
+    "systemAssetPack": {
+      "url": "https://files2.makehumancommunity.org/asset_packs/makehuman_system_assets/makehuman_system_assets_cc0.zip",
+      "archive": "makehuman_system_assets_cc0.zip",
+      "archiveBytes": 280737770,
+      "archiveSha256": "b542127a8e25547c7c29c19f2d1d2adb9a664c80396ecd694095dbc8028a0107",
+      "license": "CC0-1.0",
+      "officialLicensePage": "https://www.makehumancommunity.org/about/license.html",
+      "selectedKitEntries": [
+        {
+          "id": "hair",
+          "shaderRegion": 11,
+          "license": "CC0-1.0",
+          "normalPolicy": "area-weighted garment normals weld original OBJ position identity across UV seams and retain that identity through kit simplification",
+          "object": {
+            "archiveEntry": "hair/short04/short04.obj",
+            "sha256": "676964a133ee35ffcea1195382bf75542da7a298931e4001bc7b0d7b707225de"
+          },
+          "transfer": {
+            "archiveEntry": "hair/short04/short04.mhclo",
+            "sha256": "d60640aa4c4ffce1aa269647ba436b6ee0bb21bb948f927b84e27a48d2107157"
+          },
+          "material": {
+            "archiveEntry": "hair/short04/short04.mhmat",
+            "sha256": "7a3ac74db8478aa0afdb8a596c6fe3997d1a8a09d12211d70e8f1e9f0b7e0e97"
+          },
+          "textures": [
+            {
+              "archiveEntry": "hair/short04/short04_diffuse.png",
+              "sha256": "0bef7fc0e403db5a40fabb2111ebfa6f7e8158e204c6e56b8da98e9ef527846e"
+            }
+          ]
+        },
+        {
+          "id": "shoes",
+          "shaderRegion": 3,
+          "license": "CC0-1.0",
+          "normalPolicy": "area-weighted garment normals weld original OBJ position identity across UV seams and retain that identity through kit simplification",
+          "object": {
+            "archiveEntry": "clothes/shoes03/shoes03.obj",
+            "sha256": "b03f46c0b5cdc38e4472e4747ba267f101e1e8ae88656180b1334986646108b2"
+          },
+          "transfer": {
+            "archiveEntry": "clothes/shoes03/shoes03.mhclo",
+            "sha256": "5a388e18e6759db99bcc8c7d062a2b3bed02eecd32705731ba90063a6e35265b"
+          },
+          "material": {
+            "archiveEntry": "clothes/shoes03/shoes03.mhmat",
+            "sha256": "0104a8ecf68aa81bca878c12f909aca45a59e265f8b49cf4e4d5e2667773776e"
+          },
+          "textures": [
+            {
+              "archiveEntry": "clothes/shoes03/shoes03_diffuse.png",
+              "sha256": "fe8216fbd0c34ecd3ac0e1a01970a4ccf844417be5fd1d72c527c9209256db93"
+            }
+          ]
+        }
+      ],
+      "notRenderedKitEntries": [
+        {
+          "id": "uniform",
+          "stem": "male_casualsuit06",
+          "reason": "replaced by fitted region paint on the authored anatomy surface"
+        }
+      ],
+      "selectedEyeEntries": {
+        "object": {
+          "archiveEntry": "eyes/low-poly/low-poly.obj",
+          "sha256": "783fe1e6331162c876520b4c2bed7a8ca06354ca15497e8ebd68bb1b59f4d3de"
+        },
+        "transfer": {
+          "archiveEntry": "eyes/low-poly/low-poly.mhclo",
+          "sha256": "68582e28e9176cba7cfcf35208f671b6201b8d1bc95c32decff61a3160ec34d8"
+        },
+        "material": {
+          "archiveEntry": "eyes/materials/brown.mhmat",
+          "sha256": "4abad93ce50541c08127721e77bce035640c9f16bed16cd0f5524b1cd5908465"
+        },
+        "albedo": {
+          "archiveEntry": "eyes/materials/brown_eye.png",
+          "sha256": "4659691c7295ad6206c78b003e5fd0e5f91dcd53032fa914a229bb48cabe424b"
+        }
+      }
+    },
+    "archivedExactTerms": [
+      {
+        "path": "docs/licenses/makehuman-v1.3.0/LICENSE.md",
+        "sha256": "edd99571ca62698f78c943fd4fffb159a413c315fa0d4819d3cec5cadaf8b4f1"
+      },
+      {
+        "path": "docs/licenses/makehuman-v1.3.0/LICENSE.ASSETS.md",
+        "sha256": "f6089cba01cb570a24712b41ab8a586ccd3cc5ef53dc266ca50b95c288956d2c"
+      }
+    ]
+  },
+  "skeleton": {
+    "fileName": "hero-skeleton.bytes",
+    "bytes": 2432,
+    "sha256": "5a7fd8a7268300be70f06ce0ab84a7525683d279f387ea8d77e18c19f599220b",
+    "skeletonId": "f5e900eb2ff93c6f"
+  },
+  "bodyCoverage": {
+    "deletionPolicy": "none: retain the complete pinned anatomy surface; do not apply garment delete_verts",
+    "retainedBodyRegionPolicy": "paint the complete authored body surface as skin, jersey, trousers and shoe/foot regions from its dominant four-slot deformation bone",
+    "coveredSourceVertexUnion": 0,
+    "removedBodyTriangles": 0,
+    "renderedExternalKitMeshes": [
+      "hair",
+      "shoes"
+    ],
+    "excludedExternalKitMeshes": [
+      "uniform"
+    ],
+    "highFittedBodyPaint": {
+      "policy": "dominant quantized four-slot deformation bone; categorical triangle majority; ties choose lower region id",
+      "source": "full pinned MakeHuman v1.3.0 anatomy surface; no separate uniform geometry; region-painted feet remain beneath the CC0 shoe shell",
+      "regionSemantics": {
+        "0": "skin: head, jaw, neck, lower arms, wrists and hands",
+        "1": "jersey: spine, clavicles, shoulders and upper arms",
+        "2": "trousers: root, pelvis, upper legs and lower legs",
+        "3": "shoe/foot presentation: feet"
+      },
+      "sourceRegions": {
+        "0": 8670,
+        "1": 2113,
+        "2": 1296,
+        "3": 2438
+      },
+      "paintedVertexRegions": {
+        "0": 8670,
+        "1": 2113,
+        "2": 1296,
+        "3": 2438
+      },
+      "sourceTriangleRegions": {
+        "0": 15888,
+        "1": 3884,
+        "2": 2329,
+        "3": 4232,
+        "0+1": 202,
+        "1+2": 133,
+        "2+3": 88
+      },
+      "outputTriangleRegions": {
+        "0": 15990,
+        "1": 4054,
+        "2": 2436,
+        "3": 4276
+      },
+      "sourceSkinRecordSha256": "882aeb927f9bde0492c67fcaac693d57614925a3aba8c3c21bc1a5edb2ce0f17",
+      "paintedSkinRecordSha256": "882aeb927f9bde0492c67fcaac693d57614925a3aba8c3c21bc1a5edb2ce0f17",
+      "classificationSha256": "9f3c05c3d7a5c70c7eba6c97059a54ff720f70d1cbc1539f982a6b1fd46401a5",
+      "fourSlotSkinRecordsPreservedExactly": true,
+      "mixedRegionSafety": {
+        "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+        "mixedSourceTriangles": 423,
+        "mixedOutputTriangles": 0,
+        "duplicatedVertices": 313,
+        "reassignedCorners": 423,
+        "triangleRegions": {
+          "0": 15990,
+          "1": 4054,
+          "2": 2436,
+          "3": 4276
+        },
+        "authoredVertexAttributesPreserved": true,
+        "maximumPositionDriftMetres": 0,
+        "maximumBindPositionDriftMetres": 0,
+        "maximumUvDrift": 0,
+        "maximumNormalComponentDrift": 0,
+        "maximumTangentComponentDrift": 0,
+        "fourSlotSkinRecordsPreservedExactly": true
+      }
+    },
+    "lowFittedBodyPaint": {
+      "policy": "dominant quantized four-slot deformation bone; categorical triangle majority; ties choose lower region id",
+      "source": "full pinned MakeHuman v1.3.0 anatomy surface; no separate uniform geometry; region-painted feet remain beneath the CC0 shoe shell",
+      "regionSemantics": {
+        "0": "skin: head, jaw, neck, lower arms, wrists and hands",
+        "1": "jersey: spine, clavicles, shoulders and upper arms",
+        "2": "trousers: root, pelvis, upper legs and lower legs",
+        "3": "shoe/foot presentation: feet"
+      },
+      "sourceRegions": {
+        "0": 933,
+        "1": 526,
+        "2": 440,
+        "3": 432
+      },
+      "paintedVertexRegions": {
+        "0": 933,
+        "1": 526,
+        "2": 440,
+        "3": 432
+      },
+      "sourceTriangleRegions": {
+        "0": 1472,
+        "1": 871,
+        "2": 717,
+        "3": 660,
+        "0+1": 109,
+        "1+2": 110,
+        "2+3": 61
+      },
+      "outputTriangleRegions": {
+        "0": 1524,
+        "1": 984,
+        "2": 800,
+        "3": 692
+      },
+      "sourceSkinRecordSha256": "3fcd9fa2eaba8d4a00ca93b5e4948cbb23af99fc0ef58767912c3fa194edd98a",
+      "paintedSkinRecordSha256": "3fcd9fa2eaba8d4a00ca93b5e4948cbb23af99fc0ef58767912c3fa194edd98a",
+      "classificationSha256": "88c4208135a1d545895987a12e32f6720f24c7ed1b9f06ae9de8fe873c5bf820",
+      "fourSlotSkinRecordsPreservedExactly": true,
+      "mixedRegionSafety": {
+        "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+        "mixedSourceTriangles": 280,
+        "mixedOutputTriangles": 0,
+        "duplicatedVertices": 168,
+        "reassignedCorners": 280,
+        "triangleRegions": {
+          "0": 1524,
+          "1": 984,
+          "2": 800,
+          "3": 692
+        },
+        "authoredVertexAttributesPreserved": true,
+        "maximumPositionDriftMetres": 0,
+        "maximumBindPositionDriftMetres": 0,
+        "maximumUvDrift": 0,
+        "maximumNormalComponentDrift": 0,
+        "maximumTangentComponentDrift": 0,
+        "fourSlotSkinRecordsPreservedExactly": true
+      }
+    },
+    "fittedClothingTransitions": {
+      "policy": "vande-fitted-cricket-transitions-v3-body-conformal-bands",
+      "construction": "closed four-sided low-relief bands interpolated on the actual categorical body boundary; nearest complete authored four-slot body skin record is copied exactly",
+      "shaderRegion": 1,
+      "vertexCount": 144,
+      "triangleCount": 288,
+      "closedTwoManifold": true,
+      "bodyGeometryMutated": false,
+      "features": [
+        {
+          "id": "collar",
+          "boundaryPoints": 68,
+          "contourPoints": 88,
+          "segments": 12,
+          "crossSectionSegments": 4,
+          "centre": [
+            0,
+            1.4935784475565612,
+            0.026126031201127966
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "radiusU": 0.08046763551957244,
+          "radiusV": 0.0624757239098907,
+          "bandHalfWidth": 0.004,
+          "relief": 0.0013,
+          "standOff": 0.0005,
+          "vertexCount": 48,
+          "triangleCount": 96,
+          "maximumBodySourceDistance": 0.009073797933491182,
+          "p95BodySourceDistance": 0.008779061119461352,
+          "maximumBodySurfaceDistance": 0.003748985399198491,
+          "p95BodySurfaceDistance": 0.003268935388782227,
+          "sourceBindPositions": [
+            [
+              0.06090262904763222,
+              1.4935784339904785,
+              0.026081327348947525
+            ],
+            [
+              0.05960262939333916,
+              1.497578501701355,
+              0.02608228102326393
+            ],
+            [
+              0.0583026297390461,
+              1.4935784339904785,
+              0.026083236560225487
+            ],
+            [
+              0.05960262939333916,
+              1.4895784854888916,
+              0.02608228102326393
+            ],
+            [
+              0.08202648162841797,
+              1.4935784339904785,
+              -0.02123172953724861
+            ],
+            [
+              0.0809006467461586,
+              1.497578501701355,
+              -0.02058173157274723
+            ],
+            [
+              0.07977481186389923,
+              1.4935784339904785,
+              -0.019931735470891
+            ],
+            [
+              0.0809006467461586,
+              1.4895784854888916,
+              -0.02058173157274723
+            ],
+            [
+              0.03718562051653862,
+              1.4935784339904785,
+              -0.037906255573034286
+            ],
+            [
+              0.036532770842313766,
+              1.497578501701355,
+              -0.036782070994377136
+            ],
+            [
+              0.03587992489337921,
+              1.4935784339904785,
+              -0.035657886415719986
+            ],
+            [
+              0.036532770842313766,
+              1.4895784854888916,
+              -0.036782070994377136
+            ],
+            [
+              0,
+              1.4935784339904785,
+              -0.030988506972789764
+            ],
+            [
+              0,
+              1.497578501701355,
+              -0.029688507318496704
+            ],
+            [
+              0,
+              1.4935784339904785,
+              -0.028388507664203644
+            ],
+            [
+              0,
+              1.4895784854888916,
+              -0.029688507318496704
+            ],
+            [
+              -0.03718562051653862,
+              1.4935784339904785,
+              -0.037906255573034286
+            ],
+            [
+              -0.036532770842313766,
+              1.497578501701355,
+              -0.036782070994377136
+            ],
+            [
+              -0.03587992489337921,
+              1.4935784339904785,
+              -0.035657886415719986
+            ],
+            [
+              -0.036532770842313766,
+              1.4895784854888916,
+              -0.036782070994377136
+            ],
+            [
+              -0.08202648162841797,
+              1.4935784339904785,
+              -0.02123172953724861
+            ],
+            [
+              -0.0809006467461586,
+              1.497578501701355,
+              -0.02058173157274723
+            ],
+            [
+              -0.07977481186389923,
+              1.4935784339904785,
+              -0.019931735470891
+            ],
+            [
+              -0.0809006467461586,
+              1.4895784854888916,
+              -0.02058173157274723
+            ],
+            [
+              -0.06090262904763222,
+              1.4935784339904785,
+              0.026081327348947525
+            ],
+            [
+              -0.05960262939333916,
+              1.497578501701355,
+              0.02608228102326393
+            ],
+            [
+              -0.0583026297390461,
+              1.4935784339904785,
+              0.026083236560225487
+            ],
+            [
+              -0.05960262939333916,
+              1.4895784854888916,
+              0.02608228102326393
+            ],
+            [
+              -0.04729790240526199,
+              1.4935784339904785,
+              0.05342687666416168
+            ],
+            [
+              -0.04617200046777725,
+              1.497578501701355,
+              0.0527769960463047
+            ],
+            [
+              -0.04504609853029251,
+              1.4935784339904785,
+              0.052127111703157425
+            ],
+            [
+              -0.04617200046777725,
+              1.4895784854888916,
+              0.0527769960463047
+            ],
+            [
+              -0.02582532726228237,
+              1.4935784339904785,
+              0.07075871527194977
+            ],
+            [
+              -0.025174256414175034,
+              1.497578501701355,
+              0.06963349878787994
+            ],
+            [
+              -0.024523185566067696,
+              1.4935784339904785,
+              0.06850828230381012
+            ],
+            [
+              -0.025174256414175034,
+              1.4895784854888916,
+              0.06963349878787994
+            ],
+            [
+              0,
+              1.4935784339904785,
+              0.07609695941209793
+            ],
+            [
+              0,
+              1.497578501701355,
+              0.07479695975780487
+            ],
+            [
+              0,
+              1.4935784339904785,
+              0.07349696010351181
+            ],
+            [
+              0,
+              1.4895784854888916,
+              0.07479695975780487
+            ],
+            [
+              0.02582532726228237,
+              1.4935784339904785,
+              0.07075871527194977
+            ],
+            [
+              0.025174256414175034,
+              1.497578501701355,
+              0.06963349878787994
+            ],
+            [
+              0.024523185566067696,
+              1.4935784339904785,
+              0.06850828230381012
+            ],
+            [
+              0.025174256414175034,
+              1.4895784854888916,
+              0.06963349878787994
+            ],
+            [
+              0.04729790240526199,
+              1.4935784339904785,
+              0.05342687666416168
+            ],
+            [
+              0.04617200046777725,
+              1.497578501701355,
+              0.0527769960463047
+            ],
+            [
+              0.04504609853029251,
+              1.4935784339904785,
+              0.052127111703157425
+            ],
+            [
+              0.04617200046777725,
+              1.4895784854888916,
+              0.0527769960463047
+            ]
+          ]
+        },
+        {
+          "id": "waist-hem",
+          "boundaryPoints": 104,
+          "contourPoints": 89,
+          "segments": 12,
+          "crossSectionSegments": 4,
+          "centre": [
+            0,
+            0.9655267754773724,
+            0.001348567663300331
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "radiusU": 0.1700808599938034,
+          "radiusV": 0.14993804656882884,
+          "bandHalfWidth": 0.0045,
+          "relief": 0.0013,
+          "standOff": 0.0005,
+          "vertexCount": 48,
+          "triangleCount": 96,
+          "maximumBodySourceDistance": 0.014244852015416974,
+          "p95BodySourceDistance": 0.014020304251197404,
+          "maximumBodySurfaceDistance": 0.002064746664487181,
+          "p95BodySurfaceDistance": 0.0019624855878115953,
+          "sourceBindPositions": [
+            [
+              0.17187587916851044,
+              0.9655267596244812,
+              0.0018204093212261796
+            ],
+            [
+              0.17057588696479797,
+              0.9700267910957336,
+              0.001816840493120253
+            ],
+            [
+              0.16927587985992432,
+              0.9655267596244812,
+              0.0018132716650143266
+            ],
+            [
+              0.17057588696479797,
+              0.9610267877578735,
+              0.001816840493120253
+            ],
+            [
+              0.13198690116405487,
+              0.9655267596244812,
+              -0.07461032271385193
+            ],
+            [
+              0.13086016476154327,
+              0.9700267910957336,
+              -0.07396188378334045
+            ],
+            [
+              0.12973342835903168,
+              0.9655267596244812,
+              -0.07331344485282898
+            ],
+            [
+              0.13086016476154327,
+              0.9610267877578735,
+              -0.07396188378334045
+            ],
+            [
+              0.05897154286503792,
+              0.9655267596244812,
+              -0.09964392334222794
+            ],
+            [
+              0.05831602215766907,
+              0.9700267910957336,
+              -0.09852129966020584
+            ],
+            [
+              0.05766049772500992,
+              0.9655267596244812,
+              -0.09739866852760315
+            ],
+            [
+              0.05831602215766907,
+              0.9610267877578735,
+              -0.09852129966020584
+            ],
+            [
+              0,
+              0.9655267596244812,
+              -0.08139460533857346
+            ],
+            [
+              0,
+              0.9700267910957336,
+              -0.0800946056842804
+            ],
+            [
+              0,
+              0.9655267596244812,
+              -0.07879460602998734
+            ],
+            [
+              0,
+              0.9610267877578735,
+              -0.0800946056842804
+            ],
+            [
+              -0.05897154286503792,
+              0.9655267596244812,
+              -0.09964392334222794
+            ],
+            [
+              -0.05831602215766907,
+              0.9700267910957336,
+              -0.09852129966020584
+            ],
+            [
+              -0.05766049772500992,
+              0.9655267596244812,
+              -0.09739866852760315
+            ],
+            [
+              -0.05831602215766907,
+              0.9610267877578735,
+              -0.09852129966020584
+            ],
+            [
+              -0.13190461695194244,
+              0.9655267596244812,
+              -0.07459460198879242
+            ],
+            [
+              -0.1307779997587204,
+              0.9700267910957336,
+              -0.07394596189260483
+            ],
+            [
+              -0.12965138256549835,
+              0.9655267596244812,
+              -0.07329732179641724
+            ],
+            [
+              -0.1307779997587204,
+              0.9610267877578735,
+              -0.07394596189260483
+            ],
+            [
+              -0.17188085615634918,
+              0.9655267596244812,
+              0.0018295319750905037
+            ],
+            [
+              -0.17058086395263672,
+              0.9700267910957336,
+              0.0018258942291140556
+            ],
+            [
+              -0.16928085684776306,
+              0.9655267596244812,
+              0.0018222565995529294
+            ],
+            [
+              -0.17058086395263672,
+              0.9610267877578735,
+              0.0018258942291140556
+            ],
+            [
+              -0.16224998235702515,
+              0.9655267596244812,
+              0.09502154588699341
+            ],
+            [
+              -0.16112414002418518,
+              0.9700267910957336,
+              0.09437155723571777
+            ],
+            [
+              -0.15999829769134521,
+              0.9655267596244812,
+              0.09372156858444214
+            ],
+            [
+              -0.16112414002418518,
+              0.9610267877578735,
+              0.09437155723571777
+            ],
+            [
+              -0.07696326076984406,
+              0.9655267596244812,
+              0.1344810128211975
+            ],
+            [
+              -0.07631263136863708,
+              0.9700267910957336,
+              0.1333555430173874
+            ],
+            [
+              -0.07566200196743011,
+              0.9655267596244812,
+              0.13223007321357727
+            ],
+            [
+              -0.07631263136863708,
+              0.9610267877578735,
+              0.1333555430173874
+            ],
+            [
+              0,
+              0.9655267596244812,
+              0.1530866175889969
+            ],
+            [
+              0,
+              0.9700267910957336,
+              0.15178661048412323
+            ],
+            [
+              0,
+              0.9655267596244812,
+              0.15048661828041077
+            ],
+            [
+              0,
+              0.9610267877578735,
+              0.15178661048412323
+            ],
+            [
+              0.07696326076984406,
+              0.9655267596244812,
+              0.1344810128211975
+            ],
+            [
+              0.07631263136863708,
+              0.9700267910957336,
+              0.1333555430173874
+            ],
+            [
+              0.07566200196743011,
+              0.9655267596244812,
+              0.13223007321357727
+            ],
+            [
+              0.07631263136863708,
+              0.9610267877578735,
+              0.1333555430173874
+            ],
+            [
+              0.16213837265968323,
+              0.9655267596244812,
+              0.09495822340250015
+            ],
+            [
+              0.16101253032684326,
+              0.9700267910957336,
+              0.09430822730064392
+            ],
+            [
+              0.1598866879940033,
+              0.9655267596244812,
+              0.09365823119878769
+            ],
+            [
+              0.16101253032684326,
+              0.9610267877578735,
+              0.09430822730064392
+            ]
+          ]
+        },
+        {
+          "id": "left-sleeve-cuff",
+          "boundaryPoints": 36,
+          "contourPoints": 36,
+          "segments": 6,
+          "crossSectionSegments": 4,
+          "centre": [
+            -0.3321094068689103,
+            1.25148590576542,
+            0.013227410640024917
+          ],
+          "axis": [
+            -0.4164038172007417,
+            -0.5393126089392623,
+            0.7319492952792411
+          ],
+          "radiusU": 0.03367906342328407,
+          "radiusV": 0.03588583529991361,
+          "bandHalfWidth": 0.0035,
+          "relief": 0.0011,
+          "standOff": 0.0005,
+          "vertexCount": 24,
+          "triangleCount": 48,
+          "maximumBodySourceDistance": 0.007988058130643565,
+          "p95BodySourceDistance": 0.007788611388928705,
+          "maximumBodySurfaceDistance": 0.0022233732679521967,
+          "p95BodySurfaceDistance": 0.0021192327257297176,
+          "sourceBindPositions": [
+            [
+              -0.3122466504573822,
+              1.2370659112930298,
+              0.049658626317977905
+            ],
+            [
+              -0.3146631419658661,
+              1.2351878881454468,
+              0.05168185010552406
+            ],
+            [
+              -0.31416478753089905,
+              1.237084984779358,
+              0.04858142510056496
+            ],
+            [
+              -0.31174829602241516,
+              1.238963007926941,
+              0.0465582050383091
+            ],
+            [
+              -0.33626869320869446,
+              1.2662898302078247,
+              0.06378161162137985
+            ],
+            [
+              -0.33794742822647095,
+              1.2635986804962158,
+              0.06562550365924835
+            ],
+            [
+              -0.3367113173007965,
+              1.2646828889846802,
+              0.06234574690461159
+            ],
+            [
+              -0.3350326120853424,
+              1.2673739194869995,
+              0.06050185486674309
+            ],
+            [
+              -0.3568626642227173,
+              1.2866822481155396,
+              0.014236518181860447
+            ],
+            [
+              -0.3575904965400696,
+              1.283990740776062,
+              0.01662106066942215
+            ],
+            [
+              -0.35540351271629333,
+              1.2850743532180786,
+              0.013881956227123737
+            ],
+            [
+              -0.35467568039894104,
+              1.2877658605575562,
+              0.01149741467088461
+            ],
+            [
+              -0.35613182187080383,
+              1.255224347114563,
+              -0.006511694751679897
+            ],
+            [
+              -0.3566302955150604,
+              1.2533276081085205,
+              -0.003411044366657734
+            ],
+            [
+              -0.3542139232158661,
+              1.2552061080932617,
+              -0.005434039048850536
+            ],
+            [
+              -0.3537154495716095,
+              1.2571028470993042,
+              -0.0085346894338727
+            ],
+            [
+              -0.3298216462135315,
+              1.2430119514465332,
+              -0.016530537977814674
+            ],
+            [
+              -0.3310483396053314,
+              1.241923451423645,
+              -0.013248739764094353
+            ],
+            [
+              -0.3293601870536804,
+              1.2446099519729614,
+              -0.015090586617588997
+            ],
+            [
+              -0.3281335234642029,
+              1.2456985712051392,
+              -0.01837238483130932
+            ],
+            [
+              -0.302622526884079,
+              1.235224723815918,
+              -0.004135844763368368
+            ],
+            [
+              -0.3048103153705597,
+              1.2341405153274536,
+              -0.0013975596521049738
+            ],
+            [
+              -0.3040832281112671,
+              1.236831545829773,
+              -0.0037829193752259016
+            ],
+            [
+              -0.30189546942710876,
+              1.2379157543182373,
+              -0.006521204952150583
+            ]
+          ]
+        },
+        {
+          "id": "right-sleeve-cuff",
+          "boundaryPoints": 36,
+          "contourPoints": 36,
+          "segments": 6,
+          "crossSectionSegments": 4,
+          "centre": [
+            0.3321094068689103,
+            1.25148590576542,
+            0.013227410640024917
+          ],
+          "axis": [
+            0.4164038172007417,
+            -0.5393126089392623,
+            0.7319492952792411
+          ],
+          "radiusU": 0.03367906342328407,
+          "radiusV": 0.03588583529991361,
+          "bandHalfWidth": 0.0035,
+          "relief": 0.0011,
+          "standOff": 0.0005,
+          "vertexCount": 24,
+          "triangleCount": 48,
+          "maximumBodySourceDistance": 0.007988058130643565,
+          "p95BodySourceDistance": 0.007788611388928689,
+          "maximumBodySurfaceDistance": 0.002223373267952187,
+          "p95BodySurfaceDistance": 0.002119232725729704,
+          "sourceBindPositions": [
+            [
+              0.35613182187080383,
+              1.255224347114563,
+              -0.006511694751679897
+            ],
+            [
+              0.3566302955150604,
+              1.2533276081085205,
+              -0.003411044366657734
+            ],
+            [
+              0.3542139232158661,
+              1.2552061080932617,
+              -0.005434039048850536
+            ],
+            [
+              0.3537154495716095,
+              1.2571028470993042,
+              -0.0085346894338727
+            ],
+            [
+              0.3568626642227173,
+              1.2866822481155396,
+              0.014236518181860447
+            ],
+            [
+              0.3575904965400696,
+              1.283990740776062,
+              0.01662106066942215
+            ],
+            [
+              0.35540351271629333,
+              1.2850743532180786,
+              0.013881956227123737
+            ],
+            [
+              0.35467568039894104,
+              1.2877658605575562,
+              0.01149741467088461
+            ],
+            [
+              0.33626869320869446,
+              1.2662898302078247,
+              0.06378161162137985
+            ],
+            [
+              0.33794742822647095,
+              1.2635986804962158,
+              0.06562550365924835
+            ],
+            [
+              0.3367113173007965,
+              1.2646828889846802,
+              0.06234574690461159
+            ],
+            [
+              0.3350326120853424,
+              1.2673739194869995,
+              0.06050185486674309
+            ],
+            [
+              0.3122466504573822,
+              1.2370659112930298,
+              0.049658626317977905
+            ],
+            [
+              0.3146631419658661,
+              1.2351878881454468,
+              0.05168185010552406
+            ],
+            [
+              0.31416478753089905,
+              1.237084984779358,
+              0.04858142510056496
+            ],
+            [
+              0.31174829602241516,
+              1.238963007926941,
+              0.0465582050383091
+            ],
+            [
+              0.302622526884079,
+              1.235224723815918,
+              -0.004135844763368368
+            ],
+            [
+              0.3048103153705597,
+              1.2341405153274536,
+              -0.0013975596521049738
+            ],
+            [
+              0.3040832281112671,
+              1.236831545829773,
+              -0.0037829193752259016
+            ],
+            [
+              0.30189546942710876,
+              1.2379157543182373,
+              -0.006521204952150583
+            ],
+            [
+              0.3298216462135315,
+              1.2430119514465332,
+              -0.016530537977814674
+            ],
+            [
+              0.3310483396053314,
+              1.241923451423645,
+              -0.013248739764094353
+            ],
+            [
+              0.3293601870536804,
+              1.2446099519729614,
+              -0.015090586617588997
+            ],
+            [
+              0.3281335234642029,
+              1.2456985712051392,
+              -0.01837238483130932
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "assetRegisterLivePolicy": {
+    "source": "VPM3 fixed-four-slot evidence; lead-owned docs/ASSET_REGISTER.md synchronization required",
+    "fixedVpm3InfluenceSlots": 4,
+    "maximumNonZeroInfluencesLod0ThroughLod4": 4,
+    "balancedLiveAlbedo": "512x512",
+    "protectedSharedEyeTriangles": 172,
+    "implementation": "LOD0-LOD4 preserve every source four-slot skin record because VPM3 always encodes four slots; discarding influences saves zero bytes and damages deformation",
+    "unresolvedTrianglePolicy": "Live batter aggregate remains above the register's Balanced <=4,000-triangle target; this exporter does not certify Balanced geometry compliance."
+  },
+  "liveBowlerBudget": {
+    "maximumCompleteVisibleTriangles": 4000,
+    "maximumBodyTriangles": 3768,
+    "heroLod2Triangles": 3768,
+    "sharedEyeTriangles": 172,
+    "retainedSpinnerCap": {
+      "maximumCompleteBowlerTriangles": 4000,
+      "detailTier": "Low part retained on every live detail tier",
+      "crown": {
+        "mesh": "DomeLow",
+        "segments": 8,
+        "rings": 3,
+        "triangles": 48
+      },
+      "peak": {
+        "mesh": "Box",
+        "triangles": 12
+      },
+      "triangles": 60,
+      "policySource": "ProductionHeroCharacterFormat.cs / KeepProceduralCricketEquipment",
+      "constructionSource": "ProductionCharacterRig.cs / BuildCap; ProductionCharacterResources.cs / CreateDome and CreateBox"
+    },
+    "completeSpinBowlerTriangles": 4000,
+    "paceBowlerTriangles": 3940,
+    "worstLivePath": "spin bowler: hero LOD2 plus shared eyes plus retained Low-detail crown and peak",
+    "postcondition": "heroLod2Triangles + sharedEyeTriangles + retainedSpinnerCap.triangles <= maximumCompleteVisibleTriangles"
+  },
+  "distantFielderBudget": {
+    "premiumMaximumCompleteTriangles": 2000,
+    "premiumMaximumBodyTriangles": 1768,
+    "premiumHeroLod3Triangles": 1756,
+    "premiumCompleteTriangles": 1988,
+    "balancedLiteMaximumCompleteTriangles": 1200,
+    "balancedLiteMaximumBodyTriangles": 968,
+    "balancedLiteHeroLod4Triangles": 948,
+    "balancedLiteCompleteTriangles": 1180,
+    "sharedEyeTriangles": 172,
+    "retainedFielderCap": {
+      "premiumMaximumCompleteTriangles": 2000,
+      "balancedLiteMaximumCompleteTriangles": 1200,
+      "crown": {
+        "mesh": "DomeLow",
+        "segments": 8,
+        "rings": 3,
+        "triangles": 48
+      },
+      "peak": {
+        "mesh": "Box",
+        "triangles": 12
+      },
+      "triangles": 60,
+      "policySource": "ProductionHeroCharacterFormat.cs / KeepProceduralCricketEquipment",
+      "constructionSource": "ProductionCharacterRig.cs / BuildCap; ProductionCharacterResources.cs / CreateDome and CreateBox"
+    },
+    "postcondition": "LOD3/LOD4 + shared eyes + retained cap stay within 2,000/1,200 triangles; all retain exactly the VSK1 75-bone identity"
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "body": "high",
+      "kit": 0,
+      "usage": "close-up",
+      "maximumTriangles": 40000,
+      "fileName": "hero-lod0.bytes",
+      "bytes": 1525868,
+      "sha256": "c63e8f8c99512686f1e3a43e05232f573a4d2a2c6091192f9ceff8c183eb173a",
+      "vertexCount": 18507,
+      "triangleCount": 32222,
+      "regions": {
+        "0": 8743,
+        "1": 2381,
+        "2": 1380,
+        "3": 5012,
+        "11": 991
+      },
+      "triangleRegions": {
+        "0": 15990,
+        "1": 4342,
+        "2": 2436,
+        "3": 8404,
+        "11": 1050
+      },
+      "regionBoundary": {
+        "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+        "mixedSourceTriangles": 0,
+        "mixedOutputTriangles": 0,
+        "duplicatedVertices": 0,
+        "reassignedCorners": 0,
+        "triangleRegions": {
+          "0": 15990,
+          "1": 4342,
+          "2": 2436,
+          "3": 8404,
+          "11": 1050
+        },
+        "authoredVertexAttributesPreserved": true,
+        "maximumPositionDriftMetres": 0,
+        "maximumBindPositionDriftMetres": 0,
+        "maximumUvDrift": 0,
+        "maximumNormalComponentDrift": 0,
+        "maximumTangentComponentDrift": 0,
+        "fourSlotSkinRecordsPreservedExactly": true
+      },
+      "kitTriangleCounts": {
+        "hair": 1050,
+        "shoes": 4128
+      },
+      "simplification": null,
+      "influencePolicy": {
+        "encodedSlots": 4,
+        "maximumNonZeroInfluences": 4,
+        "observedMaximumNonZeroInfluences": 4,
+        "reduction": "none"
+      },
+      "fittedBodyPaint": {
+        "policy": "dominant quantized four-slot deformation bone; categorical triangle majority; ties choose lower region id",
+        "source": "full pinned MakeHuman v1.3.0 anatomy surface; no separate uniform geometry; region-painted feet remain beneath the CC0 shoe shell",
+        "regionSemantics": {
+          "0": "skin: head, jaw, neck, lower arms, wrists and hands",
+          "1": "jersey: spine, clavicles, shoulders and upper arms",
+          "2": "trousers: root, pelvis, upper legs and lower legs",
+          "3": "shoe/foot presentation: feet"
+        },
+        "sourceRegions": {
+          "0": 8670,
+          "1": 2113,
+          "2": 1296,
+          "3": 2438
+        },
+        "paintedVertexRegions": {
+          "0": 8670,
+          "1": 2113,
+          "2": 1296,
+          "3": 2438
+        },
+        "sourceTriangleRegions": {
+          "0": 15888,
+          "1": 3884,
+          "2": 2329,
+          "3": 4232,
+          "0+1": 202,
+          "1+2": 133,
+          "2+3": 88
+        },
+        "outputTriangleRegions": {
+          "0": 15990,
+          "1": 4054,
+          "2": 2436,
+          "3": 4276
+        },
+        "sourceSkinRecordSha256": "882aeb927f9bde0492c67fcaac693d57614925a3aba8c3c21bc1a5edb2ce0f17",
+        "paintedSkinRecordSha256": "882aeb927f9bde0492c67fcaac693d57614925a3aba8c3c21bc1a5edb2ce0f17",
+        "classificationSha256": "9f3c05c3d7a5c70c7eba6c97059a54ff720f70d1cbc1539f982a6b1fd46401a5",
+        "fourSlotSkinRecordsPreservedExactly": true,
+        "mixedRegionSafety": {
+          "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+          "mixedSourceTriangles": 423,
+          "mixedOutputTriangles": 0,
+          "duplicatedVertices": 313,
+          "reassignedCorners": 423,
+          "triangleRegions": {
+            "0": 15990,
+            "1": 4054,
+            "2": 2436,
+            "3": 4276
+          },
+          "authoredVertexAttributesPreserved": true,
+          "maximumPositionDriftMetres": 0,
+          "maximumBindPositionDriftMetres": 0,
+          "maximumUvDrift": 0,
+          "maximumNormalComponentDrift": 0,
+          "maximumTangentComponentDrift": 0,
+          "fourSlotSkinRecordsPreservedExactly": true
+        }
+      },
+      "fittedClothingTransitions": {
+        "policy": "vande-fitted-cricket-transitions-v3-body-conformal-bands",
+        "construction": "closed four-sided low-relief bands interpolated on the actual categorical body boundary; nearest complete authored four-slot body skin record is copied exactly",
+        "shaderRegion": 1,
+        "vertexCount": 144,
+        "triangleCount": 288,
+        "closedTwoManifold": true,
+        "bodyGeometryMutated": false,
+        "features": [
+          {
+            "id": "collar",
+            "boundaryPoints": 68,
+            "contourPoints": 88,
+            "segments": 12,
+            "crossSectionSegments": 4,
+            "centre": [
+              0,
+              1.4935784475565612,
+              0.026126031201127966
+            ],
+            "axis": [
+              0,
+              1,
+              0
+            ],
+            "radiusU": 0.08046763551957244,
+            "radiusV": 0.0624757239098907,
+            "bandHalfWidth": 0.004,
+            "relief": 0.0013,
+            "standOff": 0.0005,
+            "vertexCount": 48,
+            "triangleCount": 96,
+            "maximumBodySourceDistance": 0.009073797933491182,
+            "p95BodySourceDistance": 0.008779061119461352,
+            "maximumBodySurfaceDistance": 0.003748985399198491,
+            "p95BodySurfaceDistance": 0.003268935388782227
+          },
+          {
+            "id": "waist-hem",
+            "boundaryPoints": 104,
+            "contourPoints": 89,
+            "segments": 12,
+            "crossSectionSegments": 4,
+            "centre": [
+              0,
+              0.9655267754773724,
+              0.001348567663300331
+            ],
+            "axis": [
+              0,
+              1,
+              0
+            ],
+            "radiusU": 0.1700808599938034,
+            "radiusV": 0.14993804656882884,
+            "bandHalfWidth": 0.0045,
+            "relief": 0.0013,
+            "standOff": 0.0005,
+            "vertexCount": 48,
+            "triangleCount": 96,
+            "maximumBodySourceDistance": 0.014244852015416974,
+            "p95BodySourceDistance": 0.014020304251197404,
+            "maximumBodySurfaceDistance": 0.002064746664487181,
+            "p95BodySurfaceDistance": 0.0019624855878115953
+          },
+          {
+            "id": "left-sleeve-cuff",
+            "boundaryPoints": 36,
+            "contourPoints": 36,
+            "segments": 6,
+            "crossSectionSegments": 4,
+            "centre": [
+              -0.3321094068689103,
+              1.25148590576542,
+              0.013227410640024917
+            ],
+            "axis": [
+              -0.4164038172007417,
+              -0.5393126089392623,
+              0.7319492952792411
+            ],
+            "radiusU": 0.03367906342328407,
+            "radiusV": 0.03588583529991361,
+            "bandHalfWidth": 0.0035,
+            "relief": 0.0011,
+            "standOff": 0.0005,
+            "vertexCount": 24,
+            "triangleCount": 48,
+            "maximumBodySourceDistance": 0.007988058130643565,
+            "p95BodySourceDistance": 0.007788611388928705,
+            "maximumBodySurfaceDistance": 0.0022233732679521967,
+            "p95BodySurfaceDistance": 0.0021192327257297176
+          },
+          {
+            "id": "right-sleeve-cuff",
+            "boundaryPoints": 36,
+            "contourPoints": 36,
+            "segments": 6,
+            "crossSectionSegments": 4,
+            "centre": [
+              0.3321094068689103,
+              1.25148590576542,
+              0.013227410640024917
+            ],
+            "axis": [
+              0.4164038172007417,
+              -0.5393126089392623,
+              0.7319492952792411
+            ],
+            "radiusU": 0.03367906342328407,
+            "radiusV": 0.03588583529991361,
+            "bandHalfWidth": 0.0035,
+            "relief": 0.0011,
+            "standOff": 0.0005,
+            "vertexCount": 24,
+            "triangleCount": 48,
+            "maximumBodySourceDistance": 0.007988058130643565,
+            "p95BodySourceDistance": 0.007788611388928689,
+            "maximumBodySurfaceDistance": 0.002223373267952187,
+            "p95BodySurfaceDistance": 0.002119232725729704
+          }
+        ]
+      },
+      "fittedClothingTransitionSurvival": [
+        {
+          "id": "collar",
+          "sourceVertices": 48,
+          "sourceTriangles": 96,
+          "retainedVertices": 48,
+          "retainedTriangles": 96,
+          "bounds": [
+            [
+              -0.08202648162841797,
+              0.08202648162841797
+            ],
+            [
+              1.4895784854888916,
+              1.497578501701355
+            ],
+            [
+              -0.037906255573034286,
+              0.07609695941209793
+            ]
+          ],
+          "extents": [
+            0.16405296325683594,
+            0.008000016212463379,
+            0.11400321498513222
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "waist-hem",
+          "sourceVertices": 48,
+          "sourceTriangles": 96,
+          "retainedVertices": 48,
+          "retainedTriangles": 96,
+          "bounds": [
+            [
+              -0.17188085615634918,
+              0.17187587916851044
+            ],
+            [
+              0.9610267877578735,
+              0.9700267910957336
+            ],
+            [
+              -0.09964392334222794,
+              0.1530866175889969
+            ]
+          ],
+          "extents": [
+            0.3437567353248596,
+            0.009000003337860107,
+            0.2527305409312248
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "left-sleeve-cuff",
+          "sourceVertices": 24,
+          "sourceTriangles": 48,
+          "retainedVertices": 24,
+          "retainedTriangles": 48,
+          "bounds": [
+            [
+              -0.3575904965400696,
+              -0.30189546942710876
+            ],
+            [
+              1.2341405153274536,
+              1.2877658605575562
+            ],
+            [
+              -0.01837238483130932,
+              0.06562550365924835
+            ]
+          ],
+          "extents": [
+            0.055695027112960815,
+            0.05362534523010254,
+            0.08399788849055767
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "right-sleeve-cuff",
+          "sourceVertices": 24,
+          "sourceTriangles": 48,
+          "retainedVertices": 24,
+          "retainedTriangles": 48,
+          "bounds": [
+            [
+              0.30189546942710876,
+              0.3575904965400696
+            ],
+            [
+              1.2341405153274536,
+              1.2877658605575562
+            ],
+            [
+              -0.01837238483130932,
+              0.06562550365924835
+            ]
+          ],
+          "extents": [
+            0.055695027112960815,
+            0.05362534523010254,
+            0.08399788849055767
+          ],
+          "nonDegenerateAxes": 3
+        }
+      ],
+      "removedBodyTriangles": 0,
+      "remainingCoveredBodyTriangles": 0
+    },
+    {
+      "lod": 1,
+      "body": "high",
+      "kit": 3,
+      "usage": "live-batter-face-protected",
+      "maximumTriangles": 5000,
+      "faceProtectionPolicy": "makehuman-v1.3.0-fitted-body-kit-uv-landmarks-v2",
+      "fileName": "hero-lod1.bytes",
+      "bytes": 269426,
+      "sha256": "d4b7423361caf85d62e5cdeef639614990ff392c5870ef474f488ced0abffaef",
+      "vertexCount": 3325,
+      "triangleCount": 4999,
+      "regions": {
+        "0": 1331,
+        "1": 651,
+        "2": 515,
+        "3": 596,
+        "11": 232
+      },
+      "triangleRegions": {
+        "0": 2219,
+        "1": 1079,
+        "2": 800,
+        "3": 748,
+        "11": 153
+      },
+      "regionBoundary": {
+        "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+        "mixedSourceTriangles": 0,
+        "mixedOutputTriangles": 0,
+        "duplicatedVertices": 0,
+        "reassignedCorners": 0,
+        "triangleRegions": {
+          "0": 15990,
+          "1": 4342,
+          "2": 2436,
+          "3": 6260,
+          "11": 505
+        },
+        "authoredVertexAttributesPreserved": true,
+        "maximumPositionDriftMetres": 0,
+        "maximumBindPositionDriftMetres": 0,
+        "maximumUvDrift": 0,
+        "maximumNormalComponentDrift": 0,
+        "maximumTangentComponentDrift": 0,
+        "fourSlotSkinRecordsPreservedExactly": true
+      },
+      "kitTriangleCounts": {
+        "hair": 505,
+        "shoes": 1984
+      },
+      "simplification": {
+        "algorithm": "meshoptimizer-1.1.1 simplifyWithAttributes on final combined renderer",
+        "sourceTriangles": 29533,
+        "targetTriangles": 5000,
+        "internalRequestedTriangles": 5004,
+        "achievedTriangles": 4999,
+        "maximumRelativeError": 0.05,
+        "observedRelativeError": 0.029654789716005325,
+        "attributes": "uv, normal, four bone ids, four quantized weights, one-hot shader region",
+        "sourceVertexRecordsRetainedExactly": true,
+        "maximumRetainedNormalComponentDrift": 0,
+        "maximumRetainedTangentComponentDrift": 0,
+        "regionBoundary": {
+          "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+          "mixedSourceTriangles": 0,
+          "mixedOutputTriangles": 0,
+          "duplicatedVertices": 0,
+          "reassignedCorners": 0,
+          "triangleRegions": {
+            "0": 15990,
+            "1": 4342,
+            "2": 2436,
+            "3": 6260,
+            "11": 505
+          },
+          "authoredVertexAttributesPreserved": true,
+          "maximumPositionDriftMetres": 0,
+          "maximumBindPositionDriftMetres": 0,
+          "maximumUvDrift": 0,
+          "maximumNormalComponentDrift": 0,
+          "maximumTangentComponentDrift": 0,
+          "fourSlotSkinRecordsPreservedExactly": true
+        },
+        "protection": {
+          "policyVersion": "makehuman-v1.3.0-fitted-body-kit-uv-landmarks-v2",
+          "anatomicalFrontAxis": "+Z",
+          "sourceTriangles": 969,
+          "lockedVertices": 611,
+          "maximumOutputTriangles": 5000,
+          "simplificationCeilingTriangles": 4999,
+          "expectedOutputTriangles": 4999,
+          "intentionalUnusedTriangleHeadroom": 1,
+          "headroomRationale": "the fitted-body simplifier deterministically resolves one triangle below the hard budget; no padding or protected-identity weakening is permitted",
+          "sourceTriangleIdentitySha256": "079e4c925de25e622780cdc429e2156b4f95712fadd83a8dc0d5658a4b680ffb",
+          "sourceVertexIdentitySha256": "897fe581ce80f5e77b14e300fdd8a8b33831eb65bcc77a73834159150fdb3715",
+          "landmarks": [
+            {
+              "id": "left-brow",
+              "centre": [
+                0.811547,
+                0.440054
+              ],
+              "radius": [
+                0.01,
+                0.01
+              ],
+              "qualifyingVertices": 8,
+              "intersectingProtectedTriangles": 3,
+              "meanBindZ": 0.14835253028411235
+            },
+            {
+              "id": "right-brow",
+              "centre": [
+                0.808255,
+                0.539877
+              ],
+              "radius": [
+                0.01,
+                0.01
+              ],
+              "qualifyingVertices": 4,
+              "intersectingProtectedTriangles": 18,
+              "meanBindZ": 0.13747880760434358
+            },
+            {
+              "id": "left-eye",
+              "centre": [
+                0.839764,
+                0.439762
+              ],
+              "radius": [
+                0.01,
+                0.01
+              ],
+              "qualifyingVertices": 121,
+              "intersectingProtectedTriangles": 197,
+              "meanBindZ": 0.14657306956182098
+            },
+            {
+              "id": "right-eye",
+              "centre": [
+                0.839743,
+                0.540149
+              ],
+              "radius": [
+                0.01,
+                0.01
+              ],
+              "qualifyingVertices": 40,
+              "intersectingProtectedTriangles": 57,
+              "meanBindZ": 0.1394861237103292
+            },
+            {
+              "id": "nose",
+              "centre": [
+                0.88585,
+                0.488944
+              ],
+              "radius": [
+                0.01,
+                0.009
+              ],
+              "qualifyingVertices": 88,
+              "intersectingProtectedTriangles": 147,
+              "meanBindZ": 0.16679883916814323
+            },
+            {
+              "id": "mouth",
+              "centre": [
+                0.924361,
+                0.486956
+              ],
+              "radius": [
+                0.015,
+                0.015
+              ],
+              "qualifyingVertices": 65,
+              "intersectingProtectedTriangles": 99,
+              "meanBindZ": 0.16150724145143938
+            },
+            {
+              "id": "chin",
+              "centre": [
+                0.950341,
+                0.490552
+              ],
+              "radius": [
+                0.01,
+                0.015
+              ],
+              "qualifyingVertices": 17,
+              "intersectingProtectedTriangles": 20,
+              "meanBindZ": 0.15262989965088433
+            },
+            {
+              "id": "left-ocular-island",
+              "centre": [
+                0.05,
+                0.59
+              ],
+              "radius": [
+                0.008,
+                0.015
+              ],
+              "qualifyingVertices": 118,
+              "intersectingProtectedTriangles": 193,
+              "meanBindZ": 0.12931780947178204
+            },
+            {
+              "id": "right-ocular-island",
+              "centre": [
+                0.115,
+                0.59
+              ],
+              "radius": [
+                0.008,
+                0.015
+              ],
+              "qualifyingVertices": 140,
+              "intersectingProtectedTriangles": 237,
+              "meanBindZ": 0.1276189260551687
+            }
+          ],
+          "retainedTriangles": 969,
+          "retainedLockedVertices": 611,
+          "retainedTriangleIdentitySha256": "079e4c925de25e622780cdc429e2156b4f95712fadd83a8dc0d5658a4b680ffb",
+          "retainedSourceVertexIdentitySha256": "897fe581ce80f5e77b14e300fdd8a8b33831eb65bcc77a73834159150fdb3715",
+          "maximumPositionDriftMetres": 0,
+          "maximumBindPositionDriftMetres": 0,
+          "maximumUvDrift": 0,
+          "maximumNormalComponentDrift": 0,
+          "maximumTangentComponentDrift": 0,
+          "fourSlotSkinRecordsPreservedExactly": true,
+          "vertexPreservation": {
+            "protectedVertices": 611,
+            "maximumPositionDriftMetres": 0,
+            "maximumBindPositionDriftMetres": 0,
+            "maximumUvDrift": 0,
+            "maximumNormalComponentDrift": 0,
+            "maximumTangentComponentDrift": 0,
+            "fourSlotSkinRecordsExact": true,
+            "finalVertexIdentitySha256": "b8e5e94f889033da828bb84a1f52740a8a143e06d3403a9f1311e228cfc53ae5"
+          }
+        }
+      },
+      "influencePolicy": {
+        "encodedSlots": 4,
+        "maximumNonZeroInfluences": 4,
+        "observedMaximumNonZeroInfluences": 4,
+        "reduction": "none"
+      },
+      "fittedBodyPaint": {
+        "policy": "dominant quantized four-slot deformation bone; categorical triangle majority; ties choose lower region id",
+        "source": "full pinned MakeHuman v1.3.0 anatomy surface; no separate uniform geometry; region-painted feet remain beneath the CC0 shoe shell",
+        "regionSemantics": {
+          "0": "skin: head, jaw, neck, lower arms, wrists and hands",
+          "1": "jersey: spine, clavicles, shoulders and upper arms",
+          "2": "trousers: root, pelvis, upper legs and lower legs",
+          "3": "shoe/foot presentation: feet"
+        },
+        "sourceRegions": {
+          "0": 8670,
+          "1": 2113,
+          "2": 1296,
+          "3": 2438
+        },
+        "paintedVertexRegions": {
+          "0": 8670,
+          "1": 2113,
+          "2": 1296,
+          "3": 2438
+        },
+        "sourceTriangleRegions": {
+          "0": 15888,
+          "1": 3884,
+          "2": 2329,
+          "3": 4232,
+          "0+1": 202,
+          "1+2": 133,
+          "2+3": 88
+        },
+        "outputTriangleRegions": {
+          "0": 15990,
+          "1": 4054,
+          "2": 2436,
+          "3": 4276
+        },
+        "sourceSkinRecordSha256": "882aeb927f9bde0492c67fcaac693d57614925a3aba8c3c21bc1a5edb2ce0f17",
+        "paintedSkinRecordSha256": "882aeb927f9bde0492c67fcaac693d57614925a3aba8c3c21bc1a5edb2ce0f17",
+        "classificationSha256": "9f3c05c3d7a5c70c7eba6c97059a54ff720f70d1cbc1539f982a6b1fd46401a5",
+        "fourSlotSkinRecordsPreservedExactly": true,
+        "mixedRegionSafety": {
+          "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+          "mixedSourceTriangles": 423,
+          "mixedOutputTriangles": 0,
+          "duplicatedVertices": 313,
+          "reassignedCorners": 423,
+          "triangleRegions": {
+            "0": 15990,
+            "1": 4054,
+            "2": 2436,
+            "3": 4276
+          },
+          "authoredVertexAttributesPreserved": true,
+          "maximumPositionDriftMetres": 0,
+          "maximumBindPositionDriftMetres": 0,
+          "maximumUvDrift": 0,
+          "maximumNormalComponentDrift": 0,
+          "maximumTangentComponentDrift": 0,
+          "fourSlotSkinRecordsPreservedExactly": true
+        }
+      },
+      "fittedClothingTransitions": {
+        "policy": "vande-fitted-cricket-transitions-v3-body-conformal-bands",
+        "construction": "closed four-sided low-relief bands interpolated on the actual categorical body boundary; nearest complete authored four-slot body skin record is copied exactly",
+        "shaderRegion": 1,
+        "vertexCount": 144,
+        "triangleCount": 288,
+        "closedTwoManifold": true,
+        "bodyGeometryMutated": false,
+        "features": [
+          {
+            "id": "collar",
+            "boundaryPoints": 68,
+            "contourPoints": 88,
+            "segments": 12,
+            "crossSectionSegments": 4,
+            "centre": [
+              0,
+              1.4935784475565612,
+              0.026126031201127966
+            ],
+            "axis": [
+              0,
+              1,
+              0
+            ],
+            "radiusU": 0.08046763551957244,
+            "radiusV": 0.0624757239098907,
+            "bandHalfWidth": 0.004,
+            "relief": 0.0013,
+            "standOff": 0.0005,
+            "vertexCount": 48,
+            "triangleCount": 96,
+            "maximumBodySourceDistance": 0.009073797933491182,
+            "p95BodySourceDistance": 0.008779061119461352,
+            "maximumBodySurfaceDistance": 0.003748985399198491,
+            "p95BodySurfaceDistance": 0.003268935388782227
+          },
+          {
+            "id": "waist-hem",
+            "boundaryPoints": 104,
+            "contourPoints": 89,
+            "segments": 12,
+            "crossSectionSegments": 4,
+            "centre": [
+              0,
+              0.9655267754773724,
+              0.001348567663300331
+            ],
+            "axis": [
+              0,
+              1,
+              0
+            ],
+            "radiusU": 0.1700808599938034,
+            "radiusV": 0.14993804656882884,
+            "bandHalfWidth": 0.0045,
+            "relief": 0.0013,
+            "standOff": 0.0005,
+            "vertexCount": 48,
+            "triangleCount": 96,
+            "maximumBodySourceDistance": 0.014244852015416974,
+            "p95BodySourceDistance": 0.014020304251197404,
+            "maximumBodySurfaceDistance": 0.002064746664487181,
+            "p95BodySurfaceDistance": 0.0019624855878115953
+          },
+          {
+            "id": "left-sleeve-cuff",
+            "boundaryPoints": 36,
+            "contourPoints": 36,
+            "segments": 6,
+            "crossSectionSegments": 4,
+            "centre": [
+              -0.3321094068689103,
+              1.25148590576542,
+              0.013227410640024917
+            ],
+            "axis": [
+              -0.4164038172007417,
+              -0.5393126089392623,
+              0.7319492952792411
+            ],
+            "radiusU": 0.03367906342328407,
+            "radiusV": 0.03588583529991361,
+            "bandHalfWidth": 0.0035,
+            "relief": 0.0011,
+            "standOff": 0.0005,
+            "vertexCount": 24,
+            "triangleCount": 48,
+            "maximumBodySourceDistance": 0.007988058130643565,
+            "p95BodySourceDistance": 0.007788611388928705,
+            "maximumBodySurfaceDistance": 0.0022233732679521967,
+            "p95BodySurfaceDistance": 0.0021192327257297176
+          },
+          {
+            "id": "right-sleeve-cuff",
+            "boundaryPoints": 36,
+            "contourPoints": 36,
+            "segments": 6,
+            "crossSectionSegments": 4,
+            "centre": [
+              0.3321094068689103,
+              1.25148590576542,
+              0.013227410640024917
+            ],
+            "axis": [
+              0.4164038172007417,
+              -0.5393126089392623,
+              0.7319492952792411
+            ],
+            "radiusU": 0.03367906342328407,
+            "radiusV": 0.03588583529991361,
+            "bandHalfWidth": 0.0035,
+            "relief": 0.0011,
+            "standOff": 0.0005,
+            "vertexCount": 24,
+            "triangleCount": 48,
+            "maximumBodySourceDistance": 0.007988058130643565,
+            "p95BodySourceDistance": 0.007788611388928689,
+            "maximumBodySurfaceDistance": 0.002223373267952187,
+            "p95BodySurfaceDistance": 0.002119232725729704
+          }
+        ]
+      },
+      "fittedClothingTransitionSurvival": [
+        {
+          "id": "collar",
+          "sourceVertices": 48,
+          "sourceTriangles": 96,
+          "retainedVertices": 32,
+          "retainedTriangles": 64,
+          "bounds": [
+            [
+              -0.08202648162841797,
+              0.08202648162841797
+            ],
+            [
+              1.4895784854888916,
+              1.497578501701355
+            ],
+            [
+              -0.037906255573034286,
+              0.07609695941209793
+            ]
+          ],
+          "extents": [
+            0.16405296325683594,
+            0.008000016212463379,
+            0.11400321498513222
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "waist-hem",
+          "sourceVertices": 48,
+          "sourceTriangles": 96,
+          "retainedVertices": 41,
+          "retainedTriangles": 82,
+          "bounds": [
+            [
+              -0.17188085615634918,
+              0.17187587916851044
+            ],
+            [
+              0.9610267877578735,
+              0.9700267910957336
+            ],
+            [
+              -0.09964392334222794,
+              0.1530866175889969
+            ]
+          ],
+          "extents": [
+            0.3437567353248596,
+            0.009000003337860107,
+            0.2527305409312248
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "left-sleeve-cuff",
+          "sourceVertices": 24,
+          "sourceTriangles": 48,
+          "retainedVertices": 18,
+          "retainedTriangles": 36,
+          "bounds": [
+            [
+              -0.3575904965400696,
+              -0.30189546942710876
+            ],
+            [
+              1.2341405153274536,
+              1.2877658605575562
+            ],
+            [
+              -0.01837238483130932,
+              0.06562550365924835
+            ]
+          ],
+          "extents": [
+            0.055695027112960815,
+            0.05362534523010254,
+            0.08399788849055767
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "right-sleeve-cuff",
+          "sourceVertices": 24,
+          "sourceTriangles": 48,
+          "retainedVertices": 18,
+          "retainedTriangles": 36,
+          "bounds": [
+            [
+              0.30189546942710876,
+              0.3575904965400696
+            ],
+            [
+              1.2341405153274536,
+              1.2877658605575562
+            ],
+            [
+              -0.01837238483130932,
+              0.06562550365924835
+            ]
+          ],
+          "extents": [
+            0.055695027112960815,
+            0.05362534523010254,
+            0.08399788849055767
+          ],
+          "nonDegenerateAxes": 3
+        }
+      ],
+      "removedBodyTriangles": 0,
+      "remainingCoveredBodyTriangles": 0
+    },
+    {
+      "lod": 2,
+      "body": "low",
+      "kit": 2,
+      "usage": "live-bowler/low-batter",
+      "maximumTriangles": 3768,
+      "fileName": "hero-lod2.bytes",
+      "bytes": 214520,
+      "sha256": "083e6bc9a57f1a60ba469247e47da1fd6a8e29f18a51b04d8e3e83a9708adada",
+      "vertexCount": 2665,
+      "triangleCount": 3768,
+      "regions": {
+        "0": 593,
+        "1": 603,
+        "2": 429,
+        "3": 757,
+        "11": 283
+      },
+      "triangleRegions": {
+        "0": 860,
+        "1": 1018,
+        "2": 680,
+        "3": 1001,
+        "11": 209
+      },
+      "regionBoundary": {
+        "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+        "mixedSourceTriangles": 0,
+        "mixedOutputTriangles": 0,
+        "duplicatedVertices": 0,
+        "reassignedCorners": 0,
+        "triangleRegions": {
+          "0": 1524,
+          "1": 1272,
+          "2": 800,
+          "3": 3881,
+          "11": 811
+        },
+        "authoredVertexAttributesPreserved": true,
+        "maximumPositionDriftMetres": 0,
+        "maximumBindPositionDriftMetres": 0,
+        "maximumUvDrift": 0,
+        "maximumNormalComponentDrift": 0,
+        "maximumTangentComponentDrift": 0,
+        "fourSlotSkinRecordsPreservedExactly": true
+      },
+      "kitTriangleCounts": {
+        "hair": 811,
+        "shoes": 3189
+      },
+      "simplification": {
+        "algorithm": "meshoptimizer-1.1.1 simplifyWithAttributes on final combined renderer",
+        "sourceTriangles": 8288,
+        "targetTriangles": 3768,
+        "internalRequestedTriangles": 3768,
+        "achievedTriangles": 3768,
+        "maximumRelativeError": 0.05,
+        "observedRelativeError": 0.01655864343047142,
+        "attributes": "uv, normal, four bone ids, four quantized weights, one-hot shader region",
+        "sourceVertexRecordsRetainedExactly": true,
+        "maximumRetainedNormalComponentDrift": 0,
+        "maximumRetainedTangentComponentDrift": 0,
+        "regionBoundary": {
+          "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+          "mixedSourceTriangles": 0,
+          "mixedOutputTriangles": 0,
+          "duplicatedVertices": 0,
+          "reassignedCorners": 0,
+          "triangleRegions": {
+            "0": 1524,
+            "1": 1272,
+            "2": 800,
+            "3": 3881,
+            "11": 811
+          },
+          "authoredVertexAttributesPreserved": true,
+          "maximumPositionDriftMetres": 0,
+          "maximumBindPositionDriftMetres": 0,
+          "maximumUvDrift": 0,
+          "maximumNormalComponentDrift": 0,
+          "maximumTangentComponentDrift": 0,
+          "fourSlotSkinRecordsPreservedExactly": true
+        },
+        "protection": null
+      },
+      "influencePolicy": {
+        "encodedSlots": 4,
+        "maximumNonZeroInfluences": 4,
+        "observedMaximumNonZeroInfluences": 4,
+        "reduction": "none"
+      },
+      "fittedBodyPaint": {
+        "policy": "dominant quantized four-slot deformation bone; categorical triangle majority; ties choose lower region id",
+        "source": "full pinned MakeHuman v1.3.0 anatomy surface; no separate uniform geometry; region-painted feet remain beneath the CC0 shoe shell",
+        "regionSemantics": {
+          "0": "skin: head, jaw, neck, lower arms, wrists and hands",
+          "1": "jersey: spine, clavicles, shoulders and upper arms",
+          "2": "trousers: root, pelvis, upper legs and lower legs",
+          "3": "shoe/foot presentation: feet"
+        },
+        "sourceRegions": {
+          "0": 933,
+          "1": 526,
+          "2": 440,
+          "3": 432
+        },
+        "paintedVertexRegions": {
+          "0": 933,
+          "1": 526,
+          "2": 440,
+          "3": 432
+        },
+        "sourceTriangleRegions": {
+          "0": 1472,
+          "1": 871,
+          "2": 717,
+          "3": 660,
+          "0+1": 109,
+          "1+2": 110,
+          "2+3": 61
+        },
+        "outputTriangleRegions": {
+          "0": 1524,
+          "1": 984,
+          "2": 800,
+          "3": 692
+        },
+        "sourceSkinRecordSha256": "3fcd9fa2eaba8d4a00ca93b5e4948cbb23af99fc0ef58767912c3fa194edd98a",
+        "paintedSkinRecordSha256": "3fcd9fa2eaba8d4a00ca93b5e4948cbb23af99fc0ef58767912c3fa194edd98a",
+        "classificationSha256": "88c4208135a1d545895987a12e32f6720f24c7ed1b9f06ae9de8fe873c5bf820",
+        "fourSlotSkinRecordsPreservedExactly": true,
+        "mixedRegionSafety": {
+          "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+          "mixedSourceTriangles": 280,
+          "mixedOutputTriangles": 0,
+          "duplicatedVertices": 168,
+          "reassignedCorners": 280,
+          "triangleRegions": {
+            "0": 1524,
+            "1": 984,
+            "2": 800,
+            "3": 692
+          },
+          "authoredVertexAttributesPreserved": true,
+          "maximumPositionDriftMetres": 0,
+          "maximumBindPositionDriftMetres": 0,
+          "maximumUvDrift": 0,
+          "maximumNormalComponentDrift": 0,
+          "maximumTangentComponentDrift": 0,
+          "fourSlotSkinRecordsPreservedExactly": true
+        }
+      },
+      "fittedClothingTransitions": {
+        "policy": "vande-fitted-cricket-transitions-v3-body-conformal-bands",
+        "construction": "closed four-sided low-relief bands interpolated on the actual categorical body boundary; nearest complete authored four-slot body skin record is copied exactly",
+        "shaderRegion": 1,
+        "vertexCount": 144,
+        "triangleCount": 288,
+        "closedTwoManifold": true,
+        "bodyGeometryMutated": false,
+        "features": [
+          {
+            "id": "collar",
+            "boundaryPoints": 68,
+            "contourPoints": 88,
+            "segments": 12,
+            "crossSectionSegments": 4,
+            "centre": [
+              0,
+              1.4935784475565612,
+              0.026126031201127966
+            ],
+            "axis": [
+              0,
+              1,
+              0
+            ],
+            "radiusU": 0.08046763551957244,
+            "radiusV": 0.0624757239098907,
+            "bandHalfWidth": 0.004,
+            "relief": 0.0013,
+            "standOff": 0.0005,
+            "vertexCount": 48,
+            "triangleCount": 96,
+            "maximumBodySourceDistance": 0.009073797933491182,
+            "p95BodySourceDistance": 0.008779061119461352,
+            "maximumBodySurfaceDistance": 0.003748985399198491,
+            "p95BodySurfaceDistance": 0.003268935388782227
+          },
+          {
+            "id": "waist-hem",
+            "boundaryPoints": 104,
+            "contourPoints": 89,
+            "segments": 12,
+            "crossSectionSegments": 4,
+            "centre": [
+              0,
+              0.9655267754773724,
+              0.001348567663300331
+            ],
+            "axis": [
+              0,
+              1,
+              0
+            ],
+            "radiusU": 0.1700808599938034,
+            "radiusV": 0.14993804656882884,
+            "bandHalfWidth": 0.0045,
+            "relief": 0.0013,
+            "standOff": 0.0005,
+            "vertexCount": 48,
+            "triangleCount": 96,
+            "maximumBodySourceDistance": 0.014244852015416974,
+            "p95BodySourceDistance": 0.014020304251197404,
+            "maximumBodySurfaceDistance": 0.002064746664487181,
+            "p95BodySurfaceDistance": 0.0019624855878115953
+          },
+          {
+            "id": "left-sleeve-cuff",
+            "boundaryPoints": 36,
+            "contourPoints": 36,
+            "segments": 6,
+            "crossSectionSegments": 4,
+            "centre": [
+              -0.3321094068689103,
+              1.25148590576542,
+              0.013227410640024917
+            ],
+            "axis": [
+              -0.4164038172007417,
+              -0.5393126089392623,
+              0.7319492952792411
+            ],
+            "radiusU": 0.03367906342328407,
+            "radiusV": 0.03588583529991361,
+            "bandHalfWidth": 0.0035,
+            "relief": 0.0011,
+            "standOff": 0.0005,
+            "vertexCount": 24,
+            "triangleCount": 48,
+            "maximumBodySourceDistance": 0.007988058130643565,
+            "p95BodySourceDistance": 0.007788611388928705,
+            "maximumBodySurfaceDistance": 0.0022233732679521967,
+            "p95BodySurfaceDistance": 0.0021192327257297176
+          },
+          {
+            "id": "right-sleeve-cuff",
+            "boundaryPoints": 36,
+            "contourPoints": 36,
+            "segments": 6,
+            "crossSectionSegments": 4,
+            "centre": [
+              0.3321094068689103,
+              1.25148590576542,
+              0.013227410640024917
+            ],
+            "axis": [
+              0.4164038172007417,
+              -0.5393126089392623,
+              0.7319492952792411
+            ],
+            "radiusU": 0.03367906342328407,
+            "radiusV": 0.03588583529991361,
+            "bandHalfWidth": 0.0035,
+            "relief": 0.0011,
+            "standOff": 0.0005,
+            "vertexCount": 24,
+            "triangleCount": 48,
+            "maximumBodySourceDistance": 0.007988058130643565,
+            "p95BodySourceDistance": 0.007788611388928689,
+            "maximumBodySurfaceDistance": 0.002223373267952187,
+            "p95BodySurfaceDistance": 0.002119232725729704
+          }
+        ]
+      },
+      "fittedClothingTransitionSurvival": [
+        {
+          "id": "collar",
+          "sourceVertices": 48,
+          "sourceTriangles": 96,
+          "retainedVertices": 36,
+          "retainedTriangles": 72,
+          "bounds": [
+            [
+              -0.08202648162841797,
+              0.08202648162841797
+            ],
+            [
+              1.4895784854888916,
+              1.497578501701355
+            ],
+            [
+              -0.037906255573034286,
+              0.07609695941209793
+            ]
+          ],
+          "extents": [
+            0.16405296325683594,
+            0.008000016212463379,
+            0.11400321498513222
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "waist-hem",
+          "sourceVertices": 48,
+          "sourceTriangles": 96,
+          "retainedVertices": 48,
+          "retainedTriangles": 96,
+          "bounds": [
+            [
+              -0.17188085615634918,
+              0.17187587916851044
+            ],
+            [
+              0.9610267877578735,
+              0.9700267910957336
+            ],
+            [
+              -0.09964392334222794,
+              0.1530866175889969
+            ]
+          ],
+          "extents": [
+            0.3437567353248596,
+            0.009000003337860107,
+            0.2527305409312248
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "left-sleeve-cuff",
+          "sourceVertices": 24,
+          "sourceTriangles": 48,
+          "retainedVertices": 19,
+          "retainedTriangles": 38,
+          "bounds": [
+            [
+              -0.3575904965400696,
+              -0.30189546942710876
+            ],
+            [
+              1.2341405153274536,
+              1.2877658605575562
+            ],
+            [
+              -0.01837238483130932,
+              0.06562550365924835
+            ]
+          ],
+          "extents": [
+            0.055695027112960815,
+            0.05362534523010254,
+            0.08399788849055767
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "right-sleeve-cuff",
+          "sourceVertices": 24,
+          "sourceTriangles": 48,
+          "retainedVertices": 19,
+          "retainedTriangles": 38,
+          "bounds": [
+            [
+              0.30189546942710876,
+              0.3575904965400696
+            ],
+            [
+              1.2341405153274536,
+              1.2877658605575562
+            ],
+            [
+              -0.01837238483130932,
+              0.06562550365924835
+            ]
+          ],
+          "extents": [
+            0.055695027112960815,
+            0.05362534523010254,
+            0.08399788849055767
+          ],
+          "nonDegenerateAxes": 3
+        }
+      ],
+      "removedBodyTriangles": 0,
+      "remainingCoveredBodyTriangles": 0
+    },
+    {
+      "lod": 3,
+      "body": "low",
+      "kit": 2,
+      "usage": "distant-fielder-premium",
+      "maximumTriangles": 1768,
+      "maximumRelativeError": 0.1,
+      "fileName": "hero-lod3.bytes",
+      "bytes": 112232,
+      "sha256": "db96ae02b7e7af644deb8397277395fea6fe37cda17d9838df30a71359bdd8d3",
+      "vertexCount": 1412,
+      "triangleCount": 1756,
+      "regions": {
+        "0": 246,
+        "1": 305,
+        "2": 302,
+        "3": 356,
+        "11": 203
+      },
+      "triangleRegions": {
+        "0": 305,
+        "1": 466,
+        "2": 454,
+        "3": 407,
+        "11": 124
+      },
+      "regionBoundary": {
+        "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+        "mixedSourceTriangles": 0,
+        "mixedOutputTriangles": 0,
+        "duplicatedVertices": 0,
+        "reassignedCorners": 0,
+        "triangleRegions": {
+          "0": 1524,
+          "1": 1272,
+          "2": 800,
+          "3": 3881,
+          "11": 811
+        },
+        "authoredVertexAttributesPreserved": true,
+        "maximumPositionDriftMetres": 0,
+        "maximumBindPositionDriftMetres": 0,
+        "maximumUvDrift": 0,
+        "maximumNormalComponentDrift": 0,
+        "maximumTangentComponentDrift": 0,
+        "fourSlotSkinRecordsPreservedExactly": true
+      },
+      "kitTriangleCounts": {
+        "hair": 811,
+        "shoes": 3189
+      },
+      "simplification": {
+        "algorithm": "meshoptimizer-1.1.1 simplifyWithAttributes on final combined renderer",
+        "sourceTriangles": 8288,
+        "targetTriangles": 1768,
+        "internalRequestedTriangles": 1768,
+        "achievedTriangles": 1756,
+        "maximumRelativeError": 0.1,
+        "observedRelativeError": 0.06790332496166229,
+        "attributes": "uv, normal, four bone ids, four quantized weights, one-hot shader region",
+        "sourceVertexRecordsRetainedExactly": true,
+        "maximumRetainedNormalComponentDrift": 0,
+        "maximumRetainedTangentComponentDrift": 0,
+        "regionBoundary": {
+          "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+          "mixedSourceTriangles": 0,
+          "mixedOutputTriangles": 0,
+          "duplicatedVertices": 0,
+          "reassignedCorners": 0,
+          "triangleRegions": {
+            "0": 1524,
+            "1": 1272,
+            "2": 800,
+            "3": 3881,
+            "11": 811
+          },
+          "authoredVertexAttributesPreserved": true,
+          "maximumPositionDriftMetres": 0,
+          "maximumBindPositionDriftMetres": 0,
+          "maximumUvDrift": 0,
+          "maximumNormalComponentDrift": 0,
+          "maximumTangentComponentDrift": 0,
+          "fourSlotSkinRecordsPreservedExactly": true
+        },
+        "protection": null
+      },
+      "influencePolicy": {
+        "encodedSlots": 4,
+        "maximumNonZeroInfluences": 4,
+        "observedMaximumNonZeroInfluences": 4,
+        "reduction": "none"
+      },
+      "fittedBodyPaint": {
+        "policy": "dominant quantized four-slot deformation bone; categorical triangle majority; ties choose lower region id",
+        "source": "full pinned MakeHuman v1.3.0 anatomy surface; no separate uniform geometry; region-painted feet remain beneath the CC0 shoe shell",
+        "regionSemantics": {
+          "0": "skin: head, jaw, neck, lower arms, wrists and hands",
+          "1": "jersey: spine, clavicles, shoulders and upper arms",
+          "2": "trousers: root, pelvis, upper legs and lower legs",
+          "3": "shoe/foot presentation: feet"
+        },
+        "sourceRegions": {
+          "0": 933,
+          "1": 526,
+          "2": 440,
+          "3": 432
+        },
+        "paintedVertexRegions": {
+          "0": 933,
+          "1": 526,
+          "2": 440,
+          "3": 432
+        },
+        "sourceTriangleRegions": {
+          "0": 1472,
+          "1": 871,
+          "2": 717,
+          "3": 660,
+          "0+1": 109,
+          "1+2": 110,
+          "2+3": 61
+        },
+        "outputTriangleRegions": {
+          "0": 1524,
+          "1": 984,
+          "2": 800,
+          "3": 692
+        },
+        "sourceSkinRecordSha256": "3fcd9fa2eaba8d4a00ca93b5e4948cbb23af99fc0ef58767912c3fa194edd98a",
+        "paintedSkinRecordSha256": "3fcd9fa2eaba8d4a00ca93b5e4948cbb23af99fc0ef58767912c3fa194edd98a",
+        "classificationSha256": "88c4208135a1d545895987a12e32f6720f24c7ed1b9f06ae9de8fe873c5bf820",
+        "fourSlotSkinRecordsPreservedExactly": true,
+        "mixedRegionSafety": {
+          "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+          "mixedSourceTriangles": 280,
+          "mixedOutputTriangles": 0,
+          "duplicatedVertices": 168,
+          "reassignedCorners": 280,
+          "triangleRegions": {
+            "0": 1524,
+            "1": 984,
+            "2": 800,
+            "3": 692
+          },
+          "authoredVertexAttributesPreserved": true,
+          "maximumPositionDriftMetres": 0,
+          "maximumBindPositionDriftMetres": 0,
+          "maximumUvDrift": 0,
+          "maximumNormalComponentDrift": 0,
+          "maximumTangentComponentDrift": 0,
+          "fourSlotSkinRecordsPreservedExactly": true
+        }
+      },
+      "fittedClothingTransitions": {
+        "policy": "vande-fitted-cricket-transitions-v3-body-conformal-bands",
+        "construction": "closed four-sided low-relief bands interpolated on the actual categorical body boundary; nearest complete authored four-slot body skin record is copied exactly",
+        "shaderRegion": 1,
+        "vertexCount": 144,
+        "triangleCount": 288,
+        "closedTwoManifold": true,
+        "bodyGeometryMutated": false,
+        "features": [
+          {
+            "id": "collar",
+            "boundaryPoints": 68,
+            "contourPoints": 88,
+            "segments": 12,
+            "crossSectionSegments": 4,
+            "centre": [
+              0,
+              1.4935784475565612,
+              0.026126031201127966
+            ],
+            "axis": [
+              0,
+              1,
+              0
+            ],
+            "radiusU": 0.08046763551957244,
+            "radiusV": 0.0624757239098907,
+            "bandHalfWidth": 0.004,
+            "relief": 0.0013,
+            "standOff": 0.0005,
+            "vertexCount": 48,
+            "triangleCount": 96,
+            "maximumBodySourceDistance": 0.009073797933491182,
+            "p95BodySourceDistance": 0.008779061119461352,
+            "maximumBodySurfaceDistance": 0.003748985399198491,
+            "p95BodySurfaceDistance": 0.003268935388782227
+          },
+          {
+            "id": "waist-hem",
+            "boundaryPoints": 104,
+            "contourPoints": 89,
+            "segments": 12,
+            "crossSectionSegments": 4,
+            "centre": [
+              0,
+              0.9655267754773724,
+              0.001348567663300331
+            ],
+            "axis": [
+              0,
+              1,
+              0
+            ],
+            "radiusU": 0.1700808599938034,
+            "radiusV": 0.14993804656882884,
+            "bandHalfWidth": 0.0045,
+            "relief": 0.0013,
+            "standOff": 0.0005,
+            "vertexCount": 48,
+            "triangleCount": 96,
+            "maximumBodySourceDistance": 0.014244852015416974,
+            "p95BodySourceDistance": 0.014020304251197404,
+            "maximumBodySurfaceDistance": 0.002064746664487181,
+            "p95BodySurfaceDistance": 0.0019624855878115953
+          },
+          {
+            "id": "left-sleeve-cuff",
+            "boundaryPoints": 36,
+            "contourPoints": 36,
+            "segments": 6,
+            "crossSectionSegments": 4,
+            "centre": [
+              -0.3321094068689103,
+              1.25148590576542,
+              0.013227410640024917
+            ],
+            "axis": [
+              -0.4164038172007417,
+              -0.5393126089392623,
+              0.7319492952792411
+            ],
+            "radiusU": 0.03367906342328407,
+            "radiusV": 0.03588583529991361,
+            "bandHalfWidth": 0.0035,
+            "relief": 0.0011,
+            "standOff": 0.0005,
+            "vertexCount": 24,
+            "triangleCount": 48,
+            "maximumBodySourceDistance": 0.007988058130643565,
+            "p95BodySourceDistance": 0.007788611388928705,
+            "maximumBodySurfaceDistance": 0.0022233732679521967,
+            "p95BodySurfaceDistance": 0.0021192327257297176
+          },
+          {
+            "id": "right-sleeve-cuff",
+            "boundaryPoints": 36,
+            "contourPoints": 36,
+            "segments": 6,
+            "crossSectionSegments": 4,
+            "centre": [
+              0.3321094068689103,
+              1.25148590576542,
+              0.013227410640024917
+            ],
+            "axis": [
+              0.4164038172007417,
+              -0.5393126089392623,
+              0.7319492952792411
+            ],
+            "radiusU": 0.03367906342328407,
+            "radiusV": 0.03588583529991361,
+            "bandHalfWidth": 0.0035,
+            "relief": 0.0011,
+            "standOff": 0.0005,
+            "vertexCount": 24,
+            "triangleCount": 48,
+            "maximumBodySourceDistance": 0.007988058130643565,
+            "p95BodySourceDistance": 0.007788611388928689,
+            "maximumBodySurfaceDistance": 0.002223373267952187,
+            "p95BodySurfaceDistance": 0.002119232725729704
+          }
+        ]
+      },
+      "fittedClothingTransitionSurvival": [
+        {
+          "id": "collar",
+          "sourceVertices": 48,
+          "sourceTriangles": 96,
+          "retainedVertices": 17,
+          "retainedTriangles": 34,
+          "bounds": [
+            [
+              -0.08202648162841797,
+              0.08202648162841797
+            ],
+            [
+              1.4895784854888916,
+              1.497578501701355
+            ],
+            [
+              -0.037906255573034286,
+              0.07609695941209793
+            ]
+          ],
+          "extents": [
+            0.16405296325683594,
+            0.008000016212463379,
+            0.11400321498513222
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "waist-hem",
+          "sourceVertices": 48,
+          "sourceTriangles": 96,
+          "retainedVertices": 38,
+          "retainedTriangles": 76,
+          "bounds": [
+            [
+              -0.17188085615634918,
+              0.17187587916851044
+            ],
+            [
+              0.9610267877578735,
+              0.9700267910957336
+            ],
+            [
+              -0.09964392334222794,
+              0.1530866175889969
+            ]
+          ],
+          "extents": [
+            0.3437567353248596,
+            0.009000003337860107,
+            0.2527305409312248
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "left-sleeve-cuff",
+          "sourceVertices": 24,
+          "sourceTriangles": 48,
+          "retainedVertices": 10,
+          "retainedTriangles": 16,
+          "bounds": [
+            [
+              -0.3568626642227173,
+              -0.302622526884079
+            ],
+            [
+              1.2351878881454468,
+              1.2877658605575562
+            ],
+            [
+              -0.016530537977814674,
+              0.06378161162137985
+            ]
+          ],
+          "extents": [
+            0.054240137338638306,
+            0.052577972412109375,
+            0.08031214959919453
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "right-sleeve-cuff",
+          "sourceVertices": 24,
+          "sourceTriangles": 48,
+          "retainedVertices": 10,
+          "retainedTriangles": 16,
+          "bounds": [
+            [
+              0.302622526884079,
+              0.3568626642227173
+            ],
+            [
+              1.2351878881454468,
+              1.2877658605575562
+            ],
+            [
+              -0.016530537977814674,
+              0.06562550365924835
+            ]
+          ],
+          "extents": [
+            0.054240137338638306,
+            0.052577972412109375,
+            0.08215604163706303
+          ],
+          "nonDegenerateAxes": 3
+        }
+      ],
+      "removedBodyTriangles": 0,
+      "remainingCoveredBodyTriangles": 0
+    },
+    {
+      "lod": 4,
+      "body": "low",
+      "kit": 2,
+      "usage": "distant-fielder-balanced-lite",
+      "maximumTriangles": 968,
+      "maximumRelativeError": 0.25,
+      "fileName": "hero-lod4.bytes",
+      "bytes": 70664,
+      "sha256": "08b5b2e4ee9024dccf99ac66ed3a0926e729108fc033065fcae3e9083e687330",
+      "vertexCount": 902,
+      "triangleCount": 948,
+      "regions": {
+        "0": 136,
+        "1": 157,
+        "2": 209,
+        "3": 222,
+        "11": 178
+      },
+      "triangleRegions": {
+        "0": 143,
+        "1": 192,
+        "2": 292,
+        "3": 217,
+        "11": 104
+      },
+      "regionBoundary": {
+        "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+        "mixedSourceTriangles": 0,
+        "mixedOutputTriangles": 0,
+        "duplicatedVertices": 0,
+        "reassignedCorners": 0,
+        "triangleRegions": {
+          "0": 1524,
+          "1": 1272,
+          "2": 800,
+          "3": 3881,
+          "11": 811
+        },
+        "authoredVertexAttributesPreserved": true,
+        "maximumPositionDriftMetres": 0,
+        "maximumBindPositionDriftMetres": 0,
+        "maximumUvDrift": 0,
+        "maximumNormalComponentDrift": 0,
+        "maximumTangentComponentDrift": 0,
+        "fourSlotSkinRecordsPreservedExactly": true
+      },
+      "kitTriangleCounts": {
+        "hair": 811,
+        "shoes": 3189
+      },
+      "simplification": {
+        "algorithm": "meshoptimizer-1.1.1 simplifyWithAttributes on final combined renderer",
+        "sourceTriangles": 8288,
+        "targetTriangles": 968,
+        "internalRequestedTriangles": 968,
+        "achievedTriangles": 948,
+        "maximumRelativeError": 0.25,
+        "observedRelativeError": 0.1516924649477005,
+        "attributes": "uv, normal, four bone ids, four quantized weights, one-hot shader region",
+        "sourceVertexRecordsRetainedExactly": true,
+        "maximumRetainedNormalComponentDrift": 0,
+        "maximumRetainedTangentComponentDrift": 0,
+        "regionBoundary": {
+          "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+          "mixedSourceTriangles": 0,
+          "mixedOutputTriangles": 0,
+          "duplicatedVertices": 0,
+          "reassignedCorners": 0,
+          "triangleRegions": {
+            "0": 1524,
+            "1": 1272,
+            "2": 800,
+            "3": 3881,
+            "11": 811
+          },
+          "authoredVertexAttributesPreserved": true,
+          "maximumPositionDriftMetres": 0,
+          "maximumBindPositionDriftMetres": 0,
+          "maximumUvDrift": 0,
+          "maximumNormalComponentDrift": 0,
+          "maximumTangentComponentDrift": 0,
+          "fourSlotSkinRecordsPreservedExactly": true
+        },
+        "protection": null
+      },
+      "influencePolicy": {
+        "encodedSlots": 4,
+        "maximumNonZeroInfluences": 4,
+        "observedMaximumNonZeroInfluences": 4,
+        "reduction": "none"
+      },
+      "fittedBodyPaint": {
+        "policy": "dominant quantized four-slot deformation bone; categorical triangle majority; ties choose lower region id",
+        "source": "full pinned MakeHuman v1.3.0 anatomy surface; no separate uniform geometry; region-painted feet remain beneath the CC0 shoe shell",
+        "regionSemantics": {
+          "0": "skin: head, jaw, neck, lower arms, wrists and hands",
+          "1": "jersey: spine, clavicles, shoulders and upper arms",
+          "2": "trousers: root, pelvis, upper legs and lower legs",
+          "3": "shoe/foot presentation: feet"
+        },
+        "sourceRegions": {
+          "0": 933,
+          "1": 526,
+          "2": 440,
+          "3": 432
+        },
+        "paintedVertexRegions": {
+          "0": 933,
+          "1": 526,
+          "2": 440,
+          "3": 432
+        },
+        "sourceTriangleRegions": {
+          "0": 1472,
+          "1": 871,
+          "2": 717,
+          "3": 660,
+          "0+1": 109,
+          "1+2": 110,
+          "2+3": 61
+        },
+        "outputTriangleRegions": {
+          "0": 1524,
+          "1": 984,
+          "2": 800,
+          "3": 692
+        },
+        "sourceSkinRecordSha256": "3fcd9fa2eaba8d4a00ca93b5e4948cbb23af99fc0ef58767912c3fa194edd98a",
+        "paintedSkinRecordSha256": "3fcd9fa2eaba8d4a00ca93b5e4948cbb23af99fc0ef58767912c3fa194edd98a",
+        "classificationSha256": "88c4208135a1d545895987a12e32f6720f24c7ed1b9f06ae9de8fe873c5bf820",
+        "fourSlotSkinRecordsPreservedExactly": true,
+        "mixedRegionSafety": {
+          "policy": "disconnect mixed source triangles by deterministic majority region; tie uses lower region id",
+          "mixedSourceTriangles": 280,
+          "mixedOutputTriangles": 0,
+          "duplicatedVertices": 168,
+          "reassignedCorners": 280,
+          "triangleRegions": {
+            "0": 1524,
+            "1": 984,
+            "2": 800,
+            "3": 692
+          },
+          "authoredVertexAttributesPreserved": true,
+          "maximumPositionDriftMetres": 0,
+          "maximumBindPositionDriftMetres": 0,
+          "maximumUvDrift": 0,
+          "maximumNormalComponentDrift": 0,
+          "maximumTangentComponentDrift": 0,
+          "fourSlotSkinRecordsPreservedExactly": true
+        }
+      },
+      "fittedClothingTransitions": {
+        "policy": "vande-fitted-cricket-transitions-v3-body-conformal-bands",
+        "construction": "closed four-sided low-relief bands interpolated on the actual categorical body boundary; nearest complete authored four-slot body skin record is copied exactly",
+        "shaderRegion": 1,
+        "vertexCount": 144,
+        "triangleCount": 288,
+        "closedTwoManifold": true,
+        "bodyGeometryMutated": false,
+        "features": [
+          {
+            "id": "collar",
+            "boundaryPoints": 68,
+            "contourPoints": 88,
+            "segments": 12,
+            "crossSectionSegments": 4,
+            "centre": [
+              0,
+              1.4935784475565612,
+              0.026126031201127966
+            ],
+            "axis": [
+              0,
+              1,
+              0
+            ],
+            "radiusU": 0.08046763551957244,
+            "radiusV": 0.0624757239098907,
+            "bandHalfWidth": 0.004,
+            "relief": 0.0013,
+            "standOff": 0.0005,
+            "vertexCount": 48,
+            "triangleCount": 96,
+            "maximumBodySourceDistance": 0.009073797933491182,
+            "p95BodySourceDistance": 0.008779061119461352,
+            "maximumBodySurfaceDistance": 0.003748985399198491,
+            "p95BodySurfaceDistance": 0.003268935388782227
+          },
+          {
+            "id": "waist-hem",
+            "boundaryPoints": 104,
+            "contourPoints": 89,
+            "segments": 12,
+            "crossSectionSegments": 4,
+            "centre": [
+              0,
+              0.9655267754773724,
+              0.001348567663300331
+            ],
+            "axis": [
+              0,
+              1,
+              0
+            ],
+            "radiusU": 0.1700808599938034,
+            "radiusV": 0.14993804656882884,
+            "bandHalfWidth": 0.0045,
+            "relief": 0.0013,
+            "standOff": 0.0005,
+            "vertexCount": 48,
+            "triangleCount": 96,
+            "maximumBodySourceDistance": 0.014244852015416974,
+            "p95BodySourceDistance": 0.014020304251197404,
+            "maximumBodySurfaceDistance": 0.002064746664487181,
+            "p95BodySurfaceDistance": 0.0019624855878115953
+          },
+          {
+            "id": "left-sleeve-cuff",
+            "boundaryPoints": 36,
+            "contourPoints": 36,
+            "segments": 6,
+            "crossSectionSegments": 4,
+            "centre": [
+              -0.3321094068689103,
+              1.25148590576542,
+              0.013227410640024917
+            ],
+            "axis": [
+              -0.4164038172007417,
+              -0.5393126089392623,
+              0.7319492952792411
+            ],
+            "radiusU": 0.03367906342328407,
+            "radiusV": 0.03588583529991361,
+            "bandHalfWidth": 0.0035,
+            "relief": 0.0011,
+            "standOff": 0.0005,
+            "vertexCount": 24,
+            "triangleCount": 48,
+            "maximumBodySourceDistance": 0.007988058130643565,
+            "p95BodySourceDistance": 0.007788611388928705,
+            "maximumBodySurfaceDistance": 0.0022233732679521967,
+            "p95BodySurfaceDistance": 0.0021192327257297176
+          },
+          {
+            "id": "right-sleeve-cuff",
+            "boundaryPoints": 36,
+            "contourPoints": 36,
+            "segments": 6,
+            "crossSectionSegments": 4,
+            "centre": [
+              0.3321094068689103,
+              1.25148590576542,
+              0.013227410640024917
+            ],
+            "axis": [
+              0.4164038172007417,
+              -0.5393126089392623,
+              0.7319492952792411
+            ],
+            "radiusU": 0.03367906342328407,
+            "radiusV": 0.03588583529991361,
+            "bandHalfWidth": 0.0035,
+            "relief": 0.0011,
+            "standOff": 0.0005,
+            "vertexCount": 24,
+            "triangleCount": 48,
+            "maximumBodySourceDistance": 0.007988058130643565,
+            "p95BodySourceDistance": 0.007788611388928689,
+            "maximumBodySurfaceDistance": 0.002223373267952187,
+            "p95BodySurfaceDistance": 0.002119232725729704
+          }
+        ]
+      },
+      "fittedClothingTransitionSurvival": [
+        {
+          "id": "collar",
+          "sourceVertices": 48,
+          "sourceTriangles": 96,
+          "retainedVertices": 3,
+          "retainedTriangles": 2,
+          "bounds": [
+            [
+              -0.0809006467461586,
+              0.03718562051653862
+            ],
+            [
+              1.4895784854888916,
+              1.497578501701355
+            ],
+            [
+              -0.037906255573034286,
+              -0.02058173157274723
+            ]
+          ],
+          "extents": [
+            0.11808626726269722,
+            0.008000016212463379,
+            0.017324524000287056
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "waist-hem",
+          "sourceVertices": 48,
+          "sourceTriangles": 96,
+          "retainedVertices": 7,
+          "retainedTriangles": 8,
+          "bounds": [
+            [
+              -0.13190461695194244,
+              0.13198690116405487
+            ],
+            [
+              0.9610267877578735,
+              0.9655267596244812
+            ],
+            [
+              -0.09964392334222794,
+              -0.07459460198879242
+            ]
+          ],
+          "extents": [
+            0.2638915181159973,
+            0.004499971866607666,
+            0.025049321353435516
+          ],
+          "nonDegenerateAxes": 3
+        },
+        {
+          "id": "left-sleeve-cuff",
+          "sourceVertices": 24,
+          "sourceTriangles": 48,
+          "retainedVertices": 0,
+          "retainedTriangles": 0,
+          "bounds": [
+            [
+              null,
+              null
+            ],
+            [
+              null,
+              null
+            ],
+            [
+              null,
+              null
+            ]
+          ],
+          "extents": [
+            0,
+            0,
+            0
+          ],
+          "nonDegenerateAxes": 0
+        },
+        {
+          "id": "right-sleeve-cuff",
+          "sourceVertices": 24,
+          "sourceTriangles": 48,
+          "retainedVertices": 0,
+          "retainedTriangles": 0,
+          "bounds": [
+            [
+              null,
+              null
+            ],
+            [
+              null,
+              null
+            ],
+            [
+              null,
+              null
+            ]
+          ],
+          "extents": [
+            0,
+            0,
+            0
+          ],
+          "nonDegenerateAxes": 0
+        }
+      ],
+      "removedBodyTriangles": 0,
+      "remainingCoveredBodyTriangles": 0
+    }
+  ],
+  "eyes": {
+    "status": "PINNED CC0 TECHNICAL ART CANDIDATE / INDEPENDENT VISUAL ACCEPTANCE UNPROVEN",
+    "rendererPolicy": "one shared opaque VPM3 eye renderer reused unchanged at every hero LOD",
+    "fileName": "hero-eyes.bytes",
+    "format": "VPM3",
+    "bytes": 7976,
+    "sha256": "84cfdd71fe6c34d5de8241fc9f27c794f1a1c192bbae8e62f71c91d33288669d",
+    "skeletonId": "f5e900eb2ff93c6f",
+    "vertexCount": 96,
+    "triangleCount": 172,
+    "shaderRegion": 16,
+    "binding": {
+      "boneIndex": 11,
+      "boneName": "head",
+      "rigidWeight": 255,
+      "mapping": "96 direct MHCLO base-body mappings; maximum source-coordinate difference 0"
+    },
+    "source": {
+      "archiveSha256": "b542127a8e25547c7c29c19f2d1d2adb9a664c80396ecd694095dbc8028a0107",
+      "license": "CC0-1.0",
+      "members": {
+        "object": {
+          "archiveEntry": "eyes/low-poly/low-poly.obj",
+          "bytes": 6604,
+          "sha256": "783fe1e6331162c876520b4c2bed7a8ca06354ca15497e8ebd68bb1b59f4d3de"
+        },
+        "transfer": {
+          "archiveEntry": "eyes/low-poly/low-poly.mhclo",
+          "bytes": 1344,
+          "sha256": "68582e28e9176cba7cfcf35208f671b6201b8d1bc95c32decff61a3160ec34d8"
+        },
+        "material": {
+          "archiveEntry": "eyes/materials/brown.mhmat",
+          "bytes": 1247,
+          "sha256": "4abad93ce50541c08127721e77bce035640c9f16bed16cd0f5524b1cd5908465"
+        },
+        "albedo": {
+          "archiveEntry": "eyes/materials/brown_eye.png",
+          "bytes": 610817,
+          "sha256": "4659691c7295ad6206c78b003e5fd0e5f91dcd53032fa914a229bb48cabe424b"
+        }
+      }
+    },
+    "albedo": {
+      "fileName": "hero-eye-albedo-256.png",
+      "bytes": 76993,
+      "sha256": "d47fd0debb3b3234d6b48926ca2c3c8283b9cb12bc5e2ea159658fc0ea8991d3",
+      "width": 256,
+      "height": 256,
+      "channels": 3,
+      "alpha": false,
+      "source": "eyes/materials/brown_eye.png",
+      "sourceSha256": "4659691c7295ad6206c78b003e5fd0e5f91dcd53032fa914a229bb48cabe424b",
+      "deterministicTransform": "remove alpha; Lanczos3 resize to 256x256; PNG compression 9; adaptive filtering disabled; RGB non-palette"
+    }
+  },
+  "equipment": {
+    "source": "Original VANDE-authored parametric surfaces; no third-party mesh, brand, sponsor or likeness",
+    "originalVandeAuthored": true,
+    "dimensions": {
+      "bat": {
+        "bladeLength": 0.56,
+        "bladeWidth": 0.108,
+        "bladeThickness": 0.05,
+        "handleLength": 0.3,
+        "totalLength": 0.86,
+        "gripRadius": 0.0182
+      },
+      "gear": {
+        "helmet": {
+          "shellCenterOffset": [
+            0,
+            0.078,
+            0.004
+          ],
+          "shellRadii": [
+            0.103,
+            0.125,
+            0.11
+          ],
+          "crownFlattenExponent": 1.45,
+          "crownSideTaper": 0.1,
+          "frontDepthCompression": 0.085,
+          "occipitalDepthExpansion": 0.115,
+          "occipitalDrop": 0.009,
+          "occipitalLatitudeRadians": -0.12566370614359174,
+          "occipitalBandWidthRadians": 0.6911503837897545,
+          "faceOpeningHalfAngleRadians": 1.413716694115407,
+          "faceOpeningFullToLatitudeRadians": 0.4398229715025711,
+          "faceOpeningClosedAtLatitudeRadians": 0.9738937226128359,
+          "faceLowerLatitudeRadians": -0.5654866776461628,
+          "napeLowerLatitudeRadians": -0.91106186954104,
+          "grilleFrontZ": 0.158,
+          "grilleHalfWidth": 0.092,
+          "upperBarRadius": 0.0038,
+          "lowerBarRadius": 0.0034,
+          "uprightRadius": 0.003,
+          "sideGuardRadius": 0.0042,
+          "apertureRimRadius": 0.0026,
+          "peakRearHalfWidth": 0.094,
+          "peakFrontHalfWidth": 0.076,
+          "peakRearZ": 0.0115,
+          "peakFrontZ": 0.166,
+          "peakCenterY": 0.061,
+          "peakThickness": 0.01,
+          "earGuardCenterX": 0.099,
+          "earGuardCenterY": -0.027,
+          "earGuardCenterZ": -0.002,
+          "earGuardRadii": [
+            0.008,
+            0.028,
+            0.022
+          ]
+        },
+        "pad": {
+          "centerOffset": [
+            0,
+            -0.15,
+            0.046
+          ],
+          "panelWidth": 0.17,
+          "panelHeight": 0.46,
+          "panelDepth": 0.042,
+          "rearWidthScale": 0.6,
+          "rearHeightScale": 0.94,
+          "bottomWidthScale": 0.72,
+          "topWidthScale": 0.88,
+          "sideWrapDepth": 0.01,
+          "longitudinalRollOffsets": [
+            -0.056,
+            -0.028,
+            0,
+            0.028,
+            0.056
+          ],
+          "longitudinalRollRadius": 0.0082,
+          "longitudinalSeamOffsets": [
+            -0.042,
+            -0.014,
+            0.014,
+            0.042
+          ],
+          "longitudinalSeamRadius": 0.0013,
+          "longitudinalRollHalfHeight": 0.19,
+          "kneeRollY": 0.174,
+          "kneeRollHalfSpan": 0.066,
+          "kneeRollRadius": 0.016,
+          "strapHalfSpan": 0.068,
+          "strapIntermediateX": 0.058,
+          "strapSideZ": -0.014,
+          "strapRearZ": -0.026,
+          "strapRadius": 0.0024,
+          "strapY": [
+            -0.145,
+            0.01,
+            0.16
+          ]
+        },
+        "glove": {
+          "palmCenterOffset": [
+            0,
+            -0.01,
+            0.016
+          ],
+          "palmRadii": [
+            0.041,
+            0.054,
+            0.026
+          ],
+          "backPanelCenterOffset": [
+            0,
+            -0.007,
+            0.039
+          ],
+          "backPanelWidth": 0.066,
+          "backPanelHeight": 0.05,
+          "backPanelDepth": 0.008,
+          "backRollOffsets": [
+            -0.021,
+            -0.007,
+            0.007,
+            0.021
+          ],
+          "backRollRadius": 0.0035,
+          "seamOffsets": [
+            -0.014,
+            0.014
+          ],
+          "seamRadius": 0.0012,
+          "fingerBankCenterOffset": [
+            0,
+            -0.052,
+            0.071
+          ],
+          "fingerBankRadii": [
+            0.038,
+            0.046,
+            0.028
+          ],
+          "fingerReliefOffsets": [
+            -0.023,
+            -0.008,
+            0.008,
+            0.023
+          ],
+          "fingerReliefRadius": 0.0016,
+          "thumbCenterOffset": [
+            0.034,
+            -0.022,
+            0.055
+          ],
+          "thumbRadii": [
+            0.014,
+            0.025,
+            0.018
+          ],
+          "strapHalfSpan": 0.033,
+          "strapRadius": 0.0024
+        }
+      }
+    },
+    "foregroundReadabilityPolicy": {
+      "helmet": "Distinct padded ear guards and nape shell; the complete aperture rim, horizontal bars, uprights and side rails use the non-emissive metal region.",
+      "pads": "Tapered ankle and knee edges, shallow side wrap, overlapping rear depth and a live front channel keep each pad integrated with its shin.",
+      "gloves": "Compact wrist-bound palm and finger-bank volumes retain a thumb and four contrast finger channels without independent finger-bone gaps."
+    },
+    "shaderRegions": {
+      "pad": 4,
+      "glove": 5,
+      "helmet": 6,
+      "metal": 7,
+      "strap": 13,
+      "padding": 14
+    },
+    "renderedFamilies": [
+      "helmet",
+      "pads",
+      "gloves"
+    ],
+    "omittedUnderClothing": [
+      "thigh-guard",
+      "lower-arm-guard"
+    ],
+    "outputs": [
+      {
+        "detail": "high",
+        "gear": {
+          "fileName": "hero-gear-lod0.bytes",
+          "format": "VPM3",
+          "bytes": 313496,
+          "sha256": "74d97a129a704096250a8a35a40d655839c3cebec7b0bf682ea874655ac340e9",
+          "sourceOutputSha256": "74d97a129a704096250a8a35a40d655839c3cebec7b0bf682ea874655ac340e9",
+          "skeletonId": "f5e900eb2ff93c6f",
+          "vertexCount": 3854,
+          "triangleCount": 5996,
+          "maximumTriangles": 6200,
+          "preservedByteIdentity": true
+        },
+        "bat": {
+          "fileName": "hero-bat-lod0.bytes",
+          "format": "VBT1",
+          "bytes": 38560,
+          "sha256": "7c1ea72a91a38f46308193cf77c5691e5ac457c93093eed727c397924d085074",
+          "sourceOutputSha256": "7c1ea72a91a38f46308193cf77c5691e5ac457c93093eed727c397924d085074",
+          "vertexCount": 574,
+          "triangleCount": 1064,
+          "maximumTriangles": 2000,
+          "preservedByteIdentity": true
+        }
+      },
+      {
+        "detail": "live",
+        "gear": {
+          "fileName": "hero-gear-lod1.bytes",
+          "format": "VPM3",
+          "bytes": 127544,
+          "sha256": "456246cdbc74dc4e78a0206bf0397d3c6457c40e11f4b61e121443a5c666a0eb",
+          "sourceOutputSha256": "456246cdbc74dc4e78a0206bf0397d3c6457c40e11f4b61e121443a5c666a0eb",
+          "skeletonId": "f5e900eb2ff93c6f",
+          "vertexCount": 1588,
+          "triangleCount": 2196,
+          "maximumTriangles": 2200,
+          "preservedByteIdentity": true
+        },
+        "bat": {
+          "fileName": "hero-bat-lod1.bytes",
+          "format": "VBT1",
+          "bytes": 10456,
+          "sha256": "2284fbdfb2871f0b6120462849b1689b94156368b773f71f8e5555f9070dfd0c",
+          "sourceOutputSha256": "2284fbdfb2871f0b6120462849b1689b94156368b773f71f8e5555f9070dfd0c",
+          "vertexCount": 157,
+          "triangleCount": 272,
+          "maximumTriangles": 700,
+          "preservedByteIdentity": true
+        }
+      }
+    ],
+    "acceptance": "TECHNICAL ART CANDIDATE / INDEPENDENT VISUAL ACCEPTANCE UNPROVEN"
+  },
+  "motion": {
+    "source": {
+      "name": "Carnegie Mellon University Graphics Lab Motion Capture Database",
+      "indexUrl": "https://mocap.cs.cmu.edu/search.php",
+      "termsUrl": "https://mocap.cs.cmu.edu/",
+      "termsSummary": "CMU permits inclusion in commercially sold products but prohibits direct resale of the motion data, including converted form; acknowledgment is requested.",
+      "acknowledgementRequested": "The data used in this project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217."
+    },
+    "authorityBoundary": "Reference motion is presentation-only. Canonical TypeScript traces remain sole authority for release, contact, flight, score and replay.",
+    "outputs": [
+      {
+        "id": "cmu-35-run-jog-reference",
+        "role": "runup_reference_only",
+        "fileName": "motion-runup.bytes",
+        "format": "VMA1",
+        "bytes": 20312,
+        "sha256": "8b9dae43e15bc42eaf549be8f65e7a29295b72e591153a9a1086932cf8e28b77",
+        "sourceOutputSha256": "8b9dae43e15bc42eaf549be8f65e7a29295b72e591153a9a1086932cf8e28b77",
+        "sourceSkeleton": "35.asf",
+        "sourceSkeletonSha256": "2a8e2eda3c0d7d828566b2a9a8ab36b2b8b3864110574e8b73c8f069fded416c",
+        "sourceMotion": "35_17.amc",
+        "sourceMotionSha256": "8096cd53878242dbc35e987288cef6ae81d4e1c0e207086639bbed5cc06c8fee",
+        "sourceDescription": "run/jog",
+        "sampleRate": 60,
+        "boneCount": 29,
+        "frameCount": 84,
+        "durationMs": 1383,
+        "rootLocked": true,
+        "preservedByteIdentity": true,
+        "acceptance": "TECHNICAL REFERENCE ONLY / CRICKET AUTHENTICITY UNPROVEN"
+      },
+      {
+        "id": "cmu-124-baseball-swing-reference",
+        "role": "batting_weight_transfer_reference_only",
+        "fileName": "motion-batting-weight.bytes",
+        "format": "VMA1",
+        "bytes": 154782,
+        "sha256": "caf80b980b853e03da2461d59403ffef2e5918f96664e3ff0a883e1dd283d1b2",
+        "sourceOutputSha256": "caf80b980b853e03da2461d59403ffef2e5918f96664e3ff0a883e1dd283d1b2",
+        "sourceSkeleton": "124.asf",
+        "sourceSkeletonSha256": "b0e6a62b7e151200497b8bbcf42d0e95800decabec9254f8653e57dcde45dd45",
+        "sourceMotion": "124_07.amc",
+        "sourceMotionSha256": "4d9773480a816e24c272ba9414c6bd407d2768cedb72698287ba47b3709ff36f",
+        "sourceDescription": "Baseball Swing",
+        "sampleRate": 60,
+        "boneCount": 29,
+        "frameCount": 649,
+        "durationMs": 10800,
+        "rootLocked": true,
+        "preservedByteIdentity": true,
+        "acceptance": "TECHNICAL REFERENCE ONLY / CRICKET AUTHENTICITY UNPROVEN"
+      }
+    ],
+    "limitations": [
+      "No cricket-specific CMU trial was found.",
+      "Run/jog and baseball swing are weight-transfer references, not shippable cricket actions.",
+      "Hands, bat grip, planted feet, release and contact alignment require authored cricket correction and IK.",
+      "The technical action peak is not an authoritative release or contact marker."
+    ]
+  },
+  "skin": {
+    "fileName": "hero-skin-albedo-1024.png",
+    "bytes": 1275183,
+    "sha256": "a733665648922a48cc2d923f7551f1ce398fac42c4530a23a5ed4a04d48b6759",
+    "source": "skins/young_african_male/young_darkskinned_male_diffuse.png",
+    "sourceSha256": "e3f0dbb634e4c68561338f0087f7a122444e84ec56df102212f1222aa12e4d50",
+    "width": 1024,
+    "height": 1024,
+    "license": "CC0-1.0",
+    "live": {
+      "fileName": "hero-skin-albedo-512.png",
+      "role": "live/Balanced LOD1 through LOD4 candidate",
+      "bytes": 329662,
+      "sha256": "47cb90a768ac72a184f4cd603beaa4b953db907fdb066841ef5c6e46d79cc356",
+      "source": "skins/young_african_male/young_darkskinned_male_diffuse.png",
+      "sourceSha256": "e3f0dbb634e4c68561338f0087f7a122444e84ec56df102212f1222aa12e4d50",
+      "width": 512,
+      "height": 512,
+      "license": "CC0-1.0",
+      "deterministicTransform": "direct pinned-source Lanczos3 resize to 512x512; PNG compression 9; adaptive filtering disabled; no palette"
+    }
+  },
+  "limitations": [
+    "The CC0 hair, shoes and fitted body-region kit are technical foundations, not accepted cricket production art.",
+    "Body-conformal low-relief collar, sleeve-cuff and jersey-hem bands add local cloth-edge thickness; the remaining torso and trouser surfaces are still region-painted anatomy and require independent visual review.",
+    "Region-painted anatomical feet remain under the separate CC0 shoe shell; pose-by-pose shoe containment and clipping require independent visual review.",
+    "Original cricket helmet, zoned padding/metal grille, tapered wrap pads, compact channelled gloves, straps and bat are technical candidates requiring visual and clipping review; thigh and lower-arm guards are omitted because they belong beneath clothing.",
+    "The no-cull fitted-body policy removes separate shoulder/sleeve geometry seams, but every authored pose still requires independent deformation and clipping review.",
+    "Four-influence skinning is preserved at every body LOD; authored-pose deformation and clipping review remains required.",
+    "The retained procedural spinner cap is included only as bounded triangle headroom; its visual acceptance remains UNPROVEN.",
+    "The retained procedural fielder cap and wicketkeeper cap/helmet/pads/gloves/web are role equipment only; their visual acceptance and clipping remain UNPROVEN.",
+    "The pinned CC0 eye geometry and 256x256 albedo are technically integrated but require independent close/gameplay-distance visual review.",
+    "Motion, WebGL/Android performance, fresh-installed size and India-weighted reach are UNPROVEN.",
+    "Builders cannot certify visual acceptance; independent close/gameplay-distance review is required."
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "vande.asset-provenance.v1",
+  "recordedUtc": "2026-10-31T08:12:53Z",
+  "purpose": "Stage 1 Unity HUD Latin and Devanagari shaping",
+  "assets": [
+    {
+      "id": "UNITY-FONT-MANROPE-OFL-001",
+      "family": "Manrope",
+      "copyright": "Copyright 2019 The Manrope Project Authors (https://github.com/sharanda/manrope)",
+      "package": "@fontsource/manrope@5.2.8",
+      "packageLicense": "OFL-1.1",
+      "sourcePath": "node_modules/@fontsource/manrope/files/manrope-latin-400-normal.woff2",
+      "sourceSha256": "849290ef12a2eeb9af5c11924120d11aa4ae8b435ed3347d7fc8bc240c293ca3",
+      "transform": "fonttools 4.63.0: fontTools.ttLib.woff2.decompress; no glyph, name or outline edits",
+      "repositoryPath": "unity/VandePractice/Assets/VandePractice/Runtime/UI/Production/Resources/Fonts/ManropeLatin-Regular.ttf",
+      "repositoryBytes": 35728,
+      "repositorySha256": "bbc5b16214071277028f042faa7c36e2f65319ea36c1f9c8f3b418ebd8e58102",
+      "licensePath": "unity/VandePractice/Assets/VandePractice/Runtime/UI/Production/Resources/Fonts/Manrope-OFL.txt",
+      "licenseSha256": "d826ab6583b12c26807d8716a545bdbbb672df04f48608a364ba9efdbe501c30"
+    },
+    {
+      "id": "UNITY-FONT-NOTO-DEVANAGARI-OFL-001",
+      "family": "Noto Sans Devanagari",
+      "copyright": "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/devanagari)",
+      "package": "@fontsource/noto-sans-devanagari@5.3.0",
+      "packageLicense": "OFL-1.1",
+      "sourcePath": "node_modules/@fontsource/noto-sans-devanagari/files/noto-sans-devanagari-devanagari-400-normal.woff2",
+      "sourceSha256": "f86f14cbd1004f5795689ee9cc70d5d87d915f5135b30283525c1c7b8f0eb192",
+      "transform": "fonttools 4.63.0: fontTools.ttLib.woff2.decompress; no glyph, name or outline edits",
+      "repositoryPath": "unity/VandePractice/Assets/VandePractice/Runtime/UI/Production/Resources/Fonts/NotoSansDevanagari-Regular.ttf",
+      "repositoryBytes": 188960,
+      "repositorySha256": "d31a69d6a0e060f20c47b550c817d6e8a1c9d3cf3a617da60ae9773cfe26e132",
+      "licensePath": "unity/VandePractice/Assets/VandePractice/Runtime/UI/Production/Resources/Fonts/NotoSansDevanagari-OFL.txt",
+      "licenseSha256": "79c44862256af9a67fc23df7c45ae289e730c7f6d4f8fb8ef593bd3c314b6d6d"
+    }
+  ],
+  "rightsReview": {
+    "license": "SIL Open Font License 1.1",
+    "formatConversionPermitted": true,
+    "embeddingAndRedistributionPermitted": true,
+    "reservedFontNamesDeclaredInIncludedNotices": false,
+    "runtimeUse": "Manrope primary with Noto Sans Devanagari fallback in Unity TextCore dynamic FontAssets"
+  },
+  "measurement": {
+    "sourceTtfBytes": 224688,
+    "androidInstalledDelta": "UNPROVEN",
+    "indiaWeightedReach": "UNPROVEN"
+  }
+}
