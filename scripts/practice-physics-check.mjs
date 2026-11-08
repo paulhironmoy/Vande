@@ -25,7 +25,9 @@ const cases = [
   { name: 'pace 136 km/h good length, straight drive', bowler: pace, plan: { variation: 'stock', lengthM: 6.5, lineM: 0.05, speedKph: 136 }, swing: { kind: 'attack', directionDeg: 0, power: 0.6, elevation: 0.1 } },
   { name: 'pace 136 km/h good length, cover drive', bowler: pace, plan: { variation: 'stock', lengthM: 6.5, lineM: 0.12, speedKph: 136 }, swing: { kind: 'attack', directionDeg: 55, power: 0.6, elevation: 0.1 } },
   { name: 'pace 136 km/h good length, forward defence', bowler: pace, plan: { variation: 'stock', lengthM: 6.5, lineM: 0.05, speedKph: 136 }, swing: { kind: 'defend', directionDeg: 0, power: 0, elevation: 0 } },
-  { name: 'spin 85 km/h, straight drive', bowler: spin, plan: { variation: 'stock', lengthM: 5.5, lineM: 0.05, speedKph: 85 }, swing: { kind: 'attack', directionDeg: 0, power: 0.6, elevation: 0.1 } },
+  // A spinner is driven from the pitch of the ball: a full one (at a good length, 5.5 m, it is above a front-foot
+  // drive's reach, so it is driven on the up and never finds the sweet spot; see docs/PRACTICE_PHYSICS.md, "Shot geometry").
+  { name: 'spin 85 km/h full, straight drive', bowler: spin, plan: { variation: 'stock', lengthM: 4, lineM: 0.05, speedKph: 85 }, swing: { kind: 'attack', directionDeg: 0, power: 0.6, elevation: 0.1 } },
 ];
 
 function category(r) {
@@ -48,13 +50,15 @@ function window(samples, pred) {
 
 const out = [];
 for (const c of cases) {
-  const f = flight({ plan: c.plan, bowler: c.bowler, conditions: 'balanced', seed: 'physics-check' });
+  // Seed 't3': the seam lands square, so no late movement beats the batter's committed read (150 ms): the windows are
+  // the bat's own geometry.
+  const f = flight({ plan: c.plan, bowler: c.bowler, conditions: 'balanced', seed: 't3' });
   for (const assist of levels) {
     const travel = batTravelMs(c.swing.kind, c.swing.power) / 1000;
     const samples = [];
     for (let e = -260; e <= 260; e++) {
       const swing = { ...c.swing, footwork: 'auto', startT: f.idealContactT - travel + e / 1000 };
-      const r = strike(f, swing, { assist });
+      const r = strike(f, swing, { assist, expect: { bowler: c.bowler, conditions: 'balanced' } });
       samples.push({ e, c: category(r) });
     }
     const perfect = window(samples, (x) => x === 'sweet');

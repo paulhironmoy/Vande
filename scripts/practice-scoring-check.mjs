@@ -15,7 +15,7 @@
  *   node scripts/practice-scoring-check.mjs --n=1000         # faster
  *   node scripts/practice-scoring-check.mjs --json=out.json  # also write the raw tallies
  *
- * Exits with status 1 when an evidence check fails. Loads the TypeScript sources natively (Node ≥ 23.6) through
+ * Exits with status 1 when an evidence check fails. Loads the TypeScript sources natively (Node 22.22.2+ or 23.6+) through
  * scripts/simulate-loader.mjs.
  */
 import { writeFileSync } from 'node:fs';
@@ -32,6 +32,7 @@ const JSON_OUT = arg('json', null);
 const P = await import('../src/physics/index.ts');
 const Gm = await import('../src/practice/game/index.ts');
 const { rngFromKey } = await import('../src/engine/prng.ts');
+const { PRACTICE_SIM_VERSION: SIM_VERSION } = await import('../src/contracts/practice.ts');
 
 const CONDITIONS = ['balanced', 'green', 'hard', 'turning'];
 const ASSISTS = ['learn', 'play', 'real'];
@@ -90,8 +91,8 @@ for (let i = 0; i < N; i++) {
   const k = i % 6;
   const plan = over.balls[k];
   const seed = Gm.ballSeed(over, k);
-  const field = P.autoField(over.bowler, conditions);
-  const flight = P.flight({ plan, bowler: over.bowler, conditions, seed, handedness: 'right' });
+  const field = P.autoField(over.bowler, conditions, 'right', over.ball);
+  const flight = P.flight({ plan, bowler: over.bowler, conditions, seed, handedness: 'right', ball: over.ball });
   const g = gapsOf(field);
   const rng = rngFromKey(`${KEY}|strokes|${i}`);
   for (const [name, make] of Object.entries(STROKES)) {
@@ -156,7 +157,7 @@ for (let i = 0; i < N; i++) {
     // Determinism: replay reproduces the result exactly.
     if (i % 97 === 0) {
       replayed++;
-      const record = { version: 1, overIndex: 0, ballIndex: k, bowler: over.bowler, plan, seed, conditions, field, handedness: 'right', assist, tierToleranceMs: 0, swing, runs: o.runs, dismissal: o.dismissal };
+      const record = { version: SIM_VERSION, overIndex: 0, ballIndex: k, bowler: over.bowler, plan, seed, conditions, ball: over.ball, field, handedness: 'right', assist, tierToleranceMs: 0, swing, runs: o.runs, dismissal: o.dismissal };
       if (JSON.stringify(P.replayDelivery(record)) !== JSON.stringify(res)) fail(`${name} #${i}: replay differs`);
     }
   }
