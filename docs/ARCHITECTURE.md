@@ -210,7 +210,7 @@ cricket constants each exist once. Retained on purpose, each with its active con
 | `tests/unit/ui/**`, `tests/e2e/ux-*.spec.ts` | experience | Shared component and legacy journey tests |
 | `docs/VISUAL_SYSTEM.md` | experience | Design system, renderer decision record |
 | `src/highlight/**`, `render.html` | experience | Highlight composer (`HighlightRenderHost` in `src/contracts/highlights.ts`): the 1080×1920 Short cut the render service records and the in-app consent preview plays |
-| `public/brand/**`, `public/icons/**`, `public/og/**`, `android/app/src/main/res/mipmap-*/**`, `android/app/src/main/res/drawable*/splash.png` | experience | Brand marks, app icons, splash screens, social cards (generated images; the rest of `android/**` stays root) |
+| `public/icons/**`, `public/og/**`, `android/app/src/main/res/mipmap-*/**`, `android/app/src/main/res/drawable*/splash.png` | experience | Brand marks, app icons, splash screens, social cards (generated images; the rest of `android/**` stays root) |
 | `src/net/**`, `src/platform/**`, `src/analytics/**`, `src/admin/**`, `admin.html` | platform | API client, outbox/sync, session, adapters (push, share, deep links, install referrer, secure storage, identity, ads, billing), analytics, admin console |
 | `backend/**`, `render-service/**`, `tests/unit/net/**`, `tests/unit/platform/**` | platform | Worker, Durable Objects, D1 migrations, queues, YouTube/FCM/render adapters, render job |
 | `docs/SECURITY.md`, `docs/PRIVACY_AND_CONSENT.md`, `docs/ANALYTICS.md`, `docs/INFRASTRUCTURE.md`, `docs/COST_MODEL.md`, `docs/YOUTUBE_OPERATIONS.md` | platform | |

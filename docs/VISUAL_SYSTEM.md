@@ -447,16 +447,10 @@ The mark is an amber hexagon seal (six sides for the Sealed Six) holding a white
 - share cards, highlight overlays and QR centres;
 - every exported file.
 
-The wordmark is Manrope ExtraBold "VANDE" over tracked amber "CRICKET". In the SVG files it is outlined, so no font is needed. All marks are original, with no official cricket IP.
+The wordmark is Manrope ExtraBold "VANDE" over tracked amber "CRICKET"; the generator outlines it from the font, so no font file is needed to draw it. All marks are original, with no official cricket IP.
 
 Generated files, all written by `npm run assets` (see [Regenerating the brand files](#regenerating-the-brand-files)):
 
-- `public/brand/`:
-  - `logo.svg`, `logo-light.svg`: the mark;
-  - `logo-dark.svg`: the mark on a night tile;
-  - `logo-mono.svg`: one colour;
-  - `lockup.svg`, `lockup-on-light.svg`;
-  - `lockup-social.svg`: 1200x630, replacing the old lockup.
 - `store-assets/` (outside `public/`, so they never ship in the APK or the service-worker precache):
   - `icon-1024.png`: the Play listing icon;
   - `feature-graphic.png`: 1024x500, the game's own 3D frame with the lockup, no essential text near the edges.
@@ -467,6 +461,8 @@ Generated files, all written by `npm run assets` (see [Regenerating the brand fi
   - adaptive layers `ic_launcher_foreground.png` and `ic_launcher_background.png` (108 dp, the mark inside the 66 dp safe zone), plus `ic_launcher_monochrome.png` for themed icons;
   - `mipmap-anydpi-v26/ic_launcher(_round).xml`, which use those layers without insets;
   - `drawable*/splash.png` at every existing size, portrait, landscape and night.
+
+The standalone logo and lockup SVGs that earlier versions wrote to `public/brand/` were removed on 2026-11-07: nothing in `src`, `index.html` or the Android project referenced them, and `npm run assets` no longer writes them.
 
 The stadium's LED boards were mirrored when seen from the field. They are fixed with a negative texture repeat, so "VANDE CRICKET · SEALED SIX · LOCK YOUR OVER · REVEAL THE RIVALRY" reads correctly.
 
@@ -483,7 +479,7 @@ The generator is `scripts/brand/build.mjs`. It uses dev dependencies only:
 - `sharp` rasterises the icons, launcher layers and splashes;
 - Chromium from `@playwright/test` renders the two photographic files.
 
-It starts its own Vite dev server on a free local port, with no watcher, no HMR and its own cache in `node_modules/.vite-brand`. Through it, it loads `src/ui/brand/mark.ts` and serves the dev harness. It writes all 74 files listed above, then stops the server. The OG card and the feature graphic use the harness replay frame at 43.633 s. A run takes about 15 s on an Apple silicon Mac.
+It starts its own Vite dev server on a free local port, with no watcher, no HMR and its own cache in `node_modules/.vite-brand`. Through it, it loads `src/ui/brand/mark.ts` and serves the dev harness. It writes every file listed above, then stops the server. The OG card and the feature graphic use the harness replay frame at 43.633 s. A run takes about 15 s on an Apple silicon Mac.
 
 To change the brand:
 

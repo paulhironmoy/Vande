@@ -30,7 +30,7 @@ The following are useful specifications, not drop-in Unity production assets:
 - `src/render3d/three/stadium.ts`: pitch, outfield, boundary, sight-screen, lighting and crowd layout intent;
 - `src/render3d/core/camera.ts`: Batter Eye and gaze rules;
 - `src/practice/ui/components/{MiniRadar,FieldMap}.tsx`: canonical field visualization behavior;
-- `public/brand/**`, `public/icons/**` and `public/og/**`: project brand material, subject to the experience owner and
+- `public/icons/**` and `public/og/**`: project brand material, subject to the experience owner and
   Unity import verification.
 
 Recreating a rule in Unity does not transfer acceptance. The Unity output requires its own provenance, memory,
