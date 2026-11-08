@@ -1,0 +1,190 @@
+/*
+ * The Practice design system (docs/prompts/VANDE-INTERFACE-ASSET-CONSTITUTION.md §7–11). Practice-scoped: every
+ * token lives on one root class (`.root`), applied by the Practice route, the launch screen and Practice's own
+ * dialogs, so the multiplayer screens and their shared tokens (src/styles) are untouched.
+ *
+ * Colour: a restrained semantic palette (near-black stadium night, warm white text, one VANDE accent, green for
+ * confirmed control, amber for pressure, red only for dismissal, danger or destruction, neutral grey for secondary
+ * information). Type: five levels. Spacing: an 8-point scale in rem, so it grows with text size. One radius, two
+ * control heights, one icon size. Motion: short, interruptible, collapsed by Reduced Motion (the root --dur-* tokens).
+ * Line heights and tracking come from the root tokens, which already adapt to Indic scripts.
+ */
+.root {
+  --p-bg: #0b0d12;
+  --p-surface: #14171e;
+  --p-surface-2: #1c2029;
+  --p-scrim: rgba(8, 9, 13, 0.8);
+  --p-line: rgba(243, 239, 231, 0.13);
+  --p-line-strong: rgba(243, 239, 231, 0.3);
+  --p-text: #f3efe7;
+  --p-text-2: #aaa69e;
+  --p-text-3: #8d8982;
+  --p-accent: #52d3f2;
+  --p-accent-soft: rgba(82, 211, 242, 0.14);
+  --p-on-accent: #061117;
+  --p-success: #62d095;
+  --p-caution: #f2ad41;
+  --p-danger: #f2645f;
+  --p-focus: #f3efe7;
+
+  --p-display: 2.5rem;
+  --p-title: 1.5rem;
+  --p-section: 1.0625rem;
+  --p-body: 1rem;
+  --p-caption: 0.875rem;
+
+  --p-half: 0.25rem;
+  --p-1: 0.5rem;
+  --p-2: 1rem;
+  --p-3: 1.5rem;
+  --p-4: 2rem;
+  --p-6: 3rem;
+
+  --p-radius: 0.75rem;
+  --p-radius-sm: 0.5rem;
+  --p-control: 3rem;
+  --p-control-lg: 3.5rem;
+  --p-icon: 1.25rem;
+  --p-measure: 36rem;
+
+  --p-t-quick: var(--dur-instant);
+  --p-t: var(--dur-control);
+  --p-t-panel: var(--dur-panel);
+  --p-ease: var(--ease-out);
+
+  --p-safe-t: var(--safe-top);
+  --p-safe-r: var(--safe-right);
+  --p-safe-b: var(--safe-bottom);
+  --p-safe-l: var(--safe-left);
+  --p-gutter: max(var(--p-2), 16px);
+
+  color: var(--p-text);
+  background: var(--p-bg);
+  font-family: var(--font-sans);
+  font-size: var(--p-body);
+  font-weight: 450;
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+:global([data-contrast='high']) .root {
+  --p-bg: #000;
+  --p-surface: #000;
+  --p-surface-2: #111;
+  --p-scrim: rgba(0, 0, 0, 0.94);
+  --p-line: rgba(255, 255, 255, 0.6);
+  --p-line-strong: #fff;
+  --p-text: #fff;
+  --p-text-2: #eeebe4;
+  --p-text-3: #dcd8d0;
+  --p-accent: #8ae6ff;
+  --p-accent-soft: rgba(138, 230, 255, 0.22);
+  --p-success: #8ff0b8;
+  --p-caution: #ffc76b;
+  --p-danger: #ff8a85;
+}
+
+/* The five type levels. All caps is reserved for very short outcomes (.outcome), never for paragraphs. */
+.display {
+  margin: 0;
+  font-size: var(--p-display);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--p-title);
+  font-weight: 750;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  overflow-wrap: break-word;
+}
+
+.section {
+  margin: 0;
+  font-size: var(--p-section);
+  font-weight: 700;
+  line-height: var(--leading-snug);
+}
+
+.body {
+  margin: 0;
+  font-size: var(--p-body);
+  line-height: var(--leading-normal);
+  color: var(--p-text);
+}
+
+.caption {
+  margin: 0;
+  font-size: var(--p-caption);
+  font-weight: 600;
+  line-height: var(--leading-snug);
+  color: var(--p-text-2);
+}
+
+.muted {
+  color: var(--p-text-2);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.outcome {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stack {
+  display: grid;
+  gap: var(--p-2);
+  align-content: start;
+  min-width: 0;
+}
+
+.stackTight {
+  display: grid;
+  gap: var(--p-1);
+  align-content: start;
+  min-width: 0;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--p-1);
+  min-width: 0;
+}
+
+.card {
+  display: grid;
+  gap: var(--p-1);
+  padding: var(--p-2);
+  border-radius: var(--p-radius);
+  background: var(--p-surface);
+  border: 1px solid var(--p-line);
+  min-width: 0;
+}
+
+.divider {
+  height: 1px;
+  border: 0;
+  margin: 0;
+  background: var(--p-line);
+}
+
+.srOnly {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

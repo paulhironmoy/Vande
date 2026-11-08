@@ -21,10 +21,19 @@ import {
 import { PRACTICE_KEYS, isInt, isNum, isObj, localStore, readJson, removeKey, writeJson, type KeyStore } from './storage';
 
 const STATUSES: readonly InningsStatus[] = ['choosing_over', 'batting', 'over_complete', 'out', 'complete'];
+const SOURCES = ['random', 'built', 'guided', 'reference'];
 const RUNS = [0, 1, 2, 3, 4, 6];
 const DISMISSALS = ['bowled', 'caught', 'caught_behind', 'lbw'];
 const PITCHES = ['balanced', 'green', 'hard', 'turning'];
 const str = (v: unknown): v is string => typeof v === 'string' && v.length > 0 && v.length < 200;
+
+/**
+ * The over's ball, checked as a shape (the physics owns what it does). An over or record saved before balls had a
+ * condition has none: the physics bowls those with a new white ball (src/practice/game ballOf), so it is accepted.
+ */
+function isBallOrMissing(v: unknown): boolean {
+  return v === undefined || (isObj(v) && (v.colour === 'red' || v.colour === 'white') && (v.age === 'new' || v.age === 'worn'));
+}
 
 function isBowler(v: unknown): boolean {
   return isObj(v) && (v.family === 'pace' || v.family === 'spin') && (v.arm === 'right' || v.arm === 'left') && typeof v.lookSeed === 'string';
@@ -34,7 +43,7 @@ function isDeliveryPlan(v: unknown): v is PracticeDeliveryPlan {
   return isObj(v) && str(v.variation) && isNum(v.lengthM) && isNum(v.lineM) && isNum(v.speedKph);
 }
 
-export function isOverPlan(v: unknown): v is PracticeOverPlan {
+function isOverPlan(v: unknown): v is PracticeOverPlan {
   return (
     isObj(v) &&
     v.version === PRACTICE_SIM_VERSION &&
@@ -43,7 +52,8 @@ export function isOverPlan(v: unknown): v is PracticeOverPlan {
     v.balls.length === 6 &&
     v.balls.every(isDeliveryPlan) &&
     str(v.seed) &&
-    (v.source === 'random' || v.source === 'built' || v.source === 'guided')
+    SOURCES.includes(v.source as string) &&
+    isBallOrMissing(v.ball)
   );
 }
 
@@ -69,6 +79,7 @@ export function isDeliveryRecord(v: unknown): v is DeliveryRecord {
     isDeliveryPlan(v.plan) &&
     str(v.seed) &&
     PITCHES.includes(v.conditions as string) &&
+    isBallOrMissing(v.ball) &&
     isField(v.field) &&
     (v.handedness === 'right' || v.handedness === 'left') &&
     (v.assist === 'learn' || v.assist === 'play' || v.assist === 'real') &&
@@ -101,10 +112,43 @@ export interface SavedInnings {
   notice: 'resumed_leave' | null;
 }
 
+/** The physics' default ball (src/physics DEFAULT_BALL), for overs and records saved before balls had a condition. */
+const NEW_WHITE = { colour: 'white', age: 'new' } as const;
+
+function withBall<T extends { ball?: PracticeOverPlan['ball'] }>(x: T): T {
+  return x.ball ? x : { ...x, ball: { ...NEW_WHITE } };
+}
+
+/** Every plan and record carries its ball after loading (the physics bowls a missing one as a new white ball). */
+function normalise(s: PracticeInningsState): PracticeInningsState {
+  const over = (o: { plan: PracticeOverPlan; deliveries: DeliveryRecord[] }) => ({ ...o, plan: withBall(o.plan), deliveries: o.deliveries.map(withBall) });
+  return {
+    ...s,
+    overs: s.overs.map(over),
+    current: s.current ? { ...s.current, plan: withBall(s.current.plan), deliveries: s.current.deliveries.map(withBall) } : null,
+    dismissal: s.dismissal ? { record: withBall(s.dismissal.record) } : null,
+  };
+}
+
 export function loadSavedInnings(store: KeyStore | null = localStore()): SavedInnings | null {
   const raw = readJson(store, PRACTICE_KEYS.innings);
   if (!isObj(raw) || raw.v !== 1 || !isInningsState(raw.state)) return null;
-  return { state: raw.state, notice: raw.notice === 'resumed_leave' ? 'resumed_leave' : null };
+  return { state: normalise(raw.state), notice: raw.notice === 'resumed_leave' ? 'resumed_leave' : null };
+}
+
+/** Why a saved innings could not be resumed: Practice was updated (another simulation version), or it was damaged. */
+export type DroppedInnings = 'updated' | 'unreadable';
+
+/**
+ * A saved innings that exists but cannot be resumed (its deliveries would not replay exactly, or it is damaged), or
+ * null. The flow then forgets it and says so calmly; nothing ever crashes on old or corrupt data.
+ */
+export function droppedInnings(store: KeyStore | null = localStore()): DroppedInnings | null {
+  const raw = readJson(store, PRACTICE_KEYS.innings);
+  if (raw === null) return null;
+  if (isObj(raw) && raw.v === 1 && isInningsState(raw.state)) return null;
+  if (isObj(raw) && isObj(raw.state) && raw.state.version !== PRACTICE_SIM_VERSION) return 'updated';
+  return 'unreadable';
 }
 
 export function loadInnings(store: KeyStore | null = localStore()): PracticeInningsState | null {
@@ -136,6 +180,8 @@ export interface DraftBall {
   lineM: number;
   lengthM: number;
   variation: DeliveryVariation;
+  /** Pace bowlers: this ball's pace band (one bowler bowls the over; a ball may be a change of pace). */
+  paceBand?: PaceBand;
 }
 
 export interface BuildDraft {
@@ -152,14 +198,16 @@ export function emptyDraft(family: BowlerFamily = 'pace'): BuildDraft {
   return { v: 1, family, paceBand: 'fast', spinType: 'finger', arm: 'right', balls: [null, null, null, null, null, null], order: 'exact' };
 }
 
+const BANDS = ['controlled', 'fast', 'express'];
+
 function isDraftBall(v: unknown): v is DraftBall {
-  return isObj(v) && isNum(v.lineM) && isNum(v.lengthM) && str(v.variation);
+  return isObj(v) && isNum(v.lineM) && isNum(v.lengthM) && str(v.variation) && (v.paceBand === undefined || BANDS.includes(v.paceBand as string));
 }
 
 export function loadDraft(store: KeyStore | null = localStore()): BuildDraft | null {
   const v = readJson(store, PRACTICE_KEYS.draft);
   if (!isObj(v) || v.v !== 1 || (v.family !== 'pace' && v.family !== 'spin')) return null;
-  if (!['controlled', 'fast', 'express'].includes(v.paceBand as string) || !['finger', 'wrist'].includes(v.spinType as string)) return null;
+  if (!BANDS.includes(v.paceBand as string) || !['finger', 'wrist'].includes(v.spinType as string)) return null;
   if (v.arm !== 'right' && v.arm !== 'left') return null;
   if (!Array.isArray(v.balls) || v.balls.length !== 6 || !v.balls.every((b) => b === null || isDraftBall(b))) return null;
   return { v: 1, family: v.family, paceBand: v.paceBand as PaceBand, spinType: v.spinType as SpinType, arm: v.arm, balls: v.balls as Array<DraftBall | null>, order: v.order === 'shuffle' ? 'shuffle' : 'exact' };

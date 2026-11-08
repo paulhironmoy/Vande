@@ -1,0 +1,393 @@
+/*
+ * Dead ball: one compact edge sheet over the final frame. It leaves the bowler/pitch corridor, the ball's path and the
+ * rail unobstructed, exposes one dominant action, and expands only when the player asks why.
+ *
+ * Its edge is the renderer's (data-edge, chosen in screens/Play.tsx), from the regions each one measures at the dead
+ * ball (release/product-sequence/stage-1-practice/wedge/worker/card-*.json):
+ *   left   Unity: the locked rear-shoulder camera keeps the embodied batter on the right, so the player can still
+ *          inspect the complete recovery pose, bat and equipment. Three.js: once the consequence camera has settled
+ *          (300 ms after the dead ball) the stage's own protected regions (bowler, pitch, ball path, contact) are a
+ *          central column starting at 38.3% of the width or later on the reference over (both hands, 640 and 915 px)
+ *          except one right-handed ball (its bowler at 28%); the right side's free column is narrower (from 76% to
+ *          80%), so the card stays left of 38%, at a readable width. Known overlaps are reported, not hidden
+ *          (release/product-sequence/stage-1-practice/wedge/worker/REPORT.md). When the ball's path does cross that
+ *          place (a bouncer's, across the whole lower view), the card moves off it by inline position
+ *          (components/cardPlacement.ts, useCardPlacement.ts), never over the field inset.
+ *   right  Classic: the top-down field is centred and the side-on ball-path strip runs along the bottom, so the card
+ *          sits in the right half, above that strip.
+ * Either way its top stays below its own corner of the rail (each corner's measured bottom, StatusStrip.tsx).
+ */
+.result {
+  position: absolute;
+  z-index: 5;
+  left: calc(var(--p-safe-l) + var(--p-2));
+  bottom: calc(var(--p-safe-b) + var(--p-2));
+  /* Clear of the measured column (from 38.3%): this edge's own inset comes out of the 38%. */
+  width: min(24rem, calc(38% - var(--p-safe-l) - var(--p-2)));
+  /*
+   * Below its corner of the rail, but never squeezed by it: if the left corner grows (large text with a caption) the
+   * card keeps at least 9rem (within the screen) and, on top of the rail, takes priority, so its actions stay reachable.
+   * At the default size the room below the rail is larger and nothing changes.
+   */
+  max-height: max(min(9rem, calc(100% - var(--p-safe-t) - var(--p-safe-b) - var(--p-2) - var(--p-1))), calc(100% - var(--p-rail-left-bottom, 6.5rem) - var(--p-safe-b) - var(--p-2) - var(--p-1)));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--p-text);
+  border: 1px solid rgb(243 239 231 / 20%);
+  border-radius: calc(var(--p-radius) + 0.25rem);
+  background:
+    linear-gradient(145deg, rgb(27 32 42 / 97%), rgb(11 14 20 / 96%));
+  box-shadow:
+    0 1.5rem 4rem rgb(0 0 0 / 42%),
+    inset 0 1px 0 rgb(255 255 255 / 7%);
+  touch-action: auto;
+  animation: result-arrive var(--p-t-panel) var(--p-ease) both;
+}
+
+.result::before {
+  content: '';
+  flex: none;
+  height: 3px;
+  background: linear-gradient(90deg, var(--p-accent), rgb(98 208 149 / 75%), transparent 82%);
+}
+
+.result[data-edge='right'] {
+  left: auto;
+  right: calc(var(--p-safe-r) + var(--p-2));
+  /* Above Classic's side-on strip (min(86px, 12%) high, 12px from the bottom: fallback2d/topDown.ts sideInset). */
+  bottom: max(calc(var(--p-safe-b) + var(--p-2)), calc(min(86px, 12%) + 12px + var(--p-1)));
+  /* Wholly in the right half. */
+  width: min(24rem, calc(50% - var(--p-safe-r) - var(--p-2) - var(--p-1)));
+  max-height: calc(100% - var(--p-rail-bottom, 4.75rem) - var(--p-1) - max(calc(var(--p-safe-b) + var(--p-2)), calc(min(86px, 12%) + 12px + var(--p-1))));
+}
+
+.resultBody {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  align-content: start;
+  gap: var(--p-1);
+  padding: var(--p-2) var(--p-2) var(--p-1);
+  scrollbar-gutter: stable;
+}
+
+/* The scrolling body is a Tab stop (keyboard access to its words): it shows where focus is, like every control. */
+.resultBody:focus-visible {
+  outline: 2px solid var(--p-accent);
+  outline-offset: -2px;
+}
+
+.resultActions {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--p-1);
+  padding: var(--p-1) var(--p-2) var(--p-2);
+  border-top: 1px solid var(--p-line);
+  background: rgb(7 10 15 / 58%);
+}
+
+.resultActions > :only-child {
+  grid-column: 1 / -1;
+}
+
+.outcomeRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--p-2);
+}
+
+.outcome {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--p-half) var(--p-1);
+  min-width: 0;
+}
+
+.outcomeWord {
+  font-size: clamp(1.75rem, 4.5vw, 2.5rem);
+  font-weight: 850;
+  line-height: 0.95;
+  letter-spacing: var(--tracking-display);
+}
+
+.outcomeWord[data-tone='boundary'] {
+  color: var(--p-accent);
+}
+
+.outcomeWord[data-tone='out'] {
+  color: var(--p-danger);
+}
+
+.reason {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 720;
+  line-height: var(--leading-snug);
+}
+
+.reason:empty {
+  display: none;
+}
+
+.rec {
+  margin: 0;
+  display: flex;
+  gap: var(--p-1);
+  align-items: flex-start;
+  padding: var(--p-1);
+  border: 1px solid rgb(82 211 242 / 24%);
+  border-radius: var(--p-radius-sm);
+  background: var(--p-accent-soft);
+  line-height: var(--leading-snug);
+}
+
+.recIcon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--p-accent);
+}
+
+.rec[data-confirm='true'] {
+  color: var(--p-success);
+  border-color: rgb(98 208 149 / 26%);
+  background: rgb(98 208 149 / 10%);
+}
+
+.rec[data-confirm='true'] .recIcon {
+  color: var(--p-success);
+}
+
+/* The coach's words (the reading notice, then the tip): one live region, laid out like the body around it. */
+.words {
+  display: grid;
+  gap: var(--p-1);
+}
+
+.words:empty {
+  display: none;
+}
+
+/* The tip: one sentence, the measured fact then the one action; the action carries the weight. */
+.tip {
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.tipAction {
+  font-weight: 800;
+}
+
+.facts {
+  display: grid;
+  gap: 2px;
+  padding-top: var(--p-half);
+  border-top: 1px solid var(--p-line);
+}
+
+.facts > * {
+  margin: 0;
+}
+
+.disclosures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--p-half);
+}
+
+.more {
+  display: grid;
+  gap: var(--p-1);
+  padding-top: var(--p-1);
+  border-top: 1px solid var(--p-line);
+}
+
+.pathMap {
+  flex: none;
+  line-height: 0;
+  opacity: 0.9;
+}
+
+@keyframes result-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+ * A narrow or short landscape phone (under about 820 px wide, or 430 px high; at 640x360 the left card is 227 px, 38%
+ * less its inset, and Classic's 296 px, half less its insets): the card stays clear of the column and of the rail,
+ * and stays readable in every language. The decorative mini-map (the same path the field already shows) gives its height to the tip, the body's
+ * spacing tightens, and the two actions keep their row with tighter insets so their words wrap between words, never
+ * inside one (measured: release/product-sequence/stage-1-practice/wedge/worker/cards/). The alternative, a card never
+ * narrower than 18.5rem that reaches into the column's near edge, is not kept.
+ */
+@media (orientation: landscape) and (max-width: 820px), (orientation: landscape) and (max-height: 430px) {
+  .result[data-edge] .pathMap {
+    display: none;
+  }
+
+  .result[data-edge] .resultBody {
+    gap: var(--p-half);
+    padding: var(--p-1) var(--p-1) var(--p-half);
+  }
+
+  .result[data-edge] .rec {
+    padding: var(--p-half) var(--p-1);
+  }
+
+  .result[data-edge] .resultActions {
+    gap: var(--p-half);
+    padding: var(--p-half) var(--p-1);
+  }
+
+  .result[data-edge] .resultActions > * {
+    padding-inline: var(--p-1);
+    overflow-wrap: normal;
+  }
+}
+
+/* Portrait (only when the player allowed it): a bottom sheet across the width, below both corners of the rail. */
+@media (orientation: portrait) {
+  .result[data-edge] {
+    right: calc(var(--p-safe-r) + var(--p-1));
+    left: calc(var(--p-safe-l) + var(--p-1));
+    bottom: calc(var(--p-safe-b) + var(--p-1));
+    width: auto;
+    max-height: min(62%, calc(100% - max(var(--p-rail-bottom, 4.75rem), var(--p-rail-left-bottom, 6.5rem)) - var(--p-safe-b) - var(--p-2)));
+  }
+}
+
+/* A short landscape phone: the explanation shrinks and scrolls while the two actions stay pinned in view. At 200%
+   text the action row alone can outgrow the space below the rail, so the card itself may then scroll too. */
+@media (orientation: landscape) and (max-height: 430px) {
+  .result {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .resultBody {
+    padding-block: var(--p-1);
+    /* At large text the body keeps a readable (and, as a focus stop, a full-size) slice; the card scrolls instead. */
+    flex: 1 1 auto;
+    min-height: 4rem;
+  }
+
+  .resultActions {
+    padding-block: var(--p-1);
+  }
+}
+
+/*
+ * The Three.js card moved off the ball's path (a bouncer's path crosses the whole lower view; components/
+ * cardPlacement.ts): its place may be shorter, so its words keep a 3rem slice (still a full-size focus stop) and scroll,
+ * and the two actions stay whole below them.
+ */
+.result[data-moved='true'] .resultBody {
+  min-height: 3rem;
+}
+
+/* A moved card arrives in place (a fade, without the rise, so it never dips into the path it keeps clear of). */
+.result[data-moved='true'] {
+  animation-name: result-arrive-in-place;
+}
+
+/*
+ * Three.js: the card waits, unseen, while the consequence camera settles (about 120 ms), so it is placed off the ball's
+ * path once and then arrives (components/useCardPlacement.ts). It keeps its focus and its words for assistive
+ * technology meanwhile; it only cannot be seen or tapped.
+ */
+.result[data-placing='true'] {
+  opacity: 0;
+  animation: none;
+  pointer-events: none;
+}
+
+/*
+ * The band (EVAL-WORLD K3): when the ball's path leaves only a short strip below the rail (a bouncer's path crosses the
+ * whole lower view), the card lies across the free width: the coach's words on the left, read at a glance, and the two
+ * actions in one row on the right. The fixed action-panel width gives both labels room to wrap while preserving their
+ * full-size targets. If enlarged text cannot fit, the measured placement code rejects this shape and uses a column.
+ */
+.result[data-shape='band'] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.result[data-shape='band']::before {
+  grid-column: 1 / -1;
+}
+
+.result[data-shape='band'] .resultBody {
+  grid-row: 2;
+  grid-column: 1;
+  min-height: 0;
+  /*
+   * The live 640×360 K3 bouncer leaves an 82 px body row. With the ready tip, the ordinary compact-phone body put
+   * the words at 39.906 px and the two-line tip was 53.5 px tall: 11.406 px beyond that row. Keep the outcome visible,
+   * but give only this emergency band a tighter rhythm, with more than 4 px of measured breathing room.
+   */
+  gap: calc(var(--p-half) / 2);
+  padding: var(--p-half) var(--p-1) 0;
+}
+
+.result[data-shape='band'] .outcomeWord {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.result[data-shape='band'] .rec {
+  padding-block: calc(var(--p-half) / 2);
+}
+
+.result[data-shape='band'] .resultActions {
+  grid-row: 2;
+  grid-column: 2;
+  width: 16.25rem;
+  grid-template-columns: repeat(2, minmax(7.5rem, 1fr));
+  align-content: center;
+  gap: var(--p-half);
+  padding: var(--p-half) var(--p-1);
+  border-top: none;
+  border-left: 1px solid var(--p-line);
+}
+
+.result[data-shape='band'] .resultActions > :only-child {
+  grid-column: auto;
+}
+
+@keyframes result-arrive-in-place {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result {
+    animation: none;
+  }
+}
+
+:global([data-contrast='high']) .result {
+  border: 2px solid #fff;
+  background: #000;
+  box-shadow: none;
+}
+
+:global([data-contrast='high']) .result::before {
+  background: #fff;
+}

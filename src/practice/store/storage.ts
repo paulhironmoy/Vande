@@ -16,6 +16,14 @@ export const PRACTICE_KEYS = {
   calibration: 'vc:practice:calibration',
   metrics: 'vc:practice:metrics',
   draft: 'vc:practice:draft',
+  /** Exact-ball mastery, per ball (src/practice/coach MasteryState). */
+  mastery: 'vc:practice:mastery',
+  /** Form evidence: compact per-ball samples (src/practice/coach FormSample), the newest few hundred. */
+  form: 'vc:practice:form',
+  /** The hidden tester mode's answers, for the user's own studies (exported as JSON, never sent). */
+  tester: 'vc:practice:tester',
+  /** Practice sound: music, effects, crowd, haptics, captions (src/audio owns the content and resets its mix). */
+  audio: 'vc:practice:audio',
 } as const;
 
 export function localStore(): KeyStore | null {

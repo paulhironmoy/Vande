@@ -1,327 +1,91 @@
 /**
- * The Practice flow controller. Per ball:
+ * The Practice flow controller: PREPARE (the setup screen) → OBSERVE, READ, DECIDE, EXECUTE (one delivery, see
+ * ./delivery.ts) → EXPERIENCE (the stage) → UNDERSTAND (the dead ball and its one insight) → MASTER (Coach Mode,
+ * ./coachLoop.ts), then the over summary.
  *
- *   over plan → physics flight → [in-flight saved] → stage.bowl → GestureSurface → normalizeGesture
- *     → physics resolveDelivery → [record committed and saved] → stage.play → coaching → next ball
- *
- * Rules it enforces (docs/PRACTICE.md): one wicket ends the innings, at most ten overs, a full over before the next
- * is configured, the over plan is fixed before its first ball. The in-flight flag is saved before a delivery is
- * bowled and the resolved record is saved before the stage shows it, so closing the app at any moment can only ever
- * turn the ball in play into a leave (src/practice/game resumeInnings); nothing is replayed for a better score.
- * Quality and the device tier change only between balls. The stage plays the delivery's sound and haptics itself.
+ * Rules it enforces (docs/PRACTICE.md): one wicket ends the innings, at most ten overs, a full over before the next is
+ * chosen, an over is fixed before its first ball, the score changes only after the stage has shown the ball. Nothing
+ * advances by itself after a dead ball: the player reads the result and chooses. Quality changes only between balls.
  */
-import type {
-  AnalyticsEventName,
-  AnalyticsProps,
-  AssistLevel,
-  BallFlight,
-  BowlerProfile,
-  DeliveryRecord,
-  DeliveryResult,
-  DeviceAssessment,
-  FieldLayout,
-  GestureInput,
-  Handedness,
-  NormalizedSwing,
-  PerfTier,
-  PitchCondition,
-  PracticeDeliveryPlan,
-  PracticeInningsState,
-  PracticeOverPlan,
-  QualityProfileId,
-} from '@/contracts';
+import type { AssistLevel, CoachOption, DeliveryRecord, DeliveryResult, PracticeInningsState, PracticeOverPlan, UnityPracticeDeadBallAction } from '@/contracts';
 import { PRACTICE_MAX_OVERS } from '@/contracts';
-import {
-  SessionMonitor,
-  createFrameSampler,
-  effectiveQuality,
-  loadCachedAssessment,
-  runDeviceBenchmark,
-  saveCachedAssessment,
-  toleranceFor,
-  type FrameSampler,
-} from '@/perf';
-import {
-  addDelivery,
-  addTier,
-  addTtfd,
-  bump,
-  calibrationMs,
-  clearInnings,
-  durationBucket,
-  fpsBucket,
-  intentMatch,
-  isResumable,
-  latencyBucket,
-  loadSavedInnings,
-  loadMetrics,
-  loadPracticeSettings,
-  outcomeProp,
-  overNumberProp,
-  saveInnings,
-  saveMetrics,
-  timingProp,
-  ttfdBucket,
-  updatePracticeSettings,
-  localStore,
-  type KeyStore,
-  type PracticeMetrics,
-  type PracticeSettings,
-} from '@/practice/store';
-import { createClock, type FlowClock } from './clock';
-import type { NextDeliveryLike, PracticeEngine, PracticeStageLike, StageFactory } from './types';
+import { bump, clearInnings, droppedInnings, durationBucket, intentMatch, isResumable, latencyBucket, loadPracticeSettings, loadSavedInnings, outcomeProp, overNumberProp, timingProp, updatePracticeSettings } from '@/practice/store';
+import { FlowCore, type FlowDeps } from './core';
+import { CoachLoop } from './coachLoop';
+import { DeliveryRunner, type BallSpec } from './delivery';
+import { StageHost } from './stageHost';
+import type { InputModality, StageDeadBallUi } from './types';
+import type { OneGestureState } from '@/input';
+import { AUTO_NEXT_MS, EMPTY_BOARD, HINT_BALLS, READY_MS, isQuiet, type Board, type FlowState, type LivePhase, type OverKind, type PendingOver, type RandomChoice } from './state';
 
-export type FlowScreen = 'idle' | 'preparing' | 'compat' | 'live' | 'over_summary' | 'out' | 'complete' | 'error';
-export type LivePhase = 'idle' | 'radar' | 'runup' | 'live' | 'playing' | 'coaching' | 'warmup_explain' | 'replay' | 'paused';
-export type BallKind = 'innings' | 'warmup' | 'repeat';
-export type FlowNotice = 'lite' | 'classic' | 'interrupted' | 'resumed_leave' | null;
+export * from './state';
+export type { FlowDeps, FlowHooks, FlowWords } from './core';
 
-export interface LastBall {
-  kind: BallKind;
-  result: DeliveryResult;
-  /** The committed record (innings balls), or the record a repeat was taken from. */
-  record: DeliveryRecord | null;
-  overNumber: number;
-  ballNumber: number;
-  interrupted: boolean;
-}
+/** The balanced defaults a Random Over starts from: Club bowling on a Balanced pitch, any bowler. */
+const DEFAULT_RANDOM: RandomChoice = { difficulty: 'club', conditions: 'balanced', bowling: 'any' };
 
-export interface ReplayItem {
-  result: DeliveryResult;
-  overNumber: number;
-  ballNumber: number;
-}
-
-export interface ReplayState {
-  kind: 'over' | 'ball' | 'dismissal';
-  items: ReplayItem[];
-  index: number;
-  slow: boolean;
-  diag: boolean;
-  playing: boolean;
-  /** Where Close returns. */
-  back: { screen: FlowScreen; phase: LivePhase };
-}
-
-export interface QualityState {
-  stage: '3d' | '2d';
-  profile: QualityProfileId;
-  tier: PerfTier;
-  toleranceMs: number;
-}
-
-export interface FlowState {
-  screen: FlowScreen;
-  phase: LivePhase;
-  innings: PracticeInningsState | null;
-  /** The scoreboard as shown: it changes when the stage has shown the outcome, never before. */
-  board: { runs: number; wickets: number; balls: number; over: Array<{ runs: number; dismissal: DeliveryRecord['dismissal'] }> };
-  ball: { kind: BallKind; overNumber: number; ballNumber: number; bowler: BowlerProfile } | null;
-  /** The GestureSurface: armed at release, one gesture per key. */
-  gesture: { enabled: boolean; key: string };
-  last: LastBall | null;
-  replay: ReplayState | null;
-  field: FieldLayout | null;
-  conditions: PitchCondition;
-  handedness: Handedness;
-  assessment: DeviceAssessment | null;
-  /** The assessment was just measured (show the compatibility explanation); false when it came from the cache. */
-  freshAssessment: boolean;
-  quality: QualityState;
-  notice: FlowNotice;
-  /** The first-time flow: warm-up ball, explanation, the guided over. */
-  guided: boolean;
-  /** Waiting for landscape before the delivery (the "turn your phone" overlay). */
-  needLandscape: boolean;
-  /** Waiting for one tap before the first delivery, so the audio unlock never lands on a swing. */
-  needTap: boolean;
-  canvasKey: number;
-  storageOk: boolean;
-  /** Announcement for screen readers (polite live region). */
-  announce: { text: string; id: number } | null;
-  error: string | null;
-}
-
-export interface FlowHooks {
-  /** Test builds only: the swing for the next delivery (an exact NormalizedSwing on the simulation clock, or a leave). */
-  takeSwing?(flight: BallFlight, kind: BallKind): NormalizedSwing | 'leave' | null;
-  /** Test builds only: a fixed assessment instead of the benchmark. */
-  assessment?: DeviceAssessment | null;
-  /** Test builds only: simulation and flow time run k times faster. */
-  timeScale?: number;
-  /** Test builds only: deterministic over seeds. */
-  seed?(): string | null;
-  /** Test builds only: the benchmark length. */
-  benchmarkMs?: number;
-}
-
-export interface FlowDeps {
-  engine: PracticeEngine;
-  createStage: StageFactory;
-  appVersion: string;
-  analytics?: (event: AnalyticsEventName, props?: AnalyticsProps) => void;
-  store?: KeyStore | null;
-  clock?: FlowClock;
-  benchmark?: (stage: PracticeStageLike | null, opts: { durationMs?: number }) => Promise<DeviceAssessment>;
-  reducedMotion?: () => boolean;
-  newId?: () => string;
-  newSeed?: () => string;
-  hooks?: FlowHooks | null;
-  /** performance.now() when Practice was selected (the launch tap), for time to first delivery. */
-  openedAt?: number;
-  isLandscape?: () => boolean;
-  frameSampler?: (onInterval: (ms: number) => void) => FrameSampler;
-  /** Text for the screen-reader announcements (the route passes the translator's lines). */
-  words?: FlowWords;
-  /** Whether a press has already warmed audio (src/practice/ui/audioWarm.ts); without it no tap is asked for. */
-  audioWarmed?: () => boolean;
-}
-
-/** Announcement text, so the controller stays free of copy. */
-export interface FlowWords {
-  runup(ballNumber: number): string;
-  outcome(last: LastBall, board: FlowState['board']): string;
-}
-
-/** The radar shows this long before the first ball of an over (or until "Bat" is tapped). */
-export const RADAR_MS = 2400;
-/** The coaching card stays this long before the next ball (or until "Next ball" is tapped). */
-export const COACH_MS = 3000;
-/** After the sixth ball or a wicket, the summary follows this long after the card. */
-export const END_MS = 2600;
-/** No gesture by this long after the ball reaches the stumps: a leave (s, simulation time). */
-export const LEAVE_GRACE_S = 0.12;
-/** A test-hook swing is "emitted" this long after its start, like a real flick read over 40 ms (ms, scaled). */
-export const HOOK_EMIT_MS = 40;
-/** A swing that began before the leave deadline is waited for this long more (its gesture is read over ~40–60 ms). */
-export const SWING_ARRIVAL_MS = 250;
-
-function randomHex(bytes = 16): string {
-  const a = new Uint8Array(bytes);
-  try {
-    crypto.getRandomValues(a);
-  } catch {
-    for (let i = 0; i < bytes; i++) a[i] = Math.floor(Math.random() * 256);
-  }
-  return Array.from(a, (b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-const EMPTY_BOARD: FlowState['board'] = { runs: 0, wickets: 0, balls: 0, over: [] };
-
-interface BallSpec {
-  kind: BallKind;
-  plan: PracticeDeliveryPlan;
-  bowler: BowlerProfile;
-  seed: string;
-  field: FieldLayout;
-  conditions: PitchCondition;
-  assist: AssistLevel;
-  handedness: Handedness;
-  overNumber: number;
-  ballNumber: number;
-  /** The record a repeat re-bowls. */
-  source?: DeliveryRecord;
-  /** Innings balls: the game's NextDelivery the record is made from. */
-  next?: NextDeliveryLike;
-}
-
-interface SwingWaiter {
-  gesture(input: GestureInput): void;
-  interrupt(): void;
-}
-
-export class PracticeFlow {
-  private state: FlowState;
-  private listeners = new Set<() => void>();
-  private readonly engine: PracticeEngine;
-  private readonly store: KeyStore | null;
-  private readonly clock: FlowClock;
-  private settings: PracticeSettings;
-  private metrics: PracticeMetrics;
-  private stage: PracticeStageLike | null = null;
-  private stageKind: '3d' | '2d' | null = null;
-  private stageOff: Array<() => void> = [];
-  private canvas: HTMLCanvasElement | null = null;
-  private used = new WeakSet<HTMLCanvasElement>();
-  private canvasWaiters: Array<(c: HTMLCanvasElement) => void> = [];
-  private landscapeWaiters: Array<() => void> = [];
-  private tapWaiters: Array<() => void> = [];
-  private portraitOk = false;
-  /** Bumped whenever a running sequence must stop (leaving, a new innings, dispose). */
-  private gen = 0;
-  private timers: Array<() => void> = [];
-  private waiter: SwingWaiter | null = null;
-  /** When the current swing began (its pointer-down's own timestamp), until its gesture arrives. */
-  private swingStartPerf: number | null = null;
-  private releasePerfMs = 0;
-  private interrupted = false;
+export class PracticeFlow extends FlowCore {
+  readonly host: StageHost;
+  readonly runner: DeliveryRunner;
+  readonly coachLoop: CoachLoop;
   private hiddenPause = false;
-  private monitor: SessionMonitor | null = null;
-  private sampler: FrameSampler;
-  private pendingQuality: { q: QualityState; why: 'monitor' | 'settings' | 'fallback' } | null = null;
-  private fallbackRequested: string | null = null;
-  /** A notice raised between balls (a quality change) stays for the coming ball; others clear when it starts. */
-  private noticeFresh = false;
-  private results = new Map<string, DeliveryResult>();
-  private guidedOver: PracticeOverPlan | null = null;
-  private pendingStart: (() => void) | null = null;
-  private openedAt: number;
-  private firstDelivery = false;
-  private ttfd: number | null = null;
+  /** Native Pause during Quiet Mode hides Unity only after the authoritative dead ball. */
+  private pauseNativeAtDeadBall = false;
+  private hidden = false;
+  /** True only while a native ready surface is waiting for its visibility acknowledgement. */
+  private readyPending = false;
+  private pausedFrom: LivePhase = 'dead';
+  /** The timing forgiveness of the over in play (ms), latched at its first ball; the last one latched, for the notice. */
+  private latched: { over: string; ms: number } | null = null;
+  private skipIntro: (() => void) | null = null;
+  private demoFailed = false;
+  /** A graphics change made as the over began (after its setup screen): said at the over's first dead ball. */
+  private openingNotice: 'balanced' | 'classic' | null = null;
   private startedAt = 0;
-  private tierReported = false;
-  private disposed = false;
+  private openedAt: number;
+  private handledDeadBall: FlowState['last'] = null;
 
-  constructor(private readonly deps: FlowDeps) {
-    this.engine = deps.engine;
-    this.store = deps.store === undefined ? localStore() : deps.store;
-    this.clock = deps.clock ?? createClock(deps.hooks?.timeScale ?? 1);
-    this.settings = loadPracticeSettings(this.store);
-    this.metrics = loadMetrics(this.store);
-    this.openedAt = deps.openedAt ?? this.clock.now();
-    this.sampler = (deps.frameSampler ?? createFrameSampler)((ms) => this.monitor?.sample(ms));
-    const assessment = deps.hooks?.assessment ?? loadCachedAssessment(deps.appVersion, this.store);
-    this.state = {
+  constructor(deps: FlowDeps) {
+    super(deps, (settings) => ({
       screen: 'idle',
       phase: 'idle',
       innings: null,
+      pending: null,
+      overKind: null,
+      overDifficulty: null,
       board: EMPTY_BOARD,
       ball: null,
       gesture: { enabled: false, key: '0' },
       last: null,
+      insight: null,
+      coach: null,
       replay: null,
       field: null,
-      conditions: this.settings.conditions,
-      handedness: this.settings.handedness,
-      assessment,
-      freshAssessment: false,
-      quality: this.qualityFor(assessment),
+      intent: null,
+      conditions: settings.conditions,
+      handedness: settings.handedness,
+      assessment: null,
+      quality: { stage: '3d', profile: 'standard', tier: 'full', toleranceMs: 0 },
+      stageReady: false,
       notice: null,
-      guided: false,
       needLandscape: false,
-      needTap: false,
       canvasKey: 0,
-      storageOk: this.probeStorage(),
+      coachCanvasKey: 0,
+      storageOk: true,
       announce: null,
       error: null,
-    };
-  }
-
-  // ------------------------------------------------------------------------------------------------------------
-  // Store plumbing
-  // ------------------------------------------------------------------------------------------------------------
-
-  getState = (): FlowState => this.state;
-
-  subscribe = (cb: () => void): (() => void) => {
-    this.listeners.add(cb);
-    return () => this.listeners.delete(cb);
-  };
-
-  private set(patch: Partial<FlowState>): void {
-    if (this.disposed) return;
-    this.state = { ...this.state, ...patch };
-    for (const l of this.listeners) l();
+    }));
+    this.host = new StageHost(this);
+    this.runner = new DeliveryRunner(
+      this,
+      this.host,
+      () => this.requestPause(),
+      (action) => this.handleDeadBallAction(action),
+    );
+    this.coachLoop = new CoachLoop(this);
+    this.openedAt = deps.openedAt ?? this.clock.now();
+    const assessment = this.host.initialAssessment();
+    this.state = { ...this.state, assessment, quality: this.host.qualityFor(assessment), storageOk: this.probeStorage() };
   }
 
   private probeStorage(): boolean {
@@ -335,751 +99,593 @@ export class PracticeFlow {
     }
   }
 
-  private track(event: AnalyticsEventName, props: AnalyticsProps = {}): void {
-    try {
-      this.deps.analytics?.(event, { mode: 'practice', ...props });
-    } catch {
-      /* analytics never breaks practice */
-    }
-  }
-
-  private saveMetrics(next: PracticeMetrics): void {
-    this.metrics = next;
-    saveMetrics(next, this.store);
-  }
-
-  private persist(notice: 'resumed_leave' | null = null): void {
-    const s = this.state.innings;
-    if (!s) return;
-    if (!saveInnings(s, this.store, notice) && this.state.storageOk) this.set({ storageOk: false });
-  }
-
-  private after(ms: number, cb: () => void): void {
-    this.timers.push(this.clock.after(ms, cb));
-  }
-
-  private clearTimers(): void {
-    for (const c of this.timers) c();
-    this.timers = [];
-  }
-
-  /** Current local metrics (diagnostics). */
-  localMetrics(): PracticeMetrics {
-    return this.metrics;
-  }
-
-  /** Practice chosen → the first ball released, this visit (ms), or null before it. */
-  firstDeliveryMs(): number | null {
-    return this.ttfd;
-  }
-
-  /** This session's per-delivery frame rates (diagnostics). */
-  sessionFps(): number[] {
-    return this.monitor?.recentFps() ?? [];
-  }
-
-  /** The stage's last input-to-bat latency (diagnostics). */
-  lastInputToBatMs(): number | null {
-    try {
-      return this.stage?.stats().lastInputToBatMs ?? null;
-    } catch {
-      return null;
-    }
-  }
-
-  settingsNow(): PracticeSettings {
-    return this.settings;
-  }
-
-  /** Settings changed in the settings screen: graphics apply before the next ball; hand and assistance next innings. */
-  refreshSettings(): void {
-    this.settings = loadPracticeSettings(this.store);
-    const q = this.qualityFor(this.state.assessment);
-    const cur = this.state.quality;
-    if (q.stage !== cur.stage || q.profile !== cur.profile) this.pendingQuality = { q: { ...q, tier: cur.tier, toleranceMs: cur.toleranceMs }, why: 'settings' };
-    if (!this.state.innings) this.set({ conditions: this.settings.conditions, handedness: this.settings.handedness });
-  }
-
   // ------------------------------------------------------------------------------------------------------------
-  // Start-up and resume
+  // Start-up, resume and settings
   // ------------------------------------------------------------------------------------------------------------
 
-  /**
-   * Loads the saved innings and resolves anything left in flight (as a leave). Returns what the route should show:
-   * the first-time flow, the menu (with a resumable innings, if any) or a finished innings' summary.
-   */
-  init(): 'guided' | 'menu' | 'summary' {
-    this.metrics = bump(this.metrics, 'sessions');
-    this.saveMetrics(this.metrics);
+  /** Loads the saved innings and resolves anything left in flight (as a leave). 'summary' for a finished innings. */
+  init(): 'menu' | 'summary' {
+    this.saveMetrics(bump(this.metrics, 'sessions'));
     this.track('practice_opened', {});
-    const loaded = loadSavedInnings(this.store);
-    if (loaded) {
-      const saved = loaded.state;
-      const wasInFlight = Boolean(saved.inFlight);
-      const resumed = wasInFlight ? this.engine.resumeInnings(saved) : saved;
-      // Either the ball was still in flight, or the app already settled it as it went away (a reload or an OS kill
-      // fires "hidden" first): both are said the same way.
-      const notice: FlowNotice = wasInFlight || loaded.notice ? 'resumed_leave' : null;
-      this.set({ innings: resumed, board: this.boardOf(resumed), conditions: resumed.conditions, handedness: resumed.handedness, notice });
-      if (wasInFlight) this.persist();
-      if (resumed.status === 'out' || resumed.status === 'complete') {
-        this.set({ screen: resumed.status === 'out' ? 'out' : 'complete' });
-        return 'summary';
-      }
-      if (isResumable(resumed)) return 'menu';
+    const dropped = droppedInnings(this.store);
+    if (dropped) {
+      // Old or damaged data never crashes Practice: it is forgotten, and the player is told plainly.
+      clearInnings(this.store);
+      this.set({ notice: dropped });
+      return 'menu';
     }
-    return this.settings.guidedDone ? 'menu' : 'guided';
+    const loaded = loadSavedInnings(this.store);
+    if (!loaded) return 'menu';
+    const saved = loaded.state;
+    const wasInFlight = Boolean(saved.inFlight);
+    const resumed = wasInFlight ? this.engine.resumeInnings(saved) : saved;
+    this.set({ innings: resumed, board: this.boardOf(resumed), conditions: resumed.conditions, handedness: resumed.handedness, notice: wasInFlight || loaded.notice ? 'resumed_leave' : null, overKind: kindOf(resumed) });
+    if (wasInFlight) this.persist();
+    if (resumed.status === 'out' || resumed.status === 'complete') {
+      this.set({ screen: resumed.status === 'out' ? 'out' : 'complete' });
+      return 'summary';
+    }
+    return 'menu';
   }
 
-  /** An innings worth continuing (the menu's resume card). */
+  /** An innings worth continuing (the Practice home's resume card). */
   resumable(): PracticeInningsState | null {
     const s = this.state.innings;
     return isResumable(s) ? s : null;
   }
 
-  // ------------------------------------------------------------------------------------------------------------
-  // The stage, the device check and quality
-  // ------------------------------------------------------------------------------------------------------------
-
-  attachCanvas = (el: HTMLCanvasElement | null): void => {
-    this.canvas = el;
-    if (el && !this.used.has(el)) {
-      const w = this.canvasWaiters.shift();
-      if (w) {
-        this.used.add(el);
-        w(el);
-      }
-    }
-  };
-
-  private freshCanvas(): Promise<HTMLCanvasElement> {
-    const c = this.canvas;
-    if (c && !this.used.has(c)) {
-      this.used.add(c);
-      return Promise.resolve(c);
-    }
-    return new Promise((resolve) => {
-      this.canvasWaiters.push(resolve);
-      this.set({ canvasKey: this.state.canvasKey + 1 });
-    });
+  /** Settings changed: graphics apply before the next ball; hand and assistance with the next innings. */
+  refreshSettings(): void {
+    this.settings = loadPracticeSettings(this.store);
+    this.host.settingsChanged();
+    if (!this.state.innings) this.set({ handedness: this.settings.handedness });
   }
 
-  private qualityFor(a: DeviceAssessment | null): QualityState {
-    // Classic chosen in settings: the 2D stage straight away (no device check needed for it).
-    if (this.settings.quality === 'classic') return { stage: '2d', profile: 'lite', tier: a?.tier ?? 'full', toleranceMs: toleranceFor(a?.tier ?? 'full') };
-    if (!a) return { stage: '3d', profile: 'standard', tier: 'full', toleranceMs: 0 };
-    const eff = effectiveQuality(a, this.settings.quality);
-    return { stage: eff.stage, profile: eff.profile, tier: a.tier, toleranceMs: toleranceFor(a.tier) };
+  /** Refreshes future spoken announcements and the already-mounted native ready cue after an in-app language change. */
+  setLanguage(locale: string, readyHint: string, words: FlowDeps['words']): void {
+    this.deps.words = words;
+    this.host.setLanguage(locale, readyHint);
   }
 
-  private mountOpts(assist: AssistLevel, handedness: Handedness, profile: QualityProfileId) {
-    return { profile, handedness, reducedMotion: this.deps.reducedMotion?.() ?? false, learnCue: assist === 'learn' && this.settings.learnCue };
-  }
-
-  private async createStage(force2d: boolean, assist: AssistLevel, handedness: Handedness, profile: QualityProfileId): Promise<PracticeStageLike> {
-    const canvas = await this.freshCanvas();
-    const stage = await this.deps.createStage({ force2d });
-    if (!force2d && stage.kind !== '3d') {
-      // No WebGL 2: the factory chose the 2D stage itself. Treat it as the 3D stage failing (the device check says why).
-      stage.dispose();
-      throw new Error('no first-person stage');
-    }
-    let fellBack = false;
-    const off = stage.on('fallback', (payload) => {
-      fellBack = true;
-      this.fallbackRequested = payload?.reason ?? 'error';
-    });
-    try {
-      await stage.mount(canvas, this.mountOpts(assist, handedness, profile));
-    } catch (e) {
-      off();
-      stage.dispose();
-      throw e;
-    }
-    if (fellBack && !force2d) {
-      off();
-      stage.dispose();
-      throw new Error('fallback during mount');
-    }
-    stage.setTimeScale(this.clock.scale);
-    this.stageOff = [off, stage.on('contextlost', () => this.monitor?.noteContextLoss())];
-    this.stage = stage;
-    this.stageKind = stage.kind;
-    return stage;
-  }
-
-  private disposeStage(): void {
-    for (const off of this.stageOff) off();
-    this.stageOff = [];
-    try {
-      this.stage?.dispose();
-    } catch {
-      /* already gone */
-    }
-    this.stage = null;
-    this.stageKind = null;
-    this.sampler.stop();
-  }
-
-  /**
-   * The stage for the coming innings: the first-person stage when the device check allows it, the Classic stage
-   * otherwise. Runs the device check ("Preparing the pitch…") once per app version. Null when the player must first
-   * see the compatibility message (playClassic continues from there).
-   */
-  private async ensureStage(assist: AssistLevel, handedness: Handedness): Promise<PracticeStageLike | null> {
-    if (this.stage) return this.stage;
-    const gen = this.gen;
-    this.set({ screen: 'preparing', error: null });
-    let assessment = this.state.assessment;
-    let fresh = false;
-    let q = this.qualityFor(assessment);
-    let made: PracticeStageLike | null = null;
-    if (q.stage === '3d') {
-      try {
-        const stage = await this.createStage(false, assist, handedness, assessment ? q.profile : 'standard');
-        made = stage;
-        if (gen !== this.gen) return null;
-        if (!assessment) {
-          assessment = await (this.deps.benchmark ?? ((s, o) => runDeviceBenchmark(s, o)))(stage, { durationMs: this.deps.hooks?.benchmarkMs });
-          if (gen !== this.gen) return null;
-          fresh = true;
-          saveCachedAssessment(this.deps.appVersion, assessment, this.store);
-        }
-      } catch {
-        this.disposeStage();
-        made = null;
-        if (gen !== this.gen) return null;
-        if (!assessment || assessment.tier !== 'below') {
-          assessment = await (this.deps.benchmark ?? ((s, o) => runDeviceBenchmark(s, o)))(null, {});
-          fresh = true;
-          saveCachedAssessment(this.deps.appVersion, assessment, this.store);
-        }
-        this.track('renderer_fallback', { reason: assessment.webgl2 ? 'context_lost' : 'no_webgl' });
-        this.saveMetrics(bump(this.metrics, 'fallbacks'));
-      }
-    }
-    if (gen !== this.gen) return null;
-    q = this.qualityFor(assessment);
-    this.set({ assessment, freshAssessment: fresh, quality: q });
-    this.reportTier(assessment, q);
-    this.monitor = new SessionMonitor({ tier: q.tier, profile: q.profile, stage: q.stage });
-    if (q.stage === '2d') {
-      if (made) this.disposeStage();
-      if (fresh && assessment?.tier === 'below') {
-        // Below the cutoff: say so plainly and offer Classic practice (never first-person express bowling).
-        this.set({ screen: 'compat' });
-        return null;
-      }
-      try {
-        return await this.createStage(true, assist, handedness, 'lite');
-      } catch {
-        this.set({ screen: 'error', error: 'stage' });
-        return null;
-      }
-    }
-    made?.setProfile(q.profile);
-    return made;
-  }
-
-  private reportTier(a: DeviceAssessment | null, q: QualityState): void {
-    if (!a || this.tierReported) return;
-    this.tierReported = true;
-    this.saveMetrics(addTier(this.metrics, a.tier));
-    this.track('practice_tier', { tier: a.tier, quality: q.stage === '2d' ? '2d' : q.profile, fpsBucket: fpsBucket(a.avgFps) });
-  }
-
-  /** From the compatibility message: continue in Classic (the 2D stage, same physics and rules). */
-  async playClassic(): Promise<void> {
-    const start = this.pendingStart;
-    this.pendingStart = null;
-    try {
-      await this.createStage(true, this.state.guided ? 'learn' : this.settings.assist, this.state.handedness, 'lite');
-    } catch {
-      this.set({ screen: 'error', error: 'stage' });
-      return;
-    }
-    start?.();
-  }
-
-  /** Between balls only: a step down from the monitor, a settings change, or a renderer fallback. */
-  private async applyPendingQuality(): Promise<void> {
-    const decision = this.monitor?.checkpoint() ?? null;
-    if (decision) this.pendingQuality = { q: { stage: decision.stage, profile: decision.profile, tier: decision.tier, toleranceMs: decision.toleranceMs }, why: 'monitor' };
-    const fallback = this.fallbackRequested;
-    this.fallbackRequested = null;
-    if (fallback && this.stageKind === '3d') {
-      this.pendingQuality = { q: { stage: '2d', profile: 'lite', tier: 'below', toleranceMs: toleranceFor('below') }, why: 'fallback' };
-      this.track('renderer_fallback', { reason: fallback === 'low_fps' ? 'low_fps' : 'context_lost' });
-      this.saveMetrics(bump(this.metrics, 'fallbacks'));
-    }
-    const p = this.pendingQuality;
-    this.pendingQuality = null;
-    if (!p) return;
-    const q = p.q;
-    const prev = this.state.quality;
-    const notice: FlowNotice = q.stage === '2d' && this.stageKind === '3d' && p.why !== 'settings' ? 'classic' : q.profile === 'lite' && prev.profile !== 'lite' && p.why === 'monitor' ? 'lite' : null;
-    if (q.stage !== this.stageKind) {
-      const inn = this.state.innings;
-      this.disposeStage();
-      try {
-        await this.createStage(q.stage === '2d', inn?.assist ?? this.settings.assist, this.state.handedness, q.profile);
-      } catch {
-        // The first-person stage would not come back: Classic keeps the innings going.
-        if (q.stage === '3d') await this.createStage(true, inn?.assist ?? this.settings.assist, this.state.handedness, 'lite');
-      }
-      const field = this.state.field;
-      const bowler = inn?.current?.plan.bowler ?? this.state.ball?.bowler;
-      if (field && bowler) this.stage?.setScene({ field, bowler, conditions: this.state.conditions, handedness: this.state.handedness });
-    } else this.stage?.setProfile(q.profile);
-    this.monitor?.reset({ tier: q.tier, profile: q.profile, stage: this.stageKind ?? q.stage });
-    if (p.why !== 'settings') this.track('practice_tier', { tier: q.tier, quality: q.stage === '2d' ? '2d' : q.profile, ...(q.stage === '2d' ? { reason: p.why === 'fallback' ? 'context_lost' : 'low_fps' } : {}) });
-    this.noticeFresh = notice !== null;
-    this.set({ quality: q, notice: notice ?? this.state.notice });
-  }
-
-  /** Settings: forget the device check; it runs again the next time a stage is prepared. */
   rerunDeviceCheck(): void {
-    this.tierReported = false;
-    this.set({ assessment: null, quality: this.qualityFor(null) });
+    this.host.rerunCheck();
   }
 
-  // ------------------------------------------------------------------------------------------------------------
-  // Viewport and app lifecycle
-  // ------------------------------------------------------------------------------------------------------------
+  attachCanvas = (el: HTMLCanvasElement | null): void => this.host.attachCanvas(el);
+  attachCoachCanvas = (el: HTMLCanvasElement | null): void => this.host.attachCoachCanvas(el);
+  onSwingStart = (atPerfMs: number, pointer?: InputModality): void => this.runner.onSwingStart(atPerfMs, pointer);
+  onSwingIntent = (intent: { atPerfMs: number; pointer: InputModality }): void => this.runner.onSwingIntent(intent);
+  onGestureCancel = (): void => this.runner.onGestureCancel();
+  onContactState = (state: OneGestureState): void => this.runner.onContactState(state);
+  onGesture: DeliveryRunner['onGesture'] = (input) => this.runner.onGesture(input);
+  setLandscape = (landscape: boolean): void => this.runner.setLandscape(landscape);
+  allowPortrait = (): void => this.runner.allowPortrait();
 
-  setLandscape(landscape: boolean): void {
-    if (landscape || this.portraitOk) {
-      this.set({ needLandscape: false });
-      const w = this.landscapeWaiters;
-      this.landscapeWaiters = [];
-      for (const f of w) f();
+  firstDeliveryMs(): number | null {
+    return this.runner.ttfd;
+  }
+
+  sessionFps(): number[] {
+    return this.host.monitor?.recentFps() ?? [];
+  }
+
+  stageStats() {
+    try {
+      return this.host.stage?.stats() ?? null;
+    } catch {
+      return null;
     }
   }
 
-  /** "Continue anyway" on the turn-your-phone overlay (desktop windows, or a player who prefers portrait). */
-  allowPortrait(): void {
-    this.portraitOk = true;
-    this.setLandscape(true);
+  lastInputToBatMs(): number | null {
+    return this.stageStats()?.lastInputToBatMs ?? null;
   }
 
-  /** Before the first delivery: one tap, unless a press has already warmed audio. */
-  private waitTap(): Promise<void> {
-    if (!this.deps.audioWarmed || this.deps.audioWarmed()) return Promise.resolve();
-    this.set({ needTap: true });
-    return new Promise((resolve) => this.tapWaiters.push(resolve));
+  protectedRegions() {
+    try {
+      return this.host.stage?.protectedRegions() ?? [];
+    } catch {
+      return [];
+    }
   }
 
-  /** The "Start batting" tap (its press has just warmed audio). */
-  tapped(): void {
-    this.set({ needTap: false });
-    const w = this.tapWaiters;
-    this.tapWaiters = [];
-    for (const f of w) f();
+  /** React must not mount a second live input surface when the selected native stage owns batting input. */
+  stageOwnsInput(): boolean {
+    return this.host.ownsInput();
   }
 
-  private waitLandscape(): Promise<void> {
-    const landscape = this.deps.isLandscape?.() ?? true;
-    if (landscape || this.portraitOk) return Promise.resolve();
-    this.set({ needLandscape: true });
-    return new Promise((resolve) => this.landscapeWaiters.push(resolve));
+  /** Sends localized result guidance to the selected native stage, if it owns that surface. */
+  async presentDeadBallUi(ui: StageDeadBallUi): Promise<boolean> {
+    try {
+      return (await this.host.stage?.presentDeadBallUi?.(ui)) ?? false;
+    } catch {
+      return false;
+    }
+  }
+
+  private handleDeadBallAction(action: UnityPracticeDeadBallAction): void {
+    const state = this.state;
+    if (state.screen !== 'live' || state.phase !== 'dead' || !state.last) return;
+    if (action === 'practice_ball') {
+      if (!this.coach || this.handledDeadBall === state.last) return;
+      this.handledDeadBall = state.last;
+      this.coachLoop.practiceThisBall();
+      return;
+    }
+    if (this.handledDeadBall === state.last) return;
+    this.handledDeadBall = state.last;
+    this.nextBall();
+  }
+
+  /** One authority gate shared by Android Unity actions and the React result surface. */
+  acceptDeadBallAction(action: UnityPracticeDeadBallAction): void {
+    this.handleDeadBallAction(action);
   }
 
   /**
-   * The app went to the background or came back. Hidden during a delivery: the swing is gone, so the ball resolves
-   * as a leave at once (exactly what a resumed innings would do). Hidden between balls: nothing else starts until
-   * the player resumes.
+   * The dead ball is on screen again after Coach Mode (opened from it): its actions are offered afresh, so "Next ball"
+   * (or practising it again) works once more. Without this the dead ball's first action, "Practice this ball", kept it
+   * consumed, and "Next ball" after Coach Mode did nothing: a dead end.
    */
-  setHidden(hidden: boolean): void {
-    if (!hidden) return;
-    this.hiddenPause = true;
-    this.clearTimers();
-    const p = this.state.phase;
-    if (p === 'runup' || p === 'live') {
-      this.interrupted = true;
-      this.waiter?.interrupt();
-    } else if (p === 'coaching' || p === 'radar') this.set({ phase: 'paused' });
-  }
-
-  pause(): void {
-    const p = this.state.phase;
-    if (p === 'runup' || p === 'live' || p === 'playing') return; // never mid-delivery
-    this.clearTimers();
-    this.set({ phase: 'paused' });
-  }
-
-  /** Resume after a pause: the next ball (or the summary the innings reached). */
-  resume(): void {
-    this.hiddenPause = false;
-    if (this.state.phase !== 'paused') return;
-    this.continueAfterBall();
+  deadBallShownAgain(): void {
+    this.handledDeadBall = null;
   }
 
   // ------------------------------------------------------------------------------------------------------------
-  // Starting play
+  // PREPARE: the setup screen for the coming over
   // ------------------------------------------------------------------------------------------------------------
 
-  private seed(): string {
-    return this.deps.hooks?.seed?.() ?? this.deps.newSeed?.() ?? randomHex();
-  }
-
-  private newId(): string {
-    return this.deps.newId?.() ?? `p-${randomHex(8)}`;
-  }
-
-  /** The first-time flow: Balanced, Learn, one explained warm-up ball, then the guided over. */
-  async startGuided(): Promise<void> {
-    const gen = ++this.gen;
-    this.pendingStart = () => void this.startGuided();
-    this.startedAt = this.clock.now();
-    this.set({ guided: true, conditions: 'balanced', handedness: this.settings.handedness, board: EMPTY_BOARD, last: null, notice: null });
-    const stage = await this.ensureStage('learn', this.settings.handedness);
-    if (!stage || gen !== this.gen) return;
-    this.pendingStart = null;
-    const g = this.engine.guidedStart(this.seed());
-    this.guidedOver = g.over;
-    const handedness = this.settings.handedness;
-    const field = this.engine.autoField(g.warmup.bowler, 'balanced', handedness);
-    stage.setScene({ field, bowler: g.warmup.bowler, conditions: 'balanced', handedness });
-    this.set({ screen: 'live', phase: 'idle', field });
-    const out = await this.runBall({ kind: 'warmup', plan: g.warmup.plan, bowler: g.warmup.bowler, seed: g.warmup.seed, field, conditions: 'balanced', assist: 'learn', handedness, overNumber: 1, ballNumber: 1 });
-    if (!out || gen !== this.gen) return;
-    this.set({ phase: 'warmup_explain' });
-  }
-
-  /** After the explained warm-up: the guided six-ball over begins and counts. */
-  startGuidedOver(): void {
-    if (!this.guidedOver) return;
-    this.settings = updatePracticeSettings({ guidedDone: true }, this.store);
-    const innings = this.engine.newInnings({ id: this.newId(), conditions: 'balanced', assist: 'learn', handedness: this.settings.handedness });
-    this.set({ innings, board: EMPTY_BOARD, last: null });
-    this.chooseOver(this.guidedOver, { radar: false });
-    this.guidedOver = null;
-  }
-
-  /** Quick Random Over from the menu: a new innings and six unknown, fixed deliveries. */
-  async startRandom(): Promise<void> {
-    await this.startInnings(() => this.randomPlan());
-  }
-
-  /** A built over from the editor starts a new innings (or, between overs, becomes the next over). */
-  async startBuilt(plan: PracticeOverPlan): Promise<void> {
+  private continuing(): PracticeInningsState | null {
     const s = this.state.innings;
-    if (s && s.status === 'choosing_over') {
-      await this.continueWith(plan);
+    return s && (s.status === 'over_complete' || s.status === 'choosing_over') ? s : null;
+  }
+
+  private randomPlan(choice: RandomChoice, conditions: PracticeInningsState['conditions'], assist: AssistLevel): PracticeOverPlan {
+    return this.engine.randomOver({ seed: this.seed(), conditions, assist, difficulty: choice.difficulty, ...(choice.bowling === 'any' ? {} : { family: choice.bowling }) });
+  }
+
+  /**
+   * Opens the setup screen for an over: a Random Over (its choices, balanced by default), the reference over, or the
+   * player's own six. The stage is prepared behind it (discreetly), so Play bowls at once.
+   */
+  prepareOver(opts: { kind: OverKind; plan?: PracticeOverPlan; random?: RandomChoice }): void {
+    const inn = this.continuing();
+    const assist = inn?.assist ?? this.settings.assist;
+    const handedness = inn?.handedness ?? this.settings.handedness;
+    const random = opts.kind === 'random' ? (opts.random ?? { difficulty: this.settings.difficulty, conditions: this.settings.conditions, bowling: this.settings.bowling }) : null;
+    const conditions = inn?.conditions ?? (random ? random.conditions : 'balanced');
+    const plan = opts.kind === 'reference' ? this.engine.referenceOver() : opts.plan ?? this.randomPlan(random ?? DEFAULT_RANDOM, conditions, assist);
+    this.setPending({ kind: opts.kind, plan, random, conditions, assist, handedness, continuing: Boolean(inn), overNumber: (inn?.overs.length ?? 0) + 1, bowled: 0 });
+    this.startWork();
+    void this.host.prepare(assist, handedness).then((stage) => stage && this.warmPhysics());
+  }
+
+  private warmed = false;
+
+  /**
+   * The work thread's script is fetched and compiled as the setup screen opens, on every path (a forced tier, the
+   * Automatic device check, a resumed innings), so it is never an asset load inside a delivery (PERF4: on the Automatic
+   * path the idle-time warm-up below ran only after the device check, and the first run-up fetched the worker). Only the
+   * worker is created here: off the main thread, nothing waits for it, and its warm-up simulation still waits for the
+   * stage to be ready, so it never competes with the device check.
+   */
+  private startWork(): void {
+    this.work?.warm();
+  }
+
+  /**
+   * Once per visit, while the setup screen is open: one throwaway resolution of the coming over's first ball, so the
+   * physics' first-use cost (contact, the bat track, fielding) never lands on the first real swing. The result is
+   * discarded; nothing is recorded or shown. The stage builds its own result path on it once too (`warmResult`), in
+   * spare slices of frames, so the first real result does not compile that either.
+   */
+  private warmPhysics(): void {
+    if (this.warmed) return;
+    this.warmed = true;
+    const p = this.state.pending;
+    if (!p) return;
+    const run = () => {
+      try {
+        const plan = p.plan.balls[0];
+        const flight = this.engine.flight({ plan, bowler: p.plan.bowler, conditions: p.conditions, seed: `warm:${p.plan.seed}`, handedness: p.handedness, ball: p.plan.ball });
+        const swing = { kind: 'attack' as const, startT: Math.max(0, flight.idealContactT - 0.14), directionDeg: 20, power: 0.6, elevation: 0, footwork: 'auto' as const };
+        // The work thread starts and warms on the same throwaway ball (it resolves the live balls when it is there).
+        this.work?.warm({ kind: 'resolve', args: { flight, field: p.field, bowler: p.plan.bowler, conditions: p.conditions, handedness: p.handedness, assist: p.assist, tierToleranceMs: 0 } });
+        const result = this.engine.resolveDelivery({ flight, swing, field: p.field, bowler: p.plan.bowler, conditions: p.conditions, handedness: p.handedness, assist: p.assist, tierToleranceMs: 0 });
+        // The stage runs its result path once on it too (in spare slices of frames), then it is dropped.
+        this.host.stage?.warmResult?.(result, flight, { field: p.field, bowler: p.plan.bowler, conditions: p.conditions, handedness: p.handedness, ball: p.plan.ball });
+      } catch {
+        /* warming is best effort */
+      }
+    };
+    const w = typeof window !== 'undefined' ? (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }) : null;
+    if (w?.requestIdleCallback) w.requestIdleCallback(run, { timeout: 1500 });
+    else this.after(0, run);
+  }
+
+  private setPending(p: Omit<PendingOver, 'field' | 'intent'>): void {
+    // The over's ball sets the kind of field: a white ball a limited-overs one, a red ball a Test one.
+    const field = this.engine.autoField(p.plan.bowler, p.conditions, p.handedness, p.plan.ball);
+    let intent: PendingOver['intent'];
+    try {
+      intent = this.engine.fieldIntent(field, p.plan.bowler, p.conditions, p.handedness);
+    } catch {
+      intent = null;
+    }
+    this.set({ pending: { ...p, field, intent }, screen: 'setup', phase: 'idle', field, intent, conditions: p.conditions, handedness: p.handedness, error: null, last: null, insight: null });
+  }
+
+  /** The Random Over's choices changed on the setup screen: a new over, still unknown until release. */
+  updateRandom(choice: RandomChoice): void {
+    const p = this.state.pending;
+    if (!p || p.kind !== 'random' || p.bowled > 0) return;
+    const conditions = p.continuing ? p.conditions : choice.conditions;
+    this.setPending({ ...p, kind: 'random', random: choice, conditions, plan: this.randomPlan(choice, conditions, p.assist) });
+  }
+
+  /** Assistance for a new innings (fixed once the innings has begun). */
+  setAssist(assist: AssistLevel): void {
+    const p = this.state.pending;
+    if (!p || p.continuing || p.bowled > 0) return;
+    this.set({ pending: { ...p, assist } });
+  }
+
+  /** Back from the setup screen: nothing was bowled, nothing changes. */
+  cancelSetup(): void {
+    this.set({ pending: null, screen: 'idle', phase: 'idle' });
+  }
+
+  /** Play (the setup screen's one action): commits the over and bowls its next ball. */
+  async play(): Promise<void> {
+    const p = this.state.pending;
+    if (!p) return;
+    const gen = ++this.gen;
+    this.startedAt = this.startedAt || this.clock.now();
+    this.set({ screen: 'live', phase: 'loading', board: this.state.innings && p.continuing ? this.boardOf(this.state.innings) : this.state.board, notice: this.state.notice });
+    const stage = await this.host.prepare(p.assist, p.handedness);
+    if (gen !== this.gen) return;
+    if (!stage) {
+      this.set({ screen: 'error', phase: 'idle', error: 'stage' });
       return;
     }
-    await this.startInnings(() => plan);
+    let s = this.state.innings;
+    if (!p.continuing && p.bowled === 0) {
+      // Starting a new innings while one is saved ends that one (the home screen asked first): its score is final.
+      if (isResumable(s)) this.finishInnings(this.engine.inningsReducer(s, { type: 'abandon' }), 'abandon');
+      s = this.engine.newInnings({ id: this.newId(), conditions: p.conditions, assist: p.assist, handedness: p.handedness });
+      this.coachLoop.forgetResults();
+      this.startedAt = this.clock.now();
+    }
+    if (!s) return;
+    if (s.status === 'over_complete') s = this.toNextOver(s);
+    if (s.status === 'choosing_over') s = this.engine.inningsReducer(s, { type: 'chooseOver', plan: p.plan, field: p.field });
+    if (s.status !== 'batting' || !s.current) {
+      this.set({ screen: 'error', phase: 'idle', error: 'over' });
+      return;
+    }
+    this.set({ innings: s, pending: null, overKind: p.kind, overDifficulty: p.random?.difficulty ?? (p.continuing && p.bowled > 0 ? this.state.overDifficulty : null), field: s.current.field, board: { ...this.boardOf(s) } });
+    this.persist();
+    stage.setScene({
+      field: s.current.field,
+      ...(p.intent ? { fieldIntent: p.intent.intention } : {}),
+      trainingObjective: p.kind,
+      bowler: s.current.plan.bowler,
+      conditions: s.conditions,
+      handedness: s.handedness,
+      ball: s.current.plan.ball,
+    });
+    // Between overs is when quality may change; then the over's forgiveness is latched for all six balls.
+    const quality = await this.host.applyPending(() => this.setSceneFor(this.state.innings), s.assist, s.handedness);
+    if (gen !== this.gen) return;
+    if (!this.host.stage) {
+      // The stage could not be rebuilt (its code could not load, say): a calm stop, never an endless wait.
+      this.set({ screen: 'error', phase: 'idle', error: 'stage' });
+      return;
+    }
+    this.openingNotice = quality === 'balanced' || quality === 'classic' ? quality : null;
+    if (quality) this.set({ notice: quality });
+    if (this.settings.teach && !this.settings.demoSeen && this.coach && !this.demoFailed) await this.firstRunDemo(gen, p);
+    if (gen !== this.gen) return;
+    void this.bowlNext();
   }
 
-  private randomPlan(): PracticeOverPlan {
-    const s = this.state.innings;
-    const assist = s?.assist ?? this.settings.assist;
-    return this.engine.randomOver({ seed: this.seed(), conditions: s?.conditions ?? this.settings.conditions, assist, beginner: assist === 'learn' });
+  /**
+   * The timing forgiveness is fixed for a whole over at its first ball, whatever the device does later in the over (a
+   * resumed or restarted over keeps the one its first ball was played with), so nothing about a delivery changes while
+   * it is being bowled. When the forgiveness differs from the previous over's, the player is told which way, in plain
+   * words (never in Real, which gives none on any device).
+   */
+  private latchTolerance(s: PracticeInningsState): { ms: number; notice: 'help_changed' | 'help_less' | null } {
+    const over = `${s.id}:${s.overs.length}`;
+    if (this.latched?.over === over) return { ms: this.latched.ms, notice: null };
+    const first = s.current?.deliveries[0];
+    const ms = first ? first.tierToleranceMs : this.state.quality.toleranceMs;
+    const prev = this.latched?.ms ?? null;
+    this.latched = { over, ms };
+    if (prev === null || prev === ms || s.assist === 'real') return { ms, notice: null };
+    return { ms, notice: ms > prev ? 'help_changed' : 'help_less' };
   }
 
-  private async startInnings(planFor: () => PracticeOverPlan): Promise<void> {
-    const gen = ++this.gen;
-    this.pendingStart = () => void this.startInnings(planFor);
-    this.startedAt = this.clock.now();
-    const { assist, handedness, conditions } = this.settings;
-    this.set({ guided: false, conditions, handedness, board: EMPTY_BOARD, last: null, notice: null, replay: null });
-    const stage = await this.ensureStage(assist, handedness);
-    if (!stage || gen !== this.gen) return;
-    this.pendingStart = null;
-    if (!this.settings.guidedDone) this.settings = updatePracticeSettings({ guidedDone: true }, this.store);
-    // Starting over while an innings is saved ends that one (its score is final), never silently.
-    if (isResumable(this.state.innings)) this.discardInnings();
-    this.results.clear();
-    const innings = this.engine.newInnings({ id: this.newId(), conditions, assist, handedness });
-    this.set({ innings });
-    this.chooseOver(planFor(), { radar: true });
+  /**
+   * The first run's one short demonstration, before the first ball: a readable stock ball from this over's bowler
+   * (never one of the over's own deliveries) played by the same production batter, in the same Unity world and HUD,
+   * with the coach's recommended response. It can be skipped (or all teaching turned off) in one tap; either way it
+   * is remembered and never shown again.
+   */
+  private async firstRunDemo(gen: number, p: PendingOver): Promise<void> {
+    const stage = this.host.stage;
+    const coach = this.coach;
+    if (!stage || !coach) return;
+    this.set({ phase: 'intro' });
+    const abort = new AbortController();
+    let skipRequested = false;
+    this.skipIntro = () => {
+      skipRequested = true;
+      abort.abort();
+    };
+    try {
+      const plan = { variation: 'stock' as const, lengthM: 5.8, lineM: 0.15, speedKph: p.plan.balls.find((b) => b.variation === 'stock')?.speedKph ?? p.plan.balls[0].speedKph };
+      const record = { version: p.plan.version, overIndex: 0, ballIndex: 0, bowler: p.plan.bowler, plan, seed: `demo:${p.plan.seed}`, conditions: p.conditions, ball: p.plan.ball, field: p.field, handedness: p.handedness, assist: p.assist, tierToleranceMs: 0, swing: null, runs: 0 as const, dismissal: null };
+      const flight = this.engine.flight({ plan, bowler: p.plan.bowler, conditions: p.conditions, seed: record.seed, handedness: p.handedness, ball: p.plan.ball });
+      const left = this.engine.resolveDelivery({ flight, swing: null, field: p.field, bowler: p.plan.bowler, conditions: p.conditions, handedness: p.handedness, assist: p.assist, tierToleranceMs: 0 });
+      // The coach's whole reading of this ball is seconds of simulation: on the work thread when there is one (Skip
+      // stays live meanwhile), else here as before. The same recommended response either way.
+      let guide: { option: CoachOption; result: DeliveryResult } | null = null;
+      if (this.work?.canWork()) {
+        try {
+          guide = (await this.work.read(record, left, { tip: false, sample: null, guide: true }, abort.signal)).guide;
+        } catch (e) {
+          if (abort.signal.aborted) throw e;
+          guide = null;
+        }
+        if (gen !== this.gen || this.disposed) {
+          this.skipIntro = null;
+          return;
+        }
+      }
+      if (!guide) {
+        const analysis = coach.analyzeBall(record, left);
+        const option = coach.optionOf(analysis, 'recommended');
+        guide = { option, result: this.engine.repeatDelivery(record, option.swing) };
+      }
+      const { option, result } = guide;
+      // A one-tap Skip aborts immediately, but the live ball waits for the
+      // stage's acknowledged cancellation cleanup. Racing an immediate local
+      // resolve against this promise can overlap the next bowl with a native
+      // demonstration that is still unwinding.
+      await stage.demonstrate(result, option, { source: record, signal: abort.signal });
+    } catch (error) {
+      // A demonstration is never worth blocking the first ball. It was not seen, so it is offered again next visit.
+      this.skipIntro = null;
+      if (skipRequested && error instanceof Error && error.name === 'AbortError') {
+        if (gen === this.gen) this.settings = updatePracticeSettings({ demoSeen: true }, this.store);
+        return;
+      }
+      this.demoFailed = true;
+      return;
+    }
+    this.skipIntro = null;
+    if (gen === this.gen) this.settings = updatePracticeSettings({ demoSeen: true }, this.store);
   }
 
-  /** The menu's "Continue innings": straight back to the ball, the summary or the next over. */
-  async continueInnings(): Promise<void> {
+  /** "Skip" on the first-run demonstration; `all` also turns teaching off for good (one tap, remembered). */
+  skipTeaching(all: boolean): void {
+    this.settings = updatePracticeSettings(all ? { demoSeen: true, teach: false } : { demoSeen: true }, this.store);
+    this.skipIntro?.();
+  }
+
+  private toNextOver(s: PracticeInningsState): PracticeInningsState {
+    const next = this.engine.inningsReducer(s, { type: 'nextOver' });
+    this.saveMetrics(bump(this.metrics, 'nextOver'));
+    this.track('practice_next_over', { overNumber: overNumberProp(next.overs.length + 1), assist: next.assist });
+    return next;
+  }
+
+  /** "Continue innings": back to the setup screen of the over in progress, or to the summary the innings reached. */
+  continueInnings(): void {
     const s = this.state.innings;
     if (!s) return;
-    const gen = ++this.gen;
-    this.pendingStart = () => void this.continueInnings();
-    this.startedAt = this.clock.now();
-    const stage = await this.ensureStage(s.assist, s.handedness);
-    if (!stage || gen !== this.gen) return;
-    this.pendingStart = null;
     if (s.status === 'batting' && s.current) {
-      stage.setScene({ field: s.current.field, bowler: s.current.plan.bowler, conditions: s.conditions, handedness: s.handedness });
-      this.set({ screen: 'live', phase: 'radar', field: s.current.field, board: this.boardOf(s) });
-      this.after(RADAR_MS, () => this.fieldReady());
-    } else if (s.status === 'over_complete' || (s.status === 'choosing_over' && s.overs.length > 0)) {
-      this.set({ screen: 'over_summary', phase: 'idle', board: this.boardOf(s) });
-    } else if (s.status === 'choosing_over') this.chooseOver(this.randomPlan(), { radar: true });
+      const kind = this.state.overKind ?? kindOf(s) ?? 'random';
+      const field = s.current.field;
+      let intent: PendingOver['intent'];
+      try {
+        intent = this.engine.fieldIntent(field, s.current.plan.bowler, s.conditions, s.handedness);
+      } catch {
+        intent = null;
+      }
+      const pending: PendingOver = { kind, plan: s.current.plan, field, intent, overNumber: s.overs.length + 1, conditions: s.conditions, assist: s.assist, handedness: s.handedness, random: null, continuing: true, bowled: s.current.deliveries.length };
+      this.set({ pending, screen: 'setup', phase: 'idle', field, intent, board: this.boardOf(s) });
+      this.startWork();
+      void this.host.prepare(s.assist, s.handedness);
+    } else if (s.status === 'over_complete' || s.status === 'choosing_over') this.set({ screen: 'over_summary', phase: 'idle', board: this.boardOf(s) });
   }
 
-  /** Abandons the saved innings (the menu's "New innings"). Its score is final. */
+  /** "Try again" on the calm error: the stage is prepared afresh and the innings carries on (it was saved). */
+  async retry(): Promise<void> {
+    const s = this.state.innings;
+    this.set({ screen: 'live', phase: 'loading', error: null });
+    const stage = await this.host.prepare(s?.assist ?? this.settings.assist, s?.handedness ?? this.settings.handedness);
+    if (!stage) {
+      this.set({ screen: 'error', phase: 'idle', error: 'stage' });
+      return;
+    }
+    this.setSceneFor(this.state.innings);
+    if (s?.status === 'batting') this.continueInnings();
+    else this.set({ screen: 'idle', phase: 'idle' });
+  }
+
+  /** "Choose a different over" from the over summary: the Practice home chooses the next over of this innings. */
+  chooseNextOver(): void {
+    const s = this.state.innings;
+    if (!s || (s.status !== 'over_complete' && s.status !== 'choosing_over')) return;
+    this.set({ screen: 'idle', phase: 'idle' });
+  }
+
+  /** The innings is between overs (the Practice home then chooses its next over). */
+  betweenOvers(): boolean {
+    return Boolean(this.continuing());
+  }
+
+  /** Abandons the saved innings (a new innings from the home screen, confirmed). Its score is final. */
   discardInnings(): void {
     const s = this.state.innings;
     if (s && isResumable(s)) this.finishInnings(this.engine.inningsReducer(s, { type: 'abandon' }), 'abandon');
     clearInnings(this.store);
-    this.set({ innings: null, board: EMPTY_BOARD, last: null, notice: null });
+    this.coachLoop.forgetResults();
+    this.set({ innings: null, board: EMPTY_BOARD, last: null, insight: null, notice: null, overKind: null });
   }
 
-  private chooseOver(plan: PracticeOverPlan, opts: { radar: boolean }): void {
-    const s = this.state.innings;
-    if (!s) return;
-    const field = this.engine.autoField(plan.bowler, s.conditions, s.handedness);
-    const next = this.engine.inningsReducer(s, { type: 'chooseOver', plan, field });
-    this.set({ innings: next, field, screen: 'live', board: { ...this.boardOf(next), over: [] }, last: null, replay: null });
-    this.persist();
-    this.stage?.setScene({ field, bowler: plan.bowler, conditions: s.conditions, handedness: s.handedness });
-    if (opts.radar) {
-      this.set({ phase: 'radar' });
-      this.after(RADAR_MS, () => this.fieldReady());
-    } else void this.bowlNext();
+  // ------------------------------------------------------------------------------------------------------------
+  // One ball, then the dead ball (UNDERSTAND)
+  // ------------------------------------------------------------------------------------------------------------
+
+  /** Quiet mode (and the moment before it): no pause, no menus, nothing but the ball. */
+  busy(): boolean {
+    const p = this.state.phase;
+    return isQuiet(p) || p === 'loading' || p === 'ready' || p === 'intro';
   }
 
-  /** The radar was read (or its time ran out): the first ball of the over. */
-  fieldReady(): void {
-    if (this.state.phase !== 'radar') return;
-    this.clearTimers();
-    if (this.hiddenPause) {
-      this.set({ phase: 'paused' });
-      return;
+  /**
+   * The pre-delivery moment for the first few balls on this device: "Tap to defend · Flick to hit", then the run-up.
+   * False when it was interrupted (leaving, or the app going away, which pauses: Resume bowls the ball).
+   */
+  private async ready(gen: number): Promise<boolean> {
+    if (!this.settings.teach || this.settings.hintsShown >= HINT_BALLS) return gen === this.gen;
+    const stage = this.host.stage;
+    const phase = this.state.phase;
+    if (stage?.presentReady) {
+      this.readyPending = true;
+      let shown: boolean;
+      try {
+        shown = await stage.presentReady(true);
+      } finally {
+        this.readyPending = false;
+      }
+      if (gen !== this.gen || this.disposed || this.host.stage !== stage || this.state.phase !== phase) {
+        if (!this.disposed && this.host.stage === stage && shown) await stage.presentReady(false);
+        return false;
+      }
+      if (!shown) {
+        this.set({ screen: 'error', phase: 'idle', error: 'stage' });
+        return false;
+      }
     }
-    void this.bowlNext();
+    if (gen !== this.gen || this.disposed) return false;
+    this.set({ phase: 'ready' });
+    const proceed = (await this.wait(READY_MS)) && gen === this.gen;
+    if (!proceed) await stage?.presentReady?.(false);
+    return proceed;
   }
 
-  // ------------------------------------------------------------------------------------------------------------
-  // One ball
-  // ------------------------------------------------------------------------------------------------------------
+  /** The app is in the background as a ball is about to start: it waits, paused, and Resume bowls it. */
+  private holdWhileHidden(): boolean {
+    if (!this.hidden) return false;
+    this.pausedFrom = 'ready';
+    this.set({ phase: 'paused' });
+    return true;
+  }
 
   /** The next ball of the over in progress. */
   async bowlNext(): Promise<void> {
     this.clearTimers();
     const s = this.state.innings;
-    if (!s || s.status !== 'batting' || !s.current || this.busy()) return;
+    if (!s || s.status !== 'batting' || !s.current || isQuiet(this.state.phase) || this.state.phase === 'ready') return;
     const gen = this.gen;
-    await this.applyPendingQuality();
+    this.coachLoop.abortInsight();
+    const notice = await this.host.applyPending(() => this.setSceneFor(this.state.innings), s.assist, s.handedness);
     if (gen !== this.gen) return;
+    if (!this.host.stage) {
+      this.set({ screen: 'error', phase: 'idle', error: 'stage' });
+      return;
+    }
     const now = this.state.innings;
     const next = now ? this.engine.nextDelivery(now) : null;
-    if (!next) return;
-    const out = await this.runBall({ kind: 'innings', ...next, overNumber: next.overIndex + 1, ballNumber: next.ballIndex + 1, next });
-    if (!out || gen !== this.gen) return;
-    this.continueAfterBall(true);
-  }
-
-  private busy(): boolean {
-    const p = this.state.phase;
-    return p === 'runup' || p === 'live' || p === 'playing';
-  }
-
-  private simToPerf(t: number): number {
-    const v = this.stage?.simToPerf(t);
-    return typeof v === 'number' && Number.isFinite(v) ? v : this.releasePerfMs + (t * 1000) / this.clock.scale;
-  }
-
-  /** Bowls one delivery and resolves it through the physics; innings balls are committed and saved first. */
-  private async runBall(b: BallSpec): Promise<{ result: DeliveryResult; record: DeliveryRecord | null } | null> {
-    const stage = this.stage;
-    if (!stage) return null;
-    const gen = this.gen;
+    if (!next || !now) return;
+    // Latched after any quality change between balls, so the over's first ball and the five after it share one value.
+    const help = this.latchTolerance(now);
+    // A notice raised between balls stays for this ball's dead ball (one raised as the over began stays for its first
+    // ball, and a change in timing help, which changes the batting, says so first); the others are cleared as it starts.
+    const opening = (now.current?.deliveries.length ?? 0) === 0;
+    const keep = opening ? this.openingNotice : null;
+    this.openingNotice = null;
+    this.set({ notice: help.notice ?? notice ?? keep, last: null, insight: null, replay: null });
     this.hiddenPause = false;
-    await this.waitLandscape();
-    if (gen !== this.gen) return null;
-    await this.waitTap();
-    if (gen !== this.gen) return null;
-    const flight = this.engine.flight({ plan: b.plan, bowler: b.bowler, conditions: b.conditions, seed: b.seed, handedness: b.handedness });
-    if (b.kind === 'innings') {
-      const s = this.state.innings!;
-      this.set({ innings: this.engine.inningsReducer(s, { type: 'deliveryStarted' }) });
-      this.persist();
+    this.pauseNativeAtDeadBall = false;
+    const spec: BallSpec = { kind: 'innings', ...next, overNumber: next.overIndex + 1, ballNumber: next.ballIndex + 1, next, context: this.deps.deliveryContext?.({ runs: now.runs, wicketsInHand: 1, ballsLeft: PRACTICE_MAX_OVERS * 6 - now.balls }), toleranceMs: help.ms };
+    this.set({ ball: { kind: 'innings', overNumber: spec.overNumber, ballNumber: spec.ballNumber, bowler: next.bowler } });
+    if (this.holdWhileHidden()) return;
+    if (!(await this.ready(gen))) return;
+    if (this.holdWhileHidden()) return;
+    // Never bowled onto a stage that is not ready: wait for the one being prepared, or stop calmly.
+    if (!this.host.stage || !this.state.stageReady || this.host.isPreparing()) {
+      this.set({ phase: 'loading' });
+      const stage = await this.host.prepare(now.assist, now.handedness);
+      if (gen !== this.gen) return;
+      if (!stage) {
+        this.set({ screen: 'error', phase: 'idle', error: 'stage' });
+        return;
+      }
     }
-    this.interrupted = false;
-    const key = `${b.kind}:${b.overNumber}.${b.ballNumber}:${this.clock.now().toFixed(0)}`;
-    const notice = this.noticeFresh ? this.state.notice : null;
-    this.noticeFresh = false;
-    this.set({
-      notice,
-      phase: 'runup',
-      ball: { kind: b.kind, overNumber: b.overNumber, ballNumber: b.ballNumber, bowler: b.bowler },
-      gesture: { enabled: false, key },
-      last: null,
-      announce: this.deps.words ? { text: this.deps.words.runup(b.ballNumber), id: Date.now() } : this.state.announce,
+    const out = await this.runner.run(spec);
+    if (!out || gen !== this.gen) return;
+    const inn = this.state.innings!;
+    this.coachLoop.remember(out.record, out.result);
+    const latency = out.result.swing ? this.host.stage?.stats().lastInputToBatMs ?? null : null;
+    this.track('practice_delivery', {
+      assist: next.assist,
+      tier: this.state.quality.tier,
+      timing: timingProp(out.result),
+      intentMatch: intentMatch(out.result),
+      outcome: outcomeProp(out.result.outcome),
+      ...(latency !== null && Number.isFinite(latency) ? { latencyBucket: latencyBucket(latency) } : {}),
     });
-    this.sampler.start();
-    let releasePerfMs: number;
-    try {
-      releasePerfMs = (await stage.bowl(flight)).releasePerfMs;
-    } catch {
-      releasePerfMs = this.clock.now();
-      this.interrupted = true;
+    if (this.settings.hintsShown < 10) {
+      this.settings = { ...this.settings, hintsShown: this.settings.hintsShown + 1 };
+      this.coachLoop.saveHints(this.settings.hintsShown);
     }
-    if (gen !== this.gen || this.disposed) return null;
-    this.releasePerfMs = releasePerfMs;
-    if (!this.firstDelivery) {
-      this.firstDelivery = true;
-      const ms = releasePerfMs - this.openedAt;
-      this.ttfd = ms;
-      this.saveMetrics(addTtfd(this.metrics, ms));
-      this.track('practice_first_delivery', { ttfdBucket: ttfdBucket(ms), assist: b.assist });
-    }
-    this.set({ phase: 'live', gesture: { enabled: !this.interrupted, key } });
-    const swing = this.interrupted ? null : await this.awaitSwing(flight, releasePerfMs, b.kind, b.handedness);
-    if (gen !== this.gen || this.disposed) return null;
-    this.set({ gesture: { enabled: false, key } });
-    const tierToleranceMs = this.state.quality.toleranceMs;
-    const result =
-      b.kind === 'repeat' && b.source
-        ? this.engine.repeatDelivery(b.source, swing)
-        : this.engine.resolveDelivery({ flight, swing, field: b.field, bowler: b.bowler, conditions: b.conditions, handedness: b.handedness, assist: b.assist, tierToleranceMs });
-    let record: DeliveryRecord | null = b.source ?? null;
-    if (b.kind === 'innings' && b.next) {
-      const s = this.state.innings!;
-      record = this.engine.makeRecord(b.next, swing, tierToleranceMs, result);
-      // Committed and saved before anything shows it: closing the app now cannot change this ball. A ball settled
-      // because the app went away is marked, so a next start (after a kill) can say what happened.
-      this.set({ innings: this.engine.inningsReducer(s, { type: 'deliveryResolved', record }) });
-      this.persist(this.interrupted ? 'resumed_leave' : null);
-      this.results.set(`${record.overIndex}:${record.ballIndex}`, result);
-    }
-    this.set({ phase: 'playing' });
-    try {
-      await stage.play(result);
-    } catch {
-      /* a stage that failed mid-play is replaced between balls; the result already stands */
-    }
-    this.sampler.stop();
-    if (gen !== this.gen || this.disposed) return null;
-    const latency = swing ? stage.stats().lastInputToBatMs : null;
-    this.saveMetrics(addDelivery(b.kind === 'repeat' ? bump(this.metrics, 'repeats') : b.kind === 'warmup' ? bump(this.metrics, 'warmups') : this.metrics, result, { scoring: b.kind === 'innings', latencyMs: latency }));
-    if (this.settings.hintsShown < 10) this.settings = updatePracticeSettings({ hintsShown: this.settings.hintsShown + 1 }, this.store);
-    const last: LastBall = { kind: b.kind, result, record, overNumber: b.overNumber, ballNumber: b.ballNumber, interrupted: this.interrupted };
-    const board = b.kind === 'innings' ? this.boardOf(this.state.innings!) : this.state.board;
-    if (b.kind === 'innings') {
-      this.track('practice_delivery', {
-        assist: b.assist,
-        tier: this.state.quality.tier,
-        timing: timingProp(result),
-        intentMatch: intentMatch(result),
-        outcome: outcomeProp(result.outcome),
-        ...(latency !== null && Number.isFinite(latency) ? { latencyBucket: latencyBucket(latency) } : {}),
-      });
-    }
+    const board = this.boardOf(inn);
+    const last = { kind: 'innings' as const, result: out.result, record: out.record, overNumber: spec.overNumber, ballNumber: spec.ballNumber, interrupted: out.interrupted };
     this.set({
-      phase: 'coaching',
+      phase: this.hiddenPause ? 'paused' : 'dead',
       last,
       board,
-      notice: this.interrupted ? 'interrupted' : this.state.notice,
+      notice: out.interrupted ? 'interrupted' : this.state.notice,
       announce: this.deps.words ? { text: this.deps.words.outcome(last, board), id: Date.now() } : this.state.announce,
     });
-    return { result, record };
+    if (this.hiddenPause) {
+      this.pausedFrom = 'dead';
+      if (this.pauseNativeAtDeadBall) {
+        this.pauseNativeAtDeadBall = false;
+        const pauseTask = this.host.stage?.pause?.('player');
+        void pauseTask?.catch(() => undefined);
+      }
+    }
+    this.coachLoop.analyzeLast();
+    if (this.deps.hooks?.autoNext) this.after(AUTO_NEXT_MS, () => this.nextBall());
   }
 
-  private awaitSwing(flight: BallFlight, releasePerfMs: number, kind: BallKind, handedness: Handedness): Promise<NormalizedSwing | null> {
-    return new Promise((resolve) => {
-      let done = false;
-      let cancels: Array<() => void> = [];
-      const finish = (swing: NormalizedSwing | null) => {
-        if (done) return;
-        done = true;
-        for (const c of cancels) c();
-        cancels = [];
-        this.waiter = null;
-        this.swingStartPerf = null;
-        resolve(swing);
-      };
-      const at = (perfMs: number, cb: () => void) => {
-        const id = setTimeout(cb, Math.max(0, perfMs - this.clock.now()));
-        cancels.push(() => clearTimeout(id));
-      };
-      const calibration = calibrationMs(this.store);
-      this.swingStartPerf = null;
-      const injected = this.deps.hooks?.takeSwing?.(flight, kind) ?? null;
-      const injectedStart = injected && injected !== 'leave' ? this.simToPerf(injected.startT) : null;
-      // No gesture by the time the ball has passed the stumps: a leave. Timing is judged by the events' own
-      // timestamps, never by when a busy main thread got round to them: a swing that started before the deadline
-      // still counts (its gesture is on its way), and input already queued is handled before a leave is declared.
-      const deadline = this.simToPerf(flight.stumpsT + LEAVE_GRACE_S);
-      at(deadline, () => {
-        if (injectedStart !== null && injectedStart <= deadline) return; // its own timer delivers it
-        if (this.swingStartPerf !== null && this.swingStartPerf <= deadline) {
-          at(this.clock.now() + SWING_ARRIVAL_MS, () => finish(null));
-          return;
-        }
-        at(this.clock.now(), () => (this.swingStartPerf !== null && this.swingStartPerf <= deadline ? at(this.clock.now() + SWING_ARRIVAL_MS, () => finish(null)) : finish(null)));
-      });
-      this.waiter = {
-        gesture: (input) => {
-          const swing = this.engine.normalizeGesture(input, {
-            releasePerfMs,
-            calibrationMs: calibration,
-            handedness,
-            ...(this.clock.scale !== 1 ? { timeScale: this.clock.scale } : {}),
-          });
-          if (swing) finish(swing);
-          // Not a swing (a cancelled touch): re-arm for the rest of the delivery.
-          else {
-            this.swingStartPerf = null;
-            this.set({ gesture: { enabled: true, key: `${this.state.gesture.key}+` } });
-          }
-        },
-        interrupt: () => finish(null),
-      };
-      if (injected && injected !== 'leave' && injectedStart !== null) {
-        at(injectedStart, () => this.stage?.beginSwing(injectedStart + calibration, calibration));
-        at(injectedStart + HOOK_EMIT_MS / this.clock.scale, () => finish(injected));
-      }
+  private setSceneFor(s: PracticeInningsState | null): void {
+    if (!s?.current) return;
+    this.host.stage?.setScene({
+      field: s.current.field,
+      ...(this.state.intent ? { fieldIntent: this.state.intent.intention } : {}),
+      ...(this.state.overKind ? { trainingObjective: this.state.overKind } : {}),
+      bowler: s.current.plan.bowler,
+      conditions: s.conditions,
+      handedness: s.handedness,
+      ball: s.current.plan.ball,
     });
   }
 
-  /** From the GestureSurface. */
-  onSwingStart = (atPerfMs: number): void => {
-    if (this.state.phase !== 'live' || !this.state.gesture.enabled) return;
-    if (this.swingStartPerf === null) this.swingStartPerf = atPerfMs;
-    this.stage?.beginSwing(atPerfMs, calibrationMs(this.store));
-  };
-
-  onGesture = (input: GestureInput): void => {
-    if (this.state.phase === 'live') this.waiter?.gesture(input);
-  };
-
-  /** After a ball's card: the next ball, or the summary the innings reached. */
-  private continueAfterBall(auto = false): void {
-    const s = this.state.innings;
-    const last = this.state.last;
-    if (this.hiddenPause) {
-      this.set({ phase: 'paused' });
-      return;
-    }
-    if (last?.kind === 'warmup') {
-      this.set({ phase: 'warmup_explain' });
-      return;
-    }
-    if (last?.kind === 'repeat') {
-      this.set({ phase: 'coaching' });
-      return;
-    }
-    if (!s) return;
-    if (s.status === 'batting') {
-      if (auto) this.after(COACH_MS, () => this.nextBall());
-      else void this.bowlNext();
-      return;
-    }
-    const show = () => this.showEnd(s);
-    if (auto) this.after(END_MS, show);
-    else show();
-  }
-
-  /** "Next ball" on the card (or its time ran out). */
+  /** "Next ball" (the dead ball's secondary action): the next ball, or the summary the innings reached. */
   nextBall(): void {
-    if (this.state.phase !== 'coaching' && this.state.phase !== 'paused') return;
+    const ph = this.state.phase;
+    if (ph !== 'dead' && ph !== 'paused') return;
     this.clearTimers();
     const s = this.state.innings;
-    if (this.state.last?.kind === 'innings' && s && s.status !== 'batting') {
+    if (s && s.status !== 'batting') {
       this.showEnd(s);
-      return;
-    }
-    if (this.hiddenPause) {
-      this.set({ phase: 'paused' });
       return;
     }
     void this.bowlNext();
@@ -1087,10 +693,10 @@ export class PracticeFlow {
 
   private showEnd(s: PracticeInningsState): void {
     this.clearTimers();
+    this.coachLoop.abortInsight();
     if (s.status === 'over_complete') {
-      const over = s.overs.length;
       this.saveMetrics(bump(this.metrics, 'overs'));
-      this.track('practice_over_completed', { overNumber: overNumberProp(over), assist: s.assist });
+      this.track('practice_over_completed', { overNumber: overNumberProp(s.overs.length), assist: s.assist });
       this.set({ screen: 'over_summary', phase: 'idle' });
     } else if (s.status === 'out') {
       this.track('practice_wicket', { overNumber: overNumberProp(s.overs.length + 1), assist: s.assist });
@@ -1102,7 +708,6 @@ export class PracticeFlow {
       this.finishInnings(s, 'complete');
       this.set({ screen: 'complete', phase: 'idle' });
     }
-    if (this.state.guided) this.set({ guided: false });
   }
 
   private finishInnings(s: PracticeInningsState, how: 'out' | 'complete' | 'abandon'): void {
@@ -1116,56 +721,113 @@ export class PracticeFlow {
     });
   }
 
-  // ------------------------------------------------------------------------------------------------------------
-  // Between overs, the end of the innings
-  // ------------------------------------------------------------------------------------------------------------
-
-  /** Moves a completed over on to choosing the next one (Next Over, or Build the next over). */
-  private toNextOver(): boolean {
+  /** Restart over (pause panel, confirmed): the same over from its first ball; its runs so far are removed. */
+  restartOver(): boolean {
     const s = this.state.innings;
-    if (!s || s.status !== 'over_complete') return s?.status === 'choosing_over';
-    const next = this.engine.inningsReducer(s, { type: 'nextOver' });
-    this.set({ innings: next });
+    if (!s || s.status !== 'batting' || !s.current || s.current.deliveries.length === 0 || this.busy()) return false;
+    const next = this.engine.inningsReducer(s, { type: 'restartOver' }) as PracticeInningsState | undefined;
+    if (!next || next === s || next.status !== 'batting' || next.current?.deliveries.length !== 0) return false;
+    this.gen++;
+    this.clearTimers();
+    this.set({ innings: next, board: this.boardOf(next), last: null, insight: null, phase: 'idle', notice: null });
     this.persist();
-    this.saveMetrics(bump(this.metrics, 'nextOver'));
-    this.track('practice_next_over', { overNumber: overNumberProp(next.overs.length + 1), assist: next.assist });
+    void this.bowlNext();
     return true;
   }
 
-  /** Next Over: a new random over (six unknown deliveries). */
-  async nextOver(): Promise<void> {
-    if (!this.toNextOver()) return;
-    await this.continueWith(this.randomPlan());
+  // ------------------------------------------------------------------------------------------------------------
+  // Pause, the app going away, leaving
+  // ------------------------------------------------------------------------------------------------------------
+
+  pause(): void {
+    const p = this.state.phase;
+    if (p === 'paused' || this.state.screen !== 'live') return;
+    // The native pause target remains visible while the ready scene is being acknowledged and during its short cue.
+    // Both are pre-delivery states: Resume must retry the same unbowled ball, not restore a dead-ball card we cleared.
+    if (this.readyPending || p === 'ready') {
+      this.clearTimers();
+      this.pausedFrom = 'ready';
+      this.set({ phase: 'paused' });
+      const task = this.host.stage?.pause?.('player');
+      void task?.catch(() => undefined);
+      return;
+    }
+    if (this.busy()) return;
+    this.clearTimers();
+    this.pausedFrom = p === 'idle' ? 'dead' : p;
+    this.set({ phase: 'paused' });
+    const task = this.host.stage?.pause?.('player');
+    void task?.catch(() => undefined);
   }
 
-  /** Build the next over: the innings waits in "choosing" while the editor is open. */
-  prepareBuiltNextOver(): boolean {
-    return this.toNextOver();
+  /** Native pause remains reachable in Quiet Mode; the ball is first settled as an interrupted leave. */
+  private requestPause(): void {
+    const phase = this.state.phase;
+    if (this.state.screen !== 'live' || phase === 'paused') return;
+    if (isQuiet(phase)) {
+      this.clearTimers();
+      this.hiddenPause = true;
+      this.pauseNativeAtDeadBall = true;
+      this.runner.interrupt();
+      return;
+    }
+    this.pause();
   }
 
-  private async continueWith(plan: PracticeOverPlan): Promise<void> {
-    const s = this.state.innings;
-    if (!s || s.status !== 'choosing_over') return;
-    const gen = ++this.gen;
-    const stage = await this.ensureStage(s.assist, s.handedness);
-    if (!stage || gen !== this.gen) return;
-    this.chooseOver(plan, { radar: true });
+  /**
+   * Semantic DOM/TalkBack mirror of the native Unity Pause control. It deliberately shares the native deferred
+   * authority path: during Quiet Mode the current ball settles as an interrupted leave before the stage is hidden.
+   */
+  requestUnityPause(): void {
+    this.requestPause();
   }
 
-  /** End innings from the over summary: the score is final. */
-  endInnings(): void {
-    const s = this.state.innings;
-    if (!s) return;
-    this.finishInnings(this.engine.inningsReducer(s, { type: 'abandon' }), 'abandon');
-    clearInnings(this.store);
-    this.set({ innings: null, screen: 'idle', phase: 'idle' });
+  resume(): void {
+    this.hiddenPause = false;
+    this.pauseNativeAtDeadBall = false;
+    if (this.state.phase !== 'paused') return;
+    const task = this.host.stage?.resume?.('player');
+    void task?.catch(() => undefined);
+    if (this.pausedFrom === 'ready') {
+      // Paused just before a ball (the app went away): Resume bowls it.
+      this.set({ phase: 'idle' });
+      void this.bowlNext();
+      return;
+    }
+    const back = this.pausedFrom === 'demo' || this.pausedFrom === 'closeup' || this.pausedFrom === 'replay' ? 'dead' : this.pausedFrom;
+    this.set({ phase: back });
+    if (back === 'dead' && this.deps.hooks?.autoNext) this.after(AUTO_NEXT_MS, () => this.nextBall());
   }
 
-  /** Leaving a finished innings' summary forgets it on the device. */
-  closeFinished(): void {
-    const s = this.state.innings;
-    if (s && (s.status === 'out' || s.status === 'complete')) clearInnings(this.store);
-    this.set({ innings: null, board: EMPTY_BOARD, last: null });
+  /**
+   * The app went to the background. During a delivery the swing is gone, so the ball resolves as a leave at once
+   * (exactly what a resumed innings would do) and then waits, paused. Between balls nothing else starts.
+   */
+  setHidden(hidden: boolean): void {
+    this.hidden = hidden;
+    if (!hidden) {
+      const task = this.host.stage?.resume?.('foreground');
+      void task?.catch(() => undefined);
+      return;
+    }
+    // A real background pause supersedes a deferred in-app native Pause; the
+    // stage is already being hidden and must not be paused a second time at dead ball.
+    this.pauseNativeAtDeadBall = false;
+    const pauseTask = this.host.stage?.pause?.('background');
+    void pauseTask?.catch(() => undefined);
+    const p = this.state.phase;
+    this.clearTimers();
+    if (isQuiet(p)) {
+      this.hiddenPause = true;
+      this.runner.interrupt();
+    } else if (this.state.screen === 'live' && p === 'dead') {
+      this.pausedFrom = 'dead';
+      this.set({ phase: 'paused' });
+    } else if (this.state.screen === 'live' && p === 'ready') {
+      // The hint's wait was cleared above (bowlNext stops): the ball waits, paused, for Resume.
+      this.pausedFrom = 'ready';
+      this.set({ phase: 'paused' });
+    }
   }
 
   /**
@@ -1179,189 +841,81 @@ export class PracticeFlow {
     this.persist();
   }
 
-  /** Back to the menu (the innings stays saved; a ball in play is resolved as a leave). */
+  /**
+   * Back to the Practice home (the innings stays saved; a ball in play is resolved as a leave). The mounted stage is
+   * kept for the next over or innings, so its shaders and first render are paid once per visit.
+   */
   leave(): void {
     this.gen++;
     this.clearTimers();
-    this.waiter?.interrupt();
-    this.waiter = null;
+    this.runner.interrupt();
+    this.coachLoop.abortInsight();
     this.settleInFlight();
-    this.disposeStage();
-    this.set({ screen: 'idle', phase: 'idle', replay: null, gesture: { enabled: false, key: this.state.gesture.key }, needLandscape: false });
-  }
-
-  // ------------------------------------------------------------------------------------------------------------
-  // Results, replays and non-scoring repeats
-  // ------------------------------------------------------------------------------------------------------------
-
-  /** The resolved result of a committed delivery (re-simulated from its record when not cached). */
-  resultOf(record: DeliveryRecord): DeliveryResult {
-    const key = `${record.overIndex}:${record.ballIndex}`;
-    let r = this.results.get(key);
-    if (!r) {
-      r = this.engine.replayDelivery(record);
-      this.results.set(key, r);
-    }
-    return r;
-  }
-
-  /** Results resolved or re-simulated so far, keyed "overIndex:ballIndex" (for the game's summaries). */
-  resultsMap(): ReadonlyMap<string, DeliveryResult> {
+    this.host.stage?.setAssistance(null, null);
     const s = this.state.innings;
-    if (s) for (const o of [...s.overs, ...(s.current ? [s.current] : [])]) for (const r of o.deliveries) this.resultOf(r);
-    return this.results;
+    this.set({ screen: 'idle', phase: 'idle', replay: null, coach: null, pending: null, gesture: { enabled: false, key: this.state.gesture.key }, needLandscape: false, board: s ? this.boardOf(s) : EMPTY_BOARD });
   }
 
-  /** Every result of an over (index into innings.overs, or the over in progress). */
-  overResults(overIndex: number): DeliveryResult[] {
-    const s = this.state.innings;
-    if (!s) return [];
-    const over = s.overs[overIndex] ?? (overIndex === s.overs.length ? s.current : null);
-    return over ? over.deliveries.map((r) => this.resultOf(r)) : [];
-  }
-
-  /** Replay This Over (the last completed over). */
-  replayOver(overIndex?: number): void {
+  /** "End innings" from the over summary (confirmed): the score is final. */
+  endInnings(): void {
     const s = this.state.innings;
     if (!s) return;
-    const i = overIndex ?? s.overs.length - 1;
-    const over = s.overs[i];
-    if (!over) return;
-    void this.startReplay('over', over.deliveries.map((r) => ({ result: this.resultOf(r), overNumber: i + 1, ballNumber: r.ballIndex + 1 })), { slow: false, diag: false });
+    this.finishInnings(this.engine.inningsReducer(s, { type: 'abandon' }), 'abandon');
+    clearInnings(this.store);
+    this.set({ innings: null, screen: 'idle', phase: 'idle', board: EMPTY_BOARD, overKind: null });
   }
 
-  /** The slow-motion diagnostic replay of the ball just played. */
-  replayLast(): void {
-    const last = this.state.last;
-    if (!last) return;
-    this.clearTimers();
-    void this.startReplay('ball', [{ result: last.result, overNumber: last.overNumber, ballNumber: last.ballNumber }], { slow: true, diag: true });
-  }
-
-  /** The dismissal, in slow motion with the diagnostics. */
-  replayDismissal(): void {
-    const rec = this.state.innings?.dismissal?.record;
-    if (!rec) return;
-    void this.startReplay('dismissal', [{ result: this.resultOf(rec), overNumber: rec.overIndex + 1, ballNumber: rec.ballIndex + 1 }], { slow: true, diag: true });
-  }
-
-  /** The stage, created when a summary was reached without one (a resumed, finished innings). */
-  private async withStage(): Promise<PracticeStageLike | null> {
-    if (this.stage) return this.stage;
-    const screen = this.state.screen;
+  /** Leaving a finished innings' summary forgets it on the device. */
+  closeFinished(): void {
     const s = this.state.innings;
-    this.pendingStart = () => this.set({ screen });
-    const stage = await this.ensureStage(s?.assist ?? this.settings.assist, s?.handedness ?? this.settings.handedness);
-    if (!stage) return null;
-    this.pendingStart = null;
-    this.set({ screen });
-    return stage;
-  }
-
-  private async startReplay(kind: ReplayState['kind'], items: ReplayItem[], opts: { slow: boolean; diag: boolean }): Promise<void> {
-    if (!items.length || this.busy()) return;
-    const back = { screen: this.state.screen, phase: this.state.phase };
-    if (!(await this.withStage())) return;
-    this.saveMetrics(bump(this.metrics, 'replays'));
-    this.track('practice_replay', { overNumber: overNumberProp(items[0].overNumber) });
-    this.set({ replay: { kind, items, index: 0, slow: opts.slow, diag: opts.diag, playing: false, back }, screen: 'live', phase: 'replay' });
-    void this.playReplay(0);
-  }
-
-  private replayGen = 0;
-
-  private async playReplay(index: number): Promise<void> {
-    const r = this.state.replay;
-    const stage = this.stage;
-    if (!r || !stage || index < 0 || index >= r.items.length) return;
-    const gen = ++this.replayGen;
-    this.set({ replay: { ...r, index, playing: true } });
-    try {
-      await stage.replay(r.items[index].result, { speed: r.slow ? 0.3 : 1, diagnostics: r.diag });
-    } catch {
-      /* nothing to show */
-    }
-    if (gen !== this.replayGen || !this.state.replay) return;
-    const cur = this.state.replay;
-    // A whole over plays through; a single ball stays on its last frame.
-    if (cur.kind === 'over' && index + 1 < cur.items.length) void this.playReplay(index + 1);
-    else this.set({ replay: { ...cur, playing: false } });
-  }
-
-  replaySelect(index: number): void {
-    void this.playReplay(index);
-  }
-
-  replayToggle(what: 'slow' | 'diag'): void {
-    const r = this.state.replay;
-    if (!r) return;
-    this.set({ replay: { ...r, [what]: !r[what] } });
-    void this.playReplay(r.index);
-  }
-
-  closeReplay(): void {
-    const r = this.state.replay;
-    if (!r) return;
-    this.replayGen++;
-    this.set({ replay: null, screen: r.back.screen, phase: r.back.phase === 'replay' ? 'idle' : r.back.phase });
-  }
-
-  /** Repeat a ball of the last completed over, or the dismissal ball: same plan and seed, never counts. */
-  async repeatBall(record: DeliveryRecord): Promise<void> {
-    if (this.busy()) return;
-    const stage = await this.withStage();
-    if (!stage) return;
-    const gen = this.gen;
-    this.clearTimers();
-    stage.setScene({ field: record.field, bowler: record.bowler, conditions: record.conditions, handedness: record.handedness });
-    this.set({ screen: 'live', phase: 'idle', replay: null, field: record.field });
-    const out = await this.runBall({
-      kind: 'repeat',
-      plan: record.plan,
-      bowler: record.bowler,
-      seed: record.seed,
-      field: record.field,
-      conditions: record.conditions,
-      assist: record.assist,
-      handedness: record.handedness,
-      overNumber: record.overIndex + 1,
-      ballNumber: record.ballIndex + 1,
-      source: record,
-    });
-    if (!out || gen !== this.gen) return;
-  }
-
-  /** From a repeat's card: back to the summary it came from. */
-  backToSummary(): void {
-    const s = this.state.innings;
-    this.clearTimers();
-    const screen: FlowScreen = s?.status === 'out' ? 'out' : s?.status === 'complete' ? 'complete' : 'over_summary';
-    this.set({ screen, phase: 'idle', last: null });
+    if (s && (s.status === 'out' || s.status === 'complete')) clearInnings(this.store);
+    this.set({ innings: null, board: EMPTY_BOARD, last: null, insight: null, screen: 'idle', phase: 'idle', overKind: null });
   }
 
   // ------------------------------------------------------------------------------------------------------------
   // Helpers and teardown
   // ------------------------------------------------------------------------------------------------------------
 
-  private boardOf(s: PracticeInningsState): FlowState['board'] {
+  boardOf(s: PracticeInningsState): Board {
     const lastOver = s.overs[s.overs.length - 1]?.deliveries ?? [];
     const balls = s.current ? s.current.deliveries : s.status === 'batting' ? [] : lastOver;
     return { runs: s.runs, wickets: s.status === 'out' ? 1 : 0, balls: s.balls, over: balls.map((r) => ({ runs: r.runs, dismissal: r.dismissal })) };
   }
 
-  /** The innings' plan for an over (summaries and repeats). */
-  overPlan(overIndex: number): PracticeOverPlan | null {
-    const s = this.state.innings;
-    return s?.overs[overIndex]?.plan ?? (overIndex === s?.overs.length ? (s?.current?.plan ?? null) : null);
+  /** Every result of an over (index into innings.overs, or the over in progress). */
+  overResults(overIndex: number): DeliveryResult[] {
+    return this.coachLoop.overResults(overIndex);
+  }
+
+  resultOf(record: DeliveryRecord): DeliveryResult {
+    return this.coachLoop.resultOf(record);
+  }
+
+  resultsMap(): ReadonlyMap<string, DeliveryResult> {
+    return this.coachLoop.resultsMap();
   }
 
   dispose(): void {
     this.gen++;
     this.clearTimers();
-    this.waiter?.interrupt();
+    this.runner.interrupt();
+    this.coachLoop.abortInsight();
     this.settleInFlight();
-    this.disposeStage();
+    this.work?.dispose();
+    this.host.dispose();
     this.disposed = true;
-    this.listeners.clear();
+    this.clearListeners();
   }
+
+  /** The shown state, for the coach loop (it shares this flow's state). */
+  setState(patch: Partial<FlowState>): void {
+    this.set(patch);
+  }
+}
+
+/** The kind of over an innings was batting, from its plan (a restart forgets whether a random over was Quick). */
+function kindOf(s: PracticeInningsState): OverKind | null {
+  const plan = s.current?.plan ?? s.overs[s.overs.length - 1]?.plan;
+  if (!plan) return null;
+  return plan.source === 'reference' ? 'reference' : plan.source === 'built' ? 'built' : 'random';
 }

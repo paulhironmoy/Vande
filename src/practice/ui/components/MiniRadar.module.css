@@ -1,0 +1,82 @@
+/*
+ * The field inset (MiniRadar.tsx FieldPip): a square in a top corner, directly below the rail on that side (the
+ * tallest its measured bottom has been this visit, --pip-rail, so it never jumps when the rail drops its words in the
+ * run-up), on the side the dead ball's card does not use. Sized from the screen's height, never in rem: it holds no
+ * text, so a larger text size grows the rail above it, not the picture, and its bottom stays above the floor (55% of
+ * the height) where the batter's bat and the near pitch begin. A picture, never a control: it takes no pointer
+ * events, so the gesture surface and the controls beneath are never blocked.
+ *
+ * The stage reports the moment it shows (data-pip-moment): quiet (the run-up) dims it at once, with no transition;
+ * hidden (the release until the fielding camera, measured: no corner is clear of the ball path, the pitch and the bat
+ * then) takes it out of the picture instantly. Before any stage paints (data-pip-drawn), the field as set stands in,
+ * dimmed in the run-up and out of the live ball by the flow's phase.
+ */
+.pip {
+  /* The side is set by the component (fieldPipSize: this, held above the floor at 55% of the height); this is only
+     its first value. */
+  --pip-size: clamp(88px, 29vh, 148px);
+  position: absolute;
+  z-index: 2;
+  width: var(--pip-size);
+  height: var(--pip-size);
+  pointer-events: none;
+  contain: strict;
+}
+
+/* No room below the rail (a large text size): not drawn; the conditions control's radar shows the players instead. */
+.pip[data-room='none'] {
+  visibility: hidden;
+}
+
+/* The run-up's screen budget (owner decision, 2026-11-04): where the quiet rail and the inset would cover more than 8%
+   of the screen, the inset is not drawn in the run-up (an instant change at its start, with the rail's own), and the
+   radar keeps the field. It returns with the chase or the dead ball. */
+.pip[data-quiet-budget='over'][data-pip-moment='quiet'],
+.pip[data-quiet-budget='over']:not([data-pip-drawn='1'])[data-phase='quiet'] {
+  visibility: hidden;
+}
+
+.pip[data-side='right'] {
+  --pip-top: calc(var(--pip-rail, var(--p-rail-bottom, 4rem)) + var(--p-1));
+  top: var(--pip-top);
+  right: calc(var(--p-safe-r) + var(--p-2));
+}
+
+.pip[data-side='left'] {
+  --pip-top: calc(var(--pip-rail, var(--p-rail-left-bottom, 6rem)) + var(--p-1));
+  top: var(--pip-top);
+  left: calc(var(--p-safe-l) + var(--p-2));
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pip[data-pip-drawn='1'] svg.fill {
+  display: none;
+}
+
+.pip[data-pip-moment='quiet'],
+.pip:not([data-pip-drawn='1'])[data-phase='quiet'] {
+  opacity: 0.55;
+}
+
+.pip[data-pip-moment='hidden'],
+.pip:not([data-pip-drawn='1'])[data-phase='live'] {
+  visibility: hidden;
+}
+
+.pip,
+.pip * {
+  transition: none !important;
+  animation: none !important;
+}
+
+:global([data-contrast='high']) .pip {
+  outline: 2px solid #fff;
+  border-radius: 10%;
+}

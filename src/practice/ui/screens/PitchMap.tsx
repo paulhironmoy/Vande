@@ -1,5 +1,6 @@
 /**
- * The pitch map: tap (or drag, or use the arrow keys) where the ball should pitch. Drawn in the batter's own
+ * The pitch map: tap (or drag, or use the arrow keys) where the ball should pitch: one tap sets a ball's line and
+ * length. Drawn in the batter's own
  * orientation (the striker's stumps at the bottom, the batter's off side on the off side), with the game's legal
  * area and its own length and line bands (sampled from src/practice/game, never re-defined here).
  */
@@ -7,7 +8,7 @@ import { useMemo, useRef, type KeyboardEvent, type PointerEvent } from 'react';
 import type { BowlerFamily, Handedness } from '@/contracts';
 import { usePracticeT } from '@/i18n/practice';
 import type { BuildKit, LengthBand } from '../flow/types';
-import s from './BuildOver.module.css';
+import s from './Predefined.module.css';
 
 const W = 60;
 const H = 150;

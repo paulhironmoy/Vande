@@ -1,0 +1,143 @@
+/*
+ * One continuous match-day world for the Practice shell. The bitmap is the optimised, registered VANDE stadium
+ * derivative at /practice/stadium-shell.webp; every other shape is original CSS and doubles as the image fallback.
+ */
+.world {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 21%, rgba(104, 184, 225, 0.2), transparent 31%),
+    linear-gradient(180deg, #25445d 0%, #172f3b 42%, #10251c 43%, #07120e 100%);
+}
+
+.stadium {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(180deg, rgba(5, 10, 14, 0.08) 0%, rgba(5, 10, 14, 0.12) 48%, rgba(5, 10, 14, 0.62) 100%),
+    url('/practice/stadium-shell.webp');
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: saturate(0.82) contrast(1.04);
+  transform: scale(1.015);
+  transform-origin: center;
+}
+
+.outfield {
+  position: absolute;
+  inset: 58% -8% -18%;
+  background:
+    repeating-linear-gradient(94deg, rgba(137, 184, 105, 0.04) 0 8vw, rgba(9, 38, 24, 0.11) 8vw 16vw),
+    linear-gradient(180deg, rgba(16, 47, 29, 0) 0%, rgba(5, 19, 12, 0.68) 64%, #07100c 100%);
+  transform: perspective(34rem) rotateX(58deg) scale(1.2);
+  transform-origin: 50% 0;
+}
+
+.pitch {
+  position: absolute;
+  left: 50%;
+  bottom: -9%;
+  width: clamp(9rem, 20vw, 17rem);
+  height: 55%;
+  transform: translateX(-50%);
+  clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%);
+  background:
+    linear-gradient(90deg, transparent 0 3%, rgba(247, 240, 220, 0.34) 3% 3.7%, transparent 3.7% 96.3%, rgba(247, 240, 220, 0.34) 96.3% 97%, transparent 97%),
+    linear-gradient(180deg, rgba(201, 164, 105, 0.18), rgba(126, 91, 50, 0.5));
+  border-bottom: 1px solid rgba(245, 235, 212, 0.42);
+  opacity: 0.58;
+}
+
+.crease {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 22%;
+  height: 1px;
+  background: rgba(249, 243, 226, 0.74);
+  box-shadow: 0 2.35rem 0 rgba(249, 243, 226, 0.48);
+}
+
+.stumps {
+  position: absolute;
+  left: calc(50% - 1px);
+  bottom: 22%;
+  width: 2px;
+  height: 2.8rem;
+  border-radius: 2px 2px 0 0;
+  background: rgba(247, 235, 203, 0.84);
+  box-shadow: -0.42rem 0 0 rgba(247, 235, 203, 0.84), 0.42rem 0 0 rgba(247, 235, 203, 0.84);
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(5, 8, 11, 0.86) 0%, rgba(5, 8, 11, 0.48) 42%, rgba(5, 8, 11, 0.12) 72%, rgba(5, 8, 11, 0.4) 100%),
+    linear-gradient(180deg, rgba(5, 8, 11, 0.28) 0%, transparent 35%, rgba(5, 8, 11, 0.64) 100%);
+}
+
+.grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.16;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.18) 0.45px, transparent 0.55px);
+  background-size: 4px 4px;
+  mix-blend-mode: soft-light;
+}
+
+.setup .stadium {
+  filter: saturate(0.66) brightness(0.72) contrast(1.08);
+}
+
+.setup .pitch {
+  opacity: 0.34;
+}
+
+.setup .scrim {
+  background:
+    linear-gradient(90deg, rgba(5, 8, 11, 0.82) 0%, rgba(5, 8, 11, 0.55) 48%, rgba(5, 8, 11, 0.72) 100%),
+    linear-gradient(180deg, rgba(5, 8, 11, 0.48) 0%, transparent 32%, rgba(5, 8, 11, 0.78) 100%);
+}
+
+@media (max-width: 44rem), (orientation: portrait) {
+  .stadium {
+    background-position: center top;
+  }
+
+  .pitch {
+    width: clamp(10rem, 54vw, 18rem);
+    height: 50%;
+  }
+
+  .scrim,
+  .setup .scrim {
+    background:
+      linear-gradient(180deg, rgba(5, 8, 11, 0.28) 0%, rgba(5, 8, 11, 0.2) 24%, rgba(5, 8, 11, 0.82) 58%, #080b0f 100%),
+      linear-gradient(90deg, rgba(5, 8, 11, 0.32), rgba(5, 8, 11, 0.1), rgba(5, 8, 11, 0.32));
+  }
+}
+
+@media (prefers-reduced-data: reduce) {
+  .stadium {
+    background-image: linear-gradient(180deg, rgba(5, 10, 14, 0.08) 0%, rgba(5, 10, 14, 0.72) 100%);
+  }
+}
+
+:global([data-contrast='high']) .stadium {
+  filter: grayscale(1) brightness(0.34) contrast(1.45);
+}
+
+:global([data-contrast='high']) .scrim,
+:global([data-contrast='high']) .setup .scrim {
+  background: rgba(0, 0, 0, 0.76);
+}
+
+:global([data-contrast='high']) .grain {
+  display: none;
+}

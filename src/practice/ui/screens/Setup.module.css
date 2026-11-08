@@ -1,0 +1,189 @@
+/* PREPARE: a match-day briefing over the loading stage, with one Play action and optional adjustments disclosed. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  overflow-y: auto;
+  isolation: isolate;
+  background: var(--p-bg, #0b0d12);
+  touch-action: auto;
+}
+
+.screen {
+  z-index: 1;
+  min-height: 100%;
+  background: transparent;
+}
+
+.screen > header {
+  background: rgba(7, 10, 14, 0.88);
+  border-bottom-color: rgba(243, 239, 231, 0.12);
+  box-shadow: 0 0.8rem 2.4rem rgba(0, 0, 0, 0.16);
+}
+
+.screen > main {
+  max-width: 76rem;
+  padding-top: clamp(var(--p-2), 3vh, var(--p-4));
+  padding-bottom: clamp(var(--p-3), 5vh, var(--p-6));
+}
+
+.screen > footer {
+  background: rgba(7, 10, 14, 0.94);
+  border-top-color: rgba(243, 239, 231, 0.16);
+  box-shadow: 0 -1rem 2.8rem rgba(0, 0, 0, 0.24);
+}
+
+.preparationDeck {
+  position: relative;
+  padding: clamp(var(--p-2), 2.2vw, var(--p-3));
+  overflow: hidden;
+  border: 1px solid rgba(243, 239, 231, 0.18);
+  border-radius: calc(var(--p-radius) + 0.4rem);
+  background: linear-gradient(145deg, rgba(16, 21, 27, 0.95), rgba(8, 11, 15, 0.9));
+  box-shadow:
+    0 1.8rem 4.5rem rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.preparationDeck::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, var(--p-accent), rgba(82, 211, 242, 0.1) 48%, transparent 82%);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.82fr) minmax(19rem, 1.18fr);
+  gap: clamp(var(--p-2), 3vw, var(--p-4));
+  align-items: start;
+}
+
+.fieldPanel,
+.briefPanel,
+.controlBrief {
+  min-width: 0;
+  border: 1px solid rgba(243, 239, 231, 0.12);
+  border-radius: var(--p-radius);
+  background: rgba(4, 8, 10, 0.38);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.fieldPanel {
+  display: grid;
+  gap: var(--p-1);
+  padding: var(--p-2);
+  align-content: start;
+}
+
+.fieldPanel h2 {
+  padding-inline: var(--p-half);
+  color: var(--p-text-2);
+}
+
+.briefPanel {
+  padding: clamp(var(--p-2), 2vw, var(--p-3));
+  border-color: rgba(82, 211, 242, 0.18);
+}
+
+.side {
+  display: grid;
+  gap: var(--p-2);
+  min-width: 0;
+}
+
+.how {
+  margin: 0;
+  font-weight: 650;
+}
+
+.controlBrief {
+  display: grid;
+  gap: var(--p-1);
+  padding: var(--p-2);
+}
+
+.adjustments {
+  border-radius: var(--p-radius);
+  background: rgba(4, 8, 10, 0.34);
+}
+
+.notice {
+  margin: 0;
+  padding: var(--p-1) var(--p-2);
+  border-radius: var(--p-radius-sm);
+  border-inline-start: 3px solid var(--p-caution);
+  background: rgba(20, 23, 30, 0.94);
+  font-weight: 600;
+}
+
+.choices {
+  display: grid;
+  gap: var(--p-1);
+}
+
+@media (max-width: 52rem), (orientation: portrait) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fieldPanel {
+    width: min(100%, 32rem);
+    justify-self: center;
+  }
+}
+
+@media (max-width: 36rem) {
+  .screen > main {
+    padding-inline: calc(var(--p-safe-l) + var(--p-1)) calc(var(--p-safe-r) + var(--p-1));
+  }
+
+  .preparationDeck {
+    padding: var(--p-1);
+  }
+
+  .fieldPanel,
+  .briefPanel,
+  .controlBrief {
+    padding: var(--p-2);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .screen > main {
+    padding-top: var(--p-1);
+    padding-bottom: var(--p-2);
+  }
+
+  .preparationDeck {
+    padding: var(--p-2);
+  }
+
+  /*
+   * The columns' floors are capped by the deck's width (38% and 58% of it), so at 1.3x or 200% text the two columns
+   * still fit the phone and their words wrap inside them, instead of the brief running past the screen's edge
+   * (a11y 640x360). At the default size the floors (13rem, 19rem) are the smaller and nothing changes.
+   */
+  .grid {
+    grid-template-columns: minmax(min(13rem, 38%), 19rem) minmax(min(19rem, 58%), 1fr);
+    gap: var(--p-2);
+  }
+}
+
+:global([data-contrast='high']) .screen > header,
+:global([data-contrast='high']) .screen > footer,
+:global([data-contrast='high']) .preparationDeck,
+:global([data-contrast='high']) .fieldPanel,
+:global([data-contrast='high']) .briefPanel,
+:global([data-contrast='high']) .controlBrief,
+:global([data-contrast='high']) .adjustments,
+:global([data-contrast='high']) .notice {
+  background: #000;
+  border-color: #fff;
+  box-shadow: none;
+}
+
+:global([data-contrast='high']) .preparationDeck::before {
+  background: #fff;
+}

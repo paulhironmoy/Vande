@@ -1,0 +1,158 @@
+.shell {
+  position: relative;
+  min-height: 100dvh;
+  isolation: isolate;
+  background: var(--p-bg, #0b0d12);
+}
+
+.screen {
+  z-index: 1;
+  background: transparent;
+}
+
+.screen > header {
+  background: linear-gradient(180deg, rgba(7, 10, 14, 0.82), rgba(7, 10, 14, 0.28) 72%, transparent);
+  border-bottom-color: transparent;
+}
+
+.screen > main {
+  max-width: none;
+  align-content: end;
+  justify-items: start;
+  padding-top: clamp(var(--p-2), 5vh, var(--p-6));
+  padding-bottom: clamp(var(--p-3), 6vh, 4rem);
+}
+
+.commandPanel {
+  position: relative;
+  display: grid;
+  gap: var(--p-2);
+  width: min(100%, 31rem);
+  padding: clamp(var(--p-2), 2.8vw, var(--p-4));
+  overflow: hidden;
+  border: 1px solid rgba(243, 239, 231, 0.2);
+  border-radius: calc(var(--p-radius) + 0.35rem);
+  background: linear-gradient(145deg, rgba(18, 23, 29, 0.94), rgba(8, 11, 15, 0.86));
+  box-shadow:
+    0 1.5rem 4rem rgba(0, 0, 0, 0.46),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.commandPanel::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--p-accent), rgba(82, 211, 242, 0.04) 70%);
+}
+
+.choices {
+  display: grid;
+  gap: var(--p-1);
+}
+
+.randomChoice,
+.predefinedChoice {
+  min-height: 5rem;
+  border-radius: calc(var(--p-radius) - 0.1rem);
+}
+
+.randomChoice {
+  box-shadow: 0 0.65rem 1.8rem rgba(25, 141, 169, 0.2);
+}
+
+.predefinedChoice {
+  background: rgba(243, 239, 231, 0.045);
+  border-color: rgba(243, 239, 231, 0.2);
+}
+
+.resume {
+  display: grid;
+  gap: var(--p-2);
+  padding: clamp(var(--p-2), 2.5vw, var(--p-3));
+  border-radius: var(--p-radius);
+  background: linear-gradient(145deg, rgba(28, 38, 45, 0.94), rgba(13, 18, 23, 0.92));
+  border: 1px solid rgba(82, 211, 242, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.score {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.notice {
+  display: flex;
+  gap: var(--p-1);
+  align-items: flex-start;
+  padding: var(--p-1) var(--p-2);
+  border-radius: var(--p-radius-sm);
+  border-inline-start: 3px solid var(--p-caution);
+  background: rgba(20, 23, 30, 0.94);
+  color: var(--p-text);
+}
+
+.rules {
+  max-width: 38ch;
+}
+
+@media (min-width: 64rem) and (min-height: 38rem) {
+  .screen > main {
+    padding-inline: max(calc(var(--p-safe-l) + 5vw), var(--p-gutter));
+  }
+
+  .commandPanel {
+    margin-bottom: 2vh;
+  }
+}
+
+@media (max-width: 44rem), (orientation: portrait) {
+  .screen > main {
+    align-content: end;
+    justify-items: stretch;
+    padding-top: min(24vh, 10rem);
+    padding-bottom: var(--p-2);
+  }
+
+  .commandPanel {
+    width: 100%;
+    border-radius: var(--p-radius);
+    background: linear-gradient(180deg, rgba(18, 23, 29, 0.94), rgba(8, 11, 15, 0.98));
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .screen > main {
+    align-content: start;
+    padding-top: var(--p-1);
+    padding-bottom: var(--p-2);
+  }
+
+  .commandPanel {
+    width: min(100%, 35rem);
+    padding: var(--p-2);
+  }
+
+  .randomChoice,
+  .predefinedChoice {
+    min-height: 4.5rem;
+  }
+}
+
+:global([data-contrast='high']) .commandPanel,
+:global([data-contrast='high']) .resume,
+:global([data-contrast='high']) .notice {
+  background: #000;
+  border-color: #fff;
+  box-shadow: none;
+}
+
+:global([data-contrast='high']) .commandPanel::before {
+  background: #fff;
+}
+
+:global([data-motion='reduced']) .randomChoice {
+  box-shadow: none;
+}

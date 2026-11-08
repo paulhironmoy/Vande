@@ -1,26 +1,34 @@
 /**
- * Practice, screen by screen: the menu, Build an Over, settings, the timing check, diagnostics and play. The flow
- * controller (./flow/controller.ts) runs the innings; this component owns which screen shows, the landscape lock
- * around play, the app's pause and resume, and the viewport's orientation.
+ * Practice, screen by screen: the home (choose an over), the predefined-over editor, settings, the timing check and
+ * diagnostics; and the play surface (setup, the live over, Coach Mode, the summaries) whenever the flow has a screen
+ * of its own. The play surface stays mounted while its stage is (between innings too), under the ordinary screens, so
+ * the stage's shaders and first render are paid once per visit. This component owns which screen shows, the
+ * landscape lock around play (requested inside the Play tap), the app's pause and resume, and orientation.
  */
-import { useEffect, useRef, useState } from 'react';
-import type { AnalyticsEventName, AnalyticsProps, PracticeOverPlan } from '@/contracts';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { AnalyticsEventName, AnalyticsProps } from '@/contracts';
 import { useApp } from '@/app/store';
 import { isNativePlatform } from '@/platform';
 import { isLandscapeViewport, lockLandscape, onViewportOrientation, unlockOrientation } from '@/platform/orientation';
-import { loadPracticeSettings, updatePracticeSettings } from '@/practice/store';
+import { loadDraft, loadPracticeSettings, updatePracticeSettings } from '@/practice/store';
+import type { Difficulty } from '@/contracts';
 import { usePracticeT } from '@/i18n/practice';
 import { PracticeFlow, type FlowHooks, type LastBall } from './flow/controller';
-import { useFlowState, useKit } from './context';
-import { coachingLines } from './coaching';
-import { audioWarmed, prepareAudioUnlock } from './audioWarm';
-import { BuildOver } from './screens/BuildOver';
+import { randomHex } from './flow/core';
+import { StageRegionsContext, useFlowState, useKit } from './context';
+import { outcomeWord, reasonWords } from './coaching';
+import { prepareAudioUnlock } from './audioWarm';
+import { bindPracticeLifecycle } from './lifecycle';
+import { sys } from './design';
 import { Calibration } from './screens/Calibration';
 import { Diagnostics } from './screens/Diagnostics';
-import { Menu } from './screens/Menu';
+import { Home } from './screens/Home';
 import { Play } from './screens/Play';
+import { Predefined } from './screens/Predefined';
 import { PracticeSettings } from './screens/PracticeSettings';
-import s from './screens/Play.module.css';
+import { planFromDraft } from './screens/buildPlan';
+import { FacilitatorPanel, TesterConsent } from './tester/TesterPanels';
+import { useTester } from './tester/useTester';
 
 export interface PracticeAppProps {
   appVersion: string;
@@ -28,39 +36,30 @@ export interface PracticeAppProps {
   hooks?: FlowHooks | null;
   /** performance.now() when Practice was chosen (the launch tap), for time to first delivery. */
   openedAt?: number;
-  /** Leave Practice (back to the app). */
-  onExit: () => void;
+  /** Leave Practice (deep links only: Practice is the app's first screen). */
+  onExit?: () => void;
   /** Test builds: the controller, for the hooks. */
   onFlow?: (flow: PracticeFlow | null) => void;
 }
 
-type View = 'menu' | 'build' | 'settings' | 'calibration' | 'diagnostics';
-type Overlay = null | 'settings' | 'build' | 'calibration' | 'diagnostics';
+type View = 'home' | 'predefined' | 'settings' | 'calibration' | 'diagnostics';
+type Overlay = null | 'settings' | 'calibration' | 'diagnostics';
 
-function newSeed(): string {
-  const a = new Uint8Array(16);
-  crypto.getRandomValues(a);
-  return Array.from(a, (b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-export function PracticeApp({ appVersion, analytics, hooks, openedAt, onExit, onFlow }: PracticeAppProps) {
+export function PracticeApp({ appVersion, analytics, hooks, openedAt, onFlow }: PracticeAppProps) {
   const kit = useKit();
   const t = usePracticeT();
   const reducedMotion = useApp((st) => st.reducedMotion);
   const reduced = useRef(reducedMotion);
   reduced.current = reducedMotion;
   const [flow, setFlow] = useState<PracticeFlow | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [view, setView] = useState<View>('menu');
-  const [overlay, setOverlay] = useState<Overlay>(null);
-  const [, setTick] = useState(0);
 
   // One controller per visit (created in the effect, so a development double-mount gets a fresh one).
   useEffect(() => {
     prepareAudioUnlock();
     const f = new PracticeFlow({
-      audioWarmed,
       engine: kit.engine,
+      coach: kit.coach,
+      work: hooks?.work === 'off' ? null : (kit.createWork?.() ?? null),
       createStage: kit.createStage,
       appVersion,
       analytics,
@@ -68,23 +67,17 @@ export function PracticeApp({ appVersion, analytics, hooks, openedAt, onExit, on
       openedAt,
       reducedMotion: () => reduced.current,
       isLandscape: isLandscapeViewport,
-      newSeed,
+      newSeed: () => randomHex(),
+      masteryFeel: (e) => kit.audio?.masteryFeel(e),
+      deliveryContext: kit.audio ? (s) => kit.audio!.deliveryContext(s) : undefined,
       words: {
         runup: (n) => t.t('practice.live.announce_runup', { n }),
-        outcome: (last: LastBall, board) => {
-          const c = coachingLines(t, last.result);
-          const params = { headline: c.head, reason: c.reason, result: c.result, runs: board.runs, wickets: board.wickets };
-          return last.kind === 'innings' ? t.t('practice.live.announce', params) : t.t('practice.live.announce_warmup', params);
-        },
+        outcome: (last: LastBall, board) => t.t('practice.live.announce', { result: outcomeWord(t, last.result.outcome).word, reason: reasonWords(t, last.result.coaching.reason, last.result), runs: board.runs, wickets: board.wickets }),
       },
     });
     setFlow(f);
     onFlow?.(f);
-    const start = f.init();
-    if (start === 'guided') {
-      setPlaying(true);
-      void f.startGuided();
-    } else if (start === 'summary') setPlaying(true);
+    f.init();
     return () => {
       onFlow?.(null);
       f.dispose();
@@ -93,174 +86,218 @@ export function PracticeApp({ appVersion, analytics, hooks, openedAt, onExit, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // The stage is intentionally mounted once per visit. Refresh its native cue and the flow's future announcements
+  // in place when the app language (or its asynchronously loaded catalog) changes.
+  useEffect(() => {
+    if (!flow) return;
+    flow.setLanguage(t.locale, t.t('practice.live.hint'), {
+      runup: (n) => t.t('practice.live.announce_runup', { n }),
+      outcome: (last: LastBall, board) => t.t('practice.live.announce', { result: outcomeWord(t, last.result.outcome).word, reason: reasonWords(t, last.result.coaching.reason, last.result), runs: board.runs, wickets: board.wickets }),
+    });
+  }, [flow, t]);
+
   // The app went to the background (Android pause, a tab switch, the screen locking).
   useEffect(() => {
     if (!flow) return;
-    const vis = () => flow.setHidden(document.visibilityState === 'hidden');
-    document.addEventListener('visibilitychange', vis);
-    let remove: (() => void) | null = null;
-    let gone = false;
-    if (isNativePlatform())
-      void import('@capacitor/app').then(async ({ App }) => {
-        const h = await App.addListener('pause', () => flow.setHidden(true));
-        if (gone) void h.remove();
-        else remove = () => void h.remove();
-      });
-    return () => {
-      gone = true;
-      document.removeEventListener('visibilitychange', vis);
-      remove?.();
-    };
+    return bindPracticeLifecycle(
+      (hidden) => flow.setHidden(hidden),
+      isNativePlatform() ? () => import('@capacitor/app') : undefined,
+    );
   }, [flow]);
 
   useEffect(() => (flow ? onViewportOrientation((landscape) => flow.setLandscape(landscape)) : undefined), [flow]);
 
   if (!flow) return null;
-  return <PracticeScreens flow={flow} playing={playing} setPlaying={setPlaying} view={view} setView={setView} overlay={overlay} setOverlay={setOverlay} onExit={onExit} refresh={() => setTick((n) => n + 1)} />;
+  return (
+    <div className={sys.root} style={{ display: 'contents' }}>
+      <PracticeScreens flow={flow} appVersion={appVersion} />
+    </div>
+  );
 }
 
-interface ScreensProps {
-  flow: PracticeFlow;
-  playing: boolean;
-  setPlaying: (v: boolean) => void;
-  view: View;
-  setView: (v: View) => void;
-  overlay: Overlay;
-  setOverlay: (o: Overlay) => void;
-  onExit: () => void;
-  refresh: () => void;
-}
-
-function PracticeScreens({ flow, playing, setPlaying, view, setView, overlay, setOverlay, onExit, refresh }: ScreensProps) {
+function PracticeScreens({ flow, appVersion }: { flow: PracticeFlow; appVersion: string }) {
   const state = useFlowState(flow);
+  const kit = useKit();
+  const [view, setView] = useState<View>('home');
+  const [overlay, setOverlay] = useState<Overlay>(null);
+  const [, setTick] = useState(0);
+  const refresh = () => setTick((n) => n + 1);
   const settings = loadPracticeSettings();
+  const playing = state.screen !== 'idle';
+  const inn = state.innings;
+  const between = flow.betweenOvers();
+  const tester = useTester(flow, state, appVersion);
+  // The dead ball's card keeps off the ball's path on the Three.js stage (EVAL-WORLD K3; components/useCardPlacement.ts).
+  const threeStage = state.quality.stage === '3d' && !flow.stageOwnsInput();
+  const stageRegions = useMemo(() => (threeStage ? () => flow.protectedRegions() : null), [flow, threeStage]);
+  const testerLayer = (
+    <>
+      {tester.consentNeeded && !playing && <TesterConsent tester={tester} />}
+      {tester.active && <FacilitatorPanel tester={tester} hidden={flow.busy()} />}
+    </>
+  );
 
-  /** Starts play from a tap: the landscape request must happen inside the tap (fullscreen needs it on the web). */
-  const play = (start: () => void) => {
-    void lockLandscape();
-    setOverlay(null);
-    setPlaying(true);
-    start();
-  };
-  const toMenu = () => {
+  const toHome = () => {
     flow.leave();
     void unlockOrientation();
     setOverlay(null);
-    setPlaying(false);
-    setView('menu');
+    setView('home');
   };
-  const seed = () => newSeed();
-  const diagnostics = (
-    <Diagnostics
-      assessment={state.assessment}
-      metrics={flow.localMetrics()}
-      recentFps={flow.sessionFps()}
-      lastInputToBatMs={flow.lastInputToBatMs()}
-      onReset={refresh}
-      onBack={() => (playing ? setOverlay(null) : setView('settings'))}
-    />
-  );
-  const settingsScreen = (
+  const nextOver = () => {
+    const kind = state.overKind ?? 'random';
+    if (kind !== 'built') {
+      flow.prepareOver({ kind });
+      return;
+    }
+    // The player's own six again (a fresh seed, so a shuffled over shuffles anew), or the editor when there is none.
+    const draft = loadDraft();
+    let plan: ReturnType<typeof planFromDraft> | null;
+    try {
+      plan = draft ? planFromDraft(kit.build, draft, { assist: inn?.assist ?? settings.assist, conditions: inn?.conditions ?? 'balanced', seed: flow.seed() }) : null;
+    } catch {
+      plan = null;
+    }
+    if (plan) flow.prepareOver({ kind: 'built', plan });
+    else {
+      setView('predefined');
+      flow.chooseNextOver();
+    }
+  };
+  const harder: Difficulty | null = settings.difficulty === 'beginner' ? 'club' : settings.difficulty === 'club' ? 'expert' : null;
+  const onHarder = harder
+    ? () => {
+        void lockLandscape();
+        updatePracticeSettings({ difficulty: harder });
+        flow.refreshSettings();
+        flow.prepareOver({ kind: 'random', random: { difficulty: harder, conditions: inn?.conditions ?? settings.conditions, bowling: settings.bowling } });
+      }
+    : null;
+  const settingsScreen = (inPlay: boolean) => (
     <PracticeSettings
       assessment={state.assessment}
       inningsInProgress={Boolean(flow.resumable())}
+      audio={kit.audio}
       onChanged={() => flow.refreshSettings()}
       onRerunCheck={() => flow.rerunDeviceCheck()}
-      onCalibrate={() => (playing ? setOverlay('calibration') : setView('calibration'))}
-      onDiagnostics={() => (playing ? setOverlay('diagnostics') : setView('diagnostics'))}
+      onCalibrate={() => (inPlay ? setOverlay('calibration') : setView('calibration'))}
+      onDiagnostics={() => (inPlay ? setOverlay('diagnostics') : setView('diagnostics'))}
       onCleared={() => {
         flow.discardInnings();
         refresh();
       }}
-      onBack={() => (playing ? setOverlay(null) : setView('menu'))}
+      onBack={() => (inPlay ? setOverlay(null) : setView('home'))}
     />
+  );
+  const diagnostics = (inPlay: boolean) => (
+    <Diagnostics assessment={state.assessment} metrics={flow.metrics} recentFps={flow.sessionFps()} lastInputToBatMs={flow.lastInputToBatMs()} onReset={refresh} onBack={() => (inPlay ? setOverlay('settings') : setView('settings'))} />
+  );
+  const play = (
+    <div inert={overlay !== null || !playing ? true : undefined} style={{ display: 'contents' }}>
+      <StageRegionsContext.Provider value={stageRegions}>
+      <Play
+        flow={flow}
+        state={state}
+        appVersion={appVersion}
+        tester={tester}
+        onHome={() => {
+          if (state.screen === 'over_summary') tester.nextOver('exit');
+          toHome();
+        }}
+        onSettings={() => setOverlay('settings')}
+        onNextOver={() => {
+          tester.nextOver('same');
+          void lockLandscape();
+          nextOver();
+        }}
+        onChooseOver={() => {
+          tester.nextOver('different');
+          flow.chooseNextOver();
+        }}
+        onHarder={
+          onHarder
+            ? () => {
+                tester.nextOver('harder');
+                onHarder();
+              }
+            : null
+        }
+      />
+      </StageRegionsContext.Provider>
+    </div>
   );
 
   if (playing) {
-    const inn = state.innings;
     return (
       <>
-        <div inert={overlay !== null ? true : undefined} style={{ display: 'contents' }}>
-          <Play
-            flow={flow}
-            state={state}
-            hintsShown={settings.hintsShown}
-            onMenu={toMenu}
-            onSettings={() => setOverlay('settings')}
-            onBuildNext={() => setOverlay('build')}
-            onNewInnings={() => {
-              void unlockOrientation();
-              flow.leave();
-              setPlaying(false);
-              setView('menu');
-            }}
-          />
-        </div>
+        {play}
+        {testerLayer}
         {overlay && (
-          <div className={s.play} style={{ zIndex: 'var(--z-sheet)', overflowY: 'auto', touchAction: 'auto', background: 'var(--bg-app)' }}>
-            {overlay === 'settings' && settingsScreen}
+          <div style={{ position: 'fixed', inset: 0, zIndex: 'var(--z-sheet)', overflowY: 'auto', touchAction: 'auto' }}>
+            {overlay === 'settings' && settingsScreen(true)}
             {overlay === 'calibration' && <Calibration onBack={() => setOverlay('settings')} />}
-            {overlay === 'diagnostics' && diagnostics}
-            {overlay === 'build' && inn && (
-              <BuildOver
-                assist={inn.assist}
-                handedness={inn.handedness}
-                nextOver
-                seed={seed}
-                onBack={() => setOverlay(null)}
-                onStart={(plan: PracticeOverPlan) => {
-                  setOverlay(null);
-                  void flow.startBuilt(plan);
-                }}
-              />
-            )}
+            {overlay === 'diagnostics' && diagnostics(true)}
           </div>
         )}
       </>
     );
   }
 
+  let screen;
   switch (view) {
-    case 'build':
-      return (
-        <BuildOver
-          assist={settings.assist}
-          handedness={settings.handedness}
-          nextOver={false}
-          seed={seed}
-          onBack={() => setView('menu')}
-          onStart={(plan) => play(() => void flow.startBuilt(plan))}
+    case 'predefined':
+      screen = (
+        <Predefined
+          assist={inn?.assist ?? settings.assist}
+          handedness={inn?.handedness ?? settings.handedness}
+          conditions={inn?.conditions ?? 'balanced'}
+          seed={() => flow.seed()}
+          onReference={() => {
+            setView('home');
+            flow.prepareOver({ kind: 'reference' });
+          }}
+          onOwn={(plan) => {
+            setView('home');
+            flow.prepareOver({ kind: 'built', plan });
+          }}
+          onBack={() => setView('home')}
         />
       );
+      break;
     case 'settings':
-      return settingsScreen;
+      screen = settingsScreen(false);
+      break;
     case 'calibration':
-      return <Calibration onBack={() => setView('settings')} />;
+      screen = <Calibration onBack={() => setView('settings')} />;
+      break;
     case 'diagnostics':
-      return diagnostics;
+      screen = diagnostics(false);
+      break;
     default:
-      return (
-        <Menu
+      screen = (
+        <Home
+          mode={between ? 'next' : 'new'}
           resumable={flow.resumable()}
-          resumedLeave={state.notice === 'resumed_leave'}
-          conditions={settings.conditions}
+          notice={state.notice}
           storageOk={state.storageOk}
-          onPitch={(p) => {
-            updatePracticeSettings({ conditions: p });
-            flow.refreshSettings();
-            refresh();
+          onChoose={(kind) => {
+            if (kind === 'predefined') setView('predefined');
+            else flow.prepareOver({ kind: 'random', random: { difficulty: settings.difficulty, conditions: settings.conditions, bowling: settings.bowling } });
           }}
-          onRandom={() => play(() => void flow.startRandom())}
-          onBuild={() => setView('build')}
-          onContinue={() => play(() => void flow.continueInnings())}
+          onContinue={() => flow.continueInnings()}
           onDiscard={() => {
             flow.discardInnings();
             refresh();
           }}
           onSettings={() => setView('settings')}
-          onCalibrate={() => setView('calibration')}
-          onBack={onExit}
+          onBack={between ? () => flow.continueInnings() : null}
         />
       );
   }
+  return (
+    <>
+      {state.stageReady && play}
+      <div style={{ position: 'relative', zIndex: 2 }}>{screen}</div>
+      {testerLayer}
+    </>
+  );
 }

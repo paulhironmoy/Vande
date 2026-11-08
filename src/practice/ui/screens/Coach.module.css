@@ -1,0 +1,77 @@
+.coach {
+  /* Coach can contain a full explanation and mastery history. Unlike the compact
+     result card, its complete contents must scroll on a short phone or at 200%
+     text: pinning three growing controls would leave no room for the lesson. */
+  display: grid;
+  align-content: start;
+  gap: var(--p-1);
+  padding: var(--p-2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: var(--p-1);
+}
+
+.coach > * {
+  min-width: 0;
+}
+
+.stages {
+  display: grid;
+  gap: var(--p-half);
+  padding: var(--p-1) 0;
+  border-top: 1px solid var(--p-line);
+  border-bottom: 1px solid var(--p-line);
+}
+
+.dots {
+  display: flex;
+  gap: var(--p-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dot {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--p-line-strong);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--p-text-2);
+}
+
+.dot[data-state='current'] {
+  border-color: var(--p-text);
+  color: var(--p-text);
+}
+
+.dot[data-state='done'] {
+  border-color: var(--p-success);
+  color: var(--p-success);
+}
+
+.attempt {
+  display: grid;
+  gap: var(--p-half);
+}
+
+.verdict {
+  font-weight: 800;
+}
+
+.verdict[data-verdict='better'] {
+  color: var(--p-success);
+}
+
+.verdict[data-verdict='worse'] {
+  color: var(--p-caution);
+}
+
+.event {
+  margin: 0;
+  font-weight: 700;
+  color: var(--p-success);
+}

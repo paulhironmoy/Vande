@@ -1,0 +1,55 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--p-2);
+  background: var(--p-scrim);
+  overflow-y: auto;
+}
+
+.sheet {
+  width: min(30rem, 100%);
+  display: grid;
+  gap: var(--p-2);
+  padding: var(--p-3);
+  border-radius: var(--p-radius);
+  background: var(--p-surface);
+  border: 1px solid var(--p-line-strong);
+}
+
+/* The facilitator's control: low on the left, only between balls (hidden during a delivery). */
+.facilitator {
+  position: fixed;
+  z-index: var(--z-sheet);
+  left: calc(var(--p-safe-l) + var(--p-1));
+  bottom: calc(var(--p-safe-b) + var(--p-1));
+  display: grid;
+  gap: var(--p-1);
+  justify-items: start;
+}
+
+.sheetSmall {
+  width: min(22rem, 80vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  display: grid;
+  gap: var(--p-1);
+  padding: var(--p-2);
+  border-radius: var(--p-radius);
+  background: var(--p-surface);
+  border: 1px solid var(--p-line-strong);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: var(--p-1);
+}
+
+.ratings {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(var(--p-control), 1fr));
+  gap: var(--p-half);
+}

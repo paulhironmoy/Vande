@@ -1,0 +1,180 @@
+/* Practice buttons: one dominant primary per screen, a bordered secondary, a quiet text action, a danger action. */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--p-1);
+  min-height: var(--p-control);
+  min-width: var(--p-control);
+  padding: 0 var(--p-2);
+  border-radius: var(--p-radius);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--p-text);
+  font: inherit;
+  font-size: var(--p-body);
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  overflow-wrap: break-word;
+  transition:
+    transform var(--p-t-quick) var(--p-ease),
+    background-color var(--p-t) var(--p-ease),
+    opacity var(--p-t) var(--p-ease);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--p-focus);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+/* Confirm input: a short press response, never idle motion. */
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.primary {
+  background: var(--p-accent);
+  color: var(--p-on-accent);
+  font-weight: 750;
+}
+
+.secondary {
+  border-color: var(--p-line-strong);
+  color: var(--p-text);
+}
+
+@media (hover: hover) {
+  .secondary:hover:not(:disabled),
+  .quiet:hover:not(:disabled) {
+    background-color: rgba(243, 239, 231, 0.06);
+  }
+}
+
+.quiet {
+  color: var(--p-text-2);
+  padding-inline: var(--p-1);
+  min-height: var(--p-control);
+}
+
+.danger {
+  border-color: var(--p-danger);
+  color: var(--p-danger);
+}
+
+.lg {
+  min-height: var(--p-control-lg);
+  padding-inline: var(--p-3);
+  font-size: 1.0625rem;
+}
+
+.block {
+  display: flex;
+  width: 100%;
+}
+
+.icon {
+  display: inline-flex;
+  flex: none;
+}
+
+.label {
+  min-width: 0;
+}
+
+.iconOnly {
+  padding: 0;
+  width: var(--p-control);
+  height: var(--p-control);
+  border-radius: 50%;
+}
+
+/* A large choice row: a title, one line of description and a chevron (menus). */
+.choice {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--p-half) var(--p-2);
+  width: 100%;
+  min-height: 4.5rem;
+  padding: var(--p-2);
+  border-radius: var(--p-radius);
+  border: 1px solid var(--p-line);
+  background: var(--p-surface);
+  color: var(--p-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    transform var(--p-t-quick) var(--p-ease),
+    border-color var(--p-t) var(--p-ease);
+}
+
+.choice:focus-visible {
+  outline: 2px solid var(--p-focus);
+  outline-offset: 2px;
+}
+
+.choice:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.choicePrimary {
+  background: var(--p-accent);
+  border-color: var(--p-accent);
+  color: var(--p-on-accent);
+}
+
+.choiceTitle {
+  font-size: 1.125rem;
+  font-weight: 750;
+  line-height: var(--leading-snug);
+}
+
+.choiceDesc {
+  grid-column: 1;
+  font-size: var(--p-caption);
+  font-weight: 500;
+  line-height: var(--leading-snug);
+  color: var(--p-text-2);
+}
+
+.choicePrimary .choiceDesc {
+  color: inherit;
+  opacity: 0.82;
+}
+
+.chev {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: inline-flex;
+  opacity: 0.7;
+}
+
+:global([data-contrast='high']) .secondary,
+:global([data-contrast='high']) .choice {
+  border-width: 2px;
+}
+
+:global([data-motion='reduced']) .btn,
+:global([data-motion='reduced']) .choice {
+  transition: none;
+}
+
+:global([data-motion='reduced']) .btn:active,
+:global([data-motion='reduced']) .choice:active {
+  transform: none;
+}

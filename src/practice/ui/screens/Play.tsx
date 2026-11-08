@@ -1,388 +1,489 @@
 /**
- * The live screen (landscape): the stage's canvas, the GestureSurface across the lower part (so the finger never
- * covers the delivery), a minimal scoreboard, the pre-over field radar, the coaching card after each ball, the
- * warm-up explanation, the turn-your-phone overlay before a delivery, pause, notices and the replay controls. The
- * summaries render over the same stage, so a replay can play behind them without re-creating it.
+ * The play surface (landscape): the stage's canvas full screen, with the screen of the moment over it. PREPARE (the
+ * setup, opaque, while the stage loads behind it), the live over (the quiet rail, the gesture surface across the
+ * lower part, the compact results layer after each dead ball), Coach Mode, and the summaries. In Delivery Quiet Mode
+ * nothing but the dimmed rail is shown, and nothing can be opened.
  */
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Button, IconButton } from '@/ui';
+import { useEffect, useRef, useState } from 'react';
 import { useBackHandler } from '@/app/back';
 import { useApp } from '@/app/store';
-import { prefersPointerFine } from '@/platform/orientation';
+import { lockLandscape } from '@/platform/orientation';
+import { updatePracticeSettings } from '@/practice/store';
 import { usePracticeT } from '@/i18n/practice';
+import { PButton, PConfirm, sys } from '../design';
 import { useKit } from '../context';
-import type { FlowState, PracticeFlow } from '../flow/controller';
-import { CoachingCard } from '../components/CoachingCard';
-import { DiagnosticPanel } from '../components/DiagnosticPanel';
-import { FieldRadar, fieldCounts } from '../components/FieldRadar';
-import { Scoreboard } from '../components/Scoreboard';
-import { Why } from '../components/Why';
-import { OutSummary, OverSummary, InningsSummary } from './Summaries';
+import { isQuiet, type FlowState, type PracticeFlow } from '../flow/controller';
+import { StatusStrip } from '../components/StatusStrip';
+import { FieldPip, FieldPipShown, type FieldPipPhase } from '../components/MiniRadar';
+import { ResultLayer } from '../components/ResultLayer';
+import { SessionBrief } from '../components/SessionBrief';
+import { TesterPrompt } from '../tester/TesterPanels';
+import type { TesterApi } from '../tester/useTester';
+import { BriefSheet, Center, Hint, IntroPanel, Loading, PausePanel, ReplayBar, TurnPhone } from '../components/Panels';
+import { bowlerStyle, primaryReasonLine, recommendationLine, tipLines, variationName } from '../coaching';
+import { Coach } from './Coach';
+import { Setup } from './Setup';
+import { InningsSummary, OutSummary, OverSummary } from './Summaries';
 import s from './Play.module.css';
 
 export interface PlayProps {
   flow: PracticeFlow;
   state: FlowState;
-  /** Back to the Practice menu (the innings stays saved). */
-  onMenu: () => void;
+  /** Back to the Practice home (the innings stays saved). */
+  onHome: () => void;
   onSettings: () => void;
-  /** "Build the next over" from the over summary. */
-  onBuildNext: () => void;
-  /** "Start new innings" from the dismissal or ten-over summary. */
-  onNewInnings: () => void;
-  /** Deliveries the input hint has been shown for (it fades after a few). */
-  hintsShown: number;
+  appVersion: string;
+  /** The over summary's "Next over" (the same kind of over) and "Choose a different over". */
+  onNextOver: () => void;
+  onChooseOver: () => void;
+  /** A harder Random Over, when there is one. */
+  onHarder: (() => void) | null;
+  /** The hidden tester mode (its questions show where the results layer would). */
+  tester: TesterApi;
 }
 
-export function Play({ flow, state, onMenu, onSettings, onBuildNext, onNewInnings, hintsShown }: PlayProps) {
+export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver, onHarder, tester }: PlayProps) {
   const t = usePracticeT();
-  const { input, engine, fielderClass } = useKit();
+  const { input, coach, build } = useKit();
   const setInPlay = useApp((st) => st.setInPlay);
+  const [brief, setBrief] = useState(false);
+  const [confirm, setConfirm] = useState<null | 'leave' | 'restart'>(null);
+  const playRootRef = useRef<HTMLDivElement>(null);
+  const unityKeyboardTargetRef = useRef<HTMLDivElement>(null);
   const { phase, screen, last } = state;
-  const busy = phase === 'runup' || phase === 'live' || phase === 'playing';
-  const live = screen === 'live';
+  const quiet = isQuiet(phase);
+  const busy = flow.busy();
+  const inn = state.innings;
+  const midOver = Boolean(inn?.status === 'batting' && inn.current && inn.current.deliveries.length > 0);
 
   useEffect(() => {
     setInPlay(true);
     return () => setInPlay(false);
   }, [setInPlay]);
+  useEffect(() => {
+    if (busy) setBrief(false);
+  }, [busy]);
 
-  // Android Back and Escape: never during a delivery; otherwise close the replay, pause, or (paused) leave.
-  useBackHandler(true, () => {
+  const leave = () => (midOver ? setConfirm('leave') : onHome());
+  const back = () => {
     if (busy) return;
-    if (state.replay) flow.closeReplay();
-    else if (live && phase !== 'paused') flow.pause();
-    else onMenu();
-  });
+    if (brief) setBrief(false);
+    else if (state.replay) flow.coachLoop.closeReplay();
+    else if (screen === 'coach') flow.coachLoop.leaveCoach();
+    else if (screen === 'setup') onHome();
+    else if (screen === 'live' && phase === 'paused') leave();
+    else if (screen === 'live') flow.pause();
+    else onHome();
+  };
+  // Android Back and Escape: never during a delivery; otherwise close what is open, pause, then leave (confirmed).
+  useBackHandler(true, back);
+  const backRef = useRef(back);
+  backRef.current = back;
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape' || busy) return;
-      if (state.replay) flow.closeReplay();
-      else if (live) phase === 'paused' ? flow.resume() : flow.pause();
+      if (e.key === 'Escape' && !e.defaultPrevented) backRef.current();
     };
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
-  }, [busy, live, phase, state.replay, flow]);
+  }, []);
 
   const GestureSurface = input.GestureSurface;
-  const warmup = state.ball?.kind === 'warmup';
-  const repeat = state.ball?.kind === 'repeat';
-  const outside = warmup ? t.t('practice.live.warmup') : repeat ? t.t('practice.common.not_counted') : null;
-  const showHint = live && !state.replay && (warmup || hintsShown < 6) && (phase === 'runup' || phase === 'live');
-  const notice = state.notice ? noticeText(t, state.notice) : null;
-  // A modal panel is open: its notice is shown inside it (never under it), and the HUD's copy is hidden.
-  const modal = live && (phase === 'paused' || phase === 'radar' || phase === 'warmup_explain' || state.needTap || state.needLandscape);
-  const panelNotice = notice ? (
-    <p className={s.panelNotice} role="status" data-testid="practice-panel-notice">
-      {notice}
-    </p>
-  ) : null;
+  // The first session with teaching on: cricket words are glossed where they appear, and the setup starts minimal.
+  const firstSession = flow.settings.teach && flow.metrics.innings === 0 && flow.metrics.deliveries < 6;
+  // Footwork from where the press lands, for a player who skipped the teaching (the setup screen says how); a new
+  // player keeps automatic footwork until it is taught.
+  const pressFootwork = !flow.settings.teach;
+  const notice = state.notice ? t.tk(`practice.notice.${state.notice}`) : null;
+  // A change of timing help or of graphics, said calmly at the dead ball it arrived with (never during a delivery).
+  const liveNotice = state.notice === 'help_changed' || state.notice === 'help_less' || state.notice === 'balanced' || state.notice === 'classic' ? notice : null;
+  const plan = inn?.current?.plan ?? state.pending?.plan ?? null;
+  const ballLabel = plan ? t.tk(`practice.ball.short.${plan.ball.colour}_${plan.ball.age}`) : null;
+  const inCoach = screen === 'coach' && state.coach;
+  const showRail = screen === 'live' || inCoach;
+  // A Unity stage owns both visible presentation and batting input. The DOM
+  // remains only as a semantic accessibility mirror; showing its visual rail
+  // would make WebGL and Android two different products.
+  const unityStageOwnsInput = flow.stageOwnsInput();
+  // Unity owns batting only while an authoritative delivery can still accept
+  // the one gesture. Consequence playback, replay and the dead ball are visual
+  // presentation: React owns every control and the canvas is inert there.
+  const unityGameplayInput = unityStageOwnsInput && screen === 'live' && (phase === 'runup' || phase === 'live');
+  useEffect(() => {
+    if (!showRail || !unityGameplayInput) return;
+    const onTab = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || event.altKey || event.ctrlKey || event.metaKey) return;
+      const root = playRootRef.current;
+      const keyboardTarget = unityKeyboardTargetRef.current;
+      if (!root || !keyboardTarget) return;
+      const selector = [
+        'button:not([disabled])',
+        'a[href]',
+        'input:not([disabled]):not([type="hidden"])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        'summary',
+        '[tabindex]:not([tabindex="-1"])',
+      ].join(',');
+      const visible = (node: HTMLElement) => {
+        if (node === keyboardTarget) return true;
+        if (node.hidden || node.closest('[hidden],[inert],[aria-hidden="true"]')) return false;
+        for (let current: HTMLElement | null = node; current && current !== root; current = current.parentElement) {
+          const style = window.getComputedStyle(current);
+          if (style.display === 'none' || style.visibility === 'hidden') return false;
+        }
+        return node.getClientRects().length > 0;
+      };
+      const stops = Array.from(root.querySelectorAll<HTMLElement>(selector)).filter(visible);
+      if (!stops.length) return;
+      const activeIndex = stops.indexOf(document.activeElement as HTMLElement);
+      const nextIndex = event.shiftKey
+        ? (activeIndex <= 0 ? stops.length - 1 : activeIndex - 1)
+        : (activeIndex < 0 || activeIndex === stops.length - 1 ? 0 : activeIndex + 1);
+      event.preventDefault();
+      // Unity WebGL captures every keyboard event at window scope. Reserve Tab
+      // for the semantic DOM focus order; batting keys continue to Unity.
+      event.stopImmediatePropagation();
+      stops[nextIndex].focus({ preventScroll: true });
+    };
+    window.addEventListener('keydown', onTab, true);
+    return () => window.removeEventListener('keydown', onTab, true);
+  }, [showRail, unityGameplayInput]);
+  const deadInnings = screen === 'live' && phase === 'dead' && last;
+  const pipPhase = fieldPipPhase(screen, phase, { unity: unityStageOwnsInput, replay: Boolean(state.replay), field: Boolean(state.field), stage: state.quality.stage });
+  // With no room for the inset below the rail (a large text size), or in a run-up where the rail and the inset would
+  // exceed the run-up's screen budget, the conditions control's radar keeps the players.
+  const [pipRoom, setPipRoom] = useState(true);
+  const [pipQuietOver, setPipQuietOver] = useState(false);
+  const pipShown = pipPhase !== null && pipRoom && !(pipPhase === 'quiet' && pipQuietOver);
+  const ended = inn && inn.status !== 'batting';
+  const nextLabel = ended ? (inn.status === 'over_complete' ? t.t('practice.result.over_summary') : t.t('practice.result.see_summary')) : t.t('practice.live.next_ball');
+  useEffect(() => {
+    if (!unityStageOwnsInput || screen !== 'live' || phase !== 'dead' || !last) return;
+    const primary = state.insight?.status === 'ready' ? state.insight.primary : null;
+    // The same one tip as the React card (its fact, then its one action), as Unity's two labelled lines.
+    const tip = primary && coach && state.insight?.tip ? tipLines(t, coach.tipWords(t, state.insight.tip)) : null;
+    const reason = tip
+      ? tip.reason
+      : primary
+        ? primaryReasonLine(t, primary, last.result)
+        : t.t('practice.result.reading');
+    // Without a tip, a confirmation is said only when earned (anti-fake rule 7); otherwise the reason stands alone.
+    const analysis = state.insight?.status === 'ready' ? state.insight.analysis : null;
+    const earned = primary && analysis && coach ? coach.praiseEarned(analysis, primary.recommendation, state.insight?.tip ?? null) : true;
+    const recommendation = tip ? tip.recommendation : primary && earned ? recommendationLine(t, primary.recommendation) : '';
+    const practiceLabel = t.t('practice.result.practice');
+    void flow.presentDeadBallUi(
+      coach
+        ? {
+            reason,
+            recommendation,
+            primaryAction: 'practice_ball',
+            primaryLabel: practiceLabel,
+            secondaryAction: 'next_ball',
+            secondaryLabel: nextLabel,
+          }
+        : {
+            reason,
+            recommendation,
+            primaryAction: 'next_ball',
+            primaryLabel: nextLabel,
+            secondaryAction: null,
+            secondaryLabel: null,
+          },
+    );
+  }, [coach, flow, last, nextLabel, phase, screen, state.insight, t, unityStageOwnsInput]);
+  const detail = (() => {
+    if (last && (phase === 'dead' || phase === 'paused')) {
+      const b = last.result.flight.plan;
+      return t.t('practice.status.last', { length: t.tk(`practice.length.${build.lengthBand(b.lengthM, last.record.bowler.family)}`), line: t.tk(`practice.lineband.${build.lineBand(b.lineM)}`) });
+    }
+    // A predefined over in its own order may show what comes next; a Random Over never does.
+    const cur = inn?.current;
+    if (cur && (cur.plan.source === 'reference' || cur.plan.source === 'built') && !cur.plan.shuffled && cur.deliveries.length < 6) {
+      const b = cur.plan.balls[cur.deliveries.length];
+      return t.t('practice.status.next', { variation: variationName(t, b.variation, cur.plan.bowler.spinType), length: t.tk(`practice.length.${build.lengthBand(b.lengthM, cur.plan.bowler.family)}`) });
+    }
+    return null;
+  })();
 
   return (
-    <div className={s.play} data-testid="practice-play" data-screen={screen} data-phase={phase} data-stage={state.quality.stage} data-tier={state.quality.tier}>
-      <div className={s.stage} aria-hidden="true">
-        <canvas key={state.canvasKey} ref={flow.attachCanvas} className={s.canvas} data-testid="practice-canvas" />
+    <div ref={playRootRef} className={s.play} data-play-root="" data-testid="practice-play" data-screen={screen} data-phase={phase} data-quiet={quiet ? 'true' : 'false'} data-stage={state.quality.stage} data-tier={state.quality.tier} data-unity-input={unityGameplayInput ? 'active' : 'blocked'}>
+      <div className={s.stage} aria-hidden="true" data-testid="practice-world-stage">
+        <canvas
+          id="vande-unity-practice-canvas"
+          key={`world:${state.canvasKey}`}
+          ref={flow.attachCanvas}
+          className={`${s.canvas} ${unityStageOwnsInput && !unityGameplayInput ? s.canvasInputBlocked : ''}`}
+          data-testid="practice-canvas"
+          data-gameplay-input={unityGameplayInput ? 'active' : 'blocked'}
+        />
+        <canvas
+          id="vande-unity-practice-coach-canvas"
+          key={`coach:${state.coachCanvasKey}`}
+          ref={flow.attachCoachCanvas}
+          className={`${s.canvas} ${s.coachCanvas}`}
+          data-testid="practice-coach-canvas"
+          aria-hidden="true"
+        />
       </div>
 
-      {screen === 'preparing' && <Preparing />}
-      {screen === 'compat' && <Compat state={state} onClassic={() => void flow.playClassic()} onBack={onMenu} />}
+      {screen === 'setup' && state.pending && (
+        <Setup
+          pending={state.pending}
+          notice={state.notice}
+          onRandom={(c) => {
+            updatePracticeSettings({ difficulty: c.difficulty, conditions: c.conditions, bowling: c.bowling });
+            flow.updateRandom(c);
+          }}
+          onAssist={(a) => {
+            updatePracticeSettings({ assist: a });
+            flow.refreshSettings();
+            flow.setAssist(a);
+          }}
+          onPlay={() => {
+            // Inside the tap: the browser allows fullscreen (and so the landscape lock) only here.
+            void lockLandscape();
+            void flow.play();
+          }}
+          onBack={onHome}
+          firstSession={firstSession}
+          pressFootwork={pressFootwork}
+        />
+      )}
+
+      {pipPhase && state.field && <FieldPip field={state.field} handedness={state.handedness} phase={pipPhase} side="right" onRoom={setPipRoom} onQuietOver={setPipQuietOver} />}
+
+      {showRail && !unityStageOwnsInput && (
+        <FieldPipShown.Provider value={pipShown}>
+        <StatusStrip
+          board={state.board}
+          status={inCoach ? { kind: 'coach', stage: state.coach!.mastery.stage } : { kind: 'practice' }}
+          ballNumber={state.ball?.ballNumber ?? state.board.over.length + 1}
+          field={state.field}
+          intent={state.intent}
+          bowler={plan?.bowler ?? state.ball?.bowler ?? null}
+          conditions={state.conditions}
+          ballLabel={ballLabel}
+          assist={inn?.assist ?? flow.settings.assist}
+          difficulty={plan && (plan.source === 'reference' || plan.source === 'built') ? undefined : (state.overDifficulty ?? null)}
+          handedness={state.handedness}
+          quiet={quiet || phase === 'ready'}
+          live={phase === 'live' || phase === 'playing'}
+          detail={deadInnings ? null : detail}
+          onBrief={!busy && plan && state.field && screen === 'live' ? () => setBrief(true) : null}
+          onPause={!busy && screen === 'live' && phase !== 'paused' ? () => flow.pause() : null}
+        />
+        </FieldPipShown.Provider>
+      )}
+
+      {showRail && unityGameplayInput && (
+        <div
+          ref={unityKeyboardTargetRef}
+          className={s.unityKeyboardTarget}
+          role="group"
+          aria-label={t.t('practice.live.gesture_label')}
+          tabIndex={0}
+          data-testid="practice-unity-keyboard-target"
+        />
+      )}
+
+      {showRail && unityStageOwnsInput && (
+        <section className={s.unitySemanticHud} aria-label={t.t('practice.status.practice')}>
+          <span>
+            {t.t('practice.common.score', { runs: state.board.runs, wickets: state.board.wickets })}
+            {' · '}
+            {t.tk(`practice.pitch.${state.conditions}`)}
+            {ballLabel ? ` · ${ballLabel}` : ''}
+          </span>
+          {unityGameplayInput && (
+            <button
+              type="button"
+              onClick={() => flow.requestUnityPause()}
+              data-testid="practice-unity-semantic-pause"
+            >
+              {t.t('practice.live.pause')}
+            </button>
+          )}
+          {!busy && screen === 'live' && plan && state.field && (
+            <>
+              <span data-testid="practice-unity-semantic-setup-facts">
+                {bowlerStyle(t, plan.bowler)}
+                {' · '}
+                {state.intent ? t.tk(`practice.intent.short.${state.intent.intention}`) : t.t('practice.status.practice')}
+                {' · '}
+                {t.tk(`practice.settings.assist.${inn?.assist ?? flow.settings.assist}`)}
+              </span>
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                onClick={() => setBrief(true)}
+                data-testid="practice-unity-semantic-brief"
+              >
+                {t.t('practice.brief.title')}
+              </button>
+            </>
+          )}
+        </section>
+      )}
+
+      {(screen === 'live' || screen === 'coach') && !unityStageOwnsInput && (
+        <GestureSurface
+          enabled={state.gesture.enabled && phase === 'live'}
+          deliveryKey={state.gesture.key}
+          onSwingStart={flow.onSwingStart}
+          onIntent={flow.onSwingIntent}
+          onCancel={flow.onGestureCancel}
+          onContactState={flow.onContactState}
+          onGesture={(input) => {
+            tester.gesture(input);
+            flow.onGesture(input);
+          }}
+          handedness={state.handedness}
+          pressFootwork={pressFootwork}
+          label={t.t('practice.live.gesture_label')}
+          className={s.surface}
+        />
+      )}
+
+      {phase === 'ready' && <Hint text={t.t('practice.live.hint')} accessibilityHidden={unityStageOwnsInput} />}
+      {phase === 'intro' && <IntroPanel onSkip={() => flow.skipTeaching(false)} onSkipAll={() => flow.skipTeaching(true)} />}
+      {screen === 'live' && phase === 'loading' && <Loading notice={notice} />}
+
+      {deadInnings &&
+        (tester.current ? (
+          <TesterPrompt tester={tester} />
+        ) : (
+          <ResultLayer
+            key={`${last.record.seed}:${last.overNumber}.${last.ballNumber}`}
+            last={last}
+            insight={state.insight}
+            score={t.t('practice.result.score', { score: t.t('practice.common.score', { runs: state.board.runs, wickets: state.board.wickets }) })}
+            nextLabel={nextLabel}
+            canPractice={Boolean(coach)}
+            onPractice={() => flow.acceptDeadBallAction('practice_ball')}
+            onNext={() => flow.acceptDeadBallAction('next_ball')}
+            onDemo={() => void flow.coachLoop.demonstrateLast()}
+            onCloseUp={() => void flow.coachLoop.closeUpLast()}
+            onSlowMo={() => flow.coachLoop.replayLast()}
+            note={last.interrupted ? t.t('practice.notice.interrupted') : liveNotice}
+            gloss={firstSession}
+            edge={resultEdge(unityStageOwnsInput, state.quality.stage)}
+          />
+        ))}
+
+      {inCoach &&
+        !busy &&
+        phase !== 'demo' &&
+        (tester.current ? (
+          <TesterPrompt tester={tester} />
+        ) : (
+          <Coach session={state.coach!} busy={busy} onReplay={() => void flow.coachLoop.replayExactBall()} onDemo={() => void flow.coachLoop.coachDemonstrate()} onBack={() => flow.coachLoop.leaveCoach()} />
+        ))}
+      {screen !== 'coach' && !(screen === 'live' && phase === 'dead') && tester.current && !busy && <TesterPrompt tester={tester} />}
+
+      {state.replay && (
+        <ReplayBar
+          title={state.replay.items.length > 1 ? t.t('practice.replay.over', { n: state.replay.items[0].overNumber }) : t.t('practice.replay.ball', { n: state.replay.items[0].ballNumber })}
+          index={state.replay.index}
+          playing={state.replay.playing}
+          onAgain={() => flow.coachLoop.replayAgain()}
+          onClose={() => flow.coachLoop.closeReplay()}
+        />
+      )}
+
+      {brief && plan && state.field && (
+        <BriefSheet onClose={() => setBrief(false)}>
+          <SessionBrief kind={state.overKind ?? 'random'} plan={plan} field={state.field} intent={state.intent} conditions={state.conditions} assist={inn?.assist ?? flow.settings.assist} handedness={state.handedness} difficulty={state.overDifficulty} map />
+        </BriefSheet>
+      )}
+
+      {screen === 'live' && phase === 'paused' && (
+        <PausePanel notice={notice} canRestart={midOver} onResume={() => flow.resume()} onRestart={() => setConfirm('restart')} onLeave={leave} onSettings={onSettings} />
+      )}
+
       {screen === 'error' && (
         <Center>
-          <section className={s.panel} data-testid="practice-error">
-            <h2>{t.t('practice.error.title')}</h2>
-            <p>{t.t('practice.error.body')}</p>
-            <div className={s.actions}>
-              <Button variant="primary" onClick={onMenu}>
-                {t.t('practice.common.back')}
-              </Button>
-            </div>
+          <section className={`${sys.card} ${s.error}`} role="alertdialog" aria-labelledby="practice-error-title" data-testid="practice-error">
+            <h2 id="practice-error-title" className={sys.section}>
+              {t.t('practice.error.title')}
+            </h2>
+            <p className={sys.caption}>{t.t('practice.error.body')}</p>
+            <PButton variant="primary" onClick={() => void flow.retry()} autoFocus data-testid="practice-error-retry">
+              {t.t('practice.error.retry')}
+            </PButton>
+            <PButton variant="quiet" onClick={onHome} data-testid="practice-error-back">
+              {t.t('practice.error.back')}
+            </PButton>
           </section>
         </Center>
       )}
 
-      {live && (
-        <div className={s.hud}>
-          <div className={s.topLeft}>
-            <Scoreboard board={state.board} bowler={state.ball?.bowler ?? null} conditions={state.conditions} outsideInnings={outside} />
-            {notice && !modal && (
-              <p className={s.notice} role="status" data-testid="practice-notice" data-notice={state.notice ?? ''}>
-                {notice}
-              </p>
-            )}
-          </div>
-          {!state.replay && (
-            <div className={s.topRight}>
-              <IconButton icon="pause" label={t.t('practice.live.pause')} className={s.glassButton} onClick={() => flow.pause()} disabled={busy} data-testid="practice-pause" />
-            </div>
-          )}
-          {(warmup || state.guided) && (phase === 'runup' || phase === 'live' || phase === 'idle') && (
-            <p className={s.instruction} data-testid="practice-instruction">
-              {t.t('practice.live.instruction')}
-            </p>
-          )}
+      {state.needLandscape && <TurnPhone onContinue={() => flow.allowPortrait()} />}
 
-          {phase === 'radar' && state.field && (
-            <Center>
-              <section className={`${s.panel} ${s.radarPanel}`} data-testid="practice-radar">
-                <FieldRadar field={state.field} handedness={state.handedness} />
-                <div className={s.prep} style={{ justifyItems: 'start', textAlign: 'start' }}>
-                  <h2>{t.t('practice.live.field_title')}</h2>
-                  {panelNotice}
-                  <p>{t.t('practice.live.field_summary', { ...fieldCounts(state.field, fielderClass) })}</p>
-                  <Button variant="primary" size="lg" icon="bat" onClick={() => flow.fieldReady()} data-testid="practice-radar-go">
-                    {t.t('practice.live.field_go')}
-                  </Button>
-                </div>
-              </section>
-            </Center>
-          )}
+      {screen === 'over_summary' && <OverSummary flow={flow} state={state} onHome={onHome} onNextOver={onNextOver} onChooseOver={onChooseOver} onHarder={onHarder} />}
+      {screen === 'out' && <OutSummary flow={flow} state={state} onHome={onHome} />}
+      {screen === 'complete' && <InningsSummary flow={flow} state={state} onHome={onHome} />}
 
-          {phase === 'coaching' && last && !state.replay && (
-            <div className={s.coach}>
-              <CoachingCard result={last.result} note={last.kind === 'repeat' ? t.t('practice.common.not_counted') : last.kind === 'warmup' ? t.t('practice.live.warmup') : null}>
-                {last.kind === 'repeat' ? (
-                  <>
-                    <Button variant="primary" onClick={() => last.record && void flow.repeatBall(last.record)} data-testid="practice-repeat-again">
-                      {t.t('practice.repeat.again')}
-                    </Button>
-                    <Button variant="secondary" onClick={() => flow.backToSummary()} data-testid="practice-repeat-back">
-                      {t.t('practice.repeat.back')}
-                    </Button>
-                  </>
-                ) : (
-                  <Button variant="primary" iconEnd="forward" onClick={() => flow.nextBall()} data-testid="practice-next-ball">
-                    {t.t('practice.live.next_ball')}
-                  </Button>
-                )}
-                <Button variant="ghost" icon="slowmo" onClick={() => flow.replayLast()} data-testid="practice-slowmo">
-                  {t.t('practice.live.slowmo')}
-                </Button>
-              </CoachingCard>
-            </div>
-          )}
-
-          {phase === 'warmup_explain' && last && (
-            <Center>
-              <section className={s.panel} data-testid="practice-warmup-explain">
-                <h2>{t.t('practice.why.title')}</h2>
-                {panelNotice}
-                <CoachingCard result={last.result} note={t.t('practice.live.warmup')} testId="practice-warmup-card" />
-                <Why result={last.result} family={state.ball?.bowler.family} />
-                <div className={s.actions}>
-                  <Button variant="accent" size="lg" onClick={() => flow.startGuidedOver()} data-testid="practice-start-over">
-                    {t.t('practice.why.start_over')}
-                  </Button>
-                  <Button variant="ghost" icon="slowmo" onClick={() => flow.replayLast()}>
-                    {t.t('practice.live.slowmo')}
-                  </Button>
-                </div>
-              </section>
-            </Center>
-          )}
-
-          {state.replay && <ReplayControls flow={flow} state={state} />}
-
-          {phase === 'paused' && (
-            <Center>
-              <section className={s.panel} role="dialog" aria-modal="true" aria-labelledby="practice-paused" data-testid="practice-paused">
-                <h2 id="practice-paused">{t.t('practice.live.paused')}</h2>
-                {panelNotice}
-                <p>{t.t('practice.live.saved')}</p>
-                <div className={s.actions}>
-                  <Button variant="primary" size="lg" icon="play" onClick={() => flow.resume()} data-testid="practice-resume" autoFocus>
-                    {t.t('practice.live.resume')}
-                  </Button>
-                  <Button variant="secondary" icon="settings" onClick={onSettings}>
-                    {t.t('practice.menu.settings')}
-                  </Button>
-                  <Button variant="ghost" icon="home" onClick={onMenu} data-testid="practice-leave">
-                    {t.t('practice.live.leave')}
-                  </Button>
-                </div>
-              </section>
-            </Center>
-          )}
-
-          <GestureSurface
-            enabled={state.gesture.enabled && phase === 'live'}
-            deliveryKey={state.gesture.key}
-            onSwingStart={flow.onSwingStart}
-            onGesture={flow.onGesture}
-            handedness={state.handedness}
-            label={t.t('practice.live.gesture_label')}
-            className={s.surface}
-          >
-            {showHint && <span className={s.surfaceHint}>{t.t('practice.live.hint')}</span>}
-          </GestureSurface>
-
-          {state.needLandscape && <TurnPhone onContinue={() => flow.allowPortrait()} />}
-          {state.needTap && !state.needLandscape && (
-            <Center>
-              <section className={s.panel} role="dialog" aria-modal="true" aria-labelledby="practice-ready" data-testid="practice-tap-gate">
-                <h2 id="practice-ready">{t.t('practice.live.ready_title')}</h2>
-                {panelNotice}
-                <p>{t.t('practice.live.instruction')}</p>
-                <div className={s.actions}>
-                  <Button variant="accent" size="lg" icon="bat" onClick={() => flow.tapped()} autoFocus data-testid="practice-tap-go">
-                    {t.t('practice.live.ready_go')}
-                  </Button>
-                </div>
-              </section>
-            </Center>
-          )}
-        </div>
-      )}
-
-      {screen === 'over_summary' && <OverSummary flow={flow} state={state} onBuildNext={onBuildNext} onMenu={onMenu} />}
-      {screen === 'out' && <OutSummary flow={flow} state={state} onNewInnings={onNewInnings} onMenu={onMenu} />}
-      {screen === 'complete' && <InningsSummary flow={flow} state={state} onNewInnings={onNewInnings} onMenu={onMenu} />}
-
+      <PConfirm
+        open={confirm === 'leave'}
+        title={t.t('practice.pause.leave_title')}
+        body={t.t('practice.pause.leave_body')}
+        confirmLabel={t.t('practice.pause.leave')}
+        cancelLabel={t.t('practice.common.cancel')}
+        onCancel={() => setConfirm(null)}
+        onConfirm={() => {
+          setConfirm(null);
+          tester.abandon();
+          onHome();
+        }}
+        testId="practice-leave-dialog"
+      />
+      <PConfirm
+        open={confirm === 'restart'}
+        title={t.t('practice.pause.restart_title')}
+        body={t.t('practice.pause.restart_body')}
+        confirmLabel={t.t('practice.pause.restart')}
+        cancelLabel={t.t('practice.common.cancel')}
+        onCancel={() => setConfirm(null)}
+        onConfirm={() => {
+          setConfirm(null);
+          flow.restartOver();
+        }}
+        testId="practice-restart-dialog"
+      />
       <Announcer announce={state.announce} />
-      <span hidden data-testid="practice-engine-ready">{engine ? 'ready' : ''}</span>
     </div>
   );
 }
 
-function noticeText(t: ReturnType<typeof usePracticeT>, n: NonNullable<FlowState['notice']>): string {
-  switch (n) {
-    case 'lite':
-      return t.t('practice.notice.lite');
-    case 'classic':
-      return t.t('practice.notice.classic');
-    case 'interrupted':
-      return t.t('practice.live.interrupted');
-    case 'resumed_leave':
-      return t.t('practice.menu.resumed_leave');
-  }
-}
-
-function Center({ children }: { children: ReactNode }) {
-  return <div className={s.center}>{children}</div>;
-}
-
-/** Shown while the stage loads and the device check runs (up to about 6 s on a slow, software-rendered device). */
-function Preparing() {
-  const t = usePracticeT();
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    const start = Date.now();
-    const id = window.setInterval(() => setElapsed(Date.now() - start), 500);
-    return () => window.clearInterval(id);
-  }, []);
-  // Honest, time-based reassurance: the check has no meaningful percentage, so the bar is indeterminate.
-  const step = elapsed < 1500 ? t.t('practice.prep.step_stage') : elapsed < 3500 ? t.t('practice.prep.step_check') : t.t('practice.prep.step_slow');
-  return (
-    <Center>
-      <section className={`${s.panel} ${s.prep}`} data-testid="practice-preparing">
-        <span className={s.ball} aria-hidden="true" />
-        <h2>{t.t('practice.prep.title')}</h2>
-        <p>{t.t('practice.prep.body')}</p>
-        <div className={s.progress} role="progressbar" aria-label={t.t('practice.prep.title')} aria-valuetext={step} />
-        <p className={s.step} role="status" aria-live="polite">
-          {step}
-        </p>
-      </section>
-    </Center>
-  );
-}
-
-function Compat({ state, onClassic, onBack }: { state: FlowState; onClassic: () => void; onBack: () => void }) {
-  const t = usePracticeT();
-  const a = state.assessment;
-  const reasons = (a?.reasons ?? []).filter((r) => t.has(`practice.compat.reason.${r}`));
-  return (
-    <Center>
-      <section className={s.panel} data-testid="practice-compat" data-reasons={(a?.reasons ?? []).join(' ')}>
-        <h2>{t.t('practice.compat.title')}</h2>
-        <p>{t.t('practice.compat.body')}</p>
-        {reasons.length > 0 && (
-          <>
-            <h3 className="sr-only">{t.t('practice.compat.why')}</h3>
-            <ul className={s.reasons}>
-              {reasons.map((r) => (
-                <li key={r}>{t.tk(`practice.compat.reason.${r}`, { fps: Math.round(a?.avgFps ?? 0) })}</li>
-              ))}
-            </ul>
-          </>
-        )}
-        <div className={s.actions}>
-          <Button variant="primary" size="lg" onClick={onClassic} data-testid="practice-classic" autoFocus>
-            {t.t('practice.compat.play')}
-          </Button>
-          <Button variant="ghost" onClick={onBack}>
-            {t.t('practice.common.back')}
-          </Button>
-        </div>
-      </section>
-    </Center>
-  );
-}
-
-function TurnPhone({ onContinue }: { onContinue: () => void }) {
-  const t = usePracticeT();
-  return (
-    <div className={s.turn} role="dialog" aria-modal="true" aria-labelledby="practice-turn" data-testid="practice-turn">
-      <div className={s.turnInner}>
-        <svg className={s.turnIcon} viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6">
-          <rect x="7" y="2.5" width="10" height="19" rx="2" />
-          <path d="M11 18.5h2" strokeLinecap="round" />
-        </svg>
-        <h2 id="practice-turn" style={{ margin: 0 }}>
-          {t.t('practice.live.turn_title')}
-        </h2>
-        <p style={{ margin: 0, color: 'var(--t-secondary)' }}>{t.t('practice.live.turn_body')}</p>
-        {prefersPointerFine() && (
-          <Button variant="secondary" onClick={onContinue} data-testid="practice-turn-continue">
-            {t.t('practice.live.turn_continue')}
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ReplayControls({ flow, state }: { flow: PracticeFlow; state: FlowState }) {
-  const t = usePracticeT();
-  const r = state.replay!;
-  const item = r.items[r.index];
-  const record = state.innings ? (state.innings.overs[item.overNumber - 1]?.deliveries ?? state.innings.current?.deliveries ?? []).find((d) => d.ballIndex === item.ballNumber - 1) ?? null : null;
-  const title = r.kind === 'over' ? t.t('practice.replay.over', { n: item.overNumber }) : t.t('practice.replay.ball', { n: item.ballNumber });
-  return (
-    <>
-      {r.diag && (
-        <div className={s.diagPanel}>
-          <DiagnosticPanel result={item.result} record={record} />
-        </div>
-      )}
-      <div className={s.replayBar} role="toolbar" aria-label={title} data-testid="practice-replay" data-index={r.index} data-playing={r.playing ? 'true' : 'false'}>
-        <span className={s.replayTitle}>{title}</span>
-        {r.items.length > 1 && (
-          <>
-            <IconButton icon="back" label={t.t('practice.replay.prev')} onClick={() => flow.replaySelect(r.index - 1)} disabled={r.index === 0} />
-            <span aria-live="polite">{t.t('practice.common.ball_n', { n: item.ballNumber })}</span>
-            <IconButton icon="forward" label={t.t('practice.replay.next')} onClick={() => flow.replaySelect(r.index + 1)} disabled={r.index >= r.items.length - 1} />
-          </>
-        )}
-        <Button variant={r.slow ? 'primary' : 'secondary'} icon="slowmo" aria-pressed={r.slow} onClick={() => flow.replayToggle('slow')} data-testid="practice-replay-slow">
-          {t.t('practice.replay.slow')}
-        </Button>
-        <Button variant={r.diag ? 'primary' : 'secondary'} icon="target" aria-pressed={r.diag} onClick={() => flow.replayToggle('diag')} data-testid="practice-replay-diag">
-          {t.t('practice.replay.diag')}
-        </Button>
-        {!r.playing && (
-          <Button variant="secondary" icon="replay" onClick={() => flow.replaySelect(r.index)}>
-            {t.t('practice.replay.again')}
-          </Button>
-        )}
-        <Button variant="ghost" icon="close" onClick={() => flow.closeReplay()} data-testid="practice-replay-close">
-          {t.t('practice.replay.close')}
-        </Button>
-      </div>
-    </>
-  );
+/**
+ * The field inset (MiniRadar.tsx FieldPip): on the live screen, between balls and through each delivery (the stage
+ * decides frame by frame what it shows, and hides it from the release until the fielding camera). Never in a replay,
+ * a teaching view, the pause, or on Unity (which draws its own). It sits in the top-right corner below the rail on
+ * every renderer, opposite the 3D dead-ball card. Classic's card takes the right half at the dead ball, and Classic's
+ * main view is then the field from above (or, after a leave, the batter's view with no clear corner), so there it
+ * steps out at the dead ball.
+ */
+export function fieldPipPhase(screen: FlowState['screen'], phase: FlowState['phase'], o: { unity: boolean; replay: boolean; field: boolean; stage: '3d' | '2d' }): FieldPipPhase | null {
+  if (screen !== 'live' || o.unity || o.replay || !o.field) return null;
+  if (phase === 'ready') return 'calm';
+  if (phase === 'runup') return 'quiet';
+  if (phase === 'live' || phase === 'playing') return 'live';
+  if (phase === 'dead' && resultEdge(false, o.stage) === 'left') return 'dead';
+  return null;
 }
 
 /** Screen-reader announcements of each outcome (and each run-up), re-announced by id. */
+/**
+ * The dead ball card's edge, by renderer (measured: release/product-sequence/stage-1-practice/wedge/worker/): Unity's
+ * rear-shoulder camera keeps the batter on the right, and the Three.js stage's protected regions at the dead ball are
+ * a central column with its free side on the left; Classic's top-down field is centred over a full-width ball-path
+ * strip, and its card sits in the right half above that strip.
+ */
+export function resultEdge(unity: boolean, stage: '3d' | '2d'): 'left' | 'right' {
+  return !unity && stage === '2d' ? 'right' : 'left';
+}
+
 function Announcer({ announce }: { announce: FlowState['announce'] }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -390,4 +491,3 @@ function Announcer({ announce }: { announce: FlowState['announce'] }) {
   }, [announce]);
   return <div ref={ref} className="sr-only" aria-live="polite" aria-atomic="true" data-testid="practice-announce" />;
 }
-

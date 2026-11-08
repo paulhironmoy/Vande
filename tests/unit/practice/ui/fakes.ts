@@ -1,11 +1,13 @@
 /**
  * Fixtures for the flow controller tests: a fake engine with simple, deterministic rules that follow the contract's
- * shapes (it is not the physics: the controller must not care how outcomes are made), and a fake stage that logs every
- * call together with what storage held at that moment, so the tests can check what was saved before what was shown.
+ * shapes (it is not the physics: the controller must not care how outcomes are made), a fake coach with a simple
+ * mastery rule, and a fake stage that logs every call together with what storage held at that moment, so the tests
+ * can check what was saved before what was shown.
  */
 import {
   PRACTICE_MAX_OVERS,
   PRACTICE_SIM_VERSION,
+  type BallCondition,
   type BallFlight,
   type BowlerProfile,
   type DeliveryRecord,
@@ -19,10 +21,14 @@ import {
   type QualityProfileId,
 } from '@/contracts';
 import type { BenchmarkRun } from '@/perf';
+import type { OneGestureState } from '@/input';
 import { PRACTICE_KEYS, memoryStore, type KeyStore } from '@/practice/store';
 import type { NextDeliveryLike, PracticeEngine, PracticeStageLike, StageEvent, StageEventPayloads, StageFactory } from '@/practice/ui/flow/types';
 
 export const bowler: BowlerProfile = { family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'look' };
+
+/** The over's ball (the default: a new white ball). */
+export const ball: BallCondition = { colour: 'white', age: 'new' };
 
 export const field: FieldLayout = {
   id: 'fake',
@@ -34,7 +40,7 @@ export function plan(variation: PracticeDeliveryPlan['variation'] = 'stock'): Pr
 }
 
 export function overPlan(seed: string, source: PracticeOverPlan['source'] = 'random'): PracticeOverPlan {
-  return { version: PRACTICE_SIM_VERSION, bowler, balls: [plan(), plan(), plan(), plan(), plan(), plan()], seed, source };
+  return { version: PRACTICE_SIM_VERSION, bowler, ball: { ...ball }, balls: [plan(), plan(), plan(), plan(), plan(), plan()], seed, source };
 }
 
 /** Swing conventions of the fake physics: attack direction 180 = caught; power ≥ 0.8 six, ≥ 0.5 four, else 1. */
@@ -45,14 +51,26 @@ export function fakeResult(flight: BallFlight, swing: NormalizedSwing | null): D
   if (!swing) dismissal = flight.plan.variation === 'yorker' ? 'bowled' : null;
   else if (swing.kind === 'attack') {
     if (swing.directionDeg === 180) dismissal = 'caught';
-    else if (swing.power >= 0.8) (runs = 6), (boundary = 6);
-    else if (swing.power >= 0.5) (runs = 4), (boundary = 4);
-    else runs = 1;
+    else if (swing.power >= 0.8) {
+      runs = 6;
+      boundary = 6;
+    } else if (swing.power >= 0.5) {
+      runs = 4;
+      boundary = 4;
+    } else runs = 1;
   }
   return {
     version: PRACTICE_SIM_VERSION,
     flight,
     swing,
+    batterRootOffset: { x: 0, z: 0 },
+    batterBodyFrame: {
+      stance: { x: -0.15, z: 8.96 },
+      torsoTop: { x: -0.3, y: 1.42, z: 8.94 },
+      headCentre: { x: -0.2, y: 1.62, z: 8.86 },
+    },
+    batterPosture: { crouchM: 0 },
+    batterMotion: null,
     footwork: 'forward',
     lbw: null,
     contact: {
@@ -91,6 +109,7 @@ function flightOf(p: PracticeDeliveryPlan, seed: string): BallFlight {
     wouldHitStumps: true,
     samples: [],
     spin: { release: { x: 0, y: 0, z: 0 }, afterBounce: null },
+    seam: { axis: { x: 1, y: 0, z: 0 }, shine: { x: -1, y: 0, z: 0 }, wobble: 0 },
   };
 }
 
@@ -99,7 +118,7 @@ export function fakeEngine(over: Partial<PracticeEngine> = {}): PracticeEngine &
   const nextDelivery = (s: PracticeInningsState): NextDeliveryLike | null => {
     if (s.status !== 'batting' || !s.current || s.current.deliveries.length >= 6) return null;
     const i = s.current.deliveries.length;
-    return { overIndex: s.overs.length, ballIndex: i, plan: s.current.plan.balls[i], seed: `${s.current.plan.seed}:${i}`, bowler: s.current.plan.bowler, field: s.current.field, conditions: s.conditions, handedness: s.handedness, assist: s.assist };
+    return { overIndex: s.overs.length, ballIndex: i, plan: s.current.plan.balls[i], seed: `${s.current.plan.seed}:${i}`, bowler: s.current.plan.bowler, field: s.current.field, conditions: s.conditions, handedness: s.handedness, assist: s.assist, ball: { ...(s.current.plan.ball ?? ball) } };
   };
   const makeRecord = (next: NextDeliveryLike, swing: NormalizedSwing | null, tierToleranceMs: number, result: Pick<DeliveryResult, 'outcome'>): DeliveryRecord => ({
     version: PRACTICE_SIM_VERSION,
@@ -129,6 +148,11 @@ export function fakeEngine(over: Partial<PracticeEngine> = {}): PracticeEngine &
         if (!done) return { ...base, current };
         return { ...base, overs, current: null, status: overs.length >= PRACTICE_MAX_OVERS ? 'complete' : 'over_complete' };
       }
+      case 'restartOver': {
+        if (s.status !== 'batting' || !s.current || s.inFlight || s.current.deliveries.length === 0) return s;
+        const runs = s.current.deliveries.reduce((n, r) => n + r.runs, 0);
+        return { ...s, runs: s.runs - runs, balls: s.balls - s.current.deliveries.length, current: { ...s.current, deliveries: [] } };
+      }
       case 'nextOver':
         return s.status === 'over_complete' ? { ...s, status: 'choosing_over' } : s;
       case 'abandon':
@@ -145,10 +169,16 @@ export function fakeEngine(over: Partial<PracticeEngine> = {}): PracticeEngine &
       calls.push('resolve');
       return fakeResult(a.flight, a.swing);
     },
+    resolveCalibrations: (set) => ({ touch: set?.touch?.offsetMs ?? 0, mouse: set?.mouse?.offsetMs ?? 0, pen: set?.pen?.offsetMs ?? set?.touch?.offsetMs ?? 0, keyboard: set?.keyboard?.offsetMs ?? 0 }),
     autoField: () => field,
+    fieldIntent: () => ({ intention: 'save_singles', attacking: ['f0'], protected: [{ fromDeg: 10, toDeg: 40, depth: 'ring' }], gaps: [{ fromDeg: 50, toDeg: 70, depth: 'deep', region: 'cover' }] }),
     regionOf: () => 'cover',
-    randomOver: (a) => overPlan(a.seed),
-    guidedStart: (seed) => ({ warmup: { bowler, plan: plan(), seed: `${seed}:w` }, over: overPlan(seed, 'guided') }),
+    randomOver: (a) => {
+      calls.push(`randomOver:${a.difficulty}:${a.conditions}:${a.family ?? 'any'}`);
+      return overPlan(a.seed);
+    },
+    referenceOver: () => overPlan('reference', 'reference'),
+    referenceBalls: () => (['outswing', 'inswing', 'stock', 'cutter', 'bouncer', 'yorker'] as const).map((variation, index) => ({ id: `ref-${index + 1}`, index, variation, objective: 'play_straight' })),
     ballSeed: (o, i) => `${o.seed}:${i}`,
     newInnings: (a) => ({ version: PRACTICE_SIM_VERSION, id: a.id, status: 'choosing_over', conditions: a.conditions, assist: a.assist, handedness: a.handedness, runs: 0, balls: 0, overs: [], current: null, inFlight: null, dismissal: null }),
     inningsReducer: reducer,
@@ -209,6 +239,21 @@ export function fakeEngine(over: Partial<PracticeEngine> = {}): PracticeEngine &
       timingBand: r.contact.timing,
       timingErrorMs: r.contact.timingErrorMs,
       contact: r.contact.kind,
+      intent: r.swing ? {
+        kind: r.swing.kind,
+        directionDeg: r.swing.directionDeg,
+        power: r.swing.power,
+        elevation: r.swing.elevation,
+        requestedFootwork: r.swing.footwork,
+      } : null,
+      bat: {
+        faceBearingDeg: r.contact.faceBearingDeg,
+        faceToIntentDeg: r.contact.faceBearingDeg === null || r.contact.intendedBearingDeg === null ? null : r.contact.faceBearingDeg - r.contact.intendedBearingDeg,
+        speedKph: r.contact.batSpeedKph,
+        bladeU: r.contact.bladeU,
+        sweetSpotAlongOffsetM: null,
+        withinSweetSpotAlongBand: null,
+      },
       intendedBearingDeg: r.contact.intendedBearingDeg,
       intendedRegion: r.swing ? 'cover' : null,
       exitBearingDeg: r.contact.exitBearingDeg,
@@ -249,17 +294,22 @@ export class FakeStage implements PracticeStageLike {
   release = 0;
   scale = 1;
   disposed = false;
+  mountedCanvas: HTMLCanvasElement | null = null;
   private handlers = new Map<string, Array<(p: unknown) => void>>();
   constructor(
     readonly kind: '3d' | '2d',
     private store: KeyStore,
     private opts: { failMount?: boolean; lateReleaseMs?: number } = {},
   ) {}
+  /** Calls made on this stage after it was disposed (always a bug: a real stage has no canvas by then). */
+  usedAfterDispose = 0;
   private note(call: string) {
+    if (this.disposed && call !== 'dispose') this.usedAfterDispose++;
     const raw = this.store.getItem(PRACTICE_KEYS.innings);
     this.log.push({ call, saved: raw ? (JSON.parse(raw).state as PracticeInningsState) : null });
   }
-  async mount() {
+  async mount(canvas: HTMLCanvasElement) {
+    this.mountedCanvas = canvas;
     this.note('mount');
     if (this.opts.failMount) throw new Error('no webgl2');
   }
@@ -270,19 +320,58 @@ export class FakeStage implements PracticeStageLike {
     this.note('benchmark');
     return { frameMs: Array.from({ length: 90 }, () => 16.7), shaderCompileMs: 100, contextLosses: 0, renderer: 'Fake GPU', webgl2: true, hardware: true };
   }
+  quietNow = false;
+  assistance: Array<number | null> = [];
+  contactStates: OneGestureState[] = [];
   async bowl() {
     this.note('bowl');
+    if (this.disposed) throw new Error('stage disposed');
+    this.quietNow = true;
+    this.emit('quiet', { quiet: true });
     await new Promise((r) => setTimeout(r, 1500 / this.scale + (this.opts.lateReleaseMs ?? 0)));
     // A busy main thread runs the release callback late: the release time itself is the scheduled one.
     this.release = performance.now() - (this.opts.lateReleaseMs ?? 0);
     return { releasePerfMs: this.release };
+  }
+  setAssistance(stage: number | null) {
+    this.assistance.push(stage);
+    this.note(`assist:${stage ?? 'none'}`);
+  }
+  async demonstrate() {
+    this.note('demonstrate');
+    if (this.disposed) throw new Error('stage disposed');
+    await new Promise((r) => setTimeout(r, 800));
+  }
+  async closeUp() {
+    this.note('closeUp');
+    await new Promise((r) => setTimeout(r, 600));
+  }
+  quiet() {
+    return this.quietNow;
+  }
+  protectedRegions() {
+    return [{ kind: 'bowler' as const, x: 300, y: 40, width: 120, height: 160 }];
+  }
+  setFocusAid() {}
+  prepareSwing() {
+    this.note('prepareSwing');
+  }
+  cancelSwing() {
+    this.note('cancelSwing');
+  }
+  previewContact(state: OneGestureState) {
+    this.contactStates.push({ ...state });
+    this.note(`contact:${state.phase}`);
   }
   beginSwing() {
     this.note('beginSwing');
   }
   async play() {
     this.note('play');
+    if (this.disposed) throw new Error('stage disposed');
     await new Promise((r) => setTimeout(r, 2000 / this.scale));
+    this.quietNow = false;
+    this.emit('quiet', { quiet: false });
   }
   async replay() {
     this.note('replay');
@@ -351,3 +440,4 @@ export function assessment(tier: DeviceAssessment['tier'] = 'full'): DeviceAsses
 }
 
 export { memoryStore };
+export { fakeCoach } from './fakeCoach';

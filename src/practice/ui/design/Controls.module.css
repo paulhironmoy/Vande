@@ -1,0 +1,202 @@
+/* Practice form controls: a segmented radio group, a switch, a disclosure and a setting row. */
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--p-half);
+  padding: var(--p-half);
+  border-radius: var(--p-radius);
+  background: var(--p-surface);
+  border: 1px solid var(--p-line);
+  min-width: 0;
+}
+
+.opt {
+  flex: 1 1 auto;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2px;
+  min-height: var(--p-control);
+  min-width: var(--p-control);
+  max-width: 100%;
+  padding: var(--p-half) var(--p-2);
+  border: 1px solid transparent;
+  border-radius: calc(var(--p-radius) - var(--p-half));
+  background: transparent;
+  color: var(--p-text-2);
+  font: inherit;
+  font-size: var(--p-caption);
+  font-weight: 650;
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color var(--p-t) var(--p-ease), color var(--p-t) var(--p-ease);
+}
+
+.opt[aria-checked='true'] {
+  background: var(--p-surface-2);
+  border-color: var(--p-line-strong);
+  color: var(--p-text);
+}
+
+.opt:focus-visible {
+  outline: 2px solid var(--p-focus);
+  outline-offset: 1px;
+}
+
+.opt:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.optDesc {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--p-text-3);
+}
+
+.opt[aria-checked='true'] .optDesc {
+  color: var(--p-text-2);
+}
+
+/* A check mark as well as a fill: the choice never depends on colour alone. */
+.optMark {
+  display: none;
+}
+
+.opt[aria-checked='true'] .optMark {
+  display: inline-flex;
+}
+
+.optLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--p-half);
+}
+
+.switch {
+  /* The native button owns the entire touch target, including above/below the small track. */
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  min-width: max(48px, var(--p-control));
+  min-height: max(48px, var(--p-control));
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  touch-action: manipulation;
+}
+
+.switchTrack {
+  position: relative;
+  width: 3.25rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid var(--p-line-strong);
+  background: var(--p-surface-2);
+  pointer-events: none;
+  transition: background-color var(--p-t) var(--p-ease);
+}
+
+.switchTrack::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--p-text-2);
+  transition: transform var(--p-t) var(--p-ease), background-color var(--p-t) var(--p-ease);
+}
+
+.switch[aria-checked='true'] .switchTrack {
+  background: var(--p-accent);
+  border-color: var(--p-accent);
+}
+
+.switch[aria-checked='true'] .switchTrack::after {
+  transform: translateX(1.25rem);
+  background: var(--p-on-accent);
+}
+
+.switch:focus-visible {
+  outline: 2px solid var(--p-focus);
+  outline-offset: 2px;
+}
+
+.switch:disabled {
+  cursor: not-allowed;
+}
+
+.setting {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--p-half) var(--p-2);
+  min-width: 0;
+}
+
+.settingText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settingLabel {
+  font-weight: 650;
+}
+
+.settingHint {
+  font-size: var(--p-caption);
+  color: var(--p-text-2);
+  line-height: var(--leading-snug);
+}
+
+.disclosure {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--p-1);
+  min-height: var(--p-control);
+  padding: 0 var(--p-half);
+  border: 0;
+  background: transparent;
+  color: var(--p-text);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  text-align: start;
+}
+
+.disclosure:focus-visible {
+  outline: 2px solid var(--p-focus);
+  outline-offset: 2px;
+  border-radius: var(--p-radius-sm);
+}
+
+.disclosureIcon {
+  display: inline-flex;
+  color: var(--p-text-2);
+  transition: transform var(--p-t) var(--p-ease);
+}
+
+.disclosure[aria-expanded='true'] .disclosureIcon {
+  transform: rotate(180deg);
+}
+
+.disclosureBody {
+  display: grid;
+  gap: var(--p-1);
+  min-width: 0;
+}
+
+:global([data-motion='reduced']) .opt,
+:global([data-motion='reduced']) .switchTrack,
+:global([data-motion='reduced']) .switchTrack::after,
+:global([data-motion='reduced']) .disclosureIcon {
+  transition: none;
+}

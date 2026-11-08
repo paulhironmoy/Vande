@@ -1,0 +1,126 @@
+.wrap {
+  display: grid;
+  gap: var(--p-1);
+  min-width: 0;
+}
+
+.map {
+  display: block;
+  width: 100%;
+  max-width: 24rem;
+  height: auto;
+  aspect-ratio: 1;
+  justify-self: center;
+}
+
+.grass {
+  fill: #10261d;
+  stroke: rgba(243, 239, 231, 0.55);
+  stroke-width: 0.8;
+}
+
+.ring {
+  fill: none;
+  stroke: rgba(243, 239, 231, 0.32);
+  stroke-width: 0.6;
+  stroke-dasharray: 2 2;
+}
+
+.pitch {
+  fill: #b48c5a;
+}
+
+.protected {
+  fill: var(--p-caution);
+  fill-opacity: 0.16;
+}
+
+.gapDeep,
+.gapRing {
+  fill: var(--p-success);
+  fill-opacity: 0.16;
+  stroke: var(--p-success);
+  stroke-width: 0.7;
+}
+
+.gapRing {
+  stroke-dasharray: 2 1.5;
+  fill-opacity: 0.1;
+}
+
+.dot {
+  fill: #f3efe7;
+  stroke: #0b0d12;
+  stroke-width: 0.8;
+}
+
+.catcher {
+  fill: var(--p-caution);
+  stroke: #0b0d12;
+  stroke-width: 0.8;
+}
+
+.deepDot {
+  fill: #c9c4b9;
+  stroke: #0b0d12;
+  stroke-width: 0.8;
+}
+
+.keeper {
+  fill: #8d8982;
+  stroke: #0b0d12;
+  stroke-width: 0.8;
+}
+
+.batter {
+  fill: var(--p-accent);
+}
+
+.label {
+  font-size: 4.4px;
+  font-weight: 700;
+  fill: #f3efe7;
+  paint-order: stroke;
+  stroke: #0b0d12;
+  stroke-width: 1.4px;
+  stroke-linejoin: round;
+}
+
+.sideLabel {
+  font-size: 5px;
+  font-weight: 700;
+  fill: rgba(243, 239, 231, 0.7);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--p-half) var(--p-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--p-caption);
+  color: var(--p-text-2);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--p-half);
+}
+
+.swatch {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: none;
+}
+
+:global([data-contrast='high']) .protected {
+  fill-opacity: 0.32;
+}
+
+:global([data-contrast='high']) .gapDeep,
+:global([data-contrast='high']) .gapRing {
+  fill-opacity: 0.3;
+  stroke-width: 1.2;
+}

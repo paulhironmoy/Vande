@@ -1,22 +1,37 @@
-/** Practice preferences on this device: assistance, batting hand, graphics choice, pitch, the landing cue, first run. */
-import type { AssistLevel, Handedness, PitchCondition } from '@/contracts';
+/**
+ * Practice preferences on this device: assistance, batting hand, graphics, the Random Over's choices (difficulty,
+ * pitch, bowling type), Learn's landing cue, and how many deliveries the input hint has been shown for. Sound levels and
+ * captions belong to src/audio (its own key, cleared with Practice data).
+ */
+import type { AssistLevel, BowlerFamily, Difficulty, Handedness, PitchCondition } from '@/contracts';
 import type { QualityChoice } from '@/perf';
 import { PRACTICE_KEYS, isObj, localStore, readJson, writeJson, type KeyStore } from './storage';
+
+/** The Random Over's optional bowling-type constraint. */
+export type BowlingChoice = BowlerFamily | 'any';
 
 export interface PracticeSettings {
   v: 1;
   assist: AssistLevel;
   handedness: Handedness;
-  /** 'auto' follows the device check; a lower profile or Classic may be chosen, never more than the device earned. */
+  /** 'auto' follows the device check; a lower presentation may be chosen, never more than the device earned. */
   quality: QualityChoice;
-  /** The pitch for the next innings (optional; Balanced by default). */
+  /** The Random Over's pitch (Quick Practice always bowls on Balanced). */
   conditions: PitchCondition;
+  /** The Random Over's difficulty (Quick Practice uses Club). */
+  difficulty: Difficulty;
+  /** The Random Over's bowling type. */
+  bowling: BowlingChoice;
   /** Learn's optional landing cue. */
   learnCue: boolean;
-  /** The first-time guided over has been completed (or the player was dismissed in it). */
-  guidedDone: boolean;
-  /** Deliveries the "Tap to defend · Flick to hit" hint has been shown for (it fades after a few). */
+  /** The stage's optional, subtle focus aid around the ball (off by default). */
+  focusAid: boolean;
+  /** Deliveries the "Tap to defend · Flick to hit" hint has been shown for (it stops after a few). */
   hintsShown: number;
+  /** Teaching (the first-run demonstration, the pre-delivery hint, plain-word glosses); one tap turns it off for good. */
+  teach: boolean;
+  /** The first-run demonstration has been watched or skipped. */
+  demoSeen: boolean;
 }
 
 export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
@@ -25,15 +40,21 @@ export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
   handedness: 'right',
   quality: 'auto',
   conditions: 'balanced',
+  difficulty: 'club',
+  bowling: 'any',
   learnCue: true,
-  guidedDone: false,
+  focusAid: false,
   hintsShown: 0,
+  teach: true,
+  demoSeen: false,
 };
 
 const ASSISTS: readonly AssistLevel[] = ['learn', 'play', 'real'];
 const HANDS: readonly Handedness[] = ['right', 'left'];
 const QUALITIES: readonly QualityChoice[] = ['auto', 'lite', 'standard', 'high', 'classic'];
 const PITCHES: readonly PitchCondition[] = ['balanced', 'green', 'hard', 'turning'];
+const DIFFICULTIES: readonly Difficulty[] = ['beginner', 'club', 'expert'];
+const BOWLING: readonly BowlingChoice[] = ['any', 'pace', 'spin'];
 
 export function loadPracticeSettings(store: KeyStore | null = localStore()): PracticeSettings {
   const raw = readJson(store, PRACTICE_KEYS.settings);
@@ -46,13 +67,17 @@ export function loadPracticeSettings(store: KeyStore | null = localStore()): Pra
     handedness: pick(raw.handedness, HANDS, d.handedness),
     quality: pick(raw.quality, QUALITIES, d.quality),
     conditions: pick(raw.conditions, PITCHES, d.conditions),
+    difficulty: pick(raw.difficulty, DIFFICULTIES, d.difficulty),
+    bowling: pick(raw.bowling, BOWLING, d.bowling),
     learnCue: typeof raw.learnCue === 'boolean' ? raw.learnCue : d.learnCue,
-    guidedDone: raw.guidedDone === true,
+    focusAid: raw.focusAid === true,
     hintsShown: Number.isInteger(raw.hintsShown) && (raw.hintsShown as number) >= 0 ? Math.min(99, raw.hintsShown as number) : 0,
+    teach: raw.teach !== false,
+    demoSeen: raw.demoSeen === true,
   };
 }
 
-export function savePracticeSettings(next: PracticeSettings, store: KeyStore | null = localStore()): void {
+function savePracticeSettings(next: PracticeSettings, store: KeyStore | null = localStore()): void {
   writeJson(store, PRACTICE_KEYS.settings, next);
 }
 

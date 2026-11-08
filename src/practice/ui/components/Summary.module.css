@@ -1,0 +1,172 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow-y: auto;
+  background: var(--p-bg);
+  touch-action: auto;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--p-1) var(--p-2);
+}
+
+.score {
+  font-size: var(--p-display);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.balls {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--p-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 34rem) {
+  .balls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.ball {
+  display: grid;
+  justify-items: center;
+  gap: var(--p-half);
+  width: 100%;
+  min-height: 4.5rem;
+  padding: var(--p-1);
+  border-radius: var(--p-radius-sm);
+  border: 1px solid var(--p-line);
+  background: var(--p-surface);
+  color: var(--p-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.ball:focus-visible {
+  outline: 2px solid var(--p-focus);
+  outline-offset: 2px;
+}
+
+.ball:disabled {
+  cursor: default;
+}
+
+.ballMark {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 1px solid var(--p-line-strong);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.ballMark[data-state='boundary'] {
+  border-color: var(--p-accent);
+  color: var(--p-accent);
+}
+
+.ballMark[data-state='out'] {
+  border-color: var(--p-danger);
+  color: var(--p-danger);
+  border-radius: 4px;
+}
+
+.ballName {
+  font-size: var(--p-caption);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.form {
+  display: grid;
+  gap: var(--p-half);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) minmax(4rem, 8rem) auto auto;
+  align-items: center;
+  gap: var(--p-1);
+}
+
+.bar {
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--p-surface-2);
+  overflow: hidden;
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  background: var(--p-text-2);
+}
+
+.formScore {
+  font-weight: 750;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--p-half) var(--p-1);
+}
+
+.perOver {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--p-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.perOver li {
+  display: grid;
+  justify-items: center;
+  min-width: 3rem;
+  padding: var(--p-half) var(--p-1);
+  border-radius: var(--p-radius-sm);
+  border: 1px solid var(--p-line);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The over at a glance (not controls): six marks with the delivery's name under each. */
+.marks {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--p-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.markItem {
+  display: grid;
+  justify-items: center;
+  gap: var(--p-half);
+  min-width: 0;
+  text-align: center;
+}
+
+.markName {
+  font-size: var(--p-caption);
+  color: var(--p-text-2);
+  line-height: var(--leading-snug);
+  overflow-wrap: anywhere;
+}

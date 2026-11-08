@@ -1,0 +1,419 @@
+/*
+ * The live screen's interface: a quiet rail in the two top corners, and (after the ball is dead) a compact results
+ * layer at the right edge. Nothing sits over the centre column (the bowler, the release, the pitch, the ball path) or
+ * the batter's corner. In Delivery Quiet Mode the rail dims instantly (no animation) and cannot be used.
+ */
+.stripLeft,
+.stripRight {
+  position: absolute;
+  top: calc(var(--p-safe-t) + var(--p-1));
+  z-index: 2;
+}
+
+.stripLeft {
+  left: calc(var(--p-safe-l) + var(--p-2));
+  display: grid;
+  gap: var(--p-half);
+  justify-items: start;
+  max-width: min(17rem, 26vw);
+  padding: var(--p-1) var(--p-2) var(--p-1) var(--p-1);
+  border-radius: var(--p-radius-sm);
+  background: rgba(8, 9, 13, 0.66);
+  pointer-events: none;
+}
+
+.stripLeft[data-tappable='true'] {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.stripRight {
+  right: calc(var(--p-safe-r) + var(--p-2));
+  display: flex;
+  align-items: flex-start;
+  gap: var(--p-1);
+  max-width: min(22rem, 34vw);
+  /*
+   * At large text the conditions can wrap to the full height (EVAL-WORLD K5: Classic 844x390 at 200% text). The corner
+   * stops at 40% of the height and scrolls inside, so the dead ball's card below it, and its two actions, always have
+   * room. At the default size it is far shorter and nothing changes. (Its controls make it reachable by keyboard.)
+   */
+  max-height: calc(40% - var(--p-safe-t));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.stripLeft[data-quiet='true'] .overs,
+.stripLeft[data-quiet='true'] .marks,
+.stripLeft[data-quiet='true'] .status {
+  opacity: 0.55;
+}
+
+.stripRight[data-quiet='true'] {
+  opacity: 0.5;
+}
+
+/* During a delivery the rail shrinks to the essentials (score, over, this over's balls, the radar, pause): it covers
+   well under 8% of the screen, and nothing in it moves. */
+.stripRight[data-quiet='true'] .condText,
+.stripLeft[data-quiet='true'] .status {
+  display: none;
+}
+
+.stripLeft[data-quiet='true'] *,
+.stripRight[data-quiet='true'] * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* The live ball (release to dead ball): the camera follows the ball down to the bat, and the pitch, the bat and the
+   ball reach every corner of the frame (measured at 915x412), so the rail is not drawn: an instant change, never a
+   fade, and back at the dead ball. Captions for essential sounds stay, on their own small backing. */
+.stripLeft[data-live='true'],
+.stripRight[data-live='true'] {
+  visibility: hidden;
+}
+
+.stripLeft[data-live='true'] .caption {
+  visibility: visible;
+}
+
+.stripLeft[data-live='true'] .caption:not(:empty) {
+  padding: var(--p-half) var(--p-1);
+  border-radius: var(--p-radius-sm);
+  background: rgba(8, 9, 13, 0.66);
+}
+
+.scoreLine {
+  display: flex;
+  align-items: baseline;
+  gap: var(--p-1);
+}
+
+.score {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-display);
+}
+
+.overs {
+  font-size: var(--p-caption);
+  font-weight: 650;
+  color: var(--p-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.marks {
+  display: flex;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  border: 1px solid var(--p-line-strong);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.mark[data-state='current'] {
+  border-color: var(--p-text);
+}
+
+.mark[data-state='boundary'] {
+  border-color: var(--p-accent);
+  color: var(--p-accent);
+}
+
+.mark[data-state='out'] {
+  border-color: var(--p-danger);
+  color: var(--p-danger);
+  border-radius: 3px;
+}
+
+.status {
+  font-size: var(--p-caption);
+  font-weight: 650;
+  color: var(--p-text-2);
+}
+
+.caption {
+  margin: 0;
+  font-size: var(--p-caption);
+  font-weight: 700;
+  color: var(--p-text);
+}
+
+.caption:empty {
+  display: block;
+  height: 0;
+}
+
+.conditions {
+  display: flex;
+  align-items: center;
+  gap: var(--p-1);
+  min-height: var(--p-control);
+  min-width: 0;
+  padding: var(--p-half) var(--p-1);
+  border-radius: var(--p-radius-sm);
+  border: 1px solid var(--p-line);
+  background: rgba(8, 9, 13, 0.66);
+  color: var(--p-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.conditions:disabled {
+  cursor: default;
+}
+
+.conditions:focus-visible {
+  outline: 2px solid var(--p-focus);
+  outline-offset: 2px;
+}
+
+.condText {
+  display: grid;
+  min-width: 0;
+  line-height: var(--leading-snug);
+}
+
+.condMain {
+  font-size: var(--p-caption);
+  font-weight: 750;
+}
+
+.condSub {
+  font-size: 0.8125rem;
+  color: var(--p-text-2);
+}
+
+.pause {
+  background: rgba(8, 9, 13, 0.66);
+  border: 1px solid var(--p-line);
+}
+
+@media (max-width: 760px) {
+  .condSub {
+    display: none;
+  }
+}
+
+/* The compact results layer (the dead ball): at the right edge, below the rail; it grows for coaching. */
+/*
+ * The dead ball's results layer: at the bottom right edge, below the rail (its measured bottom, --p-rail-bottom, set
+ * by the play view), never over it. The words scroll inside it when they must; the two actions are pinned below them,
+ * so "Practice this ball" and "Next ball" are always in view, on the smallest supported phone too.
+ */
+.result {
+  position: absolute;
+  z-index: 3;
+  right: calc(var(--p-safe-r) + var(--p-2));
+  bottom: calc(var(--p-safe-b) + var(--p-1));
+  width: min(22rem, 44vw);
+  max-height: calc(100% - var(--p-rail-bottom, 4.75rem) - var(--p-safe-b) - var(--p-2));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--p-radius);
+  background: rgba(16, 18, 24, 0.94);
+  border: 1px solid var(--p-line);
+  touch-action: auto;
+}
+
+.result[data-expanded='true'] {
+  width: min(26rem, 50vw);
+}
+
+.resultBody {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  align-content: start;
+  gap: var(--p-1);
+  padding: var(--p-2) var(--p-2) var(--p-1);
+}
+
+.resultActions {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--p-1);
+  padding: var(--p-1) var(--p-2) var(--p-2);
+  border-top: 1px solid var(--p-line);
+}
+
+.resultActions > * {
+  flex: 1 1 auto;
+}
+
+.outcomeRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--p-1);
+}
+
+.disclosures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--p-1);
+}
+
+.outcome {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--p-half) var(--p-1);
+}
+
+.outcomeWord {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.outcomeWord[data-tone='boundary'] {
+  color: var(--p-accent);
+}
+
+.outcomeWord[data-tone='out'] {
+  color: var(--p-danger);
+}
+
+.reason {
+  margin: 0;
+  font-weight: 700;
+  line-height: var(--leading-snug);
+}
+
+.rec {
+  margin: 0;
+  display: flex;
+  gap: var(--p-half);
+  align-items: flex-start;
+  line-height: var(--leading-snug);
+}
+
+.recIcon {
+  flex: none;
+  color: var(--p-accent);
+  margin-top: 2px;
+}
+
+/* Well played, or the same again: a confirmation, in the success colour with a check; a correction keeps an arrow. */
+.rec[data-confirm='true'] {
+  color: var(--p-success);
+}
+
+.rec[data-confirm='true'] .recIcon {
+  color: var(--p-success);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--p-1);
+  margin-top: var(--p-half);
+}
+
+.actions > * {
+  flex: 1 1 auto;
+}
+
+.more {
+  display: grid;
+  gap: var(--p-1);
+  padding-top: var(--p-1);
+  border-top: 1px solid var(--p-line);
+}
+
+.whyList {
+  margin: 0;
+  padding-inline-start: var(--p-2);
+  display: grid;
+  gap: var(--p-half);
+  font-size: var(--p-caption);
+  color: var(--p-text);
+}
+
+.option {
+  display: grid;
+  gap: 2px;
+  padding: var(--p-1);
+  border-radius: var(--p-radius-sm);
+  border: 1px solid var(--p-line);
+}
+
+.optionKind {
+  font-size: var(--p-caption);
+  font-weight: 750;
+  color: var(--p-text-2);
+}
+
+.risk {
+  font-size: var(--p-caption);
+  color: var(--p-caution);
+  font-weight: 650;
+}
+
+.pathMap {
+  flex: none;
+  line-height: 0;
+}
+
+@media (orientation: portrait) {
+  .stripLeft {
+    max-width: 46vw;
+  }
+  .stripRight {
+    max-width: 50vw;
+  }
+  .result,
+  .result[data-expanded='true'] {
+    left: calc(var(--p-safe-l) + var(--p-2));
+    width: auto;
+    max-height: min(60%, calc(100% - var(--p-rail-bottom, 4.75rem) - var(--p-safe-b) - var(--p-2)));
+  }
+}
+
+/* A short landscape phone: keep the ordinary action row pinned while the explanation shrinks and scrolls. At 200%
+   text the action row plus a readable slice of the explanation can exceed the space below the rail, so the outer
+   card may also scroll to make the oversized footer reachable. */
+@media (orientation: landscape) and (max-height: 430px) {
+  .result {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-padding-block: var(--p-1);
+  }
+
+  .resultBody {
+    flex: 1 1 auto;
+    min-height: 4rem;
+  }
+
+  .result[data-expanded='true'] {
+    width: min(34rem, 62vw);
+  }
+}
+
+:global([data-contrast='high']) .stripLeft,
+:global([data-contrast='high']) .conditions,
+:global([data-contrast='high']) .pause,
+:global([data-contrast='high']) .result {
+  background: #000;
+  border: 2px solid #fff;
+}

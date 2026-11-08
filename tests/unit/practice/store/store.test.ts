@@ -4,7 +4,6 @@ import { PERF_CACHE_KEY } from '@/perf';
 import {
   DEFAULT_PRACTICE_SETTINGS,
   PRACTICE_KEYS,
-  calibrationMs,
   clearCalibration,
   clearDraft,
   clearInnings,
@@ -14,12 +13,13 @@ import {
   isInningsState,
   isResumable,
   loadCalibration,
+  loadCalibrations,
   loadDraft,
   loadInnings,
   loadPracticeSettings,
   loadSavedInnings,
   memoryStore,
-  saveCalibration,
+  saveCalibrations,
   saveDraft,
   saveInnings,
   updatePracticeSettings,
@@ -35,31 +35,46 @@ describe('practice settings', () => {
     const store = memoryStore();
     updatePracticeSettings({ assist: 'real', handedness: 'left' }, store);
     expect(loadPracticeSettings(store)).toMatchObject({ assist: 'real', handedness: 'left', quality: 'auto' });
-    store.setItem(PRACTICE_KEYS.settings, JSON.stringify({ assist: 'godmode', handedness: 'left', quality: 'ultra', conditions: 'turning', hintsShown: -4, guidedDone: 'yes' }));
-    expect(loadPracticeSettings(store)).toMatchObject({ assist: 'learn', handedness: 'left', quality: 'auto', conditions: 'turning', hintsShown: 0, guidedDone: false });
+    store.setItem(PRACTICE_KEYS.settings, JSON.stringify({ assist: 'godmode', handedness: 'left', quality: 'ultra', conditions: 'turning', hintsShown: -4, difficulty: 'legend', bowling: 'swing', teach: 'no', demoSeen: 1 }));
+    expect(loadPracticeSettings(store)).toMatchObject({ assist: 'learn', handedness: 'left', quality: 'auto', conditions: 'turning', hintsShown: 0, difficulty: 'club', bowling: 'any', teach: true, demoSeen: false });
     store.setItem(PRACTICE_KEYS.settings, 'not json');
     expect(loadPracticeSettings(store)).toEqual(DEFAULT_PRACTICE_SETTINGS);
   });
 });
 
-describe('calibration', () => {
-  it('stores the median offset src/input computed, rounded', () => {
+describe('calibration, per kind of input (CTL9)', () => {
+  it('stores each input’s median offset, rounded; one input never overwrites another', () => {
     const store = memoryStore();
-    expect(calibrationMs(store)).toBe(0);
-    expect(saveCalibration({ offsetMs: 41.6, attempts: 5 }, store)).toBe(true);
-    expect(loadCalibration(store)).toEqual({ offsetMs: 42, attempts: 5 });
-    expect(calibrationMs(store)).toBe(42);
+    expect(loadCalibrations(store)).toEqual({});
+    expect(saveCalibrations({ touch: { offsetMs: 41.6, attempts: 5 } }, store)).toBe(true);
+    expect(saveCalibrations({ keyboard: { offsetMs: 12.2, attempts: 4 } }, store)).toBe(true);
+    expect(loadCalibrations(store)).toEqual({ touch: { offsetMs: 42, attempts: 5 }, keyboard: { offsetMs: 12, attempts: 4 } });
+    expect(loadCalibration('touch', store)).toEqual({ offsetMs: 42, attempts: 5 });
+    expect(loadCalibration('mouse', store)).toBeNull();
     clearCalibration(store);
-    expect(loadCalibration(store)).toBeNull();
+    expect(loadCalibrations(store)).toEqual({});
+  });
+
+  it('a calibration saved before inputs were told apart becomes the main input’s', () => {
+    const store = memoryStore();
+    store.setItem(PRACTICE_KEYS.calibration, JSON.stringify({ offsetMs: 55, attempts: 5 }));
+    expect(loadCalibrations(store, () => 'touch')).toEqual({ touch: { offsetMs: 55, attempts: 5 } });
+    expect(loadCalibrations(store, () => 'mouse')).toEqual({ mouse: { offsetMs: 55, attempts: 5 } });
+    // Saving another input keeps it, now in the new shape.
+    saveCalibrations({ keyboard: { offsetMs: 10, attempts: 5 } }, store);
+    const keys = Object.keys(loadCalibrations(store));
+    expect(keys).toHaveLength(2);
+    expect(keys).toContain('keyboard');
+    expect(keys.some((k) => k === 'touch' || k === 'mouse')).toBe(true);
   });
 
   it('never stores an empty calibration and rejects corrupt values', () => {
     const store = memoryStore();
-    expect(saveCalibration({ offsetMs: 0, attempts: 0 }, store)).toBe(false);
+    expect(saveCalibrations({ touch: { offsetMs: 0, attempts: 0 } }, store)).toBe(false);
     store.setItem(PRACTICE_KEYS.calibration, JSON.stringify({ offsetMs: 9000, attempts: 5 }));
-    expect(loadCalibration(store)).toBeNull();
-    store.setItem(PRACTICE_KEYS.calibration, JSON.stringify({ offsetMs: 'x', attempts: 5 }));
-    expect(loadCalibration(store)).toBeNull();
+    expect(loadCalibrations(store)).toEqual({});
+    store.setItem(PRACTICE_KEYS.calibration, JSON.stringify({ v: 2, touch: { offsetMs: 'x', attempts: 5 }, mouse: { offsetMs: 20, attempts: 3 } }));
+    expect(loadCalibrations(store)).toEqual({ mouse: { offsetMs: 20, attempts: 3 } });
   });
 });
 

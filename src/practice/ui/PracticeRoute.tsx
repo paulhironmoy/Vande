@@ -10,12 +10,12 @@ import { useRouter } from '@/app/router';
 import { getServices } from '@/app/services';
 import { useApp } from '@/app/store';
 import { StateView } from '@/ui';
-import { BLADE_L, BOUNDARY_R, PITCH_HALF, REGION_EDGES, RING_R, batTravelMs, fielderClass } from '@/physics';
+import { BLADE_L, BOUNDARY_R, PITCH_HALF, RING_R, STRIKER_REF, batTravelMs, fielderClass } from '@/physics';
 import { loadPracticeCatalog } from '@/i18n/practice';
-import { buildKit, createStage, engine, inputKit } from './ports';
+import { buildKit, coachKit, createStage, createWork, engine, inputKit } from './ports';
+import { audioKit } from './audioPort';
 import { PracticeKitContext, type PracticeKit } from './context';
 import { PracticeApp } from './PracticeApp';
-import { takePracticeSelectedAt } from './launch';
 import type { FlowHooks, PracticeFlow } from './flow/controller';
 
 const TEST_HOOKS = import.meta.env.VITE_PRACTICE_TEST_HOOKS === '1';
@@ -23,10 +23,12 @@ const TEST_HOOKS = import.meta.env.VITE_PRACTICE_TEST_HOOKS === '1';
 const KIT: PracticeKit = {
   engine,
   build: buildKit,
+  coach: coachKit,
   input: inputKit,
+  audio: audioKit,
   createStage,
-  ground: { boundaryR: BOUNDARY_R, ringR: RING_R, pitchHalf: PITCH_HALF, bladeM: BLADE_L },
-  regionEdges: { straight: REGION_EDGES.straight, midOff: REGION_EDGES.midOff, cover: REGION_EDGES.cover, point: REGION_EDGES.point, behind: REGION_EDGES.behind },
+  createWork,
+  ground: { boundaryR: BOUNDARY_R, ringR: RING_R, pitchHalf: PITCH_HALF, bladeM: BLADE_L, striker: { x: STRIKER_REF.x, z: STRIKER_REF.z } },
   fielderClass,
   batTravelMs,
 };
@@ -44,7 +46,8 @@ export default function PracticeRoute(_props: { route: RouteOf<'practice'> }) {
   const back = useRouter((s) => s.back);
   const [ready, setReady] = useState(false);
   const [hooks, setHooks] = useState<FlowHooks | null | undefined>(TEST_HOOKS ? undefined : null);
-  const openedAt = useMemo(() => takePracticeSelectedAt() ?? performance.now(), []);
+  // Practice is the app's first screen (Stage 1): time to the first delivery is measured from its opening.
+  const openedAt = useMemo(() => performance.now(), []);
   const flowRef = useRef<PracticeFlow | null>(null);
 
   useEffect(() => {

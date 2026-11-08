@@ -1,0 +1,192 @@
+/* Temporary panels over the match: a strong scrim keeps the match visible behind and the text readable. */
+.center {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: calc(var(--p-safe-t) + var(--p-2)) calc(var(--p-safe-r) + var(--p-gutter)) calc(var(--p-safe-b) + var(--p-2)) calc(var(--p-safe-l) + var(--p-gutter));
+  background: var(--p-scrim);
+  touch-action: auto;
+}
+
+.panel {
+  width: min(100%, 26rem);
+  display: grid;
+  gap: var(--p-2);
+  padding: var(--p-3);
+  border-radius: var(--p-radius);
+  background: var(--p-surface);
+  border: 1px solid var(--p-line);
+}
+
+.actions {
+  display: grid;
+  gap: var(--p-1);
+}
+
+.quietRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--p-1);
+}
+
+.notice {
+  margin: 0;
+  padding: var(--p-1) var(--p-2);
+  border-radius: var(--p-radius-sm);
+  border-inline-start: 3px solid var(--p-caution);
+  background: var(--p-bg);
+  font-weight: 600;
+}
+
+.sheet {
+  position: absolute;
+  z-index: 6;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(30rem, 62vw);
+  overflow-y: auto;
+  display: grid;
+  align-content: start;
+  gap: var(--p-2);
+  padding: calc(var(--p-safe-t) + var(--p-2)) calc(var(--p-safe-r) + var(--p-2)) calc(var(--p-safe-b) + var(--p-2)) var(--p-2);
+  background: rgba(16, 18, 24, 0.97);
+  border-inline-start: 1px solid var(--p-line);
+  touch-action: auto;
+}
+
+@media (orientation: portrait) {
+  .sheet {
+    width: 100%;
+  }
+}
+
+.sheetHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--p-1);
+}
+
+.loading {
+  display: grid;
+  justify-items: center;
+  gap: var(--p-2);
+  text-align: center;
+}
+
+.seam {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 3px solid var(--p-line-strong);
+  border-top-color: var(--p-text);
+  animation: turn 1.1s linear infinite;
+}
+
+@keyframes turn {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.turn {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: grid;
+  place-items: center;
+  padding: var(--p-4);
+  background: var(--p-bg);
+  text-align: center;
+}
+
+.turnInner {
+  display: grid;
+  gap: var(--p-2);
+  justify-items: center;
+  max-width: 22rem;
+}
+
+.turnIcon {
+  width: 4rem;
+  height: 4rem;
+  color: var(--p-text);
+  animation: tilt 1.8s var(--ease-in-out) infinite;
+}
+
+@keyframes tilt {
+  0%,
+  35% {
+    transform: rotate(0deg);
+  }
+  65%,
+  100% {
+    transform: rotate(-90deg);
+  }
+}
+
+.replayBar {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: calc(var(--p-safe-b) + var(--p-2));
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--p-1);
+  padding: var(--p-half) var(--p-1);
+  border-radius: var(--p-radius);
+  background: rgba(16, 18, 24, 0.94);
+  border: 1px solid var(--p-line);
+  max-width: calc(100vw - 2 * var(--p-gutter));
+}
+
+.hint {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: calc(var(--p-safe-b) + var(--p-3));
+  transform: translateX(-50%);
+  margin: 0;
+  padding: var(--p-1) var(--p-2);
+  border-radius: var(--p-radius-sm);
+  background: rgba(8, 9, 13, 0.72);
+  font-weight: 650;
+  text-align: center;
+  pointer-events: none;
+  max-width: min(30rem, 80vw);
+}
+
+:global([data-motion='reduced']) .seam,
+:global([data-motion='reduced']) .turnIcon {
+  animation: none;
+}
+
+/* The first-run demonstration's panel: low on the left, clear of the bowler and the ball's path. */
+.intro {
+  position: absolute;
+  z-index: 3;
+  left: calc(var(--p-safe-l) + var(--p-2));
+  bottom: calc(var(--p-safe-b) + var(--p-2));
+  width: min(20rem, 34vw);
+  display: grid;
+  gap: var(--p-1);
+  padding: var(--p-2);
+  border-radius: var(--p-radius);
+  background: rgba(16, 18, 24, 0.94);
+  border: 1px solid var(--p-line);
+}
+
+@media (orientation: portrait) {
+  .intro {
+    width: auto;
+    right: calc(var(--p-safe-r) + var(--p-2));
+  }
+}

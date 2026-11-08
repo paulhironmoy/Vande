@@ -1,0 +1,51 @@
+.brief {
+  display: grid;
+  gap: var(--p-2);
+  min-width: 0;
+  /* A word longer than its line (large text, a narrow column) wraps rather than leaving the screen. */
+  overflow-wrap: break-word;
+}
+
+.block {
+  display: grid;
+  gap: var(--p-half);
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--p-half) var(--p-1);
+}
+
+.label {
+  font-size: var(--p-caption);
+  font-weight: 650;
+  color: var(--p-text-2);
+}
+
+.value {
+  font-weight: 700;
+}
+
+.list {
+  margin: 0;
+  padding-inline-start: var(--p-3);
+  display: grid;
+  gap: var(--p-half);
+}
+
+.list li::marker {
+  color: var(--p-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.unknown {
+  margin: 0;
+  padding: var(--p-1) var(--p-2);
+  border-radius: var(--p-radius-sm);
+  background: var(--p-surface);
+  border: 1px solid var(--p-line);
+  font-weight: 650;
+}

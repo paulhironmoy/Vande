@@ -2,16 +2,15 @@
  * Root app shell — ROOT-OWNED. Providers, the route switch, connectivity and update banners, Android Back, focus on
  * navigation and a per-screen error boundary. Screens come from the workstreams' route tables
  * (src/screens/routes.ts: experience, src/social/routes.ts: social); a route without a screen shows Not found.
- * A normal start first offers the launch choice (Practice or Skip, src/practice/ui/LaunchChoice).
+ * A normal start opens Practice (Stage 1 of docs/VANDE-PRODUCT-SEQUENCE.md); deep links open their own screens.
  */
-import { Component, Suspense, lazy, useEffect, useRef, useState, type ComponentType, type ErrorInfo, type ReactNode } from 'react';
+import { Component, Suspense, useEffect, useRef, useState, type ComponentType, type ErrorInfo, type ReactNode } from 'react';
 import { StateView, StatusBanner, UiProvider } from '@/ui';
 import { UpdateBanner } from '@/pwa/UpdateBanner';
 import { isNativePlatform } from '@/platform';
 import { experienceRoutes } from '@/screens/routes';
 import { socialRoutes } from '@/social/routes';
 import { lazyRoute } from '@/screens/app/lazyRoute';
-import { shouldOfferLaunchChoice } from '@/practice/ui/launch';
 import { closeTopLayer } from './app/back';
 import { useRouter, type Route, type RouteTable } from './app/router';
 import { getServices } from './app/services';
@@ -24,8 +23,7 @@ const ROUTES: RouteTable = {
   practice: lazyRoute(() => import('@/practice/ui/PracticeRoute'), { engine: false }),
 };
 
-const LaunchChoice = lazy(() => import('@/practice/ui/LaunchChoice'));
-/** How long a start waits for the services (they deliver an Android App Link) before offering the launch choice. */
+/** How long a start at the root waits for the services (they deliver an Android App Link) before opening Practice. */
 const LAUNCH_LINK_WAIT_MS = 1_500;
 
 function screenFor(route: Route): ComponentType<{ route: Route }> | null {
@@ -89,7 +87,7 @@ function useFocusOnNavigate(route: Route) {
   }, [route]);
 }
 
-/** Android Back: close the top layer, else go back, else go Home, and only exit from Home. */
+/** Android Back: close the top layer, else go back, else go Home, and exit from Home or from Practice (Stage 1's home). */
 function useNativeBack() {
   useEffect(() => {
     if (!isNativePlatform()) return;
@@ -100,6 +98,7 @@ function useNativeBack() {
         if (closeTopLayer()) return;
         const { route, depth, back, navigate } = useRouter.getState();
         if (depth > 0) back();
+        else if (route.name === 'practice' && !legacyHomeAtRoot()) void App.exitApp();
         else if (route.name !== 'home') navigate({ name: 'home' }, { replace: true });
         else void App.exitApp();
       });
@@ -113,29 +112,43 @@ function useNativeBack() {
   }, []);
 }
 
+/** The test-only switch that keeps the legacy home at the root (the legacy suites set localStorage vc:legacy-home = '1'). */
+function legacyHomeAtRoot(): boolean {
+  try {
+    return localStorage.getItem('vc:legacy-home') === '1';
+  } catch {
+    return false;
+  }
+}
+
 /**
- * The launch choice, once per start that opened the app at its root (shouldOfferLaunchChoice). A deep link wins: the
- * choice waits briefly for the services, which open an Android App Link, and gives way as soon as the route leaves
- * home. Coming back to home later never shows it again.
+ * Stage 1 (docs/VANDE-PRODUCT-SEQUENCE.md): a start at the root opens Practice. A deep link wins: the start waits briefly
+ * for the services, which open an Android App Link, and goes to Practice only if the route is still home. The legacy home
+ * stays reachable through its deep links and, for the legacy test suites, the vc:legacy-home switch.
  */
-function useLaunchChoice(route: Route) {
-  const [offer, setOffer] = useState(() => shouldOfferLaunchChoice(route));
-  const [linkChecked, setLinkChecked] = useState(false);
+function useStartInPractice(route: Route): boolean {
+  const [pending, setPending] = useState(() => route.name === 'home' && !legacyHomeAtRoot());
   useEffect(() => {
-    if (!offer) return;
+    if (!pending) return;
     let alive = true;
-    const done = () => alive && setLinkChecked(true);
+    const done = () => {
+      if (!alive) return;
+      alive = false;
+      setPending(false);
+      const { route: now, navigate } = useRouter.getState();
+      if (now.name === 'home') navigate({ name: 'practice' }, { replace: true });
+    };
     const timer = setTimeout(done, LAUNCH_LINK_WAIT_MS);
     void getServices().then(done, done);
     return () => {
       alive = false;
       clearTimeout(timer);
     };
-  }, [offer]);
+  }, [pending]);
   useEffect(() => {
-    if (route.name !== 'home') setOffer(false);
+    if (route.name !== 'home') setPending(false);
   }, [route]);
-  return { show: offer && route.name === 'home', ready: linkChecked, dismiss: () => setOffer(false) };
+  return pending && route.name === 'home';
 }
 
 export function App() {
@@ -151,8 +164,7 @@ export function App() {
   }, []);
   useNativeBack();
   useFocusOnNavigate(route);
-  const launch = useLaunchChoice(route);
-  const navigate = useRouter((s) => s.navigate);
+  const starting = useStartInPractice(route);
 
   const Screen = screenFor(route);
   const key = JSON.stringify(route);
@@ -163,21 +175,12 @@ export function App() {
   );
   return (
     <UiProvider>
-      <StatusBanner status={online ? 'online' : 'offline'} />
-      <ScreenBoundary resetKey={launch.show ? 'launch' : key}>
+      {/* Practice is fully local. The legacy sync warning is irrelevant here and must not cover a delivery. */}
+      {!starting && route.name !== 'practice' && <StatusBanner status={online ? 'online' : 'offline'} />}
+      <ScreenBoundary resetKey={starting ? 'launch' : key}>
         <Suspense fallback={loading}>
-          {launch.show ? (
-            launch.ready ? (
-              <LaunchChoice
-                onPractice={() => {
-                  launch.dismiss();
-                  navigate({ name: 'practice' }, { replace: true });
-                }}
-                onSkip={launch.dismiss}
-              />
-            ) : (
-              loading
-            )
+          {starting ? (
+            loading
           ) : Screen ? (
             <Screen key={key} route={route} />
           ) : (

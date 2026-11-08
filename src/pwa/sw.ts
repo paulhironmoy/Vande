@@ -7,6 +7,7 @@ import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute, type 
 import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
+import { isRuntimeImageOrJsonRequest, isUnityRuntimeRequest } from './cachePolicy';
 
 declare let self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<PrecacheEntry | string> };
 
@@ -74,6 +75,16 @@ if (COMMUNITY_API_ORIGIN) {
   registerRoute(({ url }) => url.origin === COMMUNITY_API_ORIGIN, new NetworkOnly(), 'POST');
 }
 
+// Unity is deliberately excluded from the precache. Its manifest and every referenced runtime file are bound to
+// the host's exact build id and hashes, so stale bytes must fail closed instead of producing an apparently valid old
+// player. Register this before every cache-backed runtime route and explicitly exclude it from the generic JSON/image
+// matcher below.
+registerRoute(
+  ({ url }) => isUnityRuntimeRequest(url, self.location.origin, base),
+  new NetworkOnly(),
+  'GET',
+);
+
 // Fonts: cache first for a year (they are hashed/static).
 registerRoute(
   ({ request, url }) => request.destination === 'font' || /\.woff2?$/.test(url.pathname),
@@ -85,8 +96,7 @@ registerRoute(
 
 // Same-origin images and JSON that are not in the precache manifest.
 registerRoute(
-  ({ request, url }) =>
-    url.origin === self.location.origin && (request.destination === 'image' || url.pathname.endsWith('.json')),
+  ({ request, url }) => isRuntimeImageOrJsonRequest(request.destination, url, self.location.origin, base),
   new StaleWhileRevalidate({
     cacheName: 'vande-runtime-v1',
     plugins: [new ExpirationPlugin({ maxEntries: 64, maxAgeSeconds: 30 * 24 * 60 * 60, purgeOnQuotaError: true })],

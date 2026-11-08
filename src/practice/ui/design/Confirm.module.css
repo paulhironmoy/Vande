@@ -1,0 +1,32 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: calc(var(--p-safe-t) + var(--p-2)) calc(var(--p-safe-r) + var(--p-gutter)) calc(var(--p-safe-b) + var(--p-2)) calc(var(--p-safe-l) + var(--p-gutter));
+  background: var(--p-scrim);
+  overflow-y: auto;
+}
+
+.dialog {
+  width: min(26rem, 100%);
+  display: grid;
+  gap: var(--p-2);
+  padding: var(--p-3);
+  border-radius: var(--p-radius);
+  background: var(--p-surface);
+  border: 1px solid var(--p-line-strong);
+  outline: none;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  gap: var(--p-1);
+  margin-top: var(--p-1);
+}
+
+.actions > * {
+  flex: 1 1 9rem;
+}
