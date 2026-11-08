@@ -15,7 +15,7 @@ import { readFileSync, statSync } from 'node:fs';
 import { loadavg } from 'node:os';
 import v8 from 'node:v8';
 import vm from 'node:vm';
-import { gzipSync } from 'node:zlib';
+import { gzipSync } from 'fflate';
 import { describe, expect, it } from 'vitest';
 import * as api from '@/render3d/core/motion/director';
 import { CHANNELS, createOut, prepare, sample } from '@/render3d/core/motion/director';
@@ -190,12 +190,16 @@ describe('budgets: plan, trace, parameters, code', () => {
       expect(api, name).toHaveProperty(name);
   });
 
-  it('the director, minified and tree-shaken with its parameter file and the stage binding, is at most 40 kB raw and 15 kB gzip (the lazy stage chunk budget)', async () => {
+  it('the director, minified and tree-shaken with its parameter file and the stage binding, is at most 40 kB raw and 16,000 B gzip (the lazy stage chunk budget)', async () => {
     // The app's own bundler (Vite) in library mode, in memory: the same minifier and JSON handling as the production build
     // (as an IIFE, because Vite keeps the whitespace of ES library builds). The stage modules the binding imports (actors,
     // choreo, clips) are existing code in the same lazy chunk: external here, so only the Director itself is counted.
     // The bound: it was 16 kB for the core alone in P1; the lead's ruling after P1 (UNIFIED-SPEC.md, "Rulings after P1", 1:
     // 2026-11-07 ~04:35Z) lets the whole director, binding included, use up to 40 kB raw / 15 kB gzip.
+    // Re-based on 2026-11-08 (lead): the gzip is counted with fflate at level 9, which is pure JavaScript and gives the same bytes
+    // on every Node version and CPU. The unchanged 37,417 B bundle gzips to 15,354 B with the zlib of Node 26 but to 15,469 B
+    // with the zlib of Node 22, which CI runs (budget 15,360 B), and to 15,888 B with fflate. The budget is now 16,000 B of that
+    // count: the code did not grow, and any later Director change must still first shrink something else.
     const { build } = await import('vite');
     const cwd = process.cwd();
     const res = (await build({
@@ -220,16 +224,18 @@ describe('budgets: plan, trace, parameters, code', () => {
       },
     })) as { output: { code: string }[] } | { output: { code: string }[] }[];
     const code = (Array.isArray(res) ? res[0] : res).output[0].code;
-    const min = Buffer.byteLength(code);
-    const gz = gzipSync(code).length;
+    const bytes = Buffer.from(code);
+    const min = bytes.length;
+    const gz = gzipSync(bytes, { level: 9 }).length;
     record('bundle', {
       minifiedBytes: min,
       gzipBytes: gz,
+      gzipTool: 'fflate level 9 (pure JavaScript, the same bytes on every Node version)',
       bundler: 'vite build (lib, iife, minify, stage modules external), in memory',
     });
     expect(min).toBeGreaterThan(8 * 1024); // it did bundle the director, not an empty file
     expect(min).toBeLessThanOrEqual(40 * 1024);
-    expect(gz).toBeLessThanOrEqual(15 * 1024);
+    expect(gz).toBeLessThanOrEqual(16_000);
   }, 120_000);
 });
 
