@@ -218,6 +218,27 @@ describe('Android Unity evidence', () => {
     });
     assert.equal(normalizeNativeAvailability({ available: true, reason: 'invented', unityVersion: 'x' }), null);
     assert.equal(normalizeNativeAvailability({ available: true, reason: 'ready', unityVersion: 'x', extra: true }), null);
+    // The plugin's real result also carries the two display metrics (UnityPracticePlugin.java); no other extra key is admitted.
+    assert.deepEqual(normalizeNativeAvailability({
+      available: true,
+      reason: 'linked_unverified',
+      unityVersion: '6000.3.27f1',
+      pixelsPerDp: 2.625,
+      systemTextScale: 1,
+    }), { available: true, reason: 'linked_unverified', unityVersion: '6000.3.27f1' });
+    assert.deepEqual(normalizeNativeAvailability({
+      available: false,
+      reason: 'low_memory_device',
+      unityVersion: null,
+      pixelsPerDp: null,
+      systemTextScale: null,
+    }), { available: false, reason: 'low_memory_device', unityVersion: null });
+    assert.equal(normalizeNativeAvailability({
+      available: true, reason: 'linked_unverified', unityVersion: 'x', pixelsPerDp: 'wide', systemTextScale: 1,
+    }), null);
+    assert.equal(normalizeNativeAvailability({
+      available: true, reason: 'linked_unverified', unityVersion: 'x', pixelsPerDp: 2, systemTextScale: 1, extra: true,
+    }), null);
   });
 
   it('labels only the written gate order as static source evidence', () => {

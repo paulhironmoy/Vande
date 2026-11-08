@@ -140,10 +140,14 @@ export function validBuildId(value) {
 /** Refuses malformed or expanded native results before they enter an evidence record. */
 export function normalizeNativeAvailability(value) {
   if (typeof value !== 'object' || value === null) return null;
-  const keys = Object.keys(value).sort();
-  if (keys.length !== 3 || keys[0] !== 'available' || keys[1] !== 'reason' || keys[2] !== 'unityVersion') return null;
+  const keys = Object.keys(value).sort().join(',');
+  // The plugin reports the display metrics it measured together with the decision; they are the only admitted extras.
+  const withMetrics = keys === 'available,pixelsPerDp,reason,systemTextScale,unityVersion';
+  if (keys !== 'available,reason,unityVersion' && !withMetrics) return null;
   if (typeof value.available !== 'boolean' || !NATIVE_AVAILABILITY_REASONS.has(value.reason)) return null;
   if (value.unityVersion !== null && typeof value.unityVersion !== 'string') return null;
+  const metric = (m) => m === null || (typeof m === 'number' && Number.isFinite(m) && m > 0);
+  if (withMetrics && !(metric(value.pixelsPerDp) && metric(value.systemTextScale))) return null;
   return {
     available: value.available,
     reason: value.reason,
