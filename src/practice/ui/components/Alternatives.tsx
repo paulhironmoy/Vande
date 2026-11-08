@@ -30,7 +30,11 @@ export function optionWords(t: PracticeT, o: CoachOption): string {
   return lineStart(t.t(elevation === 'uppish' ? 'practice.option.uppish' : 'practice.option.loft', words), t.intl);
 }
 
-export function Alternatives({ analysis }: { analysis: CoachAnalysis }) {
+/**
+ * `chase`: in a Target Chase the first option's tag is the coach's pick for THIS ball, not "Recommended", which beside
+ * the need could be read as the way to win the chase (R-44 item 5). The three options keep their numbers.
+ */
+export function Alternatives({ analysis, chase = false }: { analysis: CoachAnalysis; chase?: boolean }) {
   const t = usePracticeT();
   return (
     <ul
@@ -40,7 +44,11 @@ export function Alternatives({ analysis }: { analysis: CoachAnalysis }) {
     >
       {analysis.options.map((o, i) => (
         <li key={`${o.kind}-${i}`} className={s.option}>
-          <span className={s.optionKind}>{t.tk(`practice.option.kind.${o.kind}`)}</span>
+          <span className={s.optionKind}>
+            {chase && o.kind === 'recommended'
+              ? t.t('practice.chase.option.recommended')
+              : t.tk(`practice.option.kind.${o.kind}`)}
+          </span>
           <span className={sys.body}>{optionWords(t, o)}</span>
           <span className={sys.caption}>
             {t.t('practice.option.numbers', {

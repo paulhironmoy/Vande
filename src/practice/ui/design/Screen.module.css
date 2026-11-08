@@ -12,8 +12,7 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
   align-items: center;
   gap: var(--p-1);
   min-height: calc(var(--p-safe-t) + 3.5rem);
@@ -23,10 +22,12 @@
 }
 
 .headerTitle {
+  flex: 1 1 0;
   min-width: 0;
 }
 
 .headerSpacer {
+  flex: none;
   width: var(--p-control);
 }
 
@@ -76,4 +77,47 @@
     padding-top: var(--p-1);
     padding-bottom: calc(var(--p-safe-b) + var(--p-1));
   }
+}
+
+/*
+ * Large text on a short screen (data-large-short, design/useLargeShort.ts: under 20 rem tall, i.e. every phone in
+ * landscape at 200% text and none at the default size). The title bar and the bottom bar of 113 to 145 px each left
+ * only 90 to 154 px of a 360 to 412 px phone for the words (QV-04). Now the title bar scrolls away with the content and
+ * shrinks to its own size, and the bottom bar is ONE slim bar holding the primary action (a 54 px button in a bar of 63 px at 200%, 48 px
+ * at the very least, the size the layout specs hold every target to). Text is never made smaller; every control keeps a 44 px target.
+ */
+.screen[data-large-short='true'] > .header {
+  position: static;
+  min-height: 0;
+  --p-control: max(48px, 1.75rem);
+  padding-top: calc(var(--p-safe-t) + var(--p-half));
+  padding-bottom: var(--p-half);
+}
+
+.screen[data-large-short='true'] > .content {
+  padding-top: var(--p-1);
+  padding-bottom: var(--p-2);
+  gap: var(--p-2);
+}
+
+/* At 200%: 54 px button + 4 px above and below + the 1 px rule = 63 px (a bar of 64 px at the most); never a target under 48 px. */
+.screen[data-large-short='true'] > .footer {
+  --p-control: max(48px, 1.6875rem);
+  --p-control-lg: max(48px, 1.6875rem);
+  padding-top: 4px;
+  padding-bottom: calc(var(--p-safe-b) + 4px);
+}
+
+.screen[data-large-short='true'] > .footer .footerInner {
+  gap: var(--p-half);
+}
+
+/* A soft edge over the bar, so words cut at it say that the page goes on (a scroll cue, QV-04); it ignores touches. */
+.screen[data-large-short='true'] > .footer::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 100% 0;
+  height: 20px;
+  background: linear-gradient(to bottom, transparent, var(--p-bg));
+  pointer-events: none;
 }

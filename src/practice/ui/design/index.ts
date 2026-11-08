@@ -3,4 +3,5 @@ export { PButton, PIconButton, PChoice, type PButtonProps, type PVariant } from 
 export { PSegmented, PSwitch, PSetting, PDisclosure, type PSegmentOption } from './Controls';
 export { PConfirm } from './Confirm';
 export { Screen } from './Screen';
+export { useLargeShort, isLargeShort, SHORT_REM } from './useLargeShort';
 export { default as sys } from './system.module.css';

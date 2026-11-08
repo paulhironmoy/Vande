@@ -7,6 +7,7 @@ import { usePracticeT } from '@/i18n/practice';
 import { PIconButton } from './Button';
 import sys from './system.module.css';
 import s from './Screen.module.css';
+import { useLargeShort } from './useLargeShort';
 
 export interface ScreenProps {
   title: ReactNode;
@@ -16,15 +17,34 @@ export interface ScreenProps {
   end?: ReactNode;
   footer?: ReactNode;
   wide?: boolean;
+  /** No back control and no empty slot where it would be: the title starts where the words under it start (result screens). */
+  flush?: boolean;
   testId?: string;
   children: ReactNode;
   className?: string;
 }
 
-export function Screen({ title, onBack, backLabel, end, footer, wide, testId, children, className }: ScreenProps) {
+export function Screen({
+  title,
+  onBack,
+  backLabel,
+  end,
+  footer,
+  wide,
+  flush,
+  testId,
+  children,
+  className,
+}: ScreenProps) {
   const t = usePracticeT();
+  // Large text on a short screen (design/useLargeShort.ts): the title bar scrolls with the page, the bottom bar slims.
+  const largeShort = useLargeShort();
   return (
-    <div className={[sys.root, s.screen, wide ? s.wide : '', className ?? ''].join(' ')} data-testid={testId}>
+    <div
+      className={[sys.root, s.screen, wide ? s.wide : '', className ?? ''].join(' ')}
+      data-testid={testId}
+      data-large-short={largeShort ? 'true' : 'false'}
+    >
       <header className={s.header}>
         {onBack ? (
           <PIconButton
@@ -34,10 +54,10 @@ export function Screen({ title, onBack, backLabel, end, footer, wide, testId, ch
             data-testid="practice-back"
           />
         ) : (
-          <span className={s.headerSpacer} />
+          !flush && <span className={s.headerSpacer} />
         )}
         <h1 className={`${sys.title} ${s.headerTitle}`}>{title}</h1>
-        {end ?? <span className={s.headerSpacer} />}
+        {end ?? (!flush && <span className={s.headerSpacer} />)}
       </header>
       <main className={s.content}>{children}</main>
       {footer ? (

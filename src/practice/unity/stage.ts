@@ -1015,6 +1015,8 @@ export class UnityPracticeStage implements PracticeStageLike {
       ball: scene.ball ?? DEFAULT_BALL,
       handedness: scene.handedness,
       batterPosition: { lateralM: 0, creaseOffsetM: 0, guard: 'middle' },
+      // Bridge contract v7: the Target Chase situation, only while a chase is on (the key is omitted, never undefined).
+      ...(scene.chase === undefined ? {} : { chase: scene.chase }),
     });
     if (!accepted) this.note('scene_failed', 'Unity did not acknowledge the authoritative scene.');
     return accepted;

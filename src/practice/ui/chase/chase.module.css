@@ -1,0 +1,178 @@
+/*
+ * The Chase surfaces: the "Need X off Y" lines in the rail, the target block on the setup screen, and the win and loss
+ * screen. Every size is in rem and every line may wrap, so they grow with text size (200% included) and never truncate.
+ * Colour is the Practice palette only: no urgency colour, no pulse, no motion. Numbers are tabular.
+ */
+
+/* ---- The rail: next to the ball marks, inside the left cluster (so the rail's measured height includes it) ---- */
+.need {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.needMain {
+  margin: 0;
+  font-size: var(--p-body);
+  font-weight: 800;
+  line-height: var(--leading-snug);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.needCompact {
+  display: none;
+  margin: 0;
+  font-size: var(--p-caption);
+  font-weight: 800;
+  line-height: var(--leading-snug);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.needRate {
+  margin: 0;
+  font-size: var(--p-caption);
+  font-weight: 650;
+  line-height: var(--leading-snug);
+  color: var(--p-text-2);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* Delivery Quiet Mode: only the line itself stays, dimmed like the rest of the rail, and nothing in it moves. */
+.need[data-quiet='true'] {
+  opacity: 0.55;
+}
+
+.need[data-quiet='true'] .needMain,
+.need[data-quiet='true'] .needRate {
+  display: none;
+}
+
+.need[data-quiet='true'] .needCompact {
+  display: block;
+}
+
+.need[data-quiet='true'] * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* ---- The setup screen: the target, big and plain, above the briefing ---- */
+.target {
+  display: grid;
+  gap: var(--p-half);
+  padding: var(--p-2);
+  border-radius: var(--p-radius);
+  border: 1px solid rgba(82, 211, 242, 0.28);
+  background: rgba(4, 8, 10, 0.38);
+}
+
+.targetNeed {
+  margin: 0;
+  font-size: var(--p-title);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.targetRules {
+  margin: 0;
+  font-weight: 600;
+  color: var(--p-text);
+}
+
+.targetNote {
+  margin: 0;
+}
+
+/* ---- The dead-ball card: the caption that stands where "Practice this ball" is not offered ---- */
+/* A type selector too, so it outranks the card's `.resultActions > *`: the caption takes a row of its own once the card is
+   too narrow for it beside the button (large text), and shares the row with "Next ball" while there is room. */
+p.practiceOff {
+  margin: 0;
+  flex: 1 1 12rem;
+  color: var(--p-text-2);
+}
+
+/* ---- The home: the entry's promise ---- */
+.entry {
+  min-height: 4.5rem;
+}
+
+/* ---- The win and loss screen ---- */
+.why {
+  margin: 0;
+  max-width: 44rem;
+  font-size: var(--p-section);
+  font-weight: 650;
+  line-height: var(--leading-snug);
+}
+
+.line {
+  margin: 0;
+}
+
+.tone {
+  margin: 0;
+  font-size: var(--p-title);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+  overflow-wrap: anywhere;
+}
+
+.tone[data-result='won'] {
+  color: var(--p-success);
+}
+
+.marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--p-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The two overs read as two groups. */
+.marks > li:nth-child(6) {
+  margin-inline-end: var(--p-2);
+}
+
+.practiceNote {
+  margin: 0;
+}
+
+.secondaryRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--p-1);
+}
+
+@media (orientation: landscape) and (max-height: 430px) {
+  .why {
+    font-size: var(--p-body);
+  }
+}
+
+:global([data-contrast='high']) .target {
+  background: #000;
+  border-color: #fff;
+}
+
+/*
+ * Large text on a short screen (data-large-short, design/useLargeShort.ts): the briefing's first view says the target
+ * ("Need 10 off 12 balls") first and in full, then the target and the level in small words (QV-04). Only the order on the
+ * screen changes: the reading order of the page, and every word, stay as they were.
+ */
+[data-large-short='true'] .target {
+  padding: var(--p-1) var(--p-2);
+}
+
+[data-large-short='true'] .targetNeed {
+  order: -1;
+}

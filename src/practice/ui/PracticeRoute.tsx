@@ -10,7 +10,16 @@ import { useRouter } from '@/app/router';
 import { getServices } from '@/app/services';
 import { useApp } from '@/app/store';
 import { StateView } from '@/ui';
-import { BLADE_L, BOUNDARY_R, PITCH_HALF, RING_R, STRIKER_REF, batTravelMs, fielderClass } from '@/physics';
+import {
+  BLADE_L,
+  BOUNDARY_R,
+  PITCH_HALF,
+  RING_R,
+  STRIKER_REF,
+  activeBands,
+  batTravelMs,
+  fielderClass,
+} from '@/physics';
 import { loadPracticeCatalog } from '@/i18n/practice';
 import { buildKit, coachKit, createStage, createWork, engine, inputKit } from './ports';
 import { audioKit } from './audioPort';
@@ -37,6 +46,7 @@ const KIT: PracticeKit = {
   },
   fielderClass,
   batTravelMs,
+  timingBands: activeBands,
 };
 
 function track(event: AnalyticsEventName, props?: AnalyticsProps) {

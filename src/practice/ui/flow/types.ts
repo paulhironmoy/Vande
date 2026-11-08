@@ -73,7 +73,7 @@ export interface ResolveArgs {
 }
 
 /** The kinds of input that are calibrated separately (CTL9): a touch screen reports later than a keyboard. */
-export type InputModality = 'touch' | 'mouse' | 'pen' | 'keyboard';
+export type InputModality = 'touch' | 'mouse' | 'pen' | 'keyboard' | 'camera';
 
 export interface NormalizeContext {
   releasePerfMs: number;

@@ -3,6 +3,7 @@
  * discreet device check (once per app version, run while the setup screen is open), and quality changes, which are
  * applied only between balls (a step down from the session monitor, a settings change, or a renderer fallback).
  * The player sees product words only: a notice when the presentation's name changes (Premium → Balanced → Classic).
+ * While Camera is the control in force the stage is a web renderer, never Unity (R-43, see `needsWeb`).
  */
 import type { AssistLevel, DeviceAssessment, Handedness, QualityProfileId } from '@/contracts';
 import {
@@ -75,7 +76,7 @@ export class StageHost {
   private recheck = false;
   monitor: SessionMonitor | null = null;
   readonly sampler: FrameSampler;
-  private pending: { q: QualityState; why: 'monitor' | 'settings' | 'fallback' } | null = null;
+  private pending: { q: QualityState; why: 'monitor' | 'settings' | 'fallback' | 'camera' } | null = null;
   private fallbackRequested: string | null = null;
   private tierReported = false;
   /** Listeners for the stage's own quiet signal (a guard: the flow's phases already follow bowl and play). */
@@ -91,6 +92,8 @@ export class StageHost {
   private preCoachNotice: FlowNotice = null;
   /** Native low-memory admission is a route, not a fabricated performance assessment. */
   private forcedClassicReason: 'low_memory_device' | null = null;
+  /** R-43: set the first time Camera is the control in force; every stage built after that is a web renderer. */
+  private webOnly = false;
 
   private markRenderer(stage: PracticeStageLike | null): void {
     if (typeof document === 'undefined') return;
@@ -189,7 +192,9 @@ export class StageHost {
     skipUnity = false,
     surface: 'live' | 'coach' = 'live',
   ): Promise<PracticeStageLike> {
-    const candidate = await this.core.deps.createStage({ force2d, assistance: assist, deviceTier, skipUnity });
+    // With Camera in force (now, or earlier in this visit) the factory is never asked for Unity.
+    const skip = skipUnity || this.needsWeb();
+    const candidate = await this.core.deps.createStage({ force2d, assistance: assist, deviceTier, skipUnity: skip });
     if (epoch !== this.epoch) {
       if (candidate.kind !== 'route') candidate.dispose();
       throw new Error('flow disposed');
@@ -245,7 +250,7 @@ export class StageHost {
       stage.on('quiet', (p) => this.onQuiet?.(Boolean(p?.quiet))),
     ];
     const selected =
-      stage.ownsInput === true && !skipUnity
+      stage.ownsInput === true && !skip
         ? createCoachSafeUnityStage(
             stage,
             (source, control) =>
@@ -300,6 +305,17 @@ export class StageHost {
 
   ownsInput(): boolean {
     return this.stage?.ownsInput === true;
+  }
+
+  /**
+   * R-43: the camera never runs on the Unity stage, which owns the batting input and hides the camera's screens (consent,
+   * readiness, lost tracking). True from the first time Camera is the control in force and for the rest of the visit: no
+   * swap back when the control moves away, and the next visit builds a new host and starts normally. The question goes to
+   * the gate the app gives the flow; the choice decides which renderer shows the ball, never a delivery or a result.
+   */
+  private needsWeb(): boolean {
+    if (!this.webOnly && this.core.deps.camera?.wanted()) this.webOnly = true;
+    return this.webOnly;
   }
 
   /** Begin measuring the renderer that actually owns this delivery. */
@@ -606,6 +622,8 @@ export class StageHost {
     const engineeringPreview = unityPracticeEngineeringPreviewEnabled();
     if (recheck) this.forcedClassicReason = null;
     let assessment = recheck ? null : core.getState().assessment;
+    // R-43: a Unity measurement cannot choose or profile the web renderer the camera needs (as in the fallback below).
+    if (assessment?.backend === 'unity' && this.needsWeb()) assessment = null;
     let fresh = false;
     let q = this.qualityFor(assessment);
     let made: PracticeStageLike | null = null;
@@ -795,12 +813,15 @@ export class StageHost {
       core.track('renderer_fallback', { reason: fallback === 'low_fps' ? 'low_fps' : 'context_lost' });
       core.saveMetrics(bump(core.metrics, 'fallbacks'));
     }
-    const p = this.pending;
+    // R-43: a native stage cannot carry the camera. It is swapped for a web one here, once, between balls (never inside a
+    // delivery). Only the renderer changes: the quality, the timing help and the device check stay as they were.
+    const toWeb = this.stage?.ownsInput === true && this.needsWeb();
+    const p = this.pending ?? (toWeb ? { q: core.getState().quality, why: 'camera' as const } : null);
     this.pending = null;
     if (!p) return null;
     let q = p.q;
     const prev = core.getState().quality;
-    if (q.stage !== this.stage?.kind) {
+    if (q.stage !== this.stage?.kind || toWeb) {
       this.release();
       try {
         await this.create(q.stage === '2d', assist, handedness, q.profile, q.tier, epoch);
@@ -819,13 +840,14 @@ export class StageHost {
       core.set({ stageReady: Boolean(this.stage) });
     } else this.stage?.setProfile(q.profile);
     this.monitor?.reset({ tier: q.tier, profile: q.profile, stage: this.stage?.kind ?? q.stage });
-    if (p.why !== 'settings')
+    if (p.why !== 'settings' && p.why !== 'camera')
       core.track('practice_tier', {
         tier: q.tier,
         quality: q.stage === '2d' ? '2d' : q.profile,
         ...(q.stage === '2d' ? { reason: p.why === 'fallback' ? 'context_lost' : 'low_fps' } : {}),
       });
     core.set({ quality: q });
+    if (p.why === 'camera') return 'camera_web';
     if (p.why === 'settings' || !tierChanged(prev, q)) return null;
     return tierForQuality(q) === 'classic' ? 'classic' : 'balanced';
   }

@@ -61,6 +61,7 @@ import {
 import { createPracticeStage } from '@/render3d';
 import { PRACTICE_SIM_VERSION } from '@/contracts';
 import PracticeWorker from '@/practice/worker/practice.worker?worker';
+import { currentControlFeelsHaptics } from './controls/state';
 import { createOffThread, type OffThreadWork, type WorkerPort } from './flow/offThread';
 import type { BuildKit, CoachKit, InputKit, PracticeEngine, StageFactory } from './flow/types';
 
@@ -205,7 +206,8 @@ export const createStage: StageFactory = async (opts) => {
           readyHint: practiceT.t('practice.live.hint'),
           captions: audio.captions,
           audio: soundOn,
-          haptics: app.settings.haptics && audio.haptics,
+          // Only the finger feels haptics (a phone propped up for the camera must not shake): the chosen control decides.
+          haptics: app.settings.haptics && audio.haptics && currentControlFeelsHaptics(),
           calibrations: () => resolveCalibrations(loadCalibrations()),
           ...(__UNITY_PRACTICE_WEB_ENABLED__ ? { launchTimeoutMs: 60_000 } : {}),
         });

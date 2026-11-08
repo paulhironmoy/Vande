@@ -170,3 +170,12 @@
   line-height: var(--leading-snug);
   overflow-wrap: anywhere;
 }
+
+/*
+ * The title starts where the words under it start, on a phone and on a wide screen (QV-12): the title bar spans the page, the
+ * words sit in a centred column, so the bar keeps the same side room as the column (a no-op while the page is narrower).
+ */
+.overlay header {
+  padding-inline-start: calc(max(0px, (100% - var(--p-max, 36rem)) / 2) + var(--p-safe-l) + var(--p-gutter));
+  padding-inline-end: calc(max(0px, (100% - var(--p-max, 36rem)) / 2) + var(--p-safe-r) + var(--p-gutter));
+}

@@ -26,7 +26,9 @@ import {
   updatePracticeSettings,
   type PracticeSettings as Settings,
 } from '@/practice/store';
+import { forgetCamera } from '../camera/forget';
 import { calibrationList } from './Calibration';
+import { ControlSetting } from '../controls';
 import { PButton, PConfirm, PSegmented, PSetting, PSwitch, Screen, sys } from '../design';
 import type { AudioKit } from '../flow/types';
 import s from './Settings.module.css';
@@ -126,6 +128,10 @@ export function PracticeSettings(p: PracticeSettingsProps) {
             testId="practice-settings-focus"
           />
         </PSetting>
+      </section>
+
+      <section className={s.section}>
+        <ControlSetting onChanged={p.onChanged} />
       </section>
 
       <section className={s.section}>
@@ -304,6 +310,7 @@ export function PracticeSettings(p: PracticeSettingsProps) {
         onConfirm={() => {
           setConfirmClear(false);
           clearPracticeData();
+          void forgetCamera();
           audio?.resetSettings();
           setSettings(loadPracticeSettings());
           p.onCleared();

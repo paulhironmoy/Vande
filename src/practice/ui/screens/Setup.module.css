@@ -187,3 +187,53 @@
 :global([data-contrast='high']) .preparationDeck::before {
   background: #fff;
 }
+
+/*
+ * Large text on a short screen (data-large-short, design/useLargeShort.ts: every phone in landscape at 200% text, none at
+ * the default size). Two columns of 9 to 17 characters cannot hold 32 px words, so the setup is ONE column, in the order a
+ * player needs it: the chase's target, the brief (bowler, objective), how to bat (Camera is a tap, not a long scroll),
+ * the Random Over's choices, and last the field picture (its size capped, so it never fills the screen by itself).
+ */
+.screen[data-large-short='true'] .grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--p-1);
+}
+
+.screen[data-large-short='true'] .side {
+  display: contents;
+}
+
+.screen[data-large-short='true'] .chaseBrief {
+  order: 1;
+}
+
+.screen[data-large-short='true'] .briefPanel {
+  order: 2;
+}
+
+.screen[data-large-short='true'] .controlBrief {
+  order: 3;
+}
+
+.screen[data-large-short='true'] .adjustments {
+  order: 4;
+}
+
+.screen[data-large-short='true'] .fieldPanel {
+  order: 5;
+  width: 100%;
+}
+
+.screen[data-large-short='true'] .fieldPanel > div > svg {
+  max-width: min(100%, 80dvh);
+}
+
+.screen[data-large-short='true'] .preparationDeck {
+  padding: var(--p-1);
+}
+
+.screen[data-large-short='true'] .fieldPanel,
+.screen[data-large-short='true'] .briefPanel,
+.screen[data-large-short='true'] .controlBrief {
+  padding: var(--p-1) var(--p-2);
+}

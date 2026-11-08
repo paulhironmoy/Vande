@@ -32,6 +32,9 @@ import {
   timingProp,
   updatePracticeSettings,
 } from '@/practice/store';
+import { ChaseDriver } from '../chase/driver';
+import { chaseScene } from '../chase/unity';
+import { isLessonOver, lessonReducer, startLesson, type LessonEvent } from '../lesson/machine';
 import { FlowCore, type FlowDeps } from './core';
 import { CoachLoop } from './coachLoop';
 import { DeliveryRunner, type BallSpec } from './delivery';
@@ -62,6 +65,8 @@ export class PracticeFlow extends FlowCore {
   readonly host: StageHost;
   readonly runner: DeliveryRunner;
   readonly coachLoop: CoachLoop;
+  /** The Target Chase on this flow (src/practice/ui/chase): opening one, the break between its overs, its result. */
+  readonly chase: ChaseDriver;
   private hiddenPause = false;
   /** Native Pause during Quiet Mode hides Unity only after the authoritative dead ball. */
   private pauseNativeAtDeadBall = false;
@@ -72,9 +77,16 @@ export class PracticeFlow extends FlowCore {
   /** The timing forgiveness of the over in play (ms), latched at its first ball; the last one latched, for the notice. */
   private latched: { over: string; ms: number } | null = null;
   private skipIntro: (() => void) | null = null;
+  /** Ends the first-ball lesson the flow is waiting on (null when no lesson is open). */
+  private lessonEnd: ((how: 'bowl' | 'skipped' | 'aborted') => void) | null = null;
+  /** Ends the wait for the camera to see the batter (null when no wait is open), and re-checks it (after a Resume). */
+  private cameraEnd: ((how: 'ready' | 'aborted') => void) | null = null;
+  private cameraCheck: (() => void) | null = null;
+  /** What happened on the lesson card and when (performance.now()); kept only in a test build (hooks present), never persisted. */
+  readonly lessonEvents: Array<{ event: string; atPerfMs: number }> = [];
   private demoFailed = false;
   /** A graphics change made as the over began (after its setup screen): said at the over's first dead ball. */
-  private openingNotice: 'balanced' | 'classic' | null = null;
+  private openingNotice: 'balanced' | 'classic' | 'camera_web' | null = null;
   private startedAt = 0;
   private openedAt: number;
   private handledDeadBall: FlowState['last'] = null;
@@ -83,7 +95,9 @@ export class PracticeFlow extends FlowCore {
     super(deps, (settings) => ({
       screen: 'idle',
       phase: 'idle',
+      lesson: null,
       innings: null,
+      chase: null,
       pending: null,
       overKind: null,
       overDifficulty: null,
@@ -117,6 +131,7 @@ export class PracticeFlow extends FlowCore {
       (action) => this.handleDeadBallAction(action),
     );
     this.coachLoop = new CoachLoop(this);
+    this.chase = new ChaseDriver(this);
     this.openedAt = deps.openedAt ?? this.clock.now();
     const assessment = this.host.initialAssessment();
     this.state = {
@@ -146,6 +161,9 @@ export class PracticeFlow extends FlowCore {
   init(): 'menu' | 'summary' {
     this.saveMetrics(bump(this.metrics, 'sessions'));
     this.track('practice_opened', {});
+    // A chase left half way (or decided as the app closed) comes back as it was; it is never an ordinary innings.
+    const chase = this.chase.restore();
+    if (chase) return chase;
     const dropped = droppedInnings(this.store);
     if (dropped) {
       // Old or damaged data never crashes Practice: it is forgotten, and the player is told plainly.
@@ -253,7 +271,7 @@ export class PracticeFlow extends FlowCore {
     const state = this.state;
     if (state.screen !== 'live' || state.phase !== 'dead' || !state.last) return;
     if (action === 'practice_ball') {
-      if (!this.coach || this.handledDeadBall === state.last) return;
+      if (!this.coach || state.chase || this.handledDeadBall === state.last) return;
       this.handledDeadBall = state.last;
       this.coachLoop.practiceThisBall();
       return;
@@ -305,6 +323,8 @@ export class PracticeFlow extends FlowCore {
    * player's own six. The stage is prepared behind it (discreetly), so Play bowls at once.
    */
   prepareOver(opts: { kind: OverKind; plan?: PracticeOverPlan; random?: RandomChoice }): void {
+    // An ordinary over is never part of a chase: whatever chase was on screen is over with.
+    if (this.state.chase) this.set({ chase: null });
     const inn = this.continuing();
     const assist = inn?.assist ?? this.settings.assist;
     const handedness = inn?.handedness ?? this.settings.handedness;
@@ -345,7 +365,7 @@ export class PracticeFlow extends FlowCore {
    * worker is created here: off the main thread, nothing waits for it, and its warm-up simulation still waits for the
    * stage to be ready, so it never competes with the device check.
    */
-  private startWork(): void {
+  startWork(): void {
     this.work?.warm();
   }
 
@@ -355,7 +375,7 @@ export class PracticeFlow extends FlowCore {
    * discarded; nothing is recorded or shown. The stage builds its own result path on it once too (`warmResult`), in
    * spare slices of frames, so the first real result does not compile that either.
    */
-  private warmPhysics(): void {
+  warmPhysics(): void {
     if (this.warmed) return;
     this.warmed = true;
     const p = this.state.pending;
@@ -493,12 +513,14 @@ export class PracticeFlow extends FlowCore {
     if (!p.continuing && p.bowled === 0) {
       // Starting a new innings while one is saved ends that one (the home screen asked first): its score is final.
       if (isResumable(s)) this.finishInnings(this.engine.inningsReducer(s, { type: 'abandon' }), 'abandon');
-      s = this.engine.newInnings({
-        id: this.newId(),
-        conditions: p.conditions,
-        assist: p.assist,
-        handedness: p.handedness,
-      });
+      s = this.state.chase
+        ? this.chase.newInnings(p)
+        : this.engine.newInnings({
+            id: this.newId(),
+            conditions: p.conditions,
+            assist: p.assist,
+            handedness: p.handedness,
+          });
       this.coachLoop.forgetResults();
       this.startedAt = this.clock.now();
     }
@@ -514,7 +536,10 @@ export class PracticeFlow extends FlowCore {
       innings: s,
       pending: null,
       overKind: p.kind,
-      overDifficulty: p.random?.difficulty ?? (p.continuing && p.bowled > 0 ? this.state.overDifficulty : null),
+      overDifficulty:
+        p.random?.difficulty ??
+        this.state.chase?.state.definition.bowling ??
+        (p.continuing && p.bowled > 0 ? this.state.overDifficulty : null),
       field: s.current.field,
       board: { ...this.boardOf(s) },
     });
@@ -527,6 +552,7 @@ export class PracticeFlow extends FlowCore {
       conditions: s.conditions,
       handedness: s.handedness,
       ball: s.current.plan.ball,
+      ...chaseScene(this.state.chase?.state),
     });
     // Between overs is when quality may change; then the over's forgiveness is latched for all six balls.
     const quality = await this.host.applyPending(() => this.setSceneFor(this.state.innings), s.assist, s.handedness);
@@ -536,12 +562,97 @@ export class PracticeFlow extends FlowCore {
       this.set({ screen: 'error', phase: 'idle', error: 'stage' });
       return;
     }
-    this.openingNotice = quality === 'balanced' || quality === 'classic' ? quality : null;
+    this.openingNotice = quality === 'balanced' || quality === 'classic' || quality === 'camera_web' ? quality : null;
     if (quality) this.set({ notice: quality });
     if (this.settings.teach && !this.settings.demoSeen && this.coach && !this.demoFailed)
       await this.firstRunDemo(gen, p);
     if (gen !== this.gen) return;
+    // Camera batting: a batter in view comes first, so the lesson's dry swing runs on the control the player will really use.
+    if (!(await this.cameraReady(gen))) return;
+    // The first ball ever waits for the player: the lesson card, then ball 1 as it always is (pre-delivery pacing only).
+    if (this.lessonDue(p) && !(await this.runLesson(gen))) return;
+    if (gen !== this.gen) return;
     void this.bowlNext();
+  }
+
+  /** The first ball of a first-run player, where the UI can show the lesson (never a resumed over, never a repeat). */
+  private lessonDue(p: PendingOver): boolean {
+    return (
+      Boolean(this.deps.lesson) && this.settings.teach && !this.settings.lessonSeen && !p.continuing && p.bowled === 0
+    );
+  }
+
+  /**
+   * The lesson: the flow waits, however long the player takes, until they choose to bowl or skip all teaching (a
+   * leave or a dispose ends it unseen). False when it ended without the first ball being asked for.
+   */
+  private async runLesson(gen: number): Promise<boolean> {
+    const openedAt = performance.now();
+    if (this.deps.hooks) this.lessonEvents.push({ event: 'open', atPerfMs: openedAt });
+    this.set({ phase: 'lesson', lesson: startLesson(this.deps.lesson?.input() ?? 'touch', openedAt) });
+    const how = await new Promise<'bowl' | 'skipped' | 'aborted'>((resolve) => {
+      this.lessonEnd = resolve;
+    });
+    this.lessonEnd = null;
+    if (this.deps.hooks) this.lessonEvents.push({ event: `end:${how}`, atPerfMs: performance.now() });
+    if (gen !== this.gen || this.disposed || how === 'aborted') {
+      this.set({ lesson: null });
+      return false;
+    }
+    // Seen, whichever way it ended: it is never shown again.
+    this.settings = updatePracticeSettings({ lessonSeen: true }, this.store);
+    this.set({ lesson: null, phase: 'idle' });
+    return true;
+  }
+
+  /** The lesson card's events (src/practice/ui/lesson): its state is the reducer's; the flow only waits on its end. */
+  lessonEvent(event: LessonEvent): void {
+    const cur = this.state.lesson;
+    if (!cur) return;
+    const next = lessonReducer(cur, event);
+    if (next !== cur) {
+      if (this.deps.hooks) this.lessonEvents.push({ event: event.type, atPerfMs: performance.now() });
+      this.set({ lesson: next });
+    }
+    if (isLessonOver(next)) this.lessonEnd?.(next.status === 'bowl' ? 'bowl' : 'skipped');
+  }
+
+  /**
+   * Camera batting (src/practice/ui/camera): when the camera is the control in force, the next ball waits in the `camera`
+   * phase until a person is in frame and steady, however long that takes. Pre-delivery pacing only: this never runs inside
+   * a delivery, and a ball in flight finishes whatever the camera sees. The card on the screen always offers "Bat with
+   * mouse" or "Bat with touch", Pause covers the wait, and leaving or disposing ends it. False when it ended without the
+   * ball being asked for. Also asked before Coach Mode's "Practice this ball" (src/practice/ui/flow/coachLoop.ts).
+   */
+  async cameraReady(gen: number): Promise<boolean> {
+    const gate = this.deps.camera;
+    if (!gate || gate.ready()) return gen === this.gen && !this.disposed;
+    this.cameraEnd?.('aborted');
+    const screen = this.state.screen;
+    this.set({ phase: 'camera' });
+    const sub: { off?: () => void } = {};
+    const mine: { end?: (how: 'ready' | 'aborted') => void; check?: () => void } = {};
+    const how = await new Promise<'ready' | 'aborted'>((resolve) => {
+      mine.end = resolve;
+      this.cameraEnd = resolve;
+      // Only while the wait is on screen: a paused flow waits for Resume, which checks again. A wait whose screen or
+      // generation has gone (the player left) ends at the next change instead of lingering.
+      const check = () => {
+        if (gen !== this.gen || this.disposed || this.state.screen !== screen) resolve('aborted');
+        else if (this.state.phase === 'camera' && gate.ready()) resolve('ready');
+      };
+      mine.check = check;
+      this.cameraCheck = check;
+      sub.off = gate.subscribe(check);
+      check();
+    });
+    sub.off?.();
+    // A newer wait may have taken over while this one was ending: only let go of its own.
+    if (this.cameraEnd === mine.end) this.cameraEnd = null;
+    if (this.cameraCheck === mine.check) this.cameraCheck = null;
+    if (gen !== this.gen || this.disposed || how === 'aborted') return false;
+    if (this.state.phase === 'camera') this.set({ phase: 'idle' });
+    return true;
   }
 
   /**
@@ -662,8 +773,12 @@ export class PracticeFlow extends FlowCore {
 
   /** "Skip" on the first-run demonstration; `all` also turns teaching off for good (one tap, remembered). */
   skipTeaching(all: boolean): void {
-    this.settings = updatePracticeSettings(all ? { demoSeen: true, teach: false } : { demoSeen: true }, this.store);
+    this.settings = updatePracticeSettings(
+      all ? { demoSeen: true, lessonSeen: true, teach: false } : { demoSeen: true },
+      this.store,
+    );
     this.skipIntro?.();
+    if (all) this.lessonEvent({ type: 'skipAll' });
   }
 
   private toNextOver(s: PracticeInningsState): PracticeInningsState {
@@ -675,8 +790,10 @@ export class PracticeFlow extends FlowCore {
 
   /** "Continue innings": back to the setup screen of the over in progress, or to the summary the innings reached. */
   continueInnings(): void {
-    const s = this.state.innings;
+    let s = this.state.innings;
     if (!s) return;
+    if (this.state.chase?.state.result === 'in_progress' && s.status !== 'batting' && this.chase.advanceOver())
+      s = this.state.innings ?? s;
     if (s.status === 'batting' && s.current) {
       const kind = this.state.overKind ?? kindOf(s) ?? 'random';
       const field = s.current.field;
@@ -737,8 +854,17 @@ export class PracticeFlow extends FlowCore {
     const s = this.state.innings;
     if (s && isResumable(s)) this.finishInnings(this.engine.inningsReducer(s, { type: 'abandon' }), 'abandon');
     clearInnings(this.store);
+    this.chase.forget();
     this.coachLoop.forgetResults();
-    this.set({ innings: null, board: EMPTY_BOARD, last: null, insight: null, notice: null, overKind: null });
+    this.set({
+      innings: null,
+      chase: null,
+      board: EMPTY_BOARD,
+      last: null,
+      insight: null,
+      notice: null,
+      overKind: null,
+    });
   }
 
   // ------------------------------------------------------------------------------------------------------------
@@ -795,7 +921,15 @@ export class PracticeFlow extends FlowCore {
   async bowlNext(): Promise<void> {
     this.clearTimers();
     const s = this.state.innings;
-    if (!s || s.status !== 'batting' || !s.current || isQuiet(this.state.phase) || this.state.phase === 'ready') return;
+    if (
+      !s ||
+      s.status !== 'batting' ||
+      !s.current ||
+      isQuiet(this.state.phase) ||
+      this.state.phase === 'ready' ||
+      this.state.phase === 'camera'
+    )
+      return;
     const gen = this.gen;
     this.coachLoop.abortInsight();
     const notice = await this.host.applyPending(() => this.setSceneFor(this.state.innings), s.assist, s.handedness);
@@ -823,11 +957,13 @@ export class PracticeFlow extends FlowCore {
       overNumber: next.overIndex + 1,
       ballNumber: next.ballIndex + 1,
       next,
-      context: this.deps.deliveryContext?.({
-        runs: now.runs,
-        wicketsInHand: 1,
-        ballsLeft: PRACTICE_MAX_OVERS * 6 - now.balls,
-      }),
+      context: this.deps.deliveryContext?.(
+        this.chase.matchSituation() ?? {
+          runs: now.runs,
+          wicketsInHand: 1,
+          ballsLeft: PRACTICE_MAX_OVERS * 6 - now.balls,
+        },
+      ),
       toleranceMs: help.ms,
     };
     this.set({
@@ -835,6 +971,8 @@ export class PracticeFlow extends FlowCore {
     });
     if (this.holdWhileHidden()) return;
     if (!(await this.ready(gen))) return;
+    if (this.holdWhileHidden()) return;
+    if (!(await this.cameraReady(gen))) return;
     if (this.holdWhileHidden()) return;
     // Never bowled onto a stage that is not ready: wait for the one being prepared, or stop calmly.
     if (!this.host.stage || !this.state.stageReady || this.host.isPreparing()) {
@@ -872,13 +1010,19 @@ export class PracticeFlow extends FlowCore {
       ballNumber: spec.ballNumber,
       interrupted: out.interrupted,
     };
+    // The chase is shown like the board: when the stage has shown the ball, never before.
+    const chase = this.chase.afterBall(inn);
     this.set({
       phase: this.hiddenPause ? 'paused' : 'dead',
       last,
       board,
+      ...(chase ? { chase } : {}),
       notice: out.interrupted ? 'interrupted' : this.state.notice,
-      announce: this.deps.words ? { text: this.deps.words.outcome(last, board), id: Date.now() } : this.state.announce,
+      announce: this.deps.words
+        ? { text: this.chase.said(this.deps.words.outcome(last, board), chase), id: Date.now() }
+        : this.state.announce,
     });
+    if (chase?.summary) this.chase.decidedNow();
     if (this.hiddenPause) {
       this.pausedFrom = 'dead';
       if (this.pauseNativeAtDeadBall) {
@@ -891,7 +1035,8 @@ export class PracticeFlow extends FlowCore {
     if (this.deps.hooks?.autoNext) this.after(AUTO_NEXT_MS, () => this.nextBall());
   }
 
-  private setSceneFor(s: PracticeInningsState | null): void {
+  /** Sets the over in progress on the stage (its field, bowler and conditions, and the chase as it then stands). */
+  setSceneFor(s: PracticeInningsState | null): void {
     if (!s?.current) return;
     this.host.stage?.setScene({
       field: s.current.field,
@@ -901,6 +1046,7 @@ export class PracticeFlow extends FlowCore {
       conditions: s.conditions,
       handedness: s.handedness,
       ball: s.current.plan.ball,
+      ...chaseScene(this.state.chase?.state),
     });
   }
 
@@ -909,6 +1055,7 @@ export class PracticeFlow extends FlowCore {
     const ph = this.state.phase;
     if (ph !== 'dead' && ph !== 'paused') return;
     this.clearTimers();
+    if (this.chase.next()) return;
     const s = this.state.innings;
     if (s && s.status !== 'batting') {
       this.showEnd(s);
@@ -949,6 +1096,7 @@ export class PracticeFlow extends FlowCore {
 
   /** Restart over (pause panel, confirmed): the same over from its first ball; its runs so far are removed. */
   restartOver(): boolean {
+    if (this.state.chase) return false;
     const s = this.state.innings;
     if (!s || s.status !== 'batting' || !s.current || s.current.deliveries.length === 0 || this.busy()) return false;
     const next = this.engine.inningsReducer(s, { type: 'restartOver' }) as PracticeInningsState | undefined;
@@ -968,6 +1116,14 @@ export class PracticeFlow extends FlowCore {
   pause(): void {
     const p = this.state.phase;
     if (p === 'paused' || this.state.screen !== 'live') return;
+    // The first-ball lesson is a pre-delivery state: Pause covers it, Resume brings it back (the wait is not over).
+    if (p === 'lesson' || p === 'camera') {
+      this.pausedFrom = p;
+      this.set({ phase: 'paused' });
+      const task = this.host.stage?.pause?.('player');
+      void task?.catch(() => undefined);
+      return;
+    }
     // The native pause target remains visible while the ready scene is being acknowledged and during its short cue.
     // Both are pre-delivery states: Resume must retry the same unbowled ball, not restore a dead-ball card we cleared.
     if (this.readyPending || p === 'ready') {
@@ -1014,6 +1170,16 @@ export class PracticeFlow extends FlowCore {
     if (this.state.phase !== 'paused') return;
     const task = this.host.stage?.resume?.('player');
     void task?.catch(() => undefined);
+    if (this.pausedFrom === 'lesson') {
+      this.set({ phase: 'lesson' });
+      return;
+    }
+    if (this.pausedFrom === 'camera') {
+      // The wait for the camera goes on; the batter may have come into view while paused.
+      this.set({ phase: 'camera' });
+      this.cameraCheck?.();
+      return;
+    }
     if (this.pausedFrom === 'ready') {
       // Paused just before a ball (the app went away): Resume bowls it.
       this.set({ phase: 'idle' });
@@ -1052,6 +1218,12 @@ export class PracticeFlow extends FlowCore {
     } else if (this.state.screen === 'live' && p === 'dead') {
       this.pausedFrom = 'dead';
       this.set({ phase: 'paused' });
+    } else if (this.state.screen === 'live' && p === 'lesson') {
+      this.pausedFrom = 'lesson';
+      this.set({ phase: 'paused' });
+    } else if (this.state.screen === 'live' && p === 'camera') {
+      this.pausedFrom = 'camera';
+      this.set({ phase: 'paused' });
     } else if (this.state.screen === 'live' && p === 'ready') {
       // The hint's wait was cleared above (bowlNext stops): the ball waits, paused, for Resume.
       this.pausedFrom = 'ready';
@@ -1076,6 +1248,8 @@ export class PracticeFlow extends FlowCore {
    */
   leave(): void {
     this.gen++;
+    this.lessonEnd?.('aborted');
+    this.cameraEnd?.('aborted');
     this.clearTimers();
     this.runner.interrupt();
     this.coachLoop.abortInsight();
@@ -1085,6 +1259,7 @@ export class PracticeFlow extends FlowCore {
     this.set({
       screen: 'idle',
       phase: 'idle',
+      chase: s ? this.state.chase : null,
       replay: null,
       coach: null,
       pending: null,
@@ -1107,8 +1282,10 @@ export class PracticeFlow extends FlowCore {
   closeFinished(): void {
     const s = this.state.innings;
     if (s && (s.status === 'out' || s.status === 'complete')) clearInnings(this.store);
+    this.chase.forget();
     this.set({
       innings: null,
+      chase: null,
       board: EMPTY_BOARD,
       last: null,
       insight: null,
@@ -1148,6 +1325,8 @@ export class PracticeFlow extends FlowCore {
 
   dispose(): void {
     this.gen++;
+    this.lessonEnd?.('aborted');
+    this.cameraEnd?.('aborted');
     this.clearTimers();
     this.runner.interrupt();
     this.coachLoop.abortInsight();

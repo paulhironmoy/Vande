@@ -180,7 +180,16 @@ export function ReplayBar(p: {
 }
 
 /** The first run's one short demonstration: what it is, and the one-tap ways past it (remembered). */
-export function IntroPanel({ onSkip, onSkipAll }: { onSkip: () => void; onSkipAll: () => void }) {
+export function IntroPanel({
+  onSkip,
+  onSkipAll,
+  children,
+}: {
+  onSkip: () => void;
+  onSkipAll: () => void;
+  /** A line under the words (the lesson's "this one is only to watch" when the player presses too soon). */
+  children?: ReactNode;
+}) {
   const t = usePracticeT();
   return (
     <section className={s.intro} aria-labelledby="practice-intro-title" data-testid="practice-intro">
@@ -188,6 +197,7 @@ export function IntroPanel({ onSkip, onSkipAll }: { onSkip: () => void; onSkipAl
         {t.t('practice.intro.title')}
       </h2>
       <p className={sys.caption}>{t.t('practice.intro.body')}</p>
+      {children}
       <div className={s.quietRow}>
         <PButton variant="secondary" onClick={onSkip} data-testid="practice-intro-skip">
           {t.t('practice.intro.skip')}

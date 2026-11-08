@@ -178,3 +178,9 @@
 :global([data-motion='reduced']) .choice:active {
   transform: none;
 }
+
+/* Large text on a short screen (data-large-short, design/useLargeShort.ts): a menu row is as tall as its words, not 4.5 rem (144 px at 200%). */
+[data-large-short='true'] .choice {
+  min-height: 0;
+  padding: var(--p-1) var(--p-2);
+}

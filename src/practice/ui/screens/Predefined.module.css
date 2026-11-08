@@ -159,3 +159,22 @@
   stroke: var(--p-text);
   stroke-width: 0.6;
 }
+
+/*
+ * Large text on a short screen (data-large-short, design/useLargeShort.ts): six (or three) chips across a phone leave
+ * 4 to 8 characters a line at 200% text, so a word broke inside itself ("outswinger"). The columns are now as many as fit
+ * 8 rem each (two on a 640 px phone, three on 915 px), and a word breaks only when it cannot fit a line of its own.
+ */
+[data-large-short='true'] .chips {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 8rem), 1fr));
+}
+
+[data-large-short='true'] .chip {
+  min-height: 0;
+  overflow-wrap: break-word;
+}
+
+[data-large-short='true'] .editor {
+  grid-template-columns: 1fr;
+  gap: var(--p-2);
+}

@@ -10,6 +10,8 @@
 import type { AttemptComparison, CoachAnalysis, CoachOption, DeliveryRecord, DeliveryResult } from '@/contracts';
 import { addFormSample, loadMastery, saveMastery, updatePracticeSettings } from '@/practice/store';
 import { guideKey, readRecord } from '@/practice/worker/work';
+import type { ChaseDecided } from '@/practice/chase/types';
+import { chaseScene } from '../chase/unity';
 import type { PracticeFlow } from './controller';
 import type { CoachTipLike } from './coachTypes';
 import type { AnalyzeOutput, AnalyzeWant } from './offThread';
@@ -316,6 +318,20 @@ export class CoachLoop {
       );
   }
 
+  /**
+   * One ball of the innings in slow motion (a chase's deciding ball); closing it comes back to where this was called.
+   * `chaseMoment` (the deciding ball of a chase) goes to the stage with the replay, so the result clips play from the
+   * physics events of the replay as they did in the live ball.
+   */
+  replayBall(record: DeliveryRecord, speed: number, diagnostics: boolean, chaseMoment?: ChaseDecided): Promise<void> {
+    return this.startReplay(
+      [{ result: this.resultOf(record), overNumber: record.overIndex + 1, ballNumber: record.ballIndex + 1 }],
+      speed,
+      diagnostics,
+      chaseMoment,
+    );
+  }
+
   replayOver(overIndex: number): void {
     const over = this.flow.getState().innings?.overs[overIndex];
     if (over)
@@ -330,7 +346,12 @@ export class CoachLoop {
       );
   }
 
-  private async startReplay(items: ReplayItem[], speed: number, diagnostics: boolean): Promise<void> {
+  private async startReplay(
+    items: ReplayItem[],
+    speed: number,
+    diagnostics: boolean,
+    chaseMoment?: ChaseDecided,
+  ): Promise<void> {
     if (!items.length || this.flow.busy()) return;
     const st = this.flow.getState();
     const back = { screen: st.screen, phase: st.phase };
@@ -338,7 +359,7 @@ export class CoachLoop {
     this.flow.saveMetrics({ ...this.flow.metrics, replays: this.flow.metrics.replays + 1 });
     this.flow.track('practice_replay', { overNumber: String(Math.min(10, Math.max(1, items[0].overNumber))) as '1' });
     this.flow.setState({
-      replay: { items, index: 0, playing: true, back, speed, diagnostics },
+      replay: { items, index: 0, playing: true, back, speed, diagnostics, ...(chaseMoment ? { chaseMoment } : {}) },
       screen: 'live',
       phase: 'replay',
     });
@@ -348,7 +369,11 @@ export class CoachLoop {
       if (!r || gen !== this.replayGen) return;
       this.flow.setState({ replay: { ...r, index: i, playing: true } });
       try {
-        await this.flow.host.stage?.replay(items[i].result, { speed, diagnostics });
+        await this.flow.host.stage?.replay(items[i].result, {
+          speed,
+          diagnostics,
+          ...(chaseMoment ? { chaseMoment } : {}),
+        });
       } catch {
         /* nothing to show */
       }
@@ -363,7 +388,7 @@ export class CoachLoop {
     if (!r || r.playing) return;
     const back = r.back;
     this.flow.setState({ replay: null });
-    void this.startReplay(r.items, r.speed, r.diagnostics).then(() => {
+    void this.startReplay(r.items, r.speed, r.diagnostics, r.chaseMoment).then(() => {
       const cur = this.flow.getState().replay;
       if (cur) this.flow.setState({ replay: { ...cur, back } });
     });
@@ -468,6 +493,8 @@ export class CoachLoop {
       handedness: src.handedness,
       ball: src.ball,
     });
+    // Camera batting: the same wait as before any ball (a batter in view first; pre-delivery pacing only).
+    if (!(await this.flow.cameraReady(gen))) return;
     const out = await this.flow.runner.run({
       kind: 'repeat',
       plan: src.plan,
@@ -570,6 +597,7 @@ export class CoachLoop {
         conditions: s.conditions,
         handedness: s.handedness,
         ball: s.current.plan.ball,
+        ...chaseScene(this.flow.getState().chase?.state),
       });
     this.flow.setState({ coach: null, screen: c.back.screen, phase: c.back.phase });
     if (c.back.screen === 'live' && c.back.phase === 'dead') this.flow.deadBallShownAgain();

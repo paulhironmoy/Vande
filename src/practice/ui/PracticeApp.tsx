@@ -12,12 +12,15 @@ import { isNativePlatform } from '@/platform';
 import { isLandscapeViewport, lockLandscape, onViewportOrientation, unlockOrientation } from '@/platform/orientation';
 import { loadDraft, loadPracticeSettings, updatePracticeSettings } from '@/practice/store';
 import type { Difficulty } from '@/contracts';
-import { usePracticeT } from '@/i18n/practice';
-import { PracticeFlow, type FlowHooks, type LastBall } from './flow/controller';
+import { usePracticeT, type PracticeT } from '@/i18n/practice';
+import { PracticeFlow, type FlowHooks, type FlowWords, type LastBall } from './flow/controller';
 import { randomHex } from './flow/core';
 import { StageRegionsContext, useFlowState, useKit } from './context';
 import { outcomeWord, reasonWords } from './coaching';
 import { prepareAudioUnlock } from './audioWarm';
+import { acceptDefaultControl, setBattingGestureExclusion, startControls, subscribeControl } from './controls';
+import { cameraGate } from './camera/gate';
+import { defaultLessonInput } from './lesson/inputType';
 import { bindPracticeLifecycle } from './lifecycle';
 import { sys } from './design';
 import { Calibration } from './screens/Calibration';
@@ -45,6 +48,37 @@ export interface PracticeAppProps {
 type View = 'home' | 'predefined' | 'settings' | 'calibration' | 'diagnostics';
 type Overlay = null | 'settings' | 'calibration' | 'diagnostics';
 
+/**
+ * The lines the flow speaks, politely, for screen readers: each ball's run-up and outcome, and in a chase what is needed
+ * (the target with the first ball, then after each ball as the stage has shown it, and how the chase ended).
+ */
+function practiceWords(t: PracticeT): FlowWords {
+  return {
+    runup: (n, chase) => {
+      const run = t.t('practice.live.announce_runup', { n });
+      return chase && chase.ballsFaced === 0
+        ? `${run} ${t.t('practice.chase.announce_start', { runs: chase.runsNeeded, balls: chase.ballsLeft })}`
+        : run;
+    },
+    outcome: (last: LastBall, board) =>
+      t.t('practice.live.announce', {
+        result: outcomeWord(t, last.result.outcome).word,
+        reason: reasonWords(t, last.result.coaching.reason, last.result),
+        runs: board.runs,
+        wickets: board.wickets,
+      }),
+    chase: (c) => {
+      if (c.result === 'won') return t.t('practice.chase.announce_won', { runs: c.runs, balls: c.ballsFaced });
+      if (c.result === 'lost_wicket' || c.result === 'lost_balls')
+        return t.t('practice.chase.announce_lost', { short: c.runsNeeded });
+      if (c.result !== 'in_progress') return '';
+      return c.ballsLeft === 1
+        ? t.t('practice.chase.announce_last', { runs: c.runsNeeded })
+        : t.t('practice.chase.announce', { runs: c.runsNeeded, balls: c.ballsLeft });
+    },
+  };
+}
+
 export function PracticeApp({ appVersion, analytics, hooks, openedAt, onFlow }: PracticeAppProps) {
   const kit = useKit();
   const t = usePracticeT();
@@ -68,18 +102,11 @@ export function PracticeApp({ appVersion, analytics, hooks, openedAt, onFlow }: 
       reducedMotion: () => reduced.current,
       isLandscape: isLandscapeViewport,
       newSeed: () => randomHex(),
+      lesson: { input: () => defaultLessonInput() },
+      camera: cameraGate,
       masteryFeel: (e) => kit.audio?.masteryFeel(e),
       deliveryContext: kit.audio ? (s) => kit.audio!.deliveryContext(s) : undefined,
-      words: {
-        runup: (n) => t.t('practice.live.announce_runup', { n }),
-        outcome: (last: LastBall, board) =>
-          t.t('practice.live.announce', {
-            result: outcomeWord(t, last.result.outcome).word,
-            reason: reasonWords(t, last.result.coaching.reason, last.result),
-            runs: board.runs,
-            wickets: board.wickets,
-          }),
-      },
+      words: practiceWords(t),
     });
     setFlow(f);
     onFlow?.(f);
@@ -96,16 +123,7 @@ export function PracticeApp({ appVersion, analytics, hooks, openedAt, onFlow }: 
   // in place when the app language (or its asynchronously loaded catalog) changes.
   useEffect(() => {
     if (!flow) return;
-    flow.setLanguage(t.locale, t.t('practice.live.hint'), {
-      runup: (n) => t.t('practice.live.announce_runup', { n }),
-      outcome: (last: LastBall, board) =>
-        t.t('practice.live.announce', {
-          result: outcomeWord(t, last.result.outcome).word,
-          reason: reasonWords(t, last.result.coaching.reason, last.result),
-          runs: board.runs,
-          wickets: board.wickets,
-        }),
-    });
+    flow.setLanguage(t.locale, t.t('practice.live.hint'), practiceWords(t));
   }, [flow, t]);
 
   // The app went to the background (Android pause, a tab switch, the screen locking).
@@ -118,6 +136,18 @@ export function PracticeApp({ appVersion, analytics, hooks, openedAt, onFlow }: 
   }, [flow]);
 
   useEffect(() => (flow ? onViewportOrientation((landscape) => flow.setLandscape(landscape)) : undefined), [flow]);
+
+  // The chosen control ("How do you want to bat?"): the first-ball lesson teaches it, only the finger feels haptics, and
+  // it can be switched between balls, never while a delivery is under way.
+  useEffect(() => {
+    if (!flow) return;
+    const stop = startControls(() => !flow.busy());
+    const off = subscribeControl(() => flow.refreshSettings());
+    return () => {
+      off();
+      stop();
+    };
+  }, [flow]);
 
   if (!flow) return null;
   return (
@@ -149,7 +179,21 @@ function PracticeScreens({ flow, appVersion }: { flow: PracticeFlow; appVersion:
     </>
   );
 
+  // The first ball bowled with the setup's "How do you want to bat?" row untouched is an answer: the default is kept.
+  useEffect(() => {
+    if (state.screen === 'live') acceptDefaultControl();
+  }, [state.screen]);
+
+  // While a delivery is under way (or about to be) the Android shell leaves the screen's side edges to the batting
+  // surface, so the system Back swipe cannot steal a stroke. Cleared the moment batting is not on.
+  const batting = state.screen === 'live' && flow.busy();
+  useEffect(() => {
+    void setBattingGestureExclusion(batting);
+  }, [batting]);
+  useEffect(() => () => void setBattingGestureExclusion(false), []);
+
   const toHome = () => {
+    if (state.screen === 'chase_result') flow.closeFinished();
     flow.leave();
     void unlockOrientation();
     setOverlay(null);
@@ -310,9 +354,13 @@ function PracticeScreens({ flow, appVersion }: { flow: PracticeFlow; appVersion:
           resumable={flow.resumable()}
           notice={state.notice}
           storageOk={state.storageOk}
+          chaseResume={flow.chase.resumeInfo()}
           onChoose={(kind) => {
             if (kind === 'predefined') setView('predefined');
-            else
+            else if (kind === 'chase') {
+              void lockLandscape();
+              flow.chase.start();
+            } else
               flow.prepareOver({
                 kind: 'random',
                 random: { difficulty: settings.difficulty, conditions: settings.conditions, bowling: settings.bowling },

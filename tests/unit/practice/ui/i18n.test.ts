@@ -245,6 +245,7 @@ const FAMILIES: Record<string, readonly string[]> = {
   'practice.notice': [
     'classic',
     'balanced',
+    'camera_web',
     'help_changed',
     'help_less',
     'interrupted',

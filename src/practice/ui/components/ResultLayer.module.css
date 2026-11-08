@@ -391,3 +391,82 @@
 :global([data-contrast='high']) .result::before {
   background: #fff;
 }
+
+/*
+ * "Reading the ball…" keeps the room of the tip that replaces it (two lines and their box), so the card does not grow by
+ * about 40 px, and shift the words under a thumb, when the coach's words arrive (QV-08). Nothing is reserved once the
+ * tip is there, so the card keeps the size it always had.
+ */
+.words[data-reading='true'] {
+  min-height: 3.9rem;
+  align-content: start;
+}
+
+@media (orientation: landscape) and (max-width: 820px), (orientation: landscape) and (max-height: 430px) {
+  .words[data-reading='true'] {
+    min-height: 3.4rem;
+  }
+}
+
+/*
+ * Large text, any screen: the actions' side padding stops growing at 24 px (it is 1.5 rem: 48 px at 200%), so "See the
+ * summary" keeps "summary" whole beside its arrow instead of breaking inside the word (QV-03). At the default size 1.5 rem is
+ * 24 px: nothing changes.
+ */
+.result .resultActions > * {
+  padding-inline: min(var(--p-3), 24px);
+}
+
+/*
+ * Large text on a short screen (data-large-short, design/useLargeShort.ts: every phone in landscape at 200% text, none at
+ * the default size). The corner card was 125 to 138 px high, with "Next ball" 28 to 68 px below its edge and the result
+ * word half cut (QV-03): the rail alone takes 140 to 200 px at this size. The ball is dead and the player needs the words,
+ * so the card is ONE sheet: the full width, from just under the rail's right corner (the conditions and the pause control
+ * stay clear, as ever; the corner's measured bottom, --p-rail-bottom, can be 5 to 11 px short of its edge once the dead
+ * ball adds a line to it, so the sheet keeps 1 rem below it) to the bottom of the screen; the result, the score and the coach's words scroll in the middle and the
+ * two actions stay pinned under them (54 px buttons). It is not moved off the ball's path (useCardPlacement is off).
+ * Text keeps its 200% size; every control is at least 48 px (the layout specs' floor).
+ */
+.result[data-large-short='true'] {
+  top: calc(var(--p-rail-bottom, 4.75rem) + var(--p-1));
+  right: var(--p-safe-r);
+  bottom: var(--p-safe-b);
+  left: var(--p-safe-l);
+  width: auto;
+  max-height: none;
+  overflow: hidden;
+  border-radius: calc(var(--p-radius) + 0.25rem) calc(var(--p-radius) + 0.25rem) 0 0;
+  --p-control: max(48px, 1.5rem);
+  --p-control-lg: max(48px, 1.6875rem);
+}
+
+.result[data-large-short='true'] .resultBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: var(--p-half);
+  padding: 8px var(--p-2);
+}
+
+.result[data-large-short='true'] .outcomeWord {
+  font-size: 1.75rem;
+}
+
+.result[data-large-short='true'] .resultActions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--p-1);
+  padding: 2px var(--p-2);
+}
+
+/* Every pixel of the sheet is the player's words or an action: a 2 px edge instead of the card's 3 px. */
+.result[data-large-short='true']::before {
+  height: 2px;
+}
+
+.result[data-large-short='true'] .resultActions > * {
+  padding-inline: var(--p-1);
+  overflow-wrap: normal;
+}
+
+.result[data-large-short='true'] .resultActions > :only-child {
+  grid-column: 1 / -1;
+}

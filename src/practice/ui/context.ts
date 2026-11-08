@@ -4,7 +4,7 @@
  * it with useKit(); the flow controller lives in the app component and is passed down.
  */
 import { createContext, useContext, useSyncExternalStore } from 'react';
-import type { Fielder } from '@/contracts';
+import type { AssistLevel, Fielder, TimingBands } from '@/contracts';
 import type { AudioKit, BuildKit, CoachKit, InputKit, PracticeEngine, StageFactory } from './flow/types';
 import type { OffThreadWork } from './flow/offThread';
 import type { FlowState, PracticeFlow } from './flow/controller';
@@ -38,6 +38,8 @@ export interface PracticeKit {
   fielderClass(f: Fielder): FielderClass;
   /** Virtual bat travel from swing start to the contact zone (ms), from the physics; used by the test hooks. */
   batTravelMs(kind: 'defend' | 'attack', power: number): number;
+  /** The timing bands a delivery was judged by (the physics' activeBands); the lesson's timing scale draws them. */
+  timingBands?(assist: AssistLevel, toleranceMs: number): TimingBands;
 }
 
 export const PracticeKitContext = createContext<PracticeKit | null>(null);

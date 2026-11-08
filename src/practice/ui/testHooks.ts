@@ -9,6 +9,8 @@
  *   autoNext             a dead innings ball continues by itself (long journeys; production always waits)
  *   queueSwing(...)      the swing for coming deliveries, on the simulation clock: { startT } exactly, or
  *                        { contactErrorMs } relative to the ideal contact (the physics' own bat travel), or 'leave'
+ *   state().lesson       the first-ball lesson while its card is open (status, armed, input, tries, acts, note, loops shown),
+ *   state().lessonLog    and what happened on it and when; `lessonTiming: 'every_ball'` (config) says the timing note on every ball
  *
  * Swings go through the same pipeline as a real gesture (normalised swing → physics → record), so a hooked delivery
  * and a touched one differ only in where the swing came from. The rest only observes.
@@ -25,6 +27,8 @@ import type {
   PitchCondition,
 } from '@/contracts';
 import { readRecord } from '@/practice/worker/work';
+import { GHOST } from './lesson/ghostMove';
+import { setLessonCameraPort } from './lesson/inputType';
 import type { BallKind, FlowHooks, LivePhase, PracticeFlow } from './flow/controller';
 import type { BallJob, OffThreadStats } from './flow/offThread';
 import type { ResolveArgs } from './flow/types';
@@ -34,6 +38,8 @@ const PHASE_SET: Record<LivePhase, true> = {
   idle: true,
   loading: true,
   intro: true,
+  lesson: true,
+  camera: true,
   ready: true,
   runup: true,
   live: true,
@@ -52,8 +58,12 @@ export interface TestConfig {
   seed?: string;
   benchmarkMs?: number;
   autoNext?: boolean;
+  /** The chase seed of the Chase the page opens (a pool seed, "c000" to "c255"), instead of one drawn at random. */
+  chaseSeed?: string;
   /** 'off': no work thread (everything on the main thread, as the fallback does), for A/B runs. */
   work?: 'on' | 'off';
+  /** 'every_ball': the first-ball lesson's plain-words timing note is shown on every dead ball (many trials), not the first over only. */
+  lessonTiming?: 'every_ball';
 }
 
 /** One parity case: what differed between the work thread and the main thread (nothing, when they agree). */
@@ -88,8 +98,39 @@ declare global {
   }
 }
 
+/**
+ * One line of the Target Chase's event log (DoD CHU-03): written whenever the screen, the phase, the balls the innings
+ * holds (a ball is committed when it is bowled) or the balls the shown chase counts (they follow the stage) change.
+ * Order is the point: `shown` never leads `committed`, and it changes only at the dead ball.
+ */
+export interface ChaseLogEntry {
+  /** performance.now() when the flow changed. */
+  t: number;
+  screen: string;
+  phase: string;
+  seed: string;
+  target: number;
+  committed: number;
+  committedRuns: number;
+  shown: number;
+  shownRuns: number;
+  runsNeeded: number;
+  ballsLeft: number;
+  requiredRateX100: number | null;
+  result: string;
+}
+
 export interface PracticeTestApi {
+  /** Opens a Target Chase now: the pool seed ("c000" to "c255") or a fresh one; `direct` goes straight to ball 1. */
+  startChase(seed?: string, opts?: { direct?: boolean }): void;
+  /** The Target Chase's event log since the page loaded (see ChaseLogEntry). */
+  chaseLog(): ChaseLogEntry[];
   queueSwing(...swings: QueuedSwing[]): number;
+  /**
+   * A stand-in camera for the first-ball lesson, with no camera and no pose: `{ active, tracking }` registers it (call it
+   * again to change `tracking`, which shows or clears the lesson's "arms not in view" note); null removes it.
+   */
+  lessonCamera(port: { active: boolean; tracking: boolean } | null): void;
   clearSwings(): void;
   pending(): number;
   /** The last bowled flight's timing (simulation seconds). */
@@ -196,10 +237,15 @@ export function createTestHooks(
     autoNext: config.autoNext === true,
     work: config.work === 'off' ? 'off' : 'on',
     seed: () => (config.seed ? `${config.seed}-${seedN++}` : null),
+    chaseSeed: () => config.chaseSeed ?? null,
     takeSwing(flight, kind) {
       last = flight;
       delivered[kind]++;
       if (getFlow()?.getState().stageReady !== true) unready++;
+      if (config.lessonTiming === 'every_ball') {
+        const f = getFlow();
+        if (f) f.settings = { ...f.settings, hintsShown: 0 };
+      }
       const q = queue.shift();
       if (!q) return null;
       if (q === 'leave') return 'leave';
@@ -217,9 +263,57 @@ export function createTestHooks(
       };
     },
   };
+  // The chase's event log: attached to whichever flow is current, written on every change that matters to its order.
+  const chaseLog: ChaseLogEntry[] = [];
+  let attached: PracticeFlow | null = null;
+  let lastKey = '';
+  const record = (f: PracticeFlow) => {
+    const st = f.getState();
+    const c = st.chase;
+    if (!c) {
+      lastKey = '';
+      return;
+    }
+    const committed = st.innings?.balls ?? 0;
+    const key = `${st.screen}|${st.phase}|${committed}|${c.state.ballsFaced}|${c.state.result}`;
+    if (key === lastKey) return;
+    lastKey = key;
+    chaseLog.push({
+      t: performance.now(),
+      screen: st.screen,
+      phase: st.phase,
+      seed: c.state.definition.seed,
+      target: c.state.definition.target,
+      committed,
+      committedRuns: st.innings?.runs ?? 0,
+      shown: c.state.ballsFaced,
+      shownRuns: c.state.runs,
+      runsNeeded: c.state.runsNeeded,
+      ballsLeft: c.state.ballsLeft,
+      requiredRateX100: c.state.requiredRateX100,
+      result: c.state.result,
+    });
+  };
+  if (typeof window !== 'undefined') {
+    window.setInterval(() => {
+      const f = getFlow();
+      if (!f || f === attached) return;
+      attached = f;
+      lastKey = '';
+      f.subscribe(() => record(f));
+      record(f);
+    }, 20);
+  }
   if (typeof window !== 'undefined') {
     window.__vandePractice = {
+      startChase: (seed, opts) =>
+        getFlow()?.chase.start({ ...(seed ? { seed } : {}), ...(opts?.direct ? { direct: true } : {}) }),
+      chaseLog: () => chaseLog.map((e) => ({ ...e })),
       queueSwing: (...s) => queue.push(...s),
+      lessonCamera: (p) =>
+        setLessonCameraPort(
+          p ? { active: () => p.active, tracking: () => p.tracking, subscribe: () => () => undefined } : null,
+        ),
       clearSwings: () => void queue.splice(0),
       pending: () => queue.length,
       lastFlight: () =>
@@ -277,6 +371,41 @@ export function createTestHooks(
           notice: st.notice,
           ttfdMs: f.firstDeliveryMs(),
           overKind: st.overKind,
+          // The first-ball lesson while its card is open (null otherwise): where it stands, the input it teaches, and how
+          // many loops of the ghost have been shown (a loop is GHOST.show.periodMs; none under Reduced Motion).
+          lesson: st.lesson
+            ? {
+                status: st.lesson.status,
+                armed: st.phase === 'lesson',
+                input: st.lesson.input,
+                tries: st.lesson.tries,
+                acts: st.lesson.acts,
+                note: st.lesson.note,
+                read: st.lesson.read,
+                shownAtPerfMs: st.lesson.shownAtPerfMs,
+                cueLoopMs: GHOST.show.periodMs,
+                cueShows: f.deps.reducedMotion?.()
+                  ? 0
+                  : Math.floor((performance.now() - st.lesson.shownAtPerfMs) / GHOST.show.periodMs) + 1,
+              }
+            : null,
+          lessonLog: f.lessonEvents.slice(-40),
+          // The Target Chase, as shown (null outside one): its seed and target, and where it stands.
+          chase: st.chase
+            ? {
+                seed: st.chase.state.definition.seed,
+                difficulty: st.chase.state.definition.difficulty,
+                target: st.chase.state.definition.target,
+                result: st.chase.state.result,
+                runs: st.chase.state.runs,
+                ballsFaced: st.chase.state.ballsFaced,
+                ballsLeft: st.chase.state.ballsLeft,
+                runsNeeded: st.chase.state.runsNeeded,
+                requiredRate: st.chase.state.requiredRate,
+                deciding: st.chase.state.decidingBall?.key ?? null,
+                previous: st.chase.previous ? { result: st.chase.previous.result, runs: st.chase.previous.runs } : null,
+              }
+            : null,
           over: plan
             ? {
                 source: plan.source,

@@ -1,6 +1,10 @@
 /*
- * One continuous match-day world for the Practice shell. The bitmap is the optimised, registered VANDE stadium
- * derivative at /practice/stadium-shell.webp; every other shape is original CSS and doubles as the image fallback.
+ * One continuous match-day world for the Practice shell. The bitmap is the venue's hero plate (3:1, no players: the
+ * 1280 px plate everywhere, the 2048 px plate from 1600 px wide up); the gradients and shapes below it are original CSS
+ * and show only when the image is missing. The plates keep the left 30% and the right 18% of their top half and the
+ * centre 40% calm (release/product-sequence/stage-3-chase/ASSETS-VENUE/plates/hero-*.json), where the shell's own title,
+ * actions and target card sit. The evening plate is the light of the web stage; hero-day-* is for a renderer whose
+ * default light is day (Unity) and is not used here.
  */
 .world {
   position: fixed;
@@ -19,7 +23,7 @@
   inset: 0;
   background-image:
     linear-gradient(180deg, rgba(5, 10, 14, 0.08) 0%, rgba(5, 10, 14, 0.12) 48%, rgba(5, 10, 14, 0.62) 100%),
-    url('/practice/stadium-shell.webp');
+    url('/practice/venue/hero-evening-1280.webp');
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -120,6 +124,15 @@
     background:
       linear-gradient(180deg, rgba(5, 8, 11, 0.28) 0%, rgba(5, 8, 11, 0.2) 24%, rgba(5, 8, 11, 0.82) 58%, #080b0f 100%),
       linear-gradient(90deg, rgba(5, 8, 11, 0.32), rgba(5, 8, 11, 0.1), rgba(5, 8, 11, 0.32));
+  }
+}
+
+/* Wide screens get the sharper plate (the only place its extra bytes are of use); the browser fetches only this one. */
+@media (min-width: 1600px) {
+  .stadium {
+    background-image:
+      linear-gradient(180deg, rgba(5, 10, 14, 0.08) 0%, rgba(5, 10, 14, 0.12) 48%, rgba(5, 10, 14, 0.62) 100%),
+      url('/practice/venue/wide/hero-evening-2048.webp');
   }
 }
 

@@ -10,7 +10,9 @@ import type { BowlingChoice } from '@/practice/store';
 import { PButton, PDisclosure, PSegmented, Screen, sys } from '../design';
 import { FieldMap } from '../components/FieldMap';
 import { SessionBrief } from '../components/SessionBrief';
-import type { FlowNotice, PendingOver, RandomChoice } from '../flow/state';
+import { ChaseBrief } from '../chase/ChaseBrief';
+import { ControlRow } from '../controls';
+import type { ChaseFlow, FlowNotice, PendingOver, RandomChoice } from '../flow/state';
 import { PremiumShellBackdrop } from './PremiumShellBackdrop';
 import s from './Setup.module.css';
 
@@ -25,6 +27,8 @@ export interface SetupProps {
   firstSession: boolean;
   /** Footwork follows where the press lands (players who skipped the teaching): say how. */
   pressFootwork?: boolean;
+  /** A Target Chase: its briefing replaces the Random Over's choices (the seed, not the player, sets these overs). */
+  chase?: ChaseFlow | null;
 }
 
 /** A keyboard is likely (a fine pointer that can hover): the keys are worth a line. */
@@ -49,12 +53,13 @@ export function Setup({
   onBack,
   firstSession,
   pressFootwork,
+  chase,
 }: SetupProps) {
   const t = usePracticeT();
   const kindTitle = t.tk(`practice.setup.kind.${p.kind}`);
   const editable = !p.continuing && p.bowled === 0;
   const random =
-    p.kind === 'random' && editable
+    p.kind === 'random' && editable && !chase
       ? (p.random ?? { difficulty: 'club', conditions: 'balanced', bowling: 'any' })
       : null;
   const fallback =
@@ -68,7 +73,9 @@ export function Setup({
       <PremiumShellBackdrop variant="setup" />
       <Screen
         className={s.screen}
-        title={t.t('practice.setup.title', { n: p.overNumber, kind: kindTitle })}
+        title={
+          chase ? t.t('practice.chase.setup.title') : t.t('practice.setup.title', { n: p.overNumber, kind: kindTitle })
+        }
         onBack={onBack}
         wide
         footer={
@@ -95,6 +102,11 @@ export function Setup({
               <FieldMap field={p.field} intent={p.intent} handedness={p.handedness} labels={!firstSession} />
             </section>
             <div className={s.side}>
+              {chase && (
+                <div className={s.chaseBrief}>
+                  <ChaseBrief chase={chase} />
+                </div>
+              )}
               <div className={s.briefPanel}>
                 <SessionBrief
                   kind={p.kind}
@@ -104,7 +116,7 @@ export function Setup({
                   conditions={p.conditions}
                   assist={p.assist}
                   handedness={p.handedness}
-                  difficulty={p.random?.difficulty ?? null}
+                  difficulty={p.random?.difficulty ?? chase?.state.definition.bowling ?? null}
                   onAssist={editable ? onAssist : undefined}
                   glossary={firstSession}
                   simple={firstSession}
@@ -150,6 +162,7 @@ export function Setup({
                 </PDisclosure>
               )}
               <div className={s.controlBrief}>
+                <ControlRow />
                 <p className={s.how} data-testid="practice-how">
                   {t.t('practice.setup.how')}
                 </p>

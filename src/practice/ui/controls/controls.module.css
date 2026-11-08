@@ -1,0 +1,186 @@
+/*
+ * "How do you want to bat?": the quiet chip and the Settings row share one radio list; the setup screen has its own compact
+ * row of chips (below). Tokens come
+ * from the Practice design system (.root). Large text wraps, never truncates; the selected option has a check mark as
+ * well as a fill (never colour alone); every target is at least the design system's control height.
+ */
+.list {
+  display: grid;
+  gap: var(--p-1);
+  margin: 0;
+  padding: 0;
+}
+
+.opt {
+  display: grid;
+  grid-template-columns: var(--p-icon) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--p-1) var(--p-2);
+  min-height: var(--p-control-lg);
+  padding: var(--p-2);
+  border: 1px solid var(--p-line);
+  border-radius: var(--p-radius);
+  background: var(--p-surface);
+  color: var(--p-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color var(--p-t) var(--p-ease), border-color var(--p-t) var(--p-ease);
+}
+
+.opt[aria-checked='true'] {
+  background: var(--p-surface-2);
+  border-color: var(--p-line-strong);
+}
+
+.opt[aria-disabled='true'] {
+  cursor: not-allowed;
+  color: var(--p-text-2);
+}
+
+.opt:focus-visible {
+  outline: 2px solid var(--p-focus);
+  outline-offset: 2px;
+}
+
+.mark {
+  display: inline-grid;
+  place-items: center;
+  width: var(--p-icon);
+  height: var(--p-icon);
+  margin-top: 0.1rem;
+  border: 1.5px solid var(--p-line-strong);
+  border-radius: 50%;
+  color: transparent;
+}
+
+.opt[aria-checked='true'] .mark {
+  border-color: var(--p-accent);
+  background: var(--p-accent);
+  color: var(--p-on-accent);
+}
+
+.text {
+  display: grid;
+  gap: var(--p-half);
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--p-section);
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.hint,
+.note {
+  margin: 0;
+  font-size: var(--p-caption);
+  line-height: 1.35;
+  color: var(--p-text-2);
+  overflow-wrap: anywhere;
+}
+
+.note {
+  color: var(--p-text-3);
+}
+
+.opt[aria-disabled='true'] .note {
+  color: var(--p-caution);
+}
+
+.status {
+  min-height: 1.25rem;
+  margin: 0;
+}
+
+.captions {
+  display: grid;
+  gap: var(--p-half);
+}
+
+/* The camera's own screens sit above everything else Practice shows (they bring their own frame). */
+.setupLayer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+  overflow-y: auto;
+  touch-action: auto;
+  background: var(--p-bg);
+}
+
+.pickerWrap {
+  display: grid;
+  gap: var(--p-1);
+}
+
+/* The compact row on the setup screen: a label, the chips, one line about the camera. It is never a screen of its own. */
+.row {
+  display: grid;
+  gap: var(--p-1);
+  min-width: 0;
+}
+
+.rowTitle {
+  margin: 0;
+  font-size: var(--p-section);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--p-1);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--p-half);
+  min-height: var(--p-control);
+  min-width: var(--p-control);
+  padding: var(--p-half) var(--p-2);
+  border: 1px solid var(--p-line);
+  border-radius: 999px;
+  background: var(--p-surface);
+  color: var(--p-text);
+  font: inherit;
+  font-size: var(--p-body);
+  font-weight: 650;
+  line-height: 1.25;
+  cursor: pointer;
+  touch-action: manipulation;
+  overflow-wrap: anywhere;
+  transition: background-color var(--p-t) var(--p-ease), border-color var(--p-t) var(--p-ease);
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--p-surface-2);
+  border-color: var(--p-accent);
+}
+
+.chip[aria-disabled='true'] {
+  cursor: not-allowed;
+  color: var(--p-text-2);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--p-focus);
+  outline-offset: 2px;
+}
+
+.rowNote {
+  margin: 0;
+  font-size: var(--p-caption);
+  line-height: 1.35;
+  color: var(--p-text-2);
+  overflow-wrap: anywhere;
+}
+
+.rowNote[data-blocked='true'] {
+  color: var(--p-caution);
+}

@@ -1,0 +1,385 @@
+/*
+ * The first-ball lesson (before ball 1 only): a card low on the left, and the batting area (the lower part of the
+ * screen, where the move is made) with a ghost doing it. Nothing here exists while a ball is in play. Tokens come from
+ * the Practice design system (../design/system.module.css); sizes are rem so they grow with the text size.
+ */
+.root {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* The batting area the lesson listens on: a dashed edge shows where the move works. */
+.surface {
+  z-index: 1;
+  pointer-events: auto;
+  outline: 2px dashed var(--p-line-strong);
+  outline-offset: -0.5rem;
+  border-radius: var(--p-radius);
+}
+
+.ghostWrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: var(--p-2) calc(var(--p-safe-r) + 5%) var(--p-2) var(--p-2);
+  pointer-events: none;
+}
+
+/* A calm plate behind the picture, so it reads on any stage (the first-person hands are white and busy). */
+.plate {
+  box-sizing: border-box;
+  height: 100%;
+  max-height: 17rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--p-half);
+  padding: var(--p-1) var(--p-2);
+  border-radius: var(--p-radius);
+  border: 1px solid var(--p-line);
+  background: rgba(16, 18, 24, 0.86);
+}
+
+.ghostSvg {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 15rem;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: 100 / 92;
+  overflow: visible;
+}
+
+.words {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--p-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--p-caption);
+  font-weight: 700;
+}
+
+.words li {
+  padding: var(--p-half) var(--p-1);
+  border: 1px solid var(--p-line-strong);
+  border-radius: 999px;
+  background: var(--p-surface);
+  color: var(--p-text);
+}
+
+/* The words scroll if they must; the two buttons are always in view. Low on the left, it keeps clear of the score rail
+   unless the text is so large that the card needs the whole height. */
+.card {
+  position: absolute;
+  z-index: 2;
+  left: calc(var(--p-safe-l) + var(--p-2));
+  bottom: calc(var(--p-safe-b) + var(--p-2));
+  width: min(22rem, 44vw);
+  box-sizing: border-box;
+  max-height: calc(100% - var(--p-safe-t) - var(--p-safe-b) - 7rem);
+  min-height: min(calc(100% - var(--p-safe-t) - var(--p-safe-b) - var(--p-2) * 2), 15rem);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-1);
+  padding: var(--p-2);
+  border-radius: var(--p-radius);
+  background: rgba(16, 18, 24, 0.94);
+  border: 1px solid var(--p-line);
+}
+
+.cardBody {
+  display: grid;
+  gap: var(--p-1);
+  align-content: start;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+@media (orientation: portrait) {
+  .card {
+    width: auto;
+    right: calc(var(--p-safe-r) + var(--p-2));
+    bottom: calc(46% + var(--p-1));
+    min-height: 0;
+    max-height: calc(54% - var(--p-safe-t) - var(--p-2));
+  }
+
+  .ghostWrap {
+    justify-content: center;
+    padding-inline: var(--p-2);
+  }
+}
+
+/*
+ * A phone on its side, or any short window (QA-VIS QV-01 and QV-02). The card is the one place the words are read, so it takes the
+ * width its two buttons need to read on one line each, and nearly all the height the screen has. Its margins, padding and gaps do
+ * not grow with the text size (--p-unit is one 16 px unit that stands still), so that large text spends the room on the words and not on
+ * the empty space around them: at 200% on 640x360 the words window was 6 px high. The words themselves still grow with the text
+ * size, and the buttons keep a 48 px touch height.
+ */
+@media (orientation: landscape) and (max-height: 520px) {
+  .card {
+    --p-unit: calc(1rem / var(--text-scale, 1));
+    left: calc(var(--p-safe-l) + var(--p-unit));
+    bottom: calc(var(--p-safe-b) + var(--p-unit) / 2);
+    width: min(30rem, 58vw);
+    max-height: calc(100% - var(--p-safe-t) - var(--p-safe-b) - var(--p-unit));
+    min-height: min(calc(100% - var(--p-safe-t) - var(--p-safe-b) - var(--p-unit)), 15rem);
+    gap: calc(var(--p-unit) / 4);
+    padding: calc(var(--p-unit) / 4) var(--p-unit);
+  }
+
+  .cardBody {
+    gap: calc(var(--p-unit) / 4);
+  }
+
+  .steps {
+    gap: calc(var(--p-unit) / 4);
+  }
+
+  .steps li {
+    grid-template-columns: calc(var(--p-unit) * 1.5) 1fr;
+  }
+
+  .note,
+  .read {
+    padding: calc(var(--p-unit) / 2) var(--p-unit);
+  }
+
+  .actions {
+    gap: calc(var(--p-unit) / 2);
+  }
+
+  .actions > button {
+    min-height: max(44px, calc(var(--p-unit) * 3));
+  }
+}
+
+.cardBody:focus-visible {
+  outline: 2px solid var(--p-focus);
+  outline-offset: 2px;
+  border-radius: var(--p-radius-sm);
+}
+
+.card p {
+  margin: 0;
+}
+
+.steps {
+  display: grid;
+  gap: var(--p-half);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+  font-size: var(--p-body);
+  font-weight: 650;
+}
+
+.steps li {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  align-items: baseline;
+}
+
+.steps li::before {
+  content: counter(step);
+  color: var(--p-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.ghostBox {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 15rem;
+  justify-content: center;
+}
+
+.note {
+  padding: var(--p-1) var(--p-2);
+  border-radius: var(--p-radius-sm);
+  border-inline-start: 3px solid var(--p-caution);
+  background: var(--p-bg);
+  font-weight: 600;
+}
+
+.read {
+  padding: var(--p-1) var(--p-2);
+  border-radius: var(--p-radius-sm);
+  border-inline-start: 3px solid var(--p-success);
+  background: var(--p-bg);
+  font-weight: 600;
+}
+
+.watchNote {
+  margin: 0;
+  font-weight: 600;
+}
+
+.watchNote:not(:empty) {
+  padding: var(--p-1) var(--p-2);
+  border-radius: var(--p-radius-sm);
+  border-inline-start: 3px solid var(--p-caution);
+  background: var(--p-bg);
+}
+
+.actions {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--p-1);
+}
+
+/* ---- the drawing ------------------------------------------------------------------------------------------------- */
+.trailPull,
+.trailFlick {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.trailPull {
+  stroke: var(--p-text);
+  stroke-width: 3.4;
+}
+
+.trailFlick {
+  stroke: var(--p-accent);
+  stroke-width: 4.4;
+}
+
+.headPull {
+  fill: var(--p-text);
+}
+
+.headFlick {
+  fill: var(--p-accent);
+}
+
+.badge {
+  fill: var(--p-accent);
+}
+
+.badgeNum {
+  fill: var(--p-on-accent);
+  font-size: 6.5px;
+  font-weight: 800;
+}
+
+.fingerRing {
+  fill: var(--p-accent-soft);
+  stroke: var(--p-accent);
+  stroke-width: 1.2;
+}
+
+.fingerPad {
+  fill: var(--p-accent);
+}
+
+.cursor {
+  fill: var(--p-text);
+  stroke: var(--p-bg);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.stillDot {
+  fill: var(--p-surface);
+  stroke: var(--p-accent);
+  stroke-width: 1.6;
+}
+
+.stillNum {
+  fill: var(--p-text);
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.keyCap {
+  fill: var(--p-surface-2);
+  stroke: var(--p-line-strong);
+  stroke-width: 0.8;
+}
+
+.keyLabel {
+  fill: var(--p-text);
+  font-size: 5.6px;
+  font-weight: 700;
+}
+
+.keyOn {
+  fill: var(--p-accent);
+  fill-opacity: 0.6;
+}
+
+.body {
+  fill: var(--p-surface-2);
+  stroke: var(--p-line-strong);
+  stroke-width: 1;
+}
+
+/* ---- the timing note on the dead ball (first balls only) ---------------------------------------------------------- */
+.timing {
+  display: grid;
+  gap: var(--p-half);
+}
+
+.timing p {
+  margin: 0;
+}
+
+.timingHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--p-1);
+}
+
+.timingLine {
+  font-weight: 650;
+}
+
+.scale {
+  display: block;
+  width: 100%;
+  max-width: 16rem;
+  height: 1.25rem;
+  overflow: visible;
+}
+
+.zoneEdge {
+  fill: var(--p-line);
+}
+
+.zoneSolid {
+  fill: var(--p-caution);
+  fill-opacity: 0.45;
+}
+
+.zonePerfect {
+  fill: var(--p-success);
+  fill-opacity: 0.7;
+}
+
+.tick {
+  stroke: var(--p-text);
+  stroke-width: 1;
+}
+
+.marker {
+  fill: var(--p-text);
+  stroke: var(--p-bg);
+  stroke-width: 0.8;
+}

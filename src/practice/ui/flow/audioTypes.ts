@@ -34,10 +34,20 @@ export interface AudioKit {
   uiCue(cue: 'select' | 'confirm' | 'lock'): void;
   masteryFeel(event: 'mastered' | 'stage_up'): void;
   /** The match context for the stage's emotion signals only (pressure, a milestone in reach); never the simulation. */
-  deliveryContext(s: { runs: number; wicketsInHand: number; ballsLeft: number | null }): {
+  deliveryContext(s: {
+    runs: number;
+    wicketsInHand: number;
+    ballsLeft: number | null;
+    /** The runs to win, in a chase (src/audio/situation.ts MatchSituation). */
+    target?: number | null;
+    batterRuns?: number;
+  }): {
     pressure: number;
     milestone: 'fifty' | 'hundred' | null;
     wicketEndsInnings: boolean;
     runs: number;
+    /** In a chase: the runs to win and the legal balls left (src/audio/situation.ts); absent otherwise. */
+    target?: number | null;
+    ballsLeft?: number | null;
   };
 }

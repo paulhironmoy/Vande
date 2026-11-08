@@ -21,6 +21,8 @@ import { usePracticeT } from '@/i18n/practice';
 import { PIconButton, sys } from '../design';
 import { useKit } from '../context';
 import { bowlerStyle, markText, oversText, paceRangeText } from '../coaching';
+import type { ChaseState } from '@/practice/chase/types';
+import { ChaseNeed } from '../chase/ChaseNeed';
 import type { Board } from '../flow/state';
 import { MiniRadar } from './MiniRadar';
 import { Captions } from './Captions';
@@ -30,6 +32,8 @@ export interface StatusStripProps {
   board: Board;
   /** 'practice' for innings balls, a stage number for Coach Mode attempts. */
   status: { kind: 'practice' } | { kind: 'coach'; stage: number };
+  /** A Target Chase: "Need X off Y" joins the ball marks while it is on (the shown chase, never ahead of the board). */
+  chase?: ChaseState | null;
   ballNumber: number;
   field: FieldLayout | null;
   intent: FieldIntent | null;
@@ -64,7 +68,9 @@ export function StatusStrip(p: StatusStripProps) {
   const status =
     p.status.kind === 'coach'
       ? t.t('practice.status.coach', { stage: p.status.stage })
-      : t.t('practice.status.practice');
+      : p.chase
+        ? t.t('practice.chase.status')
+        : t.t('practice.status.practice');
   const pitch = t.tk(`practice.pitch.${p.conditions}`);
   const style = p.bowler
     ? p.difficulty === null
@@ -94,7 +100,17 @@ export function StatusStrip(p: StatusStripProps) {
           </span>
           <span className={s.overs}>{t.t('practice.common.overs', { overs })}</span>
         </div>
-        <ol className={s.marks} aria-label={t.t('practice.live.ball_of', { n: Math.min(6, p.ballNumber) })}>
+        <ol
+          className={s.marks}
+          aria-label={
+            p.chase
+              ? t.t('practice.chase.ball_of', {
+                  n: Math.min(p.chase.definition.balls, p.chase.ballsFaced + 1),
+                  total: p.chase.definition.balls,
+                })
+              : t.t('practice.live.ball_of', { n: Math.min(6, p.ballNumber) })
+          }
+        >
           {marks.map((m, i) => (
             <li
               key={i}
@@ -115,9 +131,13 @@ export function StatusStrip(p: StatusStripProps) {
             </li>
           ))}
         </ol>
-        <span className={s.status} data-testid="practice-status-mode">
-          {status}
-        </span>
+        {p.chase?.result === 'in_progress' && <ChaseNeed chase={p.chase} quiet={p.quiet} />}
+        {/* While a chase is on, the line above says what mode it is: no second label (it costs a line at large text). */}
+        {p.chase?.result !== 'in_progress' && (
+          <span className={s.status} data-testid="practice-status-mode">
+            {status}
+          </span>
+        )}
         <Captions />
       </section>
       <div

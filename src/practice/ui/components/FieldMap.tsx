@@ -12,6 +12,9 @@ import { zoneWord } from '../coaching';
 import { arcLabelAt, wedgePath } from './fieldGeometry';
 import s from './FieldMap.module.css';
 
+/** A generous width of a label in the picture's own units (4.4 units a line, bold: about 0.7 of that a character). */
+const labelWidth = (word: string): number => Array.from(word).length * 3.1;
+
 export interface FieldMapProps {
   field: FieldLayout;
   intent: FieldIntent | null;
@@ -84,13 +87,18 @@ export function FieldMap({ field, intent, handedness, labels = true, testId = 'p
             ) : (
               <circle className={cls} cx={x} cy={f.z} r={2.5} />
             );
-          const lx = x + (x >= 0 ? 3.6 : -3.6);
+          const word = pos(f);
+          // The label goes outward from its dot, unless the picture ends before the word does: then it turns inward
+          // (a "Deep cover" at the rim was cut to "Deep cov", QV-07).
+          const outward = x >= 0 ? 1 : -1;
+          const fits = Math.abs(x) + 3.6 + labelWidth(word) <= R;
+          const side = fits ? outward : -outward;
           return (
             <g key={f.id} className={s.fielder} data-testid={`practice-field-fielder-${f.id}`}>
               {shape}
               {labels && (
-                <text className={s.label} x={lx} y={f.z + 1.5} textAnchor={x >= 0 ? 'start' : 'end'}>
-                  {pos(f)}
+                <text className={s.label} x={x + side * 3.6} y={f.z + 1.5} textAnchor={side > 0 ? 'start' : 'end'}>
+                  {word}
                 </text>
               )}
             </g>

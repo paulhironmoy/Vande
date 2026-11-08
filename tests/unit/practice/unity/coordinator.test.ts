@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   PRACTICE_SIM_VERSION,
+  canonicalUnityPracticeJson,
   makeUnityPracticeMessage,
   makeUnityPracticeResolution,
   packUnityPracticeMessage,
   unityPracticeReplayDigest,
+  unityPracticeSha256,
   type UnityPracticeInitialize,
   type UnityPracticeMessage,
   type UnityPracticePayloadByType,
@@ -374,6 +376,39 @@ describe('Unity Practice session coordinator', () => {
     expect(h.coordinator.status).toBe('fallback');
     expect(h.events.filter((event) => event.type === 'ready')).toEqual([]);
     expect(h.events.filter((event) => event.type === 'fallback')).toHaveLength(1);
+    expect(h.bridge.unloads).toBe(1);
+    expect(await h.coordinator.launch()).toBe(false);
+  });
+
+  it('fails closed to the web renderer when a stale Unity export answers in bridge contract v6 (the host speaks v7)', async () => {
+    const h = harness({ useDefaultAckTimeout: true });
+    h.bridge.omitReadyOnInitialize = true;
+    const pending = h.coordinator.launch();
+    await spinUntil(() => h.bridge.sent.some((message) => message.type === 'host.initialize'));
+    expect(h.bridge.sent.find((message) => message.type === 'host.initialize')?.contractVersion).toBe(7);
+
+    // A v6 Unity's ready packet: well formed, correctly hashed, and one version behind.
+    const ready = makeUnityPracticeMessage(
+      {
+        buildId: BUILD_ID,
+        sessionId: SESSION_ID,
+        deliveryId: null,
+        messageId: 'unity:stale:ready',
+        sequence: 0,
+        sender: 'unity',
+      },
+      'unity.ready',
+      { renderer: 'Vulkan', unityVersion: '6000.3.test' },
+    );
+    const body = canonicalUnityPracticeJson({ ...ready, contractVersion: 6 });
+    h.bridge.deliver({ body, sha256: await unityPracticeSha256(body) });
+    await h.coordinator.flushInbound();
+
+    expect(await pending).toBe(false);
+    expect(h.coordinator.status).toBe('fallback');
+    expect(h.events.filter((event) => event.type === 'ready')).toEqual([]);
+    expect(h.events.filter((event) => event.type === 'fallback')).toHaveLength(1);
+    expect(h.events.find((event) => event.type === 'fallback')).toMatchObject({ reason: 'invalid_packet' });
     expect(h.bridge.unloads).toBe(1);
     expect(await h.coordinator.launch()).toBe(false);
   });

@@ -175,6 +175,7 @@ export function OutSummary({ flow, state, onHome }: Props) {
       <Screen
         title={t.t('practice.summary.out_title', { how: dismissalWord(t, rec.dismissal ?? 'bowled') })}
         wide
+        flush
         footer={
           <PButton
             variant="primary"
@@ -242,6 +243,7 @@ export function InningsSummary({ flow, state, onHome }: Props) {
       <Screen
         title={full ? t.t('practice.summary.done_title') : t.t('practice.summary.ended_title')}
         wide
+        flush
         footer={
           <PButton
             variant="primary"

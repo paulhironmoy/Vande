@@ -4,7 +4,7 @@
  * lower part, the compact results layer after each dead ball), Coach Mode, and the summaries. In Delivery Quiet Mode
  * nothing but the dimmed rail is shown, and nothing can be opened.
  */
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { useBackHandler } from '@/app/back';
 import { useApp } from '@/app/store';
 import { lockLandscape } from '@/platform/orientation';
@@ -21,10 +21,21 @@ import { TesterPrompt } from '../tester/TesterPanels';
 import type { TesterApi } from '../tester/useTester';
 import { BriefSheet, Center, Hint, IntroPanel, Loading, PausePanel, ReplayBar, TurnPhone } from '../components/Panels';
 import { bowlerStyle, primaryReasonLine, recommendationLine, tipLines, variationName } from '../coaching';
+import { confirmedForThisBall, confirmedLine } from '../chase/scope';
+import { TooSoonNote, WatchNote, useEarlyPress } from '../lesson/EarlyPress';
+import { LessonTimingNote } from '../lesson/TimingNote';
+import { CameraMount } from '../camera/mount';
+import { TIMING_NOTE_BALLS, wantsTimingNote } from '../lesson/timing';
 import { Coach } from './Coach';
 import { Setup } from './Setup';
 import { InningsSummary, OutSummary, OverSummary } from './Summaries';
 import s from './Play.module.css';
+
+/** The first-ball lesson: its own chunk, fetched only for a player who is about to meet it (never for a returning one). */
+const loadLesson = () => import('../lesson/Lesson');
+const Lesson = lazy(loadLesson);
+/** The Target Chase's win and loss screen: its own chunk, fetched only when a chase has been decided. */
+const ChaseResult = lazy(() => import('../chase/ChaseResult').then((m) => ({ default: m.ChaseResult })));
 
 export interface PlayProps {
   flow: PracticeFlow;
@@ -44,7 +55,8 @@ export interface PlayProps {
 
 export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver, onHarder, tester }: PlayProps) {
   const t = usePracticeT();
-  const { input, coach, build } = useKit();
+  const kit = useKit();
+  const { input, coach, build } = kit;
   const setInPlay = useApp((st) => st.setInPlay);
   const [brief, setBrief] = useState(false);
   const [confirm, setConfirm] = useState<null | 'leave' | 'restart'>(null);
@@ -55,6 +67,16 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
   const busy = flow.busy();
   const inn = state.innings;
   const midOver = Boolean(inn?.status === 'batting' && inn.current && inn.current.deliveries.length > 0);
+  // A Target Chase: "Practice this ball" is off, the over is never restarted, and a second over follows the first.
+  const chase = state.chase;
+  const chaseOn = chase?.state.result === 'in_progress';
+  const chaseMid = Boolean(chaseOn && chase && chase.state.ballsFaced > 0);
+  // The first balls' teaching (the lesson card before ball 1; the timing in plain words on the dead ball).
+  const teaching = flow.settings.teach && flow.settings.hintsShown < TIMING_NOTE_BALLS;
+  const earlyPress = useEarlyPress(phase, teaching);
+  useEffect(() => {
+    if (flow.settings.teach && !flow.settings.lessonSeen && flow.deps.lesson) void loadLesson();
+  }, [flow]);
 
   useEffect(() => {
     setInPlay(true);
@@ -64,7 +86,7 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
     if (busy) setBrief(false);
   }, [busy]);
 
-  const leave = () => (midOver ? setConfirm('leave') : onHome());
+  const leave = () => (midOver || chaseMid ? setConfirm('leave') : onHome());
   const back = () => {
     if (busy) return;
     if (brief) setBrief(false);
@@ -99,7 +121,8 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
     state.notice === 'help_changed' ||
     state.notice === 'help_less' ||
     state.notice === 'balanced' ||
-    state.notice === 'classic'
+    state.notice === 'classic' ||
+    state.notice === 'camera_web'
       ? notice
       : null;
   const plan = inn?.current?.plan ?? state.pending?.plan ?? null;
@@ -171,35 +194,46 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
   const [pipQuietOver, setPipQuietOver] = useState(false);
   const pipShown = pipPhase !== null && pipRoom && !(pipPhase === 'quiet' && pipQuietOver);
   const ended = inn && inn.status !== 'batting';
-  const nextLabel = ended
-    ? inn.status === 'over_complete'
-      ? t.t('practice.result.over_summary')
-      : t.t('practice.result.see_summary')
-    : t.t('practice.live.next_ball');
+  const nextLabel = chase
+    ? chaseOn
+      ? chase.state.ballsFaced % 6 === 0
+        ? t.t('practice.chase.card.next_over')
+        : t.t('practice.live.next_ball')
+      : t.t('practice.chase.card.see_result')
+    : ended
+      ? inn.status === 'over_complete'
+        ? t.t('practice.result.over_summary')
+        : t.t('practice.result.see_summary')
+      : t.t('practice.live.next_ball');
   useEffect(() => {
     if (!unityStageOwnsInput || screen !== 'live' || phase !== 'dead' || !last) return;
     const primary = state.insight?.status === 'ready' ? state.insight.primary : null;
-    // The same one tip as the React card (its fact, then its one action), as Unity's two labelled lines.
-    const tip = primary && coach && state.insight?.tip ? tipLines(t, coach.tipWords(t, state.insight.tip)) : null;
-    const reason = tip
-      ? tip.reason
-      : primary
-        ? primaryReasonLine(t, primary, last.result)
-        : t.t('practice.result.reading');
     // Without a tip, a confirmation is said only when earned (anti-fake rule 7); otherwise the reason stands alone.
     const analysis = state.insight?.status === 'ready' ? state.insight.analysis : null;
     const earned =
       primary && analysis && coach
         ? coach.praiseEarned(analysis, primary.recommendation, state.insight?.tip ?? null)
         : true;
+    // As on the React card: in a chase the coach's confirmation of a repeated response is about this ball (R-44 item 5).
+    const forThisBall = Boolean(chase) && Boolean(primary) && earned && primary?.recommendation.kind === 'repeat_it';
+    // The same one tip as the React card (its fact, then its one action), as Unity's two labelled lines.
+    const words = primary && coach && state.insight?.tip ? coach.tipWords(t, state.insight.tip) : null;
+    const tip = words ? tipLines(t, forThisBall ? confirmedForThisBall(t, words) : words) : null;
+    const reason = tip
+      ? tip.reason
+      : primary
+        ? primaryReasonLine(t, primary, last.result)
+        : t.t('practice.result.reading');
     const recommendation = tip
       ? tip.recommendation
       : primary && earned
-        ? recommendationLine(t, primary.recommendation)
+        ? forThisBall
+          ? confirmedLine(t)
+          : recommendationLine(t, primary.recommendation)
         : '';
     const practiceLabel = t.t('practice.result.practice');
     void flow.presentDeadBallUi(
-      coach
+      coach && !chase
         ? {
             reason,
             recommendation,
@@ -217,7 +251,7 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
             secondaryLabel: null,
           },
     );
-  }, [coach, flow, last, nextLabel, phase, screen, state.insight, t, unityStageOwnsInput]);
+  }, [chase, coach, flow, last, nextLabel, phase, screen, state.insight, t, unityStageOwnsInput]);
   const detail = (() => {
     if (last && (phase === 'dead' || phase === 'paused')) {
       const b = last.result.flight.plan;
@@ -296,6 +330,7 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
           onBack={onHome}
           firstSession={firstSession}
           pressFootwork={pressFootwork}
+          chase={state.chase}
         />
       )}
 
@@ -315,6 +350,7 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
           <StatusStrip
             board={state.board}
             status={inCoach ? { kind: 'coach', stage: state.coach!.mastery.stage } : { kind: 'practice' }}
+            chase={chase ? chase.state : null}
             ballNumber={state.ball?.ballNumber ?? state.board.over.length + 1}
             field={state.field}
             intent={state.intent}
@@ -356,6 +392,11 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
             {t.tk(`practice.pitch.${state.conditions}`)}
             {ballLabel ? ` · ${ballLabel}` : ''}
           </span>
+          {chaseOn && chase && (
+            <span data-testid="practice-unity-semantic-chase">
+              {t.t('practice.chase.need', { runs: chase.state.runsNeeded, balls: chase.state.ballsLeft })}
+            </span>
+          )}
           {unityGameplayInput && (
             <button type="button" onClick={() => flow.requestUnityPause()} data-testid="practice-unity-semantic-pause">
               {t.t('practice.live.pause')}
@@ -406,8 +447,17 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
 
       {phase === 'ready' && <Hint text={t.t('practice.live.hint')} accessibilityHidden={unityStageOwnsInput} />}
       {phase === 'intro' && (
-        <IntroPanel onSkip={() => flow.skipTeaching(false)} onSkipAll={() => flow.skipTeaching(true)} />
+        <IntroPanel onSkip={() => flow.skipTeaching(false)} onSkipAll={() => flow.skipTeaching(true)}>
+          <WatchNote />
+        </IntroPanel>
       )}
+      {phase === 'lesson' && state.lesson && (
+        <Suspense fallback={null}>
+          <Lesson flow={flow} lesson={state.lesson} handedness={state.handedness} />
+        </Suspense>
+      )}
+      {/* Camera batting only (its own lazy chunk): the card before a ball, the chip, the lost-tracking banner. */}
+      <CameraMount flow={flow} state={state} />
       {screen === 'live' && phase === 'loading' && <Loading notice={notice} />}
 
       {deadInnings &&
@@ -422,7 +472,8 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
               score: t.t('practice.common.score', { runs: state.board.runs, wickets: state.board.wickets }),
             })}
             nextLabel={nextLabel}
-            canPractice={Boolean(coach)}
+            canPractice={Boolean(coach) && !chase}
+            practiceOff={chase ? t.t('practice.chase.card.no_practice') : null}
             onPractice={() => flow.acceptDeadBallAction('practice_ball')}
             onNext={() => flow.acceptDeadBallAction('next_ball')}
             onDemo={() => void flow.coachLoop.demonstrateLast()}
@@ -430,6 +481,17 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
             onSlowMo={() => flow.coachLoop.replayLast()}
             note={last.interrupted ? t.t('practice.notice.interrupted') : liveNotice}
             gloss={firstSession}
+            teaching={
+              wantsTimingNote(flow.settings.teach, flow.settings.hintsShown) ? (
+                <>
+                  {earlyPress && <TooSoonNote />}
+                  <LessonTimingNote
+                    contact={last.result.contact}
+                    bands={kit.timingBands?.(last.record.assist, last.record.tierToleranceMs) ?? null}
+                  />
+                </>
+              ) : null
+            }
             edge={resultEdge(unityStageOwnsInput, state.quality.stage)}
           />
         ))}
@@ -455,9 +517,11 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
       {state.replay && (
         <ReplayBar
           title={
-            state.replay.items.length > 1
-              ? t.t('practice.replay.over', { n: state.replay.items[0].overNumber })
-              : t.t('practice.replay.ball', { n: state.replay.items[0].ballNumber })
+            chase?.summary
+              ? t.t('practice.chase.replay_title')
+              : state.replay.items.length > 1
+                ? t.t('practice.replay.over', { n: state.replay.items[0].overNumber })
+                : t.t('practice.replay.ball', { n: state.replay.items[0].ballNumber })
           }
           index={state.replay.index}
           playing={state.replay.playing}
@@ -485,7 +549,7 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
       {screen === 'live' && phase === 'paused' && (
         <PausePanel
           notice={notice}
-          canRestart={midOver}
+          canRestart={!chase && midOver}
           onResume={() => flow.resume()}
           onRestart={() => setConfirm('restart')}
           onLeave={leave}
@@ -528,12 +592,27 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
         />
       )}
       {screen === 'out' && <OutSummary flow={flow} state={state} onHome={onHome} />}
+      {screen === 'chase_result' && (
+        <Suspense fallback={null}>
+          <ChaseResult
+            flow={flow}
+            state={state}
+            onAgain={() => {
+              void lockLandscape();
+              flow.chase.retry();
+            }}
+            onBack={onHome}
+            onWatch={() => flow.chase.watchDecidingBall()}
+            onPractise={coach ? () => flow.chase.practiseDecidingBall() : null}
+          />
+        </Suspense>
+      )}
       {screen === 'complete' && <InningsSummary flow={flow} state={state} onHome={onHome} />}
 
       <PConfirm
         open={confirm === 'leave'}
-        title={t.t('practice.pause.leave_title')}
-        body={t.t('practice.pause.leave_body')}
+        title={chase ? t.t('practice.chase.pause.leave_title') : t.t('practice.pause.leave_title')}
+        body={chase ? t.t('practice.chase.pause.leave_body') : t.t('practice.pause.leave_body')}
         confirmLabel={t.t('practice.pause.leave')}
         cancelLabel={t.t('practice.common.cancel')}
         onCancel={() => setConfirm(null)}

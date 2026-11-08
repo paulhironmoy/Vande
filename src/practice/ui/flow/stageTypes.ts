@@ -21,10 +21,12 @@ import type {
   PitchCondition,
   QualityProfileId,
   UnityPracticeDeadBallAction,
+  UnityPracticeChase,
   UnityPracticeDeadBallUi,
   UnityPracticeResolution,
 } from '@/contracts';
 import type { BenchmarkRun } from '@/perf';
+import type { ChaseDecided } from '@/practice/chase/types';
 import type { OneGestureState } from '@/input';
 
 export interface StageMountOptions {
@@ -64,6 +66,11 @@ export interface StageScene {
   conditions: PitchCondition;
   handedness: Handedness;
   ball?: BallCondition;
+  /**
+   * The Target Chase situation NOW (Unity only; the Three.js and Classic stages ignore it): set on every scene while a
+   * chase is on, never in ordinary Practice and never for a Coach demonstration (src/practice/ui/chase/unity.ts).
+   */
+  chase?: UnityPracticeChase;
 }
 
 /** Match context for the stage's emotion signals only (crowd, reactions); it never touches the simulation. */
@@ -72,6 +79,9 @@ export interface StageDeliveryContext {
   milestone?: 'fifty' | 'hundred' | null;
   wicketEndsInnings?: boolean;
   runs?: number;
+  /** In a chase: the runs to win and the legal balls left, for the crowd's confirmed-outcome reaction only. */
+  target?: number | null;
+  ballsLeft?: number | null;
   /** Stable authority identifiers required by a cross-runtime presentation surface. */
   overIndex?: number;
   ballIndex?: number;
@@ -138,6 +148,11 @@ export interface PracticeStageLike {
   setLanguage?(locale: string, readyHint: string): void;
   /** Publish or update native dead-ball guidance only while the exact final pose is retained. */
   presentDeadBallUi?(ui: StageDeadBallUi): Promise<boolean>;
+  /**
+   * A Target Chase has been decided and its deciding ball is dead: the batter's and the bowler's result clips and the
+   * crowd play it now, after the physics decided (never before, never to predict). Presentation only; best effort.
+   */
+  presentChaseMoment?(moment: ChaseDecided): Promise<void> | void;
   benchmark(ms: number): Promise<BenchmarkRun>;
   bowl(flight: BallFlight, context?: StageDeliveryContext): Promise<{ releasePerfMs: number }>;
   /**
@@ -159,7 +174,18 @@ export interface PracticeStageLike {
    * result does not pay for compiling it. Presentation only, best effort; a stage without such a path ignores it.
    */
   warmResult?(result: DeliveryResult, flight: BallFlight, scene: StageScene): void;
-  replay(result: DeliveryResult, opts?: { speed?: number; diagnostics?: boolean }): Promise<void>;
+  replay(
+    result: DeliveryResult,
+    opts?: {
+      speed?: number;
+      diagnostics?: boolean;
+      /**
+       * The replay is of a Target Chase's deciding ball: the stage plays the result clips from the physics events of this
+       * replay too (the same moment the live ball was given by `presentChaseMoment`). Absent for every other replay.
+       */
+      chaseMoment?: ChaseDecided;
+    },
+  ): Promise<void>;
   setProfile(profile: QualityProfileId): void;
   stats(): StageStats;
   on<E extends StageEvent>(event: E, cb: (payload: StageEventPayloads[E]) => void): () => void;

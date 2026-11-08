@@ -12,6 +12,7 @@ import { usePracticeT } from '@/i18n/practice';
 import { preloadPracticeStage } from '@/render3d';
 import { PButton, PChoice, PConfirm, PDisclosure, PIconButton, Screen, sys } from '../design';
 import { oversText } from '../coaching';
+import { ChaseEntry } from '../chase/ChaseEntry';
 import type { FlowNotice } from '../flow/state';
 import s from './Home.module.css';
 import { PremiumShellBackdrop } from './PremiumShellBackdrop';
@@ -22,7 +23,9 @@ export interface HomeProps {
   resumable: PracticeInningsState | null;
   notice: FlowNotice;
   storageOk: boolean;
-  onChoose: (kind: 'random' | 'predefined') => void;
+  onChoose: (kind: 'random' | 'predefined' | 'chase') => void;
+  /** A Target Chase left half way (the resume card then speaks of it, not of an innings); null otherwise. */
+  chaseResume?: { runsNeeded: number; ballsLeft: number } | null;
   onContinue: () => void;
   onDiscard: () => void;
   onSettings: () => void;
@@ -32,11 +35,11 @@ export interface HomeProps {
 
 export function Home(p: HomeProps) {
   const t = usePracticeT();
-  const [confirm, setConfirm] = useState<null | 'predefined' | 'random'>(null);
+  const [confirm, setConfirm] = useState<null | 'predefined' | 'random' | 'chase'>(null);
   // Fetch the stage's code while the player chooses (never earlier: a player who skips Practice never downloads it).
   useEffect(() => preloadPracticeStage(), []);
   const r = p.mode === 'new' ? p.resumable : null;
-  const choose = (k: 'predefined' | 'random') => (r ? setConfirm(k) : p.onChoose(k));
+  const choose = (k: 'predefined' | 'random' | 'chase') => (r ? setConfirm(k) : p.onChoose(k));
   const notice = p.notice === 'updated' || p.notice === 'unreadable' ? t.tk(`practice.notice.${p.notice}`) : null;
   const choices = (primary: boolean) => (
     <div className={s.choices}>
@@ -55,6 +58,7 @@ export function Home(p: HomeProps) {
         onClick={() => choose('predefined')}
         data-testid="practice-predefined"
       />
+      <ChaseEntry onClick={() => choose('chase')} />
     </div>
   );
   return (
@@ -89,10 +93,17 @@ export function Home(p: HomeProps) {
             <>
               <section className={s.resume} data-testid="practice-resume-card" aria-labelledby="practice-resume-title">
                 <h2 id="practice-resume-title" className={sys.section}>
-                  {t.t('practice.home.resume_title')}
+                  {p.chaseResume ? t.t('practice.chase.home.resume_title') : t.t('practice.home.resume_title')}
                 </h2>
                 <p className={s.score}>{t.t('practice.common.score', { runs: r.runs, wickets: 0 })}</p>
-                <p className={sys.caption}>{t.t('practice.home.resume_body', { overs: oversText(r.balls) })}</p>
+                <p className={sys.caption} data-testid={p.chaseResume ? 'practice-chase-resume-need' : undefined}>
+                  {p.chaseResume
+                    ? t.t('practice.chase.home.resume_body', {
+                        runs: p.chaseResume.runsNeeded,
+                        balls: p.chaseResume.ballsLeft,
+                      })
+                    : t.t('practice.home.resume_body', { overs: oversText(r.balls) })}
+                </p>
                 {p.notice === 'resumed_leave' && (
                   <p className={sys.caption} role="status" data-testid="practice-resumed-leave">
                     {t.t('practice.notice.resumed_leave')}
@@ -121,7 +132,11 @@ export function Home(p: HomeProps) {
         <PConfirm
           open={confirm !== null}
           title={t.t('practice.home.new_confirm_title')}
-          body={t.t('practice.home.new_confirm_body', { runs: r?.runs ?? 0 })}
+          body={
+            p.chaseResume
+              ? t.t('practice.chase.home.new_confirm_body')
+              : t.t('practice.home.new_confirm_body', { runs: r?.runs ?? 0 })
+          }
           confirmLabel={t.t('practice.home.new_confirm')}
           cancelLabel={t.t('practice.common.cancel')}
           onCancel={() => setConfirm(null)}

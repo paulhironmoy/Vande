@@ -156,3 +156,17 @@
 :global([data-motion='reduced']) .randomChoice {
   box-shadow: none;
 }
+
+/*
+ * Large text on a short screen (data-large-short, design/useLargeShort.ts): the first choice filled the whole view at 200%
+ * text and the others were out of sight with nothing to say so (QV-05). The panel and the rows now take only what their words
+ * need, so the second choice shows under the first and the page's scroll is plain to see.
+ */
+[data-large-short='true'] .commandPanel {
+  padding: var(--p-1) var(--p-2);
+  gap: var(--p-1);
+}
+
+[data-large-short='true'] .choices {
+  gap: var(--p-half);
+}

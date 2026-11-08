@@ -235,6 +235,7 @@ export function fakeEngine(over: Partial<PracticeEngine> = {}): PracticeEngine &
       mouse: set?.mouse?.offsetMs ?? 0,
       pen: set?.pen?.offsetMs ?? set?.touch?.offsetMs ?? 0,
       keyboard: set?.keyboard?.offsetMs ?? 0,
+      camera: set?.camera?.offsetMs ?? 0,
     }),
     autoField: () => field,
     fieldIntent: () => ({

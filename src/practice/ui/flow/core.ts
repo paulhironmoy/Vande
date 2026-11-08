@@ -19,6 +19,10 @@ import { createClock, type FlowClock } from './clock';
 import type { CoachKit, PracticeEngine, PracticeStageLike, StageFactory } from './types';
 import type { OffThreadWork } from './offThread';
 import type { BallKind, Board, FlowState, LastBall } from './state';
+import type { ChaseState } from '@/practice/chase/types';
+import { saveChase } from '../chase/store';
+import type { LessonInput } from '../lesson/inputType';
+import type { CameraGate } from '../camera/gate';
 
 export interface FlowHooks {
   /** Test builds only: the swing for the next delivery (an exact NormalizedSwing on the simulation clock, or a leave). */
@@ -29,6 +33,8 @@ export interface FlowHooks {
   timeScale?: number;
   /** Test builds only: deterministic over seeds. */
   seed?(): string | null;
+  /** Test builds only: the chase seed of the next Chase (a pool seed, "c000" to "c255"), instead of one drawn from seed(). */
+  chaseSeed?(): string | null;
   /** Test builds only: the benchmark length. */
   benchmarkMs?: number;
   /** Test builds only: a dead innings ball continues to the next ball by itself (long journeys). */
@@ -39,8 +45,11 @@ export interface FlowHooks {
 
 /** Announcement text, so the controller stays free of copy. */
 export interface FlowWords {
-  runup(ballNumber: number): string;
+  /** `chase` is given in a chase (its first ball announces the target). */
+  runup(ballNumber: number, chase?: ChaseState | null): string;
   outcome(last: LastBall, board: Board): string;
+  /** The chase after a ball, for the same polite announcement: what is needed now, or how it ended. */
+  chase?(state: ChaseState): string;
 }
 
 export interface FlowDeps {
@@ -72,11 +81,25 @@ export interface FlowDeps {
   words?: FlowWords;
   /** The restrained mastery confirmation (src/audio playMasteryFeel), on the coach's mastery event. */
   masteryFeel?: (event: 'mastered' | 'stage_up') => void;
+  /**
+   * The first-ball lesson (src/practice/ui/lesson): present only where the UI can show it (PracticeApp). Without it the
+   * first ball is bowled as it always was. `input` is the kind of input the card starts with.
+   */
+  lesson?: { input(): LessonInput };
+  /**
+   * Camera batting (src/practice/ui/camera): present only where the UI can run it (PracticeApp). Before every ball, when the
+   * camera is the control in force, the flow waits in its `camera` phase until a person is in frame and steady (pre-delivery
+   * pacing only: a ball in flight is never touched). Without it every ball starts as it always did.
+   */
+  camera?: CameraGate;
   /** The match context for the stage's emotion signals (src/audio deliveryContext); never the simulation. */
   deliveryContext?: (s: {
     runs: number;
     wicketsInHand: number;
     ballsLeft: number | null;
+    /** The runs to win, in a chase (src/audio/situation.ts MatchSituation). */
+    target?: number | null;
+    batterRuns?: number;
   }) => import('./types').StageDeliveryContext;
 }
 
@@ -153,7 +176,10 @@ export abstract class FlowCore {
   persist(notice: 'resumed_leave' | null = null): void {
     const s = this.state.innings;
     if (!s) return;
-    if (!saveInnings(s, this.store, notice) && this.state.storageOk) this.set({ storageOk: false });
+    // A chase keeps its definition with its innings under its own key, so it can never come back as a Practice innings.
+    const chase = this.state.chase;
+    const saved = chase ? saveChase(chase.state.definition, s, this.store, notice) : saveInnings(s, this.store, notice);
+    if (!saved && this.state.storageOk) this.set({ storageOk: false });
   }
 
   after(ms: number, cb: () => void): void {

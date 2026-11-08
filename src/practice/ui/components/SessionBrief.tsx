@@ -18,6 +18,7 @@ import { useKit } from '../context';
 import { bowlerStyle, intentionLine, paceRangeText, variationName, zoneWord } from '../coaching';
 import type { OverKind } from '../flow/state';
 import { PDisclosure, PSegmented, sys } from '../design';
+import { ControlChip } from '../controls';
 import { FieldMap } from './FieldMap';
 import s from './SessionBrief.module.css';
 
@@ -219,6 +220,8 @@ export function SessionBrief(p: SessionBriefProps) {
           </p>
         )}
       </section>
+      {/* How the player bats can be changed here, between balls (the setup is not offered during a delivery). */}
+      {!p.simple && <ControlChip />}
     </div>
   );
 }

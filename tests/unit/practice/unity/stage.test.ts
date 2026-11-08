@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   PRACTICE_SIM_VERSION,
   canonicalUnityPracticeJson,
+  makeUnityPracticeChase,
   makeUnityPracticeMessage,
   makeUnityPracticeResolution,
   packUnityPracticeMessage,
@@ -967,6 +968,46 @@ describe('Unity Practice stage adapter', () => {
     expect(stage.snapshot()).toMatchObject({ visible: false, retainingFinalPose: true, inputActive: false });
     expect(await stage.resume('player')).toBe(true);
     expect(stage.snapshot()).toMatchObject({ visible: true, retainingFinalPose: true, inputActive: false });
+    stage.dispose();
+    await stage.whenDisposed();
+  });
+
+  it('sends the Target Chase situation with the scene (bridge contract v7), and never in ordinary Practice', async () => {
+    const practiceBridge = new StageBridge(false);
+    const { stage: practice } = makeStage(practiceBridge, 1_000);
+    await mountAndScene(practice);
+    await spinUntil(() => practiceBridge.sent.some((message) => message.type === 'host.scene'));
+    expect(practiceBridge.sent.find((message) => message.type === 'host.scene')?.payload).not.toHaveProperty('chase');
+    practice.dispose();
+    await practice.whenDisposed();
+
+    const chaseBridge = new StageBridge(false);
+    const { stage } = makeStage(chaseBridge, 1_000);
+    await stage.mount(document.createElement('canvas'), {
+      profile: 'standard',
+      handedness: 'right',
+      reducedMotion: false,
+      learnCue: false,
+    });
+    const chase = makeUnityPracticeChase({
+      target: 22,
+      maxBalls: 12,
+      runsNeeded: 22,
+      ballsLeft: 12,
+      outcome: 'in_progress',
+    });
+    stage.setScene({
+      field: fixtureField(),
+      fieldIntent: 'attack_outside_off',
+      trainingObjective: 'random',
+      bowler: REFERENCE_OVER.bowler,
+      conditions: 'balanced',
+      handedness: 'right',
+      ball: REFERENCE_BALL,
+      chase,
+    });
+    await spinUntil(() => chaseBridge.sent.some((message) => message.type === 'host.scene'));
+    expect(chaseBridge.sent.find((message) => message.type === 'host.scene')?.payload).toMatchObject({ chase });
     stage.dispose();
     await stage.whenDisposed();
   });

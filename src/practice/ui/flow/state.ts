@@ -22,14 +22,19 @@ import type {
   PrimaryInsight,
   QualityProfileId,
 } from '@/contracts';
+import type { ChaseDecided, ChaseHistoryEntry, ChaseState, ChaseSummary } from '@/practice/chase/types';
 import type { BowlingChoice } from '@/practice/store';
 import type { CoachTipLike } from './coachTypes';
+import type { LessonState } from '../lesson/machine';
 
-export type FlowScreen = 'idle' | 'setup' | 'live' | 'coach' | 'over_summary' | 'out' | 'complete' | 'error';
+export type FlowScreen =
+  'idle' | 'setup' | 'live' | 'coach' | 'over_summary' | 'out' | 'complete' | 'chase_result' | 'error';
 export type LivePhase =
   | 'idle'
   | 'loading'
   | 'intro'
+  | 'lesson'
+  | 'camera'
   | 'ready'
   | 'runup'
   | 'live'
@@ -44,6 +49,7 @@ export type BallKind = 'innings' | 'repeat';
 export type FlowNotice =
   | 'classic'
   | 'balanced'
+  | 'camera_web'
   | 'help_changed'
   | 'help_less'
   | 'interrupted'
@@ -140,6 +146,8 @@ interface ReplayState {
   playing: boolean;
   speed: number;
   diagnostics: boolean;
+  /** A Target Chase's deciding ball: its result clips play in this replay too (the stage's `replay` option). */
+  chaseMoment?: ChaseDecided;
   back: { screen: FlowScreen; phase: LivePhase };
 }
 
@@ -157,10 +165,27 @@ export interface Board {
   over: Array<{ runs: number; dismissal: DeliveryRecord['dismissal'] }>;
 }
 
+/**
+ * A Target Chase being batted, or just decided (null in ordinary Practice). `state` is the SHOWN chase: like the board
+ * it changes when the stage has shown the ball, never before (src/practice/ui/chase). The innings stays the one truth;
+ * the chase is read from its records (src/practice/chase chaseFromInnings).
+ */
+export interface ChaseFlow {
+  state: ChaseState;
+  /** The last finished result of this seed and difficulty on this device from before this attempt, or null. */
+  previous: ChaseHistoryEntry | null;
+  /** The decided chase's numbers for the win and loss screen; null while it is in progress. */
+  summary: ChaseSummary | null;
+}
+
 export interface FlowState {
   screen: FlowScreen;
   phase: LivePhase;
+  /** The first-ball lesson while it is open (phase 'lesson'), or null (src/practice/ui/lesson). */
+  lesson: LessonState | null;
   innings: PracticeInningsState | null;
+  /** The Target Chase in play, or null. */
+  chase: ChaseFlow | null;
   pending: PendingOver | null;
   /** The kind of the over being batted (or last batted), for "Next over". */
   overKind: OverKind | null;

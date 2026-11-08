@@ -30,7 +30,9 @@ import {
   type PitchCondition,
   type PracticeDeliveryPlan,
 } from '@/contracts';
+import { chaseFromInnings } from '@/practice/chase';
 import { addDelivery, addTtfd, bump, loadCalibrations, ttfdBucket } from '@/practice/store';
+import { unityChaseOf } from '../chase/unity';
 import type { OneGestureState } from '@/input';
 import type { FlowCore } from './core';
 import type { BallTicket } from './offThread';
@@ -244,7 +246,7 @@ export class DeliveryRunner {
       ball: { kind: b.kind, overNumber: b.overNumber, ballNumber: b.ballNumber, bowler: b.bowler },
       gesture: { enabled: false, key },
       announce: core.deps.words
-        ? { text: core.deps.words.runup(b.ballNumber), id: Date.now() }
+        ? { text: core.deps.words.runup(b.ballNumber, core.getState().chase?.state ?? null), id: Date.now() }
         : core.getState().announce,
     });
     this.host.startDeliverySampling();
@@ -317,12 +319,20 @@ export class DeliveryRunner {
       try {
         const innings = core.getState().innings;
         // Canonicalized and digested once here: the identity checks and the packet that follow reuse that.
-        const resolution = await makeUnityPracticeResolution(record, result, {
-          runs: innings?.runs ?? 0,
-          wickets: result.outcome.dismissal === null ? 0 : 1,
-          balls: innings?.balls ?? 0,
-          maxOvers: 10,
-        });
+        // A chase carries its situation AFTER this ball (an innings ball only: never a Coach attempt).
+        const def = core.getState().chase?.state.definition;
+        const chase = def && innings && b.kind === 'innings' ? unityChaseOf(chaseFromInnings(def, innings)) : undefined;
+        const resolution = await makeUnityPracticeResolution(
+          record,
+          result,
+          {
+            runs: innings?.runs ?? 0,
+            wickets: result.outcome.dismissal === null ? 0 : 1,
+            balls: innings?.balls ?? 0,
+            maxOvers: 10,
+          },
+          chase,
+        );
         stage.supplyResolution(resolution);
       } catch {
         // The result is already authoritative and persisted. A native presentation that cannot accept it fails closed.
