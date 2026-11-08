@@ -226,13 +226,14 @@ These results distinguish current-source checks from older bounded browser
 evidence. The Android row is strict emulator evidence only; no row substitutes
 for physical-device, distribution or human-player evidence. Counts in the rows
 below are from the evidence cycle of the sealed artifact `38924bd+05f72561424b`
-unless a row says Current; this table does not re-measure them.
+unless a row says Current; this table does not re-measure them. Rows that say Current for Unity (EditMode tests) or Android
+(APK, AAB, emulator) were measured on earlier trees and were not re-run at `f68b207`: they are **UNPROVEN** at that commit.
 
 | Check | Result |
 | --- | --- |
 | Focused contract/platform/clock/coordinator/stage suite | 9 files, 61 tests passed. |
 | Sealed artifact source identity | `38924bd+05f72561424b`. |
-| Full TypeScript unit suite | At the sealed artifact: 178 files, 1,709 tests passed, expected jsdom canvas diagnostics only; that count is historical. **Current, measured 2026-11-07** by `npx vitest run --maxWorkers=2` on the working tree over `4a376ae`, build `4a376ae+29335ef3c535`: 245 files and 2,388 tests; 243 files and 2,382 tests passed, 1 file and 1 test failed, 1 file and 5 tests skipped. The failure is `tests/unit/physics/shot.test.ts:158`, "cuts the short wide ball", a named physics limitation (owner PHYS) that stays unskipped. Source: `release/product-sequence/stage-1-practice/wedge/repo/REPO-A-REPORT.md` section 1. Builder-measured; nothing certified. |
+| Full TypeScript unit suite | At the sealed artifact: 178 files, 1,709 tests passed, expected jsdom canvas diagnostics only; that count is historical. **Current, measured 2026-11-08** at commit `f68b207` by `npx vitest run --maxWorkers=2` on Node 22.23.4 (the independent repository review, item C2): 286 files and 2,735 tests; 2,728 passed, 2 failed, 5 skipped. The failures are `tests/unit/physics/shot.test.ts:158`, "cuts the short wide ball", a named physics limitation (owner PHYS) that stays unskipped, and the Director size budget in `tests/unit/render3d/director/cost.test.ts`, re-based in `6738bbe` (details in [TEST_REPORT.md](TEST_REPORT.md)). Source: `release/product-sequence/stage-1-practice/wedge/repo/REVIEW/REPO-REVIEW.md`. A TypeScript test count says nothing about Unity or Android. |
 | TypeScript typecheck and production web/PWA build | Passed. |
 | Archived bridge-v2 TypeScript/Unity golden corpus | 7 cases passed against the superseded 5,636,972-byte practice-v2 fixture; SHA-256 `68987e258e4771d7a0d3c62f12b13ed6795eb34810862e702f110edec81fb7fe`. This does not certify bridge-v6/sim-v3/trace-v2. |
 | Current bridge-v6/sim-v3/trace-v2 golden corpus | **PENDING** supported regeneration after two fresh 7,560-case reach passes and independent SHA verification. The preserved v5 fixture is not claimed as v6 evidence. |

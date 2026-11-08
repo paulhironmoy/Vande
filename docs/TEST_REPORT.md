@@ -3,10 +3,46 @@
 Results by date and build. A test count belongs to the build it was measured on: run the suite for the number that is true
 now. Everything here is builder-measured; nothing is certified (independent evaluators score, with the locked rubrics).
 
-## Current state (2026-11-07)
+## Current state
 
-Working tree over commit `4a376ae` (a local checkpoint; nothing is pushed), Apple silicon macOS. Commands that take long
-ran through the shared-machine wrapper at `nice -n 15` with at most two workers.
+### At commit `f68b207` (2026-11-08)
+
+The tip of the local branch `cricket-clean` when the independent repository review ran (2026-11-08 from 04:11Z to about
+05:00Z; Node 22.23.4, the CI toolchain; npm 11.12.1; macOS 15.7.4 arm64; a shared machine at a 1-minute load of 4 to 38, so
+every timing is indicative). Source: `release/product-sequence/stage-1-practice/wedge/repo/REVIEW/REPO-REVIEW.md` (local
+evidence, gitignored), items C1, C2, E1 and E4. These counts supersede the working-tree runs below.
+
+| Command | Result |
+| --- | --- |
+| `npx vitest run --maxWorkers=2` (`BUILD_ID` = the commit) | **286 files and 2,735 tests: 2 failed, 2,728 passed, 5 skipped** (849.7 s at load 8 to 17). The two failures are listed below |
+| `npm run typecheck:all` | rc 0 |
+| `npm run scripts:test` | 37 files, 424 tests: 418 pass, 0 fail, 6 skipped |
+| `npm run test:render` | 5 files, 13 tests pass |
+| `npm run build`, then `node scripts/check-bundle-size.mjs` | rc 0; initial transfer 411.0 kB gzip (budget 450 kB); precache 234 entries |
+| `npx playwright test --list` | 145 tests in 20 files (chromium, practice, social projects) and 6 in 6 files (flow): listed only |
+| `npm run motion:test`, `motion:test:py`, `practice:goldens:check` | 43 of 43 pass; 17 tests OK; 7 cases, payload sha256 `4f1e2bb5…` |
+
+**The two failures at `f68b207`, and what became of them**
+
+| Test | Owner | Cause | Date | State |
+| --- | --- | --- | --- | --- |
+| `tests/unit/physics/shot.test.ts:158`, "cuts the short wide ball; fishing at it with a straight bat, a pull or a flick misses" (expected contact `middle`, got `outside_edge`) | PHYS | A named physics limitation under freeze 5f; the test stays unchanged and unskipped | 2026-11-07 | Still failing. Re-run alone on Node 22.23.4 at `6738bbe`: 1 failed, 13 passed |
+| `tests/unit/render3d/director/cost.test.ts`, the Director's gzip budget | Lead | The budget was counted with Node's own zlib: the same 37,417 B bundle gzips to 15,469 B on Node 22.23.4 (CI's toolchain, against the budget of 15,360 B) and to 15,354 B on Node 26.0.0, so it passed by 6 B on one toolchain and failed by 109 B on the other | 2026-11-08 | Re-based in `6738bbe`: gzip is counted with `fflate` at level 9 (15,888 B on every Node version) against 16,000 B, 112 B of headroom; the raw budget of 40 KiB is unchanged. Re-run alone: 11 of 11 pass on Node 22.23.4 and on Node 26.0.0 |
+
+The re-runs of the second row and of `shot.test.ts` are the builder `repoc3`'s, 2026-11-08T05:16Z, on a clone whose tree differs
+from `6738bbe` only in Markdown files. No full run at `6738bbe` is recorded here; the expected full result is the one known
+failure, and that expectation is not a measurement.
+
+Not re-run at `f68b207`: Unity (the EditMode counts in [UNITY_PRACTICE_STATUS.md](UNITY_PRACTICE_STATUS.md)), every Android
+build and size, the Playwright journeys and Linux. They stay **UNPROVEN** at this commit, and so do the Android size
+(50,000,000 B) and India reach (90.0%) goals.
+
+### Earlier working-tree runs (2026-11-07)
+
+These runs were made on working trees over commit `4a376ae` (a local checkpoint; nothing is pushed). Their build ids
+(`4a376ae+` and 12 hex digits) name a dirty tree that no commit contains, so they cannot be re-run and their counts are
+superseded by the section above; they are kept as the record of how the clean-copy method was set up. Apple silicon
+macOS. Commands that take long ran through the shared-machine wrapper at `nice -n 15` with at most two workers.
 
 **Full unit suite.** Source: `release/product-sequence/stage-1-practice/wedge/repo/REPO-A-REPORT.md` section 1 (local
 evidence, gitignored). `npx vitest run --maxWorkers=2` on Node 26.0.0, build `4a376ae+29335ef3c535`, 2026-11-07 from
