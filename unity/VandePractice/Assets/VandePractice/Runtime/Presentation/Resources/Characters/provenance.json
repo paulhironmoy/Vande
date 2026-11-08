@@ -1,0 +1,122 @@
+{
+  "schema": "vande-unity-player-mesh-provenance/v1",
+  "acceptance": "UNPROVEN",
+  "note": "Owned-code procedural bridge assets; not production-art or player-experience acceptance.",
+  "binary": {
+    "magic": "VPM1",
+    "version": 1,
+    "littleEndian": true,
+    "boneCount": 17,
+    "vertexBytes": 44,
+    "indexType": "uint16",
+    "triangleWinding": "reversed-from-three-for-unity"
+  },
+  "sources": [
+    {
+      "path": "scripts/export-unity-player-meshes.mjs",
+      "sha256": "7b1a621d991f4ec20d3672493f0edb730a2f5986e35296a22db8c2b2f076a0b3"
+    },
+    {
+      "path": "src/render3d/three/players.ts",
+      "sha256": "824fe74b3aad3c5e829e1838dc6127a369dd0c3874adb9b38c8c700e61436025"
+    },
+    {
+      "path": "src/render3d/core/skeleton.ts",
+      "sha256": "8928b1585188fafc0f0b30441dccfbd91299ba042bf11a6d9f5c90b0f5c8352e"
+    },
+    {
+      "path": "src/render3d/core/math.ts",
+      "sha256": "40dbe6eaabc66a56aff11ff13cd1cc98fd8039194d28ffa909c5390fe8f3f838"
+    },
+    {
+      "path": "src/engine/prng.ts",
+      "sha256": "3db1543820f8d1689f25bd2927ddd5e78f08bdb19c2bb37a02d2b78ed21e1ddf"
+    },
+    {
+      "path": "package.json",
+      "sha256": "30bf349dbaa4795ed8379e5c38cc3a860138f32cf9a33f0dbe9d994de4d0abad"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "396a06ef4f68de96a17cfc92b3904d1347372062c83bc9d8d7a8983bc9b24ae6"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "unity/VandePractice/Assets/VandePractice/Runtime/Presentation/Resources/Characters/batter-lod0.bytes",
+      "role": "batter",
+      "lod": 0,
+      "bytes": 484216,
+      "sha256": "3ee66f51ee12c5d7826f1645360f34a2aa5824bdf282d359baf439ea9c36f44d",
+      "vertexCount": 9138,
+      "indexCount": 41064,
+      "triangleCount": 13688,
+      "sourceVertexCount": 9158,
+      "sourceIndexCount": 41064,
+      "selection": {
+        "gear": "batter",
+        "hairStyle": 0,
+        "beardMesh": false,
+        "headgear": 0,
+        "hairUnder": true
+      }
+    },
+    {
+      "path": "unity/VandePractice/Assets/VandePractice/Runtime/Presentation/Resources/Characters/batter-lod1.bytes",
+      "role": "batter",
+      "lod": 1,
+      "bytes": 69848,
+      "sha256": "547a876e02685acd60791fbd4f1c713c31334538989ca6bb97ddd8e5df1ba849",
+      "vertexCount": 1358,
+      "indexCount": 5040,
+      "triangleCount": 1680,
+      "sourceVertexCount": 1378,
+      "sourceIndexCount": 5040,
+      "selection": {
+        "gear": "batter",
+        "hairStyle": 0,
+        "beardMesh": false,
+        "headgear": 0,
+        "hairUnder": true
+      }
+    },
+    {
+      "path": "unity/VandePractice/Assets/VandePractice/Runtime/Presentation/Resources/Characters/bowler-lod0.bytes",
+      "role": "bowler",
+      "lod": 0,
+      "bytes": 280156,
+      "sha256": "70b74d2b760cb9d7dcf8486bbcc85bdab4822288f079f20aa151abcf9d025711",
+      "vertexCount": 5271,
+      "indexCount": 24108,
+      "triangleCount": 8036,
+      "sourceVertexCount": 7051,
+      "sourceIndexCount": 34008,
+      "selection": {
+        "gear": "bowler",
+        "hairStyle": 0,
+        "beardMesh": false,
+        "headgear": 0,
+        "hairUnder": false
+      }
+    },
+    {
+      "path": "unity/VandePractice/Assets/VandePractice/Runtime/Presentation/Resources/Characters/bowler-lod1.bytes",
+      "role": "bowler",
+      "lod": 1,
+      "bytes": 50960,
+      "sha256": "f702f7d8f83b1590d3ddc7fbcbc25ae5ffb5eeca52a2681558bca61565e940ea",
+      "vertexCount": 980,
+      "indexCount": 3912,
+      "triangleCount": 1304,
+      "sourceVertexCount": 1340,
+      "sourceIndexCount": 5724,
+      "selection": {
+        "gear": "bowler",
+        "hairStyle": 0,
+        "beardMesh": false,
+        "headgear": 0,
+        "hairUnder": false
+      }
+    }
+  ]
+}
