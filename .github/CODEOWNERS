@@ -1,0 +1,3 @@
+# The repository owner reviews every change. For this file to be enforced, the host's branch rule for main must turn on
+# "Require review from Code Owners" (a host setting, not part of the repository).
+* @paulhironmoy

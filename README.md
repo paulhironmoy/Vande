@@ -195,6 +195,8 @@ Then, for Practice: [PRACTICE](docs/PRACTICE.md), [PRACTICE_RULES](docs/PRACTICE
 - **Share the machine.** Long batch jobs run under `nice -n 15` with at most two workers; record `uptime` with every timing.
 - **Keep the docs true.** A new document gets a row in [docs/README.md](docs/README.md); a number in a status document
   names its build and date.
+- **Pull requests.** [.github/pull_request_template.md](.github/pull_request_template.md) asks for these rules as evidence,
+  and [.github/CODEOWNERS](.github/CODEOWNERS) makes the owner the reviewer of every path (enforcing it is a host setting).
 
 Style is in [.editorconfig](.editorconfig) (two spaces for TypeScript, JavaScript, CSS, HTML and Markdown; four for C#,
 Python, Java and Gradle; LF line endings). **Lint and format.** `npm run lint` must pass (ESLint config in `eslint.config.js`). Fix the
