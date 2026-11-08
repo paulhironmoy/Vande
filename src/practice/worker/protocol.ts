@@ -6,14 +6,22 @@
  * structured clone keeps -0, key order and shared objects). Every message is answered or failed: the main thread
  * never waits on a request the worker dropped, and it computes locally whenever the worker cannot answer.
  */
-import type { AssistanceStage, CoachAnalysis, CoachOption, DeliveryRecord, DeliveryResult, NormalizedSwing } from '@/contracts';
+import type {
+  AssistanceStage,
+  CoachAnalysis,
+  CoachOption,
+  DeliveryRecord,
+  DeliveryResult,
+  NormalizedSwing,
+} from '@/contracts';
 import type { CoachTipLike, FormSampleLike, ResolveArgs } from '@/practice/ui/flow/types';
 
 /** Bumped whenever a message changes shape; both ends must agree or the main thread works alone. */
 export const WORK_PROTOCOL = 1;
 
 /** One ball's physics before its swing is known: an innings ball's arguments, or the exact ball of a record. */
-export type BallJob = { kind: 'resolve'; args: Omit<ResolveArgs, 'swing'> } | { kind: 'repeat'; source: DeliveryRecord };
+export type BallJob =
+  { kind: 'resolve'; args: Omit<ResolveArgs, 'swing'> } | { kind: 'repeat'; source: DeliveryRecord };
 
 /** The coach's form evidence context (src/practice/coach FormContext). */
 export type FormContextLike = { source: 'innings' } | { source: 'mastery'; stage: AssistanceStage };
@@ -50,7 +58,14 @@ export type ToWorker =
    * A reading. `result` is the record's result as the main thread holds it, or null when `ball` names one this
    * worker resolved and still keeps (the same data, so it is not sent again).
    */
-  | { t: 'analyze'; job: number; record: DeliveryRecord; result: DeliveryResult | null; ball: number | null; want: AnalyzeWant }
+  | {
+      t: 'analyze';
+      job: number;
+      record: DeliveryRecord;
+      result: DeliveryResult | null;
+      ball: number | null;
+      want: AnalyzeWant;
+    }
   | { t: 'abort'; job: number };
 
 export type FromWorker =

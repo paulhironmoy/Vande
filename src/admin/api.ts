@@ -22,9 +22,17 @@ export class AdminApiError extends Error {
   }
 }
 
-type Params<K extends string> = K extends `${string}:jobId${string}` ? { jobId: string } : K extends `${string}:reportId${string}` ? { reportId: string } : undefined;
+type Params<K extends string> = K extends `${string}:jobId${string}`
+  ? { jobId: string }
+  : K extends `${string}:reportId${string}`
+    ? { reportId: string }
+    : undefined;
 
-export function adminPath(key: AdminRouteKey, params?: { jobId?: string; reportId?: string }, query?: Record<string, string | undefined>): string {
+export function adminPath(
+  key: AdminRouteKey,
+  params?: { jobId?: string; reportId?: string },
+  query?: Record<string, string | undefined>,
+): string {
   const route = key.slice(key.indexOf(' ') + 1);
   const path = route
     .replace(':jobId', () => {
@@ -47,18 +55,24 @@ export function createAdminApi(auth: AdminAuth, fetchImpl: typeof fetch = (...a)
   const base = auth.base.replace(/\/+$/, '');
   if (base && !/^https?:\/\/[^/]+$/.test(base)) throw new Error('the API base must be an origin');
   return {
-    async call<K extends AdminRouteKey>(key: K, opts: { params?: Params<K>; query?: Record<string, string | undefined>; body?: AdminRoutes[K][0] } = {}): Promise<AdminRoutes[K][1]> {
+    async call<K extends AdminRouteKey>(
+      key: K,
+      opts: { params?: Params<K>; query?: Record<string, string | undefined>; body?: AdminRoutes[K][0] } = {},
+    ): Promise<AdminRoutes[K][1]> {
       const method = key.slice(0, key.indexOf(' '));
       const headers: Record<string, string> = { accept: 'application/json' };
       if (auth.token) headers.authorization = `Bearer ${auth.token}`;
       if (method !== 'GET') headers['content-type'] = 'application/json';
-      const res = await fetchImpl(`${base}${adminPath(key, opts.params as { jobId?: string; reportId?: string } | undefined, opts.query)}`, {
-        method,
-        headers,
-        body: method === 'GET' ? undefined : JSON.stringify(opts.body ?? {}),
-        credentials: base ? 'omit' : 'same-origin',
-        redirect: 'error',
-      });
+      const res = await fetchImpl(
+        `${base}${adminPath(key, opts.params as { jobId?: string; reportId?: string } | undefined, opts.query)}`,
+        {
+          method,
+          headers,
+          body: method === 'GET' ? undefined : JSON.stringify(opts.body ?? {}),
+          credentials: base ? 'omit' : 'same-origin',
+          redirect: 'error',
+        },
+      );
       const text = await res.text();
       const json = text ? (JSON.parse(text) as unknown) : null;
       if (!res.ok) {
@@ -79,7 +93,10 @@ export function loadAuth(storage: Pick<Storage, 'getItem'> | null): AdminAuth {
     const raw = storage?.getItem(STORE);
     if (raw) {
       const v = JSON.parse(raw) as Partial<AdminAuth>;
-      return { base: typeof v.base === 'string' ? v.base : '', token: typeof v.token === 'string' && v.token ? v.token : null };
+      return {
+        base: typeof v.base === 'string' ? v.base : '',
+        token: typeof v.token === 'string' && v.token ? v.token : null,
+      };
     }
   } catch {
     /* fall through */

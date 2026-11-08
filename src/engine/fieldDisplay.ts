@@ -45,7 +45,13 @@ export interface FieldPosition {
   kind: FieldPositionKind;
 }
 
-const P = (role: FieldRole, zone: FieldZone, bearingDeg: number, distanceM: number, kind: FieldPositionKind): FieldPosition => ({ role, zone, bearingDeg, distanceM, kind });
+const P = (
+  role: FieldRole,
+  zone: FieldZone,
+  bearingDeg: number,
+  distanceM: number,
+  kind: FieldPositionKind,
+): FieldPosition => ({ role, zone, bearingDeg, distanceM, kind });
 
 /** Nine fielders per setting (the bowler and the wicketkeeper are not listed). */
 export const FIELD_POSITIONS: Readonly<Record<FieldSetting, readonly FieldPosition[]>> = {

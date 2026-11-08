@@ -24,7 +24,11 @@ import { FOREARM_HAND, boneTurn, deadBallJobs, reelJobs, walkStriker, withPacks,
 
 /** The hand-over: from the physics bat's last sample (else the dead ball) on. */
 const handOverFrom = (w: Walk) => w.lastBat ?? w.dead;
-const ends = (w: Walk) => w.job.result.outcome.dismissal === 'bowled' || w.job.result.outcome.dismissal === 'lbw' || w.job.result.contact.kind === 'pad' || w.job.result.contact.kind === 'body';
+const ends = (w: Walk) =>
+  w.job.result.outcome.dismissal === 'bowled' ||
+  w.job.result.outcome.dismissal === 'lbw' ||
+  w.job.result.contact.kind === 'pad' ||
+  w.job.result.contact.kind === 'body';
 
 describe('F5: the dead-ball hand-over of balls that end early', () => {
   it('moves the bat no more than 10 cm between frames, turns no forearm or hand more than 60° in one, and keeps the palms near the handle (the builder-measured ceilings)', async () => {
@@ -52,21 +56,30 @@ describe('F5: the dead-ball hand-over of balls that end early', () => {
             if (t > 25) turned25++;
             if (t > 60 && (FOREARM_HAND as readonly string[]).includes(w.bones[i])) {
               pops++;
-              if (pose.length < 6) pose.push(`${job.key} ${w.bones[i]} ${t.toFixed(0)}° at release+${f.rel.toFixed(0)}`);
+              if (pose.length < 6)
+                pose.push(`${job.key} ${w.bones[i]} ${t.toFixed(0)}° at release+${f.rel.toFixed(0)}`);
             }
           }
         }
       }
       expect(balls, 'balls that end early in the corpus').toBeGreaterThan(40);
       expect(frames, 'frames of their hand-overs').toBeGreaterThan(8000);
-      expect(batStepMax * 100, 'the bat\'s largest step in a frame in the hand-over (cm; the gate is 10)').toBeLessThan(10);
-      expect(pops, `forearm or hand turns over 60° in a frame (before the fix: see the file's header); the worst: ${pose.join('; ')}`).toBeLessThanOrEqual(45);
-      expect(turned25, 'arm bone turns over 25° in a frame (open: the arms follow the bat\'s sweep to the rest)').toBeLessThanOrEqual(850);
+      expect(batStepMax * 100, "the bat's largest step in a frame in the hand-over (cm; the gate is 10)").toBeLessThan(
+        10,
+      );
+      expect(
+        pops,
+        `forearm or hand turns over 60° in a frame (before the fix: see the file's header); the worst: ${pose.join('; ')}`,
+      ).toBeLessThanOrEqual(45);
+      expect(
+        turned25,
+        "arm bone turns over 25° in a frame (open: the arms follow the bat's sweep to the rest)",
+      ).toBeLessThanOrEqual(850);
       expect(palmMax * 1000, 'palm to handle, largest in the hand-over (mm)').toBeLessThan(125);
     });
   }, 120_000);
 
-  it('turns no forearm or hand over 60° in a frame after the stumps are hit, in the reel\'s bowled ball (it flipped 139°, 152°, 148° and 121° at release + 1.83, 1.87, 1.92 and 2.12 s)', async () => {
+  it("turns no forearm or hand over 60° in a frame after the stumps are hit, in the reel's bowled ball (it flipped 139°, 152°, 148° and 121° at release + 1.83, 1.87, 1.92 and 2.12 s)", async () => {
     await withPacks(() => {
       for (const job of reelJobs().filter((j) => j.intent === 'D4-bowled-late')) {
         const w = walkStriker(job, 600, 3000);

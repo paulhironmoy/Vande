@@ -7,14 +7,25 @@
  * "Replay This Over" re-simulates the over's six records. "Practice This Delivery" (`repeatDelivery`) bowls the same
  * delivery again with a new swing in a training context that never touches the innings.
  */
-import { PRACTICE_SIM_VERSION, type DeliveryRecord, type DeliveryResult, type NormalizedSwing, type PracticeInningsState } from '@/contracts/practice';
+import {
+  PRACTICE_SIM_VERSION,
+  type DeliveryRecord,
+  type DeliveryResult,
+  type NormalizedSwing,
+  type PracticeInningsState,
+} from '@/contracts/practice';
 import { flight, replayDelivery, resolveDelivery } from '@/physics';
 import { inningsReducer, nextDelivery, type NextDelivery } from './innings';
 
 export { replayDelivery };
 
 /** The record of a resolved delivery (what `deliveryResolved` takes). */
-export function makeRecord(next: NextDelivery, swing: NormalizedSwing | null, tierToleranceMs: number, result: Pick<DeliveryResult, 'outcome'>): DeliveryRecord {
+export function makeRecord(
+  next: NextDelivery,
+  swing: NormalizedSwing | null,
+  tierToleranceMs: number,
+  result: Pick<DeliveryResult, 'outcome'>,
+): DeliveryRecord {
   return {
     version: PRACTICE_SIM_VERSION,
     overIndex: next.overIndex,
@@ -36,11 +47,22 @@ export function makeRecord(next: NextDelivery, swing: NormalizedSwing | null, ti
 
 /** The flight of the next ball (fixed before the batter acts). */
 export function nextFlight(next: NextDelivery) {
-  return flight({ plan: next.plan, bowler: next.bowler, conditions: next.conditions, seed: next.seed, handedness: next.handedness, ball: next.ball });
+  return flight({
+    plan: next.plan,
+    bowler: next.bowler,
+    conditions: next.conditions,
+    seed: next.seed,
+    handedness: next.handedness,
+    ball: next.ball,
+  });
 }
 
 /** Resolve the next ball with a swing (null = leave): the result and its record. Does not change the innings. */
-export function resolveNext(next: NextDelivery, swing: NormalizedSwing | null, tierToleranceMs: number): { result: DeliveryResult; record: DeliveryRecord } {
+export function resolveNext(
+  next: NextDelivery,
+  swing: NormalizedSwing | null,
+  tierToleranceMs: number,
+): { result: DeliveryResult; record: DeliveryRecord } {
   const result = resolveDelivery({
     flight: nextFlight(next),
     swing,
@@ -58,7 +80,11 @@ export function resolveNext(next: NextDelivery, swing: NormalizedSwing | null, t
  * Bowl the next ball of a batting innings in one step (start, resolve, record): for tests, simulations and any caller
  * that does not need to render between the start and the swing. Returns null when no ball is due.
  */
-export function playBall(state: PracticeInningsState, swing: NormalizedSwing | null, tierToleranceMs = 0): { state: PracticeInningsState; result: DeliveryResult; record: DeliveryRecord } | null {
+export function playBall(
+  state: PracticeInningsState,
+  swing: NormalizedSwing | null,
+  tierToleranceMs = 0,
+): { state: PracticeInningsState; result: DeliveryResult; record: DeliveryRecord } | null {
   const next = nextDelivery(state);
   if (!next || state.inFlight) return null;
   const started = inningsReducer(state, { type: 'deliveryStarted' });
@@ -81,6 +107,15 @@ export function verifyRecord(record: DeliveryRecord): boolean {
  * "Practice This Delivery": the same delivery (plan, seed, bowler, field, conditions) with a new swing. Non-scoring:
  * it returns a result and changes nothing else. The assistance level and tier tolerance default to the record's.
  */
-export function repeatDelivery(record: DeliveryRecord, swing: NormalizedSwing | null, opts: { assist?: DeliveryRecord['assist']; tierToleranceMs?: number } = {}): DeliveryResult {
-  return replayDelivery({ ...record, swing, assist: opts.assist ?? record.assist, tierToleranceMs: opts.tierToleranceMs ?? record.tierToleranceMs });
+export function repeatDelivery(
+  record: DeliveryRecord,
+  swing: NormalizedSwing | null,
+  opts: { assist?: DeliveryRecord['assist']; tierToleranceMs?: number } = {},
+): DeliveryResult {
+  return replayDelivery({
+    ...record,
+    swing,
+    assist: opts.assist ?? record.assist,
+    tierToleranceMs: opts.tierToleranceMs ?? record.tierToleranceMs,
+  });
 }

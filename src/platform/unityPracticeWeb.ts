@@ -5,16 +5,8 @@
  * authoritative for delivery physics, scoring, innings, replay identity and Coach.
  * Manifest and artifact identity are fail-closed before the player is admitted.
  */
-import {
-  UNITY_PRACTICE_MAX_PACKET_BYTES,
-  unpackUnityPracticePacket,
-  type UnityPracticePacket,
-} from '@/contracts';
-import type {
-  UnityPracticeAvailability,
-  UnityPracticeBridge,
-  UnityPracticeNativeError,
-} from './unityPractice';
+import { UNITY_PRACTICE_MAX_PACKET_BYTES, unpackUnityPracticePacket, type UnityPracticePacket } from '@/contracts';
+import type { UnityPracticeAvailability, UnityPracticeBridge, UnityPracticeNativeError } from './unityPractice';
 
 interface UnityWebGlArtifact {
   url: string;
@@ -97,9 +89,13 @@ function manifestSubtreeUrl(value: string, manifestUrl: string): string | null {
     const manifest = new URL(manifestUrl, globalThis.location.href);
     const subtree = new URL('.', manifest);
     const resolved = new URL(value, subtree);
-    if (resolved.origin !== subtree.origin ||
-        !resolved.pathname.startsWith(subtree.pathname) ||
-        resolved.search !== '' || resolved.hash !== '') return null;
+    if (
+      resolved.origin !== subtree.origin ||
+      !resolved.pathname.startsWith(subtree.pathname) ||
+      resolved.search !== '' ||
+      resolved.hash !== ''
+    )
+      return null;
     return resolved.href;
   } catch {
     return null;
@@ -120,23 +116,51 @@ function buildId(value: unknown): value is string {
 }
 
 function artifact(value: unknown, manifestUrl: string): value is UnityWebGlArtifact {
-  return record(value) && exactKeys(value, ['url', 'sha256']) &&
-    safeArtifactUrl(value.url) && manifestSubtreeUrl(value.url, manifestUrl) !== null && sha256(value.sha256);
+  return (
+    record(value) &&
+    exactKeys(value, ['url', 'sha256']) &&
+    safeArtifactUrl(value.url) &&
+    manifestSubtreeUrl(value.url, manifestUrl) !== null &&
+    sha256(value.sha256)
+  );
 }
 
 function parseManifest(value: unknown, expectedBuildId: string, manifestUrl: string): UnityWebGlManifest | null {
-  if (!record(value) || !exactKeys(value, [
-    'schema', 'buildId', 'unitySourceSha256', 'unityVersion', 'productVersion',
-    'loader', 'data', 'framework', 'code', 'streamingAssetsUrl',
-  ]) || value.schema !== 2) return null;
+  if (
+    !record(value) ||
+    !exactKeys(value, [
+      'schema',
+      'buildId',
+      'unitySourceSha256',
+      'unityVersion',
+      'productVersion',
+      'loader',
+      'data',
+      'framework',
+      'code',
+      'streamingAssetsUrl',
+    ]) ||
+    value.schema !== 2
+  )
+    return null;
   if (!buildId(value.buildId) || value.buildId !== expectedBuildId) return null;
   if (!sha256(value.unitySourceSha256)) return null;
-  if (typeof value.unityVersion !== 'string' || value.unityVersion.length === 0 || value.unityVersion.length > 64) return null;
-  if (typeof value.productVersion !== 'string' || value.productVersion.length === 0 || value.productVersion.length > 64) return null;
-  if (!artifact(value.loader, manifestUrl) || !artifact(value.data, manifestUrl) ||
-      !artifact(value.framework, manifestUrl) || !artifact(value.code, manifestUrl)) return null;
-  if (value.streamingAssetsUrl !== STREAMING_ASSETS_PATH ||
-      manifestSubtreeUrl(value.streamingAssetsUrl, manifestUrl) === null) return null;
+  if (typeof value.unityVersion !== 'string' || value.unityVersion.length === 0 || value.unityVersion.length > 64)
+    return null;
+  if (typeof value.productVersion !== 'string' || value.productVersion.length === 0 || value.productVersion.length > 64)
+    return null;
+  if (
+    !artifact(value.loader, manifestUrl) ||
+    !artifact(value.data, manifestUrl) ||
+    !artifact(value.framework, manifestUrl) ||
+    !artifact(value.code, manifestUrl)
+  )
+    return null;
+  if (
+    value.streamingAssetsUrl !== STREAMING_ASSETS_PATH ||
+    manifestSubtreeUrl(value.streamingAssetsUrl, manifestUrl) === null
+  )
+    return null;
   return value as unknown as UnityWebGlManifest;
 }
 
@@ -222,11 +246,14 @@ export function createWebUnityPracticeBridge(
   const acceptInbound = (operationId: string, value: string) => {
     if (!active || operationId !== currentOperationId) return;
     const receivedPerfMs = performance.now();
-    inboundTail = inboundTail.then(async () => {
-      const packet = await validPacket(value, 'unity');
-      if (!packet || !active || operationId !== currentOperationId) return;
-      for (const listener of messageListeners) listener(packet, receivedPerfMs);
-    }, () => undefined);
+    inboundTail = inboundTail.then(
+      async () => {
+        const packet = await validPacket(value, 'unity');
+        if (!packet || !active || operationId !== currentOperationId) return;
+        for (const listener of messageListeners) listener(packet, receivedPerfMs);
+      },
+      () => undefined,
+    );
   };
   const onError = (event: Event) => {
     if (!active) return;
@@ -259,7 +286,9 @@ export function createWebUnityPracticeBridge(
     if (manifest) return Promise.resolve(manifest);
     if (manifestTask) return manifestTask;
     manifestTask = fetcher(manifestUrl, { cache: 'no-store', credentials: 'same-origin' })
-      .then(async (response) => response.ok ? parseManifest(await response.json(), expectedBuildId, manifestUrl) : null)
+      .then(async (response) =>
+        response.ok ? parseManifest(await response.json(), expectedBuildId, manifestUrl) : null,
+      )
       .catch(() => null)
       .then((value) => {
         manifest = value;
@@ -322,7 +351,8 @@ export function createWebUnityPracticeBridge(
     async launch(packet) {
       if (active || currentOperationId !== null || !(await validPacket(JSON.stringify(packet), 'host'))) return false;
       if (!installWebHost()) return false;
-      currentOperationId = globalThis.crypto.randomUUID?.() ??
+      currentOperationId =
+        globalThis.crypto.randomUUID?.() ??
         `unity-web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
       runtimeLoaded = false;
       try {
@@ -408,12 +438,16 @@ export function createWebUnityPracticeBridge(
 
     async onMessage(listener) {
       messageListeners.add(listener);
-      return async () => { messageListeners.delete(listener); };
+      return async () => {
+        messageListeners.delete(listener);
+      };
     },
 
     async onError(listener) {
       errorListeners.add(listener);
-      return async () => { errorListeners.delete(listener); };
+      return async () => {
+        errorListeners.delete(listener);
+      };
     },
   };
 }

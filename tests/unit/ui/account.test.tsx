@@ -18,7 +18,12 @@ vi.mock('@/app/services', () => ({ useServices: () => services.current, getServi
 import StartRoute from '@/screens/onboarding/StartRoute';
 import SettingsRoute from '@/screens/settings/SettingsRoute';
 
-const TOKENS: SessionTokens = { playerId: 'p_back', accessToken: 'at', refreshToken: 'rt', expiresAt: new Date(Date.now() + 3600_000).toISOString() };
+const TOKENS: SessionTokens = {
+  playerId: 'p_back',
+  accessToken: 'at',
+  refreshToken: 'rt',
+  expiresAt: new Date(Date.now() + 3600_000).toISOString(),
+};
 const profile = (linked: Profile['linked']): Profile => ({
   playerId: 'p_back',
   alias: 'Swing King',
@@ -45,17 +50,44 @@ function fakeNet(routes: Record<string, Handler>) {
   });
   return {
     api: { call },
-    session: { ensure: vi.fn().mockResolvedValue(TOKENS), adopt: vi.fn().mockResolvedValue(undefined), clear: vi.fn().mockResolvedValue(undefined) },
+    session: {
+      ensure: vi.fn().mockResolvedValue(TOKENS),
+      adopt: vi.fn().mockResolvedValue(undefined),
+      clear: vi.fn().mockResolvedValue(undefined),
+    },
     signOut: vi.fn().mockResolvedValue(undefined),
     revokeOthers: vi.fn().mockResolvedValue(2),
     batting: {},
     outbox: {},
   };
 }
-const provider = (id: 'google' | 'passkey', obtain: () => Promise<string | null>, available = true): IdentityProvider => ({ id, available: () => available, obtainCredential: vi.fn(obtain) });
-function fakeServices(net: ReturnType<typeof fakeNet> | null, identity?: { google: IdentityProvider; passkey: IdentityProvider }) {
-  const analytics = { track: vi.fn(), setConsent: vi.fn(), consent: () => 'unset', active: () => false, flush: async () => undefined };
-  return { net, analytics, platform: { identity: identity ?? { google: provider('google', async () => null, false), passkey: provider('passkey', async () => null, false) }, push: { available: () => false, register: vi.fn(), onMessage: () => () => undefined } } };
+const provider = (
+  id: 'google' | 'passkey',
+  obtain: () => Promise<string | null>,
+  available = true,
+): IdentityProvider => ({ id, available: () => available, obtainCredential: vi.fn(obtain) });
+function fakeServices(
+  net: ReturnType<typeof fakeNet> | null,
+  identity?: { google: IdentityProvider; passkey: IdentityProvider },
+) {
+  const analytics = {
+    track: vi.fn(),
+    setConsent: vi.fn(),
+    consent: () => 'unset',
+    active: () => false,
+    flush: async () => undefined,
+  };
+  return {
+    net,
+    analytics,
+    platform: {
+      identity: identity ?? {
+        google: provider('google', async () => null, false),
+        passkey: provider('passkey', async () => null, false),
+      },
+      push: { available: () => false, register: vi.fn(), onMessage: () => () => undefined },
+    },
+  };
 }
 const offline = () => new ApiClientError('network', 'offline');
 
@@ -77,22 +109,50 @@ describe('recovering an account', () => {
   it('offers only the sign-in methods this build has', () => {
     const off = provider('google', async () => null, false);
     expect(recoveryMethods(null)).toEqual([]);
-    expect(recoveryMethods({ identity: { google: off, passkey: provider('passkey', async () => null, false) } })).toEqual([]);
-    expect(recoveryMethods({ identity: { google: provider('google', async () => 'id'), passkey: provider('passkey', async () => null, false) } })).toEqual(['google']);
-    expect(recoveryMethods({ identity: { google: provider('google', async () => 'id'), passkey: provider('passkey', async () => 'cred') } })).toEqual(['google', 'passkey']);
+    expect(
+      recoveryMethods({ identity: { google: off, passkey: provider('passkey', async () => null, false) } }),
+    ).toEqual([]);
+    expect(
+      recoveryMethods({
+        identity: {
+          google: provider('google', async () => 'id'),
+          passkey: provider('passkey', async () => null, false),
+        },
+      }),
+    ).toEqual(['google']);
+    expect(
+      recoveryMethods({
+        identity: { google: provider('google', async () => 'id'), passkey: provider('passkey', async () => 'cred') },
+      }),
+    ).toEqual(['google', 'passkey']);
   });
 
   it('adopts the recovered session and loads the player from the profile', async () => {
-    const net = fakeNet({ 'POST /v1/auth/google': () => TOKENS, 'GET /v1/me': () => profile({ google: true, passkey: false }) });
-    const r = await recoverAccount(net as never, provider('google', async () => 'google-id-token'));
+    const net = fakeNet({
+      'POST /v1/auth/google': () => TOKENS,
+      'GET /v1/me': () => profile({ google: true, passkey: false }),
+    });
+    const r = await recoverAccount(
+      net as never,
+      provider('google', async () => 'google-id-token'),
+    );
     expect(net.api.call).toHaveBeenCalledWith('POST /v1/auth/google', { body: { idToken: 'google-id-token' } });
     expect(net.session.adopt).toHaveBeenCalledWith(TOKENS);
-    expect(r).toMatchObject({ ok: true, player: { id: 'p_back', alias: 'Swing King', avatar: { seed: 'swing-king-7' }, kit: KITS[2] } });
+    expect(r).toMatchObject({
+      ok: true,
+      player: { id: 'p_back', alias: 'Swing King', avatar: { seed: 'swing-king-7' }, kit: KITS[2] },
+    });
   });
 
   it('passkeys send their assertion to the passkey route', async () => {
-    const net = fakeNet({ 'POST /v1/auth/passkey': () => TOKENS, 'GET /v1/me': () => profile({ google: false, passkey: true }) });
-    const r = await recoverAccount(net as never, provider('passkey', async () => '{"id":"cred"}'));
+    const net = fakeNet({
+      'POST /v1/auth/passkey': () => TOKENS,
+      'GET /v1/me': () => profile({ google: false, passkey: true }),
+    });
+    const r = await recoverAccount(
+      net as never,
+      provider('passkey', async () => '{"id":"cred"}'),
+    );
     expect(net.api.call).toHaveBeenCalledWith('POST /v1/auth/passkey', { body: { credential: '{"id":"cred"}' } });
     expect(r.ok).toBe(true);
   });
@@ -145,7 +205,12 @@ describe('recovering an account', () => {
       },
     });
     net.signOut.mockRejectedValueOnce(offline());
-    expect(await recoverAccount(net as never, provider('google', async () => 'id'))).toEqual({ ok: false, reason: 'offline' });
+    expect(
+      await recoverAccount(
+        net as never,
+        provider('google', async () => 'id'),
+      ),
+    ).toEqual({ ok: false, reason: 'offline' });
     expect(net.signOut).toHaveBeenCalled();
     expect(net.session.clear).toHaveBeenCalledWith('signed_out');
   });
@@ -157,13 +222,19 @@ describe('start screen: "Already played? Recover your account"', () => {
     const { unmount } = renderUi(<StartRoute route={{ name: 'onboarding' }} />);
     expect(screen.queryByTestId('onboarding-recover')).toBeNull();
     unmount();
-    services.current = fakeServices(null, { google: provider('google', async () => 'id'), passkey: provider('passkey', async () => null, false) });
+    services.current = fakeServices(null, {
+      google: provider('google', async () => 'id'),
+      passkey: provider('passkey', async () => null, false),
+    });
     renderUi(<StartRoute route={{ name: 'onboarding' }} />);
     expect(screen.queryByTestId('onboarding-recover')).toBeNull();
   });
 
   it('recovers with Google, then goes home with the account player', async () => {
-    const net = fakeNet({ 'POST /v1/auth/google': () => TOKENS, 'GET /v1/me': () => profile({ google: true, passkey: false }) });
+    const net = fakeNet({
+      'POST /v1/auth/google': () => TOKENS,
+      'GET /v1/me': () => profile({ google: true, passkey: false }),
+    });
     const google = provider('google', async () => 'google-id-token');
     services.current = fakeServices(net, { google, passkey: provider('passkey', async () => null, false) });
     renderUi(<StartRoute route={{ name: 'onboarding' }} />);
@@ -173,7 +244,12 @@ describe('start screen: "Already played? Recover your account"', () => {
       fireEvent.click(screen.getByTestId('recover-google'));
     });
     await waitFor(() => expect(useRouter.getState().route).toEqual({ name: 'home' }));
-    expect(useApp.getState().player).toEqual({ id: 'p_back', alias: 'Swing King', avatar: { seed: 'swing-king-7' }, kit: KITS[2] });
+    expect(useApp.getState().player).toEqual({
+      id: 'p_back',
+      alias: 'Swing King',
+      avatar: { seed: 'swing-king-7' },
+      kit: KITS[2],
+    });
     expect(net.session.adopt).toHaveBeenCalledWith(TOKENS);
     expect(net.session.ensure).not.toHaveBeenCalled();
     expect(useApp.getState().toasts.map((x) => x.text)).toContain('Welcome back, Swing King.');
@@ -202,7 +278,10 @@ describe('start screen: "Already played? Recover your account"', () => {
       },
     });
     let credential: string | null = 'id';
-    services.current = fakeServices(net, { google: provider('google', async () => credential), passkey: provider('passkey', async () => null, false) });
+    services.current = fakeServices(net, {
+      google: provider('google', async () => credential),
+      passkey: provider('passkey', async () => null, false),
+    });
     renderUi(<StartRoute route={{ name: 'onboarding' }} />);
     fireEvent.click(screen.getByTestId('onboarding-recover'));
     await act(async () => {
@@ -227,7 +306,10 @@ describe('start screen: "Already played? Recover your account"', () => {
 describe('settings: sign-in and devices', () => {
   it('signs every other device out and says how many', async () => {
     useApp.setState({ player: localPlayer });
-    const net = fakeNet({ 'GET /v1/push/settings': () => ({ enabled: false, quietHours: null }), 'GET /v1/me': () => profile({ google: true, passkey: false }) });
+    const net = fakeNet({
+      'GET /v1/push/settings': () => ({ enabled: false, quietHours: null }),
+      'GET /v1/me': () => profile({ google: true, passkey: false }),
+    });
     services.current = fakeServices(net);
     renderUi(<SettingsRoute route={{ name: 'settings' }} />);
     await act(async () => {
@@ -238,14 +320,19 @@ describe('settings: sign-in and devices', () => {
     await act(async () => {
       fireEvent.click(screen.getByTestId('settings-revoke-others'));
     });
-    await waitFor(() => expect(screen.getByTestId('settings-revoked').textContent).toContain('No other devices were signed in.'));
+    await waitFor(() =>
+      expect(screen.getByTestId('settings-revoked').textContent).toContain('No other devices were signed in.'),
+    );
     expect(useApp.getState().player).toEqual(localPlayer);
   });
 
   it('a linked account signs this device out plainly: server first, then this device forgets the player', async () => {
     useApp.setState({ player: localPlayer });
     localStorage.setItem('vc:invites', '[]');
-    const net = fakeNet({ 'GET /v1/push/settings': () => ({ enabled: false, quietHours: null }), 'GET /v1/me': () => profile({ google: true, passkey: false }) });
+    const net = fakeNet({
+      'GET /v1/push/settings': () => ({ enabled: false, quietHours: null }),
+      'GET /v1/me': () => profile({ google: true, passkey: false }),
+    });
     services.current = fakeServices(net);
     renderUi(<SettingsRoute route={{ name: 'settings' }} />);
     fireEvent.click(await screen.findByTestId('settings-logout'));
@@ -263,7 +350,10 @@ describe('settings: sign-in and devices', () => {
 
   it('offline: signing out keeps everything and says why', async () => {
     useApp.setState({ player: localPlayer });
-    const net = fakeNet({ 'GET /v1/push/settings': () => ({ enabled: false, quietHours: null }), 'GET /v1/me': () => profile({ google: false, passkey: true }) });
+    const net = fakeNet({
+      'GET /v1/push/settings': () => ({ enabled: false, quietHours: null }),
+      'GET /v1/me': () => profile({ google: false, passkey: true }),
+    });
     net.signOut.mockRejectedValueOnce(offline());
     services.current = fakeServices(net);
     renderUi(<SettingsRoute route={{ name: 'settings' }} />);
@@ -272,14 +362,19 @@ describe('settings: sign-in and devices', () => {
     await act(async () => {
       fireEvent.click(screen.getByTestId('settings-logout-dialog-confirm'));
     });
-    await waitFor(() => expect(useApp.getState().toasts.map((x) => x.text)).toContain('You are offline. Try again when you reconnect.'));
+    await waitFor(() =>
+      expect(useApp.getState().toasts.map((x) => x.text)).toContain('You are offline. Try again when you reconnect.'),
+    );
     expect(useApp.getState().player).toEqual(localPlayer);
     expect(useRouter.getState().route).toEqual({ name: 'home' });
   });
 
   it('a guest account is not offered a plain sign-out: it explains the loss and points to linking or deleting', async () => {
     useApp.setState({ player: localPlayer });
-    const net = fakeNet({ 'GET /v1/push/settings': () => ({ enabled: false, quietHours: null }), 'GET /v1/me': () => profile({ google: false, passkey: false }) });
+    const net = fakeNet({
+      'GET /v1/push/settings': () => ({ enabled: false, quietHours: null }),
+      'GET /v1/me': () => profile({ google: false, passkey: false }),
+    });
     services.current = fakeServices(net);
     renderUi(<SettingsRoute route={{ name: 'settings' }} />);
     const guest = await screen.findByTestId('settings-logout-guest');

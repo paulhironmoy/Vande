@@ -15,11 +15,50 @@
 import { PITCH_HALF } from '@/physics/geometry';
 import { ballAt, ballVelocityAt, simToScene, toWorld } from '../practice/frame';
 import { type ActorState, type ActorTrack, evaluateActor, lookScale } from './actors';
-import { type ClipId, type SampledPose, blendPose, clipDuration, clipMarker, createPose, overlayLower, sampleClip } from './clips';
+import {
+  type ClipId,
+  type SampledPose,
+  blendPose,
+  clipDuration,
+  clipMarker,
+  createPose,
+  overlayLower,
+  sampleClip,
+} from './clips';
 import type { BallScript } from './choreo';
 import { BONE_INDEX, type BoneName } from './skeleton';
 import { type Vec3, hash32, smoothstep } from './math';
-import { ANKLE_REST_Y, BODY_REACH_LIMITS, FootPlan, GROUND_BALL_M, HAND_MARKERS, INERT, LEG_RELEASE_S, PLAN_OPTIONS, STEP_STRIDE, StepPlan, applyBoneOffset, bakeAims, bodyReach, hermiteDeviation, inertialize, plantAny, plantFeetLocked, releaseLeg, rootAt, type Joints, bodyLayers, createJoints, forwardKinematics, gaitPose, handsTo, isGaitClip, lookAt, plantFeet, rootMotion } from './locomotion';
+import {
+  ANKLE_REST_Y,
+  BODY_REACH_LIMITS,
+  FootPlan,
+  GROUND_BALL_M,
+  HAND_MARKERS,
+  INERT,
+  LEG_RELEASE_S,
+  PLAN_OPTIONS,
+  STEP_STRIDE,
+  StepPlan,
+  applyBoneOffset,
+  bakeAims,
+  bodyReach,
+  hermiteDeviation,
+  inertialize,
+  plantAny,
+  plantFeetLocked,
+  releaseLeg,
+  rootAt,
+  type Joints,
+  bodyLayers,
+  createJoints,
+  forwardKinematics,
+  gaitPose,
+  handsTo,
+  isGaitClip,
+  lookAt,
+  plantFeet,
+  rootMotion,
+} from './locomotion';
 
 export interface GaitClipDef {
   clip: ClipId;
@@ -192,7 +231,19 @@ interface BaseScratch {
   dm: SampledPose;
   j: Joints;
 }
-const createBaseScratch = (): BaseScratch => ({ a: createPose(), b: createPose(), lower: createPose(), g: createPose(), h: createPose(), s0: createPose(), s1: createPose(), d0: createPose(), d1: createPose(), dm: createPose(), j: createJoints() });
+const createBaseScratch = (): BaseScratch => ({
+  a: createPose(),
+  b: createPose(),
+  lower: createPose(),
+  g: createPose(),
+  h: createPose(),
+  s0: createPose(),
+  s1: createPose(),
+  d0: createPose(),
+  d1: createPose(),
+  dm: createPose(),
+  j: createJoints(),
+});
 
 /**
  * The scene time of the last clip switch (a move that asked for a cross-fade) within INERT.s before t, or null.
@@ -220,8 +271,23 @@ function switchBefore(track: ActorTrack, t: number): { at: number; s: number } |
 const INERT_MAX_MS = 700;
 
 /** Scratch poses for the inertialization at each depth of chained switches. */
-const INERT_POOL: Array<{ s0: SampledPose; s1: SampledPose; d0: SampledPose; d1: SampledPose; dm: SampledPose; low: SampledPose }> = [];
-const inertScratch = (depth: number) => (INERT_POOL[depth] ??= { s0: createPose(), s1: createPose(), d0: createPose(), d1: createPose(), dm: createPose(), low: createPose() });
+const INERT_POOL: Array<{
+  s0: SampledPose;
+  s1: SampledPose;
+  d0: SampledPose;
+  d1: SampledPose;
+  dm: SampledPose;
+  low: SampledPose;
+}> = [];
+const inertScratch = (depth: number) =>
+  (INERT_POOL[depth] ??= {
+    s0: createPose(),
+    s1: createPose(),
+    d0: createPose(),
+    d1: createPose(),
+    dm: createPose(),
+    low: createPose(),
+  });
 const INERT_DEPTH = 3;
 
 /** The clip state at x as drawn (pack substitution, lower layer), without inertia, into out. */
@@ -268,9 +334,15 @@ function overlayActionLegs(dst: SampledPose, legs: SampledPose) {
 }
 function rawStateAt(track: ActorTrack, x: number, out: SampledPose, c: SampleCtx, lc: SampleCtx, low: SampledPose) {
   const s2 = evaluateActor(track, x);
-  const cx: SampleCtx = { ...c, t: x, gaitUnder: Boolean(s2.current.lower && isGaitClip(s2.current.lower)), fullBody: false };
+  const cx: SampleCtx = {
+    ...c,
+    t: x,
+    gaitUnder: Boolean(s2.current.lower && isGaitClip(s2.current.lower)),
+    fullBody: false,
+  };
   sampleState(s2.current.clip, s2.current.time, out, cx);
-  if (s2.current.lower && !cx.fullBody) overlayActionLegs(out, sampleState(s2.current.lower, s2.current.lowerTime ?? 0, low, { ...lc, t: x }));
+  if (s2.current.lower && !cx.fullBody)
+    overlayActionLegs(out, sampleState(s2.current.lower, s2.current.lowerTime ?? 0, low, { ...lc, t: x }));
   bakeAims(out, RAW_JOINTS);
 }
 
@@ -279,7 +351,15 @@ function rawStateAt(track: ActorTrack, x: number, out: SampledPose, c: SampleCtx
  * the pose as presented just before the switch (itself inertialized, so switches in quick succession chain without a
  * jump), the destination the new clip.
  */
-function applyInertia(track: ActorTrack, t: number, pose: SampledPose, c: SampleCtx, lc: SampleCtx, scratch: BaseScratch, depth: number) {
+function applyInertia(
+  track: ActorTrack,
+  t: number,
+  pose: SampledPose,
+  c: SampleCtx,
+  lc: SampleCtx,
+  scratch: BaseScratch,
+  depth: number,
+) {
   const swi = depth < INERT_DEPTH ? switchBefore(track, t) : null;
   if (!swi) return;
   const sw = swi.at;
@@ -414,22 +494,32 @@ export function registerFieldMotion(m: FieldMotion | null): void {
         pickup: withLead(BUILTIN_FIELD_CLIPS.pickup, mark('fld_pickup_2h', 'collect')),
         throw: withLead(BUILTIN_FIELD_CLIPS.throw, mark('fld_throw_over', 'release')),
         catchHigh: withLead(BUILTIN_FIELD_CLIPS.catchHigh, mark('fld_catch_high', 'catch')),
-        catchChest: withLead(BUILTIN_FIELD_CLIPS.catchChest, mark('fld_catch_low', 'catch'), mark('fld_catch_high', 'catch')),
+        catchChest: withLead(
+          BUILTIN_FIELD_CLIPS.catchChest,
+          mark('fld_catch_low', 'catch'),
+          mark('fld_catch_high', 'catch'),
+        ),
       }
     : {};
-  active = motion && PLAN_OPTIONS.packGaits
-    ? {
-        ...BUILTIN_FIELD_CLIPS,
-        walk: per(BUILTIN_FIELD_CLIPS.walk, 'loco_walk'),
-        jog: per(BUILTIN_FIELD_CLIPS.jog, 'loco_jog'),
-        run: per(BUILTIN_FIELD_CLIPS.run, 'loco_run'),
-        drive: per(BUILTIN_FIELD_CLIPS.drive, 'loco_run'),
-        sprint: sprint ? { clip: BUILTIN_FIELD_CLIPS.run.clip, speedMps: (sprint.speedMps * sprint.duration) / clipDuration(BUILTIN_FIELD_CLIPS.run.clip) } : null,
-        ...leads,
-      }
-    : motion
-      ? { ...BUILTIN_FIELD_CLIPS, ...leads }
-      : BUILTIN_FIELD_CLIPS;
+  active =
+    motion && PLAN_OPTIONS.packGaits
+      ? {
+          ...BUILTIN_FIELD_CLIPS,
+          walk: per(BUILTIN_FIELD_CLIPS.walk, 'loco_walk'),
+          jog: per(BUILTIN_FIELD_CLIPS.jog, 'loco_jog'),
+          run: per(BUILTIN_FIELD_CLIPS.run, 'loco_run'),
+          drive: per(BUILTIN_FIELD_CLIPS.drive, 'loco_run'),
+          sprint: sprint
+            ? {
+                clip: BUILTIN_FIELD_CLIPS.run.clip,
+                speedMps: (sprint.speedMps * sprint.duration) / clipDuration(BUILTIN_FIELD_CLIPS.run.clip),
+              }
+            : null,
+          ...leads,
+        }
+      : motion
+        ? { ...BUILTIN_FIELD_CLIPS, ...leads }
+        : BUILTIN_FIELD_CLIPS;
 }
 
 /** Clip time at which a one-shot's ground track has travelled `d` metres forward (scale 1); clamped to the clip. */
@@ -458,7 +548,11 @@ function groundTime(clip: MotionClip, d: number): number {
  * decoder module, e.g. `loadFieldMotion(base, await import('../../../scripts/motion/vmp'))` (a separate chunk).
  * Resolves to the number of clips registered (0: the built-ins stay).
  */
-export async function loadFieldMotion<C extends MotionClip>(base: string, vmp: MotionDecoder<C>, fetchBytes: (url: string) => Promise<ArrayBuffer | null> = defaultFetch): Promise<number> {
+export async function loadFieldMotion<C extends MotionClip>(
+  base: string,
+  vmp: MotionDecoder<C>,
+  fetchBytes: (url: string) => Promise<ArrayBuffer | null> = defaultFetch,
+): Promise<number> {
   const clips = new Map<string, C>();
   for (const pack of ['locomotion', 'fielder', 'fielder_actions', 'keeper']) {
     try {
@@ -497,7 +591,12 @@ export function packTime(builtin: ClipId, time: number, clip: MotionClip): numbe
 }
 const DIVES = new Set<ClipId>(['field_dive_r', 'field_dive_l', 'keep_dive_r', 'keep_dive_l']);
 /** Where the pack dive's take-off is (s; the near foot leaving the ground). */
-const DIVE_TAKEOFF: Record<string, number> = { fld_dive_r: 0.32, fld_dive_l: 0.32, fld_dive_fast_r: 0.32, fld_dive_fast_l: 0.32 };
+const DIVE_TAKEOFF: Record<string, number> = {
+  fld_dive_r: 0.32,
+  fld_dive_l: 0.32,
+  fld_dive_fast_r: 0.32,
+  fld_dive_fast_l: 0.32,
+};
 
 /** A run's start from standing or stop to standing (scene ms), whether it is fast enough for the sprint clips. */
 interface RunEnd {
@@ -518,7 +617,15 @@ interface PackPicks {
   starts: RunEnd[];
   stops: RunEnd[];
 }
-const NO_PICKS: PackPicks = { clips: {}, walkInEnd: -Infinity, release: -Infinity, returnFrom: Infinity, riseShare: 0, starts: [], stops: [] };
+const NO_PICKS: PackPicks = {
+  clips: {},
+  walkInEnd: -Infinity,
+  release: -Infinity,
+  returnFrom: Infinity,
+  riseShare: 0,
+  starts: [],
+  stops: [],
+};
 /** The sprint start and stop clips are for runs that reach this speed (m/s); slower runs keep the loops. */
 const SPRINT_CLIPS_MPS = 4.5;
 
@@ -563,7 +670,14 @@ function pathDistance(track: ActorTrack, a: number, b: number): number {
  * drawn stride matches the ground speed. Gait changes are the moves' own phase-synced cross-fades. False: no loop.
  */
 function sampleLoops(mot: FieldMotion, phase: number, c: SampleCtx, out: SampledPose, clip: ClipId): boolean {
-  const id = clip === 'walk' ? 'loco_walk' : clip === 'jog' ? 'loco_jog' : clip === 'run' && active.sprint && c.v * c.scale >= SPRINT_FROM_MPS * c.scale ? 'loco_sprint' : 'loco_run';
+  const id =
+    clip === 'walk'
+      ? 'loco_walk'
+      : clip === 'jog'
+        ? 'loco_jog'
+        : clip === 'run' && active.sprint && c.v * c.scale >= SPRINT_FROM_MPS * c.scale
+          ? 'loco_sprint'
+          : 'loco_run';
   const loop = mot.clips.get(id) ?? mot.clips.get('loco_run');
   if (!loop || !loop.loop || !(loop.speedMps > 0)) return false;
   c.contacts = mot.sample(loop, phase * loop.duration, out);
@@ -586,7 +700,19 @@ function copyPose(src: SampledPose, dst: SampledPose) {
  * The actions the packs draw when PLAN_OPTIONS.packActionsOnly is on. On the run (a gait under the action) only the
  * pickup draws from the pack, as the full-body running pickup; a throw draws from it only once he is (nearly) stopped.
  */
-const PACK_ACTIONS = new Set<ClipId>(['ready', 'field_pickup', 'field_throw', 'catch_high', 'catch_chest', 'field_dive_r', 'field_dive_l', 'keep_crouch', 'keep_take', 'keep_dive_r', 'keep_dive_l']);
+const PACK_ACTIONS = new Set<ClipId>([
+  'ready',
+  'field_pickup',
+  'field_throw',
+  'catch_high',
+  'catch_chest',
+  'field_dive_r',
+  'field_dive_l',
+  'keep_crouch',
+  'keep_take',
+  'keep_dive_r',
+  'keep_dive_l',
+]);
 /**
  * Whether a pickup on the run draws the pack's full-body running pickup. Off: measured on the physics corpus it pops
  * more than the built-in pickup over the gait (field_pickup/run 135 against 33; WEB-FIELD final, 2026-11-04).
@@ -607,7 +733,7 @@ function sampleState(clip: ClipId, time: number, out: SampledPose, c: SampleCtx)
       const bm = clipMarker(clip, 'collect', 0.3);
       const pm = run?.markers.collect;
       if (run && pm !== undefined) {
-        const rate = Math.min(PICKUP_1H.warp[1], Math.max(PICKUP_1H.warp[0], (c.speed / c.scale) / PICKUP_1H.mps));
+        const rate = Math.min(PICKUP_1H.warp[1], Math.max(PICKUP_1H.warp[0], c.speed / c.scale / PICKUP_1H.mps));
         c.contacts = mot.sample(run, pm + (time - bm) * rate, out);
         c.fullBody = true;
         return out;
@@ -672,7 +798,13 @@ function sampleState(clip: ClipId, time: number, out: SampledPose, c: SampleCtx)
     // After a start clip the loops carry on from its last left strike (its phase 0), not from the move's own phase.
     // Throughout the run (the blend into the loops included), so the loops meet the start clip at its last strike.
     let drawPhase = phase;
-    if (PLAN_OPTIONS.packStartStop && s0 && s0.exitPhase !== null && !c.pick.stops.some((e) => e.t > s0!.t && e.t < c.t)) drawPhase = (((phase - s0.exitPhase) % 1) + 1) % 1;
+    if (
+      PLAN_OPTIONS.packStartStop &&
+      s0 &&
+      s0.exitPhase !== null &&
+      !c.pick.stops.some((e) => e.t > s0!.t && e.t < c.t)
+    )
+      drawPhase = (((phase - s0.exitPhase) % 1) + 1) % 1;
     // A start or a stop is the whole body's (never the legs under a pickup or a throw on the move).
     if (mot && PLAN_OPTIONS.packStartStop && !c.lower && start?.ground && start.travel && s0 && s0.fast) {
       const d = pathDistance(c.track, s0.t, c.t) / c.scale;
@@ -728,7 +860,11 @@ function sampleState(clip: ClipId, time: number, out: SampledPose, c: SampleCtx)
       const f = Math.max(0, time) / bm;
       if (f < c.pick.riseShare) {
         // From the bounce to the rise's end, whose pose is the take's frame 0 (MOTION-KEEPER: a 0.04° seam).
-        c.contacts = mot.sample(rise, rise.markers.bounce + (rise.duration - rise.markers.bounce) * (f / c.pick.riseShare), out);
+        c.contacts = mot.sample(
+          rise,
+          rise.markers.bounce + (rise.duration - rise.markers.bounce) * (f / c.pick.riseShare),
+          out,
+        );
         return out;
       }
       const pm = packClip.markers.take ?? 0;
@@ -738,10 +874,13 @@ function sampleState(clip: ClipId, time: number, out: SampledPose, c: SampleCtx)
   }
   // The fast dive flows into its scramble at its last frame (MOTION-FIELD2: exact in pose and velocity), on his feet
   // at the physics take + DIVE.recoverS; without the fast pair, the dive and its get-up.
-  const dive = mot && sub && DIVES.has(clip) ? (mot.clips.get(packId!) ?? mot.clips.get(packId!.replace('_fast', ''))) : undefined;
+  const dive =
+    mot && sub && DIVES.has(clip) ? (mot.clips.get(packId!) ?? mot.clips.get(packId!.replace('_fast', ''))) : undefined;
   if (mot && dive) {
     const pt = packTime(clip, time, dive);
-    const next = dive.name.includes('_fast') ? mot.clips.get(dive.name.replace('dive_fast', 'dive_scramble')) : mot.clips.get(dive.name.replace('dive', 'getup'));
+    const next = dive.name.includes('_fast')
+      ? mot.clips.get(dive.name.replace('dive_fast', 'dive_scramble'))
+      : mot.clips.get(dive.name.replace('dive', 'getup'));
     if (next && pt > dive.duration) c.contacts = mot.sample(next, Math.min(next.duration, pt - dive.duration), out);
     else c.contacts = mot.sample(dive, pt, out);
     return out;
@@ -770,7 +909,10 @@ function fieldBasePose(
   pick: PackPicks = NO_PICKS,
 ): { pose: SampledPose; st: ActorState; gait: { phase: number; v: number } | null; contacts?: number } {
   const st = evaluateActor(track, t);
-  const needsGait = isGaitClip(st.current.clip) || (st.current.lower && isGaitClip(st.current.lower)) || (st.previous && (isGaitClip(st.previous.clip) || (st.previous.lower && isGaitClip(st.previous.lower))));
+  const needsGait =
+    isGaitClip(st.current.clip) ||
+    (st.current.lower && isGaitClip(st.current.lower)) ||
+    (st.previous && (isGaitClip(st.previous.clip) || (st.previous.lower && isGaitClip(st.previous.lower))));
   const m = rootMotion(track, t);
   let v = 0;
   let aF = 0;
@@ -779,11 +921,25 @@ function fieldBasePose(
     aF = (m.ax * Math.sin(st.heading) + m.az * Math.cos(st.heading)) / scale;
   }
   const gaitUnder = Boolean(st.current.lower && isGaitClip(st.current.lower));
-  const c: SampleCtx = { v, aF, legsOnly, motion: mot, pick, track, t, scale, g: scratch.g, h: scratch.h, gaitUnder, speed: Math.hypot(m.vx, m.vz) };
+  const c: SampleCtx = {
+    v,
+    aF,
+    legsOnly,
+    motion: mot,
+    pick,
+    track,
+    t,
+    scale,
+    g: scratch.g,
+    h: scratch.h,
+    gaitUnder,
+    speed: Math.hypot(m.vx, m.vz),
+  };
   const pose = sampleState(st.current.clip, st.current.time, scratch.a, c);
   const contacts = c.contacts;
   const lc: SampleCtx = { ...c, lower: true };
-  if (st.current.lower && !c.fullBody) overlayActionLegs(pose, sampleState(st.current.lower, st.current.lowerTime ?? 0, scratch.lower, lc));
+  if (st.current.lower && !c.fullBody)
+    overlayActionLegs(pose, sampleState(st.current.lower, st.current.lowerTime ?? 0, scratch.lower, lc));
   // Arm aims baked into the upper arms (as the stage would apply them), so every layer below works on the drawn arm.
   bakeAims(pose, scratch.j);
   // A clip switch within its fade: inertialized (the presented pose's offset and its rate at the switch decay,
@@ -802,8 +958,17 @@ function fieldBasePose(
   }
   // Stepping cycles for the foot plan: the gaits, and the keeper's crouched shuffle (stepping at a walk's timing).
   const steps = (cl: ClipId) => isGaitClip(cl) || cl === active.keeper.shuffle.clip;
-  const gc = steps(st.current.clip) ? st.current : st.current.lower && steps(st.current.lower) ? { clip: st.current.lower, time: st.current.lowerTime ?? 0 } : null;
-  const gait = gc ? { phase: (((gc.time / clipDuration(gc.clip)) % 1) + 1) % 1, v: isGaitClip(gc.clip) ? v || Math.hypot(m.vx, m.vz) / scale : 1 } : null;
+  const gc = steps(st.current.clip)
+    ? st.current
+    : st.current.lower && steps(st.current.lower)
+      ? { clip: st.current.lower, time: st.current.lowerTime ?? 0 }
+      : null;
+  const gait = gc
+    ? {
+        phase: (((gc.time / clipDuration(gc.clip)) % 1) + 1) % 1,
+        v: isGaitClip(gc.clip) ? v || Math.hypot(m.vx, m.vz) / scale : 1,
+      }
+    : null;
   // The current clip's contact bits reach the foot plan through a cross-fade too (without them the plan would fall back
   // to its height rule mid-fade, unplanting a pack crouch's feet, which stand on their toes: a leg-wide jump).
   return { pose, st, gait, ...(contacts !== undefined ? { contacts } : {}) };
@@ -898,7 +1063,8 @@ export function fieldPoseHookFor(script: BallScript, opts: FieldHookOptions = {}
 export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): PoseHook {
   const p = script.practice ?? null;
   const result = p?.result ?? null;
-  const anchor = p && p.flight ? Math.max(0, p.releaseScene - (result ? PLAN_BEFORE_RELEASE_RESULT_MS : PLAN_BEFORE_RELEASE_MS)) : 0;
+  const anchor =
+    p && p.flight ? Math.max(0, p.releaseScene - (result ? PLAN_BEFORE_RELEASE_RESULT_MS : PLAN_BEFORE_RELEASE_MS)) : 0;
   const sway = !opts.reducedMotion;
   // The packs registered when this script's hook is made draw it throughout.
   const mot = motion;
@@ -907,14 +1073,16 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
    * and for the keeper his crouch (up to spin or back to pace) and his take's height and side.
    */
   const packPicks = (track: ActorTrack): PackPicks => {
-    const moving = (m: ActorTrack['moves'][number]) => Boolean(m.from && m.to && Math.hypot(m.to.x - m.from.x, m.to.z - m.from.z) > 1e-6);
+    const moving = (m: ActorTrack['moves'][number]) =>
+      Boolean(m.from && m.to && Math.hypot(m.to.x - m.from.x, m.to.z - m.from.z) > 1e-6);
     let walkInEnd = -Infinity;
     const starts: RunEnd[] = [];
     const stops: RunEnd[] = [];
     const rel = p?.releaseScene ?? 0;
     const dead = p?.deadScene ?? Infinity;
     let returnFrom = Infinity;
-    const speed = (m: ActorTrack['moves'][number]) => (moving(m) ? Math.hypot(m.to!.x - m.from!.x, m.to!.z - m.from!.z) / ((m.t1 - m.t0) / 1000) : 0);
+    const speed = (m: ActorTrack['moves'][number]) =>
+      moving(m) ? Math.hypot(m.to!.x - m.from!.x, m.to!.z - m.from!.z) / ((m.t1 - m.t0) / 1000) : 0;
     // Runs between a start and a stop, with their peak speed.
     const startClip = mot?.clips.get('fld_sprint_start') ?? mot?.clips.get('loco_start');
     for (let i = 0; i < track.moves.length; i++) {
@@ -926,7 +1094,8 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
       const next = track.moves[i + 1];
       if (isGaitClip(m.clip) && moving(m) && prev && !moving(prev) && !isGaitClip(prev.clip)) {
         let peak = 0;
-        for (let k = i; k < track.moves.length && isGaitClip(track.moves[k].clip) && moving(track.moves[k]); k++) peak = Math.max(peak, speed(track.moves[k]));
+        for (let k = i; k < track.moves.length && isGaitClip(track.moves[k].clip) && moving(track.moves[k]); k++)
+          peak = Math.max(peak, speed(track.moves[k]));
         const fast = peak >= SPRINT_CLIPS_MPS * scaleOf(track);
         let exitT = Infinity;
         let exitPhase: number | null = null;
@@ -942,7 +1111,11 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
             if (d >= L) {
               exitT = t;
               const st = evaluateActor(track, t);
-              const g = isGaitClip(st.current.clip) ? st.current : st.current.lower && isGaitClip(st.current.lower) ? { clip: st.current.lower, time: st.current.lowerTime ?? 0 } : null;
+              const g = isGaitClip(st.current.clip)
+                ? st.current
+                : st.current.lower && isGaitClip(st.current.lower)
+                  ? { clip: st.current.lower, time: st.current.lowerTime ?? 0 }
+                  : null;
               exitPhase = g ? (((g.time / clipDuration(g.clip)) % 1) + 1) % 1 : null;
               break;
             }
@@ -952,11 +1125,20 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
       }
       if (isGaitClip(m.clip) && moving(m) && next && !moving(next) && STAND_AFTER.has(next.clip)) {
         let peak = 0;
-        for (let k = i; k >= 0 && isGaitClip(track.moves[k].clip) && moving(track.moves[k]); k--) peak = Math.max(peak, speed(track.moves[k]));
+        for (let k = i; k >= 0 && isGaitClip(track.moves[k].clip) && moving(track.moves[k]); k--)
+          peak = Math.max(peak, speed(track.moves[k]));
         stops.push({ t: m.t1, fast: peak >= SPRINT_CLIPS_MPS * scaleOf(track), exitT: Infinity, exitPhase: null });
       }
     }
-    return { clips: { ...fielderPicks(track), ...keeperPicks(track) }, walkInEnd, release: rel, returnFrom, riseShare: riseShareOf(track), starts, stops };
+    return {
+      clips: { ...fielderPicks(track), ...keeperPicks(track) },
+      walkInEnd,
+      release: rel,
+      returnFrom,
+      riseShare: riseShareOf(track),
+      starts,
+      stops,
+    };
   };
   const scaleOf = (track: ActorTrack) => lookScale(track.look);
   /**
@@ -966,7 +1148,9 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
    */
   const riseShareOf = (track: ActorTrack): number => {
     if (track.id !== 'keeper' || !p || !result) return 0;
-    const take = result.events.find((e) => e.kind === 'keeper_take' || (e.kind === 'catch' && e.fielderId === 'keeper'));
+    const take = result.events.find(
+      (e) => e.kind === 'keeper_take' || (e.kind === 'catch' && e.fielderId === 'keeper'),
+    );
     const bounce = result.flight.bounce?.t;
     if (!take || bounce === undefined || bounce >= take.t) return 0;
     const m = clipMarker(active.keeper.take.clip, active.keeper.take.marker, 0.3);
@@ -979,12 +1163,16 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
     if (!result || !p) return {};
     const id = track.id.startsWith('fielder:') ? track.id.slice('fielder:'.length) : track.id;
     const out: Partial<Record<ClipId, string>> = {};
-    const c = result.events.find((e): e is Extract<typeof e, { kind: 'catch' }> => e.kind === 'catch' && e.fielderId === id);
+    const c = result.events.find(
+      (e): e is Extract<typeof e, { kind: 'catch' }> => e.kind === 'catch' && e.fielderId === id,
+    );
     // Catches below 1 m: the low catch (fingers down); at chest height and above: the high catch (fingers up).
     if (c && c.p.y >= 1.0) out.catch_chest = 'fld_catch_high';
     // The throw whose hand at release is nearest the physics release point, height first (overarm high in front of the
     // head, the flick low beside the right foot; MOTION-FIELD2); a tie goes to the flick within 12 m, overarm beyond.
-    const th = result.events.find((e): e is Extract<typeof e, { kind: 'throw' }> => e.kind === 'throw' && e.fielderId === id);
+    const th = result.events.find(
+      (e): e is Extract<typeof e, { kind: 'throw' }> => e.kind === 'throw' && e.fielderId === id,
+    );
     if (th) {
       const s0 = scaleOf(track);
       const y = th.p.y;
@@ -995,7 +1183,9 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
       if (flick < over - 0.05 || (Math.abs(flick - over) <= 0.05 && len <= 12)) out.field_throw = 'fld_flick_under';
     }
     // A ground ball fielded straight on, at standing pace: the long barrier (else the two-handed pickup).
-    const f = result.events.find((e): e is Extract<typeof e, { kind: 'field' }> => e.kind === 'field' && e.fielderId === id);
+    const f = result.events.find(
+      (e): e is Extract<typeof e, { kind: 'field' }> => e.kind === 'field' && e.fielderId === id,
+    );
     if (f && f.p.y < 0.3) {
       const t = simToScene(p, f.t);
       const v = ballVelocityAt(result.ball, f.t);
@@ -1014,7 +1204,9 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
     const at = evaluateActor(track, p.releaseScene).pos;
     const up = Math.abs(at.z) - PITCH_HALF < 3;
     const out: Partial<Record<ClipId, string>> = { keep_crouch: up ? 'kp_crouch_up' : 'kp_crouch_back' };
-    const take = result?.events.find((e) => e.kind === 'keeper_take' || (e.kind === 'catch' && e.fielderId === 'keeper'));
+    const take = result?.events.find(
+      (e) => e.kind === 'keeper_take' || (e.kind === 'catch' && e.fielderId === 'keeper'),
+    );
     if (take && 'p' in take) {
       const ball = toWorld(take.p, p.mirror);
       const k = evaluateActor(track, simToScene(p, take.t));
@@ -1052,7 +1244,8 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
   const keeperMiss = ((): { t: number; shortM: number } | null => {
     if (!p || !result) return null;
     const ev = result.events.find((e): e is Extract<typeof e, { kind: 'keeper_take' }> => e.kind === 'keeper_take');
-    if (!ev || !(ev.shortM && ev.shortM > 0) || result.events.some((e) => e.kind === 'throw' && e.t < ev.t)) return null;
+    if (!ev || !(ev.shortM && ev.shortM > 0) || result.events.some((e) => e.kind === 'throw' && e.t < ev.t))
+      return null;
     return { t: simToScene(p, ev.t), shortM: ev.shortM };
   })();
   const states = new Map<string, State>();
@@ -1064,16 +1257,43 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
     const planScratch = createBaseScratch();
     const pick = mot ? packPicks(track) : NO_PICKS;
     const baseAt = (t: number) => fieldBasePose(track, t, planScratch, scale, phase, sway, true, mot, pick);
-    const plan = PLAN_OPTIONS.stepPlan ? new StepPlan(track, anchor, scale, baseAt) : new FootPlan(track, anchor, scale, baseAt);
+    const plan = PLAN_OPTIONS.stepPlan
+      ? new StepPlan(track, anchor, scale, baseAt)
+      : new FootPlan(track, anchor, scale, baseAt);
     const n = plan instanceof StepPlan ? 2 * STEP_STRIDE : 10;
-    s = { track, scale, phase, plan, pick, joints: createJoints(), joints2: createJoints(), base: createBaseScratch(), base2: createBaseScratch(), clipAt: createPose(), clipAt2: createPose(), fix: [0, 1].map(() => ({ base: createBaseScratch(), joints: createJoints(), targets: new Float32Array(n), clip: createPose(), clip2: createPose() })), targets: new Float32Array(n), targets2: new Float32Array(n) };
+    s = {
+      track,
+      scale,
+      phase,
+      plan,
+      pick,
+      joints: createJoints(),
+      joints2: createJoints(),
+      base: createBaseScratch(),
+      base2: createBaseScratch(),
+      clipAt: createPose(),
+      clipAt2: createPose(),
+      fix: [0, 1].map(() => ({
+        base: createBaseScratch(),
+        joints: createJoints(),
+        targets: new Float32Array(n),
+        clip: createPose(),
+        clip2: createPose(),
+      })),
+      targets: new Float32Array(n),
+      targets2: new Float32Array(n),
+    };
     states.set(track.id, s);
     return s;
   };
   const hook: PoseHook = (track, pose, t) => {
     if (!isFieldTrack(track) || track.mirror) return;
     const s = stateOf(track);
-    const { pose: base, st, contacts: baseContacts } = fieldBasePose(track, t, s.base, s.scale, s.phase, sway, false, mot, s.pick);
+    const {
+      pose: base,
+      st,
+      contacts: baseContacts,
+    } = fieldBasePose(track, t, s.base, s.scale, s.phase, sway, false, mot, s.pick);
     pose.q.set(base.q);
     pose.root = [base.root[0], base.root[1], base.root[2]];
     pose.aimR = base.aimR;
@@ -1109,7 +1329,8 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
         // easing out after the marker (critically damped).
         const out = 1 - smoothstep(mt + 80, mt + 300, t);
         const w = smoothstep(mt - 260, mt, t) * out;
-        const wTrunk = smoothstep(Math.max(mt - 600, Math.min(mk.start, mt - 260)), mt, t) * (1 - smoothstep(mt + 80, mt + 420, t));
+        const wTrunk =
+          smoothstep(Math.max(mt - 600, Math.min(mk.start, mt - 260)), mt, t) * (1 - smoothstep(mt + 80, mt + 420, t));
         if (!ball || Math.max(w, wTrunk) <= 1e-3 || n >= 2) continue;
         const k = s.fix[n++];
         const at = fieldBasePose(track, mt, k.base, s.scale, s.phase, sway, false, mot, s.pick);
@@ -1125,15 +1346,29 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
         // The deeper scoop for a ground ball, and for the throwing hand meeting the physics release point (which can sit
         // low and wide of the throw's own arm).
         const deep = (ball.y < GROUND_BALL_M * s.scale && hm.marker !== 'release') || hm.marker === 'release';
-        const reach = bodyReach(at.pose, k.joints, ball, r2, at.st.heading, s.scale, hm.both && keeper ? 'mid' : 'R', tt, deep ? BODY_REACH_LIMITS.ground : BODY_REACH_LIMITS.normal, markerLegGeometry, takeMarker ? 0.93 : 0.86);
-        if (reach.short > 0 && Math.abs(t - mt) < 9 && lastReachShort.length < 2000) lastReachShort.push({ track: track.id, t: mt, m: reach.short });
+        const reach = bodyReach(
+          at.pose,
+          k.joints,
+          ball,
+          r2,
+          at.st.heading,
+          s.scale,
+          hm.both && keeper ? 'mid' : 'R',
+          tt,
+          deep ? BODY_REACH_LIMITS.ground : BODY_REACH_LIMITS.normal,
+          markerLegGeometry,
+          takeMarker ? 0.93 : 0.86,
+        );
+        if (reach.short > 0 && Math.abs(t - mt) < 9 && lastReachShort.length < 2000)
+          lastReachShort.push({ track: track.id, t: mt, m: reach.short });
         // The trunk's bend and the hips' drop, on the pose now (before the feet are planted).
         applyBoneOffset(pose, at.pose, k.clip, TRUNK_BONES, wTrunk);
         const dropNow = (rootY - at.pose.root[1]) * wTrunk;
         pose.root[1] -= dropNow;
         scoopDrop = Math.max(scoopDrop, dropNow * s.scale);
         k.clip2.q.set(at.pose.q);
-        if (handsTo(at.pose, k.joints, ball, r2, at.st.heading, s.scale, 1, hm.both, keeper)) armFixes.push({ pose: at.pose, clip: k.clip2, bones: ARM_BONES[hm.both ? 'both' : 'right'], w });
+        if (handsTo(at.pose, k.joints, ball, r2, at.st.heading, s.scale, 1, hm.both, keeper))
+          armFixes.push({ pose: at.pose, clip: k.clip2, bones: ARM_BONES[hm.both ? 'both' : 'right'], w });
       }
     }
     const targets = s.plan.at(t, s.targets);
@@ -1143,7 +1378,9 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
       if (k < 1) for (let f = 0; f < 2; f++) targets[f * STEP_STRIDE + 3] *= k;
       if (scoopDrop > 0) {
         const ground = ANKLE_REST_Y * s.scale;
-        for (let f = 0; f < 2; f++) if (targets[f * STEP_STRIDE + 1] > ground + 0.02) targets[f * STEP_STRIDE + 1] = Math.max(ground, targets[f * STEP_STRIDE + 1] - scoopDrop);
+        for (let f = 0; f < 2; f++)
+          if (targets[f * STEP_STRIDE + 1] > ground + 0.02)
+            targets[f * STEP_STRIDE + 1] = Math.max(ground, targets[f * STEP_STRIDE + 1] - scoopDrop);
       }
       plantFeetLocked(pose, s.joints, targets, root, st.heading, s.scale);
     } else if (targets) {
@@ -1154,10 +1391,17 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
       // the lift-off, decaying (no snap of the knee); the other leg is planted as usual.
       if (scoopDrop > 0) {
         const ground = ANKLE_REST_Y * s.scale;
-        for (let f = 0; f < 2; f++) if (targets[f * 4 + 1] > ground + 0.02) targets[f * 4 + 1] = Math.max(ground, targets[f * 4 + 1] - scoopDrop);
+        for (let f = 0; f < 2; f++)
+          if (targets[f * 4 + 1] > ground + 0.02) targets[f * 4 + 1] = Math.max(ground, targets[f * 4 + 1] - scoopDrop);
       }
       // A pack hold with both feet down in the clip, standing still: the clip's own feet (no planting over them).
-      if (PLAN_OPTIONS.packHoldOwnFeet && baseContacts !== undefined && (baseContacts & 3) === 3 && !st.previous && STAND_AFTER.has(st.current.clip)) {
+      if (
+        PLAN_OPTIONS.packHoldOwnFeet &&
+        baseContacts !== undefined &&
+        (baseContacts & 3) === 3 &&
+        !st.previous &&
+        STAND_AFTER.has(st.current.clip)
+      ) {
         const m = rootMotion(track, t);
         if (Math.hypot(m.vx, m.vz) < 0.05) {
           targets[3] = 0;
@@ -1187,7 +1431,16 @@ export function fieldPoseHook(script: BallScript, opts: FieldHookOptions = {}): 
     if (sway && !NO_LOOK.test(st.current.clip)) {
       const ball = ballWorld(t - 120);
       // Eyes go to the ball as it leaves the hand (over 0.3 s), a moment behind it.
-      if (ball && p) lookAt(pose, s.joints, ball, root, st.heading, s.scale, smoothstep(p.releaseScene + 120, p.releaseScene + 420, t));
+      if (ball && p)
+        lookAt(
+          pose,
+          s.joints,
+          ball,
+          root,
+          st.heading,
+          s.scale,
+          smoothstep(p.releaseScene + 120, p.releaseScene + 420, t),
+        );
     }
     for (const f of armFixes) applyBoneOffset(pose, f.pose, f.clip, f.bones, f.w);
   };

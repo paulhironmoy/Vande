@@ -46,17 +46,24 @@ describe('Unity Practice engineering-preview admission', () => {
     const base = { enabled: true, ownsInput: true };
     expect(canRetainUnityPracticeEngineeringPreview({ ...base, assessment: null })).toBe(true);
     expect(canRetainUnityPracticeEngineeringPreview({ ...base, assessment: assessment() })).toBe(true);
-    expect(canRetainUnityPracticeEngineeringPreview({ ...base, assessment: assessment({ inputToFrameMs: 42 }) })).toBe(false);
-    expect(canRetainUnityPracticeEngineeringPreview({ ...base, assessment: assessment({ tier: 'below' }) })).toBe(false);
-    expect(canRetainUnityPracticeEngineeringPreview({ ...base, assessment: assessment({ backend: 'webgl2' }) })).toBe(false);
+    expect(canRetainUnityPracticeEngineeringPreview({ ...base, assessment: assessment({ inputToFrameMs: 42 }) })).toBe(
+      false,
+    );
+    expect(canRetainUnityPracticeEngineeringPreview({ ...base, assessment: assessment({ tier: 'below' }) })).toBe(
+      false,
+    );
+    expect(canRetainUnityPracticeEngineeringPreview({ ...base, assessment: assessment({ backend: 'webgl2' }) })).toBe(
+      false,
+    );
     expect(canRetainUnityPracticeEngineeringPreview({ enabled: false, ownsInput: true, assessment: null })).toBe(false);
     expect(canRetainUnityPracticeEngineeringPreview({ enabled: true, ownsInput: false, assessment: null })).toBe(false);
   });
 
   it('marks the runtime as unqualified and removes only its own marker on release', () => {
     const clear = activateUnityPracticeEngineeringPreviewMarker('qualification_incomplete', document);
-    expect(document.documentElement.getAttribute(UNITY_PRACTICE_ENGINEERING_PREVIEW_ATTRIBUTE))
-      .toBe(UNITY_PRACTICE_ENGINEERING_PREVIEW_VALUE);
+    expect(document.documentElement.getAttribute(UNITY_PRACTICE_ENGINEERING_PREVIEW_ATTRIBUTE)).toBe(
+      UNITY_PRACTICE_ENGINEERING_PREVIEW_VALUE,
+    );
     const marker = document.getElementById(UNITY_PRACTICE_ENGINEERING_PREVIEW_MARKER_ID);
     expect(marker?.textContent).toBe(UNITY_PRACTICE_ENGINEERING_PREVIEW_LABEL);
     expect(marker?.getAttribute('data-reason')).toBe('qualification_incomplete');

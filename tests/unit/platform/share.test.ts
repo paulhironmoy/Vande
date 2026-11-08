@@ -22,7 +22,10 @@ describe('share adapter', () => {
   });
 
   it('reports a cancelled sheet, falls back to the clipboard, and reports failure last', async () => {
-    const cancel = createShareAdapter({ native: () => false, nav: { share: async () => Promise.reject(Object.assign(new Error('x'), { name: 'AbortError' })) } });
+    const cancel = createShareAdapter({
+      native: () => false,
+      nav: { share: async () => Promise.reject(Object.assign(new Error('x'), { name: 'AbortError' })) },
+    });
     expect(await cancel.share(input)).toBe('cancelled');
     const writeText = vi.fn(async () => undefined);
     const copy = createShareAdapter({ native: () => false, nav: { clipboard: { writeText } } });
@@ -35,9 +38,15 @@ describe('share adapter', () => {
     const open = vi.fn();
     const share = createShareAdapter({ native: () => false, nav: {} });
     expect(open).not.toHaveBeenCalled();
-    expect(share.whatsappUrl('Hi & bye', 'https://x.example/i/t?a=b')).toBe(`https://wa.me/?text=${encodeURIComponent('Hi & bye\nhttps://x.example/i/t?a=b')}`);
+    expect(share.whatsappUrl('Hi & bye', 'https://x.example/i/t?a=b')).toBe(
+      `https://wa.me/?text=${encodeURIComponent('Hi & bye\nhttps://x.example/i/t?a=b')}`,
+    );
     expect(whatsappUrl('only text', '')).toBe('https://wa.me/?text=only%20text');
     openWhatsapp('Beat me', 'https://x.example/i/t', open);
-    expect(open).toHaveBeenCalledWith(expect.stringMatching(/^https:\/\/wa\.me\/\?text=/), '_blank', 'noopener,noreferrer');
+    expect(open).toHaveBeenCalledWith(
+      expect.stringMatching(/^https:\/\/wa\.me\/\?text=/),
+      '_blank',
+      'noopener,noreferrer',
+    );
   });
 });

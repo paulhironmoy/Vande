@@ -29,22 +29,37 @@ import { makeRecord } from '@/practice/game/replay';
 const OPTS = { id: 'inn-1', conditions: 'balanced' as const, assist: 'play' as const, handedness: 'right' as const };
 const over = (i: number) => randomOver({ seed: `over-${i}`, conditions: 'balanced', assist: 'play', beginner: false });
 const fieldFor = (i: number) => autoField(over(i).bowler, 'balanced');
-const choose = (s: PracticeInningsState, i = s.overs.length): PracticeInningsState => inningsReducer(s, { type: 'chooseOver', plan: over(i), field: fieldFor(i) });
+const choose = (s: PracticeInningsState, i = s.overs.length): PracticeInningsState =>
+  inningsReducer(s, { type: 'chooseOver', plan: over(i), field: fieldFor(i) });
 
 /** Bowl the next ball with a given result summary (the reducer's rules do not depend on the physics). */
-function bowl(s: PracticeInningsState, runs: DeliveryOutcome['runs'] = 0, dismissal: Dismissal | null = null): PracticeInningsState {
+function bowl(
+  s: PracticeInningsState,
+  runs: DeliveryOutcome['runs'] = 0,
+  dismissal: Dismissal | null = null,
+): PracticeInningsState {
   const next = nextDelivery(s)!;
   const started = inningsReducer(s, { type: 'deliveryStarted' });
   expect(started.inFlight).toEqual({ overIndex: next.overIndex, ballIndex: next.ballIndex });
   const record = makeRecord(next, null, 0, { outcome: { runs, dismissal } as DeliveryOutcome });
   return inningsReducer(started, { type: 'deliveryResolved', record });
 }
-const bowlOver = (s: PracticeInningsState, runs: DeliveryOutcome['runs'][] = [0, 0, 0, 0, 0, 0]) => runs.reduce((acc, r) => bowl(acc, r), s);
+const bowlOver = (s: PracticeInningsState, runs: DeliveryOutcome['runs'][] = [0, 0, 0, 0, 0, 0]) =>
+  runs.reduce((acc, r) => bowl(acc, r), s);
 
 describe('the one-wicket innings', () => {
   it('starts at 0 for 0, choosing an over', () => {
     const s = newInnings(OPTS);
-    expect(s).toMatchObject({ status: 'choosing_over', runs: 0, balls: 0, overs: [], current: null, inFlight: null, dismissal: null, version: PRACTICE_SIM_VERSION });
+    expect(s).toMatchObject({
+      status: 'choosing_over',
+      runs: 0,
+      balls: 0,
+      overs: [],
+      current: null,
+      inFlight: null,
+      dismissal: null,
+      version: PRACTICE_SIM_VERSION,
+    });
   });
 
   it('bats a full over, accumulates runs, then offers the next over', () => {
@@ -69,7 +84,12 @@ describe('the one-wicket innings', () => {
       expect(s.dismissal?.record.ballIndex).toBe(ball);
       expect(s.balls).toBe(ball + 1);
       expect(s.runs).toBe(ball);
-      for (const a of [{ type: 'deliveryStarted' }, { type: 'nextOver' }, { type: 'chooseOver', plan: over(1), field: fieldFor(1) }, { type: 'abandon' }] as InningsAction[]) {
+      for (const a of [
+        { type: 'deliveryStarted' },
+        { type: 'nextOver' },
+        { type: 'chooseOver', plan: over(1), field: fieldFor(1) },
+        { type: 'abandon' },
+      ] as InningsAction[]) {
         expect(inningsReducer(s, a)).toBe(s);
       }
     }
@@ -106,15 +126,30 @@ describe('the one-wicket innings', () => {
     s = inningsReducer(s, { type: 'deliveryStarted' });
     expect(inningsError(s, { type: 'deliveryStarted' })).toBe('delivery_in_flight');
     expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, ballIndex: 1 } })).toBe('wrong_ball');
-    expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, seed: 'other' } })).toBe('not_this_delivery');
-    expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, plan: { ...record.plan, speedKph: 99 } } })).toBe('not_this_delivery');
-    expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, assist: 'learn' } })).toBe('wrong_settings');
+    expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, seed: 'other' } })).toBe(
+      'not_this_delivery',
+    );
+    expect(
+      inningsError(s, { type: 'deliveryResolved', record: { ...record, plan: { ...record.plan, speedKph: 99 } } }),
+    ).toBe('not_this_delivery');
+    expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, assist: 'learn' } })).toBe(
+      'wrong_settings',
+    );
     // A different pitch can legitimately select the same field (especially for spin). Alter the actual field
     // explicitly so this invariant is independent of which bowler a versioned random seed chooses.
-    const changedField = { ...record.field, fielders: record.field.fielders.map((f, i) => i === 0 ? { ...f, x: f.x + 1 } : f) };
-    expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, field: changedField } })).toBe('wrong_field');
-    expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, runs: 5 as DeliveryOutcome['runs'] } })).toBe('bad_runs');
-    expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, runs: 4, dismissal: 'bowled' } })).toBe('bad_dismissal');
+    const changedField = {
+      ...record.field,
+      fielders: record.field.fielders.map((f, i) => (i === 0 ? { ...f, x: f.x + 1 } : f)),
+    };
+    expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, field: changedField } })).toBe(
+      'wrong_field',
+    );
+    expect(
+      inningsError(s, { type: 'deliveryResolved', record: { ...record, runs: 5 as DeliveryOutcome['runs'] } }),
+    ).toBe('bad_runs');
+    expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, runs: 4, dismissal: 'bowled' } })).toBe(
+      'bad_dismissal',
+    );
     s = inningsReducer(s, { type: 'deliveryResolved', record });
     expect(s).toMatchObject({ runs: 4, balls: 1, inFlight: null });
     expect(inningsError(s, { type: 'deliveryResolved', record })).toBe('delivery_not_started');
@@ -123,8 +158,16 @@ describe('the one-wicket innings', () => {
   it('rejects an illegal over or field', () => {
     const s = newInnings(OPTS);
     const plan = over(0);
-    expect(inningsError(s, { type: 'chooseOver', plan: { ...plan, balls: plan.balls.slice(0, 5) as unknown as typeof plan.balls }, field: fieldFor(0) })).toMatch(/^illegal_over/);
-    expect(inningsError(s, { type: 'chooseOver', plan, field: { ...fieldFor(0), fielders: fieldFor(0).fielders.slice(1) } })).toMatch(/^illegal_field/);
+    expect(
+      inningsError(s, {
+        type: 'chooseOver',
+        plan: { ...plan, balls: plan.balls.slice(0, 5) as unknown as typeof plan.balls },
+        field: fieldFor(0),
+      }),
+    ).toMatch(/^illegal_over/);
+    expect(
+      inningsError(s, { type: 'chooseOver', plan, field: { ...fieldFor(0), fielders: fieldFor(0).fielders.slice(1) } }),
+    ).toMatch(/^illegal_field/);
   });
 
   it('restarts the over between balls: the same six balls from the first, its runs and balls taken off', () => {
@@ -157,7 +200,9 @@ describe('the one-wicket innings', () => {
     const fresh = choose(newInnings(OPTS));
     expect(inningsError(fresh, { type: 'restartOver' })).toBe('nothing_to_restart');
     const one = bowl(fresh, 1);
-    expect(inningsError(inningsReducer(one, { type: 'deliveryStarted' }), { type: 'restartOver' })).toBe('delivery_in_flight');
+    expect(inningsError(inningsReducer(one, { type: 'deliveryStarted' }), { type: 'restartOver' })).toBe(
+      'delivery_in_flight',
+    );
     const out = bowl(one, 0, 'bowled');
     expect(out.status).toBe('out');
     expect(inningsError(out, { type: 'restartOver' })).toBe('not_batting');
@@ -184,9 +229,25 @@ describe('the one-wicket innings', () => {
 });
 
 /** A minimal resolved result for the summaries (only what they read). */
-function fakeResult(record: DeliveryRecord, o: { timing: SwingTiming; kind?: ContactReport['kind']; region?: DeliveryOutcome['region']; reason?: Coaching['reason'] }): DeliveryResult {
+function fakeResult(
+  record: DeliveryRecord,
+  o: {
+    timing: SwingTiming;
+    kind?: ContactReport['kind'];
+    region?: DeliveryOutcome['region'];
+    reason?: Coaching['reason'];
+  },
+): DeliveryResult {
   return {
-    outcome: { runs: record.runs, boundary: record.runs === 4 || record.runs === 6 ? record.runs : null, dismissal: record.dismissal, fielderId: null, endBearingDeg: null, endDistanceM: null, region: o.region ?? null },
+    outcome: {
+      runs: record.runs,
+      boundary: record.runs === 4 || record.runs === 6 ? record.runs : null,
+      dismissal: record.dismissal,
+      fielderId: null,
+      endBearingDeg: null,
+      endDistanceM: null,
+      region: o.region ?? null,
+    },
     contact: { kind: o.kind ?? (o.timing === 'none' ? 'leave' : 'middle'), timing: o.timing } as ContactReport,
     coaching: { reason: o.reason ?? 'found_the_gap', timing: null, zone: null, fielderRole: null, lbw: null },
     swing: o.timing === 'none' ? null : ({} as DeliveryResult['swing']),
@@ -210,7 +271,17 @@ describe('summaries', () => {
     ];
     const results = o.deliveries.map((r, i) => fakeResult(r, look[i]));
     const sum = overSummary(o, results);
-    expect(sum).toMatchObject({ overIndex: 0, runs: 13, balls: 6, fours: 1, sixes: 1, boundaries: 2, dots: 2, complete: true, dismissal: null });
+    expect(sum).toMatchObject({
+      overIndex: 0,
+      runs: 13,
+      balls: 6,
+      fours: 1,
+      sixes: 1,
+      boundaries: 2,
+      dots: 2,
+      complete: true,
+      dismissal: null,
+    });
     expect(sum.timing).toEqual({ perfect: 2, solid: 1, mistimed: 1, missed: 1, none: 1 });
     expect(sum.scoringAreas.find((a) => a.region === 'straight')).toEqual({ region: 'straight', runs: 6, balls: 1 });
     expect(sum.scoringAreas[0]).toEqual({ region: 'cover', runs: 6, balls: 2 });
@@ -224,9 +295,29 @@ describe('summaries', () => {
     s = choose(inningsReducer(s, { type: 'nextOver' }));
     s = bowl(bowl(s, 4), 0, 'bowled');
     const cache = new Map<string, DeliveryResult>();
-    for (const o of [...s.overs, s.current!]) for (const r of o.deliveries) cache.set(`${r.overIndex}:${r.ballIndex}`, fakeResult(r, { timing: r.dismissal ? 'missed' : 'solid', kind: r.dismissal ? 'miss' : 'middle', region: r.dismissal ? null : 'cover', reason: r.dismissal ? 'missed_straight_ball' : 'found_the_gap' }));
+    for (const o of [...s.overs, s.current!])
+      for (const r of o.deliveries)
+        cache.set(
+          `${r.overIndex}:${r.ballIndex}`,
+          fakeResult(r, {
+            timing: r.dismissal ? 'missed' : 'solid',
+            kind: r.dismissal ? 'miss' : 'middle',
+            region: r.dismissal ? null : 'cover',
+            reason: r.dismissal ? 'missed_straight_ball' : 'found_the_gap',
+          }),
+        );
     const sum = inningsSummary(s, cache);
-    expect(sum).toMatchObject({ status: 'out', finished: true, runs: 10, balls: 8, overs: '1.2', completedOvers: 1, survivedBalls: 7, fours: 1, sixes: 0 });
+    expect(sum).toMatchObject({
+      status: 'out',
+      finished: true,
+      runs: 10,
+      balls: 8,
+      overs: '1.2',
+      completedOvers: 1,
+      survivedBalls: 7,
+      fours: 1,
+      sixes: 0,
+    });
     expect(sum.perOver).toHaveLength(2);
     expect(sum.dismissal).toMatchObject({ how: 'bowled', reason: 'missed_straight_ball', ballNumber: 8, at: '1.2' });
     expect(sum.strikeRate).toBe(125);

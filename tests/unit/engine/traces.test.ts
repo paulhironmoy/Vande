@@ -39,48 +39,153 @@ describe('release meter: execution quality from the trace', () => {
   });
 
   it('accepts a minimal two-sample trace (mouse held still)', () => {
-    expect(errorsOf({ pointer: 'mouse', samples: [[0, 0.5, 0.8], [812.3, 0.5, 0.8]] })).toEqual([]);
+    expect(
+      errorsOf({
+        pointer: 'mouse',
+        samples: [
+          [0, 0.5, 0.8],
+          [812.3, 0.5, 0.8],
+        ],
+      }),
+    ).toEqual([]);
   });
 });
 
 describe('impossible traces are rejected', () => {
-  const base: InputTrace = { pointer: 'touch', samples: [[0, 0.5, 0.9], [33.1, 0.501, 0.88], [70.2, 0.503, 0.86], [801.4, 0.505, 0.6]] };
+  const base: InputTrace = {
+    pointer: 'touch',
+    samples: [
+      [0, 0.5, 0.9],
+      [33.1, 0.501, 0.88],
+      [70.2, 0.503, 0.86],
+      [801.4, 0.505, 0.6],
+    ],
+  };
 
   it('rejects non-monotonic timestamps', () => {
-    expect(errorsOf({ ...base, samples: [[0, 0.5, 0.9], [70, 0.5, 0.88], [33, 0.5, 0.86], [801, 0.5, 0.6]] })).toContain('trace.non_monotonic_time');
+    expect(
+      errorsOf({
+        ...base,
+        samples: [
+          [0, 0.5, 0.9],
+          [70, 0.5, 0.88],
+          [33, 0.5, 0.86],
+          [801, 0.5, 0.6],
+        ],
+      }),
+    ).toContain('trace.non_monotonic_time');
   });
   it('rejects duplicated timestamps', () => {
-    expect(errorsOf({ ...base, samples: [[0, 0.5, 0.9], [33, 0.5, 0.88], [33, 0.5, 0.87], [801, 0.5, 0.6]] })).toContain('trace.duplicate_timestamp');
+    expect(
+      errorsOf({
+        ...base,
+        samples: [
+          [0, 0.5, 0.9],
+          [33, 0.5, 0.88],
+          [33, 0.5, 0.87],
+          [801, 0.5, 0.6],
+        ],
+      }),
+    ).toContain('trace.duplicate_timestamp');
   });
   it('rejects a first sample that is not at t = 0', () => {
-    expect(errorsOf({ ...base, samples: [[5, 0.5, 0.9], [801, 0.5, 0.6]] })).toContain('trace.first_sample_not_zero');
+    expect(
+      errorsOf({
+        ...base,
+        samples: [
+          [5, 0.5, 0.9],
+          [801, 0.5, 0.6],
+        ],
+      }),
+    ).toContain('trace.first_sample_not_zero');
   });
   it('rejects teleporting points', () => {
-    expect(errorsOf({ ...base, samples: [[0, 0.1, 0.9], [8, 0.95, 0.1], [801, 0.95, 0.1]] })).toContain('trace.teleport');
+    expect(
+      errorsOf({
+        ...base,
+        samples: [
+          [0, 0.1, 0.9],
+          [8, 0.95, 0.1],
+          [801, 0.95, 0.1],
+        ],
+      }),
+    ).toContain('trace.teleport');
   });
   it('rejects durations outside human bounds', () => {
-    expect(errorsOf({ pointer: 'touch', samples: [[0, 0.5, 0.5], [12, 0.5, 0.5]] })).toContain('trace.duration_too_short');
-    expect(errorsOf({ pointer: 'touch', samples: [[0, 0.5, 0.5], [METER.maxHoldMs + 1, 0.5, 0.5]] })).toContain('trace.duration_too_long');
+    expect(
+      errorsOf({
+        pointer: 'touch',
+        samples: [
+          [0, 0.5, 0.5],
+          [12, 0.5, 0.5],
+        ],
+      }),
+    ).toContain('trace.duration_too_short');
+    expect(
+      errorsOf({
+        pointer: 'touch',
+        samples: [
+          [0, 0.5, 0.5],
+          [METER.maxHoldMs + 1, 0.5, 0.5],
+        ],
+      }),
+    ).toContain('trace.duration_too_long');
   });
   it('rejects more than MAX_TRACE_SAMPLES samples', () => {
-    const samples = Array.from({ length: 121 }, (_, i) => [i * 6 + (i % 3) * 0.37, 0.5 + (i % 5) * 0.001, 0.9 - i * 0.002] as [number, number, number]);
+    const samples = Array.from(
+      { length: 121 },
+      (_, i) => [i * 6 + (i % 3) * 0.37, 0.5 + (i % 5) * 0.001, 0.9 - i * 0.002] as [number, number, number],
+    );
     expect(errorsOf({ pointer: 'touch', samples })).toContain('trace.too_many_samples');
   });
   it('rejects too few samples, malformed samples, coordinates out of range and unknown pointers', () => {
     expect(errorsOf({ pointer: 'touch', samples: [[0, 0.5, 0.5]] })).toContain('trace.too_few_samples');
-    expect(errorsOf({ pointer: 'touch', samples: [[0, 0.5, 0.5], [800, Number.NaN, 0.5]] })).toContain('trace.malformed_sample');
-    expect(errorsOf({ pointer: 'touch', samples: [[0, 0.5, 0.5], [800, 1.2, 0.5]] as Array<[number, number, number]> })).toContain('trace.coordinate_out_of_range');
-    expect(errorsOf({ pointer: 'stylus' as InputTrace['pointer'], samples: [[0, 0.5, 0.5], [800, 0.5, 0.5]] })).toContain('trace.pointer');
+    expect(
+      errorsOf({
+        pointer: 'touch',
+        samples: [
+          [0, 0.5, 0.5],
+          [800, Number.NaN, 0.5],
+        ],
+      }),
+    ).toContain('trace.malformed_sample');
+    expect(
+      errorsOf({
+        pointer: 'touch',
+        samples: [
+          [0, 0.5, 0.5],
+          [800, 1.2, 0.5],
+        ] as Array<[number, number, number]>,
+      }),
+    ).toContain('trace.coordinate_out_of_range');
+    expect(
+      errorsOf({
+        pointer: 'stylus' as InputTrace['pointer'],
+        samples: [
+          [0, 0.5, 0.5],
+          [800, 0.5, 0.5],
+        ],
+      }),
+    ).toContain('trace.pointer');
     expect(errorsOf(null as unknown as InputTrace)).toContain('trace.missing');
   });
   it('rejects robotic patterns: perfectly regular intervals with perfectly linear motion', () => {
-    const robot: InputTrace = { pointer: 'touch', samples: Array.from({ length: 12 }, (_, i) => [i * 16, 0.5, 0.9 - i * 0.02] as [number, number, number]) };
+    const robot: InputTrace = {
+      pointer: 'touch',
+      samples: Array.from({ length: 12 }, (_, i) => [i * 16, 0.5, 0.9 - i * 0.02] as [number, number, number]),
+    };
     expect(isRobotic(robot)).toBe(true);
-    const robotHold: InputTrace = { pointer: 'mouse', samples: Array.from({ length: 51 }, (_, i) => [i * 16, 0.5, 0.9 - i * 0.004] as [number, number, number]) };
+    const robotHold: InputTrace = {
+      pointer: 'mouse',
+      samples: Array.from({ length: 51 }, (_, i) => [i * 16, 0.5, 0.9 - i * 0.004] as [number, number, number]),
+    };
     expect(errorsOf(robotHold)).toEqual(['trace.robotic_pattern']);
     expect(checkTrace(robot, 'batting')).toContain('trace.robotic_pattern');
     // Jitter in either time or space is human.
-    const jittered = { ...robot, samples: robot.samples.map(([t, x, y], i) => [t + (i % 2) * 0.4, x, y] as [number, number, number]) };
+    const jittered = {
+      ...robot,
+      samples: robot.samples.map(([t, x, y], i) => [t + (i % 2) * 0.4, x, y] as [number, number, number]),
+    };
     expect(isRobotic(jittered)).toBe(false);
     // Keyboard traces never move, so they are exempt.
     expect(isRobotic({ ...robot, pointer: 'keyboard' })).toBe(false);

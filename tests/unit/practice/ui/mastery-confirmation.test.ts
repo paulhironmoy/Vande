@@ -7,7 +7,14 @@
  */
 import { describe, expect, it } from 'vitest';
 import { PRACTICE_SIM_VERSION, type CoachAnalysis } from '@/contracts/practice';
-import { MASTERY_RULE, compareAttempts, masteryEvent, metStandard, recordAttempt, startMastery } from '@/practice/coach';
+import {
+  MASTERY_RULE,
+  compareAttempts,
+  masteryEvent,
+  metStandard,
+  recordAttempt,
+  startMastery,
+} from '@/practice/coach';
 import { masteryConfirmation } from '@/practice/ui/flow/coachLoop';
 
 /**
@@ -16,9 +23,30 @@ import { masteryConfirmation } from '@/practice/ui/flow/coachLoop';
  */
 const CLEAN: CoachAnalysis = {
   version: PRACTICE_SIM_VERSION,
-  ball: { variation: 'stock', speedKph: 132, lengthM: 6, lineAtStumpsM: 0.05, airMovementM: 0, pitchMovementM: 0.02, heightAtBatM: 0.6, wouldHitStumps: true },
+  ball: {
+    variation: 'stock',
+    speedKph: 132,
+    lengthM: 6,
+    lineAtStumpsM: 0.05,
+    airMovementM: 0,
+    pitchMovementM: 0.02,
+    heightAtBatM: 0.6,
+    wouldHitStumps: true,
+  },
   read: { length: 'right', line: 'right', pace: 'unclear', movement: 'right', bounce: 'unclear' },
-  attempted: { decision: 'defend', footwork: 'forward', directionDeg: 0, elevation: 0, power: 0.2, timingErrorMs: 4, contact: 'middle', timing: 'perfect', runs: 0, dismissal: null, spread: null },
+  attempted: {
+    decision: 'defend',
+    footwork: 'forward',
+    directionDeg: 0,
+    elevation: 0,
+    power: 0.2,
+    timingErrorMs: 4,
+    contact: 'middle',
+    timing: 'perfect',
+    runs: 0,
+    dismissal: null,
+    spread: null,
+  },
   why: ['solid_defence'],
   options: [
     {
@@ -26,7 +54,15 @@ const CLEAN: CoachAnalysis = {
       decision: 'defend',
       swing: { kind: 'defend', startT: 0.4, directionDeg: 0, power: 0.2, elevation: 0, footwork: 'forward' },
       footwork: 'forward',
-      outcome: { runs: 0, boundary: null, dismissal: null, fielderId: null, endBearingDeg: null, endDistanceM: null, region: null },
+      outcome: {
+        runs: 0,
+        boundary: null,
+        dismissal: null,
+        fielderId: null,
+        endBearingDeg: null,
+        endDistanceM: null,
+        region: null,
+      },
       contact: 'middle',
       contactPoint: null,
       contactT: 0.5,

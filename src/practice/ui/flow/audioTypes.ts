@@ -34,5 +34,10 @@ export interface AudioKit {
   uiCue(cue: 'select' | 'confirm' | 'lock'): void;
   masteryFeel(event: 'mastered' | 'stage_up'): void;
   /** The match context for the stage's emotion signals only (pressure, a milestone in reach); never the simulation. */
-  deliveryContext(s: { runs: number; wicketsInHand: number; ballsLeft: number | null }): { pressure: number; milestone: 'fifty' | 'hundred' | null; wicketEndsInnings: boolean; runs: number };
+  deliveryContext(s: { runs: number; wicketsInHand: number; ballsLeft: number | null }): {
+    pressure: number;
+    milestone: 'fifty' | 'hundred' | null;
+    wicketEndsInnings: boolean;
+    runs: number;
+  };
 }

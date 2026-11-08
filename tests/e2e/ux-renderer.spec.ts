@@ -16,10 +16,19 @@ let server: ViteDevServer;
 let base = '';
 
 test.describe.configure({ mode: 'serial' });
-test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, launchOptions: { args: ['--ignore-gpu-blocklist', '--enable-unsafe-swiftshader'] } });
+test.use({
+  viewport: { width: 390, height: 844 },
+  deviceScaleFactor: 2,
+  hasTouch: true,
+  launchOptions: { args: ['--ignore-gpu-blocklist', '--enable-unsafe-swiftshader'] },
+});
 
 test.beforeAll(async () => {
-  server = await createServer({ configFile: 'vite.config.ts', logLevel: 'error', server: { host: '127.0.0.1', port: 5288, strictPort: false } });
+  server = await createServer({
+    configFile: 'vite.config.ts',
+    logLevel: 'error',
+    server: { host: '127.0.0.1', port: 5288, strictPort: false },
+  });
   await server.listen();
   const addr = server.httpServer?.address();
   base = `http://127.0.0.1:${typeof addr === 'object' && addr ? addr.port : 5288}`;
@@ -39,14 +48,32 @@ function watchErrors(page: Page) {
 
 async function openHarness(page: Page, query: string) {
   await page.goto(`${base}/src/screens/dev/harness.html?${query}`);
-  await page.waitForFunction(() => (window as unknown as { __h?: { ready: boolean } }).__h?.ready === true, null, { timeout: 60_000 });
+  await page.waitForFunction(() => (window as unknown as { __h?: { ready: boolean } }).__h?.ready === true, null, {
+    timeout: 60_000,
+  });
 }
 
 test('3D replay renders key moments and is deterministic frame by frame', async ({ page }) => {
   const errors = watchErrors(page);
   await openHarness(page, 'mode=replay&rmode=full&q=standard');
   const info = await page.evaluate(() => {
-    const h = (window as unknown as { __h: { duration: number; segments: Array<{ kind: string; t0: number; sceneStart: number; release: number; contact: number; decisive: number; fate: string | null }>; renderer: { kind: string } } }).__h;
+    const h = (
+      window as unknown as {
+        __h: {
+          duration: number;
+          segments: Array<{
+            kind: string;
+            t0: number;
+            sceneStart: number;
+            release: number;
+            contact: number;
+            decisive: number;
+            fate: string | null;
+          }>;
+          renderer: { kind: string };
+        };
+      }
+    ).__h;
     return { duration: h.duration, kind: h.renderer.kind, segments: h.segments };
   });
   expect(info.kind).toBe('3d');
@@ -90,7 +117,9 @@ test('Key Moments is shorter than the full replay and plays without errors', asy
   const duration = await page.evaluate(() => (window as unknown as { __h: { duration: number } }).__h.duration);
   expect(duration).toBeGreaterThan(10_000);
   await page.waitForTimeout(2500);
-  const stats = await page.evaluate(() => (window as unknown as { __h: { renderer: { stats(): { fps: number; drawCalls: number } } } }).__h.renderer.stats());
+  const stats = await page.evaluate(() =>
+    (window as unknown as { __h: { renderer: { stats(): { fps: number; drawCalls: number } } } }).__h.renderer.stats(),
+  );
   expect(stats.drawCalls).toBeGreaterThan(10);
   await page.screenshot({ path: join(SHOTS, 'key-moments-playing.png') });
   expect(errors).toEqual([]);
@@ -99,7 +128,9 @@ test('Key Moments is shorter than the full replay and plays without errors', asy
 test('2D fallback presents the same replay', async ({ page }) => {
   const errors = watchErrors(page);
   await openHarness(page, 'mode=replay&rmode=full&fallback=1');
-  expect(await page.evaluate(() => (window as unknown as { __h: { renderer: { kind: string } } }).__h.renderer.kind)).toBe('2d');
+  expect(
+    await page.evaluate(() => (window as unknown as { __h: { renderer: { kind: string } } }).__h.renderer.kind),
+  ).toBe('2d');
   for (const t of [9000, 15500, 38000, 47500]) {
     await page.evaluate((ms) => (window as unknown as { __h: { renderAt(ms: number): void } }).__h.renderAt(ms), t);
     await page.screenshot({ path: join(SHOTS, `fallback2d-${t}.png`) });
@@ -141,7 +172,10 @@ const screens: Array<[string, string]> = [
   ['card-invite-long-link', 'screen=card&card=invite'],
   ['card-cup-invite', 'screen=card&card=cup-invite'],
   ['onboarding-large-text', 'screen=onboarding&ts=1.3'],
-  ['card-cup-invite-hindi', 'screen=card&card=cup-invite&locale=hi&cup=%E0%A4%91%E0%A4%AB%E0%A4%BF%E0%A4%B8%20%E0%A4%95%E0%A4%AA'],
+  [
+    'card-cup-invite-hindi',
+    'screen=card&card=cup-invite&locale=hi&cup=%E0%A4%91%E0%A4%AB%E0%A4%BF%E0%A4%B8%20%E0%A4%95%E0%A4%AA',
+  ],
   ['reveal-countdown', 'screen=reveal-countdown'],
   ['reveal-countdown-hindi', 'screen=reveal-countdown&locale=hi&in=75'],
   ['chips', 'screen=chips'],
@@ -213,19 +247,37 @@ test('recover account sheet: both methods, an honest failure, and axe', async ({
   expect(errors).toEqual([]);
 });
 
-test('highlight render page: a 30–60 s cut, deterministic frames and a soundtrack of the same length', async ({ page }) => {
+test('highlight render page: a 30–60 s cut, deterministic frames and a soundtrack of the same length', async ({
+  page,
+}) => {
   test.setTimeout(120_000);
   const errors = watchErrors(page);
   await page.setViewportSize({ width: 1080, height: 1920 });
   await page.goto(`${base}/render.html`);
-  await page.waitForFunction(() => typeof (window as unknown as { __vcHighlight?: unknown }).__vcHighlight === 'object', null, { timeout: 30_000 });
+  await page.waitForFunction(
+    () => typeof (window as unknown as { __vcHighlight?: unknown }).__vcHighlight === 'object',
+    null,
+    { timeout: 30_000 },
+  );
   const loaded = await page.evaluate(async () => {
     // Served by the Vite dev server at run time (not a module of the test build).
     const fixtures = '/src/screens/dev/fixtures.ts';
     const f = (await import(/* @vite-ignore */ fixtures)) as { fixtureMatchLog(): unknown };
     const log = f.fixtureMatchLog();
-    const input = { jobId: 'job-e2e', log, aliases: ['Swing King', 'Night Owl'], locale: 'en', fixtureLabel: 'Friend Duel', day: '2026-10-25', ranks: [7, null], standings: null, cta: { url: 'https://vande.example/h/abc123' } };
-    return (window as unknown as { __vcHighlight: { load(i: unknown): Promise<{ durationMs: number; fps: number }> } }).__vcHighlight.load(input);
+    const input = {
+      jobId: 'job-e2e',
+      log,
+      aliases: ['Swing King', 'Night Owl'],
+      locale: 'en',
+      fixtureLabel: 'Friend Duel',
+      day: '2026-10-25',
+      ranks: [7, null],
+      standings: null,
+      cta: { url: 'https://vande.example/h/abc123' },
+    };
+    return (
+      window as unknown as { __vcHighlight: { load(i: unknown): Promise<{ durationMs: number; fps: number }> } }
+    ).__vcHighlight.load(input);
   });
   expect(loaded.fps).toBe(30);
   expect(loaded.durationMs).toBeGreaterThanOrEqual(30_000);
@@ -238,7 +290,11 @@ test('highlight render page: a 30–60 s cut, deterministic frames and a soundtr
       return (document.getElementById('highlight') as HTMLCanvasElement).toDataURL('image/png');
     }, ms);
   // The hook comes first: the biggest moment, from the very first frame.
-  const scenes = await page.evaluate(() => (window as unknown as { __vcHighlight: { plan(): { scenes: Array<{ kind: string; t0: number }> } } }).__vcHighlight.plan().scenes.map((s) => ({ kind: s.kind, t0: s.t0 })));
+  const scenes = await page.evaluate(() =>
+    (window as unknown as { __vcHighlight: { plan(): { scenes: Array<{ kind: string; t0: number }> } } }).__vcHighlight
+      .plan()
+      .scenes.map((s) => ({ kind: s.kind, t0: s.t0 })),
+  );
   expect(scenes[0]).toEqual({ kind: 'hook', t0: 0 });
   expect(scenes[1].kind).toBe('intro');
   for (const t of [200, 1000, 2600, 9000, Math.round(loaded.durationMs * 0.75), loaded.durationMs - 1500]) {
@@ -251,14 +307,22 @@ test('highlight render page: a 30–60 s cut, deterministic frames and a soundtr
   await frameAt(2_000);
   const b = await frameAt(14_000);
   expect(a === b).toBe(true);
-  const wav = await page.evaluate(() => (window as unknown as { __vcHighlight: { audio(): Promise<string | null> } }).__vcHighlight.audio());
+  const wav = await page.evaluate(() =>
+    (window as unknown as { __vcHighlight: { audio(): Promise<string | null> } }).__vcHighlight.audio(),
+  );
   expect(wav).not.toBeNull();
   const bytes = Buffer.from(wav as string, 'base64');
   expect(bytes.subarray(0, 4).toString()).toBe('RIFF');
-  const seconds = (bytes.length - 44) / (bytes.readUInt32LE(28));
+  const seconds = (bytes.length - 44) / bytes.readUInt32LE(28);
   expect(Math.abs(seconds * 1000 - loaded.durationMs)).toBeLessThan(25);
   // Mastered for YouTube: about -14 LUFS, the true peak at or under -1 dBTP, the crowd bed under the action.
-  const report = await page.evaluate(() => (window as unknown as { __vcHighlight: { audioReport(): { integrated: number; truePeak: number; bedGainDb: number } | null } }).__vcHighlight.audioReport());
+  const report = await page.evaluate(() =>
+    (
+      window as unknown as {
+        __vcHighlight: { audioReport(): { integrated: number; truePeak: number; bedGainDb: number } | null };
+      }
+    ).__vcHighlight.audioReport(),
+  );
   expect(report).not.toBeNull();
   expect(Math.abs(report!.integrated - -14)).toBeLessThan(1);
   expect(report!.truePeak).toBeLessThanOrEqual(-1);

@@ -85,7 +85,14 @@ export interface PracticeOverPlan {
   /** The ball, fixed for the over (part of exact-ball replay). */
   ball: BallCondition;
   /** Exactly six legal deliveries, fixed before the first ball and never changed after. */
-  balls: [PracticeDeliveryPlan, PracticeDeliveryPlan, PracticeDeliveryPlan, PracticeDeliveryPlan, PracticeDeliveryPlan, PracticeDeliveryPlan];
+  balls: [
+    PracticeDeliveryPlan,
+    PracticeDeliveryPlan,
+    PracticeDeliveryPlan,
+    PracticeDeliveryPlan,
+    PracticeDeliveryPlan,
+    PracticeDeliveryPlan,
+  ];
   /** Over seed; each ball's seed is derived from it, so the over replays exactly. */
   seed: string;
   /** 'reference' is the benchmark over (docs/PRACTICE.md, "Reference over"): the same six balls every time. */
@@ -242,15 +249,7 @@ export interface BatSample {
 }
 
 export type ContactKind =
-  | 'middle'
-  | 'inside_edge'
-  | 'outside_edge'
-  | 'top_edge'
-  | 'leading_edge'
-  | 'pad'
-  | 'body'
-  | 'miss'
-  | 'leave';
+  'middle' | 'inside_edge' | 'outside_edge' | 'top_edge' | 'leading_edge' | 'pad' | 'body' | 'miss' | 'leave';
 
 export type SwingTiming = 'perfect' | 'solid' | 'mistimed' | 'missed' | 'none';
 
@@ -325,7 +324,8 @@ export interface FielderPath {
 export type Dismissal = 'bowled' | 'caught' | 'caught_behind' | 'lbw';
 
 /** The LBW verdict when the ball hit the pad or body before the bat (Law 36); 'out' is the only dismissal. */
-export type LbwReason = 'pitched_outside_leg' | 'impact_outside_leg' | 'impact_outside_off' | 'missing' | 'high' | 'out';
+export type LbwReason =
+  'pitched_outside_leg' | 'impact_outside_leg' | 'impact_outside_off' | 'missing' | 'high' | 'out';
 
 export interface LbwDecision {
   out: boolean;

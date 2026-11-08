@@ -77,13 +77,18 @@ function expectedRest(ballsLeft: number, wicketsLost: number): number {
 }
 
 /** Result ladder: runs → Super Ball runs → fewer wickets lost → more boundaries → tie. */
-export function decideResult(inn: [InningsSummary, InningsSummary], superBalls: [BallOutcome, BallOutcome]): Omit<MatchResult, 'playerOfMatch' | 'turningPointEvent'> {
+export function decideResult(
+  inn: [InningsSummary, InningsSummary],
+  superBalls: [BallOutcome, BallOutcome],
+): Omit<MatchResult, 'playerOfMatch' | 'turningPointEvent'> {
   const [a, b] = inn;
-  if (a.runs !== b.runs) return { winner: a.runs > b.runs ? 0 : 1, tie: false, decidedBy: 'runs', marginRuns: Math.abs(a.runs - b.runs) };
+  if (a.runs !== b.runs)
+    return { winner: a.runs > b.runs ? 0 : 1, tie: false, decidedBy: 'runs', marginRuns: Math.abs(a.runs - b.runs) };
   const s0 = superBalls[0].runs;
   const s1 = superBalls[1].runs;
   if (s0 !== s1) return { winner: s0 > s1 ? 0 : 1, tie: false, decidedBy: 'super_ball', marginRuns: Math.abs(s0 - s1) };
-  if (a.wickets !== b.wickets) return { winner: a.wickets < b.wickets ? 0 : 1, tie: false, decidedBy: 'wickets_lost', marginRuns: 0 };
+  if (a.wickets !== b.wickets)
+    return { winner: a.wickets < b.wickets ? 0 : 1, tie: false, decidedBy: 'wickets_lost', marginRuns: 0 };
   const ba = boundaries(a.balls);
   const bb = boundaries(b.balls);
   if (ba !== bb) return { winner: ba > bb ? 0 : 1, tie: false, decidedBy: 'boundaries', marginRuns: 0 };
@@ -95,7 +100,12 @@ export function decideResult(inn: [InningsSummary, InningsSummary], superBalls: 
  * winner; when the Super Ball counted, its runs, −½ per run conceded and +4 for a Super Ball wicket. Level → more
  * runs scored → more wickets taken → a coin from the match seed.
  */
-export function potmPoints(inn: [InningsSummary, InningsSummary], superBalls: [BallOutcome, BallOutcome], used: boolean, winner: 0 | 1 | null): [number, number] {
+export function potmPoints(
+  inn: [InningsSummary, InningsSummary],
+  superBalls: [BallOutcome, BallOutcome],
+  used: boolean,
+  winner: 0 | 1 | null,
+): [number, number] {
   const pts: [number, number] = [0, 0];
   for (const p of [0, 1] as const) {
     const batting = inn[p];
@@ -112,7 +122,13 @@ export function potmPoints(inn: [InningsSummary, InningsSummary], superBalls: [B
   return pts;
 }
 
-function playerOfMatch(seed: string, inn: [InningsSummary, InningsSummary], superBalls: [BallOutcome, BallOutcome], used: boolean, winner: 0 | 1 | null): 0 | 1 {
+function playerOfMatch(
+  seed: string,
+  inn: [InningsSummary, InningsSummary],
+  superBalls: [BallOutcome, BallOutcome],
+  used: boolean,
+  winner: 0 | 1 | null,
+): 0 | 1 {
   const [p0, p1] = potmPoints(inn, superBalls, used, winner);
   if (p0 !== p1) return p0 > p1 ? 0 : 1;
   if (inn[0].runs !== inn[1].runs) return inn[0].runs > inn[1].runs ? 0 : 1;
@@ -127,7 +143,12 @@ interface BallRef {
 }
 
 /** Projected margin (player 0's view) after each ball of the presentation, and the ball that swung it most. */
-export function turningPoint(inn: [InningsSummary, InningsSummary], superBalls: [BallOutcome, BallOutcome], used: boolean, winner: 0 | 1 | null): { innings: 0 | 1 | 'super'; index: number } {
+export function turningPoint(
+  inn: [InningsSummary, InningsSummary],
+  superBalls: [BallOutcome, BallOutcome],
+  used: boolean,
+  winner: 0 | 1 | null,
+): { innings: 0 | 1 | 'super'; index: number } {
   const refs: Array<{ innings: 0 | 1 | 'super'; index: number; margin: number }> = [];
   const base = expectedRest(BALLS_PER_OVER, 0);
   let runs = 0;
@@ -164,8 +185,16 @@ export function turningPoint(inn: [InningsSummary, InningsSummary], superBalls: 
   return { innings: best.innings, index: best.index };
 }
 
-export function ballCommentary(o: BallOutcome, field: OverPlan['field']): { key: string; params: Record<string, string | number> } {
-  const params: Record<string, string | number> = { runs: o.runs, shot: o.shot, variant: o.delivery.variant, speed: o.cues.path.speedKph };
+export function ballCommentary(
+  o: BallOutcome,
+  field: OverPlan['field'],
+): { key: string; params: Record<string, string | number> } {
+  const params: Record<string, string | number> = {
+    runs: o.runs,
+    shot: o.shot,
+    variant: o.delivery.variant,
+    speed: o.cues.path.speedKph,
+  };
   if (o.zone) params.zone = o.zone;
   if (o.timing === 'interrupted') return { key: 'commentary.unanswered', params };
   if (o.wicket) {
@@ -175,7 +204,10 @@ export function ballCommentary(o: BallOutcome, field: OverPlan['field']): { key:
     if (o.wicket === 'caught') {
       if (!o.fielder) return { key: 'commentary.wicket_caught_behind', params };
       const cov = FIELD_LAYOUTS[field].zones[o.fielder];
-      return { key: cov === 'deep' || cov === 'both' ? 'commentary.wicket_caught_deep' : 'commentary.wicket_caught', params };
+      return {
+        key: cov === 'deep' || cov === 'both' ? 'commentary.wicket_caught_deep' : 'commentary.wicket_caught',
+        params,
+      };
     }
     return { key: `commentary.wicket_${o.wicket}`, params };
   }
@@ -183,7 +215,10 @@ export function ballCommentary(o: BallOutcome, field: OverPlan['field']): { key:
     if (o.cues.fate.kind === 'six') params.distance = o.cues.fate.distanceM;
     if (o.executionGrade === 'loose') return { key: 'commentary.loose_punished', params };
     if (o.runs === 6) return { key: 'commentary.six', params };
-    return { key: o.contact === 'thick_edge' || o.contact === 'thin_edge' ? 'commentary.four_edge' : 'commentary.four', params };
+    return {
+      key: o.contact === 'thick_edge' || o.contact === 'thin_edge' ? 'commentary.four_edge' : 'commentary.four',
+      params,
+    };
   }
   if (o.runs > 0) return { key: 'commentary.runs', params };
   if (o.shot === 'leave') return { key: 'commentary.leave', params };
@@ -230,9 +265,13 @@ function keptInputs(list: Array<BattingInput | null>, played: ReadonlySet<number
 }
 
 export function buildMatchLog(a: BuildArgs): MatchEventLog {
-  for (const s of a.innings) if (!s.done || !s.superBall) throw new Error('engine: both innings (including the Super Ball) must be complete');
+  for (const s of a.innings)
+    if (!s.done || !s.superBall) throw new Error('engine: both innings (including the Super Ball) must be complete');
   const raw: [InningsSummary, InningsSummary] = [summarise(a.innings[0], 0), summarise(a.innings[1], 1)];
-  const rawSuper: [BallOutcome, BallOutcome] = [a.innings[0].superBall as BallOutcome, a.innings[1].superBall as BallOutcome];
+  const rawSuper: [BallOutcome, BallOutcome] = [
+    a.innings[0].superBall as BallOutcome,
+    a.innings[1].superBall as BallOutcome,
+  ];
   const base = decideResult(raw, rawSuper);
   const used = base.decidedBy !== 'runs';
   const tp = turningPoint(raw, rawSuper, used, base.winner);
@@ -253,7 +292,9 @@ export function buildMatchLog(a: BuildArgs): MatchEventLog {
     const last = balls[1].length - 1;
     if (base.decidedBy !== 'runs' || base.marginRuns <= 2) balls[1][last] = upgrade(balls[1][last], { dramatic: true });
   }
-  const superOut: [BallOutcome, BallOutcome] = used ? [upgrade(rawSuper[0], { dramatic: true }), upgrade(rawSuper[1], { dramatic: true })] : rawSuper;
+  const superOut: [BallOutcome, BallOutcome] = used
+    ? [upgrade(rawSuper[0], { dramatic: true }), upgrade(rawSuper[1], { dramatic: true })]
+    : rawSuper;
   if (used && tp.innings === 'super') superOut[tp.index] = upgrade(superOut[tp.index], { dramatic: true });
   // The second Super Ball completes the contest: a winning hit by player 1 is celebrated as a milestone.
   if (used && base.winner === 1) superOut[1] = upgrade(superOut[1], { milestone: true });
@@ -268,8 +309,18 @@ export function buildMatchLog(a: BuildArgs): MatchEventLog {
   for (const i of [0, 1] as const) {
     const bowlerPlan = a.plans[i === 0 ? 1 : 0];
     events.push({ t: 'innings_start', innings: i, batter: i, field: bowlerPlan.field });
-    if (i === 0) events.push({ t: 'commentary', key: 'commentary.innings_start', params: { batter: 0, field: bowlerPlan.field, pitch: a.conditions.pitch, weather: a.conditions.weather } });
-    else events.push({ t: 'commentary', key: 'commentary.chase_target', params: { batter: 1, field: bowlerPlan.field, target: innings[0].runs + 1, balls: BALLS_PER_OVER } });
+    if (i === 0)
+      events.push({
+        t: 'commentary',
+        key: 'commentary.innings_start',
+        params: { batter: 0, field: bowlerPlan.field, pitch: a.conditions.pitch, weather: a.conditions.weather },
+      });
+    else
+      events.push({
+        t: 'commentary',
+        key: 'commentary.chase_target',
+        params: { batter: 1, field: bowlerPlan.field, target: innings[0].runs + 1, balls: BALLS_PER_OVER },
+      });
     let runs = 0;
     let wkts = 0;
     let chaseWon = false;
@@ -286,13 +337,20 @@ export function buildMatchLog(a: BuildArgs): MatchEventLog {
         if (need <= 0) {
           chaseWon = true;
           events.push({ t: 'commentary', key: 'commentary.chase_won', params: { batter: 1, ballsLeft } });
-        } else if (ballsLeft > 0) events.push({ t: 'commentary', key: 'commentary.chase_needs', params: { runs: need, balls: ballsLeft } });
+        } else if (ballsLeft > 0)
+          events.push({ t: 'commentary', key: 'commentary.chase_needs', params: { runs: need, balls: ballsLeft } });
       }
     });
     events.push({ t: 'innings_end', innings: i, runs: innings[i].runs, wickets: innings[i].wickets });
     if (i === 1 && !chaseWon) {
-      if (innings[1].runs === innings[0].runs) events.push({ t: 'commentary', key: 'commentary.scores_level', params: { runs: innings[1].runs } });
-      else events.push({ t: 'commentary', key: 'commentary.chase_short', params: { by: innings[0].runs - innings[1].runs } });
+      if (innings[1].runs === innings[0].runs)
+        events.push({ t: 'commentary', key: 'commentary.scores_level', params: { runs: innings[1].runs } });
+      else
+        events.push({
+          t: 'commentary',
+          key: 'commentary.chase_short',
+          params: { by: innings[0].runs - innings[1].runs },
+        });
     }
   }
   if (used) {
@@ -301,11 +359,21 @@ export function buildMatchLog(a: BuildArgs): MatchEventLog {
     ([0, 1] as const).forEach((p) => {
       const o = superOut[p];
       refs.push({ ref: { innings: 'super', index: p, outcome: o }, eventIndex: events.length });
-      events.push({ t: 'ball', innings: 'super', ball: SUPER_BALL_INDEX, outcome: o, score: { runs: o.runs, wickets: o.wicket ? 1 : 0, ballsLeft: 0 } });
+      events.push({
+        t: 'ball',
+        innings: 'super',
+        ball: SUPER_BALL_INDEX,
+        outcome: o,
+        score: { runs: o.runs, wickets: o.wicket ? 1 : 0, ballsLeft: 0 },
+      });
       const c = ballCommentary(o, a.plans[p === 0 ? 1 : 0].field);
       events.push({ t: 'commentary', key: c.key, params: { ...c.params, batter: p, bowler: p === 0 ? 1 : 0 } });
     });
-    events.push({ t: 'commentary', key: 'commentary.super_ball_result', params: { p0: superOut[0].runs, p1: superOut[1].runs } });
+    events.push({
+      t: 'commentary',
+      key: 'commentary.super_ball_result',
+      params: { p0: superOut[0].runs, p1: superOut[1].runs },
+    });
   }
   const tpRef = refs.find((r) => r.ref.innings === tp.innings && r.ref.index === tp.index) ?? refs[refs.length - 1];
   const result: MatchResult = {

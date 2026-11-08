@@ -10,7 +10,15 @@
  * Reason: MOTION-1 found zero variation between balls and bodies that froze after the result.
  */
 import { describe, expect, it, vi } from 'vitest';
-import { CH, CHANNELS, DRAW, deliveryTakeKey, prepare, type DirectorAnchors, type DirectorPlan } from '@/render3d/core/motion/director';
+import {
+  CH,
+  CHANNELS,
+  DRAW,
+  deliveryTakeKey,
+  prepare,
+  type DirectorAnchors,
+  type DirectorPlan,
+} from '@/render3d/core/motion/director';
 import { FIDGET, FIDGET_N, T_SIDE } from '@/render3d/core/motion/director/plan';
 import { anchorsFor, delivery, idleAnchors, randomSpec, rng } from './world';
 import { frameOf, quantile, record, recordFile, stats, timeOf, val } from './gates';
@@ -35,7 +43,10 @@ describe('fidgets between balls', () => {
         if (n) first.push(p.fidget[0]);
         for (let m = 0; m < n; m++) kinds[p.fidget[m * FIDGET_N + 1]]++;
         // events are in time order and finish before the loop's seam
-        for (let m = 1; m < n; m++) expect(p.fidget[m * FIDGET_N]).toBeGreaterThan(p.fidget[(m - 1) * FIDGET_N] + p.fidget[(m - 1) * FIDGET_N + 2]);
+        for (let m = 1; m < n; m++)
+          expect(p.fidget[m * FIDGET_N]).toBeGreaterThan(
+            p.fidget[(m - 1) * FIDGET_N] + p.fidget[(m - 1) * FIDGET_N + 2],
+          );
         if (n) expect(p.fidget[(n - 1) * FIDGET_N] + p.fidget[(n - 1) * FIDGET_N + 2]).toBeLessThan(60_000 - 4000);
         for (let i = 0; i < p.n; i++) {
           peak.swayX = Math.max(peak.swayX, Math.abs(val(p, i, CH.swayX)));
@@ -74,7 +85,10 @@ describe('fidgets between balls', () => {
       // a long wait before the release (the scripts are 2.4 s to the release; a run-up of 6 s leaves room)
       const d = delivery(randomSpec(r), 7000);
       for (const role of ['striker', 'bowler'] as const) {
-        const p = prepare(anchorsFor(d, { role, key: deliveryTakeKey({ seed: 'fid-del', overIndex: 0, ballIndex: k }) }), { hz: 60 });
+        const p = prepare(
+          anchorsFor(d, { role, key: deliveryTakeKey({ seed: 'fid-del', overIndex: 0, ballIndex: k }) }),
+          { hz: 60 },
+        );
         if (role === 'bowler') expect(p.fidget.length).toBe(0);
         else {
           for (let m = 0; m < p.fidget.length / FIDGET_N; m++) {
@@ -127,11 +141,17 @@ describe('fidgets between balls', () => {
 
 describe('the reaction to the outcome', () => {
   const OUTCOMES = ['six', 'four', 'runs', 'dot', 'leave', 'close_call', 'wicket'] as const;
-  const withOutcome = (a: DirectorAnchors, outcome: string | null, outcomeAt: number | null): DirectorAnchors => ({ ...a, outcome, outcomeAt });
+  const withOutcome = (a: DirectorAnchors, outcome: string | null, outcomeAt: number | null): DirectorAnchors => ({
+    ...a,
+    outcome,
+    outcomeAt,
+  });
 
   /** Frame times at which two plans differ in any channel; the first of them. */
   function firstDiff(a: DirectorPlan, b: DirectorPlan): number {
-    for (let i = 0; i < Math.min(a.n, b.n); i++) for (let c = 0; c < CHANNELS; c++) if (a.trace[i * CHANNELS + c] !== b.trace[i * CHANNELS + c]) return timeOf(a, i);
+    for (let i = 0; i < Math.min(a.n, b.n); i++)
+      for (let c = 0; c < CHANNELS; c++)
+        if (a.trace[i * CHANNELS + c] !== b.trace[i * CHANNELS + c]) return timeOf(a, i);
     return Number.POSITIVE_INFINITY;
   }
 
@@ -141,7 +161,10 @@ describe('the reaction to the outcome', () => {
     const per: Record<string, number[]> = {};
     for (let k = 0; k < 120; k++) {
       const d = delivery(randomSpec(r));
-      const base = anchorsFor(d, { role: 'striker', key: deliveryTakeKey({ seed: 'react', overIndex: 0, ballIndex: k }) });
+      const base = anchorsFor(d, {
+        role: 'striker',
+        key: deliveryTakeKey({ seed: 'react', overIndex: 0, ballIndex: k }),
+      });
       const at = d.timeline.outcomeAt;
       const quiet = prepare(withOutcome(base, null, null), { hz: 60 });
       void quiet;
@@ -155,12 +178,15 @@ describe('the reaction to the outcome', () => {
         expect(lag).toBeLessThanOrEqual(380);
         // The two plans share the key, so they agree until the reaction's start; it begins within a frame of outcomeAt + the draw.
         expect(t, `${o} #${k}`).toBeGreaterThanOrEqual(at + 180);
-        expect(t, `${o} #${k}`).toBeLessThanOrEqual(at + lag + 1000 / 60 * 3);
+        expect(t, `${o} #${k}`).toBeLessThanOrEqual(at + lag + (1000 / 60) * 3);
         (per[o] ??= []).push(t - at);
         onsets.push(t - at);
       }
     }
-    record('reactionOnsetMsAfterOutcomeAt', { all: stats(onsets), perOutcome: Object.fromEntries(Object.entries(per).map(([k, v]) => [k, stats(v)])) });
+    record('reactionOnsetMsAfterOutcomeAt', {
+      all: stats(onsets),
+      perOutcome: Object.fromEntries(Object.entries(per).map(([k, v]) => [k, stats(v)])),
+    });
     expect(Math.min(...onsets)).toBeGreaterThanOrEqual(180);
     expect(Math.max(...onsets)).toBeLessThanOrEqual(380 + 60);
   });
@@ -191,7 +217,8 @@ describe('the reaction to the outcome', () => {
         const plan = prepare(withOutcome(base, o, at), { hz: 60 });
         // the posture channel alone, at its largest in the 6 s that follow; the head's pitch and the shake are the event's own
         let post = 0;
-        for (let i = frameOf(plan, at + 150); i < Math.min(plan.n, frameOf(plan, at + 6000)); i++) if (Math.abs(val(plan, i, CH.posture)) > Math.abs(post)) post = val(plan, i, CH.posture);
+        for (let i = frameOf(plan, at + 150); i < Math.min(plan.n, frameOf(plan, at + 6000)); i++)
+          if (Math.abs(val(plan, i, CH.posture)) > Math.abs(post)) post = val(plan, i, CH.posture);
         if (Math.abs(post) > Math.abs(peak[o].posture)) peak[o].posture = post;
         if (Math.abs(plan.react[8]) > Math.abs(peak[o].headPitchDeg)) peak[o].headPitchDeg = plan.react[8];
         peak[o].shakeDeg = Math.max(peak[o].shakeDeg, Math.abs(plan.react[6]));
@@ -242,7 +269,11 @@ describe('the reaction to the outcome', () => {
         expect(val(rmPlan, i, CH.twist)).toBe(0);
       }
       expect(swings(rmPlan, at + 150, at + 1800)).toBeLessThanOrEqual(1);
-      normal += swings(prepare(withOutcome({ ...base, reducedMotion: false }, 'wicket', at), { hz: 60 }), at + 150, at + 1800);
+      normal += swings(
+        prepare(withOutcome({ ...base, reducedMotion: false }, 'wicket', at), { hz: 60 }),
+        at + 150,
+        at + 1800,
+      );
     }
     record('headYawReversalsAfterWicket', { normalMotionTotalOver20: normal });
     expect(normal).toBeGreaterThan(20 * 2);

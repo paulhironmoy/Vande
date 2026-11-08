@@ -10,6 +10,13 @@ import { playHi } from './hi/play';
 import { settingsHi } from './hi/settings';
 import { startHi } from './hi/start';
 
-export const practiceHi: Record<string, string> = { ...startHi, ...playHi, ...coachHi, ...fieldHi, ...deliveriesHi, ...settingsHi };
+export const practiceHi: Record<string, string> = {
+  ...startHi,
+  ...playHi,
+  ...coachHi,
+  ...fieldHi,
+  ...deliveriesHi,
+  ...settingsHi,
+};
 
 export default practiceHi;

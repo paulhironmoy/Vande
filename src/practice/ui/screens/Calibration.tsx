@@ -7,7 +7,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { PButton, Screen, sys } from '../design';
 import { usePracticeT, type PracticeT } from '@/i18n/practice';
-import { CALIBRATED_INPUTS, clearCalibration, loadCalibrations, saveCalibrations, type CalibratedInput, type StoredCalibrations } from '@/practice/store';
+import {
+  CALIBRATED_INPUTS,
+  clearCalibration,
+  loadCalibrations,
+  saveCalibrations,
+  type CalibratedInput,
+  type StoredCalibrations,
+} from '@/practice/store';
 import { eventTime } from '@/input/pointer';
 import { useKit } from '../context';
 import s from './Tools.module.css';
@@ -18,11 +25,14 @@ const TRAVEL_MS = 1300;
 const LINE_AT = 0.68;
 const REJECT_MS = 300;
 
-type Phase = { kind: 'intro' } | { kind: 'running'; n: number; missed: boolean } | { kind: 'done'; set: StoredCalibrations };
+type Phase =
+  { kind: 'intro' } | { kind: 'running'; n: number; missed: boolean } | { kind: 'done'; set: StoredCalibrations };
 
 /** "touch 42 ms, keyboard 18 ms": every input that has an offset. */
 export function calibrationList(t: PracticeT, set: StoredCalibrations): string | null {
-  const items = CALIBRATED_INPUTS.filter((m) => set[m]).map((m) => t.t('practice.cal.item', { input: t.tk(`practice.cal.input.${m}`), ms: Math.round(set[m]!.offsetMs) }));
+  const items = CALIBRATED_INPUTS.filter((m) => set[m]).map((m) =>
+    t.t('practice.cal.item', { input: t.tk(`practice.cal.input.${m}`), ms: Math.round(set[m]!.offsetMs) }),
+  );
   return items.length ? items.join(', ') : null;
 }
 
@@ -141,7 +151,10 @@ export function Calibration({ onBack }: { onBack: () => void }) {
             <div className={s.section} data-testid="practice-cal-result">
               {CALIBRATED_INPUTS.filter((m) => phase.set[m]).map((m) => (
                 <p key={m} className={sys.section}>
-                  {t.t('practice.cal.result', { input: t.tk(`practice.cal.input.${m}`), ms: Math.round(phase.set[m]!.offsetMs) })}
+                  {t.t('practice.cal.result', {
+                    input: t.tk(`practice.cal.input.${m}`),
+                    ms: Math.round(phase.set[m]!.offsetMs),
+                  })}
                 </p>
               ))}
               <p className={sys.caption}>
@@ -153,7 +166,9 @@ export function Calibration({ onBack }: { onBack: () => void }) {
           ))}
       </div>
       <p className={sys.caption} data-testid="practice-cal-current">
-        {calibrationList(t, current) ? t.t('practice.cal.current', { list: calibrationList(t, current)! }) : t.t('practice.cal.not_done')}
+        {calibrationList(t, current)
+          ? t.t('practice.cal.current', { list: calibrationList(t, current)! })
+          : t.t('practice.cal.not_done')}
       </p>
       <div className={s.actions}>
         {phase.kind !== 'running' && (

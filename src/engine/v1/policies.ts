@@ -24,7 +24,16 @@ import type {
 import { rngFromKey, type Sfc32 } from '../prng';
 import { matchupOf, naturalZonesFor } from './model';
 import { energyCost } from './plan';
-import { FIELD_LAYOUTS, LEGAL_ZONES, METER, OVER_ENERGY_BUDGET, PITCHES, SUPER_BALL_ALLOWANCE, type AttackShot, type Coverage } from './tables';
+import {
+  FIELD_LAYOUTS,
+  LEGAL_ZONES,
+  METER,
+  OVER_ENERGY_BUDGET,
+  PITCHES,
+  SUPER_BALL_ALLOWANCE,
+  type AttackShot,
+  type Coverage,
+} from './tables';
 import { synthBattingTrace, synthExecutionTrace } from './traces';
 
 /** A delivery before its gesture is synthesised. */
@@ -36,7 +45,13 @@ export interface DeliverySpec {
   intent: Intent;
 }
 
-const spec = (variant: DeliveryVariant, line: Line, length: Length, intensity: Intensity, intent: Intent): DeliverySpec => ({ variant, line, length, intensity, intent });
+const spec = (
+  variant: DeliveryVariant,
+  line: Line,
+  length: Length,
+  intensity: Intensity,
+  intent: Intent,
+): DeliverySpec => ({ variant, line, length, intensity, intent });
 
 /** Lowers intensities (most expensive first, from the end of the over) until the over fits the energy budget. */
 export function fitBudget(balls: DeliverySpec[], budget = OVER_ENERGY_BUDGET): DeliverySpec[] {
@@ -66,7 +81,8 @@ export function fitBudget(balls: DeliverySpec[], budget = OVER_ENERGY_BUDGET): D
 /** Brings a Super Ball within its allowance (lower intensity first, then a stock good-length ball). */
 export function fitSuperBall(d: DeliverySpec): DeliverySpec {
   let out = { ...d };
-  while (energyCost(out) > SUPER_BALL_ALLOWANCE && out.intensity > 1) out = { ...out, intensity: (out.intensity - 1) as Intensity };
+  while (energyCost(out) > SUPER_BALL_ALLOWANCE && out.intensity > 1)
+    out = { ...out, intensity: (out.intensity - 1) as Intensity };
   if (energyCost(out) > SUPER_BALL_ALLOWANCE) out = { ...out, variant: 'good_length', length: 'good', intensity: 2 };
   return out;
 }
@@ -80,10 +96,20 @@ export function releaseFor(rng: Sfc32, sigma: number, maxError = 400): number {
 }
 
 /** Turns delivery specs into a legal, gestured plan (budget and Super Ball allowance enforced). */
-export function toPlan(rng: Sfc32, field: FieldSetting, balls: DeliverySpec[], superBall: DeliverySpec, sigma: number, maxError?: number): OverPlan {
+export function toPlan(
+  rng: Sfc32,
+  field: FieldSetting,
+  balls: DeliverySpec[],
+  superBall: DeliverySpec,
+  sigma: number,
+  maxError?: number,
+): OverPlan {
   const fitted = fitBudget(balls);
   const sb = fitSuperBall(superBall);
-  const withGesture = (d: DeliverySpec): DeliveryPlan => ({ ...d, gesture: synthExecutionTrace(rng, releaseFor(rng, sigma, maxError)) });
+  const withGesture = (d: DeliverySpec): DeliveryPlan => ({
+    ...d,
+    gesture: synthExecutionTrace(rng, releaseFor(rng, sigma, maxError)),
+  });
   return { v: 1, field, balls: fitted.map(withGesture) as OverPlan['balls'], superBall: withGesture(sb) };
 }
 
@@ -95,7 +121,13 @@ export function toPlan(rng: Sfc32, field: FieldSetting, balls: DeliverySpec[], s
 const CLIENT_RUN_UP_MS = 1800;
 
 /** Builds a valid batting input with a plausible swipe for `shot` → `zone`, tapped at `tapMs`. */
-export function battingInputFor(rng: Sfc32, delivery: RevealedDelivery, shot: ShotType, zone: FieldZone | null, tapMs: number | null): BattingInput {
+export function battingInputFor(
+  rng: Sfc32,
+  delivery: RevealedDelivery,
+  shot: ShotType,
+  zone: FieldZone | null,
+  tapMs: number | null,
+): BattingInput {
   const z = shot === 'defend' || shot === 'leave' ? null : zone;
   const late = delivery.timing.releaseToContactMs + 590;
   const tap = tapMs === null ? null : Math.round(Math.min(late, Math.max(0, tapMs)) * 10) / 10;
@@ -112,7 +144,15 @@ export function battingInputFor(rng: Sfc32, delivery: RevealedDelivery, shot: Sh
   }
   const swipeMs = z ? 140 + rng.float() * 180 : 60 + rng.float() * 80;
   const trace = synthBattingTrace(rng, z, swipeMs, true);
-  return { v: 1, ball: delivery.ball, shot, zone: z, tapMs: tap, trace, clientElapsedMs: Math.round(CLIENT_RUN_UP_MS + tap + 20 + rng.float() * 60) };
+  return {
+    v: 1,
+    ball: delivery.ball,
+    shot,
+    zone: z,
+    tapMs: tap,
+    trace,
+    clientElapsedMs: Math.round(CLIENT_RUN_UP_MS + tap + 20 + rng.float() * 60),
+  };
 }
 
 /** Tap time for a batter with timing spread `sigma` (and a bias, negative = early). */
@@ -124,7 +164,12 @@ const GROUND_ROOM: Record<Coverage, number> = { gap: 0, deep: 1, ring: 2, both: 
 const LOFT_ROOM: Record<Coverage, number> = { gap: 0, ring: 1, deep: 2, both: 3 };
 
 /** A natural zone for the shot against this delivery: the emptiest one when the field is known, else by preference. */
-export function naturalZone(shot: ShotType, d: Pick<RevealedDelivery, 'variant' | 'line' | 'length'>, prefs: readonly FieldZone[] = [], field?: FieldSetting): FieldZone | null {
+export function naturalZone(
+  shot: ShotType,
+  d: Pick<RevealedDelivery, 'variant' | 'line' | 'length'>,
+  prefs: readonly FieldZone[] = [],
+  field?: FieldSetting,
+): FieldZone | null {
   if (shot === 'defend' || shot === 'leave') return null;
   const natural = naturalZonesFor(shot as AttackShot, d).filter((z) => LEGAL_ZONES[shot].includes(z));
   const pool = natural.length ? natural : LEGAL_ZONES[shot];
@@ -139,8 +184,22 @@ export function naturalZone(shot: ShotType, d: Pick<RevealedDelivery, 'variant' 
 }
 
 /** What each shot is worth beyond its matchup (run potential), and how much a cautious batter prefers it. */
-const SHOT_REWARD: Record<AttackShot, number> = { defend: -0.45, rotate: -0.15, drive: 0.05, cut_pull: 0.05, sweep: 0, loft: 0.05 };
-const SHOT_SAFETY: Record<AttackShot, number> = { defend: 0.3, rotate: 0.2, drive: 0, cut_pull: -0.05, sweep: -0.1, loft: -0.3 };
+const SHOT_REWARD: Record<AttackShot, number> = {
+  defend: -0.45,
+  rotate: -0.15,
+  drive: 0.05,
+  cut_pull: 0.05,
+  sweep: 0,
+  loft: 0.05,
+};
+const SHOT_SAFETY: Record<AttackShot, number> = {
+  defend: 0.3,
+  rotate: 0.2,
+  drive: 0,
+  cut_pull: -0.05,
+  sweep: -0.1,
+  loft: -0.3,
+};
 const ATTACK_SHOTS: readonly AttackShot[] = ['defend', 'rotate', 'drive', 'cut_pull', 'sweep', 'loft'];
 
 /**
@@ -157,14 +216,26 @@ export function readShot(
   let best: { shot: AttackShot; zone: FieldZone | null; score: number } | null = null;
   for (const shot of ATTACK_SHOTS) {
     const zone = naturalZone(shot, d, opts.prefs, opts.field);
-    const { m } = matchupOf(shot, zone, { variant: d.variant, line: d.line, length: d.length, intensity: d.intensity, intent: 'attack' });
-    const score = m + SHOT_REWARD[shot] + (1 - aggression) * SHOT_SAFETY[shot] + (opts.style?.[shot] ?? 0) + (rng.float() - 0.5) * 0.12;
+    const { m } = matchupOf(shot, zone, {
+      variant: d.variant,
+      line: d.line,
+      length: d.length,
+      intensity: d.intensity,
+      intent: 'attack',
+    });
+    const score =
+      m +
+      SHOT_REWARD[shot] +
+      (1 - aggression) * SHOT_SAFETY[shot] +
+      (opts.style?.[shot] ?? 0) +
+      (rng.float() - 0.5) * 0.12;
     if (!best || score > best.score) best = { shot, zone, score };
   }
   const b = best as { shot: AttackShot; zone: FieldZone | null; score: number };
   // In a one-over game you must score: leave only a ball outside off that offers nothing, or a wide bouncer when cautious.
   const outside = d.line === 'wide_off' || (d.line === 'off' && (d.variant === 'outswing' || d.variant === 'legspin'));
-  if (outside && b.shot !== 'cut_pull' && b.score < -0.15 + 0.15 * (1 - aggression)) return { shot: 'leave', zone: null };
+  if (outside && b.shot !== 'cut_pull' && b.score < -0.15 + 0.15 * (1 - aggression))
+    return { shot: 'leave', zone: null };
   if (d.variant === 'bouncer' && d.line === 'wide_off' && aggression < 0.5) return { shot: 'leave', zone: null };
   return { shot: b.shot, zone: b.zone };
 }
@@ -219,7 +290,13 @@ export function autoOver(seed: string, conditions: Conditions): OverPlan {
   const rng = rngFromKey(`vande/v1/auto-over|${seed}|${conditions.pitch}|${conditions.weather}`);
   const t = AUTO_TEMPLATES[conditions.pitch] ?? AUTO_TEMPLATES.green;
   // Deliberately ordinary: an average release and no set-ups, so missing the deadline is never an advantage.
-  return toPlan(rng, t.field, t.balls.map((b) => (b.intent === 'setup' ? { ...b, intent: 'contain' as const } : b)), t.superBall, 50);
+  return toPlan(
+    rng,
+    t.field,
+    t.balls.map((b) => (b.intent === 'setup' ? { ...b, intent: 'contain' as const } : b)),
+    t.superBall,
+    50,
+  );
 }
 
 /**
@@ -227,10 +304,21 @@ export function autoOver(seed: string, conditions: Conditions): OverPlan {
  * time; its timing is deliberately ordinary, so batting yourself is always better.
  */
 export function autoBat(seed: string, delivery: RevealedDelivery, field?: FieldSetting): BattingInput {
-  const rng = rngFromKey(`vande/v1/auto-bat|${seed}|${delivery.ball}|${delivery.variant}|${delivery.line}|${delivery.length}`);
+  const rng = rngFromKey(
+    `vande/v1/auto-bat|${seed}|${delivery.ball}|${delivery.variant}|${delivery.line}|${delivery.length}`,
+  );
   const aware = field !== undefined && rng.float() < AUTO_XI_FIELD_SENSE;
-  const { shot, zone } = readShot(delivery, delivery.ball >= 5 ? 0.7 : 0.35, rng, { prefs: ['mid_on', 'mid_off', 'cover', 'square_leg', 'point'], field: aware ? field : undefined });
-  return battingInputFor(rng, delivery, shot, zone, tapFor(rng, delivery, field === undefined ? 55 : AUTO_XI_TIMING_SIGMA));
+  const { shot, zone } = readShot(delivery, delivery.ball >= 5 ? 0.7 : 0.35, rng, {
+    prefs: ['mid_on', 'mid_off', 'cover', 'square_leg', 'point'],
+    field: aware ? field : undefined,
+  });
+  return battingInputFor(
+    rng,
+    delivery,
+    shot,
+    zone,
+    tapFor(rng, delivery, field === undefined ? 55 : AUTO_XI_TIMING_SIGMA),
+  );
 }
 const AUTO_XI_FIELD_SENSE = 0.5;
 const AUTO_XI_TIMING_SIGMA = 75;
@@ -269,7 +357,9 @@ const GHOST_STYLES: readonly GhostStyle[] = [
     plan: (pitch, _w, rng) => ({
       field: 'balanced',
       balls: [0, 1, 2, 3, 4, 5].map((i) =>
-        pitch === 'slow' && i % 2 === 0 ? spec('offspin', pickLine(rng, ['off', 'middle']), 'good', 2, 'contain') : spec('good_length', pickLine(rng, ['off', 'off', 'middle']), 'good', 2, 'contain'),
+        pitch === 'slow' && i % 2 === 0
+          ? spec('offspin', pickLine(rng, ['off', 'middle']), 'good', 2, 'contain')
+          : spec('good_length', pickLine(rng, ['off', 'off', 'middle']), 'good', 2, 'contain'),
       ),
       superBall: spec('good_length', 'off', 'good', 3, 'contain'),
     }),
@@ -424,12 +514,21 @@ export function ghostPlan(ghostId: string, seed: string, conditions: Conditions)
 }
 
 /** A ghost's shot for a delivery; with `field` it aims at the gaps like a thinking batter (difficulty comes from timing). */
-export function ghostBat(ghostId: string, seed: string, delivery: RevealedDelivery, field?: FieldSetting): BattingInput {
+export function ghostBat(
+  ghostId: string,
+  seed: string,
+  delivery: RevealedDelivery,
+  field?: FieldSetting,
+): BattingInput {
   const g = ghostStyle(ghostId);
   const rng = rngFromKey(`vande/v1/ghost-bat|${ghostId}|${seed}|${delivery.ball}`);
   const lastBall = delivery.ball >= 5;
   const aware = field !== undefined && rng.float() < g.fieldSense;
-  const { shot, zone } = readShot(delivery, lastBall ? Math.max(g.aggression, 0.85) : g.aggression, rng, { prefs: g.zonePrefs, style: g.style, field: aware ? field : undefined });
+  const { shot, zone } = readShot(delivery, lastBall ? Math.max(g.aggression, 0.85) : g.aggression, rng, {
+    prefs: g.zonePrefs,
+    style: g.style,
+    field: aware ? field : undefined,
+  });
   return battingInputFor(rng, delivery, shot, zone, tapFor(rng, delivery, g.timingSigma));
 }
 
@@ -461,7 +560,13 @@ const DAILY_STYLES: ReadonlyArray<(pitch: PitchId, rng: Sfc32) => OverSpec> = [
       spec('bouncer', 'middle', 'short', 2, 'setup'),
       spec('yorker', 'middle', 'full', 1, 'attack'),
       spec('good_length', 'wide_off', 'good', 1, 'contain'),
-      spec(pitch === 'slow' ? 'slower' : 'bouncer', pitch === 'slow' ? 'off' : 'wide_off', pitch === 'slow' ? 'good' : 'short', 2, 'setup'),
+      spec(
+        pitch === 'slow' ? 'slower' : 'bouncer',
+        pitch === 'slow' ? 'off' : 'wide_off',
+        pitch === 'slow' ? 'good' : 'short',
+        2,
+        'setup',
+      ),
       spec('yorker', 'off', 'full', 1, 'attack'),
     ],
     superBall: spec('yorker', 'middle', 'full', 1, 'attack'),
@@ -499,7 +604,10 @@ const DAILY_STYLES: ReadonlyArray<(pitch: PitchId, rng: Sfc32) => OverSpec> = [
  * bundle (each pitch still appears once in every block of three days, in a secret order). Without a salt this is the
  * deterministic practice version a client can build offline.
  */
-export function dailyChallenge(day: string, serverSalt?: string): { conditions: Conditions; overs: [OverPlan, OverPlan, OverPlan] } {
+export function dailyChallenge(
+  day: string,
+  serverSalt?: string,
+): { conditions: Conditions; overs: [OverPlan, OverPlan, OverPlan] } {
   const salted = typeof serverSalt === 'string' && serverSalt.length > 0;
   const rng = rngFromKey(salted ? `vande/v1/daily|${day}|${serverSalt}` : `vande/v1/daily|${day}`);
   const idx = dayIndex(day);

@@ -56,7 +56,8 @@ export const MAX_TRACE_SAMPLES = 120 as const;
 // ---------------------------------------------------------------------------------------------------------------
 
 /** What the player picks first; readable names. Each variant belongs to one family and constrains length. */
-export type DeliveryVariant = 'yorker' | 'good_length' | 'bouncer' | 'slower' | 'inswing' | 'outswing' | 'offspin' | 'legspin';
+export type DeliveryVariant =
+  'yorker' | 'good_length' | 'bouncer' | 'slower' | 'inswing' | 'outswing' | 'offspin' | 'legspin';
 export type DeliveryFamily = 'pace' | 'swing' | 'spin';
 export type Line = 'wide_off' | 'off' | 'middle' | 'leg';
 export type Length = 'full' | 'good' | 'short';
@@ -137,7 +138,8 @@ export interface BallPath {
 
 export type ShotType = 'defend' | 'rotate' | 'drive' | 'cut_pull' | 'sweep' | 'loft' | 'leave';
 /** Eight fielding zones (right-handed batter view); a swipe angle is quantised to one zone. */
-export type FieldZone = 'third_man' | 'point' | 'cover' | 'mid_off' | 'mid_on' | 'midwicket' | 'square_leg' | 'fine_leg';
+export type FieldZone =
+  'third_man' | 'point' | 'cover' | 'mid_off' | 'mid_on' | 'midwicket' | 'square_leg' | 'fine_leg';
 
 export interface BattingInput {
   v: 1;
@@ -160,7 +162,8 @@ export interface BattingInput {
 
 export type Runs = 0 | 1 | 2 | 3 | 4 | 6;
 export type WicketKind = 'bowled' | 'caught' | 'lbw' | 'stumped' | 'run_out';
-export type TimingGrade = 'perfect' | 'good' | 'early' | 'late' | 'very_early' | 'very_late' | 'no_shot' | 'interrupted';
+export type TimingGrade =
+  'perfect' | 'good' | 'early' | 'late' | 'very_early' | 'very_late' | 'no_shot' | 'interrupted';
 export type Contact = 'middle' | 'thick_edge' | 'thin_edge' | 'pad' | 'miss' | 'none';
 export type ExecutionGrade = 'perfect' | 'good' | 'loose';
 
@@ -221,7 +224,16 @@ export type BallFate =
   | { kind: 'six'; zone: FieldZone; distanceM: number }
   | { kind: 'wicket'; wicket: WicketKind; zone: FieldZone | null };
 
-export type CameraShot = 'broadcast_end' | 'bowler_follow' | 'batter_close' | 'side_on' | 'stump_cam' | 'aerial' | 'fielder_follow' | 'crowd' | 'celebration';
+export type CameraShot =
+  | 'broadcast_end'
+  | 'bowler_follow'
+  | 'batter_close'
+  | 'side_on'
+  | 'stump_cam'
+  | 'aerial'
+  | 'fielder_follow'
+  | 'crowd'
+  | 'celebration';
 
 export interface CameraCue {
   shot: CameraShot;
@@ -318,7 +330,13 @@ export type MatchKind = 'duel' | 'cup' | 'daily' | 'ghost' | 'training';
 
 export type MatchEvent =
   | { t: 'innings_start'; innings: 0 | 1; batter: 0 | 1; field: FieldSetting }
-  | { t: 'ball'; innings: 0 | 1 | 'super'; ball: number; outcome: BallOutcome; score: { runs: number; wickets: number; ballsLeft: number } }
+  | {
+      t: 'ball';
+      innings: 0 | 1 | 'super';
+      ball: number;
+      outcome: BallOutcome;
+      score: { runs: number; wickets: number; ballsLeft: number };
+    }
   | { t: 'commentary'; key: string; params?: Record<string, string | number> }
   | { t: 'innings_end'; innings: 0 | 1; runs: number; wickets: number }
   | { t: 'super_ball_start' }

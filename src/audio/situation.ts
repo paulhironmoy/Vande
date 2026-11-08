@@ -40,7 +40,8 @@ export function matchPressure(s: MatchSituation): number {
   const target = s.target;
   if (target !== null && target !== undefined && Number.isFinite(target) && left !== null && left >= 1) {
     const need = target - s.runs;
-    if (need > 6 * left) p += 0.1; // beyond reach: little to hope for
+    if (need > 6 * left)
+      p += 0.1; // beyond reach: little to hope for
     else if (need > 0) {
       // The share of the most that can still be scored (6 a ball): anything possible is tense, and almost won less so.
       const share = need / (6 * left);

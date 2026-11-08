@@ -45,17 +45,36 @@ export function FieldMap({ field, intent, handedness, labels = true, testId = 'p
     <div className={s.wrap} data-testid={testId}>
       <svg className={s.map} viewBox={`${-R} ${-R} ${2 * R} ${2 * R}`} role="img" aria-label={name}>
         <circle className={s.grass} cx={0} cy={0} r={g.boundaryR} />
-        {intent?.protected.map((a, i) => <path key={`p${i}`} className={s.protected} d={wedgePath(g, a, a.depth === 'deep' ? g.ringR : 0, a.depth === 'deep' ? g.boundaryR : g.ringR, mirror)} aria-hidden="true" />)}
+        {intent?.protected.map((a, i) => (
+          <path
+            key={`p${i}`}
+            className={s.protected}
+            d={wedgePath(g, a, a.depth === 'deep' ? g.ringR : 0, a.depth === 'deep' ? g.boundaryR : g.ringR, mirror)}
+            aria-hidden="true"
+          />
+        ))}
         <circle className={s.ring} cx={0} cy={0} r={g.ringR} />
         {intent?.gaps.map((gap, i) => (
-          <path key={`g${i}`} className={gap.depth === 'deep' ? s.gapDeep : s.gapRing} d={wedgePath(g, gap, 0, gap.depth === 'deep' ? g.boundaryR : g.ringR, mirror)} data-testid={`practice-field-gap-${i}`} />
+          <path
+            key={`g${i}`}
+            className={gap.depth === 'deep' ? s.gapDeep : s.gapRing}
+            d={wedgePath(g, gap, 0, gap.depth === 'deep' ? g.boundaryR : g.ringR, mirror)}
+            data-testid={`practice-field-gap-${i}`}
+          />
         ))}
         <rect className={s.pitch} x={-1.6} y={-g.pitchHalf} width={3.2} height={2 * g.pitchHalf} rx={0.6} />
         <circle className={s.batter} cx={mirror * g.striker.x} cy={g.striker.z} r={1.8} aria-hidden="true" />
         {field.fielders.map((f) => {
           const k = kindOf(f);
           const x = mirror * f.x;
-          const cls = k === 'catcher' ? s.catcher : k === 'deep' ? s.deepDot : k === 'keeper' || k === 'bowler' ? s.keeper : s.dot;
+          const cls =
+            k === 'catcher'
+              ? s.catcher
+              : k === 'deep'
+                ? s.deepDot
+                : k === 'keeper' || k === 'bowler'
+                  ? s.keeper
+                  : s.dot;
           // Shapes as well as colours: catchers are squares, boundary riders diamonds, the rest circles.
           const shape =
             k === 'catcher' ? (

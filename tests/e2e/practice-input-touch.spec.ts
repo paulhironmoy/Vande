@@ -41,7 +41,8 @@ test('a touch flick in the lower area is an attacking swing', async ({ page }) =
   const y = box.y + box.height * 0.75;
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
-  for (let i = 1; i <= 8; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + i * 10, y: y - i * 16 }] });
+  for (let i = 1; i <= 8; i++)
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + i * 10, y: y - i * 16 }] });
   await page.waitForTimeout(40);
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   await swungAs(page, 'attack');

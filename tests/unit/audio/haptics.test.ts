@@ -26,7 +26,10 @@ describe('the haptic map', () => {
     for (const [name, spec] of Object.entries(FEEL_PATTERNS)) {
       expect(spec.web.length % 2, name).toBe(1);
       expect(spec.web.every((ms) => ms > 0)).toBe(true);
-      expect(spec.web.reduce((a, b) => a + b, 0), name).toBe(spec.ms);
+      expect(
+        spec.web.reduce((a, b) => a + b, 0),
+        name,
+      ).toBe(spec.ms);
       expect(spec.native.length).toBeGreaterThan(0);
     }
     // The original three are unchanged (Sealed Six batting depends on them).
@@ -39,7 +42,8 @@ describe('the haptic map', () => {
     expect(practiceContactFeel('middle', 'perfect')).toBe('double');
     expect(practiceContactFeel('middle', 'solid')).toBe('pulse');
     expect(practiceContactFeel('middle', 'mistimed')).toBe('soft');
-    for (const edge of ['inside_edge', 'outside_edge', 'top_edge', 'leading_edge'] as const) expect(practiceContactFeel(edge)).toBe('tick');
+    for (const edge of ['inside_edge', 'outside_edge', 'top_edge', 'leading_edge'] as const)
+      expect(practiceContactFeel(edge)).toBe('tick');
     expect(practiceContactFeel('pad')).toBe('tap');
     expect(practiceContactFeel('miss')).toBeNull();
     expect(practiceContactFeel('leave')).toBeNull();

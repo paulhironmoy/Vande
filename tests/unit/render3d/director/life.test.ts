@@ -77,7 +77,9 @@ function atRest(role: Role): RestRow[] {
   const rows: RestRow[] = [];
   for (let s = 0; s < 120; s++) {
     // The continuous channels alone: the fidgets (P3) are bigger moves on the same channels and have their own gates below.
-    const p = withParams({ 'fidget.idleEndMs': 1e9 }, () => prepare(idleAnchors(role, `rest#${s}`, 70_000, { person: `look-${s % 8}` }), { hz: 60 }));
+    const p = withParams({ 'fidget.idleEndMs': 1e9 }, () =>
+      prepare(idleAnchors(role, `rest#${s}`, 70_000, { person: `look-${s % 8}` }), { hz: 60 }),
+    );
     const i0 = 180; // past the 400 ms ramp and a little more
     const br: number[] = [];
     const head: number[] = [];
@@ -94,7 +96,16 @@ function atRest(role: Role): RestRow[] {
     const iv = ups.slice(1).map((v, j) => v - ups[j]);
     let ac = -1;
     for (let lag = 90; lag <= 600; lag += 3) ac = Math.max(ac, autocorr(head, lag));
-    rows.push({ rate: 60 / mean(iv), cv: (sd(iv) / mean(iv)) * 100, depth: Math.max(...br.map(Math.abs)), headRms: sd(head), rollRms: sd(roll), swayRms: sd(sway), ac, line: strongestLinePercent(head.slice(0, 60 * 40), 60) });
+    rows.push({
+      rate: 60 / mean(iv),
+      cv: (sd(iv) / mean(iv)) * 100,
+      depth: Math.max(...br.map(Math.abs)),
+      headRms: sd(head),
+      rollRms: sd(roll),
+      swayRms: sd(sway),
+      ac,
+      line: strongestLinePercent(head.slice(0, 60 * 40), 60),
+    });
   }
   restCache.set(role, rows);
   return rows;
@@ -135,7 +146,12 @@ describe('G4a and G4c: the sway is broadband, aperiodic and small', () => {
       // the rms of a 70 s record of slow noise itself varies by +-30%, so the band is judged on 90% of draws
       expect(quantile(rms, 0.05)).toBeGreaterThanOrEqual(band[0]);
       expect(quantile(rms, 0.95)).toBeLessThanOrEqual(band[1]);
-      expect(quantile(rows.map((r) => r.rollRms), 0.95)).toBeLessThanOrEqual(1.5);
+      expect(
+        quantile(
+          rows.map((r) => r.rollRms),
+          0.95,
+        ),
+      ).toBeLessThanOrEqual(1.5);
     });
   }
 });
@@ -150,7 +166,11 @@ describe('H3: the quiet windows (nothing that moves the torso, hips, arms or han
     let afterAlive = 0;
     for (let k = 0; k < 200; k++) {
       const d = delivery(randomSpec(r));
-      const a = anchorsFor(d, { role: 'striker', key: deliveryTakeKey({ seed: 'h3', overIndex: 0, ballIndex: k }), person: `look-${k % 4}` });
+      const a = anchorsFor(d, {
+        role: 'striker',
+        key: deliveryTakeKey({ seed: 'h3', overIndex: 0, ballIndex: k }),
+        person: `look-${k % 4}`,
+      });
       const p = prepare(a, { hz: 60 });
       const t = d.timeline;
       const from = t.release - 600;
@@ -169,7 +189,13 @@ describe('H3: the quiet windows (nothing that moves the torso, hips, arms or han
         }
       }
     }
-    record('quiet.batter', { framesInsideAllZero: inside, framesBefore: before, aliveBefore: beforeAlive / before, framesAfter: after, aliveAfter: afterAlive / after });
+    record('quiet.batter', {
+      framesInsideAllZero: inside,
+      framesBefore: before,
+      aliveBefore: beforeAlive / before,
+      framesAfter: after,
+      aliveAfter: afterAlive / after,
+    });
     expect(inside).toBeGreaterThan(10_000);
     expect(beforeAlive / before).toBeGreaterThan(0.99);
     expect(afterAlive / after).toBeGreaterThan(0.99);
@@ -180,7 +206,11 @@ describe('H3: the quiet windows (nothing that moves the torso, hips, arms or han
     let inside = 0;
     for (let k = 0; k < 200; k++) {
       const d = delivery(randomSpec(r));
-      const a = anchorsFor(d, { role: 'bowler', key: deliveryTakeKey({ seed: 'h3b', overIndex: 0, ballIndex: k }), series: 'pace' });
+      const a = anchorsFor(d, {
+        role: 'bowler',
+        key: deliveryTakeKey({ seed: 'h3b', overIndex: 0, ballIndex: k }),
+        series: 'pace',
+      });
       const p = prepare(a, { hz: 60 });
       const t = d.timeline;
       for (let i = 0; i < p.n; i++) {
@@ -201,7 +231,8 @@ describe('H3: the quiet windows (nothing that moves the torso, hips, arms or han
     const p = prepare(a, { hz: 60 });
     const t = d.timeline;
     let headMoves = false;
-    for (let i = frameOf(p, t.release - 600); i < frameOf(p, t.release + 600); i++) if (Math.abs(val(p, i, CH.headPitch) - val(p, i - 1, CH.headPitch)) > 0.2) headMoves = true;
+    for (let i = frameOf(p, t.release - 600); i < frameOf(p, t.release + 600); i++)
+      if (Math.abs(val(p, i, CH.headPitch) - val(p, i - 1, CH.headPitch)) > 0.2) headMoves = true;
     expect(headMoves).toBe(true);
     // the way back is a ramp, not a step: no frame changes the sway by more than 0.5 mm or the breath by 0.15 degrees
     let worstSway = 0;
@@ -224,7 +255,8 @@ describe('exertion', () => {
   };
   const breathRate = (p: DirectorPlan, from: number, to: number) => {
     const ups: number[] = [];
-    for (let i = frameOf(p, from) + 1; i < frameOf(p, to); i++) if (val(p, i - 1, CH.breath) < 0 && val(p, i, CH.breath) >= 0) ups.push(timeOf(p, i) / 1000);
+    for (let i = frameOf(p, from) + 1; i < frameOf(p, to); i++)
+      if (val(p, i - 1, CH.breath) < 0 && val(p, i, CH.breath) >= 0) ups.push(timeOf(p, i) / 1000);
     return ups.length > 1 ? (60 * (ups.length - 1)) / (ups[ups.length - 1] - ups[0]) : NaN;
   };
 
@@ -253,7 +285,11 @@ describe('exertion', () => {
       const { d, a } = longBowl('striker', `exs#0.${k}`, { outcome });
       const p = prepare(a, { hz: 60 });
       const t = d.timeline;
-      return { before: val(p, frameOf(p, t.release - 200), CH.exertion), afterStroke: val(p, frameOf(p, (t.strokeEnd ?? 0) + 2500), CH.exertion), afterRuns: val(p, frameOf(p, t.outcomeAt + 1500), CH.exertion) };
+      return {
+        before: val(p, frameOf(p, t.release - 200), CH.exertion),
+        afterStroke: val(p, frameOf(p, (t.strokeEnd ?? 0) + 2500), CH.exertion),
+        afterRuns: val(p, frameOf(p, t.outcomeAt + 1500), CH.exertion),
+      };
     };
     for (let k = 0; k < 10; k++) {
       const dot = level('dot', k);
@@ -270,14 +306,30 @@ describe('G2d: the same man, a different ball', () => {
     const plans: DirectorPlan[] = [];
     const proxies: number[][] = [];
     for (let b = 0; b < 20; b++) {
-      const a = idleAnchors('striker', deliveryTakeKey({ seed: 'over', overIndex: 7, ballIndex: b }), 4000, { person: 'look-7' });
+      const a = idleAnchors('striker', deliveryTakeKey({ seed: 'over', overIndex: 7, ballIndex: b }), 4000, {
+        person: 'look-7',
+      });
       const p = prepare(a, { hz: 60 });
       plans.push(p);
-      proxies.push(Array.from({ length: frameOf(p, 1750) }, (_, i) => 1.8 * val(p, i, CH.swayX) + 1.2 * val(p, i, CH.breath)));
+      proxies.push(
+        Array.from({ length: frameOf(p, 1750) }, (_, i) => 1.8 * val(p, i, CH.swayX) + 1.2 * val(p, i, CH.breath)),
+      );
     }
-    for (const c of [AMP.breathHz, AMP.breathDepthDeg, AMP.breathSkew, AMP.swayRootMm, AMP.swayRollDeg, AMP.blinkMeanS, AMP.blinkCv]) expect(new Set(plans.map((p) => p.amp[c])).size).toBe(1);
-    for (const c of [DRAW.breathPhase, DRAW.swayPhase, DRAW.swayAxis, DRAW.headDrift, DRAW.lagMs, DRAW.reactionMs]) expect(new Set(plans.map((p) => p.draw[c])).size).toBe(20);
-    const tuples = new Set(plans.map((p) => `${Math.round(p.blink[0] / 50)}|${Math.round(p.draw[DRAW.breathPhase] * 10)}`));
+    for (const c of [
+      AMP.breathHz,
+      AMP.breathDepthDeg,
+      AMP.breathSkew,
+      AMP.swayRootMm,
+      AMP.swayRollDeg,
+      AMP.blinkMeanS,
+      AMP.blinkCv,
+    ])
+      expect(new Set(plans.map((p) => p.amp[c])).size).toBe(1);
+    for (const c of [DRAW.breathPhase, DRAW.swayPhase, DRAW.swayAxis, DRAW.headDrift, DRAW.lagMs, DRAW.reactionMs])
+      expect(new Set(plans.map((p) => p.draw[c])).size).toBe(20);
+    const tuples = new Set(
+      plans.map((p) => `${Math.round(p.blink[0] / 50)}|${Math.round(p.draw[DRAW.breathPhase] * 10)}`),
+    );
     record('variation.distinctFirstBlinkAndBreathPhase', tuples.size);
     expect(tuples.size).toBeGreaterThanOrEqual(8);
     const diffs: number[] = [];

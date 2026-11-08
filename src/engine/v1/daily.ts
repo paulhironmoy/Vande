@@ -6,7 +6,18 @@
  * score and result.marginRuns is 0. The over's commit uses a salt derived one-way from (day, attempt, server salt), so the platform can
  * publish the three commit hashes when the day opens (`dailyCommits`) and the log never reveals the server salt.
  */
-import type { BattingInput, CommitRecord, Conditions, InningsState, InningsSummary, MatchEvent, MatchEventLog, MatchResult, OverPlan, PlayerRef } from '@/contracts';
+import type {
+  BattingInput,
+  CommitRecord,
+  Conditions,
+  InningsState,
+  InningsSummary,
+  MatchEvent,
+  MatchEventLog,
+  MatchResult,
+  OverPlan,
+  PlayerRef,
+} from '@/contracts';
 import { BALLS_PER_OVER, EVENT_SCHEMA_VERSION, WICKETS_PER_INNINGS } from '@/contracts/cricket';
 import { canonicalPlan, normalizePlan } from '../canonical';
 import { sha256Hex } from '../sha256';
@@ -22,7 +33,10 @@ export function dailyCommitSalt(day: string, attempt: 1 | 2 | 3, serverSalt: str
 }
 
 /** The three daily overs' commit hashes (publish them, signed, when the day opens). */
-export function dailyCommits(day: string, serverSalt: string): Array<{ attempt: 1 | 2 | 3; hash: string; salt: string }> {
+export function dailyCommits(
+  day: string,
+  serverSalt: string,
+): Array<{ attempt: 1 | 2 | 3; hash: string; salt: string }> {
   const { overs } = dailyChallenge(day, serverSalt);
   return ([1, 2, 3] as const).map((attempt) => {
     const salt = dailyCommitSalt(day, attempt, serverSalt);
@@ -52,7 +66,11 @@ export function assembleDailyLog(a: AssembleDailyArgs): MatchEventLog {
   const summary = summarise(a.innings, 0);
   const events: MatchEvent[] = [
     { t: 'innings_start', innings: 0, batter: 0, field: plan.field },
-    { t: 'commentary', key: 'commentary.innings_start', params: { batter: 0, field: plan.field, pitch: a.conditions.pitch, weather: a.conditions.weather } },
+    {
+      t: 'commentary',
+      key: 'commentary.innings_start',
+      params: { batter: 0, field: plan.field, pitch: a.conditions.pitch, weather: a.conditions.weather },
+    },
   ];
   let runs = 0;
   let wkts = 0;
@@ -72,9 +90,21 @@ export function assembleDailyLog(a: AssembleDailyArgs): MatchEventLog {
   });
   events.push({ t: 'innings_end', innings: 0, runs: summary.runs, wickets: summary.wickets });
   const score = dailyScore(summary);
-  const result: MatchResult = { winner: null, tie: false, decidedBy: 'forfeit_none', marginRuns: 0, dailyScore: score, playerOfMatch: 0, turningPointEvent: bestEvent };
+  const result: MatchResult = {
+    winner: null,
+    tie: false,
+    decidedBy: 'forfeit_none',
+    marginRuns: 0,
+    dailyScore: score,
+    playerOfMatch: 0,
+    turningPointEvent: bestEvent,
+  };
   events.push({ t: 'result', result });
-  events.push({ t: 'commentary', key: 'commentary.daily_score', params: { score, runs: summary.runs, wickets: summary.wickets } });
+  events.push({
+    t: 'commentary',
+    key: 'commentary.daily_score',
+    params: { score, runs: summary.runs, wickets: summary.wickets },
+  });
   const played = new Set<number>(a.innings.outcomes.map((o) => o.ball));
   if (a.innings.superBall) played.add(a.innings.superBall.ball);
   const byBall = new Map<number, BattingInput>();
@@ -114,6 +144,24 @@ export function buildDailyLog(a: {
   const ch = dailyChallenge(a.day, a.serverSalt);
   const plan = normalizePlan(ch.overs[a.attempt - 1]);
   const salt = dailyCommitSalt(a.day, a.attempt, a.serverSalt);
-  const commit: CommitRecord = { player: 1, hash: sha256Hex(canonicalPlan(plan) + salt), sig: '', keyId: '', lockedHour: a.meta.createdHour, salt };
-  return assembleDailyLog({ matchId: a.attemptId, seed: a.seed, conditions: ch.conditions, player: a.player, setter: a.setter, plan, commit, inputs: a.inputs, innings: a.innings, meta: a.meta });
+  const commit: CommitRecord = {
+    player: 1,
+    hash: sha256Hex(canonicalPlan(plan) + salt),
+    sig: '',
+    keyId: '',
+    lockedHour: a.meta.createdHour,
+    salt,
+  };
+  return assembleDailyLog({
+    matchId: a.attemptId,
+    seed: a.seed,
+    conditions: ch.conditions,
+    player: a.player,
+    setter: a.setter,
+    plan,
+    commit,
+    inputs: a.inputs,
+    innings: a.innings,
+    meta: a.meta,
+  });
 }

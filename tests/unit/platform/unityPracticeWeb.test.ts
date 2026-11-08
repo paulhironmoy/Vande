@@ -1,9 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import {
-  makeUnityPracticeMessage,
-  packUnityPracticeMessage,
-  type UnityPracticePacket,
-} from '@/contracts';
+import { makeUnityPracticeMessage, packUnityPracticeMessage, type UnityPracticePacket } from '@/contracts';
 import { createWebUnityPracticeBridge } from '@/platform/unityPracticeWeb';
 
 const BUILD_ID = 'abcdef0+123456789abc';
@@ -39,20 +35,50 @@ function installLoadedLoader(): void {
 }
 
 async function hostPacket(): Promise<UnityPracticePacket> {
-  return packUnityPracticeMessage(makeUnityPracticeMessage({
-    buildId: 'web-build', sessionId: 'web-session', messageId: 'host-1', sequence: 0, sender: 'host',
-  }, 'host.initialize', {
-    locale: 'en-IN', pixelsPerDp: 1, quality: 'standard', deviceTier: 'full', handedness: 'right', assistance: 'play',
-    reducedMotion: false, textScale: 1, highContrast: false, captions: true, audio: true, haptics: false,
-    coordinateSystem: 'vande-striker-frame-v1',
-    handednessPolicy: 'physics-right-handed-presentation-mirrors-once',
-  }));
+  return packUnityPracticeMessage(
+    makeUnityPracticeMessage(
+      {
+        buildId: 'web-build',
+        sessionId: 'web-session',
+        messageId: 'host-1',
+        sequence: 0,
+        sender: 'host',
+      },
+      'host.initialize',
+      {
+        locale: 'en-IN',
+        pixelsPerDp: 1,
+        quality: 'standard',
+        deviceTier: 'full',
+        handedness: 'right',
+        assistance: 'play',
+        reducedMotion: false,
+        textScale: 1,
+        highContrast: false,
+        captions: true,
+        audio: true,
+        haptics: false,
+        coordinateSystem: 'vande-striker-frame-v1',
+        handednessPolicy: 'physics-right-handed-presentation-mirrors-once',
+      },
+    ),
+  );
 }
 
 async function unityPacket(): Promise<UnityPracticePacket> {
-  return packUnityPracticeMessage(makeUnityPracticeMessage({
-    buildId: 'web-build', sessionId: 'web-session', messageId: 'unity-1', sequence: 0, sender: 'unity',
-  }, 'unity.ready', { renderer: 'WebGL 2', unityVersion: '6000.3.test' }));
+  return packUnityPracticeMessage(
+    makeUnityPracticeMessage(
+      {
+        buildId: 'web-build',
+        sessionId: 'web-session',
+        messageId: 'unity-1',
+        sequence: 0,
+        sender: 'unity',
+      },
+      'unity.ready',
+      { renderer: 'WebGL 2', unityVersion: '6000.3.test' },
+    ),
+  );
 }
 
 afterEach(() => {
@@ -78,16 +104,25 @@ describe('Unity Practice WebGL bridge', () => {
       if (operationId) window.VandeUnityPracticeWebHost?.runtimeLoadedFromUnity(operationId);
       return { SendMessage: sendMessage, Quit: quit };
     });
-    const fetcher = vi.fn(async () => new Response(JSON.stringify(manifest), {
-      status: 200,
-      headers: { 'content-type': 'application/json' },
-    })) as unknown as typeof fetch;
+    const fetcher = vi.fn(
+      async () =>
+        new Response(JSON.stringify(manifest), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+    ) as unknown as typeof fetch;
     const bridge = createWebUnityPracticeBridge('/unity/vande-webgl-manifest.json', fetcher, BUILD_ID);
     const canvas = document.createElement('canvas');
     document.body.append(canvas);
     bridge.attachCanvas?.(canvas);
 
-    expect(await bridge.availability()).toEqual({ available: true, reason: 'ready', unityVersion: '6000.3.test', pixelsPerDp: 1, systemTextScale: 1 });
+    expect(await bridge.availability()).toEqual({
+      available: true,
+      reason: 'ready',
+      unityVersion: '6000.3.test',
+      pixelsPerDp: 1,
+      systemTextScale: 1,
+    });
     const seen: UnityPracticePacket[] = [];
     await bridge.onMessage((packet) => seen.push(packet));
     const initialize = await hostPacket();
@@ -118,10 +153,13 @@ describe('Unity Practice WebGL bridge', () => {
       if (operationId) window.VandeUnityPracticeWebHost?.runtimeLoadedFromUnity(operationId);
       return { SendMessage: vi.fn(), Quit: quit };
     });
-    const fetcher = vi.fn(async () => new Response(JSON.stringify(manifest), {
-      status: 200,
-      headers: { 'content-type': 'application/json' },
-    })) as unknown as typeof fetch;
+    const fetcher = vi.fn(
+      async () =>
+        new Response(JSON.stringify(manifest), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+    ) as unknown as typeof fetch;
     const bridge = createWebUnityPracticeBridge('/unity/vande-webgl-manifest.json', fetcher, BUILD_ID);
     const canvas = document.createElement('canvas');
     document.body.append(canvas);
@@ -144,21 +182,30 @@ describe('Unity Practice WebGL bridge', () => {
   it('fails closed when no generated Unity WebGL manifest exists', async () => {
     const fetcher = vi.fn(async () => new Response('', { status: 404 })) as unknown as typeof fetch;
     const bridge = createWebUnityPracticeBridge('/unity/vande-webgl-manifest.json', fetcher, BUILD_ID);
-    expect(await bridge.availability()).toEqual({ available: false, reason: 'web', unityVersion: null, pixelsPerDp: 1, systemTextScale: 1 });
+    expect(await bridge.availability()).toEqual({
+      available: false,
+      reason: 'web',
+      unityVersion: null,
+      pixelsPerDp: 1,
+      systemTextScale: 1,
+    });
     expect(await bridge.launch(await hostPacket())).toBe(false);
   });
 
   it.each([
-    ['legacy schema', {
-      schema: 1,
-      unityVersion: '6000.3.test',
-      productVersion: '0.1.0',
-      loaderUrl: 'Build/VandePractice.loader.js',
-      dataUrl: 'Build/VandePractice.data',
-      frameworkUrl: 'Build/VandePractice.framework.js',
-      codeUrl: 'Build/VandePractice.wasm',
-      streamingAssetsUrl: 'StreamingAssets',
-    }],
+    [
+      'legacy schema',
+      {
+        schema: 1,
+        unityVersion: '6000.3.test',
+        productVersion: '0.1.0',
+        loaderUrl: 'Build/VandePractice.loader.js',
+        dataUrl: 'Build/VandePractice.data',
+        frameworkUrl: 'Build/VandePractice.framework.js',
+        codeUrl: 'Build/VandePractice.wasm',
+        streamingAssetsUrl: 'StreamingAssets',
+      },
+    ],
     ['another source build', { ...manifest, buildId: 'abcdef1+123456789abc' }],
     ['malformed artifact digest', { ...manifest, code: { ...manifest.code, sha256: 'not-a-digest' } }],
     ['missing artifact digest', { ...manifest, code: { url: manifest.code.url } }],
@@ -176,16 +223,25 @@ describe('Unity Practice WebGL bridge', () => {
     ['encoded StreamingAssets traversal', { ...manifest, streamingAssetsUrl: '%2e%2e/StreamingAssets' }],
     ['unexpected StreamingAssets subtree', { ...manifest, streamingAssetsUrl: 'Build/StreamingAssets' }],
   ])('rejects a manifest with %s and leaves the retained renderer available', async (_label, candidate) => {
-    const fetcher = vi.fn(async () => new Response(JSON.stringify(candidate), {
-      status: 200,
-      headers: { 'content-type': 'application/json' },
-    })) as unknown as typeof fetch;
+    const fetcher = vi.fn(
+      async () =>
+        new Response(JSON.stringify(candidate), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+    ) as unknown as typeof fetch;
     const bridge = createWebUnityPracticeBridge('/unity/vande-webgl-manifest.json', fetcher, BUILD_ID);
     const canvas = document.createElement('canvas');
     document.body.append(canvas);
     bridge.attachCanvas?.(canvas);
 
-    expect(await bridge.availability()).toEqual({ available: false, reason: 'web', unityVersion: null, pixelsPerDp: 1, systemTextScale: 1 });
+    expect(await bridge.availability()).toEqual({
+      available: false,
+      reason: 'web',
+      unityVersion: null,
+      pixelsPerDp: 1,
+      systemTextScale: 1,
+    });
     expect(await bridge.launch(await hostPacket())).toBe(false);
     expect(window.createUnityInstance).toBeUndefined();
     expect(canvas.style.opacity).toBe('0');
@@ -201,16 +257,25 @@ describe('Unity Practice WebGL bridge', () => {
     loader.dataset.loaded = 'true';
     document.head.append(loader);
     window.createUnityInstance = vi.fn();
-    const fetcher = vi.fn(async () => new Response(JSON.stringify(manifest), {
-      status: 200,
-      headers: { 'content-type': 'application/json' },
-    })) as unknown as typeof fetch;
+    const fetcher = vi.fn(
+      async () =>
+        new Response(JSON.stringify(manifest), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+    ) as unknown as typeof fetch;
     const bridge = createWebUnityPracticeBridge('/unity/vande-webgl-manifest.json', fetcher, BUILD_ID);
     const canvas = document.createElement('canvas');
     document.body.append(canvas);
     bridge.attachCanvas?.(canvas);
 
-    expect(await bridge.availability()).toEqual({ available: true, reason: 'ready', unityVersion: '6000.3.test', pixelsPerDp: 1, systemTextScale: 1 });
+    expect(await bridge.availability()).toEqual({
+      available: true,
+      reason: 'ready',
+      unityVersion: '6000.3.test',
+      pixelsPerDp: 1,
+      systemTextScale: 1,
+    });
     expect(await bridge.launch(await hostPacket())).toBe(false);
     expect(window.createUnityInstance).not.toHaveBeenCalled();
   });

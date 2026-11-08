@@ -37,10 +37,7 @@ function distance(a: { x: number; y: number; z: number }, b: { x: number; y: num
   return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 }
 
-function cross(
-  a: { x: number; y: number; z: number },
-  b: { x: number; y: number; z: number },
-) {
+function cross(a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) {
   return { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x };
 }
 
@@ -69,22 +66,17 @@ function lockedTopPowerTrack() {
 
 function straightDriveTrack(lineM = 0.18, speedKph = 136, seed = 't1') {
   const f = fly({ variation: 'stock', lengthM: 4, lineM, speedKph }, PACE, 'balanced', seed);
-  const swing = timedSwing(
-    f,
-    0,
-    { kind: 'attack', directionDeg: 0, elevation: 0.1, power: 0.65 },
-    'forward',
-  );
+  const swing = timedSwing(f, 0, { kind: 'attack', directionDeg: 0, elevation: 0.1, power: 0.65 }, 'forward');
   return { track: buildBatTrack(f, swing, { assist: 'real' }), flight: f, swing };
 }
 
 describe('generalized rigid-bat collision path', () => {
   it('contains the independently frozen contact geometry in its fixture-independent search domain', () => {
     const frozenWitnessContactU = 0.0425438604;
-    const lower = Math.floor(frozenWitnessContactU / GENERALIZED_COLLISION_CONTACT_U_STEP)
-      * GENERALIZED_COLLISION_CONTACT_U_STEP;
-    const upper = Math.ceil(frozenWitnessContactU / GENERALIZED_COLLISION_CONTACT_U_STEP)
-      * GENERALIZED_COLLISION_CONTACT_U_STEP;
+    const lower =
+      Math.floor(frozenWitnessContactU / GENERALIZED_COLLISION_CONTACT_U_STEP) * GENERALIZED_COLLISION_CONTACT_U_STEP;
+    const upper =
+      Math.ceil(frozenWitnessContactU / GENERALIZED_COLLISION_CONTACT_U_STEP) * GENERALIZED_COLLISION_CONTACT_U_STEP;
     expect(frozenWitnessContactU).toBeGreaterThan(GENERALIZED_COLLISION_CONTACT_U_MIN);
     expect(frozenWitnessContactU).toBeLessThan(GENERALIZED_COLLISION_CONTACT_U_MAX);
     expect(lower).toBeGreaterThanOrEqual(GENERALIZED_COLLISION_CONTACT_U_MIN);
@@ -103,11 +95,8 @@ describe('generalized rigid-bat collision path', () => {
       12,
     );
 
-    const poseDistance = (left: ReturnType<typeof batPose>, right: ReturnType<typeof batPose>) => Math.max(
-      distance(left.grip, right.grip),
-      distance(left.toe, right.toe),
-      distance(left.n, right.n),
-    );
+    const poseDistance = (left: ReturnType<typeof batPose>, right: ReturnType<typeof batPose>) =>
+      Math.max(distance(left.grip, right.grip), distance(left.toe, right.toe), distance(left.n, right.n));
     const entry = collisionKinematicsAt(track, track.zoneIn);
     const exit = collisionKinematicsAt(track, track.zoneOut);
     expect(poseDistance(track.stance, entry.pose)).toBeLessThan(1e-12);
@@ -138,8 +127,9 @@ describe('generalized rigid-bat collision path', () => {
         };
         expect(distance(hand, shoulders[handIndex])).toBeLessThanOrEqual(BAT_HAND_REACH_SOLVE_M + 1e-9);
       }
-      expect(batPoseAdmissibility({ grip: sample.grip, toe: sample.toe, n: sample.face }, track.body).gap)
-        .toBeGreaterThanOrEqual(-1e-9);
+      expect(
+        batPoseAdmissibility({ grip: sample.grip, toe: sample.toe, n: sample.face }, track.body).gap,
+      ).toBeGreaterThanOrEqual(-1e-9);
     }
 
     const point = {
@@ -153,11 +143,13 @@ describe('generalized rigid-bat collision path', () => {
       y: point.y - plannedState.pose.grip.y,
       z: point.z - plannedState.pose.grip.z,
     });
-    expect(distance(batPointVelocity(track, track.plannedContactT, point), {
-      x: plannedState.gripVelocity.x + plannedRotational.x,
-      y: plannedState.gripVelocity.y + plannedRotational.y,
-      z: plannedState.gripVelocity.z + plannedRotational.z,
-    })).toBeLessThan(1e-10);
+    expect(
+      distance(batPointVelocity(track, track.plannedContactT, point), {
+        x: plannedState.gripVelocity.x + plannedRotational.x,
+        y: plannedState.gripVelocity.y + plannedRotational.y,
+        z: plannedState.gripVelocity.z + plannedRotational.z,
+      }),
+    ).toBeLessThan(1e-10);
 
     const actual = sweep(straightFlight.samples, track, track.body, 0, straightFlight.samples.at(-1)!.t).hit;
     expect(actual?.part).toBe('blade');
@@ -178,31 +170,37 @@ describe('generalized rigid-bat collision path', () => {
   it.each([
     { lineM: 0.17, speedKph: 135, seed: 'nullspace-heldout-a' },
     { lineM: 0.19, speedKph: 137, seed: 'nullspace-heldout-b' },
-  ])('keeps a nearby non-fixture straight drive physical ($seed)', ({ lineM, speedKph, seed }) => {
-    const { track, flight: heldoutFlight } = straightDriveTrack(lineM, speedKph, seed);
-    expect(track.collisionPath?.kind).toBe('free-grip-so3');
-    const entry = collisionKinematicsAt(track, track.zoneIn);
-    const exit = collisionKinematicsAt(track, track.zoneOut);
-    expect(distance(track.stance.grip, entry.pose.grip)).toBeLessThan(1e-12);
-    expect(distance(track.finish.grip, exit.pose.grip)).toBeLessThan(1e-12);
-    expect(Math.hypot(...Object.values(entry.gripVelocity))).toBeLessThan(1e-9);
-    expect(Math.hypot(...Object.values(exit.gripVelocity))).toBeLessThan(1e-9);
-    expect(batPoseAdmissibility(entry.pose, track.body).gap).toBeGreaterThanOrEqual(0);
-    expect(batPoseAdmissibility(exit.pose, track.body).gap).toBeGreaterThanOrEqual(0);
-    const actual = sweep(heldoutFlight.samples, track, track.body, 0, heldoutFlight.samples.at(-1)!.t).hit;
-    expect(actual?.part).toBe('blade');
-    const envelope = batTrackAnalyticEnvelope(track);
-    expect(envelope.pointSpeed).toBeLessThanOrEqual(BAT_POINT_SPEED_LIMIT_MPS);
-    expect(envelope.pointAcceleration).toBeLessThanOrEqual(BAT_POINT_ACCEL_LIMIT_MPS2);
-    expect(envelope.angularAcceleration).toBeLessThanOrEqual(BAT_ANGULAR_ACCEL_LIMIT_RADPS2);
-  }, 30_000);
+  ])(
+    'keeps a nearby non-fixture straight drive physical ($seed)',
+    ({ lineM, speedKph, seed }) => {
+      const { track, flight: heldoutFlight } = straightDriveTrack(lineM, speedKph, seed);
+      expect(track.collisionPath?.kind).toBe('free-grip-so3');
+      const entry = collisionKinematicsAt(track, track.zoneIn);
+      const exit = collisionKinematicsAt(track, track.zoneOut);
+      expect(distance(track.stance.grip, entry.pose.grip)).toBeLessThan(1e-12);
+      expect(distance(track.finish.grip, exit.pose.grip)).toBeLessThan(1e-12);
+      expect(Math.hypot(...Object.values(entry.gripVelocity))).toBeLessThan(1e-9);
+      expect(Math.hypot(...Object.values(exit.gripVelocity))).toBeLessThan(1e-9);
+      expect(batPoseAdmissibility(entry.pose, track.body).gap).toBeGreaterThanOrEqual(0);
+      expect(batPoseAdmissibility(exit.pose, track.body).gap).toBeGreaterThanOrEqual(0);
+      const actual = sweep(heldoutFlight.samples, track, track.body, 0, heldoutFlight.samples.at(-1)!.t).hit;
+      expect(actual?.part).toBe('blade');
+      const envelope = batTrackAnalyticEnvelope(track);
+      expect(envelope.pointSpeed).toBeLessThanOrEqual(BAT_POINT_SPEED_LIMIT_MPS);
+      expect(envelope.pointAcceleration).toBeLessThanOrEqual(BAT_POINT_ACCEL_LIMIT_MPS2);
+      expect(envelope.angularAcceleration).toBeLessThanOrEqual(BAT_ANGULAR_ACCEL_LIMIT_RADPS2);
+    },
+    30_000,
+  );
 
   it('preserves the locked top-power contact exactly under every cap', () => {
     const { track, flight: lockedFlight, swing } = lockedTopPowerTrack();
     const path = track.collisionPath;
     expect(track.contactU).toBeGreaterThanOrEqual(GENERALIZED_COLLISION_CONTACT_U_MIN - 1e-12);
     expect(track.contactU).toBeLessThanOrEqual(GENERALIZED_COLLISION_CONTACT_U_MAX + 1e-12);
-    expect(Math.hypot(track.batterRootOffset.x, track.batterRootOffset.z)).toBeLessThanOrEqual(BAT_BODY_RETARGET_M + 1e-12);
+    expect(Math.hypot(track.batterRootOffset.x, track.batterRootOffset.z)).toBeLessThanOrEqual(
+      BAT_BODY_RETARGET_M + 1e-12,
+    );
     expect(track.batterPosture.crouchM).toBeLessThanOrEqual(BAT_POSTURE_CROUCH_MAX_M + 1e-12);
     const before = collisionKinematicsAt(track, track.plannedContactT - 1e-9);
     const at = collisionKinematicsAt(track, track.plannedContactT);
@@ -231,7 +229,9 @@ describe('generalized rigid-bat collision path', () => {
     expectedContactVelocity.x += at.gripVelocity.x;
     expectedContactVelocity.y += at.gripVelocity.y;
     expectedContactVelocity.z += at.gripVelocity.z;
-    expect(distance(batPointVelocity(track, track.plannedContactT, point), expectedContactVelocity)).toBeLessThan(1e-10);
+    expect(distance(batPointVelocity(track, track.plannedContactT, point), expectedContactVelocity)).toBeLessThan(
+      1e-10,
+    );
 
     const actual = sweep(lockedFlight.samples, track, track.body, 0, lockedFlight.samples.at(-1)!.t).hit;
     expect(actual?.part).toBe('blade');
@@ -255,11 +255,13 @@ describe('generalized rigid-bat collision path', () => {
     const struck = strike(lockedFlight, swing, { assist: 'real' });
     expect(struck.contact.t).toBeCloseTo(actual!.t, 10);
     expect(struck.exit).not.toBeNull();
-    expect(struck.exit!.v).toEqual(expect.objectContaining({
-      x: expect.any(Number),
-      y: expect.any(Number),
-      z: expect.any(Number),
-    }));
+    expect(struck.exit!.v).toEqual(
+      expect.objectContaining({
+        x: expect.any(Number),
+        y: expect.any(Number),
+        z: expect.any(Number),
+      }),
+    );
 
     for (const time of [track.zoneIn, track.zoneOut]) {
       const endpoint = collisionKinematicsAt(track, time);
@@ -269,15 +271,17 @@ describe('generalized rigid-bat collision path', () => {
       expect(Math.hypot(...Object.values(endpoint.angularAcceleration))).toBeLessThan(1e-9);
       expect(batPoseAdmissibility(endpoint.pose, track.body).gap).toBeGreaterThanOrEqual(0);
     }
-    const authorities = path ? [
-        track.zoneIn,
-        track.plannedContactT - path.pre.angularRampS,
-        track.plannedContactT - path.pre.handRampS,
-        track.plannedContactT,
-        track.plannedContactT + path.post.handRampS,
-        track.plannedContactT + path.post.angularRampS,
-        track.zoneOut,
-      ] : [track.zoneIn, track.plannedContactT, track.zoneOut];
+    const authorities = path
+      ? [
+          track.zoneIn,
+          track.plannedContactT - path.pre.angularRampS,
+          track.plannedContactT - path.pre.handRampS,
+          track.plannedContactT,
+          track.plannedContactT + path.post.handRampS,
+          track.plannedContactT + path.post.angularRampS,
+          track.zoneOut,
+        ]
+      : [track.zoneIn, track.plannedContactT, track.zoneOut];
     const canonical = batSamples(track);
     for (const authority of authorities) {
       expect(canonical.filter((sample) => Math.abs(sample.t - authority) <= 1e-12)).toHaveLength(1);

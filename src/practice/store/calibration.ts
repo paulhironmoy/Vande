@@ -8,7 +8,17 @@
  * touch-first device, otherwise the mouse.
  */
 import type { Calibration } from '@/contracts';
-import { PRACTICE_KEYS, isInt, isNum, isObj, localStore, readJson, removeKey, writeJson, type KeyStore } from './storage';
+import {
+  PRACTICE_KEYS,
+  isInt,
+  isNum,
+  isObj,
+  localStore,
+  readJson,
+  removeKey,
+  writeJson,
+  type KeyStore,
+} from './storage';
 
 export type CalibratedInput = 'touch' | 'mouse' | 'pen' | 'keyboard';
 export type StoredCalibrations = Partial<Record<CalibratedInput, Calibration>>;
@@ -33,7 +43,10 @@ function mainInput(): CalibratedInput {
   }
 }
 
-export function loadCalibrations(store: KeyStore | null = localStore(), main: () => CalibratedInput = mainInput): StoredCalibrations {
+export function loadCalibrations(
+  store: KeyStore | null = localStore(),
+  main: () => CalibratedInput = mainInput,
+): StoredCalibrations {
   const raw = readJson(store, PRACTICE_KEYS.calibration);
   if (!isObj(raw)) return {};
   if (raw.v !== 2) {

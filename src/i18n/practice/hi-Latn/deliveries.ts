@@ -51,7 +51,8 @@ export const deliveriesHiLatn: Record<string, string> = {
   'practice.build.mode.reference_hint': 'Recommended: seekhne layak chheh classic balls',
   'practice.build.mode.own': 'Apni chheh balls',
   'practice.build.mode.own_hint': 'Har ball khud chuno',
-  'practice.build.reference_body': 'Har baar wahi chheh balls, balanced pitch pe nayi white ball se. Kisi ball pe tap karke dekho woh kya sikhaati hai.',
+  'practice.build.reference_body':
+    'Har baar wahi chheh balls, balanced pitch pe nayi white ball se. Kisi ball pe tap karke dekho woh kya sikhaati hai.',
   'practice.build.reference_copy': 'Copy banake apni chheh balls edit karo',
   'practice.build.bowler': 'Bowler',
   'practice.build.arm': 'Bowling arm',
@@ -64,7 +65,8 @@ export const deliveriesHiLatn: Record<string, string> = {
   'practice.build.spin.wrist_hint': 'Leg-break: right-hander se door ghoomti hai',
   'practice.build.slots': 'Chheh balls',
   'practice.build.slot_empty': 'Pitch pe tap karo',
-  'practice.build.chip_style': '{arm, select, left {Left-arm} other {Right-arm}} {family, select, spin {spin} other {pace}}',
+  'practice.build.chip_style':
+    '{arm, select, left {Left-arm} other {Right-arm}} {family, select, spin {spin} other {pace}}',
   'practice.build.editing': 'Ball {n}',
   'practice.build.map': 'Tap karo yeh ball kahan tappa khaaye',
   'practice.build.map_label': 'Pitch map. Ball {n} kahan tappa khaayegi: {target}. Arrow keys se jagah badlo.',

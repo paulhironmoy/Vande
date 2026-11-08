@@ -7,7 +7,9 @@ const LATIN = new Set(['en', 'hi-Latn']);
 /** The time-of-day options for this locale (src/screens/app/deadline.ts `clockText` is the reference). */
 function timeOptions(tr: Pick<SocialT, 'locale'>, withMinutes = true): Intl.DateTimeFormatOptions {
   if (LATIN.has(tr.locale)) return withMinutes ? { hour: '2-digit', minute: '2-digit' } : { hour: 'numeric' };
-  return withMinutes ? { hour: 'numeric', minute: '2-digit', dayPeriod: 'short' } : { hour: 'numeric', dayPeriod: 'short' };
+  return withMinutes
+    ? { hour: 'numeric', minute: '2-digit', dayPeriod: 'short' }
+    : { hour: 'numeric', dayPeriod: 'short' };
 }
 
 export function clockText(tr: SocialT, iso: string | null | undefined, now: number): string | null {
@@ -25,7 +27,9 @@ export function postHourText(tr: SocialT, iso: string, now: number): string {
   if (Number.isNaN(at.getTime())) return '';
   const time = timeOptions(tr, false);
   const today = new Date(now).toDateString() === at.toDateString();
-  return today ? tr.t('social.room.at_hour', { time: tr.date(at, time) }) : tr.date(at, { weekday: 'short', day: 'numeric', month: 'short', ...time });
+  return today
+    ? tr.t('social.room.at_hour', { time: tr.date(at, time) })
+    : tr.date(at, { weekday: 'short', day: 'numeric', month: 'short', ...time });
 }
 
 export function untilText(tr: SocialT, iso: string | null | undefined, now: number): string | null {

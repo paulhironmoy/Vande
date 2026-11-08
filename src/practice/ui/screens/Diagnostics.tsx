@@ -60,12 +60,20 @@ async function exportFile(text: string): Promise<'shared' | 'downloaded'> {
   return 'downloaded';
 }
 
-export function Diagnostics({ assessment: a, metrics: m, recentFps, lastInputToBatMs, onReset, onBack }: DiagnosticsProps) {
+export function Diagnostics({
+  assessment: a,
+  metrics: m,
+  recentFps,
+  lastInputToBatMs,
+  onReset,
+  onBack,
+}: DiagnosticsProps) {
   const t = usePracticeT();
   const [tester, setTester] = useState(() => testerEnabled());
   const [count, setCount] = useState(() => testerAnswerCount());
   const [status, setStatus] = useState<string | null>(null);
-  const ms = (v: number | null) => (v === null ? t.t('practice.dx.unknown') : t.t('practice.dx.ms', { ms: Math.round(v) }));
+  const ms = (v: number | null) =>
+    v === null ? t.t('practice.dx.unknown') : t.t('practice.dx.ms', { ms: Math.round(v) });
   const device: Array<[string, string]> = a
     ? [
         [t.t('practice.dx.tier'), a.tier],
@@ -75,14 +83,18 @@ export function Diagnostics({ assessment: a, metrics: m, recentFps, lastInputToB
         [t.t('practice.dx.spikes'), String(a.spikes)],
         [t.t('practice.dx.context'), String(a.contextLosses)],
         [t.t('practice.dx.input'), ms(a.inputToFrameMs)],
-        [t.t('practice.dx.memory'), a.memoryGb === null ? t.t('practice.dx.unknown') : t.t('practice.dx.gb', { gb: a.memoryGb })],
+        [
+          t.t('practice.dx.memory'),
+          a.memoryGb === null ? t.t('practice.dx.unknown') : t.t('practice.dx.gb', { gb: a.memoryGb }),
+        ],
         [t.t('practice.dx.renderer'), a.renderer || t.t('practice.dx.unknown')],
         [t.t('practice.dx.shader'), ms(a.shaderCompileMs)],
         [t.t('practice.dx.tolerance'), ms(a.toleranceMs)],
         [t.t('practice.dx.reasons'), a.reasons.join(', ')],
       ]
     : [[t.t('practice.dx.tier'), t.t('practice.dx.unknown')]];
-  const counts = (o: Record<string, number>, keys: readonly string[]) => keys.map((k) => `${k} ${o[k] ?? 0}`).join(' · ');
+  const counts = (o: Record<string, number>, keys: readonly string[]) =>
+    keys.map((k) => `${k} ${o[k] ?? 0}`).join(' · ');
   const local: Array<[string, string]> = [
     [t.t('practice.dx.deliveries'), String(m.deliveries)],
     [t.t('practice.dx.overs'), String(m.overs)],
@@ -127,14 +139,25 @@ export function Diagnostics({ assessment: a, metrics: m, recentFps, lastInputToB
           {count ? t.t('practice.tester.count', { count }) : t.t('practice.tester.none')}
         </p>
         <div className={s.actions}>
-          <PButton variant="secondary" icon="download" disabled={!count} onClick={() => void exportFile(testerExport()).then((r) => setStatus(t.tk(`practice.tester.${r}`)))} data-testid="practice-tester-export">
+          <PButton
+            variant="secondary"
+            icon="download"
+            disabled={!count}
+            onClick={() => void exportFile(testerExport()).then((r) => setStatus(t.tk(`practice.tester.${r}`)))}
+            data-testid="practice-tester-export"
+          >
             {t.t('practice.tester.export')}
           </PButton>
           <PButton
             variant="quiet"
             icon="copy"
             disabled={!count}
-            onClick={() => void navigator.clipboard?.writeText(testerExport()).then(() => setStatus(t.t('practice.tester.copied')), () => setStatus(t.t('practice.tester.copy_failed')))}
+            onClick={() =>
+              void navigator.clipboard?.writeText(testerExport()).then(
+                () => setStatus(t.t('practice.tester.copied')),
+                () => setStatus(t.t('practice.tester.copy_failed')),
+              )
+            }
             data-testid="practice-tester-copy"
           >
             {t.t('practice.tester.copy')}
@@ -166,7 +189,10 @@ export function Diagnostics({ assessment: a, metrics: m, recentFps, lastInputToB
         <h2 className={sys.section}>{t.t('practice.dx.session')}</h2>
         {dl(
           [
-            [t.t('practice.dx.recent_fps'), recentFps.length ? recentFps.map((f) => Math.round(f)).join(', ') : t.t('practice.dx.unknown')],
+            [
+              t.t('practice.dx.recent_fps'),
+              recentFps.length ? recentFps.map((f) => Math.round(f)).join(', ') : t.t('practice.dx.unknown'),
+            ],
             [t.t('practice.dx.latency_last'), ms(lastInputToBatMs)],
             [t.t('practice.dx.orientation'), t.tk(`practice.dx.lock.${currentLandscapeLock()}`)],
           ],

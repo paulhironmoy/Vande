@@ -28,7 +28,10 @@ function classes(variant: CardBase['variant'], padding: Pad | undefined, accent:
     .join(' ');
 }
 
-export const Card = forwardRef<HTMLDivElement, CardProps>(function Card({ variant, padding, accent, className, children, as = 'div', style, ...rest }, ref) {
+export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
+  { variant, padding, accent, className, children, as = 'div', style, ...rest },
+  ref,
+) {
   const Tag = as as 'div';
   const st = accent ? ({ ...style, '--card-accent': accent } as CSSProperties) : style;
   return (
@@ -38,7 +41,8 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card({ varian
   );
 });
 
-export interface CardButtonProps extends CardBase, Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'className'> {}
+export interface CardButtonProps
+  extends CardBase, Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'className'> {}
 
 /** A whole-card button (interactive surface). */
 export const CardButton = forwardRef<HTMLButtonElement, CardButtonProps>(function CardButton(
@@ -47,7 +51,13 @@ export const CardButton = forwardRef<HTMLButtonElement, CardButtonProps>(functio
 ) {
   const st = accent ? ({ ...style, '--card-accent': accent } as CSSProperties) : style;
   return (
-    <button ref={ref} type={type} className={`${classes(variant, padding, accent, className)} ${s.interactive}`} style={st} {...rest}>
+    <button
+      ref={ref}
+      type={type}
+      className={`${classes(variant, padding, accent, className)} ${s.interactive}`}
+      style={st}
+      {...rest}
+    >
       {children}
     </button>
   );

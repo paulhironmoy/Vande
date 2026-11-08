@@ -19,21 +19,67 @@ export interface CardPlayer {
 }
 
 export type CardModel =
-  | { kind: 'invite'; eyebrow: string; title: string; body: string; players: [CardPlayer]; chips: string[]; cta: string; url: string }
-  | { kind: 'match'; eyebrow: string; title: string; body: string; players: [CardPlayer, CardPlayer]; score: [string, string] | null; result: string | null; potm: string | null; cta: string; url: string }
-  | { kind: 'daily'; eyebrow: string; title: string; body: string; players: [CardPlayer]; big: string; stats: Array<{ text: string; tone: 'amber' | 'violet' | 'cyan' }>; cta: string; url: string }
-  | { kind: 'practice'; eyebrow: string; title: string; body: string; players: [CardPlayer, CardPlayer]; score: [string, string]; result: string; cta: string; url: string };
+  | {
+      kind: 'invite';
+      eyebrow: string;
+      title: string;
+      body: string;
+      players: [CardPlayer];
+      chips: string[];
+      cta: string;
+      url: string;
+    }
+  | {
+      kind: 'match';
+      eyebrow: string;
+      title: string;
+      body: string;
+      players: [CardPlayer, CardPlayer];
+      score: [string, string] | null;
+      result: string | null;
+      potm: string | null;
+      cta: string;
+      url: string;
+    }
+  | {
+      kind: 'daily';
+      eyebrow: string;
+      title: string;
+      body: string;
+      players: [CardPlayer];
+      big: string;
+      stats: Array<{ text: string; tone: 'amber' | 'violet' | 'cyan' }>;
+      cta: string;
+      url: string;
+    }
+  | {
+      kind: 'practice';
+      eyebrow: string;
+      title: string;
+      body: string;
+      players: [CardPlayer, CardPlayer];
+      score: [string, string];
+      result: string;
+      cta: string;
+      url: string;
+    };
 
-const conditionChips = (t: Translator, c: Conditions | null) => (c ? [t.t(`pitch.${c.pitch}` as MessageKey), t.t(`weather.${c.weather}` as MessageKey)] : []);
+const conditionChips = (t: Translator, c: Conditions | null) =>
+  c ? [t.t(`pitch.${c.pitch}` as MessageKey), t.t(`weather.${c.weather}` as MessageKey)] : [];
 const shortUrl = (url: string) => url.replace(/^https?:\/\//, '').replace(/\/$/, '');
 
-export function inviteCardModel(t: Translator, o: { inviter: CardPlayer; conditions: Conditions | null; url: string; cup?: { name: string | null } }): CardModel {
+export function inviteCardModel(
+  t: Translator,
+  o: { inviter: CardPlayer; conditions: Conditions | null; url: string; cup?: { name: string | null } },
+): CardModel {
   // A Group Cup invite says what joining means: round robin, one sealed over per round before its deadline, a final.
   if (o.cup)
     return {
       kind: 'invite',
       eyebrow: t.t('card.cup_invite.eyebrow'),
-      title: o.cup.name ? t.t('card.cup_invite.title', { name: o.inviter.alias, cup: o.cup.name }) : t.t('card.cup_invite.title_unnamed', { name: o.inviter.alias }),
+      title: o.cup.name
+        ? t.t('card.cup_invite.title', { name: o.inviter.alias, cup: o.cup.name })
+        : t.t('card.cup_invite.title_unnamed', { name: o.inviter.alias }),
       body: t.t('card.cup_invite.body'),
       players: [o.inviter],
       chips: [t.t('card.cup_invite.chip_format'), t.t('card.cup_invite.chip_final')],
@@ -53,17 +99,52 @@ export function inviteCardModel(t: Translator, o: { inviter: CardPlayer; conditi
 }
 
 /** Before the reveal: names and the sealed state only. After: both scores, the result and Player of the Match. */
-export function matchCardModel(t: Translator, o: { log: MatchEventLog | null; players: [CardPlayer, CardPlayer]; revealed: boolean; url: string }): CardModel {
+export function matchCardModel(
+  t: Translator,
+  o: { log: MatchEventLog | null; players: [CardPlayer, CardPlayer]; revealed: boolean; url: string },
+): CardModel {
   const base = { kind: 'match' as const, players: o.players, url: shortUrl(o.url), cta: t.t('card.cta_watch') };
-  if (!o.revealed || !o.log) return { ...base, eyebrow: t.t('card.match.eyebrow_sealed'), title: t.t('card.match.title_sealed'), body: t.t('card.match.body_sealed'), score: null, result: null, potm: null };
+  if (!o.revealed || !o.log)
+    return {
+      ...base,
+      eyebrow: t.t('card.match.eyebrow_sealed'),
+      title: t.t('card.match.title_sealed'),
+      body: t.t('card.match.body_sealed'),
+      score: null,
+      result: null,
+      potm: null,
+    };
   const log = o.log;
-  const score = log.innings.map((inn) => t.t('card.score', { runs: inn.runs, wickets: inn.wickets })) as [string, string];
+  const score = log.innings.map((inn) => t.t('card.score', { runs: inn.runs, wickets: inn.wickets })) as [
+    string,
+    string,
+  ];
   const r = log.result;
-  const result = r.tie || r.winner === null ? t.t('card.match.tie') : t.t('card.match.won', { name: log.players[r.winner].alias });
-  return { ...base, eyebrow: t.t('card.match.eyebrow_revealed'), title: t.t('card.match.title_revealed'), body: t.t('card.match.body_revealed'), score, result, potm: t.t('card.potm', { name: log.players[r.playerOfMatch].alias }) };
+  const result =
+    r.tie || r.winner === null ? t.t('card.match.tie') : t.t('card.match.won', { name: log.players[r.winner].alias });
+  return {
+    ...base,
+    eyebrow: t.t('card.match.eyebrow_revealed'),
+    title: t.t('card.match.title_revealed'),
+    body: t.t('card.match.body_revealed'),
+    score,
+    result,
+    potm: t.t('card.potm', { name: log.players[r.playerOfMatch].alias }),
+  };
 }
 
-export function dailyCardModel(t: Translator, o: { player: CardPlayer; day: string; score: number; best: number | null; streak: number; conditions: Conditions | null; url: string }): CardModel {
+export function dailyCardModel(
+  t: Translator,
+  o: {
+    player: CardPlayer;
+    day: string;
+    score: number;
+    best: number | null;
+    streak: number;
+    conditions: Conditions | null;
+    url: string;
+  },
+): CardModel {
   const stats: Array<{ text: string; tone: 'amber' | 'violet' | 'cyan' }> = [];
   // Only a counted score is a best (an attempt with irregular balls counts on no board).
   if (o.best !== null) stats.push({ text: t.t('card.daily.best', { score: t.number(o.best) }), tone: 'amber' });
@@ -71,7 +152,9 @@ export function dailyCardModel(t: Translator, o: { player: CardPlayer; day: stri
   for (const c of conditionChips(t, o.conditions)) stats.push({ text: c, tone: 'cyan' });
   return {
     kind: 'daily',
-    eyebrow: t.t('card.daily.eyebrow', { day: t.date(`${o.day}T12:00:00+05:30`, { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }) }),
+    eyebrow: t.t('card.daily.eyebrow', {
+      day: t.date(`${o.day}T12:00:00+05:30`, { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }),
+    }),
     title: t.t('card.daily.title', { name: o.player.alias }),
     body: t.t('card.daily.body'),
     players: [o.player],
@@ -82,15 +165,33 @@ export function dailyCardModel(t: Translator, o: { player: CardPlayer; day: stri
   };
 }
 
-export function practiceCardModel(t: Translator, o: { me: CardPlayer; ghost: CardPlayer; myScore: [number, number]; ghostScore: [number, number]; result: 'won' | 'lost' | 'tie'; url: string }): CardModel {
+export function practiceCardModel(
+  t: Translator,
+  o: {
+    me: CardPlayer;
+    ghost: CardPlayer;
+    myScore: [number, number];
+    ghostScore: [number, number];
+    result: 'won' | 'lost' | 'tie';
+    url: string;
+  },
+): CardModel {
   return {
     kind: 'practice',
     eyebrow: t.t('card.practice.eyebrow'),
     title: t.t('card.practice.title', { name: o.me.alias }),
     body: t.t('card.practice.body', { ghost: o.ghost.alias }),
     players: [o.me, o.ghost],
-    score: [t.t('card.score', { runs: o.myScore[0], wickets: o.myScore[1] }), t.t('card.score', { runs: o.ghostScore[0], wickets: o.ghostScore[1] })],
-    result: o.result === 'won' ? t.t('card.practice.won', { ghost: o.ghost.alias }) : o.result === 'lost' ? t.t('card.practice.lost', { ghost: o.ghost.alias }) : t.t('card.match.tie'),
+    score: [
+      t.t('card.score', { runs: o.myScore[0], wickets: o.myScore[1] }),
+      t.t('card.score', { runs: o.ghostScore[0], wickets: o.ghostScore[1] }),
+    ],
+    result:
+      o.result === 'won'
+        ? t.t('card.practice.won', { ghost: o.ghost.alias })
+        : o.result === 'lost'
+          ? t.t('card.practice.lost', { ghost: o.ghost.alias })
+          : t.t('card.match.tie'),
     cta: t.t('card.cta_beat'),
     url: shortUrl(o.url),
   };
@@ -106,7 +207,10 @@ const FONT = '"Manrope Variable", Manrope, "Noto Sans Devanagari", system-ui, sa
 
 async function fontsReady(locale: string): Promise<void> {
   if (typeof document === 'undefined' || !document.fonts) return;
-  const loads = [document.fonts.load(`800 64px "Manrope Variable"`), document.fonts.load(`500 32px "Manrope Variable"`)];
+  const loads = [
+    document.fonts.load(`800 64px "Manrope Variable"`),
+    document.fonts.load(`500 32px "Manrope Variable"`),
+  ];
   if (locale === 'hi' || locale === 'mr') loads.push(document.fonts.load(`700 48px "Noto Sans Devanagari"`, 'अआ'));
   await Promise.race([Promise.all(loads), new Promise((r) => setTimeout(r, 1500))]).catch(() => undefined);
 }
@@ -207,11 +311,21 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 }
 
-function chip(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, tone: 'cyan' | 'amber' | 'violet'): number {
+function chip(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  tone: 'cyan' | 'amber' | 'violet',
+): number {
   ctx.font = `700 30px ${FONT}`;
   const w = ctx.measureText(text).width + 48;
   roundRect(ctx, x, y, w, 58, 29);
-  const colors = { cyan: ['rgba(25,211,250,0.16)', '#93eeff'], amber: ['rgba(255,170,51,0.18)', '#ffdba3'], violet: ['rgba(195,140,255,0.18)', '#e2c9ff'] }[tone];
+  const colors = {
+    cyan: ['rgba(25,211,250,0.16)', '#93eeff'],
+    amber: ['rgba(255,170,51,0.18)', '#ffdba3'],
+    violet: ['rgba(195,140,255,0.18)', '#e2c9ff'],
+  }[tone];
   ctx.fillStyle = colors[0];
   ctx.fill();
   ctx.strokeStyle = colors[1];
@@ -285,7 +399,8 @@ async function drawCard(canvas: HTMLCanvasElement, m: CardModel, locale: string)
 
   // Middle: players and numbers, kept clear of the footer.
   const fy0 = H - 170;
-  const mid = m.kind === 'invite' || m.kind === 'daily' ? Math.max(y + 70, 760) : Math.min(Math.max(y + 50, 640), fy0 - 470);
+  const mid =
+    m.kind === 'invite' || m.kind === 'daily' ? Math.max(y + 70, 760) : Math.min(Math.max(y + 50, 640), fy0 - 470);
   if (m.kind === 'invite' || m.kind === 'daily') {
     const p = m.players[0];
     await drawPortrait(ctx, p, pad + 110, mid + 90, 220);
@@ -363,7 +478,14 @@ async function drawCard(canvas: HTMLCanvasElement, m: CardModel, locale: string)
  * One line that always fits `maxWidth`: smaller type first, then the middle elided (a link keeps its host and its
  * end, so it stays recognisable; the full link travels in the message itself). Leaves `ctx.font` set.
  */
-export function fitLine(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, weight: number, maxPx: number, minPx: number): string {
+export function fitLine(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  weight: number,
+  maxPx: number,
+  minPx: number,
+): string {
   for (let px = maxPx; px >= minPx; px -= 2) {
     ctx.font = `${weight} ${px}px ${FONT}`;
     if (ctx.measureText(text).width <= maxWidth) return text;

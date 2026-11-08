@@ -89,7 +89,13 @@ export function fixtureFlight(o: FlightFixture = {}): BallFlight {
     // Back-spin about −x (rad/s), a little less after the pitch.
     spin: { release: spinRelease, afterBounce: bounce ? v(-2 * Math.PI * (o.spinRps ?? 13) * 0.8, 0, 0) : null },
     // The seam as the physics derives it (src/physics seamCue): upright, angled by seamDeg, the shine away from the swing.
-    seam: seamCue({ v: v(vx, vy, vz), spin: spinRelease, seamDeg: o.seamDeg ?? 0, swingCs: o.swingCs ?? 0, presentation: o.presentation ?? 'upright' }),
+    seam: seamCue({
+      v: v(vx, vy, vz),
+      spin: spinRelease,
+      seamDeg: o.seamDeg ?? 0,
+      swingCs: o.swingCs ?? 0,
+      presentation: o.presentation ?? 'upright',
+    }),
     idealContactT: timeAtZ(PITCH_HALF - 1.5),
     stumpsT,
     wouldHitStumps: Math.abs(at.p.x) <= 0.1143 + BALL_R && at.p.y <= 0.724 + BALL_R,
@@ -183,7 +189,15 @@ function batTrack(startT: number, tc: number, through: Vec3, bearingDeg: number)
 }
 
 /** A hit: a straight launch along the bearing with bounces and a roll, until it stops or reaches `untilR`. */
-function hitPath(from: Vec3, t0: number, bearingDeg: number, speed: number, elevDeg: number, untilR = 64, stopAt?: number): BallSample[] {
+function hitPath(
+  from: Vec3,
+  t0: number,
+  bearingDeg: number,
+  speed: number,
+  elevDeg: number,
+  untilR = 64,
+  stopAt?: number,
+): BallSample[] {
   const a = (bearingDeg * Math.PI) / 180;
   const e = (elevDeg * Math.PI) / 180;
   let p = { ...from };
@@ -221,22 +235,54 @@ export function fixtureResult(flight: BallFlight, o: ResultFixture): DeliveryRes
   if (flight.bounce) events.push({ t: flight.bounce.t, kind: 'bounce', p: flight.bounce.p });
   const leave = o.kind === 'leave';
   const tc = flight.idealContactT + err / 1000;
-  const swing: NormalizedSwing | null = leave ? null : { kind: o.kind === 'defend' ? 'defend' : 'attack', startT: Math.round((tc - 0.135) * 1e4) / 1e4, directionDeg: bearing, power: o.kind === 'defend' ? 0.2 : 0.8, elevation: o.kind === 'six' ? 0.9 : 0.1, footwork: 'auto' };
+  const swing: NormalizedSwing | null = leave
+    ? null
+    : {
+        kind: o.kind === 'defend' ? 'defend' : 'attack',
+        startT: Math.round((tc - 0.135) * 1e4) / 1e4,
+        directionDeg: bearing,
+        power: o.kind === 'defend' ? 0.2 : 0.8,
+        elevation: o.kind === 'six' ? 0.9 : 0.1,
+        footwork: 'auto',
+      };
   const at = flightAt(flight, Math.min(tc, flight.samples[flight.samples.length - 1].t));
-  const bat = swing ? batTrack(swing.startT, tc, o.kind === 'miss' || o.kind === 'bowled' ? v(at.x + 0.25, at.y + 0.1, at.z) : at, bearing) : [];
+  const bat = swing
+    ? batTrack(
+        swing.startT,
+        tc,
+        o.kind === 'miss' || o.kind === 'bowled' ? v(at.x + 0.25, at.y + 0.1, at.z) : at,
+        bearing,
+      )
+    : [];
   const pre = flight.samples.filter((s) => s.t <= tc);
   let ball: BallSample[] = flight.samples;
   let deadT = flight.samples[flight.samples.length - 1].t + 0.4;
   let kind: ContactKind = leave ? 'leave' : 'miss';
   let timing: SwingTiming = leave ? 'none' : 'missed';
-  const fielders: FielderPath[] = field.fielders.map((f) => ({ fielderId: f.id, samples: [{ t: 0, x: f.x, z: f.z, action: 'set' }] }));
-  const outcome: DeliveryResult['outcome'] = { runs: 0, boundary: null, dismissal: null, fielderId: null, endBearingDeg: null, endDistanceM: null, region: null };
+  const fielders: FielderPath[] = field.fielders.map((f) => ({
+    fielderId: f.id,
+    samples: [{ t: 0, x: f.x, z: f.z, action: 'set' }],
+  }));
+  const outcome: DeliveryResult['outcome'] = {
+    runs: 0,
+    boundary: null,
+    dismissal: null,
+    fielderId: null,
+    endBearingDeg: null,
+    endDistanceM: null,
+    region: null,
+  };
   if (o.kind === 'drive' || o.kind === 'defend' || o.kind === 'edge' || o.kind === 'six' || o.kind === 'catch') {
     kind = o.kind === 'edge' ? 'outside_edge' : 'middle';
     timing = Math.abs(err) <= 25 ? 'perfect' : Math.abs(err) <= 55 ? 'solid' : 'mistimed';
     const speed = o.kind === 'six' ? 42 : o.kind === 'defend' ? 6 : o.kind === 'edge' ? 24 : 30;
     const elev = o.kind === 'six' ? 34 : o.kind === 'catch' ? 22 : o.kind === 'edge' ? 8 : 4;
-    const fielder = o.kind === 'catch' ? field.fielders.find((f) => f.id === 'cv')! : o.kind === 'drive' ? field.fielders.find((f) => f.id === 'mo')! : null;
+    const fielder =
+      o.kind === 'catch'
+        ? field.fielders.find((f) => f.id === 'cv')!
+        : o.kind === 'drive'
+          ? field.fielders.find((f) => f.id === 'mo')!
+          : null;
     let stopAt: number | undefined;
     if (fielder && o.kind === 'catch') {
       // Caught at chest height once the ball reaches the fielder's distance.
@@ -327,7 +373,13 @@ export function fixtureResult(flight: BallFlight, o: ResultFixture): DeliveryRes
     fielders,
     events,
     outcome,
-    coaching: { reason: o.kind === 'six' ? 'cleared_the_rope' : o.kind === 'leave' ? 'left_well' : 'hit_to_fielder', timing: err < -25 ? 'early' : err > 25 ? 'late' : 'on_time', zone: null, fielderRole: null, lbw: null },
+    coaching: {
+      reason: o.kind === 'six' ? 'cleared_the_rope' : o.kind === 'leave' ? 'left_well' : 'hit_to_fielder',
+      timing: err < -25 ? 'early' : err > 25 ? 'late' : 'on_time',
+      zone: null,
+      fielderRole: null,
+      lbw: null,
+    },
     deadT,
   };
 }

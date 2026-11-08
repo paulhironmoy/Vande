@@ -30,7 +30,15 @@ export function useAgeQuestion(at?: Date): AgeQuestionState {
   const [shown, setShown] = useState(false);
   const yearRef = useRef<HTMLInputElement>(null);
   const step = useMemo(
-    () => ageStep({ year: year === '' ? null : year.length === 4 ? Number(year) : Number.NaN, month: month === '' ? null : Number(month), day: day === '' ? null : Number(day) }, today),
+    () =>
+      ageStep(
+        {
+          year: year === '' ? null : year.length === 4 ? Number(year) : Number.NaN,
+          month: month === '' ? null : Number(month),
+          day: day === '' ? null : Number(day),
+        },
+        today,
+      ),
     [year, month, day, today],
   );
   const setYear = (v: string) => {
@@ -53,7 +61,15 @@ export function useAgeQuestion(at?: Date): AgeQuestionState {
  * Year of birth (and, only for the year someone turns 18, the month and day). Neutral: no default, no example year
  * and nothing that says which answer lets you in.
  */
-export function AgeFields({ q, onEnter, testId = 'age' }: { q: AgeQuestionState; onEnter?: () => void; testId?: string }) {
+export function AgeFields({
+  q,
+  onEnter,
+  testId = 'age',
+}: {
+  q: AgeQuestionState;
+  onEnter?: () => void;
+  testId?: string;
+}) {
   const tr = useT();
   const { t } = tr;
   const yearId = useId();
@@ -62,10 +78,16 @@ export function AgeFields({ q, onEnter, testId = 'age' }: { q: AgeQuestionState;
   const errId = useId();
   const deciding = q.year.length === 4 && q.today.getFullYear() - Number(q.year) === ADULT_AGE;
   const askDay = deciding && q.month !== '' && Number(q.month) === q.today.getMonth() + 1;
-  const months = useMemo(() => Array.from({ length: 12 }, (_, i) => tr.date(new Date(2000, i, 1), { month: 'long' })), [tr]);
+  const months = useMemo(
+    () => Array.from({ length: 12 }, (_, i) => tr.date(new Date(2000, i, 1), { month: 'long' })),
+    [tr],
+  );
   const days = askDay ? new Date(Number(q.year), Number(q.month), 0).getDate() : 31;
   const need = q.step.kind === 'need' ? q.step.field : null;
-  const error = q.shown && need ? t(need === 'year' ? 'age.year_error' : need === 'month' ? 'age.month_error' : 'age.day_error') : null;
+  const error =
+    q.shown && need
+      ? t(need === 'year' ? 'age.year_error' : need === 'month' ? 'age.month_error' : 'age.day_error')
+      : null;
 
   return (
     <div className={s.fields}>
@@ -92,7 +114,15 @@ export function AgeFields({ q, onEnter, testId = 'age' }: { q: AgeQuestionState;
       {deciding && (
         <div className={s.birthday}>
           <Field label={t('age.month_label')} htmlFor={monthId}>
-            <select id={monthId} className={s.select} value={q.month} onChange={(e) => q.setMonth(e.target.value)} aria-invalid={Boolean(error && need === 'month')} aria-describedby={error && need === 'month' ? errId : undefined} data-testid={`${testId}-month`}>
+            <select
+              id={monthId}
+              className={s.select}
+              value={q.month}
+              onChange={(e) => q.setMonth(e.target.value)}
+              aria-invalid={Boolean(error && need === 'month')}
+              aria-describedby={error && need === 'month' ? errId : undefined}
+              data-testid={`${testId}-month`}
+            >
               <option value="">{t('age.choose')}</option>
               {months.map((name, i) => (
                 <option key={name} value={String(i + 1)}>
@@ -103,7 +133,15 @@ export function AgeFields({ q, onEnter, testId = 'age' }: { q: AgeQuestionState;
           </Field>
           {askDay && (
             <Field label={t('age.day_label')} htmlFor={dayId}>
-              <select id={dayId} className={s.select} value={q.day} onChange={(e) => q.setDay(e.target.value)} aria-invalid={Boolean(error && need === 'day')} aria-describedby={error && need === 'day' ? errId : undefined} data-testid={`${testId}-day`}>
+              <select
+                id={dayId}
+                className={s.select}
+                value={q.day}
+                onChange={(e) => q.setDay(e.target.value)}
+                aria-invalid={Boolean(error && need === 'day')}
+                aria-describedby={error && need === 'day' ? errId : undefined}
+                data-testid={`${testId}-day`}
+              >
                 <option value="">{t('age.choose')}</option>
                 {Array.from({ length: days }, (_, i) => (
                   <option key={i + 1} value={String(i + 1)}>
@@ -128,7 +166,17 @@ export function AgeFields({ q, onEnter, testId = 'age' }: { q: AgeQuestionState;
  * One neutral check before anything is kept: "You entered 2012. Is that right?" with Yes and Change year. It comes
  * after every answer, whichever way it goes, so it says nothing about which one lets you in; only Yes stores it.
  */
-export function AgeConfirm({ q, onYes, onChange, testId = 'age' }: { q: AgeQuestionState; onYes: () => void; onChange: () => void; testId?: string }) {
+export function AgeConfirm({
+  q,
+  onYes,
+  onChange,
+  testId = 'age',
+}: {
+  q: AgeQuestionState;
+  onYes: () => void;
+  onChange: () => void;
+  testId?: string;
+}) {
   const tr = useT();
   const { t } = tr;
   const id = useId();

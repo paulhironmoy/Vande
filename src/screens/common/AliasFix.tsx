@@ -26,8 +26,22 @@ export function AliasFix() {
         <Icon name="user" size={20} /> {t('alias_fix.title')}
       </h2>
       <p className={s.body}>{t('alias_fix.body', { name: player.alias })}</p>
-      <Field label={t('onboarding.alias_label')} description={touched && problem ? t(`onboarding.alias_error_${problem}` as MessageKey) : t('onboarding.alias_hint')} htmlFor={id}>
-        <input id={id} value={alias} maxLength={24} autoComplete="nickname" onChange={(e) => setAlias(e.target.value)} onBlur={() => setTouched(true)} data-testid="alias-fix-input" />
+      <Field
+        label={t('onboarding.alias_label')}
+        description={
+          touched && problem ? t(`onboarding.alias_error_${problem}` as MessageKey) : t('onboarding.alias_hint')
+        }
+        htmlFor={id}
+      >
+        <input
+          id={id}
+          value={alias}
+          maxLength={24}
+          autoComplete="nickname"
+          onChange={(e) => setAlias(e.target.value)}
+          onBlur={() => setTouched(true)}
+          data-testid="alias-fix-input"
+        />
       </Field>
       <Button variant="primary" onClick={save} data-testid="alias-fix-save">
         {t('common.save')}

@@ -45,7 +45,14 @@ const RUN_LANE_X = 1.25;
  */
 export const TURN_SHORT_M = 1.0;
 /** Sprint model for the drawn runs: push-off acceleration and braking into the turn (m/s²). */
-export const SPRINT = Object.freeze({ accel: 7, brake: 10, turnMs: 300, slideMs: 420, finishMps: 4.5, overrunBrake: 6 });
+export const SPRINT = Object.freeze({
+  accel: 7,
+  brake: 10,
+  turnMs: 300,
+  slideMs: 420,
+  finishMps: 4.5,
+  overrunBrake: 6,
+});
 /** The bat_run cycle's ground speed at rate 1 (m/s): its cadence follows the speed (actors.rateBySpeed). */
 export const BAT_RUN_MPS = 6.4;
 
@@ -71,14 +78,31 @@ export function nonStrikerStand(bowlerLeftArm: boolean): Vec3 {
 function walkLegs(m: Move, scale: number): Move {
   if (!hasMotionClip('loco_walk')) return m;
   const src = motionSource('vmp:loco_walk')!;
-  return { ...m, lower: 'vmp:loco_walk', lowerStart: 0, lowerRate: 1, rate: clipDuration('walk') / src.duration, rateBySpeed: src.speedMps * scale, rateExp: 1, rateClamp: [0.75, 1.3] };
+  return {
+    ...m,
+    lower: 'vmp:loco_walk',
+    lowerStart: 0,
+    lowerRate: 1,
+    rate: clipDuration('walk') / src.duration,
+    rateBySpeed: src.speedMps * scale,
+    rateExp: 1,
+    rateClamp: [0.75, 1.3],
+  };
 }
 
 /**
  * A clip-driven stretch (MOTION-SPEC §6): the clip's own ground track, placed at `origin` facing the striker (+z), as
  * short Hermite moves so the root speed is continuous; `mirror` negates the ground's x (the canonical mirror).
  */
-function clipDriven(clip: `vmp:${string}`, t0: number, fromClip: number, toClip: number, origin: Vec3, mirror: boolean, heading = 0): Move[] {
+function clipDriven(
+  clip: `vmp:${string}`,
+  t0: number,
+  fromClip: number,
+  toClip: number,
+  origin: Vec3,
+  mirror: boolean,
+  heading = 0,
+): Move[] {
   const src = motionSource(clip)!;
   const g0 = src.ground!(0);
   const c = Math.cos(heading);
@@ -94,12 +118,24 @@ function clipDriven(clip: `vmp:${string}`, t0: number, fromClip: number, toClip:
   const speed = (ct: number) => {
     const a = at(Math.max(fromClip, ct - 0.004));
     const b = at(Math.min(toClip, ct + 0.004));
-    return Math.hypot(b.x - a.x, b.z - a.z) / Math.max(1e-6, Math.min(toClip, ct + 0.004) - Math.max(fromClip, ct - 0.004));
+    return (
+      Math.hypot(b.x - a.x, b.z - a.z) / Math.max(1e-6, Math.min(toClip, ct + 0.004) - Math.max(fromClip, ct - 0.004))
+    );
   };
   for (let cc = fromClip; cc < toClip - 1e-6; cc += step) {
     const c1 = Math.min(toClip, cc + step);
     const c = cc;
-    out.push({ t0: t0 + (c - fromClip) * 1000, t1: t0 + (c1 - fromClip) * 1000, clip, clipStart: c, from: at(c), to: at(c1), speed: [speed(c), speed(c1)], heading, ...(c === fromClip ? { inertial: 240 } : { blend: 0 }) });
+    out.push({
+      t0: t0 + (c - fromClip) * 1000,
+      t1: t0 + (c1 - fromClip) * 1000,
+      clip,
+      clipStart: c,
+      from: at(c),
+      to: at(c1),
+      speed: [speed(c), speed(c1)],
+      heading,
+      ...(c === fromClip ? { inertial: 240 } : { blend: 0 }),
+    });
   }
   return out;
 }
@@ -134,13 +170,26 @@ function walkOnMoves(t0: number, from: Vec3, vRel: number, scale: number): { mov
   let at = from;
   segs.forEach((g, i) => {
     const to = v3(at.x, 0, at.z + ((g.v0 + g.v1) / 2) * (g.ms / 1000));
-    const base: Move = { t0: t, t1: t + g.ms, clip: 'walk', from: at, to, speed: [g.v0, g.v1], rateBySpeed: 1.4, heading: 0, ...(i === 0 ? { inertial: 200 } : { blend: segs[i - 1].jog !== g.jog ? 160 : 0 }) };
+    const base: Move = {
+      t0: t,
+      t1: t + g.ms,
+      clip: 'walk',
+      from: at,
+      to,
+      speed: [g.v0, g.v1],
+      rateBySpeed: 1.4,
+      heading: 0,
+      ...(i === 0 ? { inertial: 200 } : { blend: segs[i - 1].jog !== g.jog ? 160 : 0 }),
+    };
     const m = g.jog ? jogLegs(base, scale) : walkLegs(base, scale);
     // The gait's phase carries on from the stride before (the same foot down at the same moment of the cycle).
     const prev = moves[moves.length - 1];
     if (i > 0 && prev) {
       const st = clipStateAt(prev, prev.t1);
-      const cycle = (id: string | undefined, fallback: number) => (id && id.startsWith('vmp:') && motionSource(id as `vmp:${string}`) ? motionSource(id as `vmp:${string}`)!.duration : fallback);
+      const cycle = (id: string | undefined, fallback: number) =>
+        id && id.startsWith('vmp:') && motionSource(id as `vmp:${string}`)
+          ? motionSource(id as `vmp:${string}`)!.duration
+          : fallback;
       const walkS = clipDuration('walk');
       m.clipStart = st.time % walkS;
       if (m.lower && st.lower && st.lowerTime !== undefined) {
@@ -160,10 +209,28 @@ function walkOnMoves(t0: number, from: Vec3, vRel: number, scale: number): { mov
 function jogLegs(m: Move, scale: number): Move {
   if (!hasMotionClip('loco_jog')) return walkLegs(m, scale);
   const src = motionSource('vmp:loco_jog')!;
-  return { ...m, lower: 'vmp:loco_jog', lowerStart: 0, lowerRate: 1, rate: BAT_RUN_CYCLE_S / src.duration, rateBySpeed: src.speedMps * scale, rateExp: 1, rateClamp: [0.75, 1.3] };
+  return {
+    ...m,
+    lower: 'vmp:loco_jog',
+    lowerStart: 0,
+    lowerRate: 1,
+    rate: BAT_RUN_CYCLE_S / src.duration,
+    rateBySpeed: src.speedMps * scale,
+    rateExp: 1,
+    rateClamp: [0.75, 1.3],
+  };
 }
 
-function packNonStrikerMoves(o: { releaseScene: number; duration: number; delivery: boolean; bowlerLeftArm: boolean; deadScene: number | null; mirror?: boolean; arrivalScene?: number; scale?: number }): Move[] | null {
+function packNonStrikerMoves(o: {
+  releaseScene: number;
+  duration: number;
+  delivery: boolean;
+  bowlerLeftArm: boolean;
+  deadScene: number | null;
+  mirror?: boolean;
+  arrivalScene?: number;
+  scale?: number;
+}): Move[] | null {
   const need = ['ns_stance', 'ns_backup', 'ns_ready', 'ns_walk_back'];
   if (!need.every(hasMotionClip)) return null;
   const x = nonStrikerX(o.bowlerLeftArm);
@@ -181,7 +248,8 @@ function packNonStrikerMoves(o: { releaseScene: number; duration: number; delive
   const atRel = moves[moves.length - 1];
   // Walking on, then a few jogging strides and easing to a stop NS_STOP_OUT_M past the line (no run): the gait's
   // own legs at every speed (walk ≤ 1.9 m/s, jog above), never a walk cycle stretched over a jog.
-  const vRel = Math.hypot(atRel.to!.x - atRel.from!.x, atRel.to!.z - atRel.from!.z) / Math.max(1e-3, (atRel.t1 - atRel.t0) / 1000);
+  const vRel =
+    Math.hypot(atRel.to!.x - atRel.from!.x, atRel.to!.z - atRel.from!.z) / Math.max(1e-3, (atRel.t1 - atRel.t0) / 1000);
   const on = walkOnMoves(atRel.t1, atRel.to!, vRel, o.scale ?? 1);
   moves.push(...on.moves);
   const onAt = on.end;
@@ -199,19 +267,46 @@ function packNonStrikerMoves(o: { releaseScene: number; duration: number; delive
     // The gap from where the backing-up left him to the walk back's start closes over the first moves (no jump).
     const gx = onAt.x - start.x;
     const gz = onAt.z - start.z;
-    const fade = (tt: number) => 1 - Math.min(1, Math.max(0, (tt - back) / 900)) ** 2 * (3 - 2 * Math.min(1, Math.max(0, (tt - back) / 900)));
+    const fade = (tt: number) =>
+      1 - Math.min(1, Math.max(0, (tt - back) / 900)) ** 2 * (3 - 2 * Math.min(1, Math.max(0, (tt - back) / 900)));
     for (const m of walk) {
       m.from = v3(m.from!.x + gx * fade(m.t0), 0, m.from!.z + gz * fade(m.t0));
       m.to = v3(m.to!.x + gx * fade(m.t1), 0, m.to!.z + gz * fade(m.t1));
     }
     moves.push(...walk);
     t = back + wbMs;
-    moves.push({ t0: t, t1: Math.max(t + 1, o.duration), clip: 'vmp:ns_stance', from: origin, to: origin, heading: 0, blend: 300 });
-  } else moves.push({ t0: t, t1: Math.max(t + 1, o.duration), clip: 'vmp:ns_ready', from: onAt, to: onAt, heading: 0, blend: 300 });
+    moves.push({
+      t0: t,
+      t1: Math.max(t + 1, o.duration),
+      clip: 'vmp:ns_stance',
+      from: origin,
+      to: origin,
+      heading: 0,
+      blend: 300,
+    });
+  } else
+    moves.push({
+      t0: t,
+      t1: Math.max(t + 1, o.duration),
+      clip: 'vmp:ns_ready',
+      from: onAt,
+      to: onAt,
+      heading: 0,
+      blend: 300,
+    });
   return moves;
 }
 
-export function nonStrikerMoves(o: { releaseScene: number; duration: number; delivery: boolean; bowlerLeftArm: boolean; deadScene: number | null; scale?: number; mirror?: boolean; arrivalScene?: number }): Move[] {
+export function nonStrikerMoves(o: {
+  releaseScene: number;
+  duration: number;
+  delivery: boolean;
+  bowlerLeftArm: boolean;
+  deadScene: number | null;
+  scale?: number;
+  mirror?: boolean;
+  arrivalScene?: number;
+}): Move[] {
   const pack = packNonStrikerMoves(o);
   if (pack) return pack;
   const stand = nonStrikerStand(o.bowlerLeftArm);
@@ -227,9 +322,35 @@ export function nonStrikerMoves(o: { releaseScene: number; duration: number; del
   const moves: Move[] = [
     { t0: 0, t1: t0, clip: 'bat_rest', from: stand, to: stand, heading: 0 },
     // Walking in with the bowler: from rest, the bat still behind the line until the ball is bowled.
-    walkLegs({ t0, t1: o.releaseScene, clip: 'walk', from: stand, to: backAt, speed: [0, vBack], rateBySpeed: 1.4, heading: 0, blend: 260 }, o.scale ?? 1),
+    walkLegs(
+      {
+        t0,
+        t1: o.releaseScene,
+        clip: 'walk',
+        from: stand,
+        to: backAt,
+        speed: [0, vBack],
+        rateBySpeed: 1.4,
+        heading: 0,
+        blend: 260,
+      },
+      o.scale ?? 1,
+    ),
     // A few more strides after the release, easing to a stop, alert.
-    walkLegs({ t0: o.releaseScene, t1: tOn, clip: 'walk', from: backAt, to: onAt, speed: [vBack, 0], rateBySpeed: 1.4, heading: 0, blend: 0 }, o.scale ?? 1),
+    walkLegs(
+      {
+        t0: o.releaseScene,
+        t1: tOn,
+        clip: 'walk',
+        from: backAt,
+        to: onAt,
+        speed: [vBack, 0],
+        rateBySpeed: 1.4,
+        heading: 0,
+        blend: 0,
+      },
+      o.scale ?? 1,
+    ),
   ];
   void backLen;
   void onLen;
@@ -239,10 +360,42 @@ export function nonStrikerMoves(o: { releaseScene: number; duration: number; del
     moves.push({ t0: t, t1: back, clip: 'bat_rest', from: onAt, to: onAt, heading: 0, blend: 300 });
     const walkMs = ((onAt.z - stand.z) / (NON_STRIKER.walkMps * 0.66)) * 1000;
     // Back into the crease: turning away, walking, turning to face the striker again.
-    moves.push(walkLegs({ t0: back, t1: back + walkMs, clip: 'walk', from: onAt, to: stand, speed: [0, 0], rateBySpeed: 1.4, turnMs: 650, blend: 260 }, o.scale ?? 1));
+    moves.push(
+      walkLegs(
+        {
+          t0: back,
+          t1: back + walkMs,
+          clip: 'walk',
+          from: onAt,
+          to: stand,
+          speed: [0, 0],
+          rateBySpeed: 1.4,
+          turnMs: 650,
+          blend: 260,
+        },
+        o.scale ?? 1,
+      ),
+    );
     t = back + walkMs;
-    moves.push({ t0: t, t1: Math.max(t + 1, o.duration), clip: 'bat_rest', from: stand, to: stand, headingTo: 0, blend: 300 });
-  } else moves.push({ t0: t, t1: Math.max(t + 1, o.duration), clip: 'bat_rest', from: onAt, to: onAt, heading: 0, blend: 300 });
+    moves.push({
+      t0: t,
+      t1: Math.max(t + 1, o.duration),
+      clip: 'bat_rest',
+      from: stand,
+      to: stand,
+      headingTo: 0,
+      blend: 300,
+    });
+  } else
+    moves.push({
+      t0: t,
+      t1: Math.max(t + 1, o.duration),
+      clip: 'bat_rest',
+      from: onAt,
+      to: onAt,
+      heading: 0,
+      blend: 300,
+    });
   return moves;
 }
 
@@ -256,7 +409,16 @@ export function nonStrikerMoves(o: { releaseScene: number; duration: number; del
  * foot never skates; the sprint then takes over from there and still meets the physics completion time (the caller
  * plans the rest from `{ tMs, dist, v }`). Null when the clip is not loaded or does not fit the run.
  */
-function lockedStart(dist: number, timeS: number, scale: number): { moves: (from: Vec3, dir: { x: number; z: number }, t0: number, heading: number) => Move[]; tMs: number; dist: number; v: number } | null {
+function lockedStart(
+  dist: number,
+  timeS: number,
+  scale: number,
+): {
+  moves: (from: Vec3, dir: { x: number; z: number }, t0: number, heading: number) => Move[];
+  tMs: number;
+  dist: number;
+  v: number;
+} | null {
   if (!hasMotionClip('loco_start')) return null;
   const src = motionSource('vmp:loco_start')!;
   if (!src.contacts || !src.ground) return null;
@@ -284,7 +446,7 @@ function lockedStart(dist: number, timeS: number, scale: number): { moves: (from
     return Math.hypot(g.x - g0.x, g.z - g0.z) * scale;
   };
   const dA = along(off);
-  const vA = ((along(Math.min(src.duration, off + 0.01)) - along(Math.max(0, off - 0.01))) / 0.02);
+  const vA = (along(Math.min(src.duration, off + 0.01)) - along(Math.max(0, off - 0.01))) / 0.02;
   if (dA >= dist * 0.5 || off >= timeS * 0.5) return null;
   const moves = (from: Vec3, dir: { x: number; z: number }, t0: number, heading: number): Move[] => {
     const out: Move[] = [];
@@ -294,7 +456,19 @@ function lockedStart(dist: number, timeS: number, scale: number): { moves: (from
       const c1 = Math.min(off, c + step);
       const a = along(c);
       const b = along(c1);
-      out.push({ t0: t0 + c * 1000, t1: t0 + c1 * 1000, clip: 'bat_run', lower: 'vmp:loco_start', lowerStart: c, lowerRate: 1, from: v3(from.x + dir.x * a, 0, from.z + dir.z * a), to: v3(from.x + dir.x * b, 0, from.z + dir.z * b), speed: [c === 0 ? 0 : sp(c), sp(c1)], heading, blend: 0 });
+      out.push({
+        t0: t0 + c * 1000,
+        t1: t0 + c1 * 1000,
+        clip: 'bat_run',
+        lower: 'vmp:loco_start',
+        lowerStart: c,
+        lowerRate: 1,
+        from: v3(from.x + dir.x * a, 0, from.z + dir.z * a),
+        to: v3(from.x + dir.x * b, 0, from.z + dir.z * b),
+        speed: [c === 0 ? 0 : sp(c), sp(c1)],
+        heading,
+        blend: 0,
+      });
     }
     return out;
   };
@@ -320,11 +494,19 @@ export interface SprintPhase {
 export const SPRINT_RATE_LOG_ABOVE = 12;
 export const sprintRateLog: Array<{ dist: number; time: number; accel: number; brake: number }> = [];
 
-export function sprintProfile(dist: number, time: number, u0: number, vEnd: number, accel = SPRINT.accel, brake = SPRINT.brake): SprintPhase[] {
+export function sprintProfile(
+  dist: number,
+  time: number,
+  u0: number,
+  vEnd: number,
+  accel = SPRINT.accel,
+  brake = SPRINT.brake,
+): SprintPhase[] {
   let a = accel;
   let b = brake;
   const logIfOver = () => {
-    if ((a > SPRINT_RATE_LOG_ABOVE || b > SPRINT_RATE_LOG_ABOVE) && sprintRateLog.length < 64) sprintRateLog.push({ dist, time, accel: a, brake: b });
+    if ((a > SPRINT_RATE_LOG_ABOVE || b > SPRINT_RATE_LOG_ABOVE) && sprintRateLog.length < 64)
+      sprintRateLog.push({ dist, time, accel: a, brake: b });
   };
   for (let attempt = 0; attempt < 12; attempt++) {
     const covered = (vc: number) => {
@@ -360,7 +542,8 @@ export function sprintProfile(dist: number, time: number, u0: number, vEnd: numb
     b *= 1.2;
   }
   // Unreachable in practice: a straight constant-acceleration line (logged).
-  if (sprintRateLog.length < 64) sprintRateLog.push({ dist, time, accel: Number.POSITIVE_INFINITY, brake: Number.POSITIVE_INFINITY });
+  if (sprintRateLog.length < 64)
+    sprintRateLog.push({ dist, time, accel: Number.POSITIVE_INFINITY, brake: Number.POSITIVE_INFINITY });
   return [{ t0: 0, t1: time, s0: 0, s1: dist, v0: u0, v1: Math.max(0, (2 * dist) / time - u0) }];
 }
 
@@ -381,7 +564,7 @@ const STRIKER_RUN_ENTRY_INERTIAL_MS = 450;
  * arms and the bat (bat_run) phase-locked to it. The root is always the physics-timed sprint.
  */
 function locoLegs(base: Move, ph: SprintPhase, scale: number): Move {
-  const dur = (ph.t1 - ph.t0) || 1e-3;
+  const dur = ph.t1 - ph.t0 || 1e-3;
   const warp = (name: string): Move | null => {
     const id = `vmp:${name}` as const;
     if (!hasMotionClip(name)) return null;
@@ -394,7 +577,17 @@ function locoLegs(base: Move, ph: SprintPhase, scale: number): Move {
   if (!name) return base;
   const id = `vmp:${name}` as const;
   const src = motionSource(id)!;
-  return { ...base, lower: id, lowerStart: 0, lowerRate: 1, rate: BAT_RUN_CYCLE_S / src.duration, clipStart: 0, rateBySpeed: src.speedMps * scale, rateExp: 1, rateClamp: [0.75, 1.3] };
+  return {
+    ...base,
+    lower: id,
+    lowerStart: 0,
+    lowerRate: 1,
+    rate: BAT_RUN_CYCLE_S / src.duration,
+    clipStart: 0,
+    rateBySpeed: src.speedMps * scale,
+    rateExp: 1,
+    rateClamp: [0.75, 1.3],
+  };
 }
 
 interface TurnPlan {
@@ -418,8 +611,16 @@ const NS_TURN = { ground: 0.87, dwellEnd: 1.02, exit: 1.763, vIn: 8.7, vOut: 5.2
  * `ns_turn_r`; a left-handed pair's track mirror is allowed for. Unchanged when the clips are not loaded.
  */
 function turnInPlace(moves: Move[], turns: TurnPlan[], mirror: boolean, scale: number): Move[] {
-  if (!turns.length || !hasMotionClip('ns_turn') || !hasMotionClip('ns_turn_r') || !hasMotionClip('ns_run')) return moves;
-  const track = { id: 'nonStriker', role: 'batter' as const, look: { seed: '', team: 0 as const, gear: 'batter' as const }, start: moves[0]?.from ?? v3(0, 0, 0), heading: 0, moves };
+  if (!turns.length || !hasMotionClip('ns_turn') || !hasMotionClip('ns_turn_r') || !hasMotionClip('ns_run'))
+    return moves;
+  const track = {
+    id: 'nonStriker',
+    role: 'batter' as const,
+    look: { seed: '', team: 0 as const, gear: 'batter' as const },
+    start: moves[0]?.from ?? v3(0, 0, 0),
+    heading: 0,
+    moves,
+  };
   let out = moves;
   for (const turn of turns) {
     // The visible turn direction; a mirrored track shows the clip mirrored, so it takes the other alias.
@@ -449,7 +650,20 @@ function turnInPlace(moves: Move[], turns: TurnPlan[], mirror: boolean, scale: n
       const ya = (src.ground!(warp(a)).yawDeg - g0) * DEG_RAD * sgn;
       const yb = (src.ground!(warp(b)).yawDeg - g0) * DEG_RAD * sgn;
       const v = Math.hypot(pb.x - pa.x, pb.z - pa.z) / ((b - a) / 1000);
-      sub.push({ t0: a, t1: b, clip: id, clipStart: warp(a), rate: (warp(b) - warp(a)) / ((b - a) / 1000), from: pa, to: pb, speed: [v, v], heading: turn.travelIn + ya, headingTo: turn.travelIn + yb, headingEase: 'linear', ...(a === t0 ? { blend: 140 } : { blend: 0 }) });
+      sub.push({
+        t0: a,
+        t1: b,
+        clip: id,
+        clipStart: warp(a),
+        rate: (warp(b) - warp(a)) / ((b - a) / 1000),
+        from: pa,
+        to: pb,
+        speed: [v, v],
+        heading: turn.travelIn + ya,
+        headingTo: turn.travelIn + yb,
+        headingEase: 'linear',
+        ...(a === t0 ? { blend: 140 } : { blend: 0 }),
+      });
     }
     // After the exit: ns_run in its phase 0.5 at the profile's speed, to the end of that acceleration.
     const next = out.find((m) => m.t0 >= tDwell - 1 && m.t0 <= tDwell + 1);
@@ -461,7 +675,20 @@ function turnInPlace(moves: Move[], turns: TurnPlan[], mirror: boolean, scale: n
       const pa = posAt(tExit);
       const pb = posAt(accelEnd);
       const travelOut = turn.travelIn + Math.PI;
-      tail.push({ t0: tExit, t1: accelEnd, clip: run, clipStart: 0.5 * runSrc.duration, from: pa, to: pb, speed: [NS_TURN.vOut, next?.speed?.[1] ?? NS_TURN.vOut], rateBySpeed: runSrc.speedMps * scale, rateExp: 1, rateClamp: [0.75, 1.3], heading: travelOut, blend: 100 });
+      tail.push({
+        t0: tExit,
+        t1: accelEnd,
+        clip: run,
+        clipStart: 0.5 * runSrc.duration,
+        from: pa,
+        to: pb,
+        speed: [NS_TURN.vOut, next?.speed?.[1] ?? NS_TURN.vOut],
+        rateBySpeed: runSrc.speedMps * scale,
+        rateExp: 1,
+        rateClamp: [0.75, 1.3],
+        heading: travelOut,
+        blend: 100,
+      });
     }
     const end = Math.max(tExit, accelEnd);
     out = [...out.filter((m) => m.t1 <= t0 + 1e-6), ...sub, ...tail, ...out.filter((m) => m.t0 >= end - 1e-6)];
@@ -495,7 +722,10 @@ export interface RunningInput {
 
 /** The completed runs' physics completion times (simulation s), in order. */
 export function runTimes(result: DeliveryResult): number[] {
-  return result.events.filter((e): e is Extract<DeliveryResult['events'][number], { kind: 'run' }> => e.kind === 'run').map((e) => e.t).sort((a, b) => a - b);
+  return result.events
+    .filter((e): e is Extract<DeliveryResult['events'][number], { kind: 'run' }> => e.kind === 'run')
+    .map((e) => e.t)
+    .sort((a, b) => a - b);
 }
 
 /** The physics instant the batters set off (simulation s): the first completion less the stroke-and-call and the sprint. */
@@ -520,17 +750,33 @@ export function runningMoves(o: RunningInput): { start: number; striker: Move[];
   // The walk's phase (0–1 of its loop) as the run is called, when his legs are in a pack gait loop.
   const walkPhase = (() => {
     const g = o.nonStrikerGait;
-    if (!g || !String(g.clip).startsWith('vmp:loco_') || g.clip === 'vmp:loco_start' || g.clip === 'vmp:loco_stop') return null;
+    if (!g || !String(g.clip).startsWith('vmp:loco_') || g.clip === 'vmp:loco_start' || g.clip === 'vmp:loco_stop')
+      return null;
     const d = clipDuration(g.clip);
     return d > 0 ? (((g.time / d) % 1) + 1) % 1 : null;
   })();
   /** The first stride's legs (and the bat_run arms locked to them) from the walk's phase: no reset (round 7). */
   const carry = (m: Move, phase: number | null): Move => {
-    if (phase === null || !m.lower || !String(m.lower).startsWith('vmp:loco_') || m.lower === 'vmp:loco_start' || m.lower === 'vmp:loco_stop') return m;
+    if (
+      phase === null ||
+      !m.lower ||
+      !String(m.lower).startsWith('vmp:loco_') ||
+      m.lower === 'vmp:loco_start' ||
+      m.lower === 'vmp:loco_stop'
+    )
+      return m;
     const d = clipDuration(m.lower);
     return { ...m, lowerStart: phase * d, ...(m.clip === 'bat_run' ? { clipStart: phase * BAT_RUN_CYCLE_S } : {}) };
   };
-  const plan = (from: Vec3, firstTowardsBowler: boolean, lane: number, groundClip = false, u0 = 0, inertialEntry = false, phase0: number | null = null): Move[] => {
+  const plan = (
+    from: Vec3,
+    firstTowardsBowler: boolean,
+    lane: number,
+    groundClip = false,
+    u0 = 0,
+    inertialEntry = false,
+    phase0: number | null = null,
+  ): Move[] => {
     const moves: Move[] = [];
     let at = from;
     let clipT = 0;
@@ -571,7 +817,24 @@ export function runningMoves(o: RunningInput): { start: number; striker: Move[];
         const phases = sprintProfile(dist - s0, Math.max(0.3, (tEnter - t) / 1000), lock ? lock.v : v0, vEnter);
         const p = (sd: number) => v3(at.x + dir.x * (sd + s0), 0, at.z + dir.z * (sd + s0));
         phases.forEach((ph, i) => {
-          const m0 = locoLegs({ t0: t + ph.t0 * 1000, t1: t + ph.t1 * 1000, clip: 'bat_run', lower: 'bat_run', lowerStart: clipT, clipStart: clipT, from: p(ph.s0), to: p(ph.s1), speed: [ph.v0, ph.v1], rateBySpeed: BAT_RUN_MPS, blend: i === 0 && k === 0 && !lock ? 220 : i === 0 && lock ? 120 : 0, ...(i === 0 && !lock ? { turnMs: SPRINT.turnMs } : { heading: travel }) }, ph, o.scale ?? 1);
+          const m0 = locoLegs(
+            {
+              t0: t + ph.t0 * 1000,
+              t1: t + ph.t1 * 1000,
+              clip: 'bat_run',
+              lower: 'bat_run',
+              lowerStart: clipT,
+              clipStart: clipT,
+              from: p(ph.s0),
+              to: p(ph.s1),
+              speed: [ph.v0, ph.v1],
+              rateBySpeed: BAT_RUN_MPS,
+              blend: i === 0 && k === 0 && !lock ? 220 : i === 0 && lock ? 120 : 0,
+              ...(i === 0 && !lock ? { turnMs: SPRINT.turnMs } : { heading: travel }),
+            },
+            ph,
+            o.scale ?? 1,
+          );
           const m = i === 0 && k === 0 && !lock ? carry(m0, phase0) : m0;
           moves.push(m);
           clipT = m.lower === 'bat_run' ? (clipStateAt(m, t + ph.t1 * 1000).lowerTime ?? clipT) : clipT;
@@ -582,7 +845,15 @@ export function runningMoves(o: RunningInput): { start: number; striker: Move[];
         delete tail[0].inertial;
         moves.push(...tail);
         const end = tail[tail.length - 1];
-        moves.push({ t0: end.t1, t1: Math.max(end.t1 + 1, o.duration), clip: hasMotionClip('ns_stance') ? 'vmp:ns_stance' : 'bat_rest', from: end.to!, to: end.to!, headingTo: towardsBowler ? 0 : Math.PI, blend: 320 });
+        moves.push({
+          t0: end.t1,
+          t1: Math.max(end.t1 + 1, o.duration),
+          clip: hasMotionClip('ns_stance') ? 'vmp:ns_stance' : 'bat_rest',
+          from: end.to!,
+          to: end.to!,
+          headingTo: towardsBowler ? 0 : Math.PI,
+          blend: 320,
+        });
         return moves;
       }
       const to = v3(lane, 0, endZ);
@@ -597,7 +868,15 @@ export function runningMoves(o: RunningInput): { start: number; striker: Move[];
       let s0 = 0;
       if (lock) {
         const lm = lock.moves(at, dir, t, travel);
-        lm[0] = { ...lm[0], ...(k === 0 ? (inertialEntry ? { inertial: STRIKER_RUN_ENTRY_INERTIAL_MS } : { blend: RUN_ENTRY_BLEND_MS }) : { blend: 160 }), turnMs: SPRINT.turnMs };
+        lm[0] = {
+          ...lm[0],
+          ...(k === 0
+            ? inertialEntry
+              ? { inertial: STRIKER_RUN_ENTRY_INERTIAL_MS }
+              : { blend: RUN_ENTRY_BLEND_MS }
+            : { blend: 160 }),
+          turnMs: SPRINT.turnMs,
+        };
         delete (lm[0] as { heading?: number }).heading;
         moves.push(...lm);
         t += lock.tMs;
@@ -624,7 +903,11 @@ export function runningMoves(o: RunningInput): { start: number; striker: Move[];
           // Into the run a cross-fade (inertializing it measured worse: a 0.98 m plant slide mid-sprint) of at least
           // RUN_ENTRY_BLEND_MS, so the striker's stroke hands over to the run without a pop (§9; lead round 5); the bat
           // going down for the slide is an upper-body change over the same legs.
-          ...(i === 0 && k === 0 && !lock ? (inertialEntry ? { inertial: STRIKER_RUN_ENTRY_INERTIAL_MS } : { blend: RUN_ENTRY_BLEND_MS }) : { blend: sliding ? 160 : i === 0 && lock ? 120 : 0 }),
+          ...(i === 0 && k === 0 && !lock
+            ? inertialEntry
+              ? { inertial: STRIKER_RUN_ENTRY_INERTIAL_MS }
+              : { blend: RUN_ENTRY_BLEND_MS }
+            : { blend: sliding ? 160 : i === 0 && lock ? 120 : 0 }),
           ...(i === 0 && !lock ? { turnMs: SPRINT.turnMs } : { heading: travel }),
         };
         const m0 = locoLegs(base, ph, o.scale ?? 1);
@@ -647,7 +930,17 @@ export function runningMoves(o: RunningInput): { start: number; striker: Move[];
         const towardsCentre = Math.sign(-at.x) || 1;
         const half = heading + towardsCentre * (towardsBowler ? -1 : 1) * (Math.PI / 2);
         const pivot = RUNNING.TURN_S * 1000;
-        moves.push({ t0: t, t1: t + pivot, clip: 'ready', from: at, to: at, heading, headingTo: half, headingEase: 'linear', inertial: 140 });
+        moves.push({
+          t0: t,
+          t1: t + pivot,
+          clip: 'ready',
+          from: at,
+          to: at,
+          heading,
+          headingTo: half,
+          headingEase: 'linear',
+          inertial: 140,
+        });
         heading = half;
         t += pivot;
       }
@@ -657,14 +950,40 @@ export function runningMoves(o: RunningInput): { start: number; striker: Move[];
     const stopLen = (SPRINT.finishMps * SPRINT.finishMps) / (2 * SPRINT.overrunBrake);
     const stopAt = v3(at.x, 0, at.z + lastDir * stopLen);
     const stopMs = ((2 * stopLen) / SPRINT.finishMps) * 1000;
-    moves.push({ t0: t, t1: t + stopMs, clip: 'bat_run', lower: 'bat_run', clipStart: clipT, lowerStart: clipT, from: at, to: stopAt, speed: [SPRINT.finishMps, 0], rateBySpeed: BAT_RUN_MPS, heading, blend: 140 });
+    moves.push({
+      t0: t,
+      t1: t + stopMs,
+      clip: 'bat_run',
+      lower: 'bat_run',
+      clipStart: clipT,
+      lowerStart: clipT,
+      from: at,
+      to: stopAt,
+      speed: [SPRINT.finishMps, 0],
+      rateBySpeed: BAT_RUN_MPS,
+      heading,
+      blend: 140,
+    });
     t += stopMs;
-    moves.push({ t0: t, t1: Math.max(t + 1, o.duration), clip: 'bat_rest', from: stopAt, to: stopAt, headingTo: lastDir > 0 ? Math.PI : 0, blend: 320 });
+    moves.push({
+      t0: t,
+      t1: Math.max(t + 1, o.duration),
+      clip: 'bat_rest',
+      from: stopAt,
+      to: stopAt,
+      headingTo: lastDir > 0 ? Math.PI : 0,
+      blend: 320,
+    });
     return moves;
   };
   return {
     start,
     striker: plan(o.striker, true, -laneN, false, 0, true),
-    nonStriker: turnInPlace(plan(o.nonStriker, false, laneN, true, Math.min(2, o.nonStrikerSpeed ?? 0), false, walkPhase), turns, Boolean(o.mirror), o.scale ?? 1),
+    nonStriker: turnInPlace(
+      plan(o.nonStriker, false, laneN, true, Math.min(2, o.nonStrikerSpeed ?? 0), false, walkPhase),
+      turns,
+      Boolean(o.mirror),
+      o.scale ?? 1,
+    ),
   };
 }

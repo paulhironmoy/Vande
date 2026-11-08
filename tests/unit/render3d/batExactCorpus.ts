@@ -43,9 +43,15 @@ class PoseHash {
     const b = this.buffer;
     if (!pose) b.fill(Number.NaN);
     else {
-      b[0] = pose.grip.x; b[1] = pose.grip.y; b[2] = pose.grip.z;
-      b[3] = pose.toe.x; b[4] = pose.toe.y; b[5] = pose.toe.z;
-      b[6] = pose.face.x; b[7] = pose.face.y; b[8] = pose.face.z;
+      b[0] = pose.grip.x;
+      b[1] = pose.grip.y;
+      b[2] = pose.grip.z;
+      b[3] = pose.toe.x;
+      b[4] = pose.toe.y;
+      b[5] = pose.toe.z;
+      b[6] = pose.face.x;
+      b[7] = pose.face.y;
+      b[8] = pose.face.z;
     }
     this.hash.update(new Uint8Array(b.buffer, b.byteOffset, b.byteLength));
     this.count++;
@@ -86,24 +92,53 @@ export function runBatCorpus(options: { thaw?: boolean } = {}): BatCorpusResult 
         const speedKph = bowler.family === 'spin' ? 86 : lengthM >= 8 ? 120 : 145;
         for (const lineM of [-0.5, 0.6]) {
           const setup = setupOf(bowler, hand);
-          const fl = flight({ plan: { variation: 'stock', lengthM, lineM, speedKph }, bowler, conditions: 'balanced', seed: `exact:${hand}:${bowler.lookSeed}:${lengthM}:${lineM}`, handedness: hand });
+          const fl = flight({
+            plan: { variation: 'stock', lengthM, lineM, speedKph },
+            bowler,
+            conditions: 'balanced',
+            seed: `exact:${hand}:${bowler.lookSeed}:${lengthM}:${lineM}`,
+            handedness: hand,
+          });
           const pre = buildPracticeScript({ setup, flight: fl });
           const base = pre.practice!.bat;
           const ideal = simToScene(base, fl.idealContactT);
           // 1. The uncommitted touch-down stroke: the press before and after the ideal contact, the guard working.
           for (const e of [-450, -300, -180, -90, 0, 120]) {
             const press = ideal + e;
-            const track: BatTrack = { ...base, touch: { start: press, end: press + TAP_HOLD_MS, commitAt: null, state: null, ball: fl.samples } };
+            const track: BatTrack = {
+              ...base,
+              touch: { start: press, end: press + TAP_HOLD_MS, commitAt: null, state: null, ball: fl.samples },
+            };
             for (let s = press - 20; s <= press + 520; s += 8) {
               hash.add(firstPersonBatPose(track, s));
               hash.add(presentedBatPose(track, s));
             }
           }
           // 2. The committed tap and its physics result, in the three drawings of the stage.
-          for (const [errMs, holdMs] of [[-40, 24], [0, 70], [25, 130]] as const) {
+          for (const [errMs, holdMs] of [
+            [-40, 24],
+            [0, 70],
+            [25, 130],
+          ] as const) {
             const startT = fl.idealContactT - batTravelMs('defend', 0.2) / 1000 + errMs / 1000;
-            const swing: NormalizedSwing = { kind: 'defend', startT, directionDeg: 0, power: 0.2, elevation: 0, footwork: 'auto' };
-            const result = resolveDelivery({ flight: fl, swing, field: setup.field, bowler, conditions: 'balanced', handedness: hand, assist: 'real', tierToleranceMs: 0 });
+            const swing: NormalizedSwing = {
+              kind: 'defend',
+              startT,
+              directionDeg: 0,
+              power: 0.2,
+              elevation: 0,
+              footwork: 'auto',
+            };
+            const result = resolveDelivery({
+              flight: fl,
+              swing,
+              field: setup.field,
+              bowler,
+              conditions: 'balanced',
+              handedness: hand,
+              assist: 'real',
+              tierToleranceMs: 0,
+            });
             const shown = options.thaw ? { ...result, bat: structuredClone(result.bat) as BatSample[] } : result;
             const press = simToScene(base, startT);
             const lift = press + holdMs;
@@ -115,7 +150,8 @@ export function runBatCorpus(options: { thaw?: boolean } = {}): BatCorpusResult 
             const preCommit: BatTrack = { ...base, touch: { ...touch, commitAt: null } };
             const end = (live.practice!.bat.contactScene ?? live.practice!.bat.velocityPeakScene ?? press + 300) + 700;
             for (let s = press - 40; s <= end; s += 10) {
-              const track = s < resultAt ? (s < lift ? preCommit : { ...preCommit, provisionalStart: press, touch }) : bat;
+              const track =
+                s < resultAt ? (s < lift ? preCommit : { ...preCommit, provisionalStart: press, touch }) : bat;
               committedHash.add(firstPersonBatPose(track, s));
               committedHash.add(presentedBatPose(track, s));
               externalHash.add(externalBatPose(track, striker, s, 1));

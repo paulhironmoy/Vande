@@ -30,7 +30,9 @@ async function phone(browser: Browser, alias: string): Promise<Phone> {
 
 /** Opens the cup screen; resolves with the CupView it loaded. */
 async function openCup(p: Phone, cupId: string): Promise<CupView> {
-  const loaded = p.page.waitForResponse((r) => new URL(r.url()).pathname === `/v1/cups/${cupId}` && r.request().method() === 'GET' && r.ok());
+  const loaded = p.page.waitForResponse(
+    (r) => new URL(r.url()).pathname === `/v1/cups/${cupId}` && r.request().method() === 'GET' && r.ok(),
+  );
   await p.page.goto(`/c/${cupId}`);
   const view = (await (await loaded).json()) as CupView;
   await expect(p.page.getByTestId('cup-screen')).toBeVisible();
@@ -71,7 +73,10 @@ async function settle(request: APIRequestContext): Promise<void> {
   await advanceServerTo(request, (await serverNow(request)) + SETTLE_MS);
 }
 
-test('Group Cup end to end: invites in the browser, honest lock counts, reveals, Auto for missed deadlines, the final', async ({ browser, request }) => {
+test('Group Cup end to end: invites in the browser, honest lock counts, reveals, Auto for missed deadlines, the final', async ({
+  browser,
+  request,
+}) => {
   test.setTimeout(12 * 60_000);
   const a = await phone(browser, 'Swift Tiger');
   const b = await phone(browser, 'Calm Cobra');
@@ -87,7 +92,9 @@ test('Group Cup end to end: invites in the browser, honest lock counts, reveals,
   while (Number(await size.textContent()) > 3) await a.page.getByRole('button', { name: 'One player fewer' }).click();
   await expect(size).toHaveText('3');
   await a.page.getByTestId('cup-pace').getByText('Sprint').click();
-  const created = a.page.waitForResponse((r) => new URL(r.url()).pathname === '/v1/cups' && r.request().method() === 'POST');
+  const created = a.page.waitForResponse(
+    (r) => new URL(r.url()).pathname === '/v1/cups' && r.request().method() === 'POST',
+  );
   await a.page.getByTestId('cup-create').click();
   const cup = (await (await created).json()) as { cupId: string; inviteUrl: string };
   expect(cup.inviteUrl).toMatch(/^http:\/\/localhost:4174\/i\//);
@@ -151,11 +158,17 @@ test('Group Cup end to end: invites in the browser, honest lock counts, reveals,
   await advanceServerTo(request, Date.parse(rounds[0].revealAt) + 30_000);
   view = await openCup(observer, cup.cupId);
   expect(fixtureOf(view, 1).status).toBe('revealed');
-  expect(view.standings.filter((r) => r.played === 1).map((r) => r.alias).sort()).toEqual([home1.alias, away1.alias].sort());
+  expect(
+    view.standings
+      .filter((r) => r.played === 1)
+      .map((r) => r.alias)
+      .sort(),
+  ).toEqual([home1.alias, away1.alias].sort());
   await expect(observer.page.getByTestId('cup-standings').locator('tbody tr')).toHaveCount(3);
   await observer.page.getByTestId('cup-room-link').click();
   await expect(observer.page.getByTestId('room-feed')).toBeVisible();
-  for (const kind of ['fixture', 'lock_status', 'reveal_ready', 'scorecard', 'standings']) await expect(observer.page.locator(`[data-kind="${kind}"]`).first()).toBeVisible();
+  for (const kind of ['fixture', 'lock_status', 'reveal_ready', 'scorecard', 'standings'])
+    await expect(observer.page.locator(`[data-kind="${kind}"]`).first()).toBeVisible();
   await expect(observer.page.locator('[data-kind="lock_status"]').first()).toContainText('2 of 2 overs locked');
   const scorecard = observer.page.locator('[data-kind="scorecard"]').first();
   await expect(scorecard.getByTestId('room-spoiler')).toBeVisible();
@@ -177,7 +190,8 @@ test('Group Cup end to end: invites in the browser, honest lock counts, reveals,
   expect(fixtureOf(view, 2).auto).toEqual([false, true]);
   await expect(miss2.page.getByText(`Auto played for ${miss2.alias}`)).toBeVisible();
   const missId = r2.away;
-  const playedBy = (id: string) => view.fixtures.filter((f) => f.status === 'revealed' && (f.home === id || f.away === id)).length;
+  const playedBy = (id: string) =>
+    view.fixtures.filter((f) => f.status === 'revealed' && (f.home === id || f.away === id)).length;
   // The missed match counts in the table like any other: the cup never waits for anyone.
   expect(view.standings.find((r) => r.playerId === missId)?.played).toBe(playedBy(missId));
 
@@ -217,7 +231,9 @@ test('Group Cup end to end: invites in the browser, honest lock counts, reveals,
   await a.page.getByTestId('cup-champion-show').click();
   await expect(a.page.getByTestId('cup-champion')).toContainText(champion?.alias ?? '-');
   await a.page.getByTestId('cup-room-link').click();
-  await expect(a.page.locator('[data-kind="achievement"]').first()).toContainText(`${champion?.alias} earned Cup winner`);
+  await expect(a.page.locator('[data-kind="achievement"]').first()).toContainText(
+    `${champion?.alias} earned Cup winner`,
+  );
   // The final's replay, from the complete cup.
   await openCup(finalists[0], cup.cupId);
   await finalists[0].page.getByTestId('cup-complete').getByRole('button', { name: 'Watch the final' }).click();

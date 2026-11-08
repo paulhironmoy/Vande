@@ -20,7 +20,9 @@ export function clockText(t: Translator, iso: string | null | undefined, now: nu
   const at = new Date(iso);
   if (Number.isNaN(at.getTime())) return null;
   const sameDay = new Date(now).toDateString() === at.toDateString();
-  const time: Intl.DateTimeFormatOptions = LATIN.has(t.locale) ? { hour: '2-digit', minute: '2-digit' } : { hour: 'numeric', minute: '2-digit', dayPeriod: 'short' };
+  const time: Intl.DateTimeFormatOptions = LATIN.has(t.locale)
+    ? { hour: '2-digit', minute: '2-digit' }
+    : { hour: 'numeric', minute: '2-digit', dayPeriod: 'short' };
   return t.date(at, sameDay ? time : { weekday: 'short', ...time });
 }
 

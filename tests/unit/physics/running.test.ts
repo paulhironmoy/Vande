@@ -10,14 +10,29 @@ import { stubShot, type StubShot } from '../practice/game/stubTrajectory';
 /** These tests check the Test (red-ball) templates; the white-ball ones are checked separately. */
 const RED_BALL = { colour: 'red', age: 'new' } as const;
 
-const FIELD = autoField({ family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'r' }, 'balanced', 'right', RED_BALL);
+const FIELD = autoField(
+  { family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'r' },
+  'balanced',
+  'right',
+  RED_BALL,
+);
 /** Keeper, bowler and nine fielders all on the off side: a leg-side ball has to be chased a long way. */
 const OFF_SIDE: FieldLayout = {
   id: 'test/off-side',
   fielders: [
     FIELD.fielders.find((f) => f.role === 'keeper')!,
     FIELD.fielders.find((f) => f.role === 'bowler')!,
-    ...[[30, 25], [60, 22], [90, 22], [120, 15], [150, 14], [45, 50], [75, 55], [105, 52], [135, 45]].map(([b, d], i) => ({ id: `o${i}`, role: 'cover' as const, ...pointFromStriker(b, d) })),
+    ...[
+      [30, 25],
+      [60, 22],
+      [90, 22],
+      [120, 15],
+      [150, 14],
+      [45, 50],
+      [75, 55],
+      [105, 52],
+      [135, 45],
+    ].map(([b, d], i) => ({ id: `o${i}`, role: 'cover' as const, ...pointFromStriker(b, d) })),
   ],
 };
 

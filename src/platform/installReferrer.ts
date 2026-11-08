@@ -18,7 +18,10 @@ const READ_FLAG = 'vc.referrer.read';
 /** The attribution code of an attributed install, kept until src/net/attribution.ts has reported it. */
 export const INSTALL_CODE_KEY = 'vc.attr.install';
 
-export function playStoreUrl(target: { token: string; attribution?: string | null } | { highlight: string }, pkg = PLAY_PACKAGE): string {
+export function playStoreUrl(
+  target: { token: string; attribution?: string | null } | { highlight: string },
+  pkg = PLAY_PACKAGE,
+): string {
   const parts: string[] = [];
   if ('highlight' in target) {
     if (HIGHLIGHT_CODE_RE.test(target.highlight)) parts.push(`vc_h=${target.highlight}`);
@@ -45,7 +48,9 @@ export function parseHighlightReferrer(referrer: string | null | undefined): { c
   return code && HIGHLIGHT_CODE_RE.test(code) ? { code } : null;
 }
 
-export function parseInstallReferrer(referrer: string | null | undefined): { token: string; attribution: string | null } | null {
+export function parseInstallReferrer(
+  referrer: string | null | undefined,
+): { token: string; attribution: string | null } | null {
   const params = referrerParams(referrer);
   if (!params) return null;
   const token = params.get('vc_invite');
@@ -70,7 +75,9 @@ export function createInstallReferrerSource(o: {
     async pendingInviteUrl() {
       if (!o.plugin || (await o.store.get(READ_FLAG))) return null;
       await o.store.set(READ_FLAG, '1');
-      const timeout = new Promise<{ referrer: null }>((resolve) => setTimeout(() => resolve({ referrer: null }), o.timeoutMs ?? 3_000));
+      const timeout = new Promise<{ referrer: null }>((resolve) =>
+        setTimeout(() => resolve({ referrer: null }), o.timeoutMs ?? 3_000),
+      );
       const answer = await Promise.race([o.plugin.getReferrer().catch(() => ({ referrer: null })), timeout]);
       const report = (code: string) => {
         void o.store.set(INSTALL_CODE_KEY, code).catch(() => undefined);

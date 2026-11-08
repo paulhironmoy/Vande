@@ -1,16 +1,52 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { PRACTICE_SIM_VERSION, type BowlerProfile, type DeliveryRecord, type DeliveryResult, type NormalizedSwing, type PitchCondition, type PracticeDeliveryPlan } from '@/contracts/practice';
-import { BOUNDARY_R, PITCH_HALF, RUNNING, autoField, batTravelMs, bearingDelta, flight, idealTimeFor, practiceFlight, replayDelivery, resolveDelivery, type ResolveArgs } from '@/physics';
+import {
+  PRACTICE_SIM_VERSION,
+  type BowlerProfile,
+  type DeliveryRecord,
+  type DeliveryResult,
+  type NormalizedSwing,
+  type PitchCondition,
+  type PracticeDeliveryPlan,
+} from '@/contracts/practice';
+import {
+  BOUNDARY_R,
+  PITCH_HALF,
+  RUNNING,
+  autoField,
+  batTravelMs,
+  bearingDelta,
+  flight,
+  idealTimeFor,
+  practiceFlight,
+  replayDelivery,
+  resolveDelivery,
+  type ResolveArgs,
+} from '@/physics';
 import { keeperTake } from '@/physics/fielding';
 import { keeperPath } from '@/physics/resolve';
 import { REFERENCE_CONDITIONS, REFERENCE_OVER, ballSeed } from '@/practice/game';
 
 const PACE: BowlerProfile = { family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'resolve' };
 const SPIN: BowlerProfile = { family: 'spin', spinType: 'finger', arm: 'right', lookSeed: 'resolve' };
-const plan = (o: Partial<PracticeDeliveryPlan> = {}): PracticeDeliveryPlan => ({ variation: 'stock', lengthM: 6, lineM: 0.1, speedKph: 136, ...o });
+const plan = (o: Partial<PracticeDeliveryPlan> = {}): PracticeDeliveryPlan => ({
+  variation: 'stock',
+  lengthM: 6,
+  lineM: 0.1,
+  speedKph: 136,
+  ...o,
+});
 
-function args(o: { plan?: PracticeDeliveryPlan; bowler?: BowlerProfile; conditions?: PitchCondition; swing?: NormalizedSwing | null; seed?: string; handedness?: 'right' | 'left' } = {}): ResolveArgs {
+function args(
+  o: {
+    plan?: PracticeDeliveryPlan;
+    bowler?: BowlerProfile;
+    conditions?: PitchCondition;
+    swing?: NormalizedSwing | null;
+    seed?: string;
+    handedness?: 'right' | 'left';
+  } = {},
+): ResolveArgs {
   const bowler = o.bowler ?? PACE;
   const conditions = o.conditions ?? 'balanced';
   const handedness = o.handedness ?? 'right';
@@ -32,7 +68,14 @@ function swing(a: ResolveArgs, o: Partial<NormalizedSwing> & { errorMs?: number 
   const kind = o.kind ?? 'attack';
   const power = o.power ?? 0.75;
   const travel = batTravelMs(kind, power) / 1000;
-  return { kind, startT: a.flight.idealContactT - travel + (o.errorMs ?? 0) / 1000, directionDeg: o.directionDeg ?? 30, power, elevation: o.elevation ?? 0.1, footwork: 'auto' };
+  return {
+    kind,
+    startT: a.flight.idealContactT - travel + (o.errorMs ?? 0) / 1000,
+    directionDeg: o.directionDeg ?? 30,
+    power,
+    elevation: o.elevation ?? 0.1,
+    footwork: 'auto',
+  };
 }
 
 function record(a: ResolveArgs, r: DeliveryResult, seed = 'resolve-seed'): DeliveryRecord {
@@ -65,7 +108,9 @@ function wellFormed(r: DeliveryResult, a: ResolveArgs) {
   expect(r.events.at(-1)!.kind).toBe('dead');
   for (let i = 1; i < r.ball.length; i++) expect(r.ball[i].t).toBeGreaterThanOrEqual(r.ball[i - 1].t - 1e-9);
   // The ball up to the first thing it meets is the delivery itself.
-  const firstHit = r.events.find((e) => e.kind === 'contact' || e.kind === 'pad' || e.kind === 'stumps' || e.kind === 'keeper_take');
+  const firstHit = r.events.find(
+    (e) => e.kind === 'contact' || e.kind === 'pad' || e.kind === 'stumps' || e.kind === 'keeper_take',
+  );
   const pre = a.flight.samples.filter((s) => s.t < (firstHit?.t ?? Infinity) - 1e-12);
   expect(r.ball.slice(0, pre.length)).toEqual(pre);
   expect(r.fielders).toHaveLength(11);
@@ -115,7 +160,8 @@ describe('resolveDelivery: deliveries the bat never touches', () => {
     const straight = args({ plan: plan({ lineM: 0, lengthM: 4 }) });
     const r2 = resolveDelivery({ ...straight, swing: swing(straight, { errorMs: 260 }) });
     wellFormed(r2, straight);
-    if (r2.contact.kind === 'miss' || r2.contact.kind === 'pad') expect(['bowled', 'lbw', null]).toContain(r2.outcome.dismissal);
+    if (r2.contact.kind === 'miss' || r2.contact.kind === 'pad')
+      expect(['bowled', 'lbw', null]).toContain(r2.outcome.dismissal);
   });
 });
 
@@ -156,10 +202,34 @@ describe('resolveDelivery: pad and LBW', () => {
 describe('resolveDelivery: determinism and replay', () => {
   const cases: Array<{ name: string; a: () => ResolveArgs }> = [
     { name: 'leave', a: () => args({ plan: plan({ lineM: 0.4 }) }) },
-    { name: 'drive', a: () => { const a = args(); return { ...a, swing: swing(a, { directionDeg: 35 }) }; } },
-    { name: 'late', a: () => { const a = args({ plan: plan({ lineM: 0.25 }) }); return { ...a, swing: swing(a, { errorMs: 80 }) }; } },
-    { name: 'spin defend', a: () => { const a = args({ bowler: SPIN, plan: plan({ speedKph: 84, lengthM: 4.2 }), conditions: 'turning' }); return { ...a, swing: swing(a, { kind: 'defend', power: 0.15, directionDeg: 0 }) }; } },
-    { name: 'lofted', a: () => { const a = args({ plan: plan({ lengthM: 3.5 }) }); return { ...a, swing: swing(a, { directionDeg: 0, power: 1, elevation: 1 }) }; } },
+    {
+      name: 'drive',
+      a: () => {
+        const a = args();
+        return { ...a, swing: swing(a, { directionDeg: 35 }) };
+      },
+    },
+    {
+      name: 'late',
+      a: () => {
+        const a = args({ plan: plan({ lineM: 0.25 }) });
+        return { ...a, swing: swing(a, { errorMs: 80 }) };
+      },
+    },
+    {
+      name: 'spin defend',
+      a: () => {
+        const a = args({ bowler: SPIN, plan: plan({ speedKph: 84, lengthM: 4.2 }), conditions: 'turning' });
+        return { ...a, swing: swing(a, { kind: 'defend', power: 0.15, directionDeg: 0 }) };
+      },
+    },
+    {
+      name: 'lofted',
+      a: () => {
+        const a = args({ plan: plan({ lengthM: 3.5 }) });
+        return { ...a, swing: swing(a, { directionDeg: 0, power: 1, elevation: 1 }) };
+      },
+    },
   ];
   for (const c of cases) {
     it(`${c.name}: the same inputs give a deep-equal result, and its record replays exactly`, () => {
@@ -194,13 +264,30 @@ describe('resolveDelivery: the pitch bounce happens only if the ball reaches it 
   const ref = REFERENCE_OVER;
   const conditions = REFERENCE_CONDITIONS;
   const deliveryArgs = (ballIndex: number, s: Omit<NormalizedSwing, 'startT'> | null, errorMs = 0): ResolveArgs => {
-    const f = flight({ plan: ref.balls[ballIndex], bowler: ref.bowler, conditions, seed: ballSeed(ref, ballIndex), ball: ref.ball });
+    const f = flight({
+      plan: ref.balls[ballIndex],
+      bowler: ref.bowler,
+      conditions,
+      seed: ballSeed(ref, ballIndex),
+      ball: ref.ball,
+    });
     const startT = s ? idealTimeFor(f, s.footwork) - batTravelMs(s.kind, s.power) / 1000 + errorMs / 1000 : 0;
-    return { flight: f, swing: s ? { ...s, startT } : null, field: autoField(ref.bowler, conditions, 'right', ref.ball), bowler: ref.bowler, conditions, handedness: 'right', assist: 'real', tierToleranceMs: 0 };
+    return {
+      flight: f,
+      swing: s ? { ...s, startT } : null,
+      field: autoField(ref.bowler, conditions, 'right', ref.ball),
+      bowler: ref.bowler,
+      conditions,
+      handedness: 'right',
+      assist: 'real',
+      tierToleranceMs: 0,
+    };
   };
 
-  it('the evaluator\'s reproduction: the ref-6 yorker driven on the full has no bounce event', () => {
-    const r = resolveDelivery(deliveryArgs(5, { kind: 'attack', directionDeg: 50, power: 0.7, elevation: 0.05, footwork: 'auto' }));
+  it("the evaluator's reproduction: the ref-6 yorker driven on the full has no bounce event", () => {
+    const r = resolveDelivery(
+      deliveryArgs(5, { kind: 'attack', directionDeg: 50, power: 0.7, elevation: 0.05, footwork: 'auto' }),
+    );
     const contact = r.events.find((e) => e.kind === 'contact');
     expect(contact).toBeDefined();
     expect(r.flight.bounce).not.toBeNull();
@@ -211,10 +298,16 @@ describe('resolveDelivery: the pitch bounce happens only if the ball reaches it 
   it('a bounce event exists exactly when the ball pitches before it first meets bat, pad, stumps or keeper', () => {
     let before = 0;
     for (let ballIndex = 0; ballIndex < ref.balls.length; ballIndex++) {
-      for (const s of [null, { kind: 'attack', directionDeg: 0, power: 0.7, elevation: 0.2, footwork: 'auto' }, { kind: 'defend', directionDeg: 0, power: 0.2, elevation: 0, footwork: 'auto' }] as const) {
+      for (const s of [
+        null,
+        { kind: 'attack', directionDeg: 0, power: 0.7, elevation: 0.2, footwork: 'auto' },
+        { kind: 'defend', directionDeg: 0, power: 0.2, elevation: 0, footwork: 'auto' },
+      ] as const) {
         for (const errorMs of s ? [-40, 0, 40] : [0]) {
           const r = resolveDelivery(deliveryArgs(ballIndex, s, errorMs));
-          const touch = r.events.find((e) => e.kind === 'contact' || e.kind === 'pad' || e.kind === 'stumps' || e.kind === 'keeper_take');
+          const touch = r.events.find(
+            (e) => e.kind === 'contact' || e.kind === 'pad' || e.kind === 'stumps' || e.kind === 'keeper_take',
+          );
           const bounce = r.flight.bounce;
           const pitched = bounce !== null && (!touch || bounce.t <= touch.t + 1e-9);
           if (bounce && touch && touch.t < bounce.t) before++;
@@ -234,21 +327,31 @@ describe('resolveDelivery: the keeper take says when the ball passed beyond his 
   it('carries shortM exactly when keeperTake returns more than 0, with the same value; a clean take has no key', () => {
     let short = 0;
     let clean = 0;
-    for (const lineM of [-3, -2.5, -2, -1.5, -1, 0.3, 0.5, 1.5, 2, 2.5, 3]) for (const lengthM of [3, 5, 7, 9]) for (const bowler of [PACE, SPIN]) {
-      const a = args({ bowler, plan: plan({ lineM, lengthM, speedKph: bowler === SPIN ? 84 : 136 }), seed: `keeper-${lineM}-${lengthM}` });
-      const r = resolveDelivery(a);
-      const ev = r.events.find((e) => e.kind === 'keeper_take');
-      if (!ev || ev.kind !== 'keeper_take') continue;
-      const take = keeperTake(a.field, keeperPath(a.flight, a.field, a.conditions).filter((s) => s.p.z >= PITCH_HALF), 0)!;
-      expect(ev.t).toBe(take.t);
-      if (take.shortM > 0) {
-        short++;
-        expect(ev.shortM).toBe(take.shortM);
-      } else {
-        clean++;
-        expect('shortM' in ev).toBe(false);
-      }
-    }
+    for (const lineM of [-3, -2.5, -2, -1.5, -1, 0.3, 0.5, 1.5, 2, 2.5, 3])
+      for (const lengthM of [3, 5, 7, 9])
+        for (const bowler of [PACE, SPIN]) {
+          const a = args({
+            bowler,
+            plan: plan({ lineM, lengthM, speedKph: bowler === SPIN ? 84 : 136 }),
+            seed: `keeper-${lineM}-${lengthM}`,
+          });
+          const r = resolveDelivery(a);
+          const ev = r.events.find((e) => e.kind === 'keeper_take');
+          if (!ev || ev.kind !== 'keeper_take') continue;
+          const take = keeperTake(
+            a.field,
+            keeperPath(a.flight, a.field, a.conditions).filter((s) => s.p.z >= PITCH_HALF),
+            0,
+          )!;
+          expect(ev.t).toBe(take.t);
+          if (take.shortM > 0) {
+            short++;
+            expect(ev.shortM).toBe(take.shortM);
+          } else {
+            clean++;
+            expect('shortM' in ev).toBe(false);
+          }
+        }
     expect(short).toBeGreaterThan(0);
     expect(clean).toBeGreaterThan(0);
   });
@@ -268,10 +371,14 @@ function* grid(): Generator<{ a: ResolveArgs; r: DeliveryResult }> {
   const lines = [-0.05, 0.05, 0.15, 0.3];
   const lengths = [3.5, 5, 6.5];
   const swings: Array<Partial<NormalizedSwing> & { errorMs?: number }> = [];
-  for (const errorMs of [0, -60, 60, -100, 100]) for (const directionDeg of [-60, -20, 0, 25, 60]) for (const elevation of [0.05, 0.6, 1]) swings.push({ errorMs, directionDeg, elevation, power: elevation > 0.5 ? 0.95 : 0.8 });
+  for (const errorMs of [0, -60, 60, -100, 100])
+    for (const directionDeg of [-60, -20, 0, 25, 60])
+      for (const elevation of [0.05, 0.6, 1])
+        swings.push({ errorMs, directionDeg, elevation, power: elevation > 0.5 ? 0.95 : 0.8 });
   // A dead-bat block is a stroke too: with full-speed attacking swings (simulation 3 after the anatomy repair) the ball
   // played onto the stumps comes from a defensive bat dropping it back, so the search includes the block.
-  for (const errorMs of [0, -24, 24, -40, 40]) swings.push({ kind: 'defend', errorMs, directionDeg: 0, elevation: 0, power: 0.15 });
+  for (const errorMs of [0, -24, 24, -40, 40])
+    swings.push({ kind: 'defend', errorMs, directionDeg: 0, elevation: 0, power: 0.15 });
   for (const lineM of lines)
     for (const lengthM of lengths) {
       const base = args({ plan: plan({ lineM, lengthM }), seed: `grid-${lineM}-${lengthM}` });
@@ -284,7 +391,8 @@ function* grid(): Generator<{ a: ResolveArgs; r: DeliveryResult }> {
 
 describe('resolveDelivery: every way the struck ball can end, through the real physics', () => {
   const found = new Map<string, { a: ResolveArgs; r: DeliveryResult }>();
-  const bounceBefore = (r: DeliveryResult, t: number) => r.events.some((e) => e.kind === 'ball_bounce' && e.t < t - 1e-9);
+  const bounceBefore = (r: DeliveryResult, t: number) =>
+    r.events.some((e) => e.kind === 'ball_bounce' && e.t < t - 1e-9);
   // 'bowled_on' is a bat contact played onto the stumps. The key used to accept any non-miss contact, so a ball bowled
   // off the pad (a 'pad' event, no 'contact') qualified too; the grid's first bowled-on case was an edge only by
   // order. Since PHYS2 5e (SYS1: a Play swing is the Real swing at the band-mapped error, travel unchanged) the Play
@@ -293,12 +401,17 @@ describe('resolveDelivery: every way the struck ball can end, through the real p
   const PLAYED_ON = new Set(['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge']);
   for (const x of grid()) {
     const o = x.r.outcome;
-    const key = o.dismissal ? `${o.dismissal}${o.dismissal === 'bowled' && PLAYED_ON.has(x.r.contact.kind) ? '_on' : ''}` : o.boundary ? `b${o.boundary}` : `r${o.runs}`;
+    const key = o.dismissal
+      ? `${o.dismissal}${o.dismissal === 'bowled' && PLAYED_ON.has(x.r.contact.kind) ? '_on' : ''}`
+      : o.boundary
+        ? `b${o.boundary}`
+        : `r${o.runs}`;
     if (!found.has(key)) found.set(key, x);
   }
 
   it('finds catches, caught behind, played on, boundaries and runs', () => {
-    for (const k of ['caught', 'caught_behind', 'bowled_on', 'b4', 'b6', 'r0', 'r1']) expect(found.has(k), k).toBe(true);
+    for (const k of ['caught', 'caught_behind', 'bowled_on', 'b4', 'b6', 'r0', 'r1'])
+      expect(found.has(k), k).toBe(true);
   });
 
   it('a catch is taken before the ball bounces, by a fielder whose path reaches it', () => {
@@ -327,7 +440,10 @@ describe('resolveDelivery: every way the struck ball can end, through the real p
   });
 
   it('six on the full, four after a bounce, both at the rope', () => {
-    for (const [k, runs] of [['b6', 6], ['b4', 4]] as const) {
+    for (const [k, runs] of [
+      ['b6', 6],
+      ['b4', 4],
+    ] as const) {
       const { r, a } = found.get(k)!;
       wellFormed(r, a);
       const b = r.events.find((e) => e.kind === 'boundary')!;
@@ -352,6 +468,7 @@ describe('resolveDelivery: every way the struck ball can end, through the real p
     const { a } = found.get('b4')!;
     const base = { ...a, swing: swing(a, { errorMs: 0, directionDeg: 30, elevation: 0.05, power: 0.8 }) };
     const r = resolveDelivery(base);
-    if (r.contact.kind === 'middle' && (r.contact.timing === 'perfect' || r.contact.timing === 'solid')) expect(Math.abs(bearingDelta(r.contact.exitBearingDeg!, 30))).toBeLessThan(15);
+    if (r.contact.kind === 'middle' && (r.contact.timing === 'perfect' || r.contact.timing === 'solid'))
+      expect(Math.abs(bearingDelta(r.contact.exitBearingDeg!, 30))).toBeLessThan(15);
   });
 });

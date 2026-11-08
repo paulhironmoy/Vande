@@ -25,9 +25,42 @@ export {
   type ReadEnd,
   type TrackedInput,
 } from './normalize';
-export { MODALITIES, calibrationError, calibrationFor, calibrationFromTaps, calibrationsFromTaps, eventModality, resolveCalibrations, withCalibration, type CalibrationSet } from './calibration';
+export {
+  MODALITIES,
+  calibrationError,
+  calibrationFor,
+  calibrationFromTaps,
+  calibrationsFromTaps,
+  eventModality,
+  resolveCalibrations,
+  withCalibration,
+  type CalibrationSet,
+} from './calibration';
 export { TAP_HOLD_MS } from './constants';
-export { GestureTracker, isShotKey, type KeyResult, type OneGesturePhase, type OneGestureState, type PointerKind, type SwingIntent, type TrackerEvents, type TrackerScheduler } from './tracker';
-export { sampleStroke, traceGesture, type TraceOptions as GestureTraceOptions, type TraceResult as GestureTraceResult } from './simulate';
+export {
+  GestureTracker,
+  isShotKey,
+  type KeyResult,
+  type OneGesturePhase,
+  type OneGestureState,
+  type PointerKind,
+  type SwingIntent,
+  type TrackerEvents,
+  type TrackerScheduler,
+} from './tracker';
+export {
+  sampleStroke,
+  traceGesture,
+  type TraceOptions as GestureTraceOptions,
+  type TraceResult as GestureTraceResult,
+} from './simulate';
 export { pointerIsDown } from './pressing';
-export { PointerTrace, eventTime, pointerKind, coalesced, sampleIn, type TraceSample, type TraceOptions } from './pointer';
+export {
+  PointerTrace,
+  eventTime,
+  pointerKind,
+  coalesced,
+  sampleIn,
+  type TraceSample,
+  type TraceOptions,
+} from './pointer';

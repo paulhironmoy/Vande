@@ -3,7 +3,15 @@
  * short tap for defend and leave). Matches the engine's validation rules (src/engine/v1/batting.ts): monotonic
  * samples, at most 4 s, swipe direction within one sector of the zone, tap within the late limit.
  */
-import type { BattingInput, FieldZone, InputTrace, RevealedDelivery, ShotType, TimingGrade, Contact } from '@/contracts';
+import type {
+  BattingInput,
+  FieldZone,
+  InputTrace,
+  RevealedDelivery,
+  ShotType,
+  TimingGrade,
+  Contact,
+} from '@/contracts';
 import * as Engine from '@/engine';
 import { SECTOR_ORDER, sectorDistance, zoneFromSwipe } from '@/ui/cricket/aim';
 import '../engineRules';
@@ -47,7 +55,13 @@ function traceFor(g: Gesture | null, zone: FieldZone | null): InputTrace {
   // The swipe pointed somewhere the shot cannot go and the aim was snapped: send only the release, as a tap.
   const last = g.samples[g.samples.length - 1];
   const dur = Math.max(40, Math.min(90, last[0]));
-  return { pointer: g.pointer, samples: [[0, last[1], last[2]], [dur, last[1], last[2]]] };
+  return {
+    pointer: g.pointer,
+    samples: [
+      [0, last[1], last[2]],
+      [dur, last[1], last[2]],
+    ],
+  };
 }
 
 export function buildInput(args: {
@@ -71,7 +85,8 @@ export function buildInput(args: {
 /** Local timing grade (for the immediate swing animation; the server's feedback is the truth). */
 export function predictTiming(tapMs: number | null, delivery: RevealedDelivery): TimingGrade {
   try {
-    const fn = (Engine as { timingGrade?: (t: number | null, d: RevealedDelivery['timing']) => TimingGrade }).timingGrade;
+    const fn = (Engine as { timingGrade?: (t: number | null, d: RevealedDelivery['timing']) => TimingGrade })
+      .timingGrade;
     if (fn) return fn(tapMs, delivery.timing);
   } catch {
     /* fall through */

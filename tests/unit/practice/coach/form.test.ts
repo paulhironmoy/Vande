@@ -1,9 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { PRACTICE_SIM_VERSION, type AssistanceStage, type DeliveryRecord, type NormalizedSwing } from '@/contracts/practice';
-import { FORM_RULES, FORM_SAMPLE_VERSION, FORM_SKILLS, analyzeBall, evidenceOf, formFromAttempts, formSample, isFormSample, type FormContext, type FormSample } from '@/practice/coach';
+import {
+  PRACTICE_SIM_VERSION,
+  type AssistanceStage,
+  type DeliveryRecord,
+  type NormalizedSwing,
+} from '@/contracts/practice';
+import {
+  FORM_RULES,
+  FORM_SAMPLE_VERSION,
+  FORM_SKILLS,
+  analyzeBall,
+  evidenceOf,
+  formFromAttempts,
+  formSample,
+  isFormSample,
+  type FormContext,
+  type FormSample,
+} from '@/practice/coach';
 import { OFFSPIN, play, recordFor, referenceRecord, swingFor } from './fixtures';
 
-function sample(record: DeliveryRecord, swing: NormalizedSwing | null, context: FormContext = { source: 'innings' }): FormSample {
+function sample(
+  record: DeliveryRecord,
+  swing: NormalizedSwing | null,
+  context: FormContext = { source: 'innings' },
+): FormSample {
   const { record: r, result } = play(record, swing);
   return formSample({ record: r, result, analysis: analyzeBall(r, result) }, context);
 }
@@ -23,7 +43,15 @@ describe('form samples', () => {
       expect(isFormSample(back)).toBe(true);
       expect(Object.keys(s)).not.toContain('startT');
     }
-    expect(LEFT_WELL).toMatchObject({ v: FORM_SAMPLE_VERSION, simVersion: PRACTICE_SIM_VERSION, source: 'innings', stage: 4, family: 'pace', decision: 'leave', out: false });
+    expect(LEFT_WELL).toMatchObject({
+      v: FORM_SAMPLE_VERSION,
+      simVersion: PRACTICE_SIM_VERSION,
+      source: 'innings',
+      stage: 4,
+      family: 'pace',
+      decision: 'leave',
+      out: false,
+    });
     expect(DRIVE.aimDeg).toBe(42);
     expect(DRIVE.withLine).toBe(true);
     expect(DRIVE.aimClearanceDeg!).toBeGreaterThan(0);
@@ -77,7 +105,10 @@ describe('the form report', () => {
   });
 
   it('spin is read only against spin, pace timing only against pace', () => {
-    const spinner = recordFor({ variation: 'stock', lengthM: 4, lineM: 0.1, speedKph: 84 }, { bowler: OFFSPIN, conditions: 'turning' });
+    const spinner = recordFor(
+      { variation: 'stock', lengthM: 4, lineM: 0.1, speedKph: 84 },
+      { bowler: OFFSPIN, conditions: 'turning' },
+    );
     const s = sample(spinner, swingFor(spinner, { kind: 'defend' }));
     const r = formFromAttempts(repeat(s, 4));
     expect(r.pace_timing.samples).toBe(0);
@@ -116,11 +147,21 @@ describe('the form report', () => {
 
 describe('form never feeds back into the game', () => {
   // Vite reads the sources as raw text (as tests/unit/platform/bundleSecrets.test.ts does).
-  const texts = (files: Record<string, unknown>): Record<string, string> => Object.fromEntries(Object.entries(files).filter((e): e is [string, string] => typeof e[1] === 'string'));
-  const game = texts(import.meta.glob(['/src/physics/**/*.{ts,tsx}', '/src/practice/game/**/*.{ts,tsx}'], { query: '?raw', import: 'default', eager: true }));
-  const form = texts(import.meta.glob('/src/practice/coach/form.ts', { query: '?raw', import: 'default', eager: true }));
+  const texts = (files: Record<string, unknown>): Record<string, string> =>
+    Object.fromEntries(Object.entries(files).filter((e): e is [string, string] => typeof e[1] === 'string'));
+  const game = texts(
+    import.meta.glob(['/src/physics/**/*.{ts,tsx}', '/src/practice/game/**/*.{ts,tsx}'], {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    }),
+  );
+  const form = texts(
+    import.meta.glob('/src/practice/coach/form.ts', { query: '?raw', import: 'default', eager: true }),
+  );
 
-  const importsCoach = (src: string) => /from\s+['"](@\/practice\/coach|[./]+coach)(\/[^'"]*)?['"]|import\(\s*['"][^'"]*practice\/coach/.test(src);
+  const importsCoach = (src: string) =>
+    /from\s+['"](@\/practice\/coach|[./]+coach)(\/[^'"]*)?['"]|import\(\s*['"][^'"]*practice\/coach/.test(src);
 
   it('the scan recognises every way of importing the coach', () => {
     expect(importsCoach("import { formFromAttempts } from '@/practice/coach';")).toBe(true);

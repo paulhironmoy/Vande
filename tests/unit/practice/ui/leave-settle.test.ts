@@ -33,7 +33,7 @@ async function live(o: Parameters<typeof setup>[0] = {}) {
 }
 
 describe('a leave with nothing in flight settles at once (bowled-leave step 1)', () => {
-  it('the cue allowance is the input tracker\'s own allowance for batched events', () => {
+  it("the cue allowance is the input tracker's own allowance for batched events", () => {
     expect(LEAVE_CUE_DISPATCH_MS).toBe(LATE_SAMPLE_WAIT_MS);
   });
 
@@ -65,7 +65,14 @@ describe('a leave with nothing in flight settles at once (bowled-leave step 1)',
     flow.onSwingStart(deadline - 30, 'touch');
     await to(deadline + SWING_ARRIVAL_MS - 20);
     expect(settled()).toBe(false);
-    flow.onGesture({ pointer: 'touch', samples: [{ t: deadline - 30, x: 10, y: 10 }, { t: deadline - 10, x: 30, y: -20 }], surface: { width: 400, height: 200 } });
+    flow.onGesture({
+      pointer: 'touch',
+      samples: [
+        { t: deadline - 30, x: 10, y: 10 },
+        { t: deadline - 10, x: 30, y: -20 },
+      ],
+      surface: { width: 400, height: 200 },
+    });
     await until(() => flow.getState().phase === 'dead');
     expect(flow.getState().last?.result.swing?.kind).toBe('attack');
     flow.dispose();
@@ -87,7 +94,14 @@ describe('a leave with nothing in flight settles at once (bowled-leave step 1)',
     flow.onSwingStart(deadline - 5, 'touch');
     await to(deadline + 120);
     expect(flow.getState().phase).toBe('live');
-    flow.onGesture({ pointer: 'touch', samples: [{ t: deadline - 5, x: 10, y: 10 }, { t: deadline + 15, x: 30, y: -20 }], surface: { width: 400, height: 200 } });
+    flow.onGesture({
+      pointer: 'touch',
+      samples: [
+        { t: deadline - 5, x: 10, y: 10 },
+        { t: deadline + 15, x: 30, y: -20 },
+      ],
+      surface: { width: 400, height: 200 },
+    });
     await until(() => flow.getState().phase === 'dead');
     expect(flow.getState().last?.result.swing?.kind).toBe('attack');
     flow.dispose();
@@ -97,7 +111,14 @@ describe('a leave with nothing in flight settles at once (bowled-leave step 1)',
     const { deadline, to, flow } = await live();
     await to(deadline + 10);
     flow.onSwingStart(deadline + 10, 'touch');
-    flow.onGesture({ pointer: 'touch', samples: [{ t: deadline + 10, x: 10, y: 10 }, { t: deadline + 30, x: 30, y: -20 }], surface: { width: 400, height: 200 } });
+    flow.onGesture({
+      pointer: 'touch',
+      samples: [
+        { t: deadline + 10, x: 10, y: 10 },
+        { t: deadline + 30, x: 30, y: -20 },
+      ],
+      surface: { width: 400, height: 200 },
+    });
     await until(() => flow.getState().phase === 'dead');
     expect(flow.getState().last?.result.swing).toBeNull();
     flow.dispose();

@@ -46,7 +46,12 @@ export function rememberResult(matchId: string, log: MatchEventLog, me: 0 | 1): 
   }
 }
 
-export function tally(matches: readonly MatchView[], results: Record<string, Outcome>, opponentId: string, exclude: string): Rivalry {
+export function tally(
+  matches: readonly MatchView[],
+  results: Record<string, Outcome>,
+  opponentId: string,
+  exclude: string,
+): Rivalry {
   const r: Rivalry = { played: 0, won: 0, lost: 0, tied: 0 };
   for (const v of matches) {
     if (v.matchId === exclude || v.phase !== 'revealed' || v.players[v.me === 0 ? 1 : 0]?.id !== opponentId) continue;
@@ -68,7 +73,15 @@ export function useRivalry(net: Net | null, opponentId: string | null, exclude: 
       try {
         const matches = await net.api.call('GET /v1/matches');
         const results = read();
-        const missing = matches.filter((v) => v.matchId !== exclude && v.phase === 'revealed' && v.players[v.me === 0 ? 1 : 0]?.id === opponentId && !results[v.matchId]).slice(0, MAX_LOOKUPS);
+        const missing = matches
+          .filter(
+            (v) =>
+              v.matchId !== exclude &&
+              v.phase === 'revealed' &&
+              v.players[v.me === 0 ? 1 : 0]?.id === opponentId &&
+              !results[v.matchId],
+          )
+          .slice(0, MAX_LOOKUPS);
         for (const v of missing) {
           try {
             const log = await net.api.call('GET /v1/matches/:id/reveal', { params: { id: v.matchId } });

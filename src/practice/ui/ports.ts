@@ -49,7 +49,15 @@ import {
   praiseEarned,
   tipWords,
 } from '@/practice/coach';
-import { GestureSurface, calibrationFromTaps, calibrationsFromTaps, eventModality, normalizeGesture, pointerIsDown, resolveCalibrations } from '@/input';
+import {
+  GestureSurface,
+  calibrationFromTaps,
+  calibrationsFromTaps,
+  eventModality,
+  normalizeGesture,
+  pointerIsDown,
+  resolveCalibrations,
+} from '@/input';
 import { createPracticeStage } from '@/render3d';
 import { PRACTICE_SIM_VERSION } from '@/contracts';
 import PracticeWorker from '@/practice/worker/practice.worker?worker';
@@ -62,7 +70,8 @@ export const engine: PracticeEngine = {
   autoField,
   fieldIntent,
   regionOf,
-  randomOver: ({ seed, conditions, assist, difficulty, family }) => randomOver({ seed, conditions, assist, family, difficulty }),
+  randomOver: ({ seed, conditions, assist, difficulty, family }) =>
+    randomOver({ seed, conditions, assist, family, difficulty }),
   referenceOver: () => REFERENCE_OVER,
   referenceBalls: () => REFERENCE_BALLS,
   ballSeed,
@@ -138,7 +147,15 @@ export function effectiveUnityTextScale(appTextScale: number, systemTextScale: n
 export const createStage: StageFactory = async (opts) => {
   if (__UNITY_PRACTICE_ENABLED__ && !opts.force2d && !opts.skipUnity) {
     try {
-      const [{ nativeUnityPracticeBridge, unityAvailabilityRequiresClassic }, { createWebUnityPracticeBridge }, { createUnityPracticeStage }, { useApp }, { getAudioSettings }, { loadCalibrations }, { createPracticeT, loadPracticeCatalog }] = await Promise.all([
+      const [
+        { nativeUnityPracticeBridge, unityAvailabilityRequiresClassic },
+        { createWebUnityPracticeBridge },
+        { createUnityPracticeStage },
+        { useApp },
+        { getAudioSettings },
+        { loadCalibrations },
+        { createPracticeT, loadPracticeCatalog },
+      ] = await Promise.all([
         import('@/platform/unityPractice'),
         import('@/platform/unityPracticeWeb'),
         import('@/practice/unity'),
@@ -160,7 +177,12 @@ export const createStage: StageFactory = async (opts) => {
           return createPracticeStage(opts);
         }
         const systemTextScale = availability.systemTextScale;
-        if (typeof systemTextScale !== 'number' || !Number.isFinite(systemTextScale) || systemTextScale < 0.5 || systemTextScale > 3) {
+        if (
+          typeof systemTextScale !== 'number' ||
+          !Number.isFinite(systemTextScale) ||
+          systemTextScale < 0.5 ||
+          systemTextScale > 3
+        ) {
           return createPracticeStage(opts);
         }
         const app = useApp.getState();
@@ -171,7 +193,9 @@ export const createStage: StageFactory = async (opts) => {
           enableUnityPractice: true,
           bridge,
           buildId: __BUILD_ID__,
-          sessionId: globalThis.crypto.randomUUID?.() ?? `practice-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
+          sessionId:
+            globalThis.crypto.randomUUID?.() ??
+            `practice-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
           deviceTier: opts.deviceTier ?? 'full',
           assistance: opts.assistance ?? 'learn',
           locale: app.settings.locale,

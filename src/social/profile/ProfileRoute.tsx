@@ -11,7 +11,8 @@ import { FailureState, NeedsOnline } from '../components/States';
 import s from '../components/social.module.css';
 
 const ALIAS_MAX = 16;
-const sameKit = (a: KitSpec, b: KitSpec) => a.primary === b.primary && a.secondary === b.secondary && a.pattern === b.pattern;
+const sameKit = (a: KitSpec, b: KitSpec) =>
+  a.primary === b.primary && a.secondary === b.secondary && a.pattern === b.pattern;
 
 /** My profile: alias, generated avatar and kit, badges (YouTube Top 100 included), rating, groups, city, 18+ and Google. */
 export default function ProfileRoute({ route }: { route: RouteOf<'profile'> }) {
@@ -54,24 +55,34 @@ export default function ProfileRoute({ route }: { route: RouteOf<'profile'> }) {
     </ScreenShell>
   );
 
-  if (booting || (net && (account.state === 'idle' || account.state === 'syncing') && !me.data)) return shell(<StateView kind="loading" />);
-  if (!net) return shell(<NeedsOnline actionLabel={t('social.common.home')} onAction={() => navigate({ name: 'home' })} />);
-  if (account.state === 'offline' || account.state === 'error' || account.state === 'age_required') return shell(<FailureState failure={account.state} onRetry={account.retry} />);
+  if (booting || (net && (account.state === 'idle' || account.state === 'syncing') && !me.data))
+    return shell(<StateView kind="loading" />);
+  if (!net)
+    return shell(<NeedsOnline actionLabel={t('social.common.home')} onAction={() => navigate({ name: 'home' })} />);
+  if (account.state === 'offline' || account.state === 'error' || account.state === 'age_required')
+    return shell(<FailureState failure={account.state} onRetry={account.retry} />);
   const p = me.data;
-  if (!p) return shell(me.error ? <FailureState failure={socialFailure(me.error)} onRetry={me.reload} /> : <StateView kind="loading" />);
+  if (!p)
+    return shell(
+      me.error ? <FailureState failure={socialFailure(me.error)} onRetry={me.reload} /> : <StateView kind="loading" />,
+    );
 
   const dirty = alias.trim() !== p.alias || seed !== p.avatar.seed || !sameKit(kit, p.kit);
   const save = async () => {
     const check = checkAlias(alias);
     if (!check.ok || [...check.value].length > ALIAS_MAX) {
-      setAliasError(t(`social.profile.alias_${check.ok ? 'length' : check.reason}` as 'social.profile.alias_length', { max: ALIAS_MAX }));
+      setAliasError(
+        t(`social.profile.alias_${check.ok ? 'length' : check.reason}` as 'social.profile.alias_length', {
+          max: ALIAS_MAX,
+        }),
+      );
       return;
     }
     setAliasError(null);
     const r = await action.run(() =>
       net.api.call('PATCH /v1/me', {
         body: { alias: check.value, avatar: { seed }, kit },
-      })
+      }),
     );
     if (r.ok) {
       // Saved: the form shows the server's canonical values again.
@@ -119,7 +130,12 @@ export default function ProfileRoute({ route }: { route: RouteOf<'profile'> }) {
     <div className={s.stack}>
       <Card padding={5} className={s.stackSm}>
         <div className={s.player}>
-          <Avatar avatar={{ seed }} kit={kit} size={88} label={t('social.profile.avatar_label', { name: alias || p.alias })} />
+          <Avatar
+            avatar={{ seed }}
+            kit={kit}
+            size={88}
+            label={t('social.profile.avatar_label', { name: alias || p.alias })}
+          />
           <div className={s.playerText}>
             <span className={s.alias}>{p.alias}</span>
             <span className={s.meta}>
@@ -145,7 +161,11 @@ export default function ProfileRoute({ route }: { route: RouteOf<'profile'> }) {
         <h2 className={s.h2} id="profile-edit">
           {t('social.profile.edit')}
         </h2>
-        <Field label={t('social.profile.alias')} description={t('social.profile.alias_hint', { max: ALIAS_MAX })} htmlFor={aliasId}>
+        <Field
+          label={t('social.profile.alias')}
+          description={t('social.profile.alias_hint', { max: ALIAS_MAX })}
+          htmlFor={aliasId}
+        >
           <input
             id={aliasId}
             type="text"
@@ -188,7 +208,15 @@ export default function ProfileRoute({ route }: { route: RouteOf<'profile'> }) {
             />
           ))}
         </div>
-        <Button variant="primary" size="lg" block disabled={!dirty} loading={action.busy} onClick={() => void save()} data-testid="profile-save">
+        <Button
+          variant="primary"
+          size="lg"
+          block
+          disabled={!dirty}
+          loading={action.busy}
+          onClick={() => void save()}
+          data-testid="profile-save"
+        >
           {t('social.profile.save')}
         </Button>
       </section>
@@ -241,7 +269,13 @@ export default function ProfileRoute({ route }: { route: RouteOf<'profile'> }) {
           {t('social.profile.about_you')}
         </h2>
         <Field label={t('social.profile.city')} description={t('social.profile.city_hint')} htmlFor={cityId}>
-          <select id={cityId} className={s.select} value={p.city ?? ''} onChange={(e) => void patch({ city: e.target.value || null })} data-testid="profile-city">
+          <select
+            id={cityId}
+            className={s.select}
+            value={p.city ?? ''}
+            onChange={(e) => void patch({ city: e.target.value || null })}
+            data-testid="profile-city"
+          >
             <option value="">{t('social.profile.city_none')}</option>
             {CITY_IDS.map((c) => (
               <option key={c} value={c}>
@@ -257,14 +291,25 @@ export default function ProfileRoute({ route }: { route: RouteOf<'profile'> }) {
           </p>
         ) : (
           <Field label={t('social.profile.adult')} description={t('social.profile.adult_hint')} inline>
-            <Switch checked={false} onChange={(v) => v && void patch({ adultConfirmed: true })} label={t('social.profile.adult')} data-testid="profile-adult" />
+            <Switch
+              checked={false}
+              onChange={(v) => v && void patch({ adultConfirmed: true })}
+              label={t('social.profile.adult')}
+              data-testid="profile-adult"
+            />
           </Field>
         )}
         {googleReady &&
           (p.linked.google ? (
             <p className={s.body}>{t('social.profile.google_on')}</p>
           ) : (
-            <Button variant="secondary" icon="shield" loading={action.busy} onClick={() => void linkGoogle()} data-testid="profile-google">
+            <Button
+              variant="secondary"
+              icon="shield"
+              loading={action.busy}
+              onClick={() => void linkGoogle()}
+              data-testid="profile-google"
+            >
               {t('social.profile.google_link')}
             </Button>
           ))}
@@ -273,6 +318,6 @@ export default function ProfileRoute({ route }: { route: RouteOf<'profile'> }) {
           {t('social.profile.settings')}
         </Button>
       </section>
-    </div>
+    </div>,
   );
 }

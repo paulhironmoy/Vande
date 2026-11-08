@@ -49,7 +49,18 @@ function softwareGraphics(): boolean {
   return assessed ? !assessed.hardware : !probeGpu().hardware;
 }
 
-export function MatchStage({ replay, live, onReady, onTime, onBall, onEnd, onFallback, forceFallback, overlay, className }: MatchStageProps) {
+export function MatchStage({
+  replay,
+  live,
+  onReady,
+  onTime,
+  onBall,
+  onEnd,
+  onFallback,
+  forceFallback,
+  overlay,
+  className,
+}: MatchStageProps) {
   const { t } = useT();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<StageRenderer | null>(null);
@@ -142,7 +153,13 @@ export function MatchStage({ replay, live, onReady, onTime, onBall, onEnd, onFal
 
   return (
     <div className={[s.stage, className ?? ''].join(' ')} data-kind={fallback ? '2d' : '3d'}>
-      <canvas key={fallback ? '2d' : '3d'} ref={canvasRef} className={s.canvas} role="img" aria-label={t('stage.label')} />
+      <canvas
+        key={fallback ? '2d' : '3d'}
+        ref={canvasRef}
+        className={s.canvas}
+        role="img"
+        aria-label={t('stage.label')}
+      />
       {status === 'loading' && (
         <div className={s.loading}>
           <StateView kind="loading" title={t('stage.loading')} body={t('state.loading.body')} compact />

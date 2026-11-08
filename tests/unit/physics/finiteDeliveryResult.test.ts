@@ -43,21 +43,43 @@ describe('every DeliveryResult is finite', () => {
             for (const over of evalOvers({ difficulty, overs: 7, key, assist, family })) {
               for (const ball of over) {
                 const plan = ball.over.balls[ball.ballIndex];
-                const fl = flight({ plan, bowler: ball.over.bowler, conditions: ball.conditions, seed: ball.seed, ball: ball.over.ball, handedness });
+                const fl = flight({
+                  plan,
+                  bowler: ball.over.bowler,
+                  conditions: ball.conditions,
+                  seed: ball.seed,
+                  ball: ball.over.ball,
+                  handedness,
+                });
                 const field = autoField(ball.over.bowler, ball.conditions, handedness, ball.over.ball);
                 const draw = rngFromKey(`phys-finite|swing|${ball.seed}`);
                 const u = draw.float();
-                const kind = u < 0.15 ? null : u < 0.35 ? 'defend' as const : 'attack' as const;
+                const kind = u < 0.15 ? null : u < 0.35 ? ('defend' as const) : ('attack' as const);
                 const power = kind === 'defend' ? 0.15 : [0.4, 0.7, 1][Math.floor(draw.float() * 3)];
-                const swing: NormalizedSwing | null = kind === null ? null : {
-                  kind,
-                  startT: fl.idealContactT - batTravelMs(kind, power) / 1000 + Math.round((draw.float() * 2 - 1) * 60) / 1000,
-                  directionDeg: kind === 'defend' ? 0 : Math.round(draw.float() * 300 - 150),
-                  power,
-                  elevation: kind === 'defend' ? 0 : [0, 0, 0.4, 0.8][Math.floor(draw.float() * 4)],
-                  footwork: (['auto', 'forward', 'back'] as const)[Math.floor(draw.float() * 3)],
-                };
-                const result = resolveDelivery({ flight: fl, swing, field, bowler: ball.over.bowler, conditions: ball.conditions, handedness, assist, tierToleranceMs: 0 });
+                const swing: NormalizedSwing | null =
+                  kind === null
+                    ? null
+                    : {
+                        kind,
+                        startT:
+                          fl.idealContactT -
+                          batTravelMs(kind, power) / 1000 +
+                          Math.round((draw.float() * 2 - 1) * 60) / 1000,
+                        directionDeg: kind === 'defend' ? 0 : Math.round(draw.float() * 300 - 150),
+                        power,
+                        elevation: kind === 'defend' ? 0 : [0, 0, 0.4, 0.8][Math.floor(draw.float() * 4)],
+                        footwork: (['auto', 'forward', 'back'] as const)[Math.floor(draw.float() * 3)],
+                      };
+                const result = resolveDelivery({
+                  flight: fl,
+                  swing,
+                  field,
+                  bowler: ball.over.bowler,
+                  conditions: ball.conditions,
+                  handedness,
+                  assist,
+                  tierToleranceMs: 0,
+                });
                 expectFinite(result, `${key} ${ball.seed} ${JSON.stringify(swing)}`);
                 checked++;
               }
@@ -74,9 +96,17 @@ describe('every DeliveryResult is finite', () => {
     const block = { kind: 'defend' as const, directionDeg: 0, elevation: 0, power: 0.2, footwork: 'auto' as const };
     for (const ball of overBalls(REFERENCE_OVER, REFERENCE_CONDITIONS)) {
       for (const handedness of ['right', 'left'] as const) {
-        const fl = handedness === 'right'
-          ? ball.flight
-          : flight({ plan: ball.over.balls[ball.ballIndex], bowler: ball.over.bowler, conditions: ball.conditions, seed: ball.seed, ball: ball.over.ball, handedness });
+        const fl =
+          handedness === 'right'
+            ? ball.flight
+            : flight({
+                plan: ball.over.balls[ball.ballIndex],
+                bowler: ball.over.bowler,
+                conditions: ball.conditions,
+                seed: ball.seed,
+                ball: ball.over.ball,
+                handedness,
+              });
         const field = autoField(ball.over.bowler, ball.conditions, handedness, ball.over.ball);
         const at = { ...ball, flight: fl };
         for (const assist of ['play', 'real'] as const) {
@@ -86,7 +116,16 @@ describe('every DeliveryResult is finite', () => {
             null,
           ];
           for (const swing of swings) {
-            const result = resolveDelivery({ flight: fl, swing, field, bowler: ball.over.bowler, conditions: ball.conditions, handedness, assist, tierToleranceMs: 0 });
+            const result = resolveDelivery({
+              flight: fl,
+              swing,
+              field,
+              bowler: ball.over.bowler,
+              conditions: ball.conditions,
+              handedness,
+              assist,
+              tierToleranceMs: 0,
+            });
             expectFinite(result, `ref ball ${ball.ballIndex + 1} ${handedness} ${assist} ${JSON.stringify(swing)}`);
           }
         }

@@ -29,8 +29,30 @@
  * Plain TypeScript with no parameter properties or enums, so Node's type stripping can load it (examiner scripts).
  */
 import type { Footwork, GestureInput, GestureSample, Handedness, SwingKind } from '@/contracts/practice';
-import { DEPARTURE, DOWN_TRACK_DOUBLE_MS, KEYBOARD, LATE_SAMPLE_WAIT_MS, ONE_CONTACT, ONSET_GAP, ONSET_SPEED_PX_PER_MS, PRESS_FOOTWORK, READ_MAX_MS, TAP_HOLD_MS } from './constants';
-import { crossingIndex, moveThreshold, powerOf, readOneContact, screenBearing, swipeStart, type KeyStroke, type OneContactRead, type SwipeStart, type TrackedInput } from './normalize';
+import {
+  DEPARTURE,
+  DOWN_TRACK_DOUBLE_MS,
+  KEYBOARD,
+  LATE_SAMPLE_WAIT_MS,
+  ONE_CONTACT,
+  ONSET_GAP,
+  ONSET_SPEED_PX_PER_MS,
+  PRESS_FOOTWORK,
+  READ_MAX_MS,
+  TAP_HOLD_MS,
+} from './constants';
+import {
+  crossingIndex,
+  moveThreshold,
+  powerOf,
+  readOneContact,
+  screenBearing,
+  swipeStart,
+  type KeyStroke,
+  type OneContactRead,
+  type SwipeStart,
+  type TrackedInput,
+} from './normalize';
 
 export type PointerKind = GestureInput['pointer'];
 
@@ -55,7 +77,8 @@ export interface SwingIntent {
  * TAP_HOLD_MS, so it is no longer a tap and not a shot; presentation checks the touch-down stroke back. Its `atPerfMs`
  * is always the tap window's end (press + TAP_HOLD_MS), however the tracker learned it.
  */
-export type OneGesturePhase = 'ready' | 'waiting' | 'loading' | 'tracking' | 'committing' | 'released' | 'intentional_leave' | 'cancelled';
+export type OneGesturePhase =
+  'ready' | 'waiting' | 'loading' | 'tracking' | 'committing' | 'released' | 'intentional_leave' | 'cancelled';
 
 /**
  * A presentation-safe view of the canonical state machine. Values are player intent only: no ball-aware correction,
@@ -260,10 +283,32 @@ export class GestureTracker {
     if (this.active) return;
     // Disarmed, spent, or a key shot already under way: a finger that lands now only rests.
     if (!this.armed || this.chord) {
-      this.active = { id, kind, samples: [sample], mode: 'resting', pressT: null, start: null, capMs: Number.POSITIVE_INFINITY, contact: null, irreversible: false, waited: false };
+      this.active = {
+        id,
+        kind,
+        samples: [sample],
+        mode: 'resting',
+        pressT: null,
+        start: null,
+        capMs: Number.POSITIVE_INFINITY,
+        contact: null,
+        irreversible: false,
+        waited: false,
+      };
       return;
     }
-    const a: Active = { id, kind, samples: [sample], mode: 'pressing', pressT: sample.t, start: null, capMs: Number.POSITIVE_INFINITY, contact: null, irreversible: false, waited: false };
+    const a: Active = {
+      id,
+      kind,
+      samples: [sample],
+      mode: 'pressing',
+      pressT: sample.t,
+      start: null,
+      capMs: Number.POSITIVE_INFINITY,
+      contact: null,
+      irreversible: false,
+      waited: false,
+    };
     this.active = a;
     this.notePress(sample);
     this.events.swingStart(sample.t, kind, this.footwork());
@@ -289,17 +334,34 @@ export class GestureTracker {
       // A press that waited past the tap window and never swiped: not a shot, and the delivery stays armed. Said
       // explicitly, whether or not a sample arrived after the window (the same at every cadence). Its tap-window timer
       // went when it became a resting finger; a key chord's timer may be running and is left alone.
-      this.publish(this.stateFrom('intentional_leave', a.kind, sample?.t ?? a.samples.at(-1)?.t ?? this.sched.now(), a.pressT ?? this.sched.now(), null));
+      this.publish(
+        this.stateFrom(
+          'intentional_leave',
+          a.kind,
+          sample?.t ?? a.samples.at(-1)?.t ?? this.sched.now(),
+          a.pressT ?? this.sched.now(),
+          null,
+        ),
+      );
     } else if (a.mode !== 'spent' && a.mode !== 'resting') {
       if (sample) this.push(a, sample);
       this.advance(a, true);
       // Lifted without moving: a tap if it was quick; a finger that waited longer was not a shot.
-      if (a.mode === 'pressing' && a.pressT !== null && a.samples[a.samples.length - 1].t <= a.pressT + TAP_HOLD_MS) this.emitTap(a);
+      if (a.mode === 'pressing' && a.pressT !== null && a.samples[a.samples.length - 1].t <= a.pressT + TAP_HOLD_MS)
+        this.emitTap(a);
       else if (a.mode === 'pressing') {
         // Compatibility: a long stationary wait is still non-consuming, but is now explicit to presentation.
         this.clearTimer();
         this.publishWaiting(a);
-        this.publish(this.stateFrom('intentional_leave', a.kind, sample?.t ?? a.samples.at(-1)?.t ?? this.sched.now(), a.pressT ?? this.sched.now(), null));
+        this.publish(
+          this.stateFrom(
+            'intentional_leave',
+            a.kind,
+            sample?.t ?? a.samples.at(-1)?.t ?? this.sched.now(),
+            a.pressT ?? this.sched.now(),
+            null,
+          ),
+        );
       } else if (a.mode === 'loading') {
         if (a.contact?.phase === 'loading') {
           // Compatibility for the established full-circle control: a one-way, immediately released downward stroke
@@ -356,7 +418,15 @@ export class GestureTracker {
       if (repeat) return this.armed || this.chord ? 'swing' : 'ignored';
       if (!this.keyCanSwing()) return 'ignored';
       this.startKeySwing(t);
-      this.events.intent?.({ kind: 'defend', atPerfMs: t, pressAtPerfMs: t, pointer: 'keyboard', screenBearingDeg: null, loft: false, footwork: this.footwork() });
+      this.events.intent?.({
+        kind: 'defend',
+        atPerfMs: t,
+        pressAtPerfMs: t,
+        pointer: 'keyboard',
+        screenBearingDeg: null,
+        loft: false,
+        footwork: this.footwork(),
+      });
       this.emitKey({ kind: 'defend', screenBearingDeg: 0, loft: false }, t);
       return 'swing';
     }
@@ -378,7 +448,15 @@ export class GestureTracker {
       this.startKeySwing(t);
       const chord: Chord = { t0: t, codes: [code], dirs: [dir], loft: mods.shift === true };
       this.chord = chord;
-      this.events.intent?.({ kind: 'attack', atPerfMs: t, pressAtPerfMs: t, pointer: 'keyboard', screenBearingDeg: screenBearing(dir[0], dir[1]), loft: chord.loft, footwork: this.footwork() });
+      this.events.intent?.({
+        kind: 'attack',
+        atPerfMs: t,
+        pressAtPerfMs: t,
+        pointer: 'keyboard',
+        screenBearingDeg: screenBearing(dir[0], dir[1]),
+        loft: chord.loft,
+        footwork: this.footwork(),
+      });
       // A keypad key is already one of the eight directions; an arrow waits briefly for a second arrow.
       if (code in KEYPAD) this.closeChord();
       else this.schedule(t + KEYBOARD.chordMs, () => this.closeChord());
@@ -392,7 +470,8 @@ export class GestureTracker {
     const offKey = this.handedness === 'left' ? 'KeyA' : 'KeyD';
     const legKey = this.handedness === 'left' ? 'KeyD' : 'KeyA';
     if (code === 'KeyW') {
-      this.footworkKey = this.footworkKey === 'forward' && t - this.lastForwardMs <= DOWN_TRACK_DOUBLE_MS ? 'down_track' : 'forward';
+      this.footworkKey =
+        this.footworkKey === 'forward' && t - this.lastForwardMs <= DOWN_TRACK_DOUBLE_MS ? 'down_track' : 'forward';
       this.lastForwardMs = t;
       return 'footwork';
     }
@@ -459,21 +538,34 @@ export class GestureTracker {
     };
   }
 
-  private publishContact(phase: OneGesturePhase, a: Active, contact: OneContactRead | null, atPerfMs: number, committed = false) {
+  private publishContact(
+    phase: OneGesturePhase,
+    a: Active,
+    contact: OneContactRead | null,
+    atPerfMs: number,
+    committed = false,
+  ) {
     const prior = this.lastState?.pointer === a.kind ? this.lastState : null;
     const c = contact;
     this.publish(
-      this.stateFrom(phase, a.kind, atPerfMs, a.pressT ?? c?.pressMs ?? prior?.pressAtPerfMs ?? atPerfMs, c?.commitMs ?? prior?.timingAtPerfMs ?? null, {
-        pullbackDepth: c?.pullbackDepth ?? prior?.pullbackDepth ?? 0,
-        pullbackIntent: c?.pullbackIntent ?? prior?.pullbackIntent ?? 0,
-        lateralAdjustment: c?.lateralAdjustment ?? prior?.lateralAdjustment ?? 0,
-        aggression: c?.aggression ?? prior?.aggression ?? 0,
-        elevationIntent: c?.elevationIntent ?? prior?.elevationIntent ?? 0,
-        forwardBearingDeg: c?.forwardBearingDeg ?? prior?.forwardBearingDeg ?? null,
-        forwardVelocity: c?.forwardVelocity ?? prior?.forwardVelocity ?? 0,
-        pathPower: c?.committed ? powerOf(c.forwardVelocity) : prior?.committed ? prior.pathPower : 0,
-        committed: committed || c?.committed === true || prior?.committed === true,
-      }),
+      this.stateFrom(
+        phase,
+        a.kind,
+        atPerfMs,
+        a.pressT ?? c?.pressMs ?? prior?.pressAtPerfMs ?? atPerfMs,
+        c?.commitMs ?? prior?.timingAtPerfMs ?? null,
+        {
+          pullbackDepth: c?.pullbackDepth ?? prior?.pullbackDepth ?? 0,
+          pullbackIntent: c?.pullbackIntent ?? prior?.pullbackIntent ?? 0,
+          lateralAdjustment: c?.lateralAdjustment ?? prior?.lateralAdjustment ?? 0,
+          aggression: c?.aggression ?? prior?.aggression ?? 0,
+          elevationIntent: c?.elevationIntent ?? prior?.elevationIntent ?? 0,
+          forwardBearingDeg: c?.forwardBearingDeg ?? prior?.forwardBearingDeg ?? null,
+          forwardVelocity: c?.forwardVelocity ?? prior?.forwardVelocity ?? 0,
+          pathPower: c?.committed ? powerOf(c.forwardVelocity) : prior?.committed ? prior.pathPower : 0,
+          committed: committed || c?.committed === true || prior?.committed === true,
+        },
+      ),
     );
   }
 
@@ -500,12 +592,18 @@ export class GestureTracker {
       return;
     }
     if (a.mode === 'pressing' || a.mode === 'loading' || a.mode === 'committing') {
-      const contact = readOneContact({ pointer: a.kind, samples: a.samples, surface: this.surface, footwork: this.footwork() });
+      const contact = readOneContact({
+        pointer: a.kind,
+        samples: a.samples,
+        surface: this.surface,
+        footwork: this.footwork(),
+      });
       if (contact) {
         a.contact = contact;
         if (contact.phase === 'loading' || contact.phase === 'tracking') {
           a.mode = 'loading';
-          if (this.pressFootwork && Math.abs(contact.lateralAdjustment) >= ONE_CONTACT.lateralFootwork) this.footworkContact = 'across';
+          if (this.pressFootwork && Math.abs(contact.lateralAdjustment) >= ONE_CONTACT.lateralFootwork)
+            this.footworkContact = 'across';
           this.publishContact(contact.phase, a, contact, a.samples.at(-1)?.t ?? contact.pressMs);
           return;
         }
@@ -634,7 +732,15 @@ export class GestureTracker {
 
   private emitTap(a: Active) {
     if (!this.armed || a.pressT === null) return;
-    this.events.intent?.({ kind: 'defend', atPerfMs: a.pressT, pressAtPerfMs: a.pressT, pointer: a.kind, screenBearingDeg: null, loft: false, footwork: this.footwork() });
+    this.events.intent?.({
+      kind: 'defend',
+      atPerfMs: a.pressT,
+      pressAtPerfMs: a.pressT,
+      pointer: a.kind,
+      screenBearingDeg: null,
+      loft: false,
+      footwork: this.footwork(),
+    });
     this.publish(this.stateFrom('committing', a.kind, a.pressT, a.pressT, a.pressT, { committed: true }));
     this.finish(a, a.samples);
   }

@@ -36,28 +36,52 @@ export default function HighlightsRoute({ route }: { route: RouteOf<'highlights'
   const { net, booting } = useSocialServices();
   const account = useAccount(net, player);
   const ready = Boolean(net && account.state === 'ok');
-  const jobs = useResource<HighlightJob[]>(ready && net ? () => net.api.call('GET /v1/highlights/mine') : null, [ready]);
+  const jobs = useResource<HighlightJob[]>(ready && net ? () => net.api.call('GET /v1/highlights/mine') : null, [
+    ready,
+  ]);
   const [selected, setSelected] = useState<string | null>(null);
   const now = useNow(60_000);
   if (!player) return null;
 
   const shell = (children: React.ReactNode) => (
-    <ScreenShell title={t('social.hl.title')} eyebrow={t('social.hl.eyebrow')} onBack={selected ? () => setSelected(null) : back} narrow testId="highlights-screen">
+    <ScreenShell
+      title={t('social.hl.title')}
+      eyebrow={t('social.hl.eyebrow')}
+      onBack={selected ? () => setSelected(null) : back}
+      narrow
+      testId="highlights-screen"
+    >
       {children}
     </ScreenShell>
   );
 
-  if (booting || (net && (account.state === 'idle' || account.state === 'syncing') && !jobs.data)) return shell(<StateView kind="loading" />);
-  if (!net) return shell(<NeedsOnline actionLabel={t('social.common.home')} onAction={() => navigate({ name: 'home' })} />);
-  if (account.state === 'offline' || account.state === 'error' || account.state === 'age_required') return shell(<FailureState failure={account.state} onRetry={account.retry} />);
-  if (!jobs.data) return shell(jobs.error ? <FailureState failure={socialFailure(jobs.error)} onRetry={jobs.reload} /> : <StateView kind="loading" />);
+  if (booting || (net && (account.state === 'idle' || account.state === 'syncing') && !jobs.data))
+    return shell(<StateView kind="loading" />);
+  if (!net)
+    return shell(<NeedsOnline actionLabel={t('social.common.home')} onAction={() => navigate({ name: 'home' })} />);
+  if (account.state === 'offline' || account.state === 'error' || account.state === 'age_required')
+    return shell(<FailureState failure={account.state} onRetry={account.retry} />);
+  if (!jobs.data)
+    return shell(
+      jobs.error ? (
+        <FailureState failure={socialFailure(jobs.error)} onRetry={jobs.reload} />
+      ) : (
+        <StateView kind="loading" />
+      ),
+    );
 
   if (selected) return shell(<Review jobId={selected} tr={tr} now={now} onChanged={jobs.reload} />);
 
   if (jobs.data.length === 0)
     return shell(
       <div className={s.stack}>
-        <StateView kind="empty_cup" title={t('social.hl.empty_title')} body={t('social.hl.empty_body')} actionLabel={t('social.hl.see_top100')} onAction={() => navigate({ name: 'top100' })} />
+        <StateView
+          kind="empty_cup"
+          title={t('social.hl.empty_title')}
+          body={t('social.hl.empty_body')}
+          actionLabel={t('social.hl.see_top100')}
+          onAction={() => navigate({ name: 'top100' })}
+        />
       </div>,
     );
 
@@ -74,8 +98,17 @@ export default function HighlightsRoute({ route }: { route: RouteOf<'highlights'
                 <Chip tone={TONE[g]}>{t(`social.hl.group_${g}` as 'social.hl.group_decide')}</Chip>
               </div>
               <h2 className={s.h3}>{j.title}</h2>
-              {g === 'decide' && <p className={s.small}>{t('social.hl.decide_by', { when: deadlineText(tr, consentDeadline(j), now) })}</p>}
-              <Button variant={g === 'decide' ? 'accent' : 'secondary'} iconEnd="forward" onClick={() => setSelected(j.jobId)} data-testid={`highlight-open-${j.jobId}`}>
+              {g === 'decide' && (
+                <p className={s.small}>
+                  {t('social.hl.decide_by', { when: deadlineText(tr, consentDeadline(j), now) })}
+                </p>
+              )}
+              <Button
+                variant={g === 'decide' ? 'accent' : 'secondary'}
+                iconEnd="forward"
+                onClick={() => setSelected(j.jobId)}
+                data-testid={`highlight-open-${j.jobId}`}
+              >
                 {g === 'decide' ? t('social.hl.review') : t('social.hl.details')}
               </Button>
             </Card>
@@ -91,7 +124,10 @@ function Review({ jobId, tr, now, onChanged }: { jobId: string; tr: SocialT; now
   const { net, services } = useSocialServices();
   const navigate = useRouter((st) => st.navigate);
   const toast = useApp((st) => st.toast);
-  const preview = useResource<HighlightPreview>(net ? () => net.api.call('GET /v1/highlights/:jobId/preview', { params: { jobId } }) : null, [net, jobId]);
+  const preview = useResource<HighlightPreview>(
+    net ? () => net.api.call('GET /v1/highlights/:jobId/preview', { params: { jobId } }) : null,
+    [net, jobId],
+  );
   const [watching, setWatching] = useState(false);
   const [visibility, setVisibility] = useState<Visibility>('public');
   const [adult, setAdult] = useState(false);
@@ -105,7 +141,12 @@ function Review({ jobId, tr, now, onChanged }: { jobId: string; tr: SocialT; now
   }, [jobId]);
 
   const p = preview.data;
-  if (!p) return preview.error ? <FailureState failure={socialFailure(preview.error)} onRetry={preview.reload} /> : <StateView kind="loading" />;
+  if (!p)
+    return preview.error ? (
+      <FailureState failure={socialFailure(preview.error)} onRetry={preview.reload} />
+    ) : (
+      <StateView kind="loading" />
+    );
 
   const job = p.job;
   const g = statusGroup(job.status);
@@ -115,27 +156,50 @@ function Review({ jobId, tr, now, onChanged }: { jobId: string; tr: SocialT; now
 
   const decide = async (decision: 'granted' | 'declined') => {
     if (!net) return;
-    const r = await action.run(() => net.api.call('POST /v1/highlights/:jobId/consent', { params: { jobId }, body: { decision, adultConfirmed: decision === 'granted' ? adult : false, visibility } }));
+    const r = await action.run(() =>
+      net.api.call('POST /v1/highlights/:jobId/consent', {
+        params: { jobId },
+        body: { decision, adultConfirmed: decision === 'granted' ? adult : false, visibility },
+      }),
+    );
     if (r.ok) {
       setDecided(r.value);
       services?.analytics.track('highlight_consent', { decision });
-      toast({ kind: 'success', text: decision === 'granted' ? t('social.hl.granted_toast') : t('social.hl.declined_toast') });
+      toast({
+        kind: 'success',
+        text: decision === 'granted' ? t('social.hl.granted_toast') : t('social.hl.declined_toast'),
+      });
       preview.reload();
       onChanged();
-    } else toast({ kind: 'warning', text: r.failure === 'conflict' ? t('social.hl.closed') : r.failure === 'offline' ? t('social.state.offline_body') : t('social.hl.failed') });
+    } else
+      toast({
+        kind: 'warning',
+        text:
+          r.failure === 'conflict'
+            ? t('social.hl.closed')
+            : r.failure === 'offline'
+              ? t('social.state.offline_body')
+              : t('social.hl.failed'),
+      });
   };
 
   const withdraw = async () => {
     if (!net) return;
     setWithdrawing(false);
-    const r = await action.run(() => net.api.call('POST /v1/highlights/:jobId/withdraw', { params: { jobId }, body: {} }));
+    const r = await action.run(() =>
+      net.api.call('POST /v1/highlights/:jobId/withdraw', { params: { jobId }, body: {} }),
+    );
     if (r.ok) {
       setDecided(r.value);
       services?.analytics.track('highlight_consent', { decision: 'withdrawn' });
       toast({ kind: 'success', text: t('social.hl.withdrawn_toast') });
       preview.reload();
       onChanged();
-    } else toast({ kind: 'warning', text: r.failure === 'offline' ? t('social.state.offline_body') : t('social.hl.failed') });
+    } else
+      toast({
+        kind: 'warning',
+        text: r.failure === 'offline' ? t('social.state.offline_body') : t('social.hl.failed'),
+      });
   };
 
   // The moderated display names the video draws (never the match-time aliases in the log).
@@ -145,18 +209,32 @@ function Review({ jobId, tr, now, onChanged }: { jobId: string; tr: SocialT; now
   return (
     <div className={s.stack} data-testid="highlight-review">
       <Card padding={5} className={s.stackSm}>
-        <p className={s.eyebrow}>{t('social.hl.review_eyebrow', { day: tr.date(`${job.day}T12:00:00Z`, { day: 'numeric', month: 'long' }) })}</p>
+        <p className={s.eyebrow}>
+          {t('social.hl.review_eyebrow', { day: tr.date(`${job.day}T12:00:00Z`, { day: 'numeric', month: 'long' }) })}
+        </p>
         <h2 className={s.h2}>{job.title}</h2>
         {watching ? (
           <ExactCut input={p.input} />
         ) : (
-          <Button variant="accent" size="lg" block icon="play" onClick={() => setWatching(true)} data-testid="highlight-watch">
+          <Button
+            variant="accent"
+            size="lg"
+            block
+            icon="play"
+            onClick={() => setWatching(true)}
+            data-testid="highlight-watch"
+          >
             {t('social.hl.watch_cut')}
           </Button>
         )}
         <p className={s.small}>{t('social.hl.cut_note')}</p>
       </Card>
-      <StatusPanel job={job} tr={tr} myDecision={myDecision} onLanding={() => navigate({ name: 'highlight', code: job.attributionCode })} />
+      <StatusPanel
+        job={job}
+        tr={tr}
+        myDecision={myDecision}
+        onLanding={() => navigate({ name: 'highlight', code: job.attributionCode })}
+      />
       <section className={s.section} aria-labelledby="hl-who">
         <h2 className={s.h3} id="hl-who">
           {t('social.hl.who')}
@@ -167,7 +245,11 @@ function Review({ jobId, tr, now, onChanged }: { jobId: string; tr: SocialT; now
               <Avatar avatar={pl.avatar} kit={pl.kit} size={40} decorative />
               <span className={s.playerText}>
                 <span className={s.alias}>{names[i] ?? pl.alias}</span>
-                <span className={s.meta}>{p.input.ranks[i] !== null ? t('social.hl.rank', { rank: p.input.ranks[i] as number }) : t('social.hl.opponent')}</span>
+                <span className={s.meta}>
+                  {p.input.ranks[i] !== null
+                    ? t('social.hl.rank', { rank: p.input.ranks[i] as number })
+                    : t('social.hl.opponent')}
+                </span>
               </span>
             </li>
           ))}
@@ -201,14 +283,34 @@ function Review({ jobId, tr, now, onChanged }: { jobId: string; tr: SocialT; now
           />
           <p className={s.small}>{t('social.hl.strictest')}</p>
           <label className={s.check} htmlFor={adultId}>
-            <input id={adultId} type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} data-testid="highlight-adult" />
+            <input
+              id={adultId}
+              type="checkbox"
+              checked={adult}
+              onChange={(e) => setAdult(e.target.checked)}
+              data-testid="highlight-adult"
+            />
             <span>{t('social.hl.adult')}</span>
           </label>
           <div className={s.actions}>
-            <Button variant="accent" size="lg" icon="check" disabled={!adult} loading={action.busy} onClick={() => void decide('granted')} data-testid="highlight-grant">
+            <Button
+              variant="accent"
+              size="lg"
+              icon="check"
+              disabled={!adult}
+              loading={action.busy}
+              onClick={() => void decide('granted')}
+              data-testid="highlight-grant"
+            >
               {t('social.hl.grant')}
             </Button>
-            <Button variant="secondary" size="lg" loading={action.busy} onClick={() => void decide('declined')} data-testid="highlight-decline">
+            <Button
+              variant="secondary"
+              size="lg"
+              loading={action.busy}
+              onClick={() => void decide('declined')}
+              data-testid="highlight-decline"
+            >
               {t('social.hl.decline')}
             </Button>
           </div>
@@ -220,7 +322,9 @@ function Review({ jobId, tr, now, onChanged }: { jobId: string; tr: SocialT; now
           <Button variant="danger" onClick={() => setWithdrawing(true)} data-testid="highlight-withdraw">
             {t('social.hl.withdraw')}
           </Button>
-          <p className={s.small}>{effect === 'remove' ? t('social.hl.withdraw_remove') : t('social.hl.withdraw_cancel')}</p>
+          <p className={s.small}>
+            {effect === 'remove' ? t('social.hl.withdraw_remove') : t('social.hl.withdraw_cancel')}
+          </p>
         </section>
       )}
       <Dialog
@@ -239,25 +343,86 @@ function Review({ jobId, tr, now, onChanged }: { jobId: string; tr: SocialT; now
   );
 }
 
-function StatusPanel({ job, tr, myDecision, onLanding }: { job: HighlightJob; tr: SocialT; myDecision: ConsentRecord['decision'] | null; onLanding: () => void }) {
+function StatusPanel({
+  job,
+  tr,
+  myDecision,
+  onLanding,
+}: {
+  job: HighlightJob;
+  tr: SocialT;
+  myDecision: ConsentRecord['decision'] | null;
+  onLanding: () => void;
+}) {
   const { t } = tr;
   const g = statusGroup(job.status);
   if (g === 'decide')
     return myDecision ? (
-      <StateView kind="pending_opponent" compact title={t('social.hl.waiting_title')} body={myDecision === 'granted' ? t('social.hl.waiting_granted') : t('social.hl.waiting_declined')} />
+      <StateView
+        kind="pending_opponent"
+        compact
+        title={t('social.hl.waiting_title')}
+        body={myDecision === 'granted' ? t('social.hl.waiting_granted') : t('social.hl.waiting_declined')}
+      />
     ) : null;
   if (g === 'queued') {
-    const step = job.status === 'queued_render' || job.status === 'rendering' ? 'social.hl.queued_rendering' : job.status === 'pending_moderation' ? 'social.hl.queued_review' : job.status === 'awaiting_channel' ? 'social.hl.queued_channel' : 'social.hl.queued_upload';
+    const step =
+      job.status === 'queued_render' || job.status === 'rendering'
+        ? 'social.hl.queued_rendering'
+        : job.status === 'pending_moderation'
+          ? 'social.hl.queued_review'
+          : job.status === 'awaiting_channel'
+            ? 'social.hl.queued_channel'
+            : 'social.hl.queued_upload';
     return <StateView kind="upload_queued" compact title={t('social.hl.queued_title')} body={t(step)} />;
   }
-  if (g === 'failed') return <StateView kind="upload_failed" compact title={t('social.hl.failed_title')} body={t('social.hl.failed_body')} />;
-  if (g === 'declined') return <StateView kind="consent_declined" compact title={t('social.hl.declined_title')} body={t('social.hl.declined_body')} />;
-  if (g === 'rejected') return <StateView kind="consent_declined" compact title={t('social.hl.rejected_title')} body={t('social.hl.rejected_body')} />;
-  if (g === 'removing') return <StateView kind="upload_queued" compact title={t('social.hl.removing_title')} body={t('social.hl.removing_body')} />;
-  if (g === 'removed') return <StateView kind="consent_declined" compact title={t('social.hl.removed_title')} body={t('social.hl.removed_body')} />;
+  if (g === 'failed')
+    return (
+      <StateView kind="upload_failed" compact title={t('social.hl.failed_title')} body={t('social.hl.failed_body')} />
+    );
+  if (g === 'declined')
+    return (
+      <StateView
+        kind="consent_declined"
+        compact
+        title={t('social.hl.declined_title')}
+        body={t('social.hl.declined_body')}
+      />
+    );
+  if (g === 'rejected')
+    return (
+      <StateView
+        kind="consent_declined"
+        compact
+        title={t('social.hl.rejected_title')}
+        body={t('social.hl.rejected_body')}
+      />
+    );
+  if (g === 'removing')
+    return (
+      <StateView
+        kind="upload_queued"
+        compact
+        title={t('social.hl.removing_title')}
+        body={t('social.hl.removing_body')}
+      />
+    );
+  if (g === 'removed')
+    return (
+      <StateView
+        kind="consent_declined"
+        compact
+        title={t('social.hl.removed_title')}
+        body={t('social.hl.removed_body')}
+      />
+    );
   return (
     <Card padding={4} className={s.stackSm} data-testid="highlight-live">
-      <h2 className={s.h3}>{job.status === 'unlisted' || job.visibility === 'unlisted' ? t('social.hl.live_unlisted') : t('social.hl.live_public')}</h2>
+      <h2 className={s.h3}>
+        {job.status === 'unlisted' || job.visibility === 'unlisted'
+          ? t('social.hl.live_unlisted')
+          : t('social.hl.live_public')}
+      </h2>
       <div className={s.actions}>
         <Button variant="primary" icon="share" onClick={onLanding}>
           {t('social.hl.open_landing')}

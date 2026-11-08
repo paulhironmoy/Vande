@@ -7,16 +7,13 @@
  */
 import type { DeviceAssessment } from '@/contracts';
 
-export const UNITY_PRACTICE_ENGINEERING_PREVIEW_LABEL =
-  'UNITY ENGINEERING PREVIEW · NOT RELEASE QUALIFIED';
+export const UNITY_PRACTICE_ENGINEERING_PREVIEW_LABEL = 'UNITY ENGINEERING PREVIEW · NOT RELEASE QUALIFIED';
 export const UNITY_PRACTICE_ENGINEERING_PREVIEW_ATTRIBUTE = 'data-vande-unity-practice';
 export const UNITY_PRACTICE_ENGINEERING_PREVIEW_VALUE = 'engineering-preview-unqualified';
 export const UNITY_PRACTICE_ENGINEERING_PREVIEW_MARKER_ID = 'vande-unity-engineering-preview';
 
 export type UnityPracticeEngineeringPreviewReason =
-  | 'explicit_preview'
-  | 'benchmark_unavailable'
-  | 'qualification_incomplete';
+  'explicit_preview' | 'benchmark_unavailable' | 'qualification_incomplete';
 
 export interface UnityPracticeEngineeringPreviewBuildFlags {
   unityPracticeEnabled: boolean;
@@ -44,15 +41,15 @@ export interface UnityPracticeEngineeringPreviewAdmission {
  * native renderer evidence whose native touch-to-visible latency is still unknown. An explicit Below result or an
  * assessment from another renderer still fails closed, even in preview.
  */
-export function canRetainUnityPracticeEngineeringPreview(
-  admission: UnityPracticeEngineeringPreviewAdmission,
-): boolean {
+export function canRetainUnityPracticeEngineeringPreview(admission: UnityPracticeEngineeringPreviewAdmission): boolean {
   if (!admission.enabled || !admission.ownsInput) return false;
   const assessment = admission.assessment;
   if (!assessment) return true;
-  return assessment.backend === 'unity' &&
+  return (
+    assessment.backend === 'unity' &&
     assessment.tier !== 'below' &&
-    (assessment.inputToFrameMs === null || !Number.isFinite(assessment.inputToFrameMs));
+    (assessment.inputToFrameMs === null || !Number.isFinite(assessment.inputToFrameMs))
+  );
 }
 
 /**

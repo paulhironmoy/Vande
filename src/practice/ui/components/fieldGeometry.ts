@@ -27,7 +27,13 @@ export function pointAt(g: GroundGeometry, bearing: number, d: number, mirror: 1
 const f = (n: number) => n.toFixed(2);
 
 /** The wedge of an arc between two radii about the pitch centre (inner 0 = from the striker). */
-export function wedgePath(g: GroundGeometry, arc: Pick<FieldArc, 'fromDeg' | 'toDeg'>, inner: number, outer: number, mirror: 1 | -1): string {
+export function wedgePath(
+  g: GroundGeometry,
+  arc: Pick<FieldArc, 'fromDeg' | 'toDeg'>,
+  inner: number,
+  outer: number,
+  mirror: 1 | -1,
+): string {
   const steps = Math.max(2, Math.ceil((arc.toDeg - arc.fromDeg) / 3));
   const outerPts: string[] = [];
   const innerPts: string[] = [];
@@ -46,7 +52,12 @@ export function wedgePath(g: GroundGeometry, arc: Pick<FieldArc, 'fromDeg' | 'to
 }
 
 /** Where to write an arc's label: its middle bearing, a little inside the outer radius. */
-export function arcLabelAt(g: GroundGeometry, arc: Pick<FieldArc, 'fromDeg' | 'toDeg'>, r: number, mirror: 1 | -1): [number, number] {
+export function arcLabelAt(
+  g: GroundGeometry,
+  arc: Pick<FieldArc, 'fromDeg' | 'toDeg'>,
+  r: number,
+  mirror: 1 | -1,
+): [number, number] {
   const b = (arc.fromDeg + arc.toDeg) / 2;
   return pointAt(g, b, distanceToCircle(g, b, r) * 0.82, mirror);
 }

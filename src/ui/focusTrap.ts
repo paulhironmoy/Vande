@@ -5,7 +5,7 @@ const FOCUSABLE =
 
 function getFocusable(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-    (el) => !el.hasAttribute('aria-hidden') && el.offsetParent !== null || el === document.activeElement,
+    (el) => (!el.hasAttribute('aria-hidden') && el.offsetParent !== null) || el === document.activeElement,
   );
 }
 
@@ -13,7 +13,12 @@ function getFocusable(root: HTMLElement): HTMLElement[] {
  * Traps Tab focus inside `ref` while `active`, focuses the first focusable (or the container) on open,
  * restores focus on close and calls `onClose` on Escape.
  */
-export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean, onClose?: () => void, initialFocus?: RefObject<HTMLElement | null>) {
+export function useFocusTrap(
+  ref: RefObject<HTMLElement | null>,
+  active: boolean,
+  onClose?: () => void,
+  initialFocus?: RefObject<HTMLElement | null>,
+) {
   // Keep the latest callbacks in refs so the trap only (re)initialises when `active` changes.
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -59,7 +64,8 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean
     return () => {
       cancelAnimationFrame(raf);
       root.removeEventListener('keydown', onKey);
-      if (previous && typeof previous.focus === 'function' && document.contains(previous)) previous.focus({ preventScroll: true });
+      if (previous && typeof previous.focus === 'function' && document.contains(previous))
+        previous.focus({ preventScroll: true });
     };
   }, [active, ref]);
 }

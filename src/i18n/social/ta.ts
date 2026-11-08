@@ -9,9 +9,11 @@ const catalog: SocialCatalog = {
   'social.common.home': 'முகப்புக்குச் செல்',
   'social.common.retry': 'மீண்டும் முயற்சி செய்',
   'social.common.you_suffix': '(நீங்கள்)',
-  'social.state.offline_body': 'நீங்கள் ஆஃப்லைனில் உள்ளீர்கள். மீண்டும் ஆன்லைனுக்கு வந்ததும் இது தானாகப் புதுப்பிக்கப்படும்.',
+  'social.state.offline_body':
+    'நீங்கள் ஆஃப்லைனில் உள்ளீர்கள். மீண்டும் ஆன்லைனுக்கு வந்ததும் இது தானாகப் புதுப்பிக்கப்படும்.',
   'social.state.needs_online_title': 'இதற்கு இணையம் தேவை',
-  'social.state.needs_online_body': 'கோப்பைகள், அறைகள், லீடர்போர்டுகள் VANDE Cricket சேவையில் இயங்குகின்றன. பயிற்சியும் பிராக்டிஸ் கோஸ்ட்ஸும் ஆஃப்லைனிலும் இயங்கும்.',
+  'social.state.needs_online_body':
+    'கோப்பைகள், அறைகள், லீடர்போர்டுகள் VANDE Cricket சேவையில் இயங்குகின்றன. பயிற்சியும் பிராக்டிஸ் கோஸ்ட்ஸும் ஆஃப்லைனிலும் இயங்கும்.',
   'social.state.not_found_title': 'கிடைக்கவில்லை',
   'social.state.forbidden_title': 'உறுப்பினர்களுக்கு மட்டும்',
   'social.state.busy_title': 'இப்போது நிறைய கிரிக்கெட் நடக்கிறது',

@@ -46,7 +46,17 @@ export const DRAW = {
 } as const;
 
 /** Indices in `DirectorEvents.amp` (person amplitudes, constant for the over). */
-export const AMP = { breathHz: 0, breathDepthDeg: 1, breathSkew: 2, swayRootMm: 3, swayRollDeg: 4, blinkMeanS: 5, blinkCv: 6, fidgetX: 7, N: 8 } as const;
+export const AMP = {
+  breathHz: 0,
+  breathDepthDeg: 1,
+  breathSkew: 2,
+  swayRootMm: 3,
+  swayRollDeg: 4,
+  blinkMeanS: 5,
+  blinkCv: 6,
+  fidgetX: 7,
+  N: 8,
+} as const;
 
 const clamp = (x: number, lo: number, hi: number): number => (x < lo ? lo : x > hi ? hi : x);
 
@@ -121,7 +131,13 @@ export function blinkShape(seed: number, j: number) {
   const s = mix(seed, j);
   const close = clamp(98 + 10 * gauss(s, 0), B.closeMs[0], B.closeMs[1]);
   const open = close * range(s, 3, B.openRatio[0], B.openRatio[1]);
-  return { close, hold: range(s, 4, B.holdMs[0], B.holdMs[1]), open, depth: u01(s, 5) < B.partialP ? range(s, 6, B.partialDepth[0], B.partialDepth[1]) : 1, skew: (u01(s, 7) - 0.5) * 2 * B.skewMs };
+  return {
+    close,
+    hold: range(s, 4, B.holdMs[0], B.holdMs[1]),
+    open,
+    depth: u01(s, 5) < B.partialP ? range(s, 6, B.partialDepth[0], B.partialDepth[1]) : 1,
+    skew: (u01(s, 7) - 0.5) * 2 * B.skewMs,
+  };
 }
 
 /** Blinks: log-normal intervals, none inside the task window (a blink that would fall in it is deferred to just after). */
@@ -134,15 +150,18 @@ function blinks(a: DirectorAnchors, bk: number, amp: Float32Array, win: [number,
   const cv = amp[AMP.blinkCv];
   const mean = (t: number) => amp[AMP.blinkMeanS] * (win === null ? 1 : t < win[0] ? B.attendX[a.role] : B.afterX);
   const shape = (j: number) => blinkShape(ss, j);
-  const clashes = (t: number, total: number) => (win !== null && t - B.skewMs < win[1] && t + total + B.skewMs > win[0]) || seamClash(a, t, total);
+  const clashes = (t: number, total: number) =>
+    (win !== null && t - B.skewMs < win[1] && t + total + B.skewMs > win[0]) || seamClash(a, t, total);
   const out: number[] = [];
   let t = a.start + lognorm(B.firstMeanMs, cv, gauss(sg, 0));
   for (let k = 0; t < a.end; k++) {
     const b = shape(k);
     const total = b.close + b.hold + b.open;
     if (clashes(t, total)) {
-      if (win !== null && t - B.skewMs < win[1] && t + total + B.skewMs > win[0]) t = win[1] + B.skewMs + range(sr, 0, B.reliefMs[0], B.reliefMs[1]);
-      else if (t < a.start + (a.seamMs ?? 0) + B.skewMs + B.seamMarginMs) t = a.start + (a.seamMs ?? 0) + B.skewMs + B.seamMarginMs + range(sr, 0, B.reliefMs[0], B.reliefMs[1]);
+      if (win !== null && t - B.skewMs < win[1] && t + total + B.skewMs > win[0])
+        t = win[1] + B.skewMs + range(sr, 0, B.reliefMs[0], B.reliefMs[1]);
+      else if (t < a.start + (a.seamMs ?? 0) + B.skewMs + B.seamMarginMs)
+        t = a.start + (a.seamMs ?? 0) + B.skewMs + B.seamMarginMs + range(sr, 0, B.reliefMs[0], B.reliefMs[1]);
       else break; // across the seam at the end of a loop: no more blinks
       if (clashes(t, total)) break;
     }
@@ -173,7 +192,14 @@ function fixations(a: DirectorAnchors, bk: number, d: Float32Array): number[] {
   const rr = (r: number[]) => r[0] + (r[1] - r[0]) * u();
   const out: number[] = [];
   // The lag column is the pursuit lag (ms) for the ball and the downward angle (deg) for the ground.
-  const add = (t: number, target: number, mode: number, lag: number) => out.push(t, target, mode, target === T_GROUND ? rr(P.gaze.groundPitchDeg) : lag, u01(sb, out.length / FIX_N) < P.blink.shiftP ? 1 : 0);
+  const add = (t: number, target: number, mode: number, lag: number) =>
+    out.push(
+      t,
+      target,
+      mode,
+      target === T_GROUND ? rr(P.gaze.groundPitchDeg) : lag,
+      u01(sb, out.length / FIX_N) < P.blink.shiftP ? 1 : 0,
+    );
   const bowler = a.role === 'bowler';
   add(a.start, T_OPP, 0, 0);
   if (a.release === null) {
@@ -185,7 +211,14 @@ function fixations(a: DirectorAnchors, bk: number, d: Float32Array): number[] {
       const kind = v < F.idleGroundP ? T_GROUND : !bowler && v < F.idleGroundP + 0.15 ? T_HAND : T_OPP;
       // P3: now and then a look to the side of him (the field, the crowd), on its own draws so the rest of the scene is as it was
       const side = !a.reducedMotion && P.fidget.sideGlanceP > u01(ss, 3 * out.length) && kind === T_OPP;
-      if (side) add(t, T_SIDE, 0, (u01(ss, 3 * out.length + 1) < 0.5 ? -1 : 1) * range(ss, 3 * out.length + 2, P.fidget.sideYawDeg[0], P.fidget.sideYawDeg[1]));
+      if (side)
+        add(
+          t,
+          T_SIDE,
+          0,
+          (u01(ss, 3 * out.length + 1) < 0.5 ? -1 : 1) *
+            range(ss, 3 * out.length + 2, P.fidget.sideYawDeg[0], P.fidget.sideYawDeg[1]),
+        );
       else add(t, kind, 0, 0);
     }
     // A between-balls script loops: it ends on the opponent, where it began, so the wrap is not a jump of the gaze.
@@ -195,7 +228,8 @@ function fixations(a: DirectorAnchors, bk: number, d: Float32Array): number[] {
   const lag = d[DRAW.lagMs];
   if (bowler) {
     const g = a.gather ?? a.release - 620;
-    for (let t = a.start + rr(F.bowlerDwellMs); t < g - 900; t += rr(F.bowlerDwellMs)) add(t, u() < F.bowlerGroundP ? T_GROUND : T_OPP, 0, 0);
+    for (let t = a.start + rr(F.bowlerDwellMs); t < g - 900; t += rr(F.bowlerDwellMs))
+      add(t, u() < F.bowlerGroundP ? T_GROUND : T_OPP, 0, 0);
     add(g + range(sx, 0, F.gatherMs[0], F.gatherMs[1]), T_OPP, 0, 0);
     add(a.release + range(sx, 1, F.afterBallMs[0], F.afterBallMs[1]), T_BALL, 1, lag);
     add(a.release + range(sx, 2, F.afterOpponentMs[0], F.afterOpponentMs[1]), T_OPP, 0, 0);
@@ -232,7 +266,8 @@ function micro(a: DirectorAnchors, bk: number): number[] {
     t += (-Math.log(1 - u01(s, 5 * k)) / G.microHz) * 1000;
     if (t >= a.end) break;
     const amp = lognorm(G.microMeanDeg, G.microCv, gauss(sa, k));
-    const ang = u01(s, 5 * k + 2) < G.microHorizP ? (u01(s, 5 * k + 3) < 0.5 ? 0 : Math.PI) : u01(s, 5 * k + 4) * Math.PI * 2;
+    const ang =
+      u01(s, 5 * k + 2) < G.microHorizP ? (u01(s, 5 * k + 3) < 0.5 ? 0 : Math.PI) : u01(s, 5 * k + 4) * Math.PI * 2;
     out.push(t, amp * Math.cos(ang), amp * Math.sin(ang) * 0.6);
   }
   return out;
@@ -260,7 +295,14 @@ function fidgets(a: DirectorAnchors, bk: number, amp: Float32Array): number[] {
   const D = F.durMs;
   for (let k = 0; k < 400; k++) {
     const pick = u01(sk, k);
-    const kind = pick < F.kindCum[0] ? FIDGET.weight : pick < F.kindCum[1] ? FIDGET.stance : pick < F.kindCum[2] ? FIDGET.shoulder : FIDGET.breath;
+    const kind =
+      pick < F.kindCum[0]
+        ? FIDGET.weight
+        : pick < F.kindCum[1]
+          ? FIDGET.stance
+          : pick < F.kindCum[2]
+            ? FIDGET.shoulder
+            : FIDGET.breath;
     const r = (i: number, lo2: number, hi2: number) => range(sa, 8 * k + i, lo2, hi2);
     const sgn = (i: number) => (u01(sa, 8 * k + i) < 0.5 ? -1 : 1);
     let dur: number;
@@ -313,7 +355,20 @@ function reaction(a: DirectorAnchors, bk: number, d: Float32Array): number[] {
   const s = row[1] * (bowler ? R.bowlerStrengthX : 1);
   const shake = v < -R.shakeFrom ? (u01(sr, 4) < 0.5 ? -1 : 1) * R.shakeDeg * -v * s : 0;
   const slow = a.reducedMotion ? P.expr.slowRm : 1;
-  return [a.outcomeAt + d[DRAW.reactionMs], v, s, slow * range(sr, 0, R.riseMs[0], R.riseMs[1]), slow * range(sr, 1, R.holdMs[0], R.holdMs[1]), slow * range(sr, 2, R.decayMs[0], R.decayMs[1]), shake, range(sr, 3, R.shakeHz[0], R.shakeHz[1]), (v > 0 ? R.headUpDeg * v : -R.headDownDeg * v) * s, R.exhale * s, row[3] * s, row[4] * s];
+  return [
+    a.outcomeAt + d[DRAW.reactionMs],
+    v,
+    s,
+    slow * range(sr, 0, R.riseMs[0], R.riseMs[1]),
+    slow * range(sr, 1, R.holdMs[0], R.holdMs[1]),
+    slow * range(sr, 2, R.decayMs[0], R.decayMs[1]),
+    shake,
+    range(sr, 3, R.shakeHz[0], R.shakeHz[1]),
+    (v > 0 ? R.headUpDeg * v : -R.headDownDeg * v) * s,
+    R.exhale * s,
+    row[3] * s,
+    row[4] * s,
+  ];
 }
 
 /** The plan of one actor in one script. */

@@ -11,7 +11,16 @@ import {
 import { flight, flightMovement, sampleAt, stockTurnOf } from '@/physics/delivery';
 import { LEGSPIN, OFFSPIN, PACE, fly } from './physics-helpers';
 
-const PACE_VARIATIONS: PaceVariation[] = ['stock', 'outswing', 'inswing', 'seam', 'cutter', 'slower', 'bouncer', 'yorker'];
+const PACE_VARIATIONS: PaceVariation[] = [
+  'stock',
+  'outswing',
+  'inswing',
+  'seam',
+  'cutter',
+  'slower',
+  'bouncer',
+  'yorker',
+];
 const SPIN_VARIATIONS: SpinVariation[] = ['stock', 'flighted', 'quicker', 'topspinner', 'arm_ball', 'wrong_un'];
 const lengthFor = (v: string) => (v === 'bouncer' ? 10.5 : v === 'yorker' ? 0.9 : 5.5);
 
@@ -20,13 +29,25 @@ describe('delivery flight', () => {
     const a = fly({ variation: 'outswing', lengthM: 5, lineM: 0.1 }, PACE, 'green', 'det');
     const b = fly({ variation: 'outswing', lengthM: 5, lineM: 0.1 }, PACE, 'green', 'det');
     expect(a).toEqual(b);
-    expect(fly({ variation: 'stock' }, OFFSPIN, 'turning', 'x', 'left')).toEqual(fly({ variation: 'stock' }, OFFSPIN, 'turning', 'x', 'left'));
+    expect(fly({ variation: 'stock' }, OFFSPIN, 'turning', 'x', 'left')).toEqual(
+      fly({ variation: 'stock' }, OFFSPIN, 'turning', 'x', 'left'),
+    );
   });
 
   it('pitches on the planned length and passes the stumps on the planned line (within 1 cm), every variation', () => {
     for (const cond of ['balanced', 'green', 'hard', 'turning'] as const) {
       for (const v of PACE_VARIATIONS) {
-        const f = fly({ variation: v, lengthM: lengthFor(v), lineM: 0.07, speedKph: v === 'slower' ? 106 : v === 'cutter' ? 124 : 138 }, PACE, cond, `L-${v}`);
+        const f = fly(
+          {
+            variation: v,
+            lengthM: lengthFor(v),
+            lineM: 0.07,
+            speedKph: v === 'slower' ? 106 : v === 'cutter' ? 124 : 138,
+          },
+          PACE,
+          cond,
+          `L-${v}`,
+        );
         expect(PITCH_HALF - f.bounce!.p.z).toBeCloseTo(lengthFor(v), 2);
         expect(flightMovement(f).lineAtStumpsM).toBeCloseTo(0.07, 2);
       }
@@ -86,7 +107,9 @@ describe('delivery flight', () => {
     expect(inn.airM).toBeLessThan(-0.08);
     expect(outGreen.airM).toBeGreaterThan(out.airM * 1.2);
     // A left-handed batter: an outswinger still leaves him (batter-relative variations, mirrored frame).
-    expect(flightMovement(fly({ variation: 'outswing', lengthM: 5 }, PACE, 'balanced', 'sw', 'left')).airM).toBeGreaterThan(0.08);
+    expect(
+      flightMovement(fly({ variation: 'outswing', lengthM: 5 }, PACE, 'balanced', 'sw', 'left')).airM,
+    ).toBeGreaterThan(0.08);
   });
 
   it('seams more on a green pitch than a balanced one', () => {
@@ -147,7 +170,12 @@ describe('delivery flight', () => {
   });
 
   it('runs from the hand to just past the stumps with dense 1 ms samples and exposes spin', () => {
-    const f = flight({ plan: { variation: 'stock', lengthM: 6, lineM: 0, speedKph: 140 }, bowler: PACE, conditions: 'balanced', seed: 'd' });
+    const f = flight({
+      plan: { variation: 'stock', lengthM: 6, lineM: 0, speedKph: 140 },
+      bowler: PACE,
+      conditions: 'balanced',
+      seed: 'd',
+    });
     expect(f.samples[0].t).toBe(0);
     expect(f.samples[1].t).toBeCloseTo(0.001, 12);
     expect(f.samples.at(-1)!.p.z).toBeGreaterThanOrEqual(PITCH_HALF + 0.29);

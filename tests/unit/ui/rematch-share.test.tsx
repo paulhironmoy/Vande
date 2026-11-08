@@ -52,10 +52,43 @@ function fakeServices(routes: Record<string, Handler>, shareResult: string = 'sh
     if (!h) throw new Error(`unexpected ${route}`);
     return h(args);
   });
-  const share = { share: vi.fn().mockResolvedValue(shareResult), whatsappUrl: (text: string, url: string) => `https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}` };
-  const analytics = { track: vi.fn(), setConsent: vi.fn(), consent: () => 'unset', active: () => false, flush: async () => undefined };
-  const net = { api: { call }, session: { ensure: vi.fn() }, batting: {}, outbox: {}, signOut: vi.fn(), revokeOthers: vi.fn() };
-  return { call, share, analytics, net, value: { net, analytics, platform: { share, push: { available: () => false, register: vi.fn(), onMessage: () => () => undefined }, identity: { google: { id: 'google', available: () => false, obtainCredential: async () => null }, passkey: { id: 'passkey', available: () => false, obtainCredential: async () => null } } } } };
+  const share = {
+    share: vi.fn().mockResolvedValue(shareResult),
+    whatsappUrl: (text: string, url: string) => `https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}`,
+  };
+  const analytics = {
+    track: vi.fn(),
+    setConsent: vi.fn(),
+    consent: () => 'unset',
+    active: () => false,
+    flush: async () => undefined,
+  };
+  const net = {
+    api: { call },
+    session: { ensure: vi.fn() },
+    batting: {},
+    outbox: {},
+    signOut: vi.fn(),
+    revokeOthers: vi.fn(),
+  };
+  return {
+    call,
+    share,
+    analytics,
+    net,
+    value: {
+      net,
+      analytics,
+      platform: {
+        share,
+        push: { available: () => false, register: vi.fn(), onMessage: () => () => undefined },
+        identity: {
+          google: { id: 'google', available: () => false, obtainCredential: async () => null },
+          passkey: { id: 'passkey', available: () => false, obtainCredential: async () => null },
+        },
+      },
+    },
+  };
 }
 
 function view(p: Partial<MatchView>): MatchView {
@@ -74,7 +107,11 @@ function view(p: Partial<MatchView>): MatchView {
     rematch: null,
     myCommit: null,
     opponentCommit: null,
-    deadlines: { lockBy: new Date(Date.now() - 3600_000).toISOString(), batBy: new Date(Date.now() - 60_000).toISOString(), revealAt: null },
+    deadlines: {
+      lockBy: new Date(Date.now() - 3600_000).toISOString(),
+      batBy: new Date(Date.now() - 60_000).toISOString(),
+      revealAt: null,
+    },
     myBallsFaced: 6,
     ...p,
   };
@@ -102,7 +139,8 @@ afterEach(() => {
 describe('rematch', () => {
   it("the opponent's offer is the reveal's primary action and opens their invitation", async () => {
     const f = fakeServices({
-      'GET /v1/matches/:id': () => view({ rematch: { matchId: 'm2', inviteUrl: `https://vande.example/i/${TOKEN}`, fromMe: false } }),
+      'GET /v1/matches/:id': () =>
+        view({ rematch: { matchId: 'm2', inviteUrl: `https://vande.example/i/${TOKEN}`, fromMe: false } }),
       'GET /v1/matches/:id/reveal': () => log,
     });
     services.current = f.value;
@@ -117,7 +155,8 @@ describe('rematch', () => {
 
   it('a rematch I asked for says so and opens it to send again', async () => {
     const f = fakeServices({
-      'GET /v1/matches/:id': () => view({ rematch: { matchId: 'm2', inviteUrl: `https://vande.example/i/${TOKEN}`, fromMe: true } }),
+      'GET /v1/matches/:id': () =>
+        view({ rematch: { matchId: 'm2', inviteUrl: `https://vande.example/i/${TOKEN}`, fromMe: true } }),
       'GET /v1/matches/:id/reveal': () => log,
     });
     services.current = f.value;
@@ -132,7 +171,11 @@ describe('rematch', () => {
   it('no offer yet: Rematch creates one and opens it', async () => {
     const f = fakeServices({
       'GET /v1/matches/:id/reveal': () => log,
-      'POST /v1/matches/:id/rematch': () => ({ matchId: 'm3', inviteToken: TOKEN, inviteUrl: `https://vande.example/i/${TOKEN}` }),
+      'POST /v1/matches/:id/rematch': () => ({
+        matchId: 'm3',
+        inviteToken: TOKEN,
+        inviteUrl: `https://vande.example/i/${TOKEN}`,
+      }),
     });
     services.current = f.value;
     renderUi(<RevealedView matchId="m1" me={0} net={f.net as never} services={f.value as never} />);
@@ -146,11 +189,26 @@ describe('rematch', () => {
 
   it('the hub lists the offer as something to do, and it opens the invitation', async () => {
     const { matchCard } = await import('@/screens/home/homeModel');
-    const card = matchCard(view({ rematch: { matchId: 'm2', inviteUrl: `https://vande.example/i/${TOKEN}`, fromMe: false } }), true);
-    expect(card).toMatchObject({ status: 'rematch_offer', tone: 'action', rematchUrl: `https://vande.example/i/${TOKEN}` });
+    const card = matchCard(
+      view({ rematch: { matchId: 'm2', inviteUrl: `https://vande.example/i/${TOKEN}`, fromMe: false } }),
+      true,
+    );
+    expect(card).toMatchObject({
+      status: 'rematch_offer',
+      tone: 'action',
+      rematchUrl: `https://vande.example/i/${TOKEN}`,
+    });
     // Not watched yet: the reveal comes first.
-    expect(matchCard(view({ rematch: { matchId: 'm2', inviteUrl: `https://vande.example/i/${TOKEN}`, fromMe: false } }), false).status).toBe('reveal_ready');
-    expect(matchCard(view({ rematch: { matchId: 'm2', inviteUrl: `https://vande.example/i/${TOKEN}`, fromMe: true } }), true).status).toBe('replay');
+    expect(
+      matchCard(
+        view({ rematch: { matchId: 'm2', inviteUrl: `https://vande.example/i/${TOKEN}`, fromMe: false } }),
+        false,
+      ).status,
+    ).toBe('reveal_ready');
+    expect(
+      matchCard(view({ rematch: { matchId: 'm2', inviteUrl: `https://vande.example/i/${TOKEN}`, fromMe: true } }), true)
+        .status,
+    ).toBe('replay');
   });
 });
 
@@ -177,10 +235,18 @@ describe('sharing a result', () => {
       ['failed', "Couldn't share. Try again, or copy the link instead."],
     ] as const) {
       useApp.setState({ toasts: [] });
-      const f = fakeServices({ 'GET /v1/matches/:id/reveal': () => log, 'POST /v1/matches/:id/share': () => ({ code: 'k7q2m9xa', url: 'https://vande.example/s/k7q2m9xa' }) }, result);
+      const f = fakeServices(
+        {
+          'GET /v1/matches/:id/reveal': () => log,
+          'POST /v1/matches/:id/share': () => ({ code: 'k7q2m9xa', url: 'https://vande.example/s/k7q2m9xa' }),
+        },
+        result,
+      );
       __setShareLedger(memoryShareLedger());
       services.current = f.value;
-      const { unmount } = renderUi(<RevealedView matchId="m1" me={0} net={f.net as never} services={f.value as never} />);
+      const { unmount } = renderUi(
+        <RevealedView matchId="m1" me={0} net={f.net as never} services={f.value as never} />,
+      );
       fireEvent.click(await screen.findByTestId('reveal-share'));
       await waitFor(() => expect(useApp.getState().toasts.map((x) => x.text)).toContain(text));
       unmount();
@@ -189,7 +255,13 @@ describe('sharing a result', () => {
 });
 
 describe('the shared-match landing (/s/:code)', () => {
-  const shared = (): SharedMatch => ({ code: 'k7q2m9xa', kind: 'duel', conditions: log.conditions, aliases: ['Moderated One', 'Moderated Two'], log });
+  const shared = (): SharedMatch => ({
+    code: 'k7q2m9xa',
+    kind: 'duel',
+    conditions: log.conditions,
+    aliases: ['Moderated One', 'Moderated Two'],
+    log,
+  });
 
   it('works for anyone, says nothing about the result, and shows the moderated names', async () => {
     useApp.setState({ player: null });

@@ -46,7 +46,9 @@ describe('deterministic maths', () => {
 describe('Elo ratings', () => {
   it('starts at 1200 with documented K-factors', () => {
     expect(RATING_START).toBe(1200);
-    expect([kFactor(0), kFactor(9), kFactor(10), kFactor(29), kFactor(30), kFactor(500)]).toEqual([40, 40, 24, 24, 16, 16]);
+    expect([kFactor(0), kFactor(9), kFactor(10), kFactor(29), kFactor(30), kFactor(500)]).toEqual([
+      40, 40, 24, 24, 16, 16,
+    ]);
   });
 
   it('expects 50 % between equals, about 91 % at +400, and is symmetric', () => {
@@ -115,7 +117,9 @@ describe('Top 100 match score', () => {
     // 0.25·1 + 0.15·0.5 + 0.20·0.6 + 0.10·0.4 + 0.15·0.375 + 0.15·0.583…
     expect(s.score).toBeCloseTo(100 * (0.25 + 0.075 + 0.2 * 0.6 + 0.1 * 0.4 + 0.15 * 0.375 + 0.15 * (0.35 / 0.6)), 1);
     expect(top100MatchScore(m({ result: 'lost' })).score).toBeLessThan(s.score - 30);
-    const perfect = top100MatchScore(m({ kind: 'cup', stage: 'final', performance: perf(1, 1, 1), opponentRating: 2000 }));
+    const perfect = top100MatchScore(
+      m({ kind: 'cup', stage: 'final', performance: perf(1, 1, 1), opponentRating: 2000 }),
+    );
     expect(perfect.score).toBeLessThanOrEqual(100);
     expect(perfect.score).toBeGreaterThan(95);
   });
@@ -126,7 +130,9 @@ describe('Top 100 match score', () => {
     const final = top100MatchScore(m({ kind: 'cup', stage: 'final' })).score;
     expect(duel).toBeLessThan(group);
     expect(group).toBeLessThan(final);
-    expect(top100MatchScore(m({ opponentRating: 1500 })).score).toBeGreaterThan(top100MatchScore(m({ opponentRating: 900 })).score);
+    expect(top100MatchScore(m({ opponentRating: 1500 })).score).toBeGreaterThan(
+      top100MatchScore(m({ opponentRating: 900 })).score,
+    );
   });
 
   it('makes matches ineligible for Auto sides, practice, late answers, failed timing audits and non-match kinds', () => {
@@ -152,7 +158,13 @@ describe('Top 100 match score', () => {
 
   it('never reads purchases, adverts or cosmetics', () => {
     const base = top100MatchScore(m());
-    const bought = top100MatchScore({ ...m(), purchases: 9999, adsWatched: 50, kit: 'gold', vip: true } as unknown as Top100MatchInput);
+    const bought = top100MatchScore({
+      ...m(),
+      purchases: 9999,
+      adsWatched: 50,
+      kit: 'gold',
+      vip: true,
+    } as unknown as Top100MatchInput);
     expect(bought).toEqual(base);
   });
 });
@@ -160,20 +172,35 @@ describe('Top 100 match score', () => {
 describe('Top 100 day score', () => {
   const day = '2026-10-25';
   const series = (n: number, over: (k: number) => Partial<Top100MatchInput> = () => ({})) =>
-    Array.from({ length: n }, (_, k) => m({ matchId: `m${k}`, order: k, opponentId: `opp${k}`, result: k % 2 ? 'lost' : 'won', ...over(k) }));
+    Array.from({ length: n }, (_, k) =>
+      m({ matchId: `m${k}`, order: k, opponentId: `opp${k}`, result: k % 2 ? 'lost' : 'won', ...over(k) }),
+    );
 
   it('counts the best three of the first five eligible matches', () => {
     const s = top100DayScore('me', day, series(5));
     expect(s.counted).toHaveLength(3);
     expect(s.counted.every((c) => c.components.wins === 1)).toBe(true);
     // A sixth, seventh… match can never change the score, however good.
-    const more = series(5).concat(series(4).map((x, k) => ({ ...x, matchId: `late${k}`, order: 5 + k, result: 'won' as const, performance: perf(1, 1, 1), opponentRating: 2000 })));
+    const more = series(5).concat(
+      series(4).map((x, k) => ({
+        ...x,
+        matchId: `late${k}`,
+        order: 5 + k,
+        result: 'won' as const,
+        performance: perf(1, 1, 1),
+        opponentRating: 2000,
+      })),
+    );
     expect(top100DayScore('me', day, more).score).toBe(s.score);
     expect(top100DayScore('me', day, more).all.filter((x) => x.reasons.includes('outside_window'))).toHaveLength(4);
   });
 
   it('caps matches against the same opponent at two a day', () => {
-    const s = top100DayScore('me', day, series(4, () => ({ opponentId: 'buddy', result: 'won' })));
+    const s = top100DayScore(
+      'me',
+      day,
+      series(4, () => ({ opponentId: 'buddy', result: 'won' })),
+    );
     expect(s.counted).toHaveLength(2);
     expect(s.all.filter((x) => x.reasons.includes('repeat_opponent'))).toHaveLength(2);
   });
@@ -190,11 +217,18 @@ describe('rankTop100', () => {
     playerId: id,
     alias: id.toUpperCase(),
     day: '2026-10-25',
-    matches: results.map((r, k) => m({ matchId: `${id}-${k}`, order: k, opponentId: `${id}-opp${k}`, result: r, performance: perf(tac) })),
+    matches: results.map((r, k) =>
+      m({ matchId: `${id}-${k}`, order: k, opponentId: `${id}-opp${k}`, result: r, performance: perf(tac) }),
+    ),
   });
 
   it('ranks by day score with stable, time-free tie-breaks', () => {
-    const entries = rankTop100([p('carol', ['won', 'lost', 'lost']), p('alice', ['won', 'won', 'won']), p('bob', ['won', 'won', 'won']), p('dave', ['lost', 'lost', 'lost'], 0.6)]);
+    const entries = rankTop100([
+      p('carol', ['won', 'lost', 'lost']),
+      p('alice', ['won', 'won', 'won']),
+      p('bob', ['won', 'won', 'won']),
+      p('dave', ['lost', 'lost', 'lost'], 0.6),
+    ]);
     expect(entries.map((e) => e.playerId)).toEqual(['alice', 'bob', 'carol', 'dave']);
     expect(entries.map((e) => e.rank)).toEqual([1, 2, 3, 4]);
     expect(entries[0].matchIds).toHaveLength(3);
@@ -204,7 +238,15 @@ describe('rankTop100', () => {
   });
 
   it('a long-term effort baseline unmasks a partner who throws matches quietly', () => {
-    const a = { playerId: 'A', alias: 'A', day: '2026-10-25', matches: [m({ matchId: 'x1', opponentId: 'B', opponentPerformance: perf(0.6) }), m({ matchId: 'x2', order: 1, opponentId: 'B', opponentPerformance: perf(0.6) })] };
+    const a = {
+      playerId: 'A',
+      alias: 'A',
+      day: '2026-10-25',
+      matches: [
+        m({ matchId: 'x1', opponentId: 'B', opponentPerformance: perf(0.6) }),
+        m({ matchId: 'x2', order: 1, opponentId: 'B', opponentPerformance: perf(0.6) }),
+      ],
+    };
     const without = rankTop100([a]);
     const withBaseline = rankTop100([a], 100, new Map([['B', 0.85]]));
     expect(withBaseline[0].score).toBeLessThan(without[0].score);

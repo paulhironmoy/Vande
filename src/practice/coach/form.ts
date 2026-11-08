@@ -121,23 +121,41 @@ export const FORM_RULES = {
   paceGrades: [100, 70, 30, 0],
 } as const;
 
-const EDGES: ReadonlySet<ContactKind> = new Set<ContactKind>(['inside_edge', 'outside_edge', 'top_edge', 'leading_edge']);
+const EDGES: ReadonlySet<ContactKind> = new Set<ContactKind>([
+  'inside_edge',
+  'outside_edge',
+  'top_edge',
+  'leading_edge',
+]);
 const r1 = (v: number) => Math.round(v * 10) / 10 || 0;
 
 /**
  * The evidence one ball leaves, from its record and analysis. Like analyzeBall, it re-simulates the record's swing
  * (about 1 ms) rather than trusting a passed result, so the sample always agrees with the record and the analysis.
  */
-export function formSample(input: { record: DeliveryRecord; result?: DeliveryResult | null; analysis: CoachAnalysis }, context: FormContext): FormSample {
+export function formSample(
+  input: { record: DeliveryRecord; result?: DeliveryResult | null; analysis: CoachAnalysis },
+  context: FormContext,
+): FormSample {
   const { record, analysis } = input;
   const flight = practiceFlight(record);
-  const result = resolveDelivery({ flight, swing: record.swing, field: record.field, bowler: record.bowler, conditions: record.conditions, handedness: record.handedness, assist: record.assist, tierToleranceMs: record.tierToleranceMs });
+  const result = resolveDelivery({
+    flight,
+    swing: record.swing,
+    field: record.field,
+    bowler: record.bowler,
+    conditions: record.conditions,
+    handedness: record.handedness,
+    assist: record.assist,
+    tierToleranceMs: record.tierToleranceMs,
+  });
   const facts = ballFacts(flight, record.bowler.family);
   const swing = record.swing;
   const a = analysis.attempted;
   const attack = swing !== null && swing.kind === 'attack';
   const c = result.contact;
-  const offBat = attack && (c.kind === 'middle' || EDGES.has(c.kind)) && c.exitBearingDeg !== null && c.intendedBearingDeg !== null;
+  const offBat =
+    attack && (c.kind === 'middle' || EDGES.has(c.kind)) && c.exitBearingDeg !== null && c.intendedBearingDeg !== null;
   const b = activeBands(record.assist, record.tierToleranceMs);
   return {
     v: FORM_SAMPLE_VERSION,
@@ -196,11 +214,14 @@ export function evidenceOf(s: FormSample): Array<[FormSkill, number]> {
   if (s.short) put('short_ball', verdict(s.read.bounce));
   if (s.manualFootwork) put('footwork', verdict(s.read.length));
   if (s.timingErrorMs !== null) put('timing', 100 * Math.max(0, 1 - Math.abs(s.timingErrorMs) / s.bands[2]));
-  if (attack && s.contact === 'middle' && s.faceErrorDeg !== null) put('bat_face', lin(s.faceErrorDeg, FORM_RULES.face.zeroDeg, FORM_RULES.face.fullDeg));
+  if (attack && s.contact === 'middle' && s.faceErrorDeg !== null)
+    put('bat_face', lin(s.faceErrorDeg, FORM_RULES.face.zeroDeg, FORM_RULES.face.fullDeg));
   if (attack && EDGES.has(s.contact)) put('bat_face', 0);
-  if (attack && s.contact === 'middle' && s.aimDeg !== null && s.aimDeg >= FORM_RULES.offSideFromDeg) put('off_side_placement', !s.out && s.runs > 0 ? 100 : 0);
+  if (attack && s.contact === 'middle' && s.aimDeg !== null && s.aimDeg >= FORM_RULES.offSideFromDeg)
+    put('off_side_placement', !s.out && s.runs > 0 ? 100 : 0);
   if (attack && s.withLine !== null) put('direction', s.withLine ? 100 : 0);
-  if (attack && s.aimClearanceDeg !== null) put('field', lin(s.aimClearanceDeg, FORM_RULES.aim.zeroDeg, FORM_RULES.aim.fullDeg));
+  if (attack && s.aimClearanceDeg !== null)
+    put('field', lin(s.aimClearanceDeg, FORM_RULES.aim.zeroDeg, FORM_RULES.aim.fullDeg));
   return out;
 }
 
@@ -231,8 +252,32 @@ export function formFromAttempts(samples: readonly unknown[]): FormReport {
 const VERDICTS = new Set(['right', 'wrong', 'unclear']);
 const DECISIONS = new Set(['leave', 'defend', 'attack']);
 const MOVERS = new Set(['swing', 'seam', 'cut', 'turn', 'drift']);
-const CONTACTS = new Set(['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge', 'pad', 'body', 'miss', 'leave']);
-const VARIATIONS = new Set(['stock', 'outswing', 'inswing', 'seam', 'cutter', 'slower', 'bouncer', 'yorker', 'flighted', 'quicker', 'topspinner', 'arm_ball', 'wrong_un']);
+const CONTACTS = new Set([
+  'middle',
+  'inside_edge',
+  'outside_edge',
+  'top_edge',
+  'leading_edge',
+  'pad',
+  'body',
+  'miss',
+  'leave',
+]);
+const VARIATIONS = new Set([
+  'stock',
+  'outswing',
+  'inswing',
+  'seam',
+  'cutter',
+  'slower',
+  'bouncer',
+  'yorker',
+  'flighted',
+  'quicker',
+  'topspinner',
+  'arm_ball',
+  'wrong_un',
+]);
 const numOrNull = (x: unknown) => x === null || (typeof x === 'number' && Number.isFinite(x));
 
 /** Structural check for a FormSample read back from storage (old versions and corrupt data are rejected). */

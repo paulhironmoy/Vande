@@ -10,7 +10,14 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { GestureInput } from '@/contracts/practice';
-import { GestureTracker, TAP_HOLD_MS, normalizeGesture, traceGesture, type OneGestureState, type TrackerScheduler } from '@/input';
+import {
+  GestureTracker,
+  TAP_HOLD_MS,
+  normalizeGesture,
+  traceGesture,
+  type OneGestureState,
+  type TrackerScheduler,
+} from '@/input';
 import { LATE_SAMPLE_WAIT_MS } from '@/input/constants';
 import { DELIVERIES, OPTS, RELEASE, SURFACES, play, rng, strokeSamples, tapSamples } from './fixtures';
 
@@ -103,7 +110,10 @@ describe('the touch-down cue', () => {
         const press = RELEASE + 400;
         const { trace, swing } = play(tapSamples(press, durationMs, { driftPx: 2 }), { delivery });
         const label = `${durationMs} ms, ${delivery.name}`;
-        expect(trace.starts.map((s) => s.atPerfMs), label).toEqual([press]);
+        expect(
+          trace.starts.map((s) => s.atPerfMs),
+          label,
+        ).toEqual([press]);
         expect(trace.intents, label).toHaveLength(1);
         expect(trace.intents[0], label).toMatchObject({ kind: 'defend', atPerfMs: press, pressAtPerfMs: press });
         expect(swing, label).toMatchObject({ kind: 'defend', startT: 0.4 });
@@ -115,7 +125,9 @@ describe('the touch-down cue', () => {
 
   it('with calibration, the tap’s start is exactly the touch-down minus that modality’s offset', () => {
     const press = RELEASE + 500;
-    const { swing } = play(tapSamples(press, 70), { opts: { calibrations: { touch: 63, mouse: 0, pen: 63, keyboard: 0 } } });
+    const { swing } = play(tapSamples(press, 70), {
+      opts: { calibrations: { touch: 63, mouse: 0, pen: 63, keyboard: 0 } },
+    });
     expect(swing!.startT).toBeCloseTo((press - 63 - RELEASE) / 1000, 4);
   });
 });
@@ -129,7 +141,13 @@ describe('the tap window closing: `waiting`', () => {
     expect(phases(states)).toEqual(['ready']);
     clock.advance(1000 + TAP_HOLD_MS + LATE_SAMPLE_WAIT_MS);
     expect(phases(states)).toEqual(['ready', 'waiting']);
-    expect(states[1]).toMatchObject({ atPerfMs: 1000 + TAP_HOLD_MS, pressAtPerfMs: 1000, timingAtPerfMs: null, committed: false, pathPower: 0 });
+    expect(states[1]).toMatchObject({
+      atPerfMs: 1000 + TAP_HOLD_MS,
+      pressAtPerfMs: 1000,
+      timingAtPerfMs: null,
+      committed: false,
+      pathPower: 0,
+    });
     tr.pointerUp(1, { t: 1400, x: 300, y: 100 });
     expect(phases(states)).toEqual(['ready', 'waiting', 'intentional_leave']);
     expect(gestures).toHaveLength(0);
@@ -147,7 +165,9 @@ describe('the tap window closing: `waiting`', () => {
         expect(waiting, label).toHaveLength(1);
         expect(waiting[0].atPerfMs, label).toBe(press + TAP_HOLD_MS);
         expect(waiting[0].reportedAtMs, label).toBeGreaterThan(press + TAP_HOLD_MS);
-        expect(waiting[0].reportedAtMs, label).toBeLessThanOrEqual(press + TAP_HOLD_MS + LATE_SAMPLE_WAIT_MS + (delivery.latencyMs ?? 0) + (delivery.frameMs ?? 0));
+        expect(waiting[0].reportedAtMs, label).toBeLessThanOrEqual(
+          press + TAP_HOLD_MS + LATE_SAMPLE_WAIT_MS + (delivery.latencyMs ?? 0) + (delivery.frameMs ?? 0),
+        );
         expect(phases(trace.states).at(-1), label).toBe('intentional_leave');
       }
   });
@@ -245,9 +265,29 @@ describe('no swing starts before its touch-down cue minus calibration', () => {
         pick === 0
           ? tapSamples(press, r.range(10, 400), { driftPx: r.range(0, 4), jitterPx: 0.4 }, r)
           : pick === 1
-            ? strokeSamples({ lengthPx: r.range(40, 220), bearingDeg: r.range(-170, 170), durationMs: r.range(40, 160), restMs: r.range(0, 300), jitterPx: 0.4 }, press, r)
+            ? strokeSamples(
+                {
+                  lengthPx: r.range(40, 220),
+                  bearingDeg: r.range(-170, 170),
+                  durationMs: r.range(40, 160),
+                  restMs: r.range(0, 300),
+                  jitterPx: 0.4,
+                },
+                press,
+                r,
+              )
             : pick === 2
-              ? strokeSamples({ lengthPx: r.range(30, 120), bearingDeg: 180 + r.range(-25, 25), durationMs: r.range(40, 120), holdMs: r.range(0, 200), jitterPx: 0.3 }, press, r)
+              ? strokeSamples(
+                  {
+                    lengthPx: r.range(30, 120),
+                    bearingDeg: 180 + r.range(-25, 25),
+                    durationMs: r.range(40, 120),
+                    holdMs: r.range(0, 200),
+                    jitterPx: 0.3,
+                  },
+                  press,
+                  r,
+                )
               : pullbackThenReverse(press, r.range(0, 300), r.range(-40, 40));
       for (const delivery of DELIVERIES) {
         const { trace, swing } = play(samples, { delivery, opts: { calibrationMs: cal } });
@@ -257,7 +297,8 @@ describe('no swing starts before its touch-down cue minus calibration', () => {
         const cue = trace.starts[0].atPerfMs;
         expect(swing.startT * 1000 + RELEASE, `${i} ${delivery.name}`).toBeGreaterThanOrEqual(cue - cal - 0.05);
         // The committed intent never names a time before the touch-down either.
-        for (const intent of trace.intents) expect(intent.atPerfMs, `${i} ${delivery.name}`).toBeGreaterThanOrEqual(cue);
+        for (const intent of trace.intents)
+          expect(intent.atPerfMs, `${i} ${delivery.name}`).toBeGreaterThanOrEqual(cue);
       }
     }
     expect(swings).toBeGreaterThan(400);

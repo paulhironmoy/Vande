@@ -52,7 +52,11 @@ interface MasteryProgressLike {
 export interface CoachKit {
   analyzeBall(record: DeliveryRecord, result: DeliveryResult): CoachAnalysis;
   /** The same analysis, yielding between batches so the main thread stays free (abortable; `yieldTo` decides how it yields). */
-  analyzeBallInSlices(record: DeliveryRecord, result: DeliveryResult, opts?: { sliceMs?: number; signal?: AbortSignal; yieldTo?: () => Promise<void> }): Promise<CoachAnalysis>;
+  analyzeBallInSlices(
+    record: DeliveryRecord,
+    result: DeliveryResult,
+    opts?: { sliceMs?: number; signal?: AbortSignal; yieldTo?: () => Promise<void> },
+  ): Promise<CoachAnalysis>;
   /** options[0] is always the recommended response; a merged kind resolves to the option it duplicates. */
   optionOf(analysis: CoachAnalysis, kind: CoachOptionKind): CoachOption;
   primaryInsight(analysis: CoachAnalysis): PrimaryInsight;
@@ -66,17 +70,33 @@ export interface CoachKit {
    * slow fend, the toe or off the sweet zone (measured, never the contact label): then no "well played", no "the same
    * again", no confirming tick or green.
    */
-  praiseEarned(analysis: CoachAnalysis, recommendation: Pick<CoachRecommendation, 'kind'>, tip?: Pick<CoachTipLike, 'fact'> | null): boolean;
+  praiseEarned(
+    analysis: CoachAnalysis,
+    recommendation: Pick<CoachRecommendation, 'kind'>,
+    tip?: Pick<CoachTipLike, 'fact'> | null,
+  ): boolean;
   /** `clean`: each attempt's measured clean contact (its tip's cleanContact), so "Clean contact this time" and 'better' follow the measurement. */
-  compareAttempts(previous: CoachAnalysis, next: CoachAnalysis, clean?: { previous?: boolean | null; next?: boolean | null }): AttemptComparison;
+  compareAttempts(
+    previous: CoachAnalysis,
+    next: CoachAnalysis,
+    clean?: { previous?: boolean | null; next?: boolean | null },
+  ): AttemptComparison;
   masteryKey(record: DeliveryRecord): string;
   startMastery(key: string): MasteryState;
   /** `tip`: the attempt's tip, whose measured clean contact decides a stroke's success (a slow fend never counts). */
-  recordAttempt(state: MasteryState, analysis: CoachAnalysis, stage: AssistanceStage, tip?: { cleanContact?: boolean | null } | null): MasteryState;
+  recordAttempt(
+    state: MasteryState,
+    analysis: CoachAnalysis,
+    stage: AssistanceStage,
+    tip?: { cleanContact?: boolean | null } | null,
+  ): MasteryState;
   masteryProgress(state: MasteryState): MasteryProgressLike;
   masteryEvent(prev: MasteryState, next: MasteryState): 'stage_up' | 'mastered' | null;
   /** Compact evidence of one ball (the record and result carry the bowler, the field and the bat face). */
-  formSample(input: { record: DeliveryRecord; result: DeliveryResult; analysis: CoachAnalysis }, context: { source: 'innings' } | { source: 'mastery'; stage: AssistanceStage }): FormSampleLike;
+  formSample(
+    input: { record: DeliveryRecord; result: DeliveryResult; analysis: CoachAnalysis },
+    context: { source: 'innings' } | { source: 'mastery'; stage: AssistanceStage },
+  ): FormSampleLike;
   /** Skips anything that is not a sample of this version, so stored samples can be passed straight in. */
   formFromAttempts(samples: readonly unknown[]): FormReport;
 }

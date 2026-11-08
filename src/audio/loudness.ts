@@ -235,12 +235,17 @@ export interface NormaliseResult {
  * reaches its depth exactly at the peak without clicks, then recovers over ~80 ms. Limiting costs a little
  * loudness, so the gain is re-aimed until the result lands within 0.3 LU of the target (at most a few passes).
  */
-export function normalise(channels: readonly Float32Array[], fs: number, opts: { target?: number; ceiling?: number } = {}): NormaliseResult {
+export function normalise(
+  channels: readonly Float32Array[],
+  fs: number,
+  opts: { target?: number; ceiling?: number } = {},
+): NormaliseResult {
   const target = opts.target ?? TARGET_LUFS;
   const ceiling = opts.ceiling ?? CEILING_DBTP;
   const before = measure(channels, fs);
   const n = channels[0]?.length ?? 0;
-  if (!Number.isFinite(before.integrated) || n === 0) return { channels: channels.map((c) => c.slice()), gainDb: 0, limitedDb: 0, before, after: before };
+  if (!Number.isFinite(before.integrated) || n === 0)
+    return { channels: channels.map((c) => c.slice()), gainDb: 0, limitedDb: 0, before, after: before };
   const env = truePeakEnvelope(channels);
   // A little headroom under the ceiling for the gain moving between samples.
   const ceil = 10 ** ((ceiling - 0.1) / 20);

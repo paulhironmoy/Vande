@@ -49,5 +49,7 @@ export function releaseCue(action: BowlerAction, variation: DeliveryVariation | 
 
 /** How strongly the cue shows at scene time t (rises before release, gone soon after). */
 export function releaseCueWeight(t: number, releaseScene: number): number {
-  return smoothstep(releaseScene - 260, releaseScene - 60, t) * (1 - smoothstep(releaseScene + 60, releaseScene + 220, t));
+  return (
+    smoothstep(releaseScene - 260, releaseScene - 60, t) * (1 - smoothstep(releaseScene + 60, releaseScene + 220, t))
+  );
 }

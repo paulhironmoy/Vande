@@ -11,7 +11,8 @@ import { isApiClientError } from '@/net/errors';
 
 export type RecoveryMethod = IdentityProvider['id'];
 export type RecoveryFailure = 'cancelled' | 'failed' | 'offline' | 'no_account';
-export type RecoveryResult = { ok: true; player: LocalPlayer; profile: Profile } | { ok: false; reason: RecoveryFailure };
+export type RecoveryResult =
+  { ok: true; player: LocalPlayer; profile: Profile } | { ok: false; reason: RecoveryFailure };
 
 /** The sign-in methods this build can recover with (none when neither Google nor passkeys are configured). */
 export function recoveryMethods(platform: Pick<Platform, 'identity'> | null | undefined): RecoveryMethod[] {
@@ -37,7 +38,10 @@ function failureOf(e: unknown): RecoveryFailure {
  * profile cannot be loaded, the adopted session is dropped again, so a new player made on this screen can never be
  * saved onto the recovered account.
  */
-export async function recoverAccount(net: Pick<Net, 'api' | 'session' | 'signOut'>, provider: IdentityProvider): Promise<RecoveryResult> {
+export async function recoverAccount(
+  net: Pick<Net, 'api' | 'session' | 'signOut'>,
+  provider: IdentityProvider,
+): Promise<RecoveryResult> {
   let credential: string | null;
   try {
     credential = await provider.obtainCredential();
@@ -47,14 +51,21 @@ export async function recoverAccount(net: Pick<Net, 'api' | 'session' | 'signOut
   if (!credential) return { ok: false, reason: 'cancelled' };
   let tokens: SessionTokens;
   try {
-    tokens = provider.id === 'google' ? await net.api.call('POST /v1/auth/google', { body: { idToken: credential } }) : await net.api.call('POST /v1/auth/passkey', { body: { credential } });
+    tokens =
+      provider.id === 'google'
+        ? await net.api.call('POST /v1/auth/google', { body: { idToken: credential } })
+        : await net.api.call('POST /v1/auth/passkey', { body: { credential } });
   } catch (e) {
     return { ok: false, reason: failureOf(e) };
   }
   await net.session.adopt(tokens);
   try {
     const profile = await net.api.call('GET /v1/me');
-    return { ok: true, profile, player: { id: profile.playerId, alias: profile.alias, avatar: profile.avatar, kit: profile.kit } };
+    return {
+      ok: true,
+      profile,
+      player: { id: profile.playerId, alias: profile.alias, avatar: profile.avatar, kit: profile.kit },
+    };
   } catch (e) {
     // Ends the new session on the server when it can; offline, the device forgets it anyway.
     await net.signOut().catch(() => net.session.clear('signed_out'));

@@ -18,7 +18,10 @@ function reference(pose: SampledPose): { p: Float64Array; q: Float64Array } {
   const Q = new Float64Array(NB * 4);
   const q = pose.q;
   const rotate = (qo: number, x: number, y: number, z: number, o: number) => {
-    const qx = Q[qo], qy = Q[qo + 1], qz = Q[qo + 2], qw = Q[qo + 3];
+    const qx = Q[qo],
+      qy = Q[qo + 1],
+      qz = Q[qo + 2],
+      qw = Q[qo + 3];
     const tx = 2 * (qy * z - qz * y);
     const ty = 2 * (qz * x - qx * z);
     const tz = 2 * (qx * y - qy * x);
@@ -27,8 +30,14 @@ function reference(pose: SampledPose): { p: Float64Array; q: Float64Array } {
     P[o + 2] = z + qw * tz + (qx * ty - qy * tx);
   };
   const qmul = (ao: number, bo: number, o: number) => {
-    const ax = Q[ao], ay = Q[ao + 1], az = Q[ao + 2], aw = Q[ao + 3];
-    const bx = q[bo], by = q[bo + 1], bz = q[bo + 2], bw = q[bo + 3];
+    const ax = Q[ao],
+      ay = Q[ao + 1],
+      az = Q[ao + 2],
+      aw = Q[ao + 3];
+    const bx = q[bo],
+      by = q[bo + 1],
+      bz = q[bo + 2],
+      bw = q[bo + 3];
     Q[o] = aw * bx + ax * bw + ay * bz - az * by;
     Q[o + 1] = aw * by - ax * bz + ay * bw + az * bx;
     Q[o + 2] = aw * bz + ax * by - ay * bx + az * bw;
@@ -41,7 +50,10 @@ function reference(pose: SampledPose): { p: Float64Array; q: Float64Array } {
       P[0] = pose.root[0] + o[0];
       P[1] = o[1] + pose.root[1];
       P[2] = pose.root[2] + o[2];
-      Q[0] = q[0]; Q[1] = q[1]; Q[2] = q[2]; Q[3] = q[3];
+      Q[0] = q[0];
+      Q[1] = q[1];
+      Q[2] = q[2];
+      Q[3] = q[3];
       continue;
     }
     rotate(par * 4, o[0], o[1], o[2], i * 3);
@@ -66,9 +78,15 @@ function rng(seed: number): () => number {
 }
 
 function randomQuat(r: () => number, out: Float32Array, o: number): void {
-  const x = r() * 2 - 1, y = r() * 2 - 1, z = r() * 2 - 1, w = r() * 2 - 1;
+  const x = r() * 2 - 1,
+    y = r() * 2 - 1,
+    z = r() * 2 - 1,
+    w = r() * 2 - 1;
   const n = Math.hypot(x, y, z, w) || 1;
-  out[o] = x / n; out[o + 1] = y / n; out[o + 2] = z / n; out[o + 3] = w / n;
+  out[o] = x / n;
+  out[o + 1] = y / n;
+  out[o + 2] = z / n;
+  out[o + 3] = w / n;
 }
 
 function same(a: ArrayLike<number>, b: ArrayLike<number>): boolean {

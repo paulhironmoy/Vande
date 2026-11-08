@@ -4,7 +4,10 @@ import { measureEventToFrame, runDeviceBenchmark, type BenchmarkRun, type Benchm
 import { steady } from './fixtures';
 
 /** A stage whose benchmark scene runs at a given frame rate per profile. */
-function fakeStage(fpsByProfile: Record<QualityProfileId, number>, over: Partial<BenchmarkRun> = {}): BenchmarkTarget & { profiles: QualityProfileId[]; current: QualityProfileId } {
+function fakeStage(
+  fpsByProfile: Record<QualityProfileId, number>,
+  over: Partial<BenchmarkRun> = {},
+): BenchmarkTarget & { profiles: QualityProfileId[]; current: QualityProfileId } {
   const s = {
     profiles: [] as QualityProfileId[],
     current: 'standard' as QualityProfileId,
@@ -13,7 +16,15 @@ function fakeStage(fpsByProfile: Record<QualityProfileId, number>, over: Partial
     },
     async benchmark(ms: number): Promise<BenchmarkRun> {
       s.profiles.push(s.current);
-      return { frameMs: steady(fpsByProfile[s.current], ms / 1000), shaderCompileMs: 300, contextLosses: 0, renderer: 'Mali-G57 MC2', webgl2: true, hardware: true, ...over };
+      return {
+        frameMs: steady(fpsByProfile[s.current], ms / 1000),
+        shaderCompileMs: 300,
+        contextLosses: 0,
+        renderer: 'Mali-G57 MC2',
+        webgl2: true,
+        hardware: true,
+        ...over,
+      };
     },
   };
   return s;
@@ -93,7 +104,9 @@ describe('runDeviceBenchmark', () => {
         throw new Error('context failed');
       },
     };
-    const a = await runDeviceBenchmark(stage, { probe: () => ({ webgl2: true, renderer: 'Adreno (TM) 610', hardware: true }) });
+    const a = await runDeviceBenchmark(stage, {
+      probe: () => ({ webgl2: true, renderer: 'Adreno (TM) 610', hardware: true }),
+    });
     expect(a.tier).toBe('below');
     expect(a.reasons).toContain('no_frames');
   });
@@ -107,7 +120,9 @@ describe('runDeviceBenchmark', () => {
       },
     };
 
-    await expect(runDeviceBenchmark(stage, { ...fast, allowProbeFallback: false, probe })).rejects.toThrow('native benchmark failed');
+    await expect(runDeviceBenchmark(stage, { ...fast, allowProbeFallback: false, probe })).rejects.toThrow(
+      'native benchmark failed',
+    );
     expect(probe).not.toHaveBeenCalled();
   });
 });

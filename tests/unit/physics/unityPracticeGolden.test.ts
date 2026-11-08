@@ -42,7 +42,11 @@ interface GoldenCase {
     batterMotion: null | { startT: number; contactT: number; endT: number };
     batProbes: Array<{
       t: number;
-      bat: null | { grip: { x: number; y: number; z: number }; toe: { x: number; y: number; z: number }; face: { x: number; y: number; z: number } };
+      bat: null | {
+        grip: { x: number; y: number; z: number };
+        toe: { x: number; y: number; z: number };
+        face: { x: number; y: number; z: number };
+      };
     }>;
   };
   wire: {
@@ -185,15 +189,19 @@ describe('Practice Unity TypeScript-v3 golden fixture', () => {
         unpackGoldenPacket(item.wire.packets.result, item.id),
         unpackGoldenPacket(item.wire.packets.replay, item.id),
       ]);
-      expect(messages.map((message) => message.type), item.id).toEqual([
-        'host.scene',
-        'host.delivery',
-        'host.result',
-        'host.replay',
-      ]);
+      expect(
+        messages.map((message) => message.type),
+        item.id,
+      ).toEqual(['host.scene', 'host.delivery', 'host.result', 'host.replay']);
       const [scene, delivery, result, replay] = messages;
-      expect(messages.every((message) => message.contractVersion === UNITY_PRACTICE_CONTRACT_VERSION), item.id).toBe(true);
-      expect(messages.every((message) => message.simVersion === PRACTICE_SIM_VERSION), item.id).toBe(true);
+      expect(
+        messages.every((message) => message.contractVersion === UNITY_PRACTICE_CONTRACT_VERSION),
+        item.id,
+      ).toBe(true);
+      expect(
+        messages.every((message) => message.simVersion === PRACTICE_SIM_VERSION),
+        item.id,
+      ).toBe(true);
       expect(scene.sequence, item.id).toBe(0);
       expect(delivery.sequence, item.id).toBe(1);
       expect(result.sequence, item.id).toBe(2);
@@ -211,8 +219,11 @@ describe('Practice Unity TypeScript-v3 golden fixture', () => {
       expect(result.payload.result.batterMotion, item.id).toEqual(item.tracePlayback.batterMotion);
       expect(result.payload.replayDigest, item.id).toBe(item.wire.replayDigest);
       expect(replay.payload.resolution, item.id).toEqual(result.payload);
-      const contact = result.payload.result.events.find((event) => event.kind === 'contact' &&
-        ['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge'].includes(event.contact ?? ''));
+      const contact = result.payload.result.events.find(
+        (event) =>
+          event.kind === 'contact' &&
+          ['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge'].includes(event.contact ?? ''),
+      );
       for (const probe of item.tracePlayback.batProbes) {
         expect(probe.t, `${item.id} probe lower domain`).toBeGreaterThanOrEqual(0);
         expect(probe.t, `${item.id} probe upper domain`).toBeLessThanOrEqual(item.result.deadT);

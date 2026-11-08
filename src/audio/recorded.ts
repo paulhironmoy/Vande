@@ -50,7 +50,11 @@ let loading: Promise<void> | null = null;
 let requested: Promise<Map<RecordedTake, Promise<ArrayBuffer | null>>> | null = null;
 let generation = 0;
 let decodedBytes = 0;
-const timing: { requestedMs: number | null; fetchedMs: number | null; readyMs: number | null } = { requestedMs: null, fetchedMs: null, readyMs: null };
+const timing: { requestedMs: number | null; fetchedMs: number | null; readyMs: number | null } = {
+  requestedMs: null,
+  fetchedMs: null,
+  readyMs: null,
+};
 const nowMs = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 
 function baseUrl(): string {
@@ -118,7 +122,13 @@ async function downsample(buf: AudioBuffer, rate: number): Promise<AudioBuffer> 
   }
 }
 
-async function loadTake(g: LiveGraph, kind: RecordedKind, take: RecordedTake, io: RecordedIO, bytes: Promise<ArrayBuffer | null> | undefined): Promise<Slot> {
+async function loadTake(
+  g: LiveGraph,
+  kind: RecordedKind,
+  take: RecordedTake,
+  io: RecordedIO,
+  bytes: Promise<ArrayBuffer | null> | undefined,
+): Promise<Slot> {
   try {
     const data = await bytes;
     if (!data || data.byteLength !== take.bytes) return 'failed';
@@ -140,7 +150,9 @@ async function loadTake(g: LiveGraph, kind: RecordedKind, take: RecordedTake, io
  * for its files in its setup, before the first ball, and never while it plays. A delivery in progress is waited out
  * first. Idempotent: a later call returns the same requests.
  */
-export function prefetchRecorded(io: RecordedIO = defaultRecordedIO()): Promise<Map<RecordedTake, Promise<ArrayBuffer | null>>> {
+export function prefetchRecorded(
+  io: RecordedIO = defaultRecordedIO(),
+): Promise<Map<RecordedTake, Promise<ArrayBuffer | null>>> {
   if (requested) return requested;
   const gen = generation;
   requested = (async () => {
@@ -264,8 +276,15 @@ export function recordedTiming(): Readonly<typeof timing> {
 }
 
 // Test builds only (VITE_PRACTICE_TEST_HOOKS=1): examiners read the loading cost through window.__vandeRecorded().
-if ((import.meta as unknown as { env?: { VITE_PRACTICE_TEST_HOOKS?: string } }).env?.VITE_PRACTICE_TEST_HOOKS === '1' && typeof window !== 'undefined') {
-  (window as unknown as { __vandeRecorded?: () => unknown }).__vandeRecorded = () => ({ status: recordedStatus(), memory: recordedMemory(), timing: recordedTiming() });
+if (
+  (import.meta as unknown as { env?: { VITE_PRACTICE_TEST_HOOKS?: string } }).env?.VITE_PRACTICE_TEST_HOOKS === '1' &&
+  typeof window !== 'undefined'
+) {
+  (window as unknown as { __vandeRecorded?: () => unknown }).__vandeRecorded = () => ({
+    status: recordedStatus(),
+    memory: recordedMemory(),
+    timing: recordedTiming(),
+  });
 }
 
 /** TEST HOOK: forget every loaded take; optionally replace the manifest (null restores the shipped one). */

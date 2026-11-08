@@ -149,7 +149,14 @@ interface InningsSummaryLike {
   timing: Record<SwingTiming, number>;
   scoringAreas: readonly ScoringAreaLike[];
   perOver: readonly OverSummaryLike[];
-  dismissal: { record: DeliveryRecord; how: Dismissal; reason: CoachingReason; fielderRole: FielderRole | null; ballNumber: number; at: string } | null;
+  dismissal: {
+    record: DeliveryRecord;
+    how: Dismissal;
+    reason: CoachingReason;
+    fielderRole: FielderRole | null;
+    ballNumber: number;
+    at: string;
+  } | null;
 }
 
 /** src/practice/game CoachingFacts: the measured evidence behind a delivery (the slow-motion replay's numbers). */
@@ -185,7 +192,14 @@ export interface CoachingFactsLike {
   exitElevationDeg: number | null;
   /** src/physics FlightMovement (the delivery's own measured movement). */
   movement: FlightMovement;
-  delivery: { variation: DeliveryVariation; speedKph: number; lengthM: number; lineM: number; lengthBand: LengthBand; lineBand: LineBand };
+  delivery: {
+    variation: DeliveryVariation;
+    speedKph: number;
+    lengthM: number;
+    lineM: number;
+    lengthBand: LengthBand;
+    lineBand: LineBand;
+  };
   fielder: { id: string; role: FielderRole } | null;
   returnS: number | null;
   runs: DeliveryResult['outcome']['runs'];
@@ -201,23 +215,52 @@ export interface PracticeEngine {
   flight(args: FlightArgs): BallFlight;
   resolveDelivery(args: ResolveArgs): DeliveryResult;
   /** The physics' field for the bowler and pitch; a white ball sets a limited-overs field, a red one a Test field. */
-  autoField(bowler: BowlerProfile, conditions: PitchCondition, handedness: Handedness, ball?: Pick<BallCondition, 'colour'>): FieldLayout;
+  autoField(
+    bowler: BowlerProfile,
+    conditions: PitchCondition,
+    handedness: Handedness,
+    ball?: Pick<BallCondition, 'colour'>,
+  ): FieldLayout;
   /** src/physics fieldIntent: what the field is set to do (attacking fielders, protected arcs, gaps, the plan). */
-  fieldIntent(field: FieldLayout, bowler: BowlerProfile, conditions: PitchCondition, handedness: Handedness): FieldIntent;
-  randomOver(args: { seed: string; conditions: PitchCondition; assist: AssistLevel; difficulty: Difficulty; family?: BowlerFamily }): PracticeOverPlan;
+  fieldIntent(
+    field: FieldLayout,
+    bowler: BowlerProfile,
+    conditions: PitchCondition,
+    handedness: Handedness,
+  ): FieldIntent;
+  randomOver(args: {
+    seed: string;
+    conditions: PitchCondition;
+    assist: AssistLevel;
+    difficulty: Difficulty;
+    family?: BowlerFamily;
+  }): PracticeOverPlan;
   /** The reference over (the benchmark): the same six balls every time, always on a Balanced pitch. */
   referenceOver(): PracticeOverPlan;
   /** Its six balls in bowling order with their closed training objectives (the UI words them). */
   referenceBalls(): readonly ReferenceBallLike[];
   ballSeed(over: PracticeOverPlan, i: number): string;
-  newInnings(args: { id: string; conditions: PitchCondition; assist: AssistLevel; handedness: Handedness }): PracticeInningsState;
+  newInnings(args: {
+    id: string;
+    conditions: PitchCondition;
+    assist: AssistLevel;
+    handedness: Handedness;
+  }): PracticeInningsState;
   inningsReducer(state: PracticeInningsState, action: InningsAction): PracticeInningsState;
   resumeInnings(state: PracticeInningsState): PracticeInningsState;
   nextDelivery(state: PracticeInningsState): NextDeliveryLike | null;
-  makeRecord(next: NextDeliveryLike, swing: NormalizedSwing | null, tierToleranceMs: number, result: Pick<DeliveryResult, 'outcome'>): DeliveryRecord;
+  makeRecord(
+    next: NextDeliveryLike,
+    swing: NormalizedSwing | null,
+    tierToleranceMs: number,
+    result: Pick<DeliveryResult, 'outcome'>,
+  ): DeliveryRecord;
   replayDelivery(record: DeliveryRecord): DeliveryResult;
   repeatDelivery(record: DeliveryRecord, swing: NormalizedSwing | null): DeliveryResult;
-  overSummary(over: { plan: PracticeOverPlan; deliveries: readonly DeliveryRecord[] }, results?: readonly (DeliveryResult | undefined)[]): OverSummaryLike;
+  overSummary(
+    over: { plan: PracticeOverPlan; deliveries: readonly DeliveryRecord[] },
+    results?: readonly (DeliveryResult | undefined)[],
+  ): OverSummaryLike;
   inningsSummary(state: PracticeInningsState, results?: ReadonlyMap<string, DeliveryResult>): InningsSummaryLike;
   coachingFacts(result: DeliveryResult, record?: Pick<DeliveryRecord, 'bowler' | 'field'>): CoachingFactsLike;
   normalizeGesture(input: GestureInput, ctx: NormalizeContext): NormalizedSwing | null;
@@ -258,8 +301,20 @@ export type LineBand = 'down_leg' | 'leg_stump' | 'middle' | 'off_stump' | 'outs
 export interface BuildKit {
   variationsFor(family: BowlerFamily, spinType?: SpinType): readonly DeliveryVariation[];
   buildBall(args: BuildBallArgs): PracticeDeliveryPlan;
-  bowlerFor(args: { family: BowlerFamily; paceBand?: PaceBand; spinType?: SpinType; arm?: 'right' | 'left'; seed: string }): BowlerProfile;
-  buildOver(args: { bowler: BowlerProfile; balls: readonly PracticeDeliveryPlan[]; shuffle: boolean; seed: string; conditions?: PitchCondition }): PracticeOverPlan;
+  bowlerFor(args: {
+    family: BowlerFamily;
+    paceBand?: PaceBand;
+    spinType?: SpinType;
+    arm?: 'right' | 'left';
+    seed: string;
+  }): BowlerProfile;
+  buildOver(args: {
+    bowler: BowlerProfile;
+    balls: readonly PracticeDeliveryPlan[];
+    shuffle: boolean;
+    seed: string;
+    conditions?: PitchCondition;
+  }): PracticeOverPlan;
   validateOver(over: PracticeOverPlan): { ok: boolean; errors: string[] };
   /** Pitch-map tap (u across from the leg-side edge, v up from the striker's stumps; both 0–1) → legal target. */
   targetFromTap(u: number, v: number, family: BowlerFamily): { lineM: number; lengthM: number };
@@ -267,7 +322,10 @@ export interface BuildKit {
   lengthBand(lengthM: number, family: BowlerFamily): LengthBand;
   lineBand(lineM: number): LineBand;
   /** The honest stock speed range (km/h) of a bowler at a difficulty (Beginner bowls genuinely slower; assistance never changes speed). */
-  stockRange(bowler: Pick<BowlerProfile, 'family' | 'paceBand' | 'spinType'>, difficulty?: Difficulty): readonly [number, number];
+  stockRange(
+    bowler: Pick<BowlerProfile, 'family' | 'paceBand' | 'spinType'>,
+    difficulty?: Difficulty,
+  ): readonly [number, number];
   /** At most this many bouncers in an over (the game's rule). */
   maxBouncers: number;
   /** The known pattern of a fixed over (the reference over or the player's own six; never a Random Over). */
@@ -280,7 +338,12 @@ export interface GestureSurfaceProps {
   /** The press (or key), at its own timestamp, with the input that made it and the footwork known at that moment. */
   onSwingStart?: (atPerfMs: number, pointer: InputModality, footwork: Footwork) => void;
   /** Defence or attack, as soon as the input says which (src/input's SwingIntent). */
-  onIntent?: (intent: { kind: 'defend' | 'attack'; atPerfMs: number; pointer: InputModality; footwork: Footwork }) => void;
+  onIntent?: (intent: {
+    kind: 'defend' | 'attack';
+    atPerfMs: number;
+    pointer: InputModality;
+    footwork: Footwork;
+  }) => void;
   onCancel?: () => void;
   /** Canonical presentation-only state of the active one-contact control. */
   onContactState?: (state: OneGestureState) => void;
@@ -301,7 +364,9 @@ export interface InputKit {
   GestureSurface: ComponentType<GestureSurfaceProps>;
   calibrationFromTaps(errorsMs: number[]): Calibration;
   /** Calibrations from attempts made with any mix of inputs (a modality without attempts is absent). */
-  calibrationsFromTaps(taps: ReadonlyArray<{ modality: InputModality; errorMs: number }>): Partial<Record<InputModality, Calibration>>;
+  calibrationsFromTaps(
+    taps: ReadonlyArray<{ modality: InputModality; errorMs: number }>,
+  ): Partial<Record<InputModality, Calibration>>;
   /** The modality of a pointer or key event. */
   eventModality(e: Event): InputModality;
 }

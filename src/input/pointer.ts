@@ -53,7 +53,11 @@ export class PointerTrace {
   private readonly max: number;
   private readonly k: number;
 
-  constructor(down: PointerEvent, private rect: { left: number; top: number; width: number; height: number }, o: TraceOptions = {}) {
+  constructor(
+    down: PointerEvent,
+    private rect: { left: number; top: number; width: number; height: number },
+    o: TraceOptions = {},
+  ) {
     this.pointer = pointerKind(down);
     this.t0 = eventTime(down);
     this.max = o.maxSamples ?? 200;

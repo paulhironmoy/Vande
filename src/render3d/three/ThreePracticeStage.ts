@@ -31,9 +31,25 @@ import { batGeometry, placeBatSpan } from './props';
 import { releaseCue, releaseCueWeight } from '../practice/cues';
 import { presentedBounce } from '../practice/feedback';
 import { simToScene, toWorld } from '../practice/frame';
-import { buildPracticeScript, buildPracticeScriptSteps, practiceAction, practiceCast, practiceReleaseScene, type PracticeInfo, type ReleaseHands } from '../practice/script';
+import {
+  buildPracticeScript,
+  buildPracticeScriptSteps,
+  practiceAction,
+  practiceCast,
+  practiceReleaseScene,
+  type PracticeInfo,
+  type ReleaseHands,
+} from '../practice/script';
 import { PracticeSessionBase, type ScriptKind, type StageFrame } from '../practice/session';
-import { DEFAULT_ENVIRONMENT, DEFAULT_STAGE_BALL, type DeliveryContext, type PracticeBenchmarkRun, type PracticeMountOptions, type PracticeSceneSetup, type ProtectedRegion } from '../practice/types';
+import {
+  DEFAULT_ENVIRONMENT,
+  DEFAULT_STAGE_BALL,
+  type DeliveryContext,
+  type PracticeBenchmarkRun,
+  type PracticeMountOptions,
+  type PracticeSceneSetup,
+  type ProtectedRegion,
+} from '../practice/types';
 import { benchmarkSetup, conditionsFor } from '../practice/setup';
 import type { Diagnostics } from '../practice/diagnostics';
 import { createFirstPerson, type FirstPerson } from './firstPerson';
@@ -72,11 +88,25 @@ export function setCoachCloseUpHolder(stage: Pick<StageScene, 'rigOf'>, holder: 
 
 /** Practice's ball: one CSS-pixel size and surround on all tiers, with a ground shadow and faint trace. */
 export function practiceBallStyle(p: PracticeProfile): BallStyle {
-  return { visualScale: p.ball.visualScale, outline: true, shadow: true, trailAlpha: p.ball.trailAlpha, trailWidth: 0.45, glowOpacity: 0, glowPerMetre: 0, practice: true };
+  return {
+    visualScale: p.ball.visualScale,
+    outline: true,
+    shadow: true,
+    trailAlpha: p.ball.trailAlpha,
+    trailWidth: 0.45,
+    glowOpacity: 0,
+    glowPerMetre: 0,
+    practice: true,
+  };
 }
 
 /** External-shot occluders, except the ball-close holder whose current hand is both visible and authoritative. */
-export function presentationOccluders(script: StageFrame['script'], scene: number, cam: ReturnType<typeof cameraAt>, closeUp: boolean): string[] {
+export function presentationOccluders(
+  script: StageFrame['script'],
+  scene: number,
+  cam: ReturnType<typeof cameraAt>,
+  closeUp: boolean,
+): string[] {
   const holder = closeUp ? script.ball.find((segment) => segment.k === 'hand')?.actor : undefined;
   return occludingActors(script, scene, cam, 1.5, holder ? new Set([holder]) : undefined);
 }
@@ -94,8 +124,18 @@ function shoulders(mirror: boolean): { top: Vec3; bottom: Vec3 } {
  * rig at his look's height, root at the origin, posed as the stage poses him (with the planted-feet hook, so a hip
  * drop at the release is in it): what ThreePracticeStage.releaseHand gives the script. Exported for the tests.
  */
-export function measureReleaseBall(stage: StageScene, bowler: BowlerProfile, kits: [KitSpec, KitSpec], variant?: 'bouncer'): Vec3 | null {
-  const run = bowlerRun({ action: practiceAction(bowler), look: practiceCast(bowler).bowler, releaseRoot: { x: 0, y: 0, z: 0 }, ...(variant ? { variant } : {}) });
+export function measureReleaseBall(
+  stage: StageScene,
+  bowler: BowlerProfile,
+  kits: [KitSpec, KitSpec],
+  variant?: 'bouncer',
+): Vec3 | null {
+  const run = bowlerRun({
+    action: practiceAction(bowler),
+    look: practiceCast(bowler).bowler,
+    releaseRoot: { x: 0, y: 0, z: 0 },
+    ...(variant ? { variant } : {}),
+  });
   const track: ActorTrack = { ...run.track, id: 'bowler:measure', mirror: false };
   const stockCue = releaseCue(practiceAction(bowler), 'stock');
   const cued: ScriptDrawOptions['poseHook'] = (tr, pose, t) => {
@@ -125,7 +165,9 @@ export function releaseLiftWeight(t: number, releaseScene: number): number {
 
 /** Scene ms of the first bat, edge, pad or body touch (the moment an unpresented bounce's ring is taken away). */
 function firstTouchScene(p: PracticeInfo, result: NonNullable<PracticeInfo['result']>): number | null {
-  const e = result.events.find((x) => x.kind === 'pad' || (x.kind === 'contact' && x.contact !== 'miss' && x.contact !== 'leave'));
+  const e = result.events.find(
+    (x) => x.kind === 'pad' || (x.kind === 'contact' && x.contact !== 'miss' && x.contact !== 'leave'),
+  );
   return e ? simToScene(p, e.t) : null;
 }
 
@@ -145,7 +187,10 @@ export class ThreePracticeStage extends PracticeSessionBase {
   private shownDiagnostics: Diagnostics | null = null;
   private closeUpGhostHolder: string | null = null;
   private extGhosts: Mesh[] = [];
-  private hookCache = new WeakMap<StageFrame['script'], { reducedMotion: boolean; hook: ScriptDrawOptions['poseHook'] }>();
+  private hookCache = new WeakMap<
+    StageFrame['script'],
+    { reducedMotion: boolean; hook: ScriptDrawOptions['poseHook'] }
+  >();
   /**
    * The face-and-life Director for the bowler and the striker (core/motion/director/stage/runtime.ts): plans baked off the
    * frame path in the spare time of frames; a life pass (breath, sway) in the pose hooks and a head pass (the head in space,
@@ -162,7 +207,10 @@ export class ThreePracticeStage extends PracticeSessionBase {
     let renderer: WebGLRenderer;
     try {
       // MSAA is fixed when the context is made: the starting profile decides it.
-      renderer = StageScene.createRenderer(canvas, { antialias: profile.preset.antialias, preserveDrawingBuffer: false });
+      renderer = StageScene.createRenderer(canvas, {
+        antialias: profile.preset.antialias,
+        preserveDrawingBuffer: false,
+      });
     } catch (err) {
       this.emit('fallback', { reason: 'no_webgl', message: err instanceof Error ? err.message : String(err) });
       throw err;
@@ -188,14 +236,28 @@ export class ThreePracticeStage extends PracticeSessionBase {
     // before the first delivery. Dormant match/dev-only variants are outside this renderer's warm-up scope.
     const setup = this.setup ?? benchmarkSetup();
     const warm = buildPracticeScript({ setup, flight: null, releaseHand: this.releaseHand(setup) });
-    stage.drawScript(warm, 0, { pos: { x: 0, y: 1.7, z: 9 }, target: { x: 0, y: 1, z: -9 }, fov: 48 }, { kits: this.kits, slow: false, clockMs: 0, reducedMotion: false });
+    stage.drawScript(
+      warm,
+      0,
+      { pos: { x: 0, y: 1.7, z: 9 }, target: { x: 0, y: 1, z: -9 }, fov: 48 },
+      { kits: this.kits, slow: false, clockMs: 0, reducedMotion: false },
+    );
     // The human motion packs: fetched once, in parallel, in the background with the 3D stage. They never delay the
     // first ball: a pack not decoded by a run-up leaves that ball to the built-ins, and loaded packs join between balls
     // (setScene / bowl commit them, never mid-delivery).
     void loadMotionPacks();
     // The external view's smear ghosts (shared bat geometry, translucent; hidden until a swing outruns a real bat).
     this.extGhosts = [0, 1, 2].map(() => {
-      const g = new Mesh(batGeometry(), new MeshStandardMaterial({ color: '#e9dcc0', roughness: 0.8, transparent: true, depthWrite: false, opacity: 0.2 }));
+      const g = new Mesh(
+        batGeometry(),
+        new MeshStandardMaterial({
+          color: '#e9dcc0',
+          roughness: 0.8,
+          transparent: true,
+          depthWrite: false,
+          opacity: 0.2,
+        }),
+      );
       g.renderOrder = 1;
       stage.scene.add(g);
       return g;
@@ -260,7 +322,11 @@ export class ThreePracticeStage extends PracticeSessionBase {
     const w = Math.max(1, this.canvas.clientWidth || this.canvas.width);
     const h = Math.max(1, this.canvas.clientHeight || this.canvas.height);
     this.size = { w, h };
-    const dpr = practicePixelRatio(PRACTICE_PROFILES[this.profileId], Math.min(w, h), typeof devicePixelRatio === 'number' ? devicePixelRatio : 1);
+    const dpr = practicePixelRatio(
+      PRACTICE_PROFILES[this.profileId],
+      Math.min(w, h),
+      typeof devicePixelRatio === 'number' ? devicePixelRatio : 1,
+    );
     this.stage.setSize(w, h, dpr);
   }
 
@@ -286,7 +352,13 @@ export class ThreePracticeStage extends PracticeSessionBase {
 
   protectedRegions(): ProtectedRegion[] {
     if (!this.stage || !this.drawnPractice || this.contextLost) return [];
-    return practiceProtectedRegions(this.drawnPractice, this.stage.camera, this.size, this.stage.rigOf('bowler'), this.fp.group);
+    return practiceProtectedRegions(
+      this.drawnPractice,
+      this.stage.camera,
+      this.size,
+      this.stage.rigOf('bowler'),
+      this.fp.group,
+    );
   }
 
   /** The bowling hand at release relative to the bowler's root, measured on the bowler's own rig (cached). */
@@ -362,16 +434,24 @@ export class ThreePracticeStage extends PracticeSessionBase {
     // StageScene.poseActor (players.applyDirectedHead). Neither pass is in the plant's own base pose (`prior`) or in
     // measureReleaseBall: the planted feet and the release hand are the same with or without the Director.
     const dir = this.director?.hooksFor(script);
-    const hook = composeHooks(cue, dir?.life, fieldPoseHookFor(script, { reducedMotion: this.reducedMotion }), humansPoseHookFor(script, cue ? { prior: cue, batOf } : { batOf }));
+    const hook = composeHooks(
+      cue,
+      dir?.life,
+      fieldPoseHookFor(script, { reducedMotion: this.reducedMotion }),
+      humansPoseHookFor(script, cue ? { prior: cue, batOf } : { batOf }),
+    );
     this.hookCache.set(script, { reducedMotion: this.reducedMotion, hook });
     return hook;
   }
 
   /** One owner for both translucent teaching treatments, including unusual holder→striker transitions. */
   private applyCoachPresentation(stage: StageScene, frame: StageFrame) {
-    const nextHolder = frame.closeUpFlight ? (frame.script.ball.find((segment) => segment.k === 'hand')?.actor ?? null) : null;
+    const nextHolder = frame.closeUpFlight
+      ? (frame.script.ball.find((segment) => segment.k === 'hand')?.actor ?? null)
+      : null;
     // Restore the previous holder first: if it happens to be the striker, the demonstration below must win.
-    if (this.closeUpGhostHolder && this.closeUpGhostHolder !== nextHolder) setCoachCloseUpHolder(stage, this.closeUpGhostHolder, false);
+    if (this.closeUpGhostHolder && this.closeUpGhostHolder !== nextHolder)
+      setCoachCloseUpHolder(stage, this.closeUpGhostHolder, false);
     setCoachDemonstrationGhost(stage, frame.coachOption !== null);
     if (nextHolder) setCoachCloseUpHolder(stage, nextHolder, true);
     this.closeUpGhostHolder = nextHolder;
@@ -475,7 +555,12 @@ export class ThreePracticeStage extends PracticeSessionBase {
     }
     this.poseHooks(frame.script, p);
     const stride = p.stride;
-    if (stride && !stride.done && !stride.advance(Math.max(0.3, left - (performance.now() - t0)), humansPoseHookFor(frame.script))) return performance.now() - t0;
+    if (
+      stride &&
+      !stride.done &&
+      !stride.advance(Math.max(0.3, left - (performance.now() - t0)), humansPoseHookFor(frame.script))
+    )
+      return performance.now() - t0;
     if (!Number.isFinite(p.firstPersonUntil) || p.external === 'none' || !striker.physicsBody) {
       this.warmed.add(frame.script);
       return performance.now() - t0;
@@ -527,7 +612,11 @@ export class ThreePracticeStage extends PracticeSessionBase {
     }
   }
 
-  private *warmSteps(result: DeliveryResult, flight: BallFlight, setup: PracticeSceneSetup): Generator<void, void, void> {
+  private *warmSteps(
+    result: DeliveryResult,
+    flight: BallFlight,
+    setup: PracticeSceneSetup,
+  ): Generator<void, void, void> {
     const rm = this.reducedMotion;
     const releaseHand = this.releaseHand(setup);
     yield;
@@ -540,7 +629,17 @@ export class ThreePracticeStage extends PracticeSessionBase {
     freezeBatTrace(result.bat);
     const press = result.swing ? simToScene({ releaseScene: release }, result.swing.startT) : null;
     const at = (press ?? release + 600) + 40;
-    const script = yield* buildPracticeScriptSteps({ setup, flight, result, provisionalStart: press, contactState: null, resultAt: press === null ? null : at, handover: { script: live, atScene: at }, learnCue: this.learnCue, releaseHand });
+    const script = yield* buildPracticeScriptSteps({
+      setup,
+      flight,
+      result,
+      provisionalStart: press,
+      contactState: null,
+      resultAt: press === null ? null : at,
+      handover: { script: live, atScene: at },
+      learnCue: this.learnCue,
+      releaseHand,
+    });
     yield;
     prewarmPracticeGaze(script, rm);
     yield;
@@ -617,7 +716,8 @@ export class ThreePracticeStage extends PracticeSessionBase {
     // External views: the presented bat (orthodox stance, backlift, then the physics swing, exact from contact on),
     // handed to the body's clip after the stroke; the gloves close round it (players.holdBat).
     const strikerTrack = !firstPerson && p ? frame.script.actors.find((a) => a.id === 'striker') : undefined;
-    const pose = p && strikerTrack ? externalBatPose(p.bat, strikerTrack, frame.scene, stage.rigOf('striker')?.scale ?? 1) : null;
+    const pose =
+      p && strikerTrack ? externalBatPose(p.bat, strikerTrack, frame.scene, stage.rigOf('striker')?.scale ?? 1) : null;
     // External shots never show a player filling the foreground: anyone within 1.5 m of the lens is left out. The
     // close-up is the one exception for its holder: StageScene needs that currently posed hand as the authoritative
     // ball position, and the player must actually see the hand the ball is leaving rather than a floating surface.
@@ -643,8 +743,15 @@ export class ThreePracticeStage extends PracticeSessionBase {
     // than a real bat's peak, so a fast catch-up reads as a fast swing. Same pose otherwise; deterministic in time.
     const smearOn = !this.reducedMotion && this.profileId !== 'lite' && p !== null;
     const fpSmear = smearOn && firstPerson && p ? swingSmear((t) => firstPersonBatPose(p.bat, t), frame.scene) : null;
-    this.fp.update(firstPerson && p ? firstPersonBatPose(p.bat, frame.scene) : null, shoulders(Boolean(p?.mirror)), fpSmear);
-    const extSmear = smearOn && !firstPerson && p && strikerTrack && pose ? swingSmear((t) => externalBatPose(p.bat, strikerTrack, t, stage.rigOf('striker')?.scale ?? 1), frame.scene) : null;
+    this.fp.update(
+      firstPerson && p ? firstPersonBatPose(p.bat, frame.scene) : null,
+      shoulders(Boolean(p?.mirror)),
+      fpSmear,
+    );
+    const extSmear =
+      smearOn && !firstPerson && p && strikerTrack && pose
+        ? swingSmear((t) => externalBatPose(p.bat, strikerTrack, t, stage.rigOf('striker')?.scale ?? 1), frame.scene)
+        : null;
     this.extGhosts.forEach((g, i) => {
       const sp = extSmear?.poses[i];
       g.visible = Boolean(sp);
@@ -657,7 +764,8 @@ export class ThreePracticeStage extends PracticeSessionBase {
     const bounce = p?.flight?.bounce ?? null;
     const unpresented = Boolean(p?.result && bounce && !presentedBounce(p.result, bounce));
     const hideAt = unpresented && p?.result ? firstTouchScene(p, p.result) : null;
-    if (p && frame.mode === 'live' && !(hideAt !== null && frame.scene >= hideAt)) this.overlays.landing(p.landing, frame.scene, p.releaseScene, bounce ? simToScene(p, bounce.t) : null);
+    if (p && frame.mode === 'live' && !(hideAt !== null && frame.scene >= hideAt))
+      this.overlays.landing(p.landing, frame.scene, p.releaseScene, bounce ? simToScene(p, bounce.t) : null);
     else this.overlays.landing(null, frame.scene, 0, null);
     this.overlays.edgeFlash(firstPerson ? frame.script : null, frame.scene, firstPerson ? stage.camera : null);
     if (frame.diagnostics !== this.shownDiagnostics) {
@@ -672,10 +780,23 @@ export class ThreePracticeStage extends PracticeSessionBase {
   async benchmark(ms: number): Promise<PracticeBenchmarkRun> {
     const setup = this.setup ?? benchmarkSetup();
     // The real Practice scene: the bowler running in and bowling, the field set, the batter's eye.
-    const script = buildPracticeScript({ setup, flight: null, runUp: true, idleMs: practiceReleaseScene(setup.bowler) + 1500, releaseHand: this.releaseHand(setup) });
+    const script = buildPracticeScript({
+      setup,
+      flight: null,
+      runUp: true,
+      idleMs: practiceReleaseScene(setup.bowler) + 1500,
+      releaseHand: this.releaseHand(setup),
+    });
     const before = this.contextLosses;
     const frameMs = await this.runBenchmarkScene(ms, script);
-    return { frameMs, shaderCompileMs: Math.round(this.shaderCompileMs * 10) / 10, contextLosses: this.contextLosses - before, renderer: this.gpu, webgl2: true, hardware: !isSoftwareRenderer(this.gpu) };
+    return {
+      frameMs,
+      shaderCompileMs: Math.round(this.shaderCompileMs * 10) / 10,
+      contextLosses: this.contextLosses - before,
+      renderer: this.gpu,
+      webgl2: true,
+      hardware: !isSoftwareRenderer(this.gpu),
+    };
   }
 
   dispose(): void {

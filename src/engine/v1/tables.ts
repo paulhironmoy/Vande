@@ -23,7 +23,16 @@ import type {
 /** The engine version these rules implement (recorded in every replay they produce). */
 export const RULES_VERSION = 1;
 
-export const VARIANTS: readonly DeliveryVariant[] = ['yorker', 'good_length', 'bouncer', 'slower', 'inswing', 'outswing', 'offspin', 'legspin'];
+export const VARIANTS: readonly DeliveryVariant[] = [
+  'yorker',
+  'good_length',
+  'bouncer',
+  'slower',
+  'inswing',
+  'outswing',
+  'offspin',
+  'legspin',
+];
 export const LINES: readonly Line[] = ['wide_off', 'off', 'middle', 'leg'];
 export const LENGTHS: readonly Length[] = ['full', 'good', 'short'];
 export const INTENSITIES: readonly Intensity[] = [1, 2, 3];
@@ -34,7 +43,16 @@ export const PITCHES: readonly PitchId[] = ['green', 'hard', 'slow'];
 export const WEATHERS: readonly WeatherId[] = ['clear', 'humid', 'dew'];
 export const POINTERS = ['touch', 'mouse', 'pen', 'keyboard'] as const;
 /** Swipe sectors, clockwise from straight up the screen (towards the bowler), 45 degrees each. */
-export const SECTOR_ZONES: readonly FieldZone[] = ['mid_off', 'cover', 'point', 'third_man', 'fine_leg', 'square_leg', 'midwicket', 'mid_on'];
+export const SECTOR_ZONES: readonly FieldZone[] = [
+  'mid_off',
+  'cover',
+  'point',
+  'third_man',
+  'fine_leg',
+  'square_leg',
+  'midwicket',
+  'mid_on',
+];
 export const OFF_SIDE_ZONES: readonly FieldZone[] = ['third_man', 'point', 'cover', 'mid_off'];
 
 export const FAMILY: Record<DeliveryVariant, DeliveryFamily> = {
@@ -172,7 +190,14 @@ export const HEIGHT_AT_BAT: Record<DeliveryFamily, Record<Length, number>> = {
 export const YORKER_HEIGHT = 0.12;
 export const BOUNCER_HEIGHT = 1.6;
 export const PITCH_BOUNCE: Record<PitchId, number> = { green: 1, hard: 1.12, slow: 0.88 };
-export const SWING_M: Partial<Record<DeliveryVariant, number>> = { inswing: -0.3, outswing: 0.3, yorker: -0.05, slower: 0.03, offspin: 0.04, legspin: -0.05 };
+export const SWING_M: Partial<Record<DeliveryVariant, number>> = {
+  inswing: -0.3,
+  outswing: 0.3,
+  yorker: -0.05,
+  slower: 0.03,
+  offspin: 0.04,
+  legspin: -0.05,
+};
 export const SWING_PITCH: Record<PitchId, number> = { green: 1.25, hard: 0.9, slow: 0.8 };
 export const SWING_WEATHER: Record<WeatherId, number> = { clear: 1, humid: 1.25, dew: 0.85 };
 export const TURN_M: Partial<Record<DeliveryVariant, number>> = { offspin: -0.2, legspin: 0.24 };
@@ -250,7 +275,12 @@ export const NATURAL_ZONES: Record<AttackShot, Record<Line, readonly FieldZone[]
     middle: ['cover', 'mid_off', 'mid_on', 'midwicket', 'square_leg'],
     leg: ['mid_on', 'midwicket', 'square_leg', 'fine_leg'],
   },
-  drive: { wide_off: ['point', 'cover'], off: ['cover', 'mid_off'], middle: ['mid_off', 'mid_on'], leg: ['mid_on', 'midwicket'] },
+  drive: {
+    wide_off: ['point', 'cover'],
+    off: ['cover', 'mid_off'],
+    middle: ['mid_off', 'mid_on'],
+    leg: ['mid_on', 'midwicket'],
+  },
   cut_pull: {
     wide_off: ['third_man', 'point', 'cover'],
     off: ['third_man', 'point', 'midwicket', 'square_leg'],
@@ -280,15 +310,51 @@ export const SHORT_LOFT_ZONES: Record<Line, readonly FieldZone[]> = {
 
 /** Pitch × delivery (batter's point of view; negative = the pitch helps this delivery). */
 export const PITCH_VAR: Record<PitchId, Record<DeliveryVariant, number>> = {
-  green: { yorker: 0, good_length: -0.35, bouncer: 0, slower: 0.05, inswing: -0.35, outswing: -0.35, offspin: 0.2, legspin: 0.2 },
-  hard: { yorker: -0.15, good_length: 0.05, bouncer: -0.5, slower: 0, inswing: 0.05, outswing: 0.05, offspin: 0.1, legspin: 0.05 },
-  slow: { yorker: 0.2, good_length: 0.15, bouncer: 0.3, slower: -0.35, inswing: 0.1, outswing: 0.1, offspin: -0.5, legspin: -0.45 },
+  green: {
+    yorker: 0,
+    good_length: -0.35,
+    bouncer: 0,
+    slower: 0.05,
+    inswing: -0.35,
+    outswing: -0.35,
+    offspin: 0.2,
+    legspin: 0.2,
+  },
+  hard: {
+    yorker: -0.15,
+    good_length: 0.05,
+    bouncer: -0.5,
+    slower: 0,
+    inswing: 0.05,
+    outswing: 0.05,
+    offspin: 0.1,
+    legspin: 0.05,
+  },
+  slow: {
+    yorker: 0.2,
+    good_length: 0.15,
+    bouncer: 0.3,
+    slower: -0.35,
+    inswing: 0.1,
+    outswing: 0.1,
+    offspin: -0.5,
+    legspin: -0.45,
+  },
 };
 /** Weather × delivery (small, always shown). */
 export const WEATHER_VAR: Record<WeatherId, Partial<Record<DeliveryVariant, number>>> = {
   clear: {},
   humid: { inswing: -0.15, outswing: -0.15, good_length: -0.05 },
-  dew: { offspin: 0.15, legspin: 0.15, slower: 0.05, yorker: 0.03, good_length: 0.03, bouncer: 0.03, inswing: 0.03, outswing: 0.03 },
+  dew: {
+    offspin: 0.15,
+    legspin: 0.15,
+    slower: 0.05,
+    yorker: 0.03,
+    good_length: 0.03,
+    bouncer: 0.03,
+    inswing: 0.03,
+    outswing: 0.03,
+  },
 };
 /** Pitch × shot (hard: true bounce for cuts and pulls; slow: low bounce for sweeps, holds up for lofts). */
 export const PITCH_SHOT: Record<PitchId, Partial<Record<ShotType, number>>> = {
@@ -327,7 +393,15 @@ export const LOOSE_SEVERITY: Record<DeliveryVariant, number> = {
 };
 /** A merely 'good' execution of a precision ball misses slightly: a good yorker is a touch full. */
 export const GOOD_EFFECT: Partial<Record<DeliveryVariant, number>> = { yorker: 0.2 };
-export const LOOSE_SHOT: Record<ShotType, number> = { defend: 0.3, rotate: 0.6, drive: 1, cut_pull: 1, sweep: 1, loft: 1, leave: 0 };
+export const LOOSE_SHOT: Record<ShotType, number> = {
+  defend: 0.3,
+  rotate: 0.6,
+  drive: 1,
+  cut_pull: 1,
+  sweep: 1,
+  loft: 1,
+  leave: 0,
+};
 
 /** Sequencing: a setup ball that contrasts with the next one; repeating the same ball lets the batter line it up. */
 export const SETUP_CONTRAST = -0.5;
@@ -387,7 +461,14 @@ export const MID_BASE: Record<TimingGrade, number> = {
   no_shot: 0,
   interrupted: 0,
 };
-export const SHOT_EASE: Record<AttackShot, number> = { defend: 0.1, rotate: 0.05, drive: 0, cut_pull: -0.02, sweep: -0.03, loft: -0.06 };
+export const SHOT_EASE: Record<AttackShot, number> = {
+  defend: 0.1,
+  rotate: 0.05,
+  drive: 0,
+  cut_pull: -0.02,
+  sweep: -0.03,
+  loft: -0.06,
+};
 export const K_ADVANTAGE = 0.25;
 /** The matchup moves contact and power directly: a shot that does not suit the ball is rarely middled and never powerful. */
 export const K_MATCHUP_MIDDLE = 0.25;
@@ -395,7 +476,14 @@ export const POWER_MATCHUP = 0.4;
 export const MID_MIN = 0.03;
 export const MID_MAX = 0.96;
 /** Defensive shots protect the wicket: multiplier on edge, lbw and bowled chances. */
-export const SHOT_EXPOSURE: Record<AttackShot, number> = { defend: 0.35, rotate: 0.6, drive: 1, cut_pull: 1, sweep: 1, loft: 1.1 };
+export const SHOT_EXPOSURE: Record<AttackShot, number> = {
+  defend: 0.35,
+  rotate: 0.6,
+  drive: 1,
+  cut_pull: 1,
+  sweep: 1,
+  loft: 1.1,
+};
 
 /** How the non-middled share splits: thick edge, thin edge, pad, clean miss. */
 export const MISS_SPLIT: Record<AttackShot, readonly [number, number, number, number]> = {
@@ -438,7 +526,10 @@ export const LOFT_MATCHUP = 0.4;
 /** Six chance = six × (c − LOFT_SIX_FROM), capped; four chance = 0.12 + 0.35 (c − 0.2); caught = catchBase + catchMiss (1 − c)². */
 export const LOFT_SIX_FROM = 0.25;
 export const LOFT_SIX_MAX = 0.6;
-export const LOFT: Record<'gap' | 'ring' | 'deep', { six: number; sixMult: number; fourMult: number; catchBase: number; catchMiss: number }> = {
+export const LOFT: Record<
+  'gap' | 'ring' | 'deep',
+  { six: number; sixMult: number; fourMult: number; catchBase: number; catchMiss: number }
+> = {
   gap: { six: 1.25, sixMult: 1, fourMult: 1, catchBase: 0.02, catchMiss: 0.28 },
   ring: { six: 1.25, sixMult: 1, fourMult: 1, catchBase: 0.04, catchMiss: 0.43 },
   deep: { six: 1.25, sixMult: 0.5, fourMult: 0.5, catchBase: 0.12, catchMiss: 0.53 },
@@ -455,17 +546,44 @@ export interface FieldLayout {
 }
 export const FIELD_LAYOUTS: Record<FieldSetting, FieldLayout> = {
   attacking: {
-    zones: { third_man: 'gap', point: 'ring', cover: 'ring', mid_off: 'ring', mid_on: 'ring', midwicket: 'ring', square_leg: 'ring', fine_leg: 'gap' },
+    zones: {
+      third_man: 'gap',
+      point: 'ring',
+      cover: 'ring',
+      mid_off: 'ring',
+      mid_on: 'ring',
+      midwicket: 'ring',
+      square_leg: 'ring',
+      fine_leg: 'gap',
+    },
     slipCatch: 0.5,
     closeCatch: 0.08,
   },
   balanced: {
-    zones: { third_man: 'deep', point: 'ring', cover: 'ring', mid_off: 'gap', mid_on: 'ring', midwicket: 'gap', square_leg: 'ring', fine_leg: 'deep' },
+    zones: {
+      third_man: 'deep',
+      point: 'ring',
+      cover: 'ring',
+      mid_off: 'gap',
+      mid_on: 'ring',
+      midwicket: 'gap',
+      square_leg: 'ring',
+      fine_leg: 'deep',
+    },
     slipCatch: 0.35,
     closeCatch: 0.03,
   },
   sweeper: {
-    zones: { third_man: 'deep', point: 'deep', cover: 'deep', mid_off: 'ring', mid_on: 'gap', midwicket: 'deep', square_leg: 'ring', fine_leg: 'deep' },
+    zones: {
+      third_man: 'deep',
+      point: 'deep',
+      cover: 'deep',
+      mid_off: 'ring',
+      mid_on: 'gap',
+      midwicket: 'deep',
+      square_leg: 'ring',
+      fine_leg: 'deep',
+    },
     slipCatch: 0.12,
     closeCatch: 0,
   },
@@ -484,11 +602,26 @@ export const CARRY: Record<PitchId, number> = { green: 1.15, hard: 1.1, slow: 0.
 export const GREEN_EARLY_LOFT_CATCH = 1.4;
 
 /** Base shot risk for the explanation factor (0..1). */
-export const SHOT_RISK: Record<ShotType, number> = { leave: 0.05, defend: 0.08, rotate: 0.2, drive: 0.35, cut_pull: 0.45, sweep: 0.45, loft: 0.65 };
+export const SHOT_RISK: Record<ShotType, number> = {
+  leave: 0.05,
+  defend: 0.08,
+  rotate: 0.2,
+  drive: 0.35,
+  cut_pull: 0.45,
+  sweep: 0.45,
+  loft: 0.65,
+};
 
 /** Leave / no shot: chance the ball would hit the stumps or pads in line. */
 export const LEAVE_HIT: Record<Line, number> = { wide_off: 0, off: 0.08, middle: 0.45, leg: 0.03 };
-export const LEAVE_HIT_VARIANT: Partial<Record<DeliveryVariant, number>> = { inswing: 2, outswing: 0.4, offspin: 1.6, legspin: 0.5, yorker: 1.3, bouncer: 0 };
+export const LEAVE_HIT_VARIANT: Partial<Record<DeliveryVariant, number>> = {
+  inswing: 2,
+  outswing: 0.4,
+  offspin: 1.6,
+  legspin: 0.5,
+  yorker: 1.3,
+  bouncer: 0,
+};
 export const LEAVE_HIT_LENGTH: Record<Length, number> = { full: 1.1, good: 1, short: 0.1 };
 export const LEAVE_HIT_PITCH: Record<PitchId, number> = { green: 1.05, hard: 0.85, slow: 1.1 };
 /** Of the balls that hit: bowled share (the rest are lbw). */
@@ -499,8 +632,22 @@ export const LBW_LINE: Record<Line, number> = { wide_off: 0, off: 0.22, middle: 
 export const BOWLED_LINE: Record<Line, number> = { wide_off: 0.01, off: 0.3, middle: 0.42, leg: 0.08 };
 export const LBW_LENGTH: Record<Length, number> = { full: 1.2, good: 1, short: 0.2 };
 export const BOWLED_LENGTH: Record<Length, number> = { full: 1.15, good: 1, short: 0.15 };
-export const LBW_VARIANT: Partial<Record<DeliveryVariant, number>> = { inswing: 1.35, offspin: 1.2, yorker: 1.25, outswing: 0.6, legspin: 0.7, bouncer: 0 };
-export const BOWLED_VARIANT: Partial<Record<DeliveryVariant, number>> = { yorker: 1.2, inswing: 1.2, offspin: 1.1, outswing: 0.75, legspin: 0.85, bouncer: 0.1 };
+export const LBW_VARIANT: Partial<Record<DeliveryVariant, number>> = {
+  inswing: 1.35,
+  offspin: 1.2,
+  yorker: 1.25,
+  outswing: 0.6,
+  legspin: 0.7,
+  bouncer: 0,
+};
+export const BOWLED_VARIANT: Partial<Record<DeliveryVariant, number>> = {
+  yorker: 1.2,
+  inswing: 1.2,
+  offspin: 1.1,
+  outswing: 0.75,
+  legspin: 0.85,
+  bouncer: 0.1,
+};
 export const LBW_SHOT: Partial<Record<ShotType, number>> = { sweep: 1.25, loft: 0.8, drive: 0.9, cut_pull: 0.7 };
 export const LBW_PITCH: Record<PitchId, number> = { green: 1, hard: 0.8, slow: 1.15 };
 export const BOWLED_PITCH: Record<PitchId, number> = { green: 1, hard: 0.75, slow: 1.15 };

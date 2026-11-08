@@ -13,8 +13,15 @@ describe('highlight attribution', () => {
     expect(await r.report('k7q2m9xa', 'share')).toBe(true);
     expect(await r.report('NOT A CODE', 'share')).toBe(false);
     expect(call).toHaveBeenCalledTimes(2);
-    expect(call.mock.calls[0]).toEqual(['POST /v1/attribution', { body: { code: 'k7q2m9xa', event: 'landing_open' } }, { anonymous: true }]);
-    const failing = createAttributionReporter({ call: vi.fn(async () => Promise.reject(new Error('offline'))) } as never, null);
+    expect(call.mock.calls[0]).toEqual([
+      'POST /v1/attribution',
+      { body: { code: 'k7q2m9xa', event: 'landing_open' } },
+      { anonymous: true },
+    ]);
+    const failing = createAttributionReporter(
+      { call: vi.fn(async () => Promise.reject(new Error('offline'))) } as never,
+      null,
+    );
     expect(await failing.report('k7q2m9xa', 'share')).toBe(false);
   });
 
@@ -30,12 +37,20 @@ describe('highlight attribution', () => {
 });
 
 describe('highlight share moment', () => {
-  const ctx = { kind: 'duel' as const, id: `m${'a'.repeat(26)}`, url: 'https://vande.example/m/x', players: ['Swift Tiger', 'Calm Cobra'] as [string, string], highlight: { code: 'k7q2m9xa', url: 'https://vande.example/h/k7q2m9xa' } };
+  const ctx = {
+    kind: 'duel' as const,
+    id: `m${'a'.repeat(26)}`,
+    url: 'https://vande.example/m/x',
+    players: ['Swift Tiger', 'Calm Cobra'] as [string, string],
+    highlight: { code: 'k7q2m9xa', url: 'https://vande.example/h/k7q2m9xa' },
+  };
 
   it('is the final moment of the match: the landing link instead of the reveal, once', async () => {
     const msg = buildShareMessage('final', ctx);
     expect(msg.url).toBe('https://vande.example/h/k7q2m9xa');
-    expect(msg.text).toBe('Swift Tiger vs Calm Cobra made the VANDE Cricket Daily Top 100. Watch the highlight, then try to beat them.');
+    expect(msg.text).toBe(
+      'Swift Tiger vs Calm Cobra made the VANDE Cricket Daily Top 100. Watch the highlight, then try to beat them.',
+    );
     expect(buildShareMessage('final', { ...ctx, locale: 'hi-Latn' }).text).toContain('Daily Top 100');
     const ledger = memoryShareLedger();
     expect(canShare(ledger, 'final', ctx)).toBe(true);

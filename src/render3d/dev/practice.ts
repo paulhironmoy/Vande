@@ -7,7 +7,14 @@
  * physics' resolveDelivery is complete. Nothing here is fake physics in production: this page is not shipped.
  */
 import '@fontsource-variable/manrope';
-import type { BallFlight, BowlerProfile, DeliveryResult, Handedness, PracticeDeliveryPlan, QualityProfileId } from '@/contracts/practice';
+import type {
+  BallFlight,
+  BowlerProfile,
+  DeliveryResult,
+  Handedness,
+  PracticeDeliveryPlan,
+  QualityProfileId,
+} from '@/contracts/practice';
 import { flight as physicsFlight } from '@/physics/delivery';
 import { autoField } from '@/physics/field';
 import { eventTime } from '@/input/pointer';
@@ -90,8 +97,26 @@ async function main() {
   const handedness = (q.get('hand') ?? 'right') as Handedness;
   const profile = (q.get('profile') ?? 'standard') as QualityProfileId;
   const family = q.get('family') === 'spin' ? 'spin' : 'pace';
-  const bowler: BowlerProfile = family === 'spin' ? { family, spinType: (q.get('spin') ?? 'finger') as 'finger' | 'wrist', arm: (q.get('arm') ?? 'right') as 'right' | 'left', lookSeed: 'harness-spin' } : { family, paceBand: (q.get('pace') ?? 'fast') as 'fast', arm: (q.get('arm') ?? 'right') as 'right' | 'left', lookSeed: 'harness-pace' };
-  await stage.mount(canvas, { profile, handedness, reducedMotion: q.get('rm') === '1', learnCue: q.get('learn') === '1' });
+  const bowler: BowlerProfile =
+    family === 'spin'
+      ? {
+          family,
+          spinType: (q.get('spin') ?? 'finger') as 'finger' | 'wrist',
+          arm: (q.get('arm') ?? 'right') as 'right' | 'left',
+          lookSeed: 'harness-spin',
+        }
+      : {
+          family,
+          paceBand: (q.get('pace') ?? 'fast') as 'fast',
+          arm: (q.get('arm') ?? 'right') as 'right' | 'left',
+          lookSeed: 'harness-pace',
+        };
+  await stage.mount(canvas, {
+    profile,
+    handedness,
+    reducedMotion: q.get('rm') === '1',
+    learnCue: q.get('learn') === '1',
+  });
   const field = autoField(bowler, 'balanced', handedness);
   stage.setScene({ field, bowler, conditions: (q.get('pitch') ?? 'balanced') as 'balanced', handedness });
   let current: BallFlight | null = null;
@@ -105,8 +130,20 @@ async function main() {
       if (mc) await mc.step(ms);
     },
     async bowl(plan = {}) {
-      const p: PracticeDeliveryPlan = { variation: 'stock', lengthM: family === 'spin' ? 4.5 : 6, lineM: 0.12, speedKph: family === 'spin' ? 86 : 136, ...plan };
-      current = physicsFlight({ plan: p, bowler, conditions: 'balanced', seed: `harness:${JSON.stringify(p)}`, handedness });
+      const p: PracticeDeliveryPlan = {
+        variation: 'stock',
+        lengthM: family === 'spin' ? 4.5 : 6,
+        lineM: 0.12,
+        speedKph: family === 'spin' ? 86 : 136,
+        ...plan,
+      };
+      current = physicsFlight({
+        plan: p,
+        bowler,
+        conditions: 'balanced',
+        seed: `harness:${JSON.stringify(p)}`,
+        handedness,
+      });
       api.flight = current;
       const done = stage.bowl(current);
       release = stage.releasePerfMs()!;
@@ -119,7 +156,8 @@ async function main() {
       return fixtureResult(current, { kind, timingMs, bearing });
     },
     play: (result) => stage.play(result),
-    replay: (result, camera = 'side', speed = 0.3) => stage.replay(result, { camera, speed, diagnostics: true, assist: 'play' }),
+    replay: (result, camera = 'side', speed = 0.3) =>
+      stage.replay(result, { camera, speed, diagnostics: true, assist: 'play' }),
     flight: null,
     release: 0,
   };

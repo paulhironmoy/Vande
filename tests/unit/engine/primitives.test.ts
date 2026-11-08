@@ -9,12 +9,23 @@ describe('sha256 (frozen primitive)', () => {
   it('matches the FIPS 180-4 test vectors', () => {
     expect(sha256Hex('')).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
     expect(sha256Hex('abc')).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
-    expect(sha256Hex('abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq')).toBe('248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1');
+    expect(sha256Hex('abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq')).toBe(
+      '248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1',
+    );
     expect(sha256Hex('a'.repeat(1000))).toBe('41edece42d63e8d9bf515a9ba6932e1c20cbc9f5a5d134645adb5db1b9737ea3');
   });
 
   it('agrees with WebCrypto for ASCII, Devanagari and emoji input of many lengths', async () => {
-    for (const s of ['', 'x', 'वंदे क्रिकेट', '🏏 six!', 'a'.repeat(55), 'b'.repeat(56), 'c'.repeat(64), 'd'.repeat(119)]) {
+    for (const s of [
+      '',
+      'x',
+      'वंदे क्रिकेट',
+      '🏏 six!',
+      'a'.repeat(55),
+      'b'.repeat(56),
+      'c'.repeat(64),
+      'd'.repeat(119),
+    ]) {
       const bytes = new TextEncoder().encode(s);
       expect(Array.from(utf8(s))).toEqual(Array.from(bytes));
       const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
@@ -75,13 +86,17 @@ describe('sfc32 generator (frozen primitive)', () => {
 
 describe('canonical JSON and commit hashes', () => {
   it('sorts keys, drops undefined and has no whitespace', () => {
-    expect(canonicalJson({ b: 1, a: [1, 'x', { d: null, c: true }], u: undefined })).toBe('{"a":[1,"x",{"c":true,"d":null}],"b":1}');
+    expect(canonicalJson({ b: 1, a: [1, 'x', { d: null, c: true }], u: undefined })).toBe(
+      '{"a":[1,"x",{"c":true,"d":null}],"b":1}',
+    );
     expect(() => canonicalJson({ x: Number.NaN })).toThrow();
   });
 
   it('hashes only the known plan fields, independent of key order', async () => {
     const plan = randomPlan(rngFromKey('canon'));
-    const shuffled = JSON.parse(JSON.stringify({ superBall: plan.superBall, balls: plan.balls, field: plan.field, v: plan.v, extra: 'ignored' }));
+    const shuffled = JSON.parse(
+      JSON.stringify({ superBall: plan.superBall, balls: plan.balls, field: plan.field, v: plan.v, extra: 'ignored' }),
+    );
     expect(canonicalPlan(shuffled)).toBe(canonicalPlan(plan));
     expect(normalizePlan(shuffled)).toEqual(plan);
     const h = await commitHash(plan, 'pepper');

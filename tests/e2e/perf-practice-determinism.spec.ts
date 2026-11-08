@@ -56,22 +56,27 @@ async function over(browser: Browser, tier: 'full' | 'below', half: boolean, bas
     const after = await completedDelivery(page, before, pressed, 180_000);
     const expected = SWINGS[i];
     if (expected === 'leave') expect(after.delivery.swing, `queued leave ${i + 1}`).toBeNull();
-    else expect(after.delivery.swing, `queued swing ${i + 1}`).toMatchObject({
-      kind: expected.kind,
-      directionDeg: 'directionDeg' in expected ? expected.directionDeg : 0,
-      power: 'power' in expected ? expected.power : 0.2,
-      elevation: 'elevation' in expected ? expected.elevation : 0,
-    });
+    else
+      expect(after.delivery.swing, `queued swing ${i + 1}`).toMatchObject({
+        kind: expected.kind,
+        directionDeg: 'directionDeg' in expected ? expected.directionDeg : 0,
+        power: 'power' in expected ? expected.power : 0.2,
+        elevation: 'elevation' in expected ? expected.elevation : 0,
+      });
     records.push(JSON.stringify(after.delivery));
     keys.push(after.key);
-    fps.push(await page.evaluate(({ atMs, phaseCount }) => {
-      const p = (window as unknown as { __perf: { frames: number[]; phases: Array<[number, string, string, string, string]> } }).__perf;
-      const events = p.phases.slice(phaseCount);
-      const from = events.find((x) => x[2] === 'runup')?.[0] ?? atMs;
-      const to = events.find((x) => x[0] >= from && x[2] === 'dead')?.[0] ?? performance.now();
-      const f = p.frames.filter((t) => t >= from && t <= to);
-      return f.length > 1 ? Math.round(((f.length - 1) / (f.at(-1)! - f[0])) * 1000) : 0;
-    }, before));
+    fps.push(
+      await page.evaluate(({ atMs, phaseCount }) => {
+        const p = (
+          window as unknown as { __perf: { frames: number[]; phases: Array<[number, string, string, string, string]> } }
+        ).__perf;
+        const events = p.phases.slice(phaseCount);
+        const from = events.find((x) => x[2] === 'runup')?.[0] ?? atMs;
+        const to = events.find((x) => x[0] >= from && x[2] === 'dead')?.[0] ?? performance.now();
+        const f = p.frames.filter((t) => t >= from && t <= to);
+        return f.length > 1 ? Math.round(((f.length - 1) / (f.at(-1)! - f[0])) * 1000) : 0;
+      }, before),
+    );
   }
   const final = await deliveryCheckpoint(page);
   expect(final.released, 'no unrequested seventh delivery').toBe(SWINGS.length);
@@ -82,11 +87,17 @@ async function over(browser: Browser, tier: 'full' | 'below', half: boolean, bas
 }
 
 for (const tier of ['below', 'full'] as const) {
-  test(`[PERF3] the same swings give the same results at full and half frame rate (${tier === 'below' ? 'Classic' : 'first-person'} stage)`, async ({ browser, baseURL }) => {
+  test(`[PERF3] the same swings give the same results at full and half frame rate (${tier === 'below' ? 'Classic' : 'first-person'} stage)`, async ({
+    browser,
+    baseURL,
+  }) => {
     test.setTimeout(600_000);
     const full = await over(browser, tier, false, baseURL!);
     const half = await over(browser, tier, true, baseURL!);
-    test.info().annotations.push({ type: 'frame rates', description: `full ${full.fps.join(',')} fps; half ${half.fps.join(',')} fps` });
+    test.info().annotations.push({
+      type: 'frame rates',
+      description: `full ${full.fps.join(',')} fps; half ${half.fps.join(',')} fps`,
+    });
     expect(full.records.length).toBe(SWINGS.length);
     expect(half.records).toEqual(full.records);
   });

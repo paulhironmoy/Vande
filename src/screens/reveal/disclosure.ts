@@ -32,7 +32,15 @@ export interface LogIndex {
 }
 
 export function indexLog(log: MatchEventLog): LogIndex {
-  const ix: LogIndex = { balls: [[], []], supers: [], inningsStart: [-1, -1], inningsEnd: [-1, -1], superStart: -1, result: -1, last: log.events.length - 1 };
+  const ix: LogIndex = {
+    balls: [[], []],
+    supers: [],
+    inningsStart: [-1, -1],
+    inningsEnd: [-1, -1],
+    superStart: -1,
+    result: -1,
+    last: log.events.length - 1,
+  };
   log.events.forEach((e, i) => {
     if (e.t === 'ball') {
       if (e.innings === 'super') ix.supers.push(i);
@@ -50,11 +58,23 @@ export function indexLog(log: MatchEventLog): LogIndex {
  * another innings), so walk back to the card's own event of the same innings.
  */
 function cardEvent(log: MatchEventLog, seg: Segment): number {
-  const want = seg.kind === 'innings_start' ? 'innings_start' : seg.kind === 'innings_end' ? 'innings_end' : seg.kind === 'super_start' ? 'super_ball_start' : 'result';
+  const want =
+    seg.kind === 'innings_start'
+      ? 'innings_start'
+      : seg.kind === 'innings_end'
+        ? 'innings_end'
+        : seg.kind === 'super_start'
+          ? 'super_ball_start'
+          : 'result';
   for (let i = Math.min(Math.max(seg.eventIndex, 0), log.events.length - 1); i >= 0; i--) {
     const e = log.events[i];
     if (e.t !== want) continue;
-    if ((e.t === 'innings_start' || e.t === 'innings_end') && (seg.innings === 0 || seg.innings === 1) && e.innings !== seg.innings) continue;
+    if (
+      (e.t === 'innings_start' || e.t === 'innings_end') &&
+      (seg.innings === 0 || seg.innings === 1) &&
+      e.innings !== seg.innings
+    )
+      continue;
     return i;
   }
   return -1;
@@ -123,12 +143,16 @@ export function disclose(log: MatchEventLog, ix: LogIndex, upTo: number): Disclo
     const score = lastBall && lastBall.t === 'ball' ? lastBall.score : { runs: 0, wickets: 0 };
     const started = complete || (ix.inningsStart[i] >= 0 ? ix.inningsStart[i] <= upTo : shown > 0);
     // Over once its end card has played, or as soon as the ball that finished it has (no balls left after it).
-    const ended = complete || (ix.inningsEnd[i] >= 0 && ix.inningsEnd[i] <= upTo) || Boolean(lastBall && lastBall.t === 'ball' && lastBall.score.ballsLeft === 0);
+    const ended =
+      complete ||
+      (ix.inningsEnd[i] >= 0 && ix.inningsEnd[i] <= upTo) ||
+      Boolean(lastBall && lastBall.t === 'ball' && lastBall.score.ballsLeft === 0);
     return { started, ended, shown, runs: score.runs, wickets: score.wickets };
   };
   const innings: [InningsView, InningsView] = [view(0), view(1)];
   const superShown = complete ? ix.supers.length : ix.supers.filter((e) => e <= upTo).length;
-  const superStarted = ix.supers.length > 0 && (complete || (ix.superStart >= 0 ? ix.superStart <= upTo : superShown > 0));
+  const superStarted =
+    ix.supers.length > 0 && (complete || (ix.superStart >= 0 ? ix.superStart <= upTo : superShown > 0));
   return {
     upTo,
     complete,
@@ -166,7 +190,11 @@ const merge = (a: AutoKind | null, b: AutoKind): AutoKind => (a === null || a ==
  * - Training: the balls Auto XI batted for the player and the lesson balls bowled for them (`trainingAutoBalls`).
  */
 export function autoBalls(log: MatchEventLog): AutoMap {
-  const map: AutoMap = { main: [Array(BALLS_PER_OVER).fill(null), Array(BALLS_PER_OVER).fill(null)], super: [null, null], any: false };
+  const map: AutoMap = {
+    main: [Array(BALLS_PER_OVER).fill(null), Array(BALLS_PER_OVER).fill(null)],
+    super: [null, null],
+    any: false,
+  };
   const mark = (innings: 0 | 1, ball: number, kind: AutoKind) => {
     if (ball === SUPER_BALL_INDEX) map.super[innings] = merge(map.super[innings], kind);
     else if (ball >= 0 && ball < BALLS_PER_OVER) map.main[innings][ball] = merge(map.main[innings][ball], kind);

@@ -31,9 +31,26 @@ async function boot(opts: { sound?: boolean; captions?: boolean } = {}) {
   // This module instance's own context (an earlier test's listeners may build one in theirs).
   const ctx = engine.currentGraph()!.ctx as unknown as FakeContext;
   const entries = () => window.__vandeAudio!.log();
-  const sounds = () => entries().filter((e) => e.type === 'sound').map((e) => e.name);
-  const haptics = () => entries().filter((e) => e.type === 'haptic').map((e) => e.name);
-  return { audio, settings, engine, sink, ctx, entries, sounds, haptics, vibrate, clear: () => window.__vandeAudio!.clear() };
+  const sounds = () =>
+    entries()
+      .filter((e) => e.type === 'sound')
+      .map((e) => e.name);
+  const haptics = () =>
+    entries()
+      .filter((e) => e.type === 'haptic')
+      .map((e) => e.name);
+  return {
+    audio,
+    settings,
+    engine,
+    sink,
+    ctx,
+    entries,
+    sounds,
+    haptics,
+    vibrate,
+    clear: () => window.__vandeAudio!.clear(),
+  };
 }
 
 /** The stage's moments up to contact: the run-up 2 s, the stride 450 ms before release. */
@@ -88,7 +105,10 @@ describe('contact (COH6, FBK1)', () => {
   it('middle, mistimed, sweet spot, a block, edges and a miss each sound and feel different; a miss has no contact sound and no vibration', async () => {
     const a = await boot();
     prelude(a.sink);
-    const play = async (f: Parameters<typeof a.sink.feel>, contact?: 'middle' | 'top_edge' | 'inside_edge' | 'outside_edge') => {
+    const play = async (
+      f: Parameters<typeof a.sink.feel>,
+      contact?: 'middle' | 'top_edge' | 'inside_edge' | 'outside_edge',
+    ) => {
       a.clear();
       if (contact) a.sink.moment({ kind: 'contact', intensity: 0.5, contact, timing: f[3] });
       a.sink.feel(...f);
@@ -169,7 +189,12 @@ describe('the delivery around the contact', () => {
     const crowd = a.entries().filter((e) => e.type === 'crowd' && e.name !== 'bed');
     expect(crowd.map((e) => e.name)).toEqual(['eruption']);
     expect(crowd[0].atPerfMs).toBe(ropeAt);
-    expect(a.entries().filter((e) => e.name === 'dhol').every((e) => e.atPerfMs >= ropeAt)).toBe(true);
+    expect(
+      a
+        .entries()
+        .filter((e) => e.name === 'dhol')
+        .every((e) => e.atPerfMs >= ropeAt),
+    ).toBe(true);
     expect(a.sink.emotionNow(ropeAt - 1).outcome).toBeNull();
     expect(a.haptics()).toEqual([]);
     await advance(300);
@@ -196,7 +221,11 @@ describe('the delivery around the contact', () => {
     expect(bed.level).toBeLessThanOrEqual(0.03);
     const crowdDuck = (a.engine.currentGraph()!.duck.crowd as unknown as FakeGain).gain.events;
     const silence = crowdDuck.slice(-3);
-    expect(silence.map((e) => [e.type, e.value])).toEqual([['cancel', 0], ['target', 0], ['target', 1]]);
+    expect(silence.map((e) => [e.type, e.value])).toEqual([
+      ['cancel', 0],
+      ['target', 0],
+      ['target', 1],
+    ]);
     // A contact cue arriving with the wicket never reopens the crowd during the silence.
     a.sink.cue('stumps', 1, 1);
     expect(crowdDuck.slice(-3)).toEqual(silence);

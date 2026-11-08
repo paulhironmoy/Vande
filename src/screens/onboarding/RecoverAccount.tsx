@@ -45,18 +45,41 @@ export function RecoverAccount({ methods, recover }: RecoverAccountProps) {
           <p className={s.lead}>{t('onboarding.recover_body')}</p>
           <div className={s.methods}>
             {methods.includes('google') && (
-              <Button variant="primary" size="lg" block icon="user" loading={busy === 'google'} disabled={busy !== null && busy !== 'google'} onClick={() => void run('google')} data-testid="recover-google">
+              <Button
+                variant="primary"
+                size="lg"
+                block
+                icon="user"
+                loading={busy === 'google'}
+                disabled={busy !== null && busy !== 'google'}
+                onClick={() => void run('google')}
+                data-testid="recover-google"
+              >
                 {t('onboarding.recover_google')}
               </Button>
             )}
             {methods.includes('passkey') && (
-              <Button variant="secondary" size="lg" block icon="lock" loading={busy === 'passkey'} disabled={busy !== null && busy !== 'passkey'} onClick={() => void run('passkey')} data-testid="recover-passkey">
+              <Button
+                variant="secondary"
+                size="lg"
+                block
+                icon="lock"
+                loading={busy === 'passkey'}
+                disabled={busy !== null && busy !== 'passkey'}
+                onClick={() => void run('passkey')}
+                data-testid="recover-passkey"
+              >
                 {t('onboarding.recover_passkey')}
               </Button>
             )}
           </div>
           {failure && (
-            <p className={failure === 'cancelled' ? s.note : s.problem} role={failure === 'cancelled' ? 'status' : 'alert'} data-testid="recover-result" data-reason={failure}>
+            <p
+              className={failure === 'cancelled' ? s.note : s.problem}
+              role={failure === 'cancelled' ? 'status' : 'alert'}
+              data-testid="recover-result"
+              data-reason={failure}
+            >
               <Icon name={failure === 'offline' ? 'offline' : failure === 'cancelled' ? 'info' : 'alert'} size={18} />
               <span>{t(`onboarding.recover_${failure}` as MessageKey)}</span>
             </p>

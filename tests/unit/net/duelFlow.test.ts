@@ -52,8 +52,16 @@ describe('a duel through the network client', () => {
     const preview = await C.net.api.call('GET /v1/invites/:token', { params: { token: duel.inviteToken } });
     expect(preview.kind).toBe('duel');
     await C.net.api.call('POST /v1/invites/:token/accept', { params: { token: duel.inviteToken } });
-    for (const [d, seed] of [[A, 1], [C, 2]] as const) {
-      const r = await d.net.outbox.submit({ route: 'POST /v1/matches/:id/lock', params: { id: duel.matchId }, body: { plan: testPlan(seed) }, group: `match:${duel.matchId}` });
+    for (const [d, seed] of [
+      [A, 1],
+      [C, 2],
+    ] as const) {
+      const r = await d.net.outbox.submit({
+        route: 'POST /v1/matches/:id/lock',
+        params: { id: duel.matchId },
+        body: { plan: testPlan(seed) },
+        group: `match:${duel.matchId}`,
+      });
       expect(r.status).toBe('sent');
     }
     await batAll(A.net, duel.matchId, b);

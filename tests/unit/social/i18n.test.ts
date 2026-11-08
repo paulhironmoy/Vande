@@ -9,10 +9,19 @@ import { socialEn } from '@/i18n/social/en';
 import status from '../../../src/i18n/social/STATUS.md?raw';
 
 type Cat = Record<string, string>;
-const modules = import.meta.glob('../../../src/i18n/social/*.ts', { eager: true }) as Record<string, { default?: Cat; socialEn?: Cat }>;
-const sources = import.meta.glob('../../../src/i18n/social/*.ts', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>;
+const modules = import.meta.glob('../../../src/i18n/social/*.ts', { eager: true }) as Record<
+  string,
+  { default?: Cat; socialEn?: Cat }
+>;
+const sources = import.meta.glob('../../../src/i18n/social/*.ts', {
+  eager: true,
+  query: '?raw',
+  import: 'default',
+}) as Record<string, string>;
 const name = (p: string) => p.replace(/^.*\/|\.ts$/g, '');
-const CATALOGS: Record<string, Cat> = Object.fromEntries(Object.entries(modules).map(([p, m]) => [name(p), (m.default ?? m.socialEn ?? {}) as Cat]));
+const CATALOGS: Record<string, Cat> = Object.fromEntries(
+  Object.entries(modules).map(([p, m]) => [name(p), (m.default ?? m.socialEn ?? {}) as Cat]),
+);
 const SOURCE: Record<string, string> = Object.fromEntries(Object.entries(sources).map(([p, s]) => [name(p), s]));
 const DRAFTED = ['bn', 'te', 'mr', 'ta', 'gu', 'kn', 'ml', 'pa'];
 
@@ -49,7 +58,8 @@ describe('social catalogs', () => {
         }
         if (locale === 'en') continue;
         if (!(k in socialEn)) bad.push(`${locale}: stray key ${k}`);
-        else if (argsOf(v) !== argsOf(socialEn[k as keyof typeof socialEn])) bad.push(`${locale}: ${k} uses {${argsOf(v)}}`);
+        else if (argsOf(v) !== argsOf(socialEn[k as keyof typeof socialEn]))
+          bad.push(`${locale}: ${k} uses {${argsOf(v)}}`);
       }
     }
     expect(bad).toEqual([]);

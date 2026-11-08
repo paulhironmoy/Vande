@@ -4,7 +4,17 @@
  * the engine's own model (its tables and the batter's best response, the same measure as tactical efficiency), never a
  * promise about an outcome. Copy lives in src/i18n/engine under `advice.*`.
  */
-import type { Conditions, DeliveryFamily, DeliveryPlan, DeliveryVariant, FieldSetting, Length, MatchEventLog, MatchKind, PitchId } from '@/contracts';
+import type {
+  Conditions,
+  DeliveryFamily,
+  DeliveryPlan,
+  DeliveryVariant,
+  FieldSetting,
+  Length,
+  MatchEventLog,
+  MatchKind,
+  PitchId,
+} from '@/contracts';
 import { autoXiBalls } from './auto';
 import { contrasts, type BallContext, type DeliveryCore, type PrevBall } from './v1/model';
 import { bowlingChoice, optionRange, wicketCost } from './v1/performance';
@@ -71,34 +81,71 @@ export function unlocksEarned(log: MatchEventLog, player: 0 | 1): DeliveryVarian
  * (each "good" ball is harder to score from than each "poor" one, in every weather) and the simulation (its best over
  * for the pitch follows the hint, and an over of "poor" balls concedes more).
  */
-export const PITCH_ADVICE: Readonly<Record<PitchId, { good: ReadonlyArray<readonly [DeliveryVariant, Length]>; poor: ReadonlyArray<readonly [DeliveryVariant, Length]> }>> = {
+export const PITCH_ADVICE: Readonly<
+  Record<
+    PitchId,
+    { good: ReadonlyArray<readonly [DeliveryVariant, Length]>; poor: ReadonlyArray<readonly [DeliveryVariant, Length]> }
+  >
+> = {
   // Seam and swing on a good length (best with the new ball); spin is easier to hit, full or short worst of all.
   green: {
-    good: [['good_length', 'good'], ['inswing', 'good'], ['outswing', 'good']],
-    poor: [['offspin', 'full'], ['offspin', 'short'], ['legspin', 'full'], ['legspin', 'short']],
+    good: [
+      ['good_length', 'good'],
+      ['inswing', 'good'],
+      ['outswing', 'good'],
+    ],
+    poor: [
+      ['offspin', 'full'],
+      ['offspin', 'short'],
+      ['legspin', 'full'],
+      ['legspin', 'short'],
+    ],
   },
   // Yorkers and bouncers bite; a full ball that is not a yorker is a half-volley to smash.
   hard: {
-    good: [['yorker', 'full'], ['bouncer', 'short']],
-    poor: [['good_length', 'full'], ['inswing', 'full'], ['outswing', 'full'], ['offspin', 'full'], ['legspin', 'full']],
+    good: [
+      ['yorker', 'full'],
+      ['bouncer', 'short'],
+    ],
+    poor: [
+      ['good_length', 'full'],
+      ['inswing', 'full'],
+      ['outswing', 'full'],
+      ['offspin', 'full'],
+      ['legspin', 'full'],
+    ],
   },
   // Spin and slower balls grip; fast short balls and full swing sit up to be hit.
   slow: {
-    good: [['offspin', 'good'], ['offspin', 'full'], ['legspin', 'good'], ['legspin', 'full'], ['slower', 'good'], ['slower', 'short']],
-    poor: [['bouncer', 'short'], ['good_length', 'short'], ['inswing', 'full'], ['outswing', 'full']],
+    good: [
+      ['offspin', 'good'],
+      ['offspin', 'full'],
+      ['legspin', 'good'],
+      ['legspin', 'full'],
+      ['slower', 'good'],
+      ['slower', 'short'],
+    ],
+    poor: [
+      ['bouncer', 'short'],
+      ['good_length', 'short'],
+      ['inswing', 'full'],
+      ['outswing', 'full'],
+    ],
   },
 };
 
 /** Whether a delivery is one the pitch hint recommends ('good'), warns against ('poor'), or neither. */
 export function pitchKind(d: Pick<DeliveryPlan, 'variant' | 'length'>, pitch: PitchId): 'good' | 'poor' | null {
-  const is = (list: ReadonlyArray<readonly [DeliveryVariant, Length]>) => list.some(([v, l]) => v === d.variant && l === d.length);
+  const is = (list: ReadonlyArray<readonly [DeliveryVariant, Length]>) =>
+    list.some(([v, l]) => v === d.variant && l === d.length);
   return is(PITCH_ADVICE[pitch].good) ? 'good' : is(PITCH_ADVICE[pitch].poor) ? 'poor' : null;
 }
 
 /** One line for the pitch, and one for the weather when it matters (humid air helps swing; dew hurts spin most). */
 export function pitchHints(conditions: Conditions): AdviceLine[] {
   const lines: AdviceLine[] = [{ key: `advice.pitch.${conditions.pitch}` }];
-  if (conditions.weather === 'humid' || conditions.weather === 'dew') lines.push({ key: `advice.weather.${conditions.weather}` });
+  if (conditions.weather === 'humid' || conditions.weather === 'dew')
+    lines.push({ key: `advice.weather.${conditions.weather}` });
   return lines;
 }
 
@@ -148,8 +195,21 @@ export const ADVICE = {
   fieldMargin: 0.6,
 } as const;
 
-const core = (d: Omit<DeliveryPlan, 'gesture'>): DeliveryCore => ({ variant: d.variant, line: d.line, length: d.length, intensity: d.intensity, intent: d.intent });
-const neutral = (k: number): BallContext => ({ ball: k, superBall: false, lastBall: k >= 5, newBatter: k === 0, prev: null, repeats: 0 });
+const core = (d: Omit<DeliveryPlan, 'gesture'>): DeliveryCore => ({
+  variant: d.variant,
+  line: d.line,
+  length: d.length,
+  intensity: d.intensity,
+  intent: d.intent,
+});
+const neutral = (k: number): BallContext => ({
+  ball: k,
+  superBall: false,
+  lastBall: k >= 5,
+  newBatter: k === 0,
+  prev: null,
+  repeats: 0,
+});
 
 /**
  * An over at a glance (families, energy, lengths, lines, field, Super Ball) and honest reads, most important first:
@@ -158,9 +218,14 @@ const neutral = (k: number): BallContext => ({ ball: k, superBall: false, lastBa
  * all-out attack or playing it safe (intent multipliers), energy left over, suits the pitch, a set-up that is ready.
  * `unlocked` limits the comparisons to deliveries the player can bowl.
  */
-export function overSummary(over: OverShape, conditions: Conditions, opts: { unlocked?: readonly DeliveryVariant[] } = {}): OverSummary {
+export function overSummary(
+  over: OverShape,
+  conditions: Conditions,
+  opts: { unlocked?: readonly DeliveryVariant[] } = {},
+): OverSummary {
   const balls = over.balls.map(core);
-  const variants = opts.unlocked && opts.unlocked.length ? VARIANTS.filter((v) => opts.unlocked!.includes(v)) : VARIANTS;
+  const variants =
+    opts.unlocked && opts.unlocked.length ? VARIANTS.filter((v) => opts.unlocked!.includes(v)) : VARIANTS;
   const families: Record<DeliveryFamily, number> = { pace: 0, swing: 0, spin: 0 };
   const lengths: Record<Length, number> = { full: 0, good: 0, short: 0 };
   for (const d of balls) {
@@ -177,20 +242,23 @@ export function overSummary(over: OverShape, conditions: Conditions, opts: { unl
   const pitchFit = scores.length ? scores.reduce((s, x) => s + x, 0) / scores.length : 0;
   let weakest = -1;
   choices.forEach((c, k) => {
-    if (c.score < ADVICE.weakBall && c.best - c.min >= ADVICE.weakGap && (weakest < 0 || c.score < scores[weakest])) weakest = k;
+    if (c.score < ADVICE.weakBall && c.best - c.min >= ADVICE.weakGap && (weakest < 0 || c.score < scores[weakest]))
+      weakest = k;
   });
   const good = balls.filter((d) => pitchKind(d, conditions.pitch) === 'good').length;
   const poor = balls.filter((d) => pitchKind(d, conditions.pitch) === 'poor').length;
 
   // The field these balls suit best (the batter's best response summed over the over).
-  const fieldValue = (f: FieldSetting) => balls.reduce((s, d, k) => s + optionRange(d, 'good', f, conditions, neutral(k), lambdas[k]).best, 0);
+  const fieldValue = (f: FieldSetting) =>
+    balls.reduce((s, d, k) => s + optionRange(d, 'good', f, conditions, neutral(k), lambdas[k]).best, 0);
   const values = FIELD_SETTINGS.map((f) => [f, fieldValue(f)] as const);
   const own = values.find(([f]) => f === over.field)?.[1] ?? 0;
   const better = values.reduce((a, b) => (b[1] < a[1] ? b : a));
 
   // Repeats: the most times one exact delivery is bowled.
   const counts = new Map<string, number>();
-  for (const d of balls) counts.set(`${d.variant}|${d.length}|${d.line}`, (counts.get(`${d.variant}|${d.length}|${d.line}`) ?? 0) + 1);
+  for (const d of balls)
+    counts.set(`${d.variant}|${d.length}|${d.line}`, (counts.get(`${d.variant}|${d.length}|${d.line}`) ?? 0) + 1);
   const most = Math.max(0, ...counts.values());
 
   // Set-ups: each needs the very next ball to attack and contrast with it (a sixth-ball set-up has no next ball).
@@ -212,11 +280,14 @@ export function overSummary(over: OverShape, conditions: Conditions, opts: { unl
   if (poor >= ADVICE.againstPitch) reads.push({ key: 'advice.read.against_pitch', params: { count: poor } });
   if (weakest >= 0) reads.push({ key: 'advice.read.weak_ball', params: { n: weakest + 1 } });
   if (wasted >= 0) reads.push({ key: 'advice.read.setup_wasted', params: { n: wasted + 1 } });
-  if (better[0] !== over.field && own - better[1] >= ADVICE.fieldMargin) reads.push({ key: `advice.read.field_${better[0]}` });
+  if (better[0] !== over.field && own - better[1] >= ADVICE.fieldMargin)
+    reads.push({ key: `advice.read.field_${better[0]}` });
   if (attacks >= ADVICE.intent) reads.push({ key: 'advice.read.attack' });
   else if (contains >= ADVICE.intent) reads.push({ key: 'advice.read.contain' });
-  if (OVER_ENERGY_BUDGET - used >= ADVICE.energyLeft) reads.push({ key: 'advice.read.energy_left', params: { n: OVER_ENERGY_BUDGET - used } });
-  if (good >= ADVICE.fitsPitch && poor === 0 && weakest < 0 && most < ADVICE.predictable) reads.push({ key: 'advice.read.fits_pitch' });
+  if (OVER_ENERGY_BUDGET - used >= ADVICE.energyLeft)
+    reads.push({ key: 'advice.read.energy_left', params: { n: OVER_ENERGY_BUDGET - used } });
+  if (good >= ADVICE.fitsPitch && poor === 0 && weakest < 0 && most < ADVICE.predictable)
+    reads.push({ key: 'advice.read.fits_pitch' });
   if (ready >= 0) reads.push({ key: 'advice.read.setup_ready', params: { n: ready + 1, next: ready + 2 } });
 
   return {
@@ -225,7 +296,11 @@ export function overSummary(over: OverShape, conditions: Conditions, opts: { unl
     lengths,
     lines,
     field: over.field,
-    superBall: { variant: over.superBall.variant, cost: energyCost(core(over.superBall)), allowance: SUPER_BALL_ALLOWANCE },
+    superBall: {
+      variant: over.superBall.variant,
+      cost: energyCost(core(over.superBall)),
+      allowance: SUPER_BALL_ALLOWANCE,
+    },
     reads: reads.slice(0, 3),
     pitchFit: Math.round(pitchFit * 1000) / 1000,
     pitchBalls: { good, poor },

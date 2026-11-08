@@ -46,15 +46,33 @@ export const TESTER_SCHEDULE = {
   afterCoach: ['why'] as readonly TesterQuestion[],
   /** After the fifth attempt at one exact ball. */
   masteryRun: 5,
-  afterMasteryRun: ['rate_control', 'rate_clarity', 'rate_satisfaction', 'rate_credibility'] as readonly TesterQuestion[],
+  afterMasteryRun: [
+    'rate_control',
+    'rate_clarity',
+    'rate_satisfaction',
+    'rate_credibility',
+  ] as readonly TesterQuestion[],
   /** When the facilitator ends the session (after the continuation window). */
-  endOfSession: ['understood_input', 'rate_fairness', 'motion_comfort', 'scripted', 'obscured'] as readonly TesterQuestion[],
+  endOfSession: [
+    'understood_input',
+    'rate_fairness',
+    'motion_comfort',
+    'scripted',
+    'obscured',
+  ] as readonly TesterQuestion[],
   endOfSessionExperts: ['fidelity_perceptual', 'fidelity_tactical', 'fidelity_emotional'] as readonly TesterQuestion[],
   /** The end-of-over screen's continuation window: a next over started within it, unprompted, is voluntary. */
   continuationWindowMs: 60_000,
 } as const;
 
-export const TESTER_MARKER_REASONS = ['controls', 'ball_tracking', 'result', 'coaching', 'navigation', 'other'] as const;
+export const TESTER_MARKER_REASONS = [
+  'controls',
+  'ball_tracking',
+  'result',
+  'coaching',
+  'navigation',
+  'other',
+] as const;
 export const TESTER_EXPLAINED = ['correct', 'wrong', 'none'] as const;
 export const TESTER_TASKS = ['defend', 'hit', 'leave'] as const;
 export const TESTER_EXPLOITS = ['same_shot_scores', 'timing_trick', 'other'] as const;

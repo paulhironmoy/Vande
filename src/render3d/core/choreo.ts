@@ -20,8 +20,23 @@ import type {
   WicketKind,
 } from '@/contracts';
 import { type ActorTrack, type Look, type Move, evaluateActor, lookScale } from './actors';
-import { type ClipId, type MotionSource, clipDuration, clipMarker, createPose, registerComposedMotion, sampleClip } from './clips';
-import { canComposeBouncer, canComposeRunup, composeRunup, planRunup, type ComposedRunup, type RunupAction } from './motion/bowlerRunup';
+import {
+  type ClipId,
+  type MotionSource,
+  clipDuration,
+  clipMarker,
+  createPose,
+  registerComposedMotion,
+  sampleClip,
+} from './clips';
+import {
+  canComposeBouncer,
+  canComposeRunup,
+  composeRunup,
+  planRunup,
+  type ComposedRunup,
+  type RunupAction,
+} from './motion/bowlerRunup';
 import { createJoints, forwardKinematics, twoBoneIK } from './locomotion';
 import { BONE_INDEX } from './skeleton';
 import {
@@ -43,7 +58,17 @@ import {
   runUpLength,
 } from './ground';
 import { type Vec3, DEG, add, angleDelta, clamp, dist2D, headingOf, lerp, lerpV, seededStream, sub, v3 } from './math';
-import { type AimPathOptions, type AimedPath, type BallPathSim, type DeliveryFlight, STUMPS_FRONT_Z, aimPath, buildFlight, familyOf, flyFrom } from './trajectory';
+import {
+  type AimPathOptions,
+  type AimedPath,
+  type BallPathSim,
+  type DeliveryFlight,
+  STUMPS_FRONT_Z,
+  aimPath,
+  buildFlight,
+  familyOf,
+  flyFrom,
+} from './trajectory';
 import type { BallSample as PhysicsBallSample, PitchCondition } from '@/contracts/practice';
 import type { AimMode } from '@/physics/aim';
 import { CONDITIONS_FOR_PITCH } from '@/physics/matchPath';
@@ -194,7 +219,13 @@ export interface Cast {
 // ---------------------------------------------------------------------------------------------------------------
 
 const PRE_MS = 450;
-const RUN_SPEED: Record<BowlerAction, number> = { pace_long: 6.9, pace_short: 6.3, swing_side_on: 6.5, spin_off: 3.4, spin_leg: 3.7 };
+const RUN_SPEED: Record<BowlerAction, number> = {
+  pace_long: 6.9,
+  pace_short: 6.3,
+  swing_side_on: 6.5,
+  spin_off: 3.4,
+  spin_leg: 3.7,
+};
 const DELIVERY_CLIP: Record<BowlerAction, ClipId> = {
   pace_long: 'bowl_pace_long',
   pace_short: 'bowl_pace_short',
@@ -202,7 +233,13 @@ const DELIVERY_CLIP: Record<BowlerAction, ClipId> = {
   spin_off: 'bowl_off_spin',
   spin_leg: 'bowl_leg_spin',
 };
-const STRIDE: Record<BowlerAction, number> = { pace_long: 3.3, pace_short: 2.8, swing_side_on: 3.1, spin_off: 1.5, spin_leg: 1.7 };
+const STRIDE: Record<BowlerAction, number> = {
+  pace_long: 3.3,
+  pace_short: 2.8,
+  swing_side_on: 3.1,
+  spin_off: 1.5,
+  spin_leg: 1.7,
+};
 const SPRINT = 7.4;
 const RUN_BETWEEN_MS = 2250;
 const CREASE_Z = PITCH_HALF - POPPING;
@@ -273,7 +310,12 @@ export function actionForFamily(family: DeliveryFamily, variant?: string, intens
 }
 
 /** Shot animation and footwork for a live shot (no outcome yet). */
-function liveShotAnim(shot: ShotType, contact: Contact, zone: FieldZone | null, length: string): { anim: BatterAnim; footwork: BallOutcome['cues']['footwork'] } {
+function liveShotAnim(
+  shot: ShotType,
+  contact: Contact,
+  zone: FieldZone | null,
+  length: string,
+): { anim: BatterAnim; footwork: BallOutcome['cues']['footwork'] } {
   const legSide = zone ? ZONE_BEARING[zone] < 0 : false;
   let anim: BatterAnim;
   let footwork: BallOutcome['cues']['footwork'];
@@ -333,7 +375,16 @@ class Builder {
   stumps: BallScript['stumps'] = { striker: null, nonStriker: null };
   spots: FielderSpot[];
   flight: DeliveryFlight | null = null;
-  times: KeyTimes = { runStart: 0, release: 0, bounce: 0, contact: 0, decisive: 0, shotEnd: 0, celebrate: null, end: 0 };
+  times: KeyTimes = {
+    runStart: 0,
+    release: 0,
+    bounce: 0,
+    contact: 0,
+    decisive: 0,
+    shotEnd: 0,
+    celebrate: null,
+    end: 0,
+  };
   heroes: string[] = [];
   shotBearing: number | null = null;
   slowMo: BallScript['slowMo'] = null;
@@ -440,7 +491,13 @@ class Builder {
     });
     return `f${best}`;
   }
-  build(kind: BallScript['kind'], fate: BallScript['fate'], celebration: BallScript['celebration'], cameras: CameraCue[] | null, duration: number): BallScript {
+  build(
+    kind: BallScript['kind'],
+    fate: BallScript['fate'],
+    celebration: BallScript['celebration'],
+    cameras: CameraCue[] | null,
+    duration: number,
+  ): BallScript {
     this.times.end = duration;
     // Fill every actor until the end with its last clip.
     for (const a of this.actors.values()) {
@@ -543,7 +600,13 @@ const GATHER_SPEED = 0.95;
 /** The run-up's mean speed as a share of its arrival speed (a smooth acceleration from a standstill). */
 const RUN_MEAN_SHARE = 1 / 1.6;
 /** Default follow-through: braked to rest over this long (s). */
-const FOLLOW_S: Record<BowlerAction, number> = { pace_long: 1.55, pace_short: 1.4, swing_side_on: 1.5, spin_off: 1.15, spin_leg: 1.2 };
+const FOLLOW_S: Record<BowlerAction, number> = {
+  pace_long: 1.55,
+  pace_short: 1.4,
+  swing_side_on: 1.5,
+  spin_off: 1.15,
+  spin_leg: 1.2,
+};
 /** The walking pace of the clips' walk cycle (m/s at rate 1). */
 export const WALK_CLIP_MPS = 1.4;
 
@@ -575,14 +638,25 @@ const STAND: MotionSource = {
     forwardKinematics(out, standJoints);
     for (const side of ['L', 'R'] as const) {
       const f = BONE_INDEX[`foot${side}`] * 3;
-      twoBoneIK(out, standJoints, `thigh${side}`, `shin${side}`, `foot${side}`, [standJoints.p[f], standJoints.p[f + 1], standJoints.p[f + 2]], 1, [0, 0, 1], true);
+      twoBoneIK(
+        out,
+        standJoints,
+        `thigh${side}`,
+        `shin${side}`,
+        `foot${side}`,
+        [standJoints.p[f], standJoints.p[f + 1], standJoints.p[f + 2]],
+        1,
+        [0, 0, 1],
+        true,
+      );
       forwardKinematics(out, standJoints);
     }
   },
 };
 
 /** The composer's action for a bowler action. */
-export const runupActionOf = (a: BowlerAction): RunupAction => (a === 'spin_off' ? 'off' : a === 'spin_leg' ? 'leg' : 'pace');
+export const runupActionOf = (a: BowlerAction): RunupAction =>
+  a === 'spin_off' ? 'off' : a === 'spin_leg' ? 'leg' : 'pace';
 
 /**
  * The pace run-up from MOTION-BOWL's cleared clips (core/motion/bowlerRunup.ts), when they are loaded: the composed
@@ -596,7 +670,12 @@ export const runupActionOf = (a: BowlerAction): RunupAction => (a === 'spin_off'
  * that much further on than the track's start. Followed by the procedural follow-through to `followTo`. Null when the
  * clips are not loaded.
  */
-function composedBowlerRun(input: BowlerRunInput, release: number, releaseRoot: Vec3, followTo: Vec3 | null): BowlerRun | null {
+function composedBowlerRun(
+  input: BowlerRunInput,
+  release: number,
+  releaseRoot: Vec3,
+  followTo: Vec3 | null,
+): BowlerRun | null {
   const ra = runupActionOf(input.action);
   if (!canComposeRunup(ra)) return null;
   const bouncer = input.variant === 'bouncer' && ra === 'pace' && canComposeBouncer();
@@ -666,7 +745,7 @@ function composedBowlerRun(input: BowlerRunInput, release: number, releaseRoot: 
     const b = rootAt(t1 / 1000);
     return Math.hypot(b.x - a.x, b.z - a.z) / ((t1 - t0) / 1000);
   };
-  const yawAt = (sec: number) => (c!.source.ground!(clock(sec)).yawDeg * DEG) * m;
+  const yawAt = (sec: number) => c!.source.ground!(clock(sec)).yawDeg * DEG * m;
   const launchMs = launchS * 1000;
   // At the top of the mark he stands as between balls (a composed `stand` clip of this run-up), then the run-up opens: an
   // inertialized hand-over of the pose to the clip, at the clip's own phase, over RUN_START.inertialMs, in one move (the
@@ -674,15 +753,39 @@ function composedBowlerRun(input: BowlerRunInput, release: number, releaseRoot: 
   const standId = `runup_${key}_stand`;
   registerComposedMotion(standId, STAND);
   moves.push({ t0: 0, t1: 1, clip: `vmp:${standId}`, heading: yawAt(0), blend: 0 });
-  moves.push({ t0: 1, t1: launchMs, clip, clipStart: clock(0.001), rate: 1, from: rootAt(0.001), to: rootAt(launchS), speed: [0, speedAt(launchMs)], heading: yawAt(0.001), headingTo: yawAt(launchS), blend: 0, inertial: RUN_START.inertialMs });
+  moves.push({
+    t0: 1,
+    t1: launchMs,
+    clip,
+    clipStart: clock(0.001),
+    rate: 1,
+    from: rootAt(0.001),
+    to: rootAt(launchS),
+    speed: [0, speedAt(launchMs)],
+    heading: yawAt(0.001),
+    headingTo: yawAt(launchS),
+    blend: 0,
+    inertial: RUN_START.inertialMs,
+  });
   // Then 1/30 s segments, with a boundary exactly on the release.
-  for (let t = launchMs; t < endScene - 1e-6; ) {
+  for (let t = launchMs; t < endScene - 1e-6;) {
     let t1 = Math.min(endScene, t + stepMs);
     if (t < release - 1e-6 && t1 > release + 1e-6) t1 = release;
     const c0 = clock(t / 1000);
     const c1 = clock(t1 / 1000);
     const g = c.source.ground!(c0);
-    moves.push({ t0: t, t1, clip, clipStart: c0, rate: (c1 - c0) / ((t1 - t) / 1000), from: rootAt(t / 1000), to: rootAt(t1 / 1000), speed: [speedAt(t), speedAt(t1)], heading: (g.yawDeg * DEG) * m, blend: 0 });
+    moves.push({
+      t0: t,
+      t1,
+      clip,
+      clipStart: c0,
+      rate: (c1 - c0) / ((t1 - t) / 1000),
+      from: rootAt(t / 1000),
+      to: rootAt(t1 / 1000),
+      speed: [speedAt(t), speedAt(t1)],
+      heading: g.yawDeg * DEG * m,
+      blend: 0,
+    });
     t = t1;
   }
   // The follow-through is MOTION-BOWL's own (in the composed clip). Then, if the physics bowler's spot is somewhere
@@ -695,14 +798,43 @@ function composedBowlerRun(input: BowlerRunInput, release: number, releaseRoot: 
     const walkMs = (len / (0.66 * WALK_CLIP_MPS)) * 1000;
     // He turns from where the follow-through leaves him to the way he walks: at most 180 degrees a second at the fastest (a half turn
     // took 500 ms with the cubic ease, 1,000 degrees a second at the fastest: 17 degrees a frame).
-    const turn = Math.abs(angleDelta(moves[moves.length - 1].heading ?? 0, headingOf(to.x - fromEnd.x, to.z - fromEnd.z))) / DEG;
-    moves.push({ t0: endScene, t1: endScene + walkMs, clip: 'walk', from: fromEnd, to, speed: [0, 0], rateBySpeed: WALK_CLIP_MPS, rate: 1, turnMs: clamp(turn * 8.4, 500, 1700), turnEase: 'smooth', inertial: 240 });
+    const turn =
+      Math.abs(angleDelta(moves[moves.length - 1].heading ?? 0, headingOf(to.x - fromEnd.x, to.z - fromEnd.z))) / DEG;
+    moves.push({
+      t0: endScene,
+      t1: endScene + walkMs,
+      clip: 'walk',
+      from: fromEnd,
+      to,
+      speed: [0, 0],
+      rateBySpeed: WALK_CLIP_MPS,
+      rate: 1,
+      turnMs: clamp(turn * 8.4, 500, 1700),
+      turnEase: 'smooth',
+      inertial: 240,
+    });
     done += walkMs;
   }
   const start = rootAt(0);
   const deliveryEnd = ((c.source.markers.end ?? c.tEnd) - pre) * 1000;
-  const track: ActorTrack = { id: 'bowler', role: 'bowler', look: input.look, start, heading: moves[0].heading ?? 0, ...(input.mirror ? { mirror: true } : {}), moves };
-  return { track, runStart: 0, release, deliveryEnd, releaseMarker: c.tRelease - c.tEntry, followDone: done, followEnd: to };
+  const track: ActorTrack = {
+    id: 'bowler',
+    role: 'bowler',
+    look: input.look,
+    start,
+    heading: moves[0].heading ?? 0,
+    ...(input.mirror ? { mirror: true } : {}),
+    moves,
+  };
+  return {
+    track,
+    runStart: 0,
+    release,
+    deliveryEnd,
+    releaseMarker: c.tRelease - c.tEntry,
+    followDone: done,
+    followEnd: to,
+  };
 }
 
 /** The bowler's run-up, delivery stride and follow-through, released at a known scene time. */
@@ -734,7 +866,14 @@ export function bowlerRun(input: BowlerRunInput): BowlerRun {
   // The follow-through brakes at a constant rate to rest at followTo.
   const followTo = input.followTo
     ? v3(input.followTo.x, 0, input.followTo.z)
-    : add(releaseRoot, v3(Math.sin(0.12 * side) * (vRelease * FOLLOW_S[action]) / 2, 0, Math.cos(0.12 * side) * (vRelease * FOLLOW_S[action]) / 2));
+    : add(
+        releaseRoot,
+        v3(
+          (Math.sin(0.12 * side) * (vRelease * FOLLOW_S[action])) / 2,
+          0,
+          (Math.cos(0.12 * side) * (vRelease * FOLLOW_S[action])) / 2,
+        ),
+      );
   const followLen = Math.hypot(followTo.x - releaseRoot.x, followTo.z - releaseRoot.z);
   const remainder = deliveryEnd - release;
   const followMs = Math.max(remainder + 250, ((2 * followLen) / vRelease) * 1000);
@@ -769,15 +908,49 @@ export function bowlerRun(input: BowlerRunInput): BowlerRun {
         blend: pre > 0 ? 260 : 0,
         rate: spin ? 1 : RUN_SPEED[action] / 6.6,
       },
-      { t0: runEnd, t1: release, clip, from: gather, to: releaseRoot, speed: [vGather, vRelease], heading: 0, blend: 90 },
-      { t0: release, t1: deliveryEnd, clip, clipStart: mRelease, from: releaseRoot, to: clipOff, speed: [vRelease, vEnd], heading: 0, headingTo: Math.abs(followHeading) < 0.6 ? followHeading : 0.25 * side, blend: 0 },
-      { t0: deliveryEnd, t1: followDone, clip: 'walk', from: clipOff, to: followTo, speed: [vEnd, 0], rate: Math.max(0.35, vEnd / 2 / WALK_CLIP_MPS), blend: 220 },
+      {
+        t0: runEnd,
+        t1: release,
+        clip,
+        from: gather,
+        to: releaseRoot,
+        speed: [vGather, vRelease],
+        heading: 0,
+        blend: 90,
+      },
+      {
+        t0: release,
+        t1: deliveryEnd,
+        clip,
+        clipStart: mRelease,
+        from: releaseRoot,
+        to: clipOff,
+        speed: [vRelease, vEnd],
+        heading: 0,
+        headingTo: Math.abs(followHeading) < 0.6 ? followHeading : 0.25 * side,
+        blend: 0,
+      },
+      {
+        t0: deliveryEnd,
+        t1: followDone,
+        clip: 'walk',
+        from: clipOff,
+        to: followTo,
+        speed: [vEnd, 0],
+        rate: Math.max(0.35, vEnd / 2 / WALK_CLIP_MPS),
+        blend: 220,
+      },
     ],
   };
   return { track, runStart: pre, release, deliveryEnd, releaseMarker: mRelease, followDone, followEnd: followTo };
 }
 
-function setUp(b: Builder, path: RevealedDelivery['path'] | BallOutcome['cues']['path'], releaseToContactMs?: number, releaseAt?: number) {
+function setUp(
+  b: Builder,
+  path: RevealedDelivery['path'] | BallOutcome['cues']['path'],
+  releaseToContactMs?: number,
+  releaseAt?: number,
+) {
   const { ctx } = b;
   const run = bowlerRun({ action: ctx.action, look: ctx.cast.bowler, releaseAt });
   const pre = run.runStart;
@@ -801,7 +974,14 @@ function setUp(b: Builder, path: RevealedDelivery['path'] | BallOutcome['cues'][
   b.crowdKey(contact, 0.5);
 
   // Striker in the stance, non-striker backing up, keeper crouched, umpires set.
-  b.add({ id: 'striker', role: 'batter', look: ctx.cast.striker, start: STRIKER_POS, heading: HALF_PI, moves: [{ t0: 0, t1: contact, clip: 'stance' }] });
+  b.add({
+    id: 'striker',
+    role: 'batter',
+    look: ctx.cast.striker,
+    start: STRIKER_POS,
+    heading: HALF_PI,
+    moves: [{ t0: 0, t1: contact, clip: 'stance' }],
+  });
   const backUp = add(NON_STRIKER_POS, v3(0, 0, 1.1));
   b.add({
     id: 'nonStriker',
@@ -816,9 +996,30 @@ function setUp(b: Builder, path: RevealedDelivery['path'] | BallOutcome['cues'][
     ],
   });
   const kp = keeperPos(ctx.family);
-  b.add({ id: 'keeper', role: 'keeper', look: ctx.cast.keeper, start: kp, heading: Math.PI, moves: [{ t0: 0, t1: contact, clip: 'keep_crouch' }] });
-  b.add({ id: 'umpire', role: 'umpire', look: ctx.cast.umpires[0], start: UMPIRE_POS, heading: 0, moves: [{ t0: 0, t1: contact, clip: 'ump_stand' }] });
-  b.add({ id: 'umpire2', role: 'umpire', look: ctx.cast.umpires[1], start: SQUARE_UMPIRE_POS, heading: HALF_PI, moves: [{ t0: 0, t1: contact, clip: 'ump_stand' }] });
+  b.add({
+    id: 'keeper',
+    role: 'keeper',
+    look: ctx.cast.keeper,
+    start: kp,
+    heading: Math.PI,
+    moves: [{ t0: 0, t1: contact, clip: 'keep_crouch' }],
+  });
+  b.add({
+    id: 'umpire',
+    role: 'umpire',
+    look: ctx.cast.umpires[0],
+    start: UMPIRE_POS,
+    heading: 0,
+    moves: [{ t0: 0, t1: contact, clip: 'ump_stand' }],
+  });
+  b.add({
+    id: 'umpire2',
+    role: 'umpire',
+    look: ctx.cast.umpires[1],
+    start: SQUARE_UMPIRE_POS,
+    heading: HALF_PI,
+    moves: [{ t0: 0, t1: contact, clip: 'ump_stand' }],
+  });
 
   b.spots.forEach((s, i) => {
     const id = `f${i}`;
@@ -832,7 +1033,15 @@ function setUp(b: Builder, path: RevealedDelivery['path'] | BallOutcome['cues'][
       walkIn > 0
         ? [
             { t0: 0, t1: release - 1500 + delay, clip: 'idle', heading: facing },
-            { t0: release - 1500 + delay, t1: release - 250, clip: 'walk', from: s.pos, to: end, rate: 0.85, heading: facing },
+            {
+              t0: release - 1500 + delay,
+              t1: release - 250,
+              clip: 'walk',
+              from: s.pos,
+              to: end,
+              rate: 0.85,
+              heading: facing,
+            },
             { t0: release - 250, t1: contact, clip: 'ready', heading: facing, blend: 220 },
           ]
         : [
@@ -844,7 +1053,13 @@ function setUp(b: Builder, path: RevealedDelivery['path'] | BallOutcome['cues'][
 }
 
 /** The batter's shot, timed so the swing's contact lands at `contactAt` (shifted by the timing grade). */
-function shot(b: Builder, anim: BatterAnim, footwork: BallOutcome['cues']['footwork'], timing: TimingGrade, contactAt: number) {
+function shot(
+  b: Builder,
+  anim: BatterAnim,
+  footwork: BallOutcome['cues']['footwork'],
+  timing: TimingGrade,
+  contactAt: number,
+) {
   const clip = SHOT_CLIP[anim];
   const lower = anim === 'sweep' ? 'foot_sweep' : FOOT_CLIP[footwork];
   const marker = clipMarker(clip, 'contact', 0.45);
@@ -864,7 +1079,13 @@ function toKeeper(b: Builder) {
   const take = clipMarker('keep_take', 'catch', 0.3) * 1000;
   const stance = b.where('keeper', catchAt - take).pos;
   const line = v3(clamp(f.keeper.x, -1.4, 1.6), 0, stance.z);
-  b.hold('keeper', catchAt - take, catchAt, 'keep_take', { blend: 80, from: stance, to: line, ease: 'out', heading: Math.PI });
+  b.hold('keeper', catchAt - take, catchAt, 'keep_take', {
+    blend: 80,
+    from: stance,
+    to: line,
+    ease: 'out',
+    heading: Math.PI,
+  });
   b.hold('keeper', catchAt, catchAt - take + 1000, 'keep_take', { clipStart: take / 1000, blend: 0, heading: Math.PI });
   b.hold('keeper', catchAt - take + 1000, catchAt + 4000, 'idle', { blend: 300 });
   b.event(catchAt, 'gloves', 0.6, f.keeper);
@@ -892,7 +1113,9 @@ function celebrate(b: Builder, t0: number, ids: string[], style: 'wicket' | 'bou
         continue;
       }
       const arrive = b.go(id, t0 + delay, spot, d > 8 ? 6.6 : 4.2);
-      b.hold(id, arrive, arrive + 1500, b.rnd() > 0.5 ? 'celebrate_jump' : 'clap', { headingTo: headingOf(runTo.x - spot.x, runTo.z - spot.z) });
+      b.hold(id, arrive, arrive + 1500, b.rnd() > 0.5 ? 'celebrate_jump' : 'clap', {
+        headingTo: headingOf(runTo.x - spot.x, runTo.z - spot.z),
+      });
       b.hold(id, arrive + 1500, arrive + 6000, 'clap');
     }
   } else {
@@ -923,8 +1146,22 @@ function batterRuns(b: Builder, t0: number, runs: number): number {
   for (let i = 0; i < runs; i++) {
     const sTo = i % 2 === 0 ? -CREASE_Z - 0.3 : CREASE_Z + 0.3;
     const nTo = i % 2 === 0 ? CREASE_Z + 0.3 : -CREASE_Z - 0.3;
-    b.then('striker', { t0: t, t1: t + RUN_BETWEEN_MS, clip: 'bat_run', from: v3(laneS, 0, sz), to: v3(laneS, 0, sTo), ease: 'inOut' });
-    b.then('nonStriker', { t0: t, t1: t + RUN_BETWEEN_MS, clip: 'bat_run', from: v3(laneN, 0, nz), to: v3(laneN, 0, nTo), ease: 'inOut' });
+    b.then('striker', {
+      t0: t,
+      t1: t + RUN_BETWEEN_MS,
+      clip: 'bat_run',
+      from: v3(laneS, 0, sz),
+      to: v3(laneS, 0, sTo),
+      ease: 'inOut',
+    });
+    b.then('nonStriker', {
+      t0: t,
+      t1: t + RUN_BETWEEN_MS,
+      clip: 'bat_run',
+      from: v3(laneN, 0, nz),
+      to: v3(laneN, 0, nTo),
+      ease: 'inOut',
+    });
     t += RUN_BETWEEN_MS + 140;
     sz = sTo;
     nz = nTo;
@@ -939,7 +1176,12 @@ function batterRuns(b: Builder, t0: number, runs: number): number {
  * running at `arriveKph` when the fielder can be there in time, otherwise rolling to rest there and waiting for the
  * fielder. Returns when the ball reaches the fielder and when it is in the keeper's gloves.
  */
-function fieldBall(b: Builder, id: string, at: Vec3, o: { dive: boolean; arriveKph: number; notBefore?: number }): { ballArrive: number; inGloves: number } {
+function fieldBall(
+  b: Builder,
+  id: string,
+  at: Vec3,
+  o: { dive: boolean; arriveKph: number; notBefore?: number },
+): { ballArrive: number; inGloves: number } {
   const contact = b.times.contact;
   const start = b.where(id, contact).pos;
   const react = contact + 160 + b.rnd() * 120;
@@ -959,7 +1201,10 @@ function fieldBall(b: Builder, id: string, at: Vec3, o: { dive: boolean; arriveK
     const runEnd = Math.max(react + 200, c0);
     b.go(id, react, at, clamp(d / Math.max(0.2, (runEnd - react) / 1000), 2.5, 8.4));
   }
-  b.hold(id, c0, c0 + clipDuration(collectClip) * 1000, collectClip, { blend: 90, heading: headingOf(at.x - start.x, at.z - start.z) + (o.dive ? -HALF_PI : 0) });
+  b.hold(id, c0, c0 + clipDuration(collectClip) * 1000, collectClip, {
+    blend: 90,
+    heading: headingOf(at.x - start.x, at.z - start.z) + (o.dive ? -HALF_PI : 0),
+  });
   b.event(collect, 'fielded', o.dive ? 0.8 : 0.5, at);
   const throwStart = Math.max(c0 + clipDuration(collectClip) * 1000 - 120, o.notBefore ?? 0);
   const keeperAt = v3(0.2, 0, PITCH_HALF + 0.8);
@@ -967,13 +1212,22 @@ function fieldBall(b: Builder, id: string, at: Vec3, o: { dive: boolean; arriveK
   b.hold(id, throwStart, throwStart + clipDuration('throw') * 1000, 'throw', { heading: facing });
   const releaseAt = throwStart + clipMarker('throw', 'release', 0.48) * 1000;
   b.seg({ k: 'hand', t0: collect, t1: releaseAt, actor: id });
-  const gloves = b.follow(releaseAt, b.aim(v3(at.x, 1.9, at.z), v3(keeperAt.x, 1.0, keeperAt.z), 'carry', { elevationDeg: throwElevation(dist2D(at, keeperAt)) }));
+  const gloves = b.follow(
+    releaseAt,
+    b.aim(v3(at.x, 1.9, at.z), v3(keeperAt.x, 1.0, keeperAt.z), 'carry', {
+      elevationDeg: throwElevation(dist2D(at, keeperAt)),
+    }),
+  );
   b.seg({ k: 'hand', t0: gloves, t1: gloves + 60_000, actor: 'keeper' });
   b.event(releaseAt, 'throw', 0.5, at);
   b.event(gloves, 'gloves', 0.5, keeperAt);
   // Keeper comes up to the stumps and takes it.
   const kArrive = b.go('keeper', contact + 300, keeperAt, 5.5);
-  b.hold('keeper', Math.max(kArrive, gloves - 300), gloves + 3000, 'keep_take', { heading: Math.PI + facing, clipStart: 0, blend: 160 });
+  b.hold('keeper', Math.max(kArrive, gloves - 300), gloves + 3000, 'keep_take', {
+    heading: Math.PI + facing,
+    clipStart: 0,
+    blend: 160,
+  });
   b.hold(id, throwStart + clipDuration('throw') * 1000, throwStart + 8000, 'idle', { blend: 300 });
   return { ballArrive, inGloves: gloves };
 }
@@ -1026,7 +1280,14 @@ export function buildBallScript(input: BallScriptInput): BallScript {
   const { outcome } = input;
   const cues = outcome.cues;
   const family = familyOf(cues.path, outcome.delivery.variant);
-  const ctx: Ctx = { field: input.field, cast: input.cast, seed: input.seed, family, action: cues.bowlerAction, conditions: conditionsOf(input.pitch) };
+  const ctx: Ctx = {
+    field: input.field,
+    cast: input.cast,
+    seed: input.seed,
+    family,
+    action: cues.bowlerAction,
+    conditions: conditionsOf(input.pitch),
+  };
   const b = new Builder(ctx);
   const et = input.engineTimeline ?? null;
   setUp(b, cues.path, et ? et.contactAtMs - et.releaseAtMs : undefined, et ? et.releaseAtMs : undefined);
@@ -1034,14 +1295,22 @@ export function buildBallScript(input: BallScriptInput): BallScript {
   const contact = b.times.contact;
   const fate = cues.fate;
   const anim = cues.batterAnim;
-  const shotEnd = anim === 'leave' && outcome.contact === 'none' ? shot(b, 'leave', 'still', 'perfect', contact) : shot(b, anim, cues.footwork, outcome.timing, contact);
+  const shotEnd =
+    anim === 'leave' && outcome.contact === 'none'
+      ? shot(b, 'leave', 'still', 'perfect', contact)
+      : shot(b, anim, cues.footwork, outcome.timing, contact);
   b.times.shotEnd = shotEnd;
   const zone = (fate as { zone?: FieldZone | null }).zone ?? outcome.zone ?? null;
   let end = contact + 2000;
   const crowdPeak = clamp(cues.crowd, 0, 1);
   const contactPoint = f.atBat;
   const batEvent = (intensity: number) => {
-    const kind = outcome.contact === 'thin_edge' || outcome.contact === 'thick_edge' ? 'edge' : outcome.contact === 'pad' ? 'pad' : 'bat';
+    const kind =
+      outcome.contact === 'thin_edge' || outcome.contact === 'thick_edge'
+        ? 'edge'
+        : outcome.contact === 'pad'
+          ? 'pad'
+          : 'bat';
     b.event(contact, kind, intensity, contactPoint);
   };
 
@@ -1049,7 +1318,10 @@ export function buildBallScript(input: BallScriptInput): BallScript {
     case 'dot_block': {
       b.delivery(contact);
       // Dead bat or pad: it drops and dribbles to rest just in front.
-      const rest = outcome.contact === 'pad' ? v3(contactPoint.x - 1.6, BALL_R, contactPoint.z - 1.1) : v3(contactPoint.x * 0.5 + 0.4, BALL_R, contactPoint.z - 2.7);
+      const rest =
+        outcome.contact === 'pad'
+          ? v3(contactPoint.x - 1.6, BALL_R, contactPoint.z - 1.1)
+          : v3(contactPoint.x * 0.5 + 0.4, BALL_R, contactPoint.z - 2.7);
       b.follow(contact, b.aim(contactPoint, rest, 'ground'));
       batEvent(0.35);
       b.overlay.push({ t: contact + 300, kind: 'dot' });
@@ -1095,7 +1367,11 @@ export function buildBallScript(input: BallScriptInput): BallScript {
       const notBefore = contact + 380 + runs * (RUN_BETWEEN_MS + 140) - 900;
       b.shotBearing = bearingOf(target);
       const arriveKph = runs > 0 ? FIELD_ARRIVE_KPH.chase : dive ? FIELD_ARRIVE_KPH.dive : FIELD_ARRIVE_KPH.stop;
-      const { ballArrive, inGloves } = fieldBall(b, fielder, target, { dive, arriveKph, notBefore: runs > 0 ? notBefore : 0 });
+      const { ballArrive, inGloves } = fieldBall(b, fielder, target, {
+        dive,
+        arriveKph,
+        notBefore: runs > 0 ? notBefore : 0,
+      });
       const runsEnd = runs > 0 ? batterRuns(b, contact + 250, runs) : contact;
       if (runs === 0) b.hold('striker', shotEnd, shotEnd + 5000, 'stance', { blend: 400 });
       b.overlay.push({ t: runs > 0 ? runsEnd - 200 : ballArrive, kind: runs > 0 ? 'runs' : 'dot', value: runs });
@@ -1115,7 +1391,9 @@ export function buildBallScript(input: BallScriptInput): BallScript {
       const d = distanceToBoundary(z, bearing - ZONE_BEARING[z], -1.2);
       const rope = pointAt(bearing, d);
       // Along the ground, or in the air landing short of the rope: either way it runs over the rope.
-      const four = b.aim(contactPoint, rope, 'bounce_then_rope', { elevationDeg: fate.bounces ? FOUR_ELEVATION_DEG.along : FOUR_ELEVATION_DEG.aerial });
+      const four = b.aim(contactPoint, rope, 'bounce_then_rope', {
+        elevationDeg: fate.bounces ? FOUR_ELEVATION_DEG.along : FOUR_ELEVATION_DEG.aerial,
+      });
       const cross = b.follow(contact, four);
       b.shotBearing = bearing;
       // The closest fielder chases and dives at the rope, just too late.
@@ -1189,13 +1467,16 @@ export function buildBallScript(input: BallScriptInput): BallScript {
       const celebrants: string[] = [...b.spots.map((_, i) => `f${i}`), 'keeper'];
       if (kind === 'bowled') {
         const stumps = v3(0, 0.38, PITCH_HALF);
-        const offLine = Math.abs(f.path.lineAtBatM) > 0.16 || outcome.contact === 'thin_edge' || outcome.contact === 'thick_edge';
+        const offLine =
+          Math.abs(f.path.lineAtBatM) > 0.16 || outcome.contact === 'thin_edge' || outcome.contact === 'thick_edge';
         let hit: number;
         let atStumps: Vec3;
         if (offLine) {
           // Played on: off the inside edge, down onto the stumps.
           b.delivery(contact);
-          const on = b.aim(contactPoint, v3(clamp(contactPoint.x * 0.3, -0.09, 0.09), 0.3, STUMPS_FRONT_Z), 'carry', { elevationDeg: PLAYED_ON_ELEVATION_DEG });
+          const on = b.aim(contactPoint, v3(clamp(contactPoint.x * 0.3, -0.09, 0.09), 0.3, STUMPS_FRONT_Z), 'carry', {
+            elevationDeg: PLAYED_ON_ELEVATION_DEG,
+          });
           hit = b.follow(contact, on);
           atStumps = on.arrive;
           b.event(contact, 'edge', 0.5, contactPoint);
@@ -1215,30 +1496,62 @@ export function buildBallScript(input: BallScriptInput): BallScript {
       } else if (kind === 'caught') {
         b.delivery(contact);
         batEvent(outcome.contact === 'middle' ? 0.8 : 0.5);
-        const behind = !zone || outcome.contact === 'thin_edge' || (outcome.contact === 'thick_edge' && (zone === 'third_man' || zone === 'fine_leg'));
+        const behind =
+          !zone ||
+          outcome.contact === 'thin_edge' ||
+          (outcome.contact === 'thick_edge' && (zone === 'third_man' || zone === 'fine_leg'));
         // An edge behind goes to the keeper or, when the field has one, a slip or gully; anything else to the fielder there.
         const slips = b.spots.some((s) => s.kind === 'close' && s.zone === 'third_man');
-        const catcher = behind ? (!slips || b.rnd() > 0.4 || b.ctx.family === 'spin' ? 'keeper' : b.fielderFor('third_man', v3(1.5, 0, PITCH_HALF + 6), true)) : b.fielderFor(zone, undefined, true);
+        const catcher = behind
+          ? !slips || b.rnd() > 0.4 || b.ctx.family === 'spin'
+            ? 'keeper'
+            : b.fielderFor('third_man', v3(1.5, 0, PITCH_HALF + 6), true)
+          : b.fielderFor(zone, undefined, true);
         const cStart = b.where(catcher, contact).pos;
         const far = dist2D(cStart, contactPoint) > 14;
         const catchPt = far ? add(cStart, v3((b.rnd() - 0.5) * 6, 0, (b.rnd() - 0.5) * 6)) : cStart;
         const handsY = far ? 2.15 : catcher === 'keeper' ? 0.95 : 1.15;
         // A skier hangs; an edge carries flat and fast behind; anything else is a firm, low catch.
-        const elevationDeg = far ? SKIER_ELEVATION_DEG[0] + b.rnd() * (SKIER_ELEVATION_DEG[1] - SKIER_ELEVATION_DEG[0]) : behind ? EDGE_ELEVATION_DEG : undefined;
-        const caughtAt = b.follow(contact, b.aim(contactPoint, v3(catchPt.x, handsY, catchPt.z), 'carry', { elevationDeg, maxSpeedKph: CATCH_MAX_KPH }));
+        const elevationDeg = far
+          ? SKIER_ELEVATION_DEG[0] + b.rnd() * (SKIER_ELEVATION_DEG[1] - SKIER_ELEVATION_DEG[0])
+          : behind
+            ? EDGE_ELEVATION_DEG
+            : undefined;
+        const caughtAt = b.follow(
+          contact,
+          b.aim(contactPoint, v3(catchPt.x, handsY, catchPt.z), 'carry', { elevationDeg, maxSpeedKph: CATCH_MAX_KPH }),
+        );
         b.shotBearing = bearingOf(catchPt);
         const clip: ClipId = catcher === 'keeper' ? 'keep_take' : far ? 'catch_high' : 'catch_chest';
         const marker = clipMarker(clip, 'catch', 0.4) * 1000;
-        if (far) b.go(catcher, contact + 250, catchPt, Math.max(2.5, dist2D(cStart, catchPt) / Math.max(0.4, (caughtAt - marker - contact - 300) / 1000)));
-        b.hold(catcher, caughtAt - marker, caughtAt - marker + clipDuration(clip) * 1000, clip, { blend: 100, heading: headingOf(contactPoint.x - catchPt.x, contactPoint.z - catchPt.z) });
+        if (far)
+          b.go(
+            catcher,
+            contact + 250,
+            catchPt,
+            Math.max(2.5, dist2D(cStart, catchPt) / Math.max(0.4, (caughtAt - marker - contact - 300) / 1000)),
+          );
+        b.hold(catcher, caughtAt - marker, caughtAt - marker + clipDuration(clip) * 1000, clip, {
+          blend: 100,
+          heading: headingOf(contactPoint.x - catchPt.x, contactPoint.z - catchPt.z),
+        });
         // Ball tossed up in celebration.
         const toss = caughtAt + 900;
         b.seg({ k: 'hand', t0: caughtAt, t1: toss, actor: catcher });
-        b.follow(toss, b.aim(v3(catchPt.x, 2.1, catchPt.z), v3(catchPt.x + 0.6, BALL_R, catchPt.z + 0.4), 'carry', { elevationDeg: TOSS_ELEVATION_DEG, spin: v3(), keep: 'all' }));
+        b.follow(
+          toss,
+          b.aim(v3(catchPt.x, 2.1, catchPt.z), v3(catchPt.x + 0.6, BALL_R, catchPt.z + 0.4), 'carry', {
+            elevationDeg: TOSS_ELEVATION_DEG,
+            spin: v3(),
+            keep: 'all',
+          }),
+        );
         b.event(caughtAt, 'catch', 1, catchPt);
         decisive = caughtAt;
         celebrants.splice(celebrants.indexOf(catcher), 1);
-        b.hold(catcher, caughtAt - marker + clipDuration(clip) * 1000, caughtAt + 6000, 'celebrate_jump', { blend: 150 });
+        b.hold(catcher, caughtAt - marker + clipDuration(clip) * 1000, caughtAt + 6000, 'celebrate_jump', {
+          blend: 150,
+        });
       } else if (kind === 'lbw') {
         b.delivery(contact);
         b.event(contact, 'pad', 0.8, contactPoint);
@@ -1247,15 +1560,24 @@ export function buildBallScript(input: BallScriptInput): BallScript {
         const appealAt = contact + 250;
         const clip = DELIVERY_CLIP[b.ctx.action];
         const deliveryEnd = b.times.release - clipMarker(clip, 'release', 0.6) * 1000 + clipDuration(clip) * 1000;
-        b.hold('bowler', Math.max(appealAt, deliveryEnd - 500), Math.max(appealAt, deliveryEnd - 500) + 1500, 'appeal', { headingTo: Math.PI, blend: 200 });
+        b.hold(
+          'bowler',
+          Math.max(appealAt, deliveryEnd - 500),
+          Math.max(appealAt, deliveryEnd - 500) + 1500,
+          'appeal',
+          { headingTo: Math.PI, blend: 200 },
+        );
         b.event(appealAt, 'appeal', 1);
         decisive = contact + 1250;
         b.hold('umpire', contact + 700, contact + 2900, 'ump_out', { blend: 200 });
         b.event(contact + 1250, 'signal', 1);
       } else if (kind === 'stumped') {
         const { catchAt } = toKeeper(b);
-        const hitAt = catchAt + (clipMarker('keep_stump', 'hit', 0.42) - clipMarker('keep_stump', 'catch', 0.22)) * 1000;
-        b.hold('keeper', catchAt - clipMarker('keep_stump', 'catch', 0.22) * 1000, hitAt + 1500, 'keep_stump', { blend: 80 });
+        const hitAt =
+          catchAt + (clipMarker('keep_stump', 'hit', 0.42) - clipMarker('keep_stump', 'catch', 0.22)) * 1000;
+        b.hold('keeper', catchAt - clipMarker('keep_stump', 'catch', 0.22) * 1000, hitAt + 1500, 'keep_stump', {
+          blend: 80,
+        });
         b.stumps.striker = { t: hitAt, dir: v3(0.3, 0.6, -0.2), strength: 0.45 };
         b.event(hitAt, 'bails', 1, v3(0, 0.71, PITCH_HALF));
         decisive = hitAt;
@@ -1269,7 +1591,10 @@ export function buildBallScript(input: BallScriptInput): BallScript {
         const fielder = b.fielderFor(z);
         const spot = b.where(fielder, contact).pos;
         const pick = add(spot, v3(0.6, 0, 0.4));
-        const picked = b.follow(contact, b.aim(contactPoint, v3(pick.x, BALL_R, pick.z), 'ground', { arriveSpeedKph: FIELD_ARRIVE_KPH.stop }));
+        const picked = b.follow(
+          contact,
+          b.aim(contactPoint, v3(pick.x, BALL_R, pick.z), 'ground', { arriveSpeedKph: FIELD_ARRIVE_KPH.stop }),
+        );
         b.shotBearing = bearingOf(pick);
         b.go(fielder, contact + 150, pick, 6);
         b.hold(fielder, picked - 320, picked + 300, 'pickup', { blend: 80 });
@@ -1279,7 +1604,9 @@ export function buildBallScript(input: BallScriptInput): BallScript {
         const rel = picked + 250 + clipMarker('throw', 'release', 0.48) * 1000;
         b.seg({ k: 'hand', t0: picked, t1: rel, actor: fielder });
         // A flat throw and a direct hit at the bowler's end; the ball runs on past the stumps.
-        const direct = b.aim(v3(pick.x, 1.8, pick.z), target, 'carry', { elevationDeg: directHitElevation(dist2D(pick, target)) });
+        const direct = b.aim(v3(pick.x, 1.8, pick.z), target, 'carry', {
+          elevationDeg: directHitElevation(dist2D(pick, target)),
+        });
         const hitAt = b.follow(rel, direct);
         b.follow(hitAt, b.aim(direct.arrive, v3(-0.6, BALL_R, -PITCH_HALF - 4), 'ground'));
         b.stumps.nonStriker = { t: hitAt, dir: v3(-0.3, 0.3, -1), strength: 0.8 };
@@ -1290,7 +1617,13 @@ export function buildBallScript(input: BallScriptInput): BallScript {
         const short = v3(1.25, 0, -CREASE_Z + 1.3);
         b.then('striker', { t0: contact + 250, t1: hitAt + 60, clip: 'bat_run', from: sFrom, to: short });
         b.hold('striker', hitAt + 60, hitAt + 900, 'dive', { heading: Math.PI, blend: 80 });
-        b.then('nonStriker', { t0: contact + 250, t1: hitAt, clip: 'bat_run', from: b.where('nonStriker', contact + 250).pos, to: v3(-1.25, 0, CREASE_Z - 1.5) });
+        b.then('nonStriker', {
+          t0: contact + 250,
+          t1: hitAt,
+          clip: 'bat_run',
+          from: b.where('nonStriker', contact + 250).pos,
+          to: v3(-1.25, 0, CREASE_Z - 1.5),
+        });
         decisive = hitAt;
         celebrants.splice(celebrants.indexOf(fielder), 1);
         b.hold(fielder, picked + 1200, picked + 6000, 'celebrate_jump', { blend: 150 });
@@ -1301,7 +1634,12 @@ export function buildBallScript(input: BallScriptInput): BallScript {
       b.crowdKey(decisive - 80, 0.5);
       b.crowdKey(decisive + 250, 0.7 + crowdPeak * 0.3);
       b.crowdKey(decisive + 3500, 0.55);
-      celebrate(b, decisive + 250, celebrants.filter((id) => id !== 'bowler'), 'wicket');
+      celebrate(
+        b,
+        decisive + 250,
+        celebrants.filter((id) => id !== 'bowler'),
+        'wicket',
+      );
       walkOff(b, kind === 'run_out' ? 'striker' : 'striker', Math.max(decisive + 1100, shotEnd));
       b.hold('nonStriker', decisive + 600, decisive + 9000, 'dejected', { blend: 400 });
       end = decisive + 4300;
@@ -1315,7 +1653,8 @@ export function buildBallScript(input: BallScriptInput): BallScript {
     const around = fate.kind === 'six' || fate.kind === 'four' ? contact : d;
     b.slowMo = { t0: around - 260, t1: around + 520, rate: 0.3 };
   }
-  const cameras = cues.cameras && cues.cameras.length ? retimeCameras(cues.cameras, et, b.times, cues.celebration !== 'none') : null;
+  const cameras =
+    cues.cameras && cues.cameras.length ? retimeCameras(cues.cameras, et, b.times, cues.celebration !== 'none') : null;
   return b.build('ball', fate, cues.celebration, cameras && cameras.length ? cameras : null, end);
 }
 
@@ -1344,7 +1683,14 @@ export interface LiveScriptInput {
 export function buildLiveScript(input: LiveScriptInput): BallScript {
   const d = input.delivery;
   const action = actionForFamily(d.family, d.variant, d.intensity);
-  const ctx: Ctx = { field: input.field, cast: input.cast, seed: input.seed, family: d.family, action, conditions: conditionsOf(input.pitch) };
+  const ctx: Ctx = {
+    field: input.field,
+    cast: input.cast,
+    seed: input.seed,
+    family: d.family,
+    action,
+    conditions: conditionsOf(input.pitch),
+  };
   const b = new Builder(ctx);
   setUp(b, d.path, d.timing.releaseToContactMs, input.releaseAt);
   const f = b.flight!;
@@ -1365,15 +1711,33 @@ export function buildLiveScript(input: LiveScriptInput): BallScript {
       b.delivery(contact);
       const p = f.atBat;
       const zone = s.zone ?? 'mid_off';
-      const bearing = ZONE_BEARING[zone] + (s.contact === 'thin_edge' ? 140 - ZONE_BEARING[zone] : s.contact === 'thick_edge' ? 25 : 0);
+      const bearing =
+        ZONE_BEARING[zone] +
+        (s.contact === 'thin_edge' ? 140 - ZONE_BEARING[zone] : s.contact === 'thick_edge' ? 25 : 0);
       const dir = dirOfBearing(bearing);
       // The result is sealed: only the shot's first moments show, launched off the bat through the integrator.
       const speed = s.contact === 'middle' ? LIVE_SPEED.middle : s.contact === 'pad' ? LIVE_SPEED.pad : LIVE_SPEED.edge;
-      const e = (s.shot === 'loft' && s.contact === 'middle' ? LIVE_ELEVATION_DEG.loft : s.contact === 'pad' ? LIVE_ELEVATION_DEG.pad : LIVE_ELEVATION_DEG.other) * DEG;
+      const e =
+        (s.shot === 'loft' && s.contact === 'middle'
+          ? LIVE_ELEVATION_DEG.loft
+          : s.contact === 'pad'
+            ? LIVE_ELEVATION_DEG.pad
+            : LIVE_ELEVATION_DEG.other) * DEG;
       const launch = v3(dir.x * speed * Math.cos(e), speed * Math.sin(e), dir.z * speed * Math.cos(e));
-      b.follow(contact, flyFrom(p, launch, (sealAt - contact) / 1000 + 0.05, { backspinRps: s.contact === 'pad' ? 0 : LIVE_BACKSPIN_RPS, conditions: ctx.conditions }));
+      b.follow(
+        contact,
+        flyFrom(p, launch, (sealAt - contact) / 1000 + 0.05, {
+          backspinRps: s.contact === 'pad' ? 0 : LIVE_BACKSPIN_RPS,
+          conditions: ctx.conditions,
+        }),
+      );
       b.shotBearing = bearing;
-      b.event(contact, s.contact === 'pad' ? 'pad' : s.contact === 'middle' ? 'bat' : 'edge', s.contact === 'middle' ? (s.timing === 'perfect' ? 1 : 0.75) : 0.45, p);
+      b.event(
+        contact,
+        s.contact === 'pad' ? 'pad' : s.contact === 'middle' ? 'bat' : 'edge',
+        s.contact === 'middle' ? (s.timing === 'perfect' ? 1 : 0.75) : 0.45,
+        p,
+      );
     }
   }
   b.event(sealAt, 'seal', 1);
@@ -1392,20 +1756,78 @@ export function buildLiveScript(input: LiveScriptInput): BallScript {
  * `beat`: the held breath before the result (the crowd hushes, the sound builds, the camera pushes in), after which
  * the result lands with a hit and the celebrations start.
  */
-export function buildAmbientScript(field: FieldSetting, cast: Cast, family: DeliveryFamily, duration: number, seed: number, mood: 'intro' | 'innings' | 'result' | 'live' = 'intro', winners: 'batting' | 'bowling' | null = null, beat = 0): BallScript {
+export function buildAmbientScript(
+  field: FieldSetting,
+  cast: Cast,
+  family: DeliveryFamily,
+  duration: number,
+  seed: number,
+  mood: 'intro' | 'innings' | 'result' | 'live' = 'intro',
+  winners: 'batting' | 'bowling' | null = null,
+  beat = 0,
+): BallScript {
   const action = actionForFamily(family);
   const b = new Builder({ field, cast, seed, family, action, conditions: conditionsOf(undefined) });
   const spots = b.spots;
   const top = v3(1.25, 0, RELEASE.z - 0.35 - STRIDE[action] - runUpLength(action));
-  b.add({ id: 'bowler', role: 'bowler', look: cast.bowler, start: top, heading: 0, moves: [{ t0: 0, t1: duration, clip: 'idle' }] });
-  b.add({ id: 'striker', role: 'batter', look: cast.striker, start: STRIKER_POS, heading: HALF_PI, moves: [{ t0: 0, t1: duration, clip: 'stance' }] });
-  b.add({ id: 'nonStriker', role: 'batter', look: cast.nonStriker, start: NON_STRIKER_POS, heading: 0, moves: [{ t0: 0, t1: duration, clip: 'idle' }] });
-  b.add({ id: 'keeper', role: 'keeper', look: cast.keeper, start: keeperPos(family), heading: Math.PI, moves: [{ t0: 0, t1: duration, clip: 'idle' }] });
-  b.add({ id: 'umpire', role: 'umpire', look: cast.umpires[0], start: UMPIRE_POS, heading: 0, moves: [{ t0: 0, t1: duration, clip: 'ump_stand' }] });
-  b.add({ id: 'umpire2', role: 'umpire', look: cast.umpires[1], start: SQUARE_UMPIRE_POS, heading: HALF_PI, moves: [{ t0: 0, t1: duration, clip: 'ump_stand' }] });
+  b.add({
+    id: 'bowler',
+    role: 'bowler',
+    look: cast.bowler,
+    start: top,
+    heading: 0,
+    moves: [{ t0: 0, t1: duration, clip: 'idle' }],
+  });
+  b.add({
+    id: 'striker',
+    role: 'batter',
+    look: cast.striker,
+    start: STRIKER_POS,
+    heading: HALF_PI,
+    moves: [{ t0: 0, t1: duration, clip: 'stance' }],
+  });
+  b.add({
+    id: 'nonStriker',
+    role: 'batter',
+    look: cast.nonStriker,
+    start: NON_STRIKER_POS,
+    heading: 0,
+    moves: [{ t0: 0, t1: duration, clip: 'idle' }],
+  });
+  b.add({
+    id: 'keeper',
+    role: 'keeper',
+    look: cast.keeper,
+    start: keeperPos(family),
+    heading: Math.PI,
+    moves: [{ t0: 0, t1: duration, clip: 'idle' }],
+  });
+  b.add({
+    id: 'umpire',
+    role: 'umpire',
+    look: cast.umpires[0],
+    start: UMPIRE_POS,
+    heading: 0,
+    moves: [{ t0: 0, t1: duration, clip: 'ump_stand' }],
+  });
+  b.add({
+    id: 'umpire2',
+    role: 'umpire',
+    look: cast.umpires[1],
+    start: SQUARE_UMPIRE_POS,
+    heading: HALF_PI,
+    moves: [{ t0: 0, t1: duration, clip: 'ump_stand' }],
+  });
   spots.forEach((s, i) => {
     const facing = headingOf(-s.pos.x, CONTACT_Z - s.pos.z);
-    b.add({ id: `f${i}`, role: 'fielder', look: cast.fielders[i] ?? cast.keeper, start: s.pos, heading: facing, moves: [{ t0: 0, t1: duration, clip: b.rnd() > 0.5 ? 'idle' : 'ready', clipStart: b.rnd() * 2 }] });
+    b.add({
+      id: `f${i}`,
+      role: 'fielder',
+      look: cast.fielders[i] ?? cast.keeper,
+      start: s.pos,
+      heading: facing,
+      moves: [{ t0: 0, t1: duration, clip: b.rnd() > 0.5 ? 'idle' : 'ready', clipStart: b.rnd() * 2 }],
+    });
   });
   b.seg({ k: 'gone', t0: 0, t1: duration });
   const hold = mood === 'result' ? Math.max(0, Math.min(beat, duration - 1000)) : 0;
@@ -1428,9 +1850,19 @@ export function buildAmbientScript(field: FieldSetting, cast: Cast, family: Deli
       b.hold('striker', hold + 2200, duration, 'bat_raise', { blend: 250 });
       b.hold('nonStriker', hold + 2200, duration, 'celebrate_jump', { blend: 250 });
     }
-    for (let k = 0; k < 4; k++) b.event(hold + 400 + k * 900, 'fireworks', 1, v3(Math.cos(k * 1.7) * 70, 30, Math.sin(k * 1.7) * 70));
+    for (let k = 0; k < 4; k++)
+      b.event(hold + 400 + k * 900, 'fireworks', 1, v3(Math.cos(k * 1.7) * 70, 30, Math.sin(k * 1.7) * 70));
   }
-  b.times = { runStart: 0, release: duration, bounce: duration, contact: duration, decisive: hold > 0 ? hold : duration * 0.4, shotEnd: duration, celebrate: mood === 'result' ? hold + 300 : null, end: duration };
+  b.times = {
+    runStart: 0,
+    release: duration,
+    bounce: duration,
+    contact: duration,
+    decisive: hold > 0 ? hold : duration * 0.4,
+    shotEnd: duration,
+    celebrate: mood === 'result' ? hold + 300 : null,
+    end: duration,
+  };
   const script = b.build('ambient', { kind: 'ambient' }, mood === 'result' ? 'milestone' : 'none', null, duration);
   if (mood === 'live') script.camera = 'batting_pov';
   if (hold > 0) script.beat = hold;
@@ -1441,7 +1873,12 @@ export function buildAmbientScript(field: FieldSetting, cast: Cast, family: Deli
  * Maps engine camera cues (timed on the engine's per-ball timeline) onto this choreography: release and contact
  * are identical by construction; the aftermath and celebration stretch to the animated durations.
  */
-export function retimeCameras(cues: readonly CameraCue[], et: { releaseAtMs: number; contactAtMs: number; endMs: number } | null, times: KeyTimes, celebrates: boolean): CameraCue[] {
+export function retimeCameras(
+  cues: readonly CameraCue[],
+  et: { releaseAtMs: number; contactAtMs: number; endMs: number } | null,
+  times: KeyTimes,
+  celebrates: boolean,
+): CameraCue[] {
   const sorted = [...cues].filter((c) => c.durationMs > 0).sort((a, b) => a.atMs - b.atMs);
   if (!sorted.length) return [];
   const last = sorted[sorted.length - 1];
@@ -1520,7 +1957,10 @@ export function sampleBall(script: BallScript, t: number, handOf?: (actor: strin
         if (p) {
           const phys = v3(ph.mirror ? -p.x : p.x, p.y, p.z);
           const s = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
-          const w = Math.min(ph.inMs > 0 ? s((t - seg.t0) / ph.inMs) : 1, ph.outMs > 0 ? s((seg.t1 - t) / ph.outMs) : 1);
+          const w = Math.min(
+            ph.inMs > 0 ? s((t - seg.t0) / ph.inMs) : 1,
+            ph.outMs > 0 ? s((seg.t1 - t) / ph.outMs) : 1,
+          );
           return { pos: lerpV(phys, hp, w), visible: true, heldBy: seg.actor, spin: 0, inFlight: false };
         }
       }
@@ -1534,8 +1974,18 @@ export function sampleBall(script: BallScript, t: number, handOf?: (actor: strin
       const moving = st < seg.samples[seg.samples.length - 1].t;
       const spinOrigin = seg.spinOrigin ?? seg.release;
       const stoppedAt = seg.release + seg.samples[seg.samples.length - 1].t * 1000;
-      const spin = (Math.max(0, (moving ? t : stoppedAt) - spinOrigin)) * (seg.spinRate ?? 0);
-      return { pos: v3(seg.mirror ? -p.x : p.x, p.y, p.z), visible: true, heldBy: null, spin, inFlight: moving, spinAxis: seg.spinAxis, seamAxis: seg.seamAxis, shineAxis: seg.shineAxis, surfaceTangent: seg.surfaceTangent };
+      const spin = Math.max(0, (moving ? t : stoppedAt) - spinOrigin) * (seg.spinRate ?? 0);
+      return {
+        pos: v3(seg.mirror ? -p.x : p.x, p.y, p.z),
+        visible: true,
+        heldBy: null,
+        spin,
+        inFlight: moving,
+        spinAxis: seg.spinAxis,
+        seamAxis: seg.seamAxis,
+        shineAxis: seg.shineAxis,
+        surfaceTangent: seg.surfaceTangent,
+      };
     }
     default:
       return { pos: v3(0, -10, 0), visible: false, heldBy: null, spin: 0, inFlight: false };

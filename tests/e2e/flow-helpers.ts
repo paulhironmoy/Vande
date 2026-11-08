@@ -2,14 +2,26 @@
  * Helpers for the cross-workstream flow suite (FLOW=1, playwright.config.ts): real app build, real backend in process,
  * real engine. Only stable data-testids from docs/VISUAL_SYSTEM.md §8 are used.
  */
-import { devices, expect, type APIRequestContext, type Browser, type BrowserContext, type Page } from '@playwright/test';
+import {
+  devices,
+  expect,
+  type APIRequestContext,
+  type Browser,
+  type BrowserContext,
+  type Page,
+} from '@playwright/test';
 
 export const FLOW_BASE = 'http://localhost:4174';
 /** A year of birth comfortably over 18 for the neutral age screen. */
 export const ADULT_YEAR = String(new Date().getFullYear() - 30);
 
 export async function newPhone(browser: Browser): Promise<{ context: BrowserContext; page: Page }> {
-  const context = await browser.newContext({ ...devices['Pixel 7'], baseURL: FLOW_BASE, serviceWorkers: 'block', colorScheme: 'dark' });
+  const context = await browser.newContext({
+    ...devices['Pixel 7'],
+    baseURL: FLOW_BASE,
+    serviceWorkers: 'block',
+    colorScheme: 'dark',
+  });
   const page = await context.newPage();
   return { context, page };
 }
@@ -62,7 +74,9 @@ export async function planAndLock(page: Page): Promise<void> {
   await page.getByTestId('plan-lock').click();
   await page.getByTestId('plan-lock-dialog-confirm').click();
   // Sealed; when the opponent had already locked, the innings is ready straight away.
-  await expect(page.getByTestId('match-sealed').or(page.getByTestId('match-bat-card'))).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId('match-sealed').or(page.getByTestId('match-bat-card'))).toBeVisible({
+    timeout: 20_000,
+  });
 }
 
 /**
@@ -73,7 +87,10 @@ export async function planAndLock(page: Page): Promise<void> {
 export async function batInnings(page: Page): Promise<number> {
   const screen = page.getByTestId('batting-screen');
   await expect(screen).toBeVisible({ timeout: 20_000 });
-  const state = async () => ({ phase: await screen.getAttribute('data-phase'), balls: await screen.getAttribute('data-balls') });
+  const state = async () => ({
+    phase: await screen.getAttribute('data-phase'),
+    balls: await screen.getAttribute('data-balls'),
+  });
   for (let guard = 0; guard < 20; guard++) {
     await expect(screen).toHaveAttribute('data-phase', /ready|feedback|live|done|error/, { timeout: 30_000 });
     const { phase, balls } = await state();
@@ -86,16 +103,27 @@ export async function batInnings(page: Page): Promise<number> {
       await page.getByTestId('bat-next').click();
       // This ball is live, or already over (counted) if it was missed, or the innings ended.
       await expect
-        .poll(async () => {
-          const s = await state();
-          return s.phase === 'live' || s.phase === 'done' || s.phase === 'error' || (s.balls !== balls && (s.phase === 'feedback' || s.phase === 'ready'));
-        }, { timeout: 30_000 })
+        .poll(
+          async () => {
+            const s = await state();
+            return (
+              s.phase === 'live' ||
+              s.phase === 'done' ||
+              s.phase === 'error' ||
+              (s.balls !== balls && (s.phase === 'feedback' || s.phase === 'ready'))
+            );
+          },
+          { timeout: 30_000 },
+        )
         .toBe(true);
       if ((await screen.getAttribute('data-phase')) !== 'live') continue;
     }
     // A short, human reaction before the tap (the timing grade does not matter here).
     await page.waitForTimeout(120 + ((guard * 37) % 150));
-    await page.getByTestId('bat-hit').click({ timeout: 3_000 }).catch(() => undefined);
+    await page
+      .getByTestId('bat-hit')
+      .click({ timeout: 3_000 })
+      .catch(() => undefined);
     await expect(screen).toHaveAttribute('data-phase', /feedback|done|error/, { timeout: 30_000 });
   }
   await expect(page.getByTestId('bat-done')).toBeVisible({ timeout: 30_000 });

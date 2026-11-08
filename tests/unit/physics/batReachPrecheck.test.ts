@@ -1,23 +1,13 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import {
-  batterBody,
-  rootReachIntersectionPossible,
-  type BatPose,
-  type BatterBody,
-} from '@/physics/bat';
+import { batterBody, rootReachIntersectionPossible, type BatPose, type BatterBody } from '@/physics/bat';
 import {
   BAT_BODY_RETARGET_M,
   BAT_HAND_REACH_SOLVE_M,
   batterShoulders,
   solveBatterRootOffsetForPosesOracle,
 } from '@/physics/admissibility';
-import {
-  BLADE_L,
-  HANDLE_L,
-  LOWER_HAND_FROM_CAP,
-  TOP_HAND_FROM_CAP,
-} from '@/physics/constants';
+import { BLADE_L, HANDLE_L, LOWER_HAND_FROM_CAP, TOP_HAND_FROM_CAP } from '@/physics/constants';
 
 function lawfulVerticalFixture(body: BatterBody): BatPose {
   const [topShoulder, lowerShoulder] = batterShoulders(body);
@@ -50,10 +40,7 @@ describe('legacy root-reach necessary precheck', () => {
     expect(boundary.solved).toBe(true);
     expect(rootReachIntersectionPossible([fixture], body)).toBe(true);
 
-    const impossible = [
-      translated(fixture, -0.9, 0, 0),
-      translated(fixture, 0.9, 0, 0),
-    ];
+    const impossible = [translated(fixture, -0.9, 0, 0), translated(fixture, 0.9, 0, 0)];
     expect(solveBatterRootOffsetForPosesOracle(impossible, body).solved).toBe(false);
     expect(rootReachIntersectionPossible(impossible, body)).toBe(false);
   });
@@ -82,13 +69,10 @@ describe('legacy root-reach necessary precheck', () => {
     const sets: BatPose[][] = [];
     for (const x of [-0.75, -0.4, -0.18, 0, 0.18, 0.4, 0.75]) {
       for (const z of [-0.45, -0.12, 0, 0.12, 0.45]) {
-        const centre = translated(fixture, x, ((x + z) * 0.03), z);
+        const centre = translated(fixture, x, (x + z) * 0.03, z);
         sets.push([centre]);
         if (Math.abs(x) <= 0.18 && Math.abs(z) <= 0.12) {
-          sets.push([
-            translated(centre, -0.015, -0.01, 0.012),
-            translated(centre, 0.015, 0.01, -0.012),
-          ]);
+          sets.push([translated(centre, -0.015, -0.01, 0.012), translated(centre, 0.015, 0.01, -0.012)]);
         }
       }
     }

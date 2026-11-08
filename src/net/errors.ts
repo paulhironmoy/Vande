@@ -3,7 +3,13 @@ import type { ApiErrorCode } from '@/contracts';
 
 export type ClientErrorCode = ApiErrorCode | 'network' | 'timeout' | 'offline' | 'bad_response';
 
-const RETRYABLE: ReadonlySet<ClientErrorCode> = new Set(['network', 'timeout', 'offline', 'rate_limited', 'unavailable']);
+const RETRYABLE: ReadonlySet<ClientErrorCode> = new Set([
+  'network',
+  'timeout',
+  'offline',
+  'rate_limited',
+  'unavailable',
+]);
 
 export class ApiClientError extends Error {
   readonly code: ClientErrorCode;
@@ -13,7 +19,13 @@ export class ApiClientError extends Error {
   /** From x-decided-at: when a sealed result is decided (e.g. a Top 100 day before its 00:00 IST cutoff). */
   readonly decidedAt: string | null;
 
-  constructor(code: ClientErrorCode, message: string, status = 0, retryAfterMs: number | null = null, decidedAt: string | null = null) {
+  constructor(
+    code: ClientErrorCode,
+    message: string,
+    status = 0,
+    retryAfterMs: number | null = null,
+    decidedAt: string | null = null,
+  ) {
     super(message);
     this.name = 'ApiClientError';
     this.code = code;

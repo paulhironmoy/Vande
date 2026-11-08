@@ -39,7 +39,8 @@ export interface AgeInput {
 }
 
 /** The next thing the screen needs, or the answer. Only the year at first; the birthday only for the year that decides. */
-export type AgeStep = { kind: 'answer'; answer: AgeAnswer } | { kind: 'need'; field: 'year' | 'month' | 'day'; invalid: boolean };
+export type AgeStep =
+  { kind: 'answer'; answer: AgeAnswer } | { kind: 'need'; field: 'year' | 'month' | 'day'; invalid: boolean };
 
 export function ageStep(input: AgeInput, today: Date): AgeStep {
   const y = today.getFullYear();
@@ -56,7 +57,8 @@ export function ageStep(input: AgeInput, today: Date): AgeStep {
   if (!Number.isInteger(month) || month < 1 || month > 12) return { kind: 'need', field: 'month', invalid: true };
   if (month !== m) return { kind: 'answer', answer: month < m ? 'adult' : 'under' };
   if (day === null) return { kind: 'need', field: 'day', invalid: false };
-  if (!Number.isInteger(day) || day < 1 || day > new Date(year, month, 0).getDate()) return { kind: 'need', field: 'day', invalid: true };
+  if (!Number.isInteger(day) || day < 1 || day > new Date(year, month, 0).getDate())
+    return { kind: 'need', field: 'day', invalid: true };
   return { kind: 'answer', answer: day <= d ? 'adult' : 'under' };
 }
 

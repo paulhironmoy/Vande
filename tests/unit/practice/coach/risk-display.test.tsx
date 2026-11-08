@@ -33,7 +33,11 @@ const CERTAIN: Record<(typeof LOCALES)[number], RegExp> = {
   hi: /कोई जोखिम नहीं|जोखिम नहीं|बिना जोखिम|शून्य जोखिम|कभी आउट नहीं|आउट नहीं हो सकते/,
   'hi-Latn': /\b(koi risk nahi|risk nahi|bina risk|zero risk|kabhi out nahi|out nahi ho sakte|safe hai)\b/i,
 };
-const COACH_COPY: Record<(typeof LOCALES)[number], Record<string, string>> = { en: coachEn, hi: coachHi, 'hi-Latn': coachHiLatn };
+const COACH_COPY: Record<(typeof LOCALES)[number], Record<string, string>> = {
+  en: coachEn,
+  hi: coachHi,
+  'hi-Latn': coachHiLatn,
+};
 
 /** The reference over at Play and Real: real analyses, every one with options the coach shows at a grid-zero risk. */
 const analyses: Array<{ label: string; analysis: CoachAnalysis }> = (['play', 'real'] as const).flatMap((assist) =>

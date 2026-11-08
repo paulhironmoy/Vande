@@ -62,8 +62,21 @@ export function createNet(o: NetOptions): Net | null {
   if (!config.apiUrl) return null;
   let connectivity: Connectivity | null = null;
   const report = (ok: boolean) => connectivity?.report(ok);
-  const anonymous = createApiClient({ baseUrl: config.apiUrl, fetch: o.fetch, timeoutMs: config.timeoutMs, clientId: config.clientId, onNetworkResult: report });
-  const session = new SessionManager({ store: o.secureStore, api: anonymous, locale: o.locale, now: o.now, locks: o.locks, adultConfirmed: o.adultConfirmed });
+  const anonymous = createApiClient({
+    baseUrl: config.apiUrl,
+    fetch: o.fetch,
+    timeoutMs: config.timeoutMs,
+    clientId: config.clientId,
+    onNetworkResult: report,
+  });
+  const session = new SessionManager({
+    store: o.secureStore,
+    api: anonymous,
+    locale: o.locale,
+    now: o.now,
+    locks: o.locks,
+    adultConfirmed: o.adultConfirmed,
+  });
   const api = createApiClient({
     baseUrl: config.apiUrl,
     fetch: o.fetch,
@@ -79,10 +92,13 @@ export function createNet(o: NetOptions): Net | null {
   const outbox = new Outbox({
     storage: o.outboxStorage ?? idbOutboxStorage(),
     now: o.now,
-    send: (e) => api.call(e.route as RouteKey, { params: e.params as never, body: e.body as never }, { idempotencyKey: e.id }),
+    send: (e) =>
+      api.call(e.route as RouteKey, { params: e.params as never, body: e.body as never }, { idempotencyKey: e.id }),
   });
   // Only the hooks a caller actually set replace the defaults (an undefined one never overwrites them).
-  const hooks = Object.fromEntries(Object.entries(o.connectivity ?? {}).filter(([, v]) => v !== undefined)) as Partial<Parameters<typeof startConnectivity>[0]>;
+  const hooks = Object.fromEntries(Object.entries(o.connectivity ?? {}).filter(([, v]) => v !== undefined)) as Partial<
+    Parameters<typeof startConnectivity>[0]
+  >;
   connectivity = startConnectivity({
     setOnline: o.setOnline,
     onOnline: () => void outbox.flush(),
@@ -99,7 +115,10 @@ export function createNet(o: NetOptions): Net | null {
   const unclaim = setMomentClaimer(async (id, moment) => {
     if (!(await session.current())) return null;
     try {
-      return (await api.call('POST /v1/matches/:id/moments', { params: { id }, body: { moment } }, { timeoutMs: 2_500 })).allowed === true;
+      return (
+        (await api.call('POST /v1/matches/:id/moments', { params: { id }, body: { moment } }, { timeoutMs: 2_500 }))
+          .allowed === true
+      );
     } catch {
       return null;
     }

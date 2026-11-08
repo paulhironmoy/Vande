@@ -6,7 +6,14 @@
 import { describe, expect, it } from 'vitest';
 import { parseMessage } from '@/i18n/format';
 import { createTranslator } from '@/i18n/translator';
-import { catalogFromModule, ensureI18n, loadLocale, mergeCatalogs, SOCIAL_PREFIXES, sourceLocales } from '@/i18n/sources';
+import {
+  catalogFromModule,
+  ensureI18n,
+  loadLocale,
+  mergeCatalogs,
+  SOCIAL_PREFIXES,
+  sourceLocales,
+} from '@/i18n/sources';
 import { LOCALES } from '@/i18n/locales';
 import { en } from '@/i18n/catalogs/en';
 
@@ -15,7 +22,9 @@ const eagerApp = import.meta.glob('../../../src/i18n/catalogs/*.ts', { eager: tr
 const eagerEngine = import.meta.glob('../../../src/i18n/engine/*.json', { eager: true }) as Record<string, unknown>;
 
 const byLocale = (files: Record<string, unknown>): Record<string, Cat> =>
-  Object.fromEntries(Object.entries(files).map(([p, m]) => [p.replace(/^.*\/|\.(ts|json)$/g, ''), (catalogFromModule(m) ?? {}) as Cat]));
+  Object.fromEntries(
+    Object.entries(files).map(([p, m]) => [p.replace(/^.*\/|\.(ts|json)$/g, ''), (catalogFromModule(m) ?? {}) as Cat]),
+  );
 
 const SOURCES = { app: byLocale(eagerApp), engine: byLocale(eagerEngine) };
 const prefix = (k: string) => k.split('.')[0];
@@ -84,7 +93,8 @@ describe('translation sources', () => {
           }
           if (locale === 'en') continue;
           if (!(k in english)) bad.push(`${source}/${locale}: stray key ${k}`);
-          else if (argsOf(v) !== argsOf(english[k])) bad.push(`${source}/${locale}: ${k} uses {${argsOf(v)}} not {${argsOf(english[k])}}`);
+          else if (argsOf(v) !== argsOf(english[k]))
+            bad.push(`${source}/${locale}: ${k} uses {${argsOf(v)}} not {${argsOf(english[k])}}`);
         }
       }
     }

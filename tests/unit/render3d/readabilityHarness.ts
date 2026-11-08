@@ -45,11 +45,16 @@ export function project(cam: CameraPose, p: { x: number; y: number; z: number },
   const depth = d.x * f.x + d.y * f.y + d.z * f.z;
   if (depth <= 0.05) return null;
   const tanV = Math.tan((cam.fov * Math.PI) / 360);
-  return { x: (d.x * r.x + d.y * r.y + d.z * r.z) / depth / (tanV * aspect), y: (d.x * u.x + d.y * u.y + d.z * u.z) / depth / tanV, depth };
+  return {
+    x: (d.x * r.x + d.y * r.y + d.z * r.z) / depth / (tanV * aspect),
+    y: (d.x * u.x + d.y * u.y + d.z * u.z) / depth / tanV,
+    depth,
+  };
 }
 
 /** Horizontal field of view (deg) for a vertical one and an aspect. */
-export const horizontalFov = (vfov: number, aspect: number) => (2 * Math.atan(Math.tan((vfov * Math.PI) / 360) * aspect) * 180) / Math.PI;
+export const horizontalFov = (vfov: number, aspect: number) =>
+  (2 * Math.atan(Math.tan((vfov * Math.PI) / 360) * aspect) * 180) / Math.PI;
 
 /** Focal length in CSS px for a vertical field of view and a viewport height. */
 export const focalPx = (vfov: number, h: number) => h / 2 / Math.tan((vfov * Math.PI) / 360);
@@ -84,14 +89,31 @@ export function deliveryCases(): DeliveryCase[] {
   ];
   for (const handedness of ['right', 'left'] as const) {
     for (const [n, plan] of pace) out.push({ name: `pace ${n} ${handedness}`, bowler: PACE, plan, handedness });
-    for (const [n, plan] of spin) out.push({ name: `spin ${n} ${handedness}`, bowler: handedness === 'right' ? SPIN : WRIST, plan, handedness });
+    for (const [n, plan] of spin)
+      out.push({ name: `spin ${n} ${handedness}`, bowler: handedness === 'right' ? SPIN : WRIST, plan, handedness });
   }
   return out;
 }
 
-export function caseScript(c: DeliveryCase, result: DeliveryResult | null = null): { script: BallScript; flight: BallFlight; setup: PracticeSceneSetup } {
-  const fl = result?.flight ?? physicsFlight({ plan: c.plan, bowler: c.bowler, conditions: 'balanced', seed: `read:${c.name}`, handedness: c.handedness });
-  const setup: PracticeSceneSetup = { field: autoField(c.bowler, 'balanced', c.handedness), bowler: c.bowler, conditions: 'balanced', handedness: c.handedness };
+export function caseScript(
+  c: DeliveryCase,
+  result: DeliveryResult | null = null,
+): { script: BallScript; flight: BallFlight; setup: PracticeSceneSetup } {
+  const fl =
+    result?.flight ??
+    physicsFlight({
+      plan: c.plan,
+      bowler: c.bowler,
+      conditions: 'balanced',
+      seed: `read:${c.name}`,
+      handedness: c.handedness,
+    });
+  const setup: PracticeSceneSetup = {
+    field: autoField(c.bowler, 'balanced', c.handedness),
+    bowler: c.bowler,
+    conditions: 'balanced',
+    handedness: c.handedness,
+  };
   return { script: buildPracticeScript({ setup, flight: fl, result }), flight: fl, setup };
 }
 
@@ -115,7 +137,12 @@ export interface ViewMeasure {
 }
 
 /** Measures one delivery in one viewport (live, before the result: the ball as the batter reads it). */
-export function measureView(script: BallScript, fl: BallFlight, vp: { name: string; w: number; h: number }, reducedMotion = false): ViewMeasure {
+export function measureView(
+  script: BallScript,
+  fl: BallFlight,
+  vp: { name: string; w: number; h: number },
+  reducedMotion = false,
+): ViewMeasure {
   const aspect = vp.w / vp.h;
   const plan = practicePlan(script, reducedMotion);
   const p = script.practice!;

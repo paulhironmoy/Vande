@@ -7,7 +7,17 @@
  */
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { PRACTICE_SIM_VERSION, type AssistLevel, type BallFlight, type DeliveryRecord, type DeliveryResult, type Handedness, type NormalizedSwing, type PitchCondition, type PracticeOverPlan } from '@/contracts';
+import {
+  PRACTICE_SIM_VERSION,
+  type AssistLevel,
+  type BallFlight,
+  type DeliveryRecord,
+  type DeliveryResult,
+  type Handedness,
+  type NormalizedSwing,
+  type PitchCondition,
+  type PracticeOverPlan,
+} from '@/contracts';
 import { autoField, batTravelMs, flight, resolveDelivery } from '@/physics';
 import { REFERENCE_OVER, ballSeed, randomOver, repeatDelivery } from '@/practice/game';
 import { analyzeBallInSlices, clearCoachCache, coachTip, formSample, optionOf } from '@/practice/coach';
@@ -21,7 +31,15 @@ interface Case {
   record: DeliveryRecord;
 }
 
-const swingOf = (fl: BallFlight, kind: 'attack' | 'defend', power: number, directionDeg: number, elevation: number, footwork: NormalizedSwing['footwork'], errMs: number): NormalizedSwing => ({
+const swingOf = (
+  fl: BallFlight,
+  kind: 'attack' | 'defend',
+  power: number,
+  directionDeg: number,
+  elevation: number,
+  footwork: NormalizedSwing['footwork'],
+  errMs: number,
+): NormalizedSwing => ({
   kind,
   startT: fl.idealContactT - batTravelMs(kind, power) / 1000 + errMs / 1000,
   directionDeg,
@@ -30,14 +48,46 @@ const swingOf = (fl: BallFlight, kind: 'attack' | 'defend', power: number, direc
   footwork,
 });
 
-function caseOf(plan: PracticeOverPlan, i: number, conditions: PitchCondition, assist: AssistLevel, handedness: Handedness, swing: (fl: BallFlight) => NormalizedSwing | null): Case {
+function caseOf(
+  plan: PracticeOverPlan,
+  i: number,
+  conditions: PitchCondition,
+  assist: AssistLevel,
+  handedness: Handedness,
+  swing: (fl: BallFlight) => NormalizedSwing | null,
+): Case {
   const seed = ballSeed(plan, i);
   const field = autoField(plan.bowler, conditions, handedness, plan.ball);
   const fl = flight({ plan: plan.balls[i], bowler: plan.bowler, conditions, seed, handedness, ball: plan.ball });
   const sw = swing(fl);
   return {
-    args: { flight: fl, swing: sw, field, bowler: plan.bowler, conditions, handedness, assist, tierToleranceMs: assist === 'real' ? 0 : 12 },
-    record: { version: PRACTICE_SIM_VERSION, overIndex: 0, ballIndex: i, bowler: plan.bowler, plan: plan.balls[i], seed, conditions, ball: plan.ball, field, handedness, assist, tierToleranceMs: assist === 'real' ? 0 : 12, swing: sw, runs: 0, dismissal: null },
+    args: {
+      flight: fl,
+      swing: sw,
+      field,
+      bowler: plan.bowler,
+      conditions,
+      handedness,
+      assist,
+      tierToleranceMs: assist === 'real' ? 0 : 12,
+    },
+    record: {
+      version: PRACTICE_SIM_VERSION,
+      overIndex: 0,
+      ballIndex: i,
+      bowler: plan.bowler,
+      plan: plan.balls[i],
+      seed,
+      conditions,
+      ball: plan.ball,
+      field,
+      handedness,
+      assist,
+      tierToleranceMs: assist === 'real' ? 0 : 12,
+      swing: sw,
+      runs: 0,
+      dismissal: null,
+    },
   };
 }
 
@@ -48,12 +98,23 @@ function cases(n: number): { all: Case[]; reads: number[] } {
   for (let i = 0; i < REFERENCE_OVER.balls.length; i++) {
     reads.push(all.length);
     all.push(caseOf(REFERENCE_OVER, i, 'balanced', 'real', 'right', () => null));
-    for (const fw of ['auto', 'forward', 'back'] as const) for (const e of [-40, 0, 40]) all.push(caseOf(REFERENCE_OVER, i, 'balanced', 'real', 'right', (fl) => swingOf(fl, 'defend', 0.2, 0, 0, fw, e)));
+    for (const fw of ['auto', 'forward', 'back'] as const)
+      for (const e of [-40, 0, 40])
+        all.push(
+          caseOf(REFERENCE_OVER, i, 'balanced', 'real', 'right', (fl) => swingOf(fl, 'defend', 0.2, 0, 0, fw, e)),
+        );
     for (const dir of [-50, 0, 30, 55, 80])
       for (const e of [-60, -20, 0, 20, 60])
-        for (const [pw, el] of [[0.7, 0], [1, 0.8]] as const) {
+        for (const [pw, el] of [
+          [0.7, 0],
+          [1, 0.8],
+        ] as const) {
           if (dir === 55 && e === 0 && el === 0) reads.push(all.length);
-          all.push(caseOf(REFERENCE_OVER, i, 'balanced', 'real', 'right', (fl) => swingOf(fl, 'attack', pw, dir, el, 'forward', e)));
+          all.push(
+            caseOf(REFERENCE_OVER, i, 'balanced', 'real', 'right', (fl) =>
+              swingOf(fl, 'attack', pw, dir, el, 'forward', e),
+            ),
+          );
         }
   }
   const pitches: PitchCondition[] = ['balanced', 'green', 'hard', 'turning'];
@@ -62,9 +123,29 @@ function cases(n: number): { all: Case[]; reads: number[] } {
     const conditions = pitches[o % pitches.length];
     const assist = assists[o % assists.length];
     const handedness: Handedness = o % 2 ? 'left' : 'right';
-    const plan = randomOver({ seed: `parity-${o}`, conditions, assist, difficulty: 'club', family: o % 3 === 2 ? 'spin' : 'pace' });
+    const plan = randomOver({
+      seed: `parity-${o}`,
+      conditions,
+      assist,
+      difficulty: 'club',
+      family: o % 3 === 2 ? 'spin' : 'pace',
+    });
     for (let i = 0; i < plan.balls.length && all.length < n; i++) {
-      all.push(caseOf(plan, i, conditions, assist, handedness, (fl) => (i % 5 === 4 ? null : swingOf(fl, i % 2 ? 'defend' : 'attack', i % 2 ? 0.2 : 0.75, ((i * 37 + o * 11) % 120) - 40, o % 4 === 3 ? 0.6 : 0, (['auto', 'forward', 'back'] as const)[o % 3], ((i * 13 + o * 7) % 9) * 15 - 60))));
+      all.push(
+        caseOf(plan, i, conditions, assist, handedness, (fl) =>
+          i % 5 === 4
+            ? null
+            : swingOf(
+                fl,
+                i % 2 ? 'defend' : 'attack',
+                i % 2 ? 0.2 : 0.75,
+                ((i * 37 + o * 11) % 120) - 40,
+                o % 4 === 3 ? 0.6 : 0,
+                (['auto', 'forward', 'back'] as const)[o % 3],
+                ((i * 13 + o * 7) % 9) * 15 - 60,
+              ),
+        ),
+      );
     }
   }
   return { all, reads };
@@ -72,7 +153,10 @@ function cases(n: number): { all: Case[]; reads: number[] } {
 
 const ALL = cases(540);
 
-function client(o: HarnessOptions = {}, extra: Partial<Parameters<typeof createOffThread>[0]> = {}): { work: OffThreadWork; h: ReturnType<typeof inProcessWorker> } {
+function client(
+  o: HarnessOptions = {},
+  extra: Partial<Parameters<typeof createOffThread>[0]> = {},
+): { work: OffThreadWork; h: ReturnType<typeof inProcessWorker> } {
   const h = inProcessWorker(o);
   const work = createOffThread({ build: BUILD, sim: PRACTICE_SIM_VERSION, spawn: () => h.port, ...extra });
   return { work, h };
@@ -156,7 +240,12 @@ describe('every fallback gives the same result', () => {
    * 'no_worker' reason the swing comes once the client knows (polled, so a loaded machine cannot turn the reason into
    * 'not_ready'); for 'not_ready' it comes 5 ms after the ball, while the slow worker is still starting.
    */
-  async function viaFallback(make: () => OffThreadWork, expectPath: 'local' | 'worker', reason: string, handedOver = false) {
+  async function viaFallback(
+    make: () => OffThreadWork,
+    expectPath: 'local' | 'worker',
+    reason: string,
+    handedOver = false,
+  ) {
     for (const c of sample) {
       const work = make();
       const mine = local(c);
@@ -177,29 +266,75 @@ describe('every fallback gives the same result', () => {
     }
   }
 
-  it('no Worker at all', () => viaFallback(() => createOffThread({ build: BUILD, sim: PRACTICE_SIM_VERSION, spawn: () => null }), 'local', 'no_worker'), 60_000);
-  it('a worker that cannot be constructed', () =>
-    viaFallback(
-      () =>
-        createOffThread({
-          build: BUILD,
-          sim: PRACTICE_SIM_VERSION,
-          spawn: () => {
-            throw new Error('SecurityError');
-          },
-        }),
-      'local',
-      'failed',
-    ), 60_000);
-  it('a worker of another build', () => viaFallback(() => client({ build: 'other-build' }).work, 'local', 'failed'), 60_000);
-  it('a worker that errors before answering (an old engine that cannot parse it)', () => viaFallback(() => client({ errorOn: 'hello' }).work, 'local', 'failed'), 60_000);
-  it('a worker still starting when the swing comes', () => viaFallback(() => client({ later: (f) => setTimeout(f, 200) }).work, 'local', 'not_ready'), 60_000);
-  it('a worker that goes silent after the ball is handed over', () => viaFallback(() => client({ drop: ['resolved'] }, { resolveTimeoutMs: 50 }).work, 'local', 'timeout', true), 60_000);
-  it('a worker that errors while resolving', () => viaFallback(() => client({ errorOn: 'resolve' }).work, 'local', 'worker_error', true), 60_000);
-  it('an answer that cannot be received (messageerror)', () => viaFallback(() => client({ messageErrorOn: 'resolved' }).work, 'local', 'worker_error', true), 60_000);
+  it(
+    'no Worker at all',
+    () =>
+      viaFallback(
+        () => createOffThread({ build: BUILD, sim: PRACTICE_SIM_VERSION, spawn: () => null }),
+        'local',
+        'no_worker',
+      ),
+    60_000,
+  );
+  it(
+    'a worker that cannot be constructed',
+    () =>
+      viaFallback(
+        () =>
+          createOffThread({
+            build: BUILD,
+            sim: PRACTICE_SIM_VERSION,
+            spawn: () => {
+              throw new Error('SecurityError');
+            },
+          }),
+        'local',
+        'failed',
+      ),
+    60_000,
+  );
+  it(
+    'a worker of another build',
+    () => viaFallback(() => client({ build: 'other-build' }).work, 'local', 'failed'),
+    60_000,
+  );
+  it(
+    'a worker that errors before answering (an old engine that cannot parse it)',
+    () => viaFallback(() => client({ errorOn: 'hello' }).work, 'local', 'failed'),
+    60_000,
+  );
+  it(
+    'a worker still starting when the swing comes',
+    () => viaFallback(() => client({ later: (f) => setTimeout(f, 200) }).work, 'local', 'not_ready'),
+    60_000,
+  );
+  it(
+    'a worker that goes silent after the ball is handed over',
+    () => viaFallback(() => client({ drop: ['resolved'] }, { resolveTimeoutMs: 50 }).work, 'local', 'timeout', true),
+    60_000,
+  );
+  it(
+    'a worker that errors while resolving',
+    () => viaFallback(() => client({ errorOn: 'resolve' }).work, 'local', 'worker_error', true),
+    60_000,
+  );
+  it(
+    'an answer that cannot be received (messageerror)',
+    () => viaFallback(() => client({ messageErrorOn: 'resolved' }).work, 'local', 'worker_error', true),
+    60_000,
+  );
   it('a physics exception in the worker: the main thread computes it (and would report the same exception)', async () => {
-    const throwing = { resolveDelivery: () => { throw new Error('boom'); } };
-    await viaFallback(() => client({ kit: { ...inProcessWorkerKit(), ...throwing } }).work, 'local', 'worker_error', true);
+    const throwing = {
+      resolveDelivery: () => {
+        throw new Error('boom');
+      },
+    };
+    await viaFallback(
+      () => client({ kit: { ...inProcessWorkerKit(), ...throwing } }).work,
+      'local',
+      'worker_error',
+      true,
+    );
   }, 60_000);
 });
 
@@ -207,7 +342,11 @@ function inProcessWorkerKit() {
   return {
     resolveDelivery,
     repeatDelivery: (record: DeliveryRecord, swing: NormalizedSwing | null) => repeatDelivery(record, swing),
-    analyzeBallInSlices: (record: DeliveryRecord, result: DeliveryResult, opts?: Parameters<typeof analyzeBallInSlices>[2]) => analyzeBallInSlices(record, result, opts),
+    analyzeBallInSlices: (
+      record: DeliveryRecord,
+      result: DeliveryResult,
+      opts?: Parameters<typeof analyzeBallInSlices>[2],
+    ) => analyzeBallInSlices(record, result, opts),
     coachTip: (record: DeliveryRecord, analysis: Parameters<typeof coachTip>[1]) => coachTip(record, analysis!),
     formSample,
     optionOf,

@@ -20,12 +20,25 @@ const GUIDE: Array<{ title: string; body: string[] }> = [
   { title: 'guide.energy.title', body: ['guide.energy.body'] },
   { title: 'guide.intent.title', body: ['guide.intent.body'] },
   { title: 'guide.timing.title', body: ['guide.timing.body'] },
-  { title: 'guide.pitches.title', body: ['guide.pitch.green', 'guide.pitch.hard', 'guide.pitch.slow', 'guide.weather.body'] },
+  {
+    title: 'guide.pitches.title',
+    body: ['guide.pitch.green', 'guide.pitch.hard', 'guide.pitch.slow', 'guide.weather.body'],
+  },
   { title: 'guide.super_ball.title', body: ['guide.super_ball.body', 'guide.super_ball.ladder'] },
 ];
 
 /** Local keys this device keeps (cleared by "Delete local data" and after deleting the account, with Practice's own). */
-const LOCAL_KEYS = ['vc:player', 'vc:trained', 'vc:first-delivery', 'vc:watched', 'vc:invites', 'vc:share-ledger', 'vc:push-asked', 'vc:daily-attempt', AGE_KEY];
+const LOCAL_KEYS = [
+  'vc:player',
+  'vc:trained',
+  'vc:first-delivery',
+  'vc:watched',
+  'vc:invites',
+  'vc:share-ledger',
+  'vc:push-asked',
+  'vc:daily-attempt',
+  AGE_KEY,
+];
 
 /** Settings: language, play and accessibility, privacy, notifications, sign-in and devices, your data, about, licences. */
 export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
@@ -43,7 +56,10 @@ export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
     return c.provider !== 'none' && !c.killed;
   }, []);
   const [consent, setConsent] = useState(() => services?.analytics.consent() ?? 'unset');
-  const push = useLoad<PushSettings>(net && signedIn ? () => net.api.call('GET /v1/push/settings') : null, [net, signedIn]);
+  const push = useLoad<PushSettings>(net && signedIn ? () => net.api.call('GET /v1/push/settings') : null, [
+    net,
+    signedIn,
+  ]);
   const [pushBusy, setPushBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState<{ url: string; expiresAt: string } | null>(null);
@@ -73,7 +89,10 @@ export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
       if (!next.enabled && push.data?.enabled) services?.analytics.track('notification_opt_out');
       push.reload();
     } catch (e) {
-      toast({ kind: 'warning', text: failureKind(e) === 'offline' ? t('settings.offline_save') : t('state.error.body') });
+      toast({
+        kind: 'warning',
+        text: failureKind(e) === 'offline' ? t('settings.offline_save') : t('state.error.body'),
+      });
     } finally {
       setPushBusy(false);
     }
@@ -86,7 +105,10 @@ export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
       const r = await net.api.call('POST /v1/me/export');
       setExported({ url: r.downloadUrl, expiresAt: r.expiresAt });
     } catch (e) {
-      toast({ kind: 'warning', text: failureKind(e) === 'offline' ? t('settings.offline_save') : t('state.error.body') });
+      toast({
+        kind: 'warning',
+        text: failureKind(e) === 'offline' ? t('settings.offline_save') : t('state.error.body'),
+      });
     } finally {
       setExporting(false);
     }
@@ -99,7 +121,10 @@ export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
     try {
       setRevoked(await net.revokeOthers());
     } catch (e) {
-      toast({ kind: 'warning', text: failureKind(e) === 'offline' ? t('settings.offline_save') : t('state.error.body') });
+      toast({
+        kind: 'warning',
+        text: failureKind(e) === 'offline' ? t('settings.offline_save') : t('state.error.body'),
+      });
     } finally {
       setRevoking(false);
     }
@@ -112,7 +137,10 @@ export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
       // The server ends this session first; offline nothing is forgotten and the player stays signed in.
       await net.signOut();
     } catch (e) {
-      toast({ kind: 'warning', text: failureKind(e) === 'offline' ? t('settings.offline_save') : t('state.error.body') });
+      toast({
+        kind: 'warning',
+        text: failureKind(e) === 'offline' ? t('settings.offline_save') : t('state.error.body'),
+      });
       setLoggingOut(false);
       return;
     }
@@ -147,7 +175,10 @@ export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
       toast({ kind: 'success', text: signedIn ? t('settings.deleted') : t('settings.local_deleted') });
       navigate({ name: 'onboarding' }, { replace: true });
     } catch (e) {
-      toast({ kind: 'warning', text: failureKind(e) === 'offline' ? t('settings.offline_save') : t('state.error.body') });
+      toast({
+        kind: 'warning',
+        text: failureKind(e) === 'offline' ? t('settings.offline_save') : t('state.error.body'),
+      });
     } finally {
       setDeleting(false);
     }
@@ -208,25 +239,63 @@ export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
           {!net || !signedIn ? (
             <p className={s.note}>{t('settings.push_needs_account')}</p>
           ) : !push.data ? (
-            <p className={s.note}>{push.error ? (failureKind(push.error) === 'offline' ? t('settings.offline_load') : t('state.error.body')) : t('common.loading')}</p>
+            <p className={s.note}>
+              {push.error
+                ? failureKind(push.error) === 'offline'
+                  ? t('settings.offline_load')
+                  : t('state.error.body')
+                : t('common.loading')}
+            </p>
           ) : (
             <>
               {!pushAvailable && <p className={s.note}>{t('settings.push_android_only')}</p>}
               <Field label={t('settings.push')} description={t('settings.push_body')} inline>
-                <Switch checked={push.data.enabled} disabled={pushBusy} label={t('settings.push')} data-testid="settings-push" onChange={(enabled) => void savePush({ ...push.data!, enabled })} />
+                <Switch
+                  checked={push.data.enabled}
+                  disabled={pushBusy}
+                  label={t('settings.push')}
+                  data-testid="settings-push"
+                  onChange={(enabled) => void savePush({ ...push.data!, enabled })}
+                />
               </Field>
               <Field label={t('settings.quiet')} description={t('settings.quiet_body')} inline>
-                <Switch checked={Boolean(quiet)} disabled={pushBusy} label={t('settings.quiet')} data-testid="settings-quiet" onChange={(on) => void savePush({ ...push.data!, quietHours: on ? { start: '22:00', end: '08:00' } : null })} />
+                <Switch
+                  checked={Boolean(quiet)}
+                  disabled={pushBusy}
+                  label={t('settings.quiet')}
+                  data-testid="settings-quiet"
+                  onChange={(on) =>
+                    void savePush({ ...push.data!, quietHours: on ? { start: '22:00', end: '08:00' } : null })
+                  }
+                />
               </Field>
               {quiet && (
                 <div className={s.times}>
                   <label className={s.time}>
                     <span>{t('settings.quiet_start')}</span>
-                    <input type="time" value={quiet.start} disabled={pushBusy} data-testid="settings-quiet-start" onChange={(e) => e.target.value && void savePush({ ...push.data!, quietHours: { ...quiet, start: e.target.value } })} />
+                    <input
+                      type="time"
+                      value={quiet.start}
+                      disabled={pushBusy}
+                      data-testid="settings-quiet-start"
+                      onChange={(e) =>
+                        e.target.value &&
+                        void savePush({ ...push.data!, quietHours: { ...quiet, start: e.target.value } })
+                      }
+                    />
                   </label>
                   <label className={s.time}>
                     <span>{t('settings.quiet_end')}</span>
-                    <input type="time" value={quiet.end} disabled={pushBusy} data-testid="settings-quiet-end" onChange={(e) => e.target.value && void savePush({ ...push.data!, quietHours: { ...quiet, end: e.target.value } })} />
+                    <input
+                      type="time"
+                      value={quiet.end}
+                      disabled={pushBusy}
+                      data-testid="settings-quiet-end"
+                      onChange={(e) =>
+                        e.target.value &&
+                        void savePush({ ...push.data!, quietHours: { ...quiet, end: e.target.value } })
+                      }
+                    />
                   </label>
                 </div>
               )}
@@ -242,7 +311,13 @@ export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
           </h2>
           <Card padding={4} className={s.card}>
             <p className={s.note}>{t('settings.revoke_others_body')}</p>
-            <Button variant="secondary" icon="shield" loading={revoking} onClick={() => void revokeOthers()} data-testid="settings-revoke-others">
+            <Button
+              variant="secondary"
+              icon="shield"
+              loading={revoking}
+              onClick={() => void revokeOthers()}
+              data-testid="settings-revoke-others"
+            >
               {t('settings.revoke_others')}
             </Button>
             {revoked !== null && (
@@ -252,11 +327,22 @@ export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
             )}
             <hr className={s.rule} />
             {!linked ? (
-              <p className={s.note}>{profile.error ? (failureKind(profile.error) === 'offline' ? t('settings.offline_load') : t('state.error.body')) : t('common.loading')}</p>
+              <p className={s.note}>
+                {profile.error
+                  ? failureKind(profile.error) === 'offline'
+                    ? t('settings.offline_load')
+                    : t('state.error.body')
+                  : t('common.loading')}
+              </p>
             ) : linked.google || linked.passkey ? (
               <>
                 <p className={s.note}>{t('settings.logout_body', { method })}</p>
-                <Button variant="secondary" icon="logout" onClick={() => setConfirmLogout(true)} data-testid="settings-logout">
+                <Button
+                  variant="secondary"
+                  icon="logout"
+                  onClick={() => setConfirmLogout(true)}
+                  data-testid="settings-logout"
+                >
                   {t('settings.logout')}
                 </Button>
               </>
@@ -264,7 +350,12 @@ export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
               <div className={s.card} data-testid="settings-logout-guest">
                 <p className={s.body}>{t('settings.logout_guest')}</p>
                 <p className={s.note}>{t('settings.logout_guest_next')}</p>
-                <Button variant="secondary" icon="user" onClick={() => navigate({ name: 'profile' })} data-testid="settings-link-profile">
+                <Button
+                  variant="secondary"
+                  icon="user"
+                  onClick={() => navigate({ name: 'profile' })}
+                  data-testid="settings-link-profile"
+                >
                   {t('settings.link_on_profile')}
                 </Button>
               </div>
@@ -282,18 +373,37 @@ export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
             <>
               <p className={s.note}>{t('settings.export_body')}</p>
               {exported ? (
-                <a className={s.download} href={exported.url} target="_blank" rel="noopener noreferrer" data-testid="settings-export-link">
-                  <Icon name="download" size={18} /> {t('settings.export_ready', { when: tr.relative(Date.parse(exported.expiresAt) - Date.now()) })}
+                <a
+                  className={s.download}
+                  href={exported.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid="settings-export-link"
+                >
+                  <Icon name="download" size={18} />{' '}
+                  {t('settings.export_ready', { when: tr.relative(Date.parse(exported.expiresAt) - Date.now()) })}
                 </a>
               ) : (
-                <Button variant="secondary" icon="download" loading={exporting} onClick={() => void exportData()} data-testid="settings-export">
+                <Button
+                  variant="secondary"
+                  icon="download"
+                  loading={exporting}
+                  onClick={() => void exportData()}
+                  data-testid="settings-export"
+                >
                   {t('settings.export')}
                 </Button>
               )}
             </>
           )}
           <p className={s.note}>{signedIn ? t('settings.delete_body') : t('settings.delete_local_body')}</p>
-          <Button variant="danger" icon="trash" onClick={() => setConfirmDelete(true)} data-testid="settings-delete" disabled={!player}>
+          <Button
+            variant="danger"
+            icon="trash"
+            onClick={() => setConfirmDelete(true)}
+            data-testid="settings-delete"
+            disabled={!player}
+          >
             {signedIn ? t('settings.delete') : t('settings.delete_local')}
           </Button>
           <p className={s.note}>{t('settings.delete_web_body')}</p>
@@ -326,7 +436,12 @@ export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
             <Button variant="secondary" icon="book" onClick={() => setGuide(true)} data-testid="settings-guide">
               {t('settings.guide')}
             </Button>
-            <Button variant="secondary" icon="external" onClick={() => setLicences(true)} data-testid="settings-licences">
+            <Button
+              variant="secondary"
+              icon="external"
+              onClick={() => setLicences(true)}
+              data-testid="settings-licences"
+            >
               {t('settings.licences')}
             </Button>
           </div>
@@ -354,7 +469,12 @@ export default function SettingsRoute(_props: { route: RouteOf<'settings'> }) {
         testId="settings-logout-dialog"
       />
 
-      <Sheet open={guide} onClose={() => setGuide(false)} title={t('guide.title' as MessageKey)} testId="settings-guide-sheet">
+      <Sheet
+        open={guide}
+        onClose={() => setGuide(false)}
+        title={t('guide.title' as MessageKey)}
+        testId="settings-guide-sheet"
+      >
         <div className={s.guide}>
           <p className={s.body}>{t('guide.intro' as MessageKey)}</p>
           {GUIDE.map((g) => (

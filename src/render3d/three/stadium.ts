@@ -162,10 +162,19 @@ export interface EnvLook {
 const deg = (d: number) => (d * Math.PI) / 180;
 
 /** The six looks. 'evening' + 'clear' is the default and the match's look. */
-export const ENVIRONMENTS: Readonly<Record<PracticeEnvironment['light'], Readonly<Record<PracticeEnvironment['sky'], EnvLook>>>> = {
+export const ENVIRONMENTS: Readonly<
+  Record<PracticeEnvironment['light'], Readonly<Record<PracticeEnvironment['sky'], EnvLook>>>
+> = {
   evening: {
     clear: {
-      zenith: '#04031a', mid: '#100d36', horizon: '#1b1636', haze: '#d98a4a', hazeAmount: 0.07, stars: 0.7, clouds: 0.15, cloudColor: '#262246',
+      zenith: '#04031a',
+      mid: '#100d36',
+      horizon: '#1b1636',
+      haze: '#d98a4a',
+      hazeAmount: 0.07,
+      stars: 0.7,
+      clouds: 0.15,
+      cloudColor: '#262246',
       sun: null,
       fog: { color: '#1a1546', near: 120, far: 560 },
       hemi: { sky: '#5f5e9c', ground: '#132e1c', intensity: 0.7 },
@@ -179,7 +188,14 @@ export const ENVIRONMENTS: Readonly<Record<PracticeEnvironment['light'], Readonl
       grass: { a: '#0f4a2a', b: '#1f7a43', centre: 1.12 },
     },
     overcast: {
-      zenith: '#0e0c22', mid: '#1c1838', horizon: '#2c2440', haze: '#d8823e', hazeAmount: 0.2, stars: 0, clouds: 0.85, cloudColor: '#3a3150',
+      zenith: '#0e0c22',
+      mid: '#1c1838',
+      horizon: '#2c2440',
+      haze: '#d8823e',
+      hazeAmount: 0.2,
+      stars: 0,
+      clouds: 0.85,
+      cloudColor: '#3a3150',
       sun: null,
       fog: { color: '#231d3c', near: 95, far: 430 },
       hemi: { sky: '#666490', ground: '#132e1c', intensity: 0.8 },
@@ -195,7 +211,14 @@ export const ENVIRONMENTS: Readonly<Record<PracticeEnvironment['light'], Readonl
   },
   day: {
     clear: {
-      zenith: '#2f6fc9', mid: '#6ea4dc', horizon: '#c9def0', haze: '#fff3dc', hazeAmount: 0.25, stars: 0, clouds: 0.22, cloudColor: '#f6f8fb',
+      zenith: '#2f6fc9',
+      mid: '#6ea4dc',
+      horizon: '#c9def0',
+      haze: '#fff3dc',
+      hazeAmount: 0.25,
+      stars: 0,
+      clouds: 0.22,
+      cloudColor: '#f6f8fb',
       sun: { azimuth: deg(58), elevation: deg(54), color: '#fff3e0', disc: 1 },
       fog: { color: '#bcd2e6', near: 180, far: 900 },
       hemi: { sky: '#b8d4f2', ground: '#4a6b34', intensity: 1.05 },
@@ -209,7 +232,14 @@ export const ENVIRONMENTS: Readonly<Record<PracticeEnvironment['light'], Readonl
       grass: { a: '#2c6a2e', b: '#3f8a3c', centre: 1.0 },
     },
     overcast: {
-      zenith: '#8d97a3', mid: '#aab3bd', horizon: '#c7ced4', haze: '#e4e6e6', hazeAmount: 0.2, stars: 0, clouds: 0.95, cloudColor: '#c3c9cf',
+      zenith: '#8d97a3',
+      mid: '#aab3bd',
+      horizon: '#c7ced4',
+      haze: '#e4e6e6',
+      hazeAmount: 0.2,
+      stars: 0,
+      clouds: 0.95,
+      cloudColor: '#c3c9cf',
       sun: { azimuth: deg(58), elevation: deg(62), color: '#f2f2ee', disc: 0 },
       fog: { color: '#b9c0c6', near: 140, far: 700 },
       hemi: { sky: '#d6dce2', ground: '#55704a', intensity: 1.75 },
@@ -225,7 +255,14 @@ export const ENVIRONMENTS: Readonly<Record<PracticeEnvironment['light'], Readonl
   },
   late_afternoon: {
     clear: {
-      zenith: '#3b69b0', mid: '#86a7cf', horizon: '#f0c690', haze: '#ffb866', hazeAmount: 0.45, stars: 0, clouds: 0.25, cloudColor: '#ffe2bf',
+      zenith: '#3b69b0',
+      mid: '#86a7cf',
+      horizon: '#f0c690',
+      haze: '#ffb866',
+      hazeAmount: 0.45,
+      stars: 0,
+      clouds: 0.25,
+      cloudColor: '#ffe2bf',
       sun: { azimuth: deg(104), elevation: deg(15), color: '#ffc988', disc: 1 },
       fog: { color: '#d8bf98', near: 150, far: 720 },
       hemi: { sky: '#9cb8de', ground: '#3f5a2b', intensity: 0.78 },
@@ -239,7 +276,14 @@ export const ENVIRONMENTS: Readonly<Record<PracticeEnvironment['light'], Readonl
       grass: { a: '#2b6029', b: '#3f8034', centre: 1.0 },
     },
     overcast: {
-      zenith: '#6f7484', mid: '#9a9aa2', horizon: '#c9b8a4', haze: '#e0b48a', hazeAmount: 0.3, stars: 0, clouds: 0.9, cloudColor: '#b9aca2',
+      zenith: '#6f7484',
+      mid: '#9a9aa2',
+      horizon: '#c9b8a4',
+      haze: '#e0b48a',
+      hazeAmount: 0.3,
+      stars: 0,
+      clouds: 0.9,
+      cloudColor: '#b9aca2',
       sun: { azimuth: deg(104), elevation: deg(22), color: '#f0d6b8', disc: 0 },
       fog: { color: '#b3aaa0', near: 120, far: 620 },
       hemi: { sky: '#c8c4c4', ground: '#4e6440', intensity: 1.4 },
@@ -288,7 +332,13 @@ export interface PitchLook {
   roughness: number;
 }
 
-const LABELS: Record<PitchKey, string> = { balanced: 'Balanced', green: 'Green', hard: 'Hard & Bouncy', turning: 'Dusty', dry: 'Dry' };
+const LABELS: Record<PitchKey, string> = {
+  balanced: 'Balanced',
+  green: 'Green',
+  hard: 'Hard & Bouncy',
+  turning: 'Dusty',
+  dry: 'Dry',
+};
 const norm01 = (v: number, a: number, b: number) => clamp((v - a) / (b - a), 0, 1);
 
 /** The physics parameters of a condition ('dry' until physics defines it: halfway from balanced to turning). */
@@ -299,12 +349,19 @@ export function pitchParams(key: string): PitchParams {
   if (key === 'dry') {
     const a = PITCHES.balanced;
     const b = PITCHES.turning;
-    return { restitution: (a.restitution + b.restitution) / 2, friction: (a.friction + b.friction) / 2, seamGrip: (a.seamGrip + b.seamGrip) / 2, turnGrip: (a.turnGrip + b.turnGrip) / 2, swingFactor: (a.swingFactor + b.swingFactor) / 2 };
+    return {
+      restitution: (a.restitution + b.restitution) / 2,
+      friction: (a.friction + b.friction) / 2,
+      seamGrip: (a.seamGrip + b.seamGrip) / 2,
+      turnGrip: (a.turnGrip + b.turnGrip) / 2,
+      swingFactor: (a.swingFactor + b.swingFactor) / 2,
+    };
   }
   return PITCHES.balanced;
 }
 
-const mixHex = (a: string, b: string, t: number) => '#' + new Color(a).lerp(new Color(b), clamp(t, 0, 1)).getHexString();
+const mixHex = (a: string, b: string, t: number) =>
+  '#' + new Color(a).lerp(new Color(b), clamp(t, 0, 1)).getHexString();
 
 /**
  * A pitch look from physics parameters:
@@ -314,7 +371,10 @@ const mixHex = (a: string, b: string, t: number) => '#' + new Color(a).lerp(new 
  * - soil colour: darker and richer when moist (green), paler when hard, warm and pale when dusty.
  */
 export function pitchLook(condition: string): PitchLook {
-  const key: PitchKey = condition === 'green' || condition === 'hard' || condition === 'turning' || condition === 'dry' ? condition : 'balanced';
+  const key: PitchKey =
+    condition === 'green' || condition === 'hard' || condition === 'turning' || condition === 'dry'
+      ? condition
+      : 'balanced';
   const p = pitchParams(key);
   const swing = norm01(p.swingFactor, 0.8, 1.45);
   const seam = norm01(p.seamGrip, 0.012, 0.026);
@@ -383,12 +443,33 @@ export function creaseMarkings(): CreaseMark[] {
     const popping = end * (PITCH_HALF - POPPING);
     const bowling = end * PITCH_HALF;
     // Markings lie on the pitch's side of the popping and bowling creases.
-    out.push({ kind: 'popping', end, x0: -POPPING_CREASE_HALF, x1: POPPING_CREASE_HALF, z0: Math.min(popping, popping - end * w), z1: Math.max(popping, popping - end * w) });
-    out.push({ kind: 'bowling', end, x0: -RETURN_CREASE_X, x1: RETURN_CREASE_X, z0: Math.min(bowling, bowling - end * w), z1: Math.max(bowling, bowling - end * w) });
+    out.push({
+      kind: 'popping',
+      end,
+      x0: -POPPING_CREASE_HALF,
+      x1: POPPING_CREASE_HALF,
+      z0: Math.min(popping, popping - end * w),
+      z1: Math.max(popping, popping - end * w),
+    });
+    out.push({
+      kind: 'bowling',
+      end,
+      x0: -RETURN_CREASE_X,
+      x1: RETURN_CREASE_X,
+      z0: Math.min(bowling, bowling - end * w),
+      z1: Math.max(bowling, bowling - end * w),
+    });
     const back = end * (PITCH_HALF - POPPING + RETURN_CREASE_LENGTH);
     for (const side of [1, -1]) {
       const inside = side * RETURN_CREASE_X;
-      out.push({ kind: 'return', end, x0: Math.min(inside, inside + side * w), x1: Math.max(inside, inside + side * w), z0: Math.min(popping, back), z1: Math.max(popping, back) });
+      out.push({
+        kind: 'return',
+        end,
+        x0: Math.min(inside, inside + side * w),
+        x1: Math.max(inside, inside + side * w),
+        z0: Math.min(popping, back),
+        z1: Math.max(popping, back),
+      });
     }
   }
   return out;
@@ -461,7 +542,14 @@ export function pitchMacroTexture(): DataTexture {
   type Mark = { x: number; z: number; sx: number; sz: number; w: number };
   const marks: Mark[] = [];
   const cluster = (x: number, z: number, n: number, spreadX: number, spreadZ: number, w: number) => {
-    for (let i = 0; i < n; i++) marks.push({ x: x + (rand() - 0.5) * spreadX, z: z + (rand() - 0.5) * spreadZ, sx: 0.05 + rand() * 0.03, sz: 0.11 + rand() * 0.05, w: w * (0.6 + rand() * 0.4) });
+    for (let i = 0; i < n; i++)
+      marks.push({
+        x: x + (rand() - 0.5) * spreadX,
+        z: z + (rand() - 0.5) * spreadZ,
+        sx: 0.05 + rand() * 0.03,
+        sz: 0.11 + rand() * 0.05,
+        w: w * (0.6 + rand() * 0.4),
+      });
   };
   const rough: Mark[] = [];
   for (const end of [1, -1] as const) {
@@ -473,14 +561,35 @@ export function pitchMacroTexture(): DataTexture {
     cluster(main * 0.62, end * (PITCH_HALF - 0.45), 14, 0.26, 0.35, 0.8);
     cluster(-main * 0.3, pop + end * 0.08, 12, 0.26, 0.36, 0.55);
     // Follow-through scuffs angling off the pitch.
-    for (let i = 0; i < 9; i++) marks.push({ x: main * (0.45 + i * 0.09), z: pop - end * (0.4 + i * 0.32), sx: 0.06, sz: 0.12, w: 0.45 * (1 - i / 10) });
+    for (let i = 0; i < 9; i++)
+      marks.push({
+        x: main * (0.45 + i * 0.09),
+        z: pop - end * (0.4 + i * 0.32),
+        sx: 0.06,
+        sz: 0.12,
+        w: 0.45 * (1 - i / 10),
+      });
     // The batter's guard area (a right-hander stands on the leg side of middle) and the front-foot stride.
     cluster(-0.28, pop + end * 0.12, 18, 0.34, 0.5, 0.75);
     cluster(-0.16, pop - end * 0.75, 10, 0.3, 0.4, 0.45);
     // Rough: outside off stump (+x) between 1.5 and 3.6 m in front of the stumps, strongest at the striker's end.
     const strength = end > 0 ? 1 : 0.55;
-    for (let i = 0; i < 24; i++) rough.push({ x: 0.55 + (rand() - 0.5) * 0.65, z: end * (PITCH_HALF - 1.6 - rand() * 2.1), sx: 0.12 + rand() * 0.14, sz: 0.16 + rand() * 0.2, w: strength * (0.5 + rand() * 0.5) });
-    for (let i = 0; i < 10; i++) rough.push({ x: -0.62 + (rand() - 0.5) * 0.5, z: end * (PITCH_HALF - 1.8 - rand() * 1.6), sx: 0.1 + rand() * 0.1, sz: 0.14 + rand() * 0.14, w: 0.4 * strength * (0.5 + rand() * 0.5) });
+    for (let i = 0; i < 24; i++)
+      rough.push({
+        x: 0.55 + (rand() - 0.5) * 0.65,
+        z: end * (PITCH_HALF - 1.6 - rand() * 2.1),
+        sx: 0.12 + rand() * 0.14,
+        sz: 0.16 + rand() * 0.2,
+        w: strength * (0.5 + rand() * 0.5),
+      });
+    for (let i = 0; i < 10; i++)
+      rough.push({
+        x: -0.62 + (rand() - 0.5) * 0.5,
+        z: end * (PITCH_HALF - 1.8 - rand() * 1.6),
+        sx: 0.1 + rand() * 0.1,
+        sz: 0.14 + rand() * 0.14,
+        w: 0.4 * strength * (0.5 + rand() * 0.5),
+      });
   }
   // Splat each mark over its own footprint (max-blended), then add the noise terms per pixel.
   const wearBuf = new Float32Array(W * H);
@@ -516,7 +625,16 @@ export function pitchMacroTexture(): DataTexture {
       const soil = clamp(n1(x * 1.3, z * 0.45) * 0.6 + n2(x * 4.1, z * 1.7) * 0.3 + n3(x * 11, z * 6) * 0.1, 0, 1);
       // Grass: patchy, thinner on the line of the stumps and in worn areas, thicker towards the strip's edges.
       const edge = clamp((Math.abs(x) - 1.05) / 0.5, 0, 1);
-      const grass = clamp(n3(x * 2.2, z * 0.9) * 0.55 + n1(x * 7, z * 3.1) * 0.3 + 0.15 - 0.18 * Math.exp(-((x / 0.5) ** 2)) + edge * 0.35 - wear * 0.6, 0, 1);
+      const grass = clamp(
+        n3(x * 2.2, z * 0.9) * 0.55 +
+          n1(x * 7, z * 3.1) * 0.3 +
+          0.15 -
+          0.18 * Math.exp(-((x / 0.5) ** 2)) +
+          edge * 0.35 -
+          wear * 0.6,
+        0,
+        1,
+      );
       const k = (j * W + i) * 4;
       data[k] = Math.round(clamp(wear, 0, 1) * 255);
       data[k + 1] = Math.round(rg * 255);
@@ -595,7 +713,7 @@ export function pitchMicroTexture(size: number): DataTexture {
       const k = (y * S + x) * 4;
       data[k] = Math.round(clamp(g, 0, 1) * 235);
       data[k + 2] = Math.round(clamp(main(((wu % 1) + 1) % 1, ((wv % 1) + 1) % 1) * 2.2, 0, 1) * 255);
-      data[k + 3] = Math.round(clamp(fine(((wu * 1.0) % 1 + 1) % 1, ((wv % 1) + 1) % 1) * 2.4, 0, 1) * 255);
+      data[k + 3] = Math.round(clamp(fine((((wu * 1.0) % 1) + 1) % 1, ((wv % 1) + 1) % 1) * 2.4, 0, 1) * 255);
     }
   }
   // Small stones: a few bright specks in the grain.
@@ -681,7 +799,10 @@ function patchGround(mat: MeshStandardMaterial, u: GroundUniforms, detail: boole
     Object.assign(shader.uniforms, u);
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vWorldG;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWorldG = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      .replace(
+        '#include <worldpos_vertex>',
+        '#include <worldpos_vertex>\nvWorldG = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+      );
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
@@ -791,11 +912,17 @@ ${creaseGlsl()}
 diffuseColor.rgb = mix(grass, pitchCol, strip);
 `,
       )
-      .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = mix(mix(0.92, 0.55, uWet), pitchRoughness, strip);')
-      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+      .replace(
+        '#include <roughnessmap_fragment>',
+        'float roughnessFactor = mix(mix(0.92, 0.55, uWet), pitchRoughness, strip);',
+      )
+      .replace(
+        '#include <normal_fragment_maps>',
+        `#include <normal_fragment_maps>
 #ifdef VANDE_DETAIL
 normal = vandeBump(-vViewPosition, normal, hBump);
-#endif`);
+#endif`,
+      );
   };
   mat.customProgramCacheKey = () => `vande-ground-v2-${detail ? 'detail' : 'lite'}`;
 }
@@ -952,43 +1079,49 @@ export function paintPracticeBoards(g: CanvasRenderingContext2D) {
 
 /** LED board strip: brand lockup and abstract glyphs (our own brand only), or Practice's neutral panels. 2048 × 64, or 1024 × 32 in lite. */
 function boardTexture(detail = true, signage: StadiumSignage = 'match'): Texture {
-  const t = canvasArt(2048, 64, (g) => {
-    if (signage === 'practice') {
-      paintPracticeBoards(g);
-      return;
-    }
-    const grd = g.createLinearGradient(0, 0, 2048, 0);
-    grd.addColorStop(0, '#0b0930');
-    grd.addColorStop(0.5, '#151154');
-    grd.addColorStop(1, '#0b0930');
-    g.fillStyle = grd;
-    g.fillRect(0, 0, 2048, 64);
-    g.font = `800 38px ${FONT}`;
-    g.textBaseline = 'middle';
-    const items = ['VANDE CRICKET', 'SEALED SIX', 'LOCK YOUR OVER', 'REVEAL THE RIVALRY'];
-    let x = 30;
-    items.forEach((s, i) => {
-      g.fillStyle = i % 2 ? '#ffb347' : '#5fe3ff';
-      g.fillText(s, x, 34);
-      x += g.measureText(s).width + 40;
-      g.save();
-      g.translate(x, 32);
-      g.strokeStyle = '#ffffff';
-      g.globalAlpha = 0.65;
-      g.lineWidth = 3;
-      g.beginPath();
-      for (let k = 0; k < 6; k++) {
-        const a = (k / 6) * Math.PI * 2;
-        g.moveTo(0, 0);
-        g.lineTo(Math.cos(a) * 14, Math.sin(a) * 14);
+  const t = canvasArt(
+    2048,
+    64,
+    (g) => {
+      if (signage === 'practice') {
+        paintPracticeBoards(g);
+        return;
       }
-      g.stroke();
-      g.restore();
-      x += 50;
-    });
-    g.fillStyle = 'rgba(255,255,255,0.08)';
-    for (let i = 0; i < 64; i += 4) g.fillRect(0, i, 2048, 1);
-  }, [11, 9, 48, 255], detail ? 1 : 0.5);
+      const grd = g.createLinearGradient(0, 0, 2048, 0);
+      grd.addColorStop(0, '#0b0930');
+      grd.addColorStop(0.5, '#151154');
+      grd.addColorStop(1, '#0b0930');
+      g.fillStyle = grd;
+      g.fillRect(0, 0, 2048, 64);
+      g.font = `800 38px ${FONT}`;
+      g.textBaseline = 'middle';
+      const items = ['VANDE CRICKET', 'SEALED SIX', 'LOCK YOUR OVER', 'REVEAL THE RIVALRY'];
+      let x = 30;
+      items.forEach((s, i) => {
+        g.fillStyle = i % 2 ? '#ffb347' : '#5fe3ff';
+        g.fillText(s, x, 34);
+        x += g.measureText(s).width + 40;
+        g.save();
+        g.translate(x, 32);
+        g.strokeStyle = '#ffffff';
+        g.globalAlpha = 0.65;
+        g.lineWidth = 3;
+        g.beginPath();
+        for (let k = 0; k < 6; k++) {
+          const a = (k / 6) * Math.PI * 2;
+          g.moveTo(0, 0);
+          g.lineTo(Math.cos(a) * 14, Math.sin(a) * 14);
+        }
+        g.stroke();
+        g.restore();
+        x += 50;
+      });
+      g.fillStyle = 'rgba(255,255,255,0.08)';
+      for (let i = 0; i < 64; i += 4) g.fillRect(0, i, 2048, 1);
+    },
+    [11, 9, 48, 255],
+    detail ? 1 : 0.5,
+  );
   t.wrapS = RepeatWrapping;
   // Negative repeat mirrors U: the boards are seen from inside the ring, where a cylinder's U runs right to left.
   t.repeat.set(-6, 1);
@@ -996,15 +1129,20 @@ function boardTexture(detail = true, signage: StadiumSignage = 'match'): Texture
 }
 
 export function glowTexture(): Texture {
-  return canvasArt(128, 128, (g) => {
-    const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-    grd.addColorStop(0, 'rgba(255,255,255,1)');
-    grd.addColorStop(0.18, 'rgba(255,245,220,0.75)');
-    grd.addColorStop(0.45, 'rgba(255,214,150,0.22)');
-    grd.addColorStop(1, 'rgba(255,200,120,0)');
-    g.fillStyle = grd;
-    g.fillRect(0, 0, 128, 128);
-  }, [255, 255, 255, 0]);
+  return canvasArt(
+    128,
+    128,
+    (g) => {
+      const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+      grd.addColorStop(0, 'rgba(255,255,255,1)');
+      grd.addColorStop(0.18, 'rgba(255,245,220,0.75)');
+      grd.addColorStop(0.45, 'rgba(255,214,150,0.22)');
+      grd.addColorStop(1, 'rgba(255,200,120,0)');
+      g.fillStyle = grd;
+      g.fillRect(0, 0, 128, 128);
+    },
+    [255, 255, 255, 0],
+  );
 }
 
 /**
@@ -1109,7 +1247,13 @@ function paintScoreboard(g: CanvasRenderingContext2D, w: number, h: number) {
   // Seven-segment numerals, unlit segments faint, lit ones warm.
   const seg = (x: number, y: number, s: number, lit: boolean[]) => {
     const pts: Array<[number, number, number, number]> = [
-      [0, 0, 1, 0], [1, 0, 1, 1], [1, 1, 1, 2], [0, 2, 1, 2], [0, 1, 0, 2], [0, 0, 0, 1], [0, 1, 1, 1],
+      [0, 0, 1, 0],
+      [1, 0, 1, 1],
+      [1, 1, 1, 2],
+      [0, 2, 1, 2],
+      [0, 1, 0, 2],
+      [0, 0, 0, 1],
+      [0, 1, 1, 1],
     ];
     pts.forEach(([a, b, c, d], i) => {
       g.strokeStyle = lit[i] ? '#ffcf6a' : 'rgba(255,207,106,0.09)';
@@ -1303,7 +1447,10 @@ function patchStands(mat: MeshBasicMaterial, u: Record<string, { value: unknown 
     Object.assign(shader.uniforms, u);
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vWorldS;\nvarying float vUpS;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWorldS = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvUpS = normal.y;');
+      .replace(
+        '#include <worldpos_vertex>',
+        '#include <worldpos_vertex>\nvWorldS = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvUpS = normal.y;',
+      );
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
@@ -1597,8 +1744,14 @@ function gableRoof(w: number, d: number, h: number, x: number, y0: number, z: nu
   const hw = w / 2;
   const hd = d / 2;
   const v = [
-    [-hw, 0, -hd], [hw, 0, -hd], [hw, h, 0], [-hw, h, 0],
-    [-hw, 0, hd], [hw, 0, hd], [hw, h, 0], [-hw, h, 0],
+    [-hw, 0, -hd],
+    [hw, 0, -hd],
+    [hw, h, 0],
+    [-hw, h, 0],
+    [-hw, 0, hd],
+    [hw, 0, hd],
+    [hw, h, 0],
+    [-hw, h, 0],
   ];
   const pos: number[] = [];
   const tri = (a: number[], b: number[], c: number[]) => pos.push(...a, ...b, ...c);
@@ -1639,7 +1792,11 @@ interface Structures {
   masonry: MeshLambertMaterial[];
 }
 
-function buildStructures(track: <T extends { dispose(): void }>(x: T) => T, detail: boolean, signage: StadiumSignage): Structures {
+function buildStructures(
+  track: <T extends { dispose(): void }>(x: T) => T,
+  detail: boolean,
+  signage: StadiumSignage,
+): Structures {
   // Lite keeps every painted texture at or under 1024 px.
   const group = new Group();
   group.name = 'structures';
@@ -1647,7 +1804,9 @@ function buildStructures(track: <T extends { dispose(): void }>(x: T) => T, deta
 
   // ---- Sight screens: the board, its steel frame and the back trusses on wheels.
   const screenTex = track(canvasArt(256, 128, paintScreen));
-  const screenMat = track(new MeshStandardMaterial({ color: SIGHT_TONES.dark, map: screenTex, roughness: 1, metalness: 0 }));
+  const screenMat = track(
+    new MeshStandardMaterial({ color: SIGHT_TONES.dark, map: screenTex, roughness: 1, metalness: 0 }),
+  );
   const steel: BufferGeometry[] = [];
   for (const z of [1, -1]) {
     const s = new Mesh(track(new BoxGeometry(SIGHT_SCREEN.width, SIGHT_SCREEN.height, 0.3)), screenMat);
@@ -1669,7 +1828,9 @@ function buildStructures(track: <T extends { dispose(): void }>(x: T) => T, deta
   const art = detail ? 1 : 0.5;
   const facade = track(canvasArt(1024, 512, (g, w, h) => paintFacade(g, w, h, false), [217, 205, 179, 255], art));
   const facadeMask = track(canvasArt(1024, 512, (g, w, h) => paintFacade(g, w, h, true), [0, 0, 0, 255], art));
-  const windowsMat = track(new MeshLambertMaterial({ map: facade, emissiveMap: facadeMask, emissive: '#ffd6a0', emissiveIntensity: 0.7 }));
+  const windowsMat = track(
+    new MeshLambertMaterial({ map: facade, emissiveMap: facadeMask, emissive: '#ffd6a0', emissiveIntensity: 0.7 }),
+  );
   const front = new Mesh(track(new PlaneGeometry(56, 15)), windowsMat);
   front.position.set(0, 7.5, PZ + 7.01);
   group.add(front);
@@ -1686,22 +1847,24 @@ function buildStructures(track: <T extends { dispose(): void }>(x: T) => T, deta
     ...[0, 1, 2, 3].map((i) => box(4, 0.3, 1.2, -9.5, 0.15 + i * 0.3, PZ + 7.6 + (3 - i) * 1.1)),
   ];
   const roofs: BufferGeometry[] = [gableRoof(58, 15, 4.5, 0, 15.4, PZ), gableRoof(16, 13, 4, 0, 22, PZ - 0.5)];
-  const towerArt = track(canvasArt(256, 128, (g) => {
-    g.fillStyle = '#ddd2b8';
-    g.fillRect(0, 0, 256, 128);
-    g.fillStyle = '#f4efe2';
-    g.beginPath();
-    g.arc(128, 64, 46, 0, Math.PI * 2);
-    g.fill();
-    g.strokeStyle = '#1e2a78';
-    g.lineWidth = 9;
-    g.lineCap = 'round';
-    g.beginPath();
-    g.moveTo(104, 44);
-    g.lineTo(128, 88);
-    g.lineTo(152, 44);
-    g.stroke();
-  }));
+  const towerArt = track(
+    canvasArt(256, 128, (g) => {
+      g.fillStyle = '#ddd2b8';
+      g.fillRect(0, 0, 256, 128);
+      g.fillStyle = '#f4efe2';
+      g.beginPath();
+      g.arc(128, 64, 46, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = '#1e2a78';
+      g.lineWidth = 9;
+      g.lineCap = 'round';
+      g.beginPath();
+      g.moveTo(104, 44);
+      g.lineTo(128, 88);
+      g.lineTo(152, 44);
+      g.stroke();
+    }),
+  );
   const towerMat = track(new MeshLambertMaterial({ map: towerArt, emissiveMap: towerArt, emissive: '#000000' }));
   const tower = new Mesh(track(new PlaneGeometry(14, 6)), towerMat);
   tower.position.set(0, 18.5, PZ + 5.52);
@@ -1716,7 +1879,16 @@ function buildStructures(track: <T extends { dispose(): void }>(x: T) => T, deta
   standFront.position.set(0, 6, SZ - 6.01);
   standFront.rotation.y = Math.PI;
   group.add(standFront);
-  const board = new Mesh(track(new PlaneGeometry(26, 10)), track(new MeshBasicMaterial({ map: track(canvasArt(1024, 384, paintScoreboard, [5, 6, 15, 255], art)), fog: true, side: DoubleSide })));
+  const board = new Mesh(
+    track(new PlaneGeometry(26, 10)),
+    track(
+      new MeshBasicMaterial({
+        map: track(canvasArt(1024, 384, paintScoreboard, [5, 6, 15, 255], art)),
+        fog: true,
+        side: DoubleSide,
+      }),
+    ),
+  );
   board.position.set(0, 26, SZ - 0.85);
   board.rotation.y = Math.PI;
   group.add(board);
@@ -1735,8 +1907,12 @@ function buildStructures(track: <T extends { dispose(): void }>(x: T) => T, deta
 
   // ---- Railings: the parapet rail of the lower tier and the front of the upper tier.
   const rails = mergeAll([
-    placed(new TorusGeometry(BOUNDARY_R + 7.5, 0.035, 4, 220), 0, 0, 0).rotateX(Math.PI / 2).translate(0, 1.7, 0),
-    placed(new TorusGeometry(BOUNDARY_R + 30, 0.035, 4, 220), 0, 0, 0).rotateX(Math.PI / 2).translate(0, 14.6, 0),
+    placed(new TorusGeometry(BOUNDARY_R + 7.5, 0.035, 4, 220), 0, 0, 0)
+      .rotateX(Math.PI / 2)
+      .translate(0, 1.7, 0),
+    placed(new TorusGeometry(BOUNDARY_R + 30, 0.035, 4, 220), 0, 0, 0)
+      .rotateX(Math.PI / 2)
+      .translate(0, 14.6, 0),
   ]);
   const metal = track(new MeshStandardMaterial({ color: '#9aa2ad', roughness: 0.4, metalness: 0.65 }));
   const steelMat = track(new MeshLambertMaterial({ color: '#2b2f38' }));
@@ -1750,7 +1926,11 @@ function buildStructures(track: <T extends { dispose(): void }>(x: T) => T, deta
   const flagUniforms = { uFlagT: { value: 0 } };
   const flagGeos: BufferGeometry[] = [];
   const poles: BufferGeometry[] = [];
-  const flagSpots: Array<[number, number, number]> = [[-6, 26.5, PZ - 0.5], [6, 26.5, PZ - 0.5], [0, 30, PZ - 0.5]];
+  const flagSpots: Array<[number, number, number]> = [
+    [-6, 26.5, PZ - 0.5],
+    [6, 26.5, PZ - 0.5],
+    [0, 30, PZ - 0.5],
+  ];
   for (const d of [30, 60, 120, 150, 210, 240, 300, 330]) {
     const a = (d * Math.PI) / 180;
     // On the roof's leading edge (its highest point), above the soffit light.
@@ -1775,7 +1955,15 @@ function buildStructures(track: <T extends { dispose(): void }>(x: T) => T, deta
   });
   group.add(new Mesh(track(mergeAll([rails, ...poles])), metal));
   // Under lights the flags catch the floodlights (a little of their own colour as emissive), by day only the sun.
-  const flagMat = track(new MeshLambertMaterial({ map: flagTex, side: DoubleSide, emissiveMap: flagTex, emissive: '#ffffff', emissiveIntensity: 0.4 }));
+  const flagMat = track(
+    new MeshLambertMaterial({
+      map: flagTex,
+      side: DoubleSide,
+      emissiveMap: flagTex,
+      emissive: '#ffffff',
+      emissiveIntensity: 0.4,
+    }),
+  );
   flagMat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, flagUniforms);
     shader.vertexShader = shader.vertexShader
@@ -1817,7 +2005,16 @@ transformed += vec3(0.6, 0.0, 0.8) * sin(fx * 5.0 - uFlagT * 0.0045 + phase) * 0
       fragmentShader: `varying float vV; uniform float uOpacity; void main() { gl_FragColor = vec4(1.0, 0.92, 0.78, uOpacity * vV * vV); }`,
     }),
   );
-  const glowMat = track(new MeshBasicMaterial({ map: glowTex, transparent: true, blending: AdditiveBlending, depthWrite: false, color: '#ffe7c4', fog: false }));
+  const glowMat = track(
+    new MeshBasicMaterial({
+      map: glowTex,
+      transparent: true,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      color: '#ffe7c4',
+      fog: false,
+    }),
+  );
   const glowGeo = track(new PlaneGeometry(1, 1));
   for (const a of TOWER_ANGLES) {
     const base = new Vector3(Math.sin(a) * TOWER_R, 0, Math.cos(a) * TOWER_R);
@@ -1857,7 +2054,14 @@ transformed += vec3(0.6, 0.0, 0.8) * sin(fx * 5.0 - uFlagT * 0.0045 + phase) * 0
     group.add(shaft);
   }
   group.add(new Mesh(track(mergeAll([...steel, ...poleGeo, ...frameGeo])), steelMat));
-  const lampsMat = track(new MeshBasicMaterial({ map: track(canvasArt(256, 160, paintLamps)), color: '#ffffff', fog: true, side: DoubleSide }));
+  const lampsMat = track(
+    new MeshBasicMaterial({
+      map: track(canvasArt(256, 160, paintLamps)),
+      color: '#ffffff',
+      fog: true,
+      side: DoubleSide,
+    }),
+  );
   group.add(new Mesh(track(mergeAll(lampGeo)), lampsMat));
 
   // ---- The stand roof's soffit light (warm, low; off by day).
@@ -1867,7 +2071,21 @@ transformed += vec3(0.6, 0.0, 0.8) * sin(fx * 5.0 - uFlagT * 0.0045 + phase) * 0
   roofLine.position.y = 33.1;
   group.add(roofLine);
 
-  return { group, screenMat, windowsMat, boardMat, flagUniforms, lampsMat, glows, shafts, shaftMat, roofLineMat, flagMat, flagTex, masonry: [windowsMat, stoneMat, towerMat] };
+  return {
+    group,
+    screenMat,
+    windowsMat,
+    boardMat,
+    flagUniforms,
+    lampsMat,
+    glows,
+    shafts,
+    shaftMat,
+    roofLineMat,
+    flagMat,
+    flagTex,
+    masonry: [windowsMat, stoneMat, towerMat],
+  };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1878,7 +2096,20 @@ transformed += vec3(0.6, 0.0, 0.8) * sin(fx * 5.0 - uFlagT * 0.0045 + phase) * 0
 const KEY_TOWER = 0;
 const RIM_TOWER = 3;
 const SKINS = ['#e7bf9b', '#d8a47e', '#c88c63', '#b4764f', '#9d6340', '#865436', '#6f452c'];
-const SHIRTS = ['#f4f4f4', '#ffb347', '#5fe3ff', '#ff5d8f', '#ffd36e', '#7ef0c5', '#b38cff', '#ff7a4d', '#e9edf5', '#2b3a8f', '#1d1f26', '#c43d3d'];
+const SHIRTS = [
+  '#f4f4f4',
+  '#ffb347',
+  '#5fe3ff',
+  '#ff5d8f',
+  '#ffd36e',
+  '#7ef0c5',
+  '#b38cff',
+  '#ff7a4d',
+  '#e9edf5',
+  '#2b3a8f',
+  '#1d1f26',
+  '#c43d3d',
+];
 
 export function createStadium(scene: Scene, preset: QualityPreset, signage: StadiumSignage = 'match'): Stadium {
   const group = new Group();
@@ -1945,7 +2176,10 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
   ground.name = 'ground';
   group.add(ground);
   // Materials below share programs where they can (same type, maps, side and fog): fewer compiles at mount.
-  const apron = new Mesh(track(new RingGeometry(BOUNDARY_R + 6, BOUNDARY_R + 9, 160)), track(new MeshLambertMaterial({ color: '#1d2b26', side: DoubleSide })));
+  const apron = new Mesh(
+    track(new RingGeometry(BOUNDARY_R + 6, BOUNDARY_R + 9, 160)),
+    track(new MeshLambertMaterial({ color: '#1d2b26', side: DoubleSide })),
+  );
   apron.rotation.x = -Math.PI / 2;
   apron.position.y = 0.01;
   group.add(apron);
@@ -1954,7 +2188,10 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
   const cushionTex = track(canvasArt(512, 64, paintCushion, [24, 34, 94, 255]));
   cushionTex.wrapS = RepeatWrapping;
   cushionTex.repeat.set(150, 1);
-  const cushion = new Mesh(track(new TorusGeometry(BOUNDARY_R + 0.14, 0.14, 8, 400)), track(new MeshStandardMaterial({ map: cushionTex, roughness: 0.85 })));
+  const cushion = new Mesh(
+    track(new TorusGeometry(BOUNDARY_R + 0.14, 0.14, 8, 400)),
+    track(new MeshStandardMaterial({ map: cushionTex, roughness: 0.85 })),
+  );
   cushion.rotation.x = Math.PI / 2;
   cushion.scale.z = 0.72;
   cushion.position.y = 0.1;
@@ -1962,7 +2199,10 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
   const ropeTex = track(canvasArt(64, 16, paintRope, [233, 226, 207, 255]));
   ropeTex.wrapS = RepeatWrapping;
   ropeTex.repeat.set(6000, 1);
-  const rope = new Mesh(track(new TorusGeometry(BOUNDARY_R - 0.03, 0.024, 6, 720)), track(new MeshStandardMaterial({ map: ropeTex, roughness: 0.9 })));
+  const rope = new Mesh(
+    track(new TorusGeometry(BOUNDARY_R - 0.03, 0.024, 6, 720)),
+    track(new MeshStandardMaterial({ map: ropeTex, roughness: 0.9 })),
+  );
   rope.rotation.x = Math.PI / 2;
   rope.position.y = 0.024;
   rope.name = 'boundary-rope';
@@ -2004,7 +2244,10 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
   const fasciaTex = track(boardTexture(detail, signage));
   fasciaTex.repeat.set(-9, 1);
   const fasciaMat = track(new MeshBasicMaterial({ map: fasciaTex, side: DoubleSide, color: '#8f98d8', fog: true }));
-  const fascia = new Mesh(track(new CylinderGeometry(BOUNDARY_R + 28.5, BOUNDARY_R + 28.5, 1.6, 200, 1, true)), fasciaMat);
+  const fascia = new Mesh(
+    track(new CylinderGeometry(BOUNDARY_R + 28.5, BOUNDARY_R + 28.5, 1.6, 200, 1, true)),
+    fasciaMat,
+  );
   fascia.position.y = 12.4;
   group.add(fascia);
   // The cantilever roof slopes up from the back of the upper tier; a back wall closes the stand.
@@ -2075,12 +2318,14 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
       crowd.setMatrixAt(k, o.matrix);
       const sect = Math.floor((a * r) / 18);
       const regional = (sect * 7) % 5 === 0;
-      c.set(regional && rand() < 0.6 ? (sect % 2 ? '#2b3a8f' : '#e8901a') : SHIRTS[Math.floor(rand() * SHIRTS.length)]).multiplyScalar(0.72 + rand() * 0.35);
+      c.set(
+        regional && rand() < 0.6 ? (sect % 2 ? '#2b3a8f' : '#e8901a') : SHIRTS[Math.floor(rand() * SHIRTS.length)],
+      ).multiplyScalar(0.72 + rand() * 0.35);
       crowd.setColorAt(k, c);
       c.set(SKINS[Math.floor(rand() * SKINS.length)]);
       skin.set([c.r, c.g, c.b], k * 3);
       misc.set([rand(), 0.45 + rand() * 0.45, rand() < 0.22 ? 1 : 0, rand() < 0.35 ? 1 : 0], k * 4);
-      seat.set([a, ((sect * 0.618) % 1 + 1) % 1], k * 2);
+      seat.set([a, (((sect * 0.618) % 1) + 1) % 1], k * 2);
       rowTop[k] = yb;
       placedN++;
     }
@@ -2100,7 +2345,11 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
 
   // Crowd banners (high tier): 48 spectators in the front rows each hold a flag, raised with the excitement.
   const bannerCount = 48;
-  const banners = new InstancedMesh(track(crowdBannerGeometry()), track(crowdBannerMaterial(cu, st.flagTex)), bannerCount);
+  const banners = new InstancedMesh(
+    track(crowdBannerGeometry()),
+    track(crowdBannerMaterial(cu, st.flagTex)),
+    bannerCount,
+  );
   banners.name = 'crowd-banners';
   const bannerAttr = new Float32Array(bannerCount * 2);
   const brand = seededStream(91);
@@ -2172,7 +2421,11 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
     su2.uClouds.value = L.clouds;
     (su2.uCloudColor.value as Color).set(L.cloudColor);
     if (L.sun) {
-      sunDir.set(Math.sin(L.sun.azimuth) * Math.cos(L.sun.elevation), Math.sin(L.sun.elevation), Math.cos(L.sun.azimuth) * Math.cos(L.sun.elevation));
+      sunDir.set(
+        Math.sin(L.sun.azimuth) * Math.cos(L.sun.elevation),
+        Math.sin(L.sun.elevation),
+        Math.cos(L.sun.azimuth) * Math.cos(L.sun.elevation),
+      );
       (su2.uSunDir.value as Vector3).copy(sunDir);
       (su2.uSunColor.value as Color).set(L.sun.color);
       su2.uSunDisc.value = L.sun.disc;
@@ -2251,12 +2504,20 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
       const domeMat = new ShaderMaterial({
         side: BackSide,
         depthWrite: false,
-        uniforms: { uTop: { value: new Color(L.zenith) }, uMid: { value: new Color(L.mid) }, uHor: { value: new Color(L.horizon) }, uGround: { value: new Color(L.grass.a).multiplyScalar(0.6) } },
-        vertexShader: 'varying vec3 vD; void main() { vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-        fragmentShader: 'varying vec3 vD; uniform vec3 uTop, uMid, uHor, uGround; void main() { float h = vD.y; vec3 c = mix(uHor, uMid, smoothstep(0.0, 0.25, h)); c = mix(c, uTop, smoothstep(0.2, 0.9, h)); c = mix(uGround, c, smoothstep(-0.05, 0.02, h)); gl_FragColor = vec4(c * 1.4, 1.0); }',
+        uniforms: {
+          uTop: { value: new Color(L.zenith) },
+          uMid: { value: new Color(L.mid) },
+          uHor: { value: new Color(L.horizon) },
+          uGround: { value: new Color(L.grass.a).multiplyScalar(0.6) },
+        },
+        vertexShader:
+          'varying vec3 vD; void main() { vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+        fragmentShader:
+          'varying vec3 vD; uniform vec3 uTop, uMid, uHor, uGround; void main() { float h = vD.y; vec3 c = mix(uHor, uMid, smoothstep(0.0, 0.25, h)); c = mix(c, uTop, smoothstep(0.2, 0.9, h)); c = mix(uGround, c, smoothstep(-0.05, 0.02, h)); gl_FragColor = vec4(c * 1.4, 1.0); }',
       });
       s.add(new Mesh(new SphereGeometry(100, 24, 12), domeMat));
-      const bright = (color: string, k: number) => new MeshBasicMaterial({ color: new Color(color).multiplyScalar(k), side: DoubleSide });
+      const bright = (color: string, k: number) =>
+        new MeshBasicMaterial({ color: new Color(color).multiplyScalar(k), side: DoubleSide });
       if (L.sun && L.sun.disc > 0) {
         const sun = new Mesh(new SphereGeometry(5, 12, 8), bright(L.sun.color, 40));
         sun.position.copy(sunDir).multiplyScalar(80);
@@ -2272,7 +2533,10 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
         }
       }
       // The stands' dark ring round the horizon.
-      const ring = new Mesh(new CylinderGeometry(70, 70, 26, 32, 1, true), new MeshBasicMaterial({ color: new Color(L.fog.color).multiplyScalar(0.5), side: DoubleSide }));
+      const ring = new Mesh(
+        new CylinderGeometry(70, 70, 26, 32, 1, true),
+        new MeshBasicMaterial({ color: new Color(L.fog.color).multiplyScalar(0.5), side: DoubleSide }),
+      );
       ring.position.y = 6;
       s.add(ring);
       rt = pmrem.fromScene(s, 0, 0.1, 400, { size: 64 });
@@ -2331,7 +2595,8 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
       const b = new Color(away.primary);
       su.uTeamA.value.copy(a);
       su.uTeamB.value.copy(b);
-      for (let i = 0; i < placedN; i += 3) crowd.setColorAt(i, (i % 2 ? a : b).clone().multiplyScalar(0.75 + misc[i * 4] * 0.3));
+      for (let i = 0; i < placedN; i += 3)
+        crowd.setColorAt(i, (i % 2 ? a : b).clone().multiplyScalar(0.75 + misc[i * 4] * 0.3));
       if (crowd.instanceColor) crowd.instanceColor.needsUpdate = true;
     },
     setQuality(p) {
@@ -2360,7 +2625,12 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
       quiet = on;
     },
     setCrowdFocus(at, strength) {
-      const s = quality.quality === 'high' ? clamp(strength, 0, 1) : quality.quality === 'standard' ? clamp(strength, 0, 1) * 0.5 : 0;
+      const s =
+        quality.quality === 'high'
+          ? clamp(strength, 0, 1)
+          : quality.quality === 'standard'
+            ? clamp(strength, 0, 1) * 0.5
+            : 0;
       if (at) cu.uFocus.value.set(at.x, at.z, s);
       else cu.uFocus.value.z = 0;
     },
@@ -2385,7 +2655,13 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
       return {
         environment: { ...env },
         pitch: { ...pitch },
-        sightScreen: { tone, color: '#' + st.screenMat.color.getHexString(), width: SIGHT_SCREEN.width, height: SIGHT_SCREEN.height, distance: SIGHT_SCREEN.distance },
+        sightScreen: {
+          tone,
+          color: '#' + st.screenMat.color.getHexString(),
+          width: SIGHT_SCREEN.width,
+          height: SIGHT_SCREEN.height,
+          distance: SIGHT_SCREEN.distance,
+        },
         quiet,
         boardOffset: st.boardMat.map!.offset.x,
         fasciaOffset: fasciaTex.offset.x,

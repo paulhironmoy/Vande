@@ -22,7 +22,16 @@ export interface SegmentedControlProps<T extends string | number> {
 }
 
 /** Radio-group semantics with arrow-key navigation. */
-export function SegmentedControl<T extends string | number>({ options, value, onChange, label, block, className, id, testId }: SegmentedControlProps<T>) {
+export function SegmentedControl<T extends string | number>({
+  options,
+  value,
+  onChange,
+  label,
+  block,
+  className,
+  id,
+  testId,
+}: SegmentedControlProps<T>) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const onKey = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
     let next = -1;
@@ -38,7 +47,13 @@ export function SegmentedControl<T extends string | number>({ options, value, on
     refs.current[next]?.focus();
   };
   return (
-    <div role="radiogroup" aria-label={label} id={id} className={[s.group, block ? s.block : '', className ?? ''].join(' ')} data-testid={testId}>
+    <div
+      role="radiogroup"
+      aria-label={label}
+      id={id}
+      className={[s.group, block ? s.block : '', className ?? ''].join(' ')}
+      data-testid={testId}
+    >
       {options.map((o, i) => {
         const checked = o.value === value;
         return (

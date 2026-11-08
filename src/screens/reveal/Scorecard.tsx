@@ -24,12 +24,19 @@ export function Scorecard({ log, selected, onSelect, disclosure, auto }: Scoreca
   const d = useMemo(() => disclosure ?? fullDisclosure(log), [disclosure, log]);
   // A Daily Six attempt is one innings against the day's sealed over (innings[1] is empty by design).
   const innings = log.kind === 'daily' ? ([0] as const) : ([0, 1] as const);
-  const superBalls = log.kind !== 'daily' && log.superBall.used && log.superBall.outcomes && d.superStarted ? log.superBall.outcomes.slice(0, d.superShown) : null;
+  const superBalls =
+    log.kind !== 'daily' && log.superBall.used && log.superBall.outcomes && d.superStarted
+      ? log.superBall.outcomes.slice(0, d.superShown)
+      : null;
   const autoTag = (kind: AutoKind | null | undefined) =>
     kind ? (
       <span className={s.auto}>
         <span aria-hidden="true">{t('auto.tag')}</span>
-        <span className="sr-only">{kind === 'both' ? `${t('auto.batted')}, ${t('auto.bowled')}` : t(kind === 'batted' ? 'auto.batted' : 'auto.bowled')}</span>
+        <span className="sr-only">
+          {kind === 'both'
+            ? `${t('auto.batted')}, ${t('auto.bowled')}`
+            : t(kind === 'batted' ? 'auto.batted' : 'auto.bowled')}
+        </span>
       </span>
     ) : null;
   return (
@@ -38,7 +45,9 @@ export function Scorecard({ log, selected, onSelect, disclosure, auto }: Scoreca
         const inn = log.innings[i];
         const view = d.innings[i];
         const p = log.players[inn.batter];
-        const total = view.ended ? { runs: inn.runs, wickets: inn.wickets } : { runs: view.runs, wickets: view.wickets };
+        const total = view.ended
+          ? { runs: inn.runs, wickets: inn.wickets }
+          : { runs: view.runs, wickets: view.wickets };
         return (
           <section key={i} className={s.innings} aria-labelledby={`sc-${i}`}>
             <header className={s.head}>
@@ -64,11 +73,13 @@ export function Scorecard({ log, selected, onSelect, disclosure, auto }: Scoreca
                       <OutcomeBadge mark={markFromOutcome(o)} size="md" ball={o.ball + 1} />
                       <span className={s.what}>
                         <span className={s.delivery}>
-                          {t(`variant.${o.delivery.variant}` as MessageKey)} · {t(`length.${o.delivery.length}` as MessageKey)}
+                          {t(`variant.${o.delivery.variant}` as MessageKey)} ·{' '}
+                          {t(`length.${o.delivery.length}` as MessageKey)}
                         </span>
                         <span className={s.shot}>
                           {t(`shot.${o.shot}` as MessageKey)}
-                          {o.zone ? ` → ${t(`zone.${o.zone}` as MessageKey)}` : ''} · {t(`timing.${o.timing}` as MessageKey)}
+                          {o.zone ? ` → ${t(`zone.${o.zone}` as MessageKey)}` : ''} ·{' '}
+                          {t(`timing.${o.timing}` as MessageKey)}
                         </span>
                       </span>
                       {autoTag(auto?.main[i][o.ball])}

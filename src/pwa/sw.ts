@@ -3,7 +3,12 @@
  * VANDE service worker (vite-plugin-pwa injectManifest).
  * Precache the whole app shell so the game is fully playable offline; runtime cache fonts and images.
  */
-import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute, type PrecacheEntry } from 'workbox-precaching';
+import {
+  cleanupOutdatedCaches,
+  createHandlerBoundToURL,
+  precacheAndRoute,
+  type PrecacheEntry,
+} from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
@@ -20,7 +25,8 @@ const base: string = import.meta.env.BASE_URL || '/';
  * unregisters itself and reloads open pages so they load the bundled version directly.
  */
 const NATIVE_SHELL =
-  (self.location.protocol === 'https:' || self.location.protocol === 'capacitor:') && self.location.hostname === 'localhost';
+  (self.location.protocol === 'https:' || self.location.protocol === 'capacitor:') &&
+  self.location.hostname === 'localhost';
 
 if (NATIVE_SHELL) {
   self.addEventListener('install', () => {
@@ -79,11 +85,7 @@ if (COMMUNITY_API_ORIGIN) {
 // the host's exact build id and hashes, so stale bytes must fail closed instead of producing an apparently valid old
 // player. Register this before every cache-backed runtime route and explicitly exclude it from the generic JSON/image
 // matcher below.
-registerRoute(
-  ({ url }) => isUnityRuntimeRequest(url, self.location.origin, base),
-  new NetworkOnly(),
-  'GET',
-);
+registerRoute(({ url }) => isUnityRuntimeRequest(url, self.location.origin, base), new NetworkOnly(), 'GET');
 
 // Fonts: cache first for a year (they are hashed/static).
 registerRoute(

@@ -18,7 +18,12 @@ import { autoField } from '@/physics/field';
 import { flight as physicsFlight } from '@/physics/delivery';
 import { cpuMicros, skipOverBudgetWhenLoaded } from '../support/timing';
 
-const setupOf = (eb: EvalBall, hand: Handedness): PracticeSceneSetup => ({ field: hand === 'right' ? eb.field : autoField(eb.over.bowler, eb.conditions, 'left', eb.over.ball), bowler: eb.over.bowler, conditions: eb.conditions, handedness: hand });
+const setupOf = (eb: EvalBall, hand: Handedness): PracticeSceneSetup => ({
+  field: hand === 'right' ? eb.field : autoField(eb.over.bowler, eb.conditions, 'left', eb.over.ball),
+  bowler: eb.over.bowler,
+  conditions: eb.conditions,
+  handedness: hand,
+});
 
 interface Case {
   label: string;
@@ -29,19 +34,63 @@ interface Case {
   afterRelease: number;
 }
 
-type Swing = { kind: 'attack' | 'defend'; e: number; directionDeg: number; power: number; footwork: 'auto' | 'forward' } | null;
+type Swing = {
+  kind: 'attack' | 'defend';
+  e: number;
+  directionDeg: number;
+  power: number;
+  footwork: 'auto' | 'forward';
+} | null;
 
-function add(out: Case[], label: string, setup: PracticeSceneSetup, fl: Case['flight'], sw: Swing, hand: Handedness, eb: EvalBall) {
-  const swing: NormalizedSwing | null = sw ? { kind: sw.kind, startT: fl.idealContactT - batTravelMs(sw.kind, sw.power) / 1000 + sw.e / 1000, directionDeg: sw.directionDeg, power: sw.power, elevation: 0, footwork: sw.footwork } : null;
-  const result = resolveDelivery({ flight: fl, swing, field: setup.field, bowler: eb.over.bowler, conditions: eb.conditions, handedness: hand, assist: 'play', tierToleranceMs: 0 });
-  out.push({ label, setup, flight: fl, result, afterRelease: swing ? swing.startT * 1000 + 40 : fl.stumpsT * 1000 + 300 });
+function add(
+  out: Case[],
+  label: string,
+  setup: PracticeSceneSetup,
+  fl: Case['flight'],
+  sw: Swing,
+  hand: Handedness,
+  eb: EvalBall,
+) {
+  const swing: NormalizedSwing | null = sw
+    ? {
+        kind: sw.kind,
+        startT: fl.idealContactT - batTravelMs(sw.kind, sw.power) / 1000 + sw.e / 1000,
+        directionDeg: sw.directionDeg,
+        power: sw.power,
+        elevation: 0,
+        footwork: sw.footwork,
+      }
+    : null;
+  const result = resolveDelivery({
+    flight: fl,
+    swing,
+    field: setup.field,
+    bowler: eb.over.bowler,
+    conditions: eb.conditions,
+    handedness: hand,
+    assist: 'play',
+    tierToleranceMs: 0,
+  });
+  out.push({
+    label,
+    setup,
+    flight: fl,
+    result,
+    afterRelease: swing ? swing.startT * 1000 + 40 : fl.stumpsT * 1000 + 300,
+  });
 }
 
 /** The reference over (W0's swings and the drive 40 ms late): 12 hand-overs. */
 function referenceCases(): Case[] {
   const out: Case[] = [];
   const drive = (e: number): Swing => ({ kind: 'attack', e, directionDeg: 55, power: 0.7, footwork: 'forward' });
-  const defend = (footwork: 'auto' | 'forward'): Swing => ({ kind: 'defend', e: 0, directionDeg: 0, power: 0.2, footwork });
+  const defend = (footwork: 'auto' | 'forward'): Swing => ({
+    kind: 'defend',
+    e: 0,
+    directionDeg: 0,
+    power: 0.2,
+    footwork,
+  });
   const safe = [null, drive(0), defend('auto'), defend('auto'), null, defend('forward')];
   for (const eb of overBalls(REFERENCE_OVER, 'balanced')) {
     const setup = setupOf(eb, 'right');
@@ -61,10 +110,37 @@ function randomCases(): Case[] {
         over.forEach((eb) => {
           const k = n++;
           const hand: Handedness = oi % 2 === 1 ? 'left' : 'right';
-          const fl = hand === 'right' ? eb.flight : physicsFlight({ plan: eb.over.balls[eb.ballIndex], bowler: eb.over.bowler, conditions: eb.conditions, seed: eb.seed, ball: eb.over.ball, handedness: 'left' });
+          const fl =
+            hand === 'right'
+              ? eb.flight
+              : physicsFlight({
+                  plan: eb.over.balls[eb.ballIndex],
+                  bowler: eb.over.bowler,
+                  conditions: eb.conditions,
+                  seed: eb.seed,
+                  ball: eb.over.ball,
+                  handedness: 'left',
+                });
           const kind: 'attack' | 'defend' = k % 3 === 0 ? 'attack' : 'defend';
-          const sw: Swing = k % 3 === 2 ? null : { kind, e: ((k * 37) % 81) - 40, directionDeg: ((k * 53) % 120) - 60, power: kind === 'attack' ? 0.7 : 0.2, footwork: k % 2 ? 'forward' : 'auto' };
-          add(out, `${difficulty} ${family} over ${oi + 1} ball ${eb.ballIndex + 1} ${hand}${sw ? '' : ' left'}`, setupOf(eb, hand), fl, sw, hand, eb);
+          const sw: Swing =
+            k % 3 === 2
+              ? null
+              : {
+                  kind,
+                  e: ((k * 37) % 81) - 40,
+                  directionDeg: ((k * 53) % 120) - 60,
+                  power: kind === 'attack' ? 0.7 : 0.2,
+                  footwork: k % 2 ? 'forward' : 'auto',
+                };
+          add(
+            out,
+            `${difficulty} ${family} over ${oi + 1} ball ${eb.ballIndex + 1} ${hand}${sw ? '' : ' left'}`,
+            setupOf(eb, hand),
+            fl,
+            sw,
+            hand,
+            eb,
+          );
         }),
       );
     }
@@ -79,10 +155,16 @@ const CASES = [...REFS, ...randomCases()];
 function handover(c: Case): BallScript {
   const live = buildPracticeScript({ setup: c.setup, flight: c.flight });
   const at = live.practice!.releaseScene + c.afterRelease;
-  return buildPracticeScript({ setup: c.setup, flight: c.flight, result: c.result, handover: { script: live, atScene: at } });
+  return buildPracticeScript({
+    setup: c.setup,
+    flight: c.flight,
+    result: c.result,
+    handover: { script: live, atScene: at },
+  });
 }
 
-const same = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) => Object.is(a.x, b.x) && Object.is(a.y, b.y) && Object.is(a.z, b.z);
+const same = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) =>
+  Object.is(a.x, b.x) && Object.is(a.y, b.y) && Object.is(a.z, b.z);
 
 describe("a live result's gaze integrated as it is read (R-C1)", () => {
   it('is the same table, bit for bit, read frame by frame (in order or scrambled) as read all at once: 120 checks', () => {
@@ -96,7 +178,11 @@ describe("a live result's gaze integrated as it is read (R-C1)", () => {
         // All at once: its last entry first.
         practiceGaze(whole, rel + 20_000, rm);
         // Frame by frame at 60 fps from before the release, as the screen reads it.
-        for (let t = rel - 10; t <= rel + 3000; t += 1000 / 60) expect(same(practiceGaze(lazy, t, rm), practiceGaze(whole, t, rm)), `${c.label}${rm ? ' (RM)' : ''} t=${t}`).toBe(true);
+        for (let t = rel - 10; t <= rel + 3000; t += 1000 / 60)
+          expect(
+            same(practiceGaze(lazy, t, rm), practiceGaze(whole, t, rm)),
+            `${c.label}${rm ? ' (RM)' : ''} t=${t}`,
+          ).toBe(true);
         // Scrambled: backwards, then a seeded scatter, on a fresh lazy table too.
         const scattered = handover(c);
         let s = 12345;
@@ -107,8 +193,14 @@ describe("a live result's gaze integrated as it is read (R-C1)", () => {
           times.push(rel - 10 + (s / 2147483648) * 3010);
         }
         for (const t of times) {
-          expect(same(practiceGaze(lazy, t, rm), practiceGaze(whole, t, rm)), `${c.label}${rm ? ' (RM)' : ''} scrambled t=${t}`).toBe(true);
-          expect(same(practiceGaze(scattered, t, rm), practiceGaze(whole, t, rm)), `${c.label}${rm ? ' (RM)' : ''} scattered t=${t}`).toBe(true);
+          expect(
+            same(practiceGaze(lazy, t, rm), practiceGaze(whole, t, rm)),
+            `${c.label}${rm ? ' (RM)' : ''} scrambled t=${t}`,
+          ).toBe(true);
+          expect(
+            same(practiceGaze(scattered, t, rm), practiceGaze(whole, t, rm)),
+            `${c.label}${rm ? ' (RM)' : ''} scattered t=${t}`,
+          ).toBe(true);
         }
         checks++;
       }

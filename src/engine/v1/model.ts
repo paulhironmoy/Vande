@@ -8,7 +8,18 @@
  * Stage 1 decides contact (middle, thick edge, thin edge, pad, clean miss, or none for a leave); stage 2 decides the
  * result given that contact. Only basic arithmetic is used, so every engine computes identical probabilities.
  */
-import type { Conditions, Contact, DeliveryPlan, ExecutionGrade, FieldSetting, FieldZone, Runs, ShotType, TimingGrade, WicketKind } from '@/contracts';
+import type {
+  Conditions,
+  Contact,
+  DeliveryPlan,
+  ExecutionGrade,
+  FieldSetting,
+  FieldZone,
+  Runs,
+  ShotType,
+  TimingGrade,
+  WicketKind,
+} from '@/contracts';
 import * as T from './tables';
 import type { AttackShot, Coverage } from './tables';
 
@@ -55,7 +66,8 @@ export interface ModelInput {
 
 type AtomKind = 'dot_block' | 'dot_beaten' | 'dot_fielded' | 'runs' | 'four' | 'six' | 'wicket';
 /** Which part of the model produced the atom (used by explanations). */
-type AtomTag = 'gap' | 'ring' | 'deep' | 'both' | 'slips' | 'close' | 'stumps' | 'scramble' | 'leave' | 'edge' | 'block' | 'none';
+type AtomTag =
+  'gap' | 'ring' | 'deep' | 'both' | 'slips' | 'close' | 'stumps' | 'scramble' | 'leave' | 'edge' | 'block' | 'none';
 
 export interface Atom {
   p: number;
@@ -111,7 +123,10 @@ function lengthClass(variant: DeliveryCore['variant'], length: DeliveryCore['len
 }
 
 /** Natural zones for a shot against this delivery ("play with the line"; short balls are hooked or upper-cut). */
-export function naturalZonesFor(shot: AttackShot, d: Pick<DeliveryCore, 'variant' | 'line' | 'length'>): readonly FieldZone[] {
+export function naturalZonesFor(
+  shot: AttackShot,
+  d: Pick<DeliveryCore, 'variant' | 'line' | 'length'>,
+): readonly FieldZone[] {
   if (shot === 'defend') return [];
   if (shot === 'loft' && lengthClass(d.variant, d.length) === 'short') return T.SHORT_LOFT_ZONES[d.line];
   return T.NATURAL_ZONES[shot][d.line];
@@ -135,7 +150,8 @@ function pitchEffect(d: DeliveryCore, shot: ShotType, cond: Conditions, ctx: Bal
   let p = T.PITCH_VAR[cond.pitch][d.variant];
   // Swing and seam need a full or good length; a short swing ball does not move.
   if (T.FAMILY[d.variant] === 'swing' && d.length === 'short' && p < 0) p *= T.SHORT_SWING_MULT;
-  if (cond.pitch === 'green' && !ctx.superBall && T.NEW_BALL_VARIANTS.includes(d.variant)) p *= ctx.ball <= 2 ? T.NEW_BALL_MULT.early : T.NEW_BALL_MULT.late;
+  if (cond.pitch === 'green' && !ctx.superBall && T.NEW_BALL_VARIANTS.includes(d.variant))
+    p *= ctx.ball <= 2 ? T.NEW_BALL_MULT.early : T.NEW_BALL_MULT.late;
   p += T.WEATHER_VAR[cond.weather][d.variant] ?? 0;
   p += T.PITCH_SHOT[cond.pitch][shot] ?? 0;
   if (T.FAMILY[d.variant] !== 'spin' && d.intensity === 3) p += T.PITCH_EXPRESS[cond.pitch];
@@ -144,7 +160,8 @@ function pitchEffect(d: DeliveryCore, shot: ShotType, cond: Conditions, ctx: Bal
 
 function executionEffect(grade: ExecutionGrade, d: DeliveryCore, shot: ShotType): number {
   if (grade === 'perfect') return clamp(T.PERFECT_EFFECT * T.PRECISION[d.variant], -1, 1);
-  if (grade === 'loose') return clamp(T.LOOSE_EFFECT * T.LOOSE_SEVERITY[d.variant] * T.LOOSE_LINE[d.line] * T.LOOSE_SHOT[shot], -1, 1);
+  if (grade === 'loose')
+    return clamp(T.LOOSE_EFFECT * T.LOOSE_SEVERITY[d.variant] * T.LOOSE_LINE[d.line] * T.LOOSE_SHOT[shot], -1, 1);
   return (T.GOOD_EFFECT[d.variant] ?? 0) * (shot === 'leave' ? 0 : T.LOOSE_SHOT[shot]);
 }
 
@@ -160,7 +177,13 @@ export function contrasts(prev: PrevBall, d: DeliveryCore): boolean {
   const dv = speedOf(prev) - speedOf(d);
   if (dv >= T.PACE_CONTRAST_KPH || dv <= -T.PACE_CONTRAST_KPH) return true;
   const pair = `${prev.variant}|${d.variant}`;
-  if (pair === 'inswing|outswing' || pair === 'outswing|inswing' || pair === 'offspin|legspin' || pair === 'legspin|offspin') return true;
+  if (
+    pair === 'inswing|outswing' ||
+    pair === 'outswing|inswing' ||
+    pair === 'offspin|legspin' ||
+    pair === 'legspin|offspin'
+  )
+    return true;
   const li = T.LINES.indexOf(prev.line) - T.LINES.indexOf(d.line);
   return li >= 2 || li <= -2;
 }
@@ -202,7 +225,16 @@ interface Part {
   tag: AtomTag;
 }
 
-function part(p: number, runs: Runs, kind: AtomKind, zone: FieldZone | null, fielder: FieldZone | null, tag: AtomTag, aerial = false, wicket: WicketKind | null = null): Part {
+function part(
+  p: number,
+  runs: Runs,
+  kind: AtomKind,
+  zone: FieldZone | null,
+  fielder: FieldZone | null,
+  tag: AtomTag,
+  aerial = false,
+  wicket: WicketKind | null = null,
+): Part {
   return { p, runs, wicket, fielder, zone, kind, aerial, tag };
 }
 
@@ -239,7 +271,14 @@ function tilt(parts: Part[], wm: number, bm: number): Part[] {
 type Weights = ReadonlyArray<readonly [Runs, number]>;
 
 /** Fill `rest` probability over runs in proportion to weights. */
-function spread(rest: number, weights: Weights, zone: FieldZone, fielder: FieldZone | null, tag: AtomTag, out: Part[]): void {
+function spread(
+  rest: number,
+  weights: Weights,
+  zone: FieldZone,
+  fielder: FieldZone | null,
+  tag: AtomTag,
+  out: Part[],
+): void {
   let total = 0;
   for (const w of weights) total += w[1];
   if (total <= 0 || rest <= 0) return;
@@ -340,7 +379,9 @@ function middleParts(inp: ModelInput, attack: AttackShot, coverage: Coverage, po
       // Last ball: the batters run on anything, so a fielded dot becomes a single or a run out.
       let dot = 0;
       for (const w of weights) if (w[0] === 0) dot = w[1];
-      weights = weights.map((w) => (w[0] === 0 ? ([0, 0] as const) : w[0] === 1 ? ([1, w[1] + dot * (1 - T.SCRAMBLE_RUN_OUT)] as const) : w));
+      weights = weights.map((w) =>
+        w[0] === 0 ? ([0, 0] as const) : w[0] === 1 ? ([1, w[1] + dot * (1 - T.SCRAMBLE_RUN_OUT)] as const) : w,
+      );
       runOut = runOut * 2 + dot * T.SCRAMBLE_RUN_OUT;
     }
     out.push(part(runOut, 0, 'wicket', z, z, ctx.lastBall ? 'scramble' : coverage, false, 'run_out'));
@@ -477,7 +518,11 @@ function thinParts(inp: ModelInput, attack: AttackShot): Part[] {
   const { d, field, cond, zone } = inp;
   const layout = T.FIELD_LAYOUTS[field];
   const family = T.FAMILY[d.variant];
-  const caught = clamp(layout.slipCatch * T.CARRY[cond.pitch] * T.SHOT_EXPOSURE[attack] * (family === 'spin' ? 0.8 : 1), 0, 0.9);
+  const caught = clamp(
+    layout.slipCatch * T.CARRY[cond.pitch] * T.SHOT_EXPOSURE[attack] * (family === 'spin' ? 0.8 : 1),
+    0,
+    0.9,
+  );
   const ez = edgeZone(d, zone);
   const fourOk = layout.zones[ez] === 'gap' ? 1 : 0.15;
   const out: Part[] = [part(caught, 0, 'wicket', null, null, 'slips', true, 'caught')];
@@ -509,13 +554,23 @@ function padParts(inp: ModelInput, attack: AttackShot, natural: boolean): Part[]
     0,
     0.85,
   );
-  return [part(lbw, 0, 'wicket', null, null, 'stumps', false, 'lbw'), part(1 - lbw, 0, 'dot_beaten', null, null, 'none')];
+  return [
+    part(lbw, 0, 'wicket', null, null, 'stumps', false, 'lbw'),
+    part(1 - lbw, 0, 'dot_beaten', null, null, 'none'),
+  ];
 }
 
 function missParts(inp: ModelInput, attack: AttackShot, natural: boolean): Part[] {
   const { d, cond } = inp;
-  const charge = T.FAMILY[d.variant] === 'spin' && (attack === 'drive' || attack === 'loft') && (d.intensity === 1 || d.length === 'full');
-  if (charge) return [part(T.STUMPED, 0, 'wicket', null, null, 'stumps', false, 'stumped'), part(1 - T.STUMPED, 0, 'dot_beaten', null, null, 'none')];
+  const charge =
+    T.FAMILY[d.variant] === 'spin' &&
+    (attack === 'drive' || attack === 'loft') &&
+    (d.intensity === 1 || d.length === 'full');
+  if (charge)
+    return [
+      part(T.STUMPED, 0, 'wicket', null, null, 'stumps', false, 'stumped'),
+      part(1 - T.STUMPED, 0, 'dot_beaten', null, null, 'none'),
+    ];
   const bowled = clamp(
     T.BOWLED_LINE[d.line] *
       T.BOWLED_LENGTH[lengthClass(d.variant, d.length)] *
@@ -526,11 +581,26 @@ function missParts(inp: ModelInput, attack: AttackShot, natural: boolean): Part[
     0,
     0.85,
   );
-  return [part(bowled, 0, 'wicket', null, null, 'stumps', false, 'bowled'), part(1 - bowled, 0, 'dot_beaten', null, null, 'none')];
+  return [
+    part(bowled, 0, 'wicket', null, null, 'stumps', false, 'bowled'),
+    part(1 - bowled, 0, 'dot_beaten', null, null, 'none'),
+  ];
 }
 
 const UNANSWERED: Evaluation = {
-  atoms: [{ p: 1, contact: 'none', runs: 0, wicket: null, fielder: null, zone: null, kind: 'dot_beaten', aerial: false, tag: 'leave' }],
+  atoms: [
+    {
+      p: 1,
+      contact: 'none',
+      runs: 0,
+      wicket: null,
+      fielder: null,
+      zone: null,
+      kind: 'dot_beaten',
+      aerial: false,
+      tag: 'leave',
+    },
+  ],
   factors: { matchup: 0, timing: 0, execution: 0, pitch: 0, field: 0, setup: 0, risk: 0 },
   natural: true,
   advantage: 0,
@@ -545,18 +615,55 @@ function leaveEvaluation(inp: ModelInput, factorsBase: Omit<Factors, 'risk'>, se
   const { d, cond, grade } = inp;
   if (inp.timing === 'interrupted') return { ...UNANSWERED, atoms: UNANSWERED.atoms.map((a) => ({ ...a })) };
   const execMult = grade === 'perfect' ? 1.15 : grade === 'loose' ? 0.6 : 1;
-  const wm = (inp.intentMult ? inp.intentMult.wicket : T.INTENT_WICKET[d.intent]) * (1 + (T.SETUP_WICKET_MULT - 1) * setupStrength);
+  const wm =
+    (inp.intentMult ? inp.intentMult.wicket : T.INTENT_WICKET[d.intent]) *
+    (1 + (T.SETUP_WICKET_MULT - 1) * setupStrength);
   const pHit = clamp(
-    T.LEAVE_HIT[d.line] * (T.LEAVE_HIT_VARIANT[d.variant] ?? 1) * T.LEAVE_HIT_LENGTH[lengthClass(d.variant, d.length)] * T.LEAVE_HIT_PITCH[cond.pitch] * execMult * wm,
+    T.LEAVE_HIT[d.line] *
+      (T.LEAVE_HIT_VARIANT[d.variant] ?? 1) *
+      T.LEAVE_HIT_LENGTH[lengthClass(d.variant, d.length)] *
+      T.LEAVE_HIT_PITCH[cond.pitch] *
+      execMult *
+      wm,
     0,
     0.9,
   );
   const atoms: Atom[] = [];
   if (pHit > 0) {
-    atoms.push({ p: pHit * T.LEAVE_BOWLED_SHARE, contact: 'none', runs: 0, wicket: 'bowled', fielder: null, zone: null, kind: 'wicket', aerial: false, tag: 'leave' });
-    atoms.push({ p: pHit * (1 - T.LEAVE_BOWLED_SHARE), contact: 'pad', runs: 0, wicket: 'lbw', fielder: null, zone: null, kind: 'wicket', aerial: false, tag: 'leave' });
+    atoms.push({
+      p: pHit * T.LEAVE_BOWLED_SHARE,
+      contact: 'none',
+      runs: 0,
+      wicket: 'bowled',
+      fielder: null,
+      zone: null,
+      kind: 'wicket',
+      aerial: false,
+      tag: 'leave',
+    });
+    atoms.push({
+      p: pHit * (1 - T.LEAVE_BOWLED_SHARE),
+      contact: 'pad',
+      runs: 0,
+      wicket: 'lbw',
+      fielder: null,
+      zone: null,
+      kind: 'wicket',
+      aerial: false,
+      tag: 'leave',
+    });
   }
-  atoms.push({ p: 1 - pHit, contact: 'none', runs: 0, wicket: null, fielder: null, zone: null, kind: 'dot_beaten', aerial: false, tag: 'leave' });
+  atoms.push({
+    p: 1 - pHit,
+    contact: 'none',
+    runs: 0,
+    wicket: null,
+    fielder: null,
+    zone: null,
+    kind: 'dot_beaten',
+    aerial: false,
+    tag: 'leave',
+  });
   return {
     atoms,
     factors: { ...factorsBase, risk: r3(clamp(T.SHOT_RISK.leave + pHit * 1.2, 0, 1)) },
@@ -580,22 +687,62 @@ export function evaluate(inp: ModelInput): Evaluation {
   if (leaving) {
     // A deliberate leave has no timing; a chosen shot that was never played ("no shot") counts as the worst timing.
     const timingF = shot === 'leave' || timing === 'interrupted' ? 0 : T.TIMING_VALUE.no_shot;
-    return leaveEvaluation(inp, { matchup: 0, timing: timingF, execution: r3(e), pitch: r3(p), field: r3(T.FIELD_FACTOR_BAT[field]), setup: r3(s) }, setupStrength);
+    return leaveEvaluation(
+      inp,
+      {
+        matchup: 0,
+        timing: timingF,
+        execution: r3(e),
+        pitch: r3(p),
+        field: r3(T.FIELD_FACTOR_BAT[field]),
+        setup: r3(s),
+      },
+      setupStrength,
+    );
   }
   const attack = shot as AttackShot;
   const { m, natural } = matchupOf(attack, zone, d);
   // Situational advantage (everything except the matchup, which has its own, stronger weights).
   const A = T.W_EXECUTION * e + T.W_PITCH * p + T.W_SETUP * s + (ctx.newBatter ? T.NEW_BATTER_A : 0);
-  const pMiddle = clamp(T.MID_BASE[timing] + T.SHOT_EASE[attack] + T.K_MATCHUP_MIDDLE * m + T.K_ADVANTAGE * A, T.MID_MIN, T.MID_MAX);
+  const pMiddle = clamp(
+    T.MID_BASE[timing] + T.SHOT_EASE[attack] + T.K_MATCHUP_MIDDLE * m + T.K_ADVANTAGE * A,
+    T.MID_MIN,
+    T.MID_MAX,
+  );
 
   const family = T.FAMILY[d.variant];
-  const pace = family === 'spin' ? (d.intensity === 1 ? 0.04 : d.intensity === 3 ? -0.03 : 0) : d.intensity === 3 ? 0.06 : d.intensity === 1 ? -0.04 : 0;
-  const power = clamp(T.POWER_BASE + T.POWER_TIMING * T.TIMING_POWER[timing] + T.POWER_MATCHUP * m + T.POWER_ADVANTAGE * A + T.PITCH_POWER[cond.pitch] + pace, 0, 1);
+  const pace =
+    family === 'spin'
+      ? d.intensity === 1
+        ? 0.04
+        : d.intensity === 3
+          ? -0.03
+          : 0
+      : d.intensity === 3
+        ? 0.06
+        : d.intensity === 1
+          ? -0.04
+          : 0;
+  const power = clamp(
+    T.POWER_BASE +
+      T.POWER_TIMING * T.TIMING_POWER[timing] +
+      T.POWER_MATCHUP * m +
+      T.POWER_ADVANTAGE * A +
+      T.PITCH_POWER[cond.pitch] +
+      pace,
+    0,
+    1,
+  );
 
   // Split of the non-middled share.
   const w = T.MISS_SPLIT[attack].slice();
   const mv = T.MISS_SPLIT_VARIANT[d.variant];
-  const mt = timing === 'early' || timing === 'very_early' ? T.MISS_SPLIT_EARLY : timing === 'late' || timing === 'very_late' ? T.MISS_SPLIT_LATE : null;
+  const mt =
+    timing === 'early' || timing === 'very_early'
+      ? T.MISS_SPLIT_EARLY
+      : timing === 'late' || timing === 'very_late'
+        ? T.MISS_SPLIT_LATE
+        : null;
   const mp = T.MISS_SPLIT_PITCH[cond.pitch];
   const ml = T.MISS_SPLIT_LINE[d.line];
   let wsum = 0;
@@ -606,7 +753,9 @@ export function evaluate(inp: ModelInput): Evaluation {
   const rest = 1 - pMiddle;
 
   const coverage: Coverage | null = zone ? layout.zones[zone] : null;
-  const wm = (inp.intentMult ? inp.intentMult.wicket : T.INTENT_WICKET[d.intent]) * (1 + (T.SETUP_WICKET_MULT - 1) * setupStrength);
+  const wm =
+    (inp.intentMult ? inp.intentMult.wicket : T.INTENT_WICKET[d.intent]) *
+    (1 + (T.SETUP_WICKET_MULT - 1) * setupStrength);
   const bm = inp.intentMult ? inp.intentMult.boundary : T.INTENT_BOUNDARY[d.intent];
 
   const atoms: Atom[] = [];
@@ -618,7 +767,17 @@ export function evaluate(inp: ModelInput): Evaluation {
     for (const x of parts) {
       if (x.p <= 0) continue;
       const pa = pContact * x.p;
-      atoms.push({ p: pa, contact, runs: x.runs, wicket: x.wicket, fielder: x.fielder, zone: x.zone, kind: x.kind, aerial: x.aerial, tag: x.tag });
+      atoms.push({
+        p: pa,
+        contact,
+        runs: x.runs,
+        wicket: x.wicket,
+        fielder: x.fielder,
+        zone: x.zone,
+        kind: x.kind,
+        aerial: x.aerial,
+        tag: x.tag,
+      });
       if (x.wicket) pWicket += pa;
       expectedRuns += pa * x.runs;
     }
@@ -629,11 +788,24 @@ export function evaluate(inp: ModelInput): Evaluation {
   add('pad', (rest * w[2]) / wsum, padParts(inp, attack, natural));
   add('miss', (rest * w[3]) / wsum, missParts(inp, attack, natural));
 
-  const fieldF = attack === 'defend' ? T.FIELD_FACTOR_BAT[field] : attack === 'loft' ? T.FIELD_FACTOR_LOFT[coverage ?? 'gap'] : T.FIELD_FACTOR_GROUND[coverage ?? 'gap'];
+  const fieldF =
+    attack === 'defend'
+      ? T.FIELD_FACTOR_BAT[field]
+      : attack === 'loft'
+        ? T.FIELD_FACTOR_LOFT[coverage ?? 'gap']
+        : T.FIELD_FACTOR_GROUND[coverage ?? 'gap'];
   const risk = clamp(T.SHOT_RISK[attack] + 0.3 * (m < 0 ? -m : 0) + (natural ? 0 : 0.15), 0, 1);
   return {
     atoms,
-    factors: { matchup: r3(m), timing: r3(T.TIMING_VALUE[timing]), execution: r3(e), pitch: r3(p), field: r3(fieldF), setup: r3(s), risk: r3(risk) },
+    factors: {
+      matchup: r3(m),
+      timing: r3(T.TIMING_VALUE[timing]),
+      execution: r3(e),
+      pitch: r3(p),
+      field: r3(fieldF),
+      setup: r3(s),
+      risk: r3(risk),
+    },
     natural,
     advantage: A + T.W_MATCHUP * m,
     pMiddle,

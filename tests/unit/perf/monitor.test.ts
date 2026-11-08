@@ -13,7 +13,13 @@ describe('SessionMonitor (thermal throttling)', () => {
     expect(play(m, 42)).toBeNull();
     expect(play(m, 42)).toBeNull();
     const d = play(m, 42);
-    expect(d).toMatchObject({ tier: 'assisted', profile: 'lite', stage: '3d', reason: 'session_fps_drop', toleranceMs: PERF_ASSISTED_TOLERANCE_MS });
+    expect(d).toMatchObject({
+      tier: 'assisted',
+      profile: 'lite',
+      stage: '3d',
+      reason: 'session_fps_drop',
+      toleranceMs: PERF_ASSISTED_TOLERANCE_MS,
+    });
     expect(m.snapshot.tier).toBe('assisted');
   });
 

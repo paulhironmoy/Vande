@@ -21,16 +21,28 @@ afterEach(() => {
 function work() {
   const engine = fakeEngine();
   const coach = fakeCoach();
-  const h = inProcessWorker({ kit: { resolveDelivery: engine.resolveDelivery, repeatDelivery: engine.repeatDelivery, analyzeBallInSlices: coach.analyzeBallInSlices, coachTip: coach.coachTip, formSample: coach.formSample, optionOf: coach.optionOf }, yieldTask: () => Promise.resolve() });
+  const h = inProcessWorker({
+    kit: {
+      resolveDelivery: engine.resolveDelivery,
+      repeatDelivery: engine.repeatDelivery,
+      analyzeBallInSlices: coach.analyzeBallInSlices,
+      coachTip: coach.coachTip,
+      formSample: coach.formSample,
+      optionOf: coach.optionOf,
+    },
+    yieldTask: () => Promise.resolve(),
+  });
   const spawn = vi.fn(() => h.port);
   return { h, spawn, work: createOffThread({ build: BUILD, sim: PRACTICE_SIM_VERSION, spawn }) };
 }
 
 /** The Automatic path: the device check takes 2.2 s, so the stage is not ready when the setup screen shows. */
-const slowCheck = (ms = 2200) => async () => {
-  await new Promise((r) => setTimeout(r, ms));
-  return assessment('full');
-};
+const slowCheck =
+  (ms = 2200) =>
+  async () => {
+    await new Promise((r) => setTimeout(r, ms));
+    return assessment('full');
+  };
 
 describe('the work thread is created as the setup screen opens (PERF4)', () => {
   it('Automatic path: created at once, long before the first run-up; its warm-up waits for the stage', async () => {

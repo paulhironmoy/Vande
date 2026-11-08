@@ -10,7 +10,14 @@ import { describe, expect, it } from 'vitest';
 import type { CoachAnalysis, CoachingReason, DeliveryRecord, NormalizedSwing } from '@/contracts/practice';
 import { BALL_R, STUMPS_HALF_W, autoField, flightMovement, practiceFlight } from '@/physics';
 import { REFERENCE_BALLS, ballSeed, randomOver, repeatDelivery } from '@/practice/game';
-import { IMPROVEMENTS, TIMING_CHANGE_MS, analyzeBall, compareAttempts, metStandard, primaryInsight } from '@/practice/coach';
+import {
+  IMPROVEMENTS,
+  TIMING_CHANGE_MS,
+  analyzeBall,
+  compareAttempts,
+  metStandard,
+  primaryInsight,
+} from '@/practice/coach';
 import { referenceRecord, swingFor } from './fixtures';
 
 interface Attempt {
@@ -24,15 +31,24 @@ function attemptAt(base: DeliveryRecord, swing: NormalizedSwing | null): Attempt
   return { record, analysis: analyzeBall(record, result) };
 }
 
-const shift = (s: NormalizedSwing, ms: number): NormalizedSwing => ({ ...s, startT: Math.round((s.startT + ms / 1000) * 1e4) / 1e4 });
+const shift = (s: NormalizedSwing, ms: number): NormalizedSwing => ({
+  ...s,
+  startT: Math.round((s.startT + ms / 1000) * 1e4) / 1e4,
+});
 
 function attemptsFor(base: DeliveryRecord): Attempt[] {
   const options = analyzeBall(base).options;
   const rec = options[0];
-  const swings: Array<NormalizedSwing | null> = [null, swingFor(base, { kind: 'defend' }), swingFor(base, { directionDeg: -70 }), swingFor(base, { directionDeg: 40, errorMs: 45 })];
+  const swings: Array<NormalizedSwing | null> = [
+    null,
+    swingFor(base, { kind: 'defend' }),
+    swingFor(base, { directionDeg: -70 }),
+    swingFor(base, { directionDeg: 40, errorMs: 45 }),
+  ];
   if (rec.swing) swings.push(rec.swing, shift(rec.swing, 70), shift(rec.swing, -35));
   // The recommended stroke aimed elsewhere: a different response, sometimes as good (well played), sometimes lucky.
-  if (rec.swing && rec.decision === 'attack') for (const d of [-14, 14]) swings.push({ ...rec.swing, directionDeg: rec.swing.directionDeg + d });
+  if (rec.swing && rec.decision === 'attack')
+    for (const d of [-14, 14]) swings.push({ ...rec.swing, directionDeg: rec.swing.directionDeg + d });
   // The coach's own alternatives (safest, higher-scoring), played as attempts: different responses the coach judged
   // over their spread. Added 2026-11-03 for physics freeze 5d, where capped strokes saturate and the ±14° re-aims no
   // longer include a well-played case; on 5d the higher-scoring 45° strokes at Real ref-3 and ref-4 (no risk over
@@ -43,11 +59,24 @@ function attemptsFor(base: DeliveryRecord): Attempt[] {
 
 function sampleBalls(): DeliveryRecord[] {
   const out: DeliveryRecord[] = REFERENCE_BALLS.map((b) => referenceRecord(b.id, 'real'));
-  for (const [seed, conditions, assist] of [['prop-1', 'green', 'play'], ['prop-2', 'turning', 'learn']] as const) {
+  for (const [seed, conditions, assist] of [
+    ['prop-1', 'green', 'play'],
+    ['prop-2', 'turning', 'learn'],
+  ] as const) {
     const over = randomOver({ seed, conditions, assist, beginner: false });
     const field = autoField(over.bowler, conditions, 'right');
     for (let i = 0; i < 6; i += 2) {
-      out.push({ ...referenceRecord('ref-1'), bowler: over.bowler, plan: over.balls[i], seed: ballSeed(over, i), conditions, ball: over.ball, field, assist, ballIndex: i });
+      out.push({
+        ...referenceRecord('ref-1'),
+        bowler: over.bowler,
+        plan: over.balls[i],
+        seed: ballSeed(over, i),
+        conditions,
+        ball: over.ball,
+        field,
+        assist,
+        ballIndex: i,
+      });
     }
   }
   return out;
@@ -56,7 +85,10 @@ function sampleBalls(): DeliveryRecord[] {
 const BALLS = sampleBalls();
 const ATTEMPTS = BALLS.map(attemptsFor);
 
-const clean = (a: CoachAnalysis) => (a.attempted.decision === 'leave' ? a.attempted.dismissal === null && !a.ball.wouldHitStumps : a.attempted.contact === 'middle');
+const clean = (a: CoachAnalysis) =>
+  a.attempted.decision === 'leave'
+    ? a.attempted.dismissal === null && !a.ball.wouldHitStumps
+    : a.attempted.contact === 'middle';
 const runsOf = (a: CoachAnalysis) => (a.attempted.dismissal ? 0 : a.attempted.runs);
 
 describe('COACH5: the comparison matches the recorded deltas', () => {
@@ -77,7 +109,10 @@ describe('COACH5: the comparison matches the recorded deltas', () => {
           expect(has('decision_wrong_now')).toBe(pa.decision === rec.decision && na.decision !== rec.decision);
           expect(has('clean_contact_now')).toBe(!clean(p.analysis) && clean(n.analysis));
           expect(has('contact_worse')).toBe(clean(p.analysis) && !clean(n.analysis));
-          const dt = pa.timingErrorMs !== null && na.timingErrorMs !== null ? Math.round(Math.abs(pa.timingErrorMs) - Math.abs(na.timingErrorMs)) || 0 : null;
+          const dt =
+            pa.timingErrorMs !== null && na.timingErrorMs !== null
+              ? Math.round(Math.abs(pa.timingErrorMs) - Math.abs(na.timingErrorMs)) || 0
+              : null;
           expect(c.timingMs).toBe(dt);
           expect(has('timing_closer')).toBe(dt !== null && dt >= TIMING_CHANGE_MS);
           expect(has('timing_further')).toBe(dt !== null && dt <= -TIMING_CHANGE_MS);
@@ -163,10 +198,17 @@ describe('FAIR3 and COACH1: every statement traces to recorded fields', () => {
           expect(at.spread!.expectedRuns).toBeLessThanOrEqual(6);
         }
         // 'well_played' exactly when the recorded fields say so (and it comes first).
-        const worked = at.dismissal === null && at.decision !== 'leave' && at.contact === 'middle' && (at.decision === 'defend' || at.runs > 0);
+        const worked =
+          at.dismissal === null &&
+          at.decision !== 'leave' &&
+          at.contact === 'middle' &&
+          (at.decision === 'defend' || at.runs > 0);
         const isRec =
           at.decision === rec.decision &&
-          (rec.decision !== 'attack' || (at.directionDeg !== null && Math.abs(at.directionDeg - rec.swing!.directionDeg) < 10 && (at.elevation! >= 0.45) === (rec.swing!.elevation >= 0.45)));
+          (rec.decision !== 'attack' ||
+            (at.directionDeg !== null &&
+              Math.abs(at.directionDeg - rec.swing!.directionDeg) < 10 &&
+              at.elevation! >= 0.45 === rec.swing!.elevation >= 0.45));
         const value = (x: { dismissalRisk: number; expectedRuns: number }) => x.expectedRuns - 24 * x.dismissalRisk;
         const well =
           at.spread !== null &&
@@ -180,7 +222,10 @@ describe('FAIR3 and COACH1: every statement traces to recorded fields', () => {
         // A stroke that worked but is not called well played is lucky, and the record says why.
         if (worked && !isRec && !well) {
           lucky++;
-          const why = at.spread!.risks.includes('into_protected_region') || Object.values(a.read).includes('wrong') || value(at.spread!) < value(rec) - 0.25;
+          const why =
+            at.spread!.risks.includes('into_protected_region') ||
+            Object.values(a.read).includes('wrong') ||
+            value(at.spread!) < value(rec) - 0.25;
           expect(why).toBe(true);
         }
         // Lead rulings (A) and (B), 2026-11-04 (the physics evaluator's "perfect/solid with no bat contact"): a ball the
@@ -191,22 +236,47 @@ describe('FAIR3 and COACH1: every statement traces to recorded fields', () => {
         const ok: Record<typeof k, () => boolean> = {
           repeat_it: () => metStandard(a),
           well_played: () => well,
-          leave_outside_off: () => rec.decision === 'leave' && at.decision !== 'leave' && a.ball.lineAtStumpsM >= STUMPS_HALF_W + BALL_R && a.ball.heightAtBatM < 1,
-          leave_down_leg: () => rec.decision === 'leave' && at.decision !== 'leave' && a.ball.lineAtStumpsM <= -(STUMPS_HALF_W + BALL_R) && a.ball.heightAtBatM < 1,
-          leave_over_the_top: () => rec.decision === 'leave' && at.decision !== 'leave' && (a.ball.heightAtBatM >= 1 || Math.abs(a.ball.lineAtStumpsM) < STUMPS_HALF_W + BALL_R),
+          leave_outside_off: () =>
+            rec.decision === 'leave' &&
+            at.decision !== 'leave' &&
+            a.ball.lineAtStumpsM >= STUMPS_HALF_W + BALL_R &&
+            a.ball.heightAtBatM < 1,
+          leave_down_leg: () =>
+            rec.decision === 'leave' &&
+            at.decision !== 'leave' &&
+            a.ball.lineAtStumpsM <= -(STUMPS_HALF_W + BALL_R) &&
+            a.ball.heightAtBatM < 1,
+          leave_over_the_top: () =>
+            rec.decision === 'leave' &&
+            at.decision !== 'leave' &&
+            (a.ball.heightAtBatM >= 1 || Math.abs(a.ball.lineAtStumpsM) < STUMPS_HALF_W + BALL_R),
           play_at_the_stumps: () => at.decision === 'leave' && a.ball.wouldHitStumps,
           defend_forward: () => rec.decision === 'defend' && rec.footwork !== 'back',
           defend_back: () => rec.decision === 'defend' && rec.footwork === 'back',
           attack_the_gap: () => rec.decision === 'attack' && at.decision !== 'attack',
           // Feet that fought the length; or (2026-11-03, interim 3) the recommended aim and lofting on the other feet,
           // where the feet are the one recorded change and "repeat it" had been said to a mistimed stroke.
-          get_forward: () => a.read.length === 'wrong' || (isRec && at.footwork !== rec.footwork && rec.footwork !== 'back' && rec.footwork !== 'across'),
-          get_back: () => a.read.length === 'wrong' || (isRec && at.footwork !== rec.footwork && (rec.footwork === 'back' || rec.footwork === 'across')),
-          play_earlier: () => !unreachedInBand && (at.timingErrorMs ?? 0) > 0 && p.recommendation.shiftMs === Math.max(1, Math.round(at.timingErrorMs!)),
-          play_later: () => !unreachedInBand && (at.timingErrorMs ?? 0) <= 0 && p.recommendation.shiftMs === Math.max(1, Math.round(Math.abs(at.timingErrorMs!))),
+          get_forward: () =>
+            a.read.length === 'wrong' ||
+            (isRec && at.footwork !== rec.footwork && rec.footwork !== 'back' && rec.footwork !== 'across'),
+          get_back: () =>
+            a.read.length === 'wrong' ||
+            (isRec && at.footwork !== rec.footwork && (rec.footwork === 'back' || rec.footwork === 'across')),
+          play_earlier: () =>
+            !unreachedInBand &&
+            (at.timingErrorMs ?? 0) > 0 &&
+            p.recommendation.shiftMs === Math.max(1, Math.round(at.timingErrorMs!)),
+          play_later: () =>
+            !unreachedInBand &&
+            (at.timingErrorMs ?? 0) <= 0 &&
+            p.recommendation.shiftMs === Math.max(1, Math.round(Math.abs(at.timingErrorMs!))),
           play_straighter: () => a.read.line === 'wrong' || a.read.movement === 'wrong',
           aim_for_the_gap: () => rec.decision === 'attack' && at.decision === 'attack',
-          keep_it_down: () => onBat && (at.elevation ?? 0) >= 0.45 && rec.swing!.elevation < 0.45 && (at.dismissal !== null || at.runs === 0),
+          keep_it_down: () =>
+            onBat &&
+            (at.elevation ?? 0) >= 0.45 &&
+            rec.swing!.elevation < 0.45 &&
+            (at.dismissal !== null || at.runs === 0),
         };
         expect(ok[k](), `${k} for ${JSON.stringify(at)}`).toBe(true);
         if (rec.decision === 'attack') expect(p.recommendation.directionDeg).toBe(rec.swing!.directionDeg);

@@ -1,12 +1,25 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { DeviceAssessment } from '@/contracts/practice';
-import { FRAME_BUDGET_MS, QUALITY_FOR_PROFILE, QualityController, PRESETS, autoQuality, shouldRender } from '@/render3d/core/quality';
+import {
+  FRAME_BUDGET_MS,
+  QUALITY_FOR_PROFILE,
+  QualityController,
+  PRESETS,
+  autoQuality,
+  shouldRender,
+} from '@/render3d/core/quality';
 import { PERF_FULL_SUSTAINED_FPS } from '@/perf';
 
 describe('QualityController', () => {
   it('steps down one level after sustained over-budget frames, never up', () => {
     const onChange = vi.fn();
-    const qc = new QualityController({ initial: 'standard', adaptive: true, onChange, graceFrames: 10, windowFrames: 30 });
+    const qc = new QualityController({
+      initial: 'standard',
+      adaptive: true,
+      onChange,
+      graceFrames: 10,
+      windowFrames: 30,
+    });
     for (let i = 0; i < 10 + 30 + 20; i++) qc.sample(30);
     expect(qc.quality).toBe('low');
     expect(onChange).toHaveBeenCalledWith('low', 'low_fps');
@@ -47,12 +60,15 @@ describe('QualityController', () => {
   });
 
   it('starts from the device assessment src/perf measured, else from the GPU probe (never a model-name list)', () => {
-    const a = (tier: DeviceAssessment['tier'], profile: DeviceAssessment['profile']) => ({ tier, profile }) as DeviceAssessment;
+    const a = (tier: DeviceAssessment['tier'], profile: DeviceAssessment['profile']) =>
+      ({ tier, profile }) as DeviceAssessment;
     expect(autoQuality(a('full', 'high'), '')).toBe('high');
     expect(autoQuality(a('full', 'standard'), '')).toBe('standard');
     expect(autoQuality(a('assisted', 'lite'), '')).toBe('low');
     expect(autoQuality(a('below', 'lite'), 'Adreno (TM) 730')).toBe('low');
-    expect(autoQuality(null, 'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0)), SwiftShader driver)')).toBe('low');
+    expect(
+      autoQuality(null, 'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0)), SwiftShader driver)'),
+    ).toBe('low');
     expect(autoQuality(null, 'Mali-G52 MC2')).toBe('standard');
     expect(QUALITY_FOR_PROFILE).toEqual({ lite: 'low', standard: 'standard', high: 'high' });
   });

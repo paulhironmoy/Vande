@@ -34,13 +34,22 @@ export function canonicalJson(value: unknown): string {
 
 function pickTrace(t: InputTrace): InputTrace {
   if (!t || typeof t !== 'object') return t;
-  const samples = Array.isArray(t.samples) ? t.samples.map((s) => (Array.isArray(s) ? ([s[0], s[1], s[2]] as [number, number, number]) : s)) : t.samples;
+  const samples = Array.isArray(t.samples)
+    ? t.samples.map((s) => (Array.isArray(s) ? ([s[0], s[1], s[2]] as [number, number, number]) : s))
+    : t.samples;
   return { pointer: t.pointer, samples };
 }
 
 function pickDelivery(d: DeliveryPlan): DeliveryPlan {
   if (!d || typeof d !== 'object') return d;
-  return { variant: d.variant, line: d.line, length: d.length, intensity: d.intensity, intent: d.intent, gesture: pickTrace(d.gesture) };
+  return {
+    variant: d.variant,
+    line: d.line,
+    length: d.length,
+    intensity: d.intensity,
+    intent: d.intent,
+    gesture: pickTrace(d.gesture),
+  };
 }
 
 /** Copy of a plan with only the known fields (the form that is hashed, stored and replayed). */

@@ -14,13 +14,36 @@
  * If the app goes away or Practice is left while the worker computes, the result is computed here at once and
  * committed, exactly as the swing would have been in one frame.
  */
-import { makeUnityPracticeResolution, type AssistanceStage, type AssistLevel, type BallCondition, type BallFlight, type BowlerProfile, type DeliveryRecord, type DeliveryResult, type FieldLayout, type GestureInput, type Handedness, type NormalizedSwing, type PitchCondition, type PracticeDeliveryPlan } from '@/contracts';
+import {
+  makeUnityPracticeResolution,
+  type AssistanceStage,
+  type AssistLevel,
+  type BallCondition,
+  type BallFlight,
+  type BowlerProfile,
+  type DeliveryRecord,
+  type DeliveryResult,
+  type FieldLayout,
+  type GestureInput,
+  type Handedness,
+  type NormalizedSwing,
+  type PitchCondition,
+  type PracticeDeliveryPlan,
+} from '@/contracts';
 import { addDelivery, addTtfd, bump, loadCalibrations, ttfdBucket } from '@/practice/store';
 import type { OneGestureState } from '@/input';
 import type { FlowCore } from './core';
 import type { BallTicket } from './offThread';
 import type { StageHost } from './stageHost';
-import { HOOK_EMIT_MS, LEAVE_CUE_DISPATCH_MS, LEAVE_GRACE_S, LEAVE_STALL_MS, LEAVE_STALL_RECHECK_MS, SWING_ARRIVAL_MS, type BallKind } from './state';
+import {
+  HOOK_EMIT_MS,
+  LEAVE_CUE_DISPATCH_MS,
+  LEAVE_GRACE_S,
+  LEAVE_STALL_MS,
+  LEAVE_STALL_RECHECK_MS,
+  SWING_ARRIVAL_MS,
+  type BallKind,
+} from './state';
 import type { InputModality, NextDeliveryLike, StageDeliveryContext, StageGuide, StageInputSink } from './types';
 
 export interface BallSpec {
@@ -90,7 +113,11 @@ export class DeliveryRunner {
    */
   private pendingNativeInput: PendingNativeInput[] = [];
   /** A swing whose result the work thread is computing: settled here at once if the app goes away meanwhile. */
-  private resolving: { ticket: BallTicket; swing: NormalizedSwing | null; commit: (result: DeliveryResult) => unknown } | null = null;
+  private resolving: {
+    ticket: BallTicket;
+    swing: NormalizedSwing | null;
+    commit: (result: DeliveryResult) => unknown;
+  } | null = null;
   ttfd: number | null = null;
 
   constructor(
@@ -160,15 +187,47 @@ export class DeliveryRunner {
     const gen = core.gen;
     await this.waitLandscape();
     if (gen !== core.gen) return null;
-    const flight = core.engine.flight({ plan: b.plan, bowler: b.bowler, conditions: b.conditions, seed: b.seed, handedness: b.handedness, ball: b.ball });
+    const flight = core.engine.flight({
+      plan: b.plan,
+      bowler: b.bowler,
+      conditions: b.conditions,
+      seed: b.seed,
+      handedness: b.handedness,
+      ball: b.ball,
+    });
     const tierToleranceMs = b.toleranceMs;
     // The physics of this ball for whichever swing comes, here (the fallback) and on the work thread.
     const local = (swing: NormalizedSwing | null): DeliveryResult =>
       b.kind === 'repeat' && b.source
         ? core.engine.repeatDelivery(b.source, swing)
-        : core.engine.resolveDelivery({ flight, swing, field: b.field, bowler: b.bowler, conditions: b.conditions, handedness: b.handedness, assist: b.assist, tierToleranceMs });
+        : core.engine.resolveDelivery({
+            flight,
+            swing,
+            field: b.field,
+            bowler: b.bowler,
+            conditions: b.conditions,
+            handedness: b.handedness,
+            assist: b.assist,
+            tierToleranceMs,
+          });
     const ticket = core.work
-      ? core.work.prepare(b.kind === 'repeat' && b.source ? { kind: 'repeat', source: b.source } : { kind: 'resolve', args: { flight, field: b.field, bowler: b.bowler, conditions: b.conditions, handedness: b.handedness, assist: b.assist, tierToleranceMs } }, local)
+      ? core.work.prepare(
+          b.kind === 'repeat' && b.source
+            ? { kind: 'repeat', source: b.source }
+            : {
+                kind: 'resolve',
+                args: {
+                  flight,
+                  field: b.field,
+                  bowler: b.bowler,
+                  conditions: b.conditions,
+                  handedness: b.handedness,
+                  assist: b.assist,
+                  tierToleranceMs,
+                },
+              },
+          local,
+        )
       : null;
     if (b.kind === 'innings') {
       const s = core.getState().innings!;
@@ -183,7 +242,9 @@ export class DeliveryRunner {
       phase: 'runup',
       ball: { kind: b.kind, overNumber: b.overNumber, ballNumber: b.ballNumber, bowler: b.bowler },
       gesture: { enabled: false, key },
-      announce: core.deps.words ? { text: core.deps.words.runup(b.ballNumber), id: Date.now() } : core.getState().announce,
+      announce: core.deps.words
+        ? { text: core.deps.words.runup(b.ballNumber), id: Date.now() }
+        : core.getState().announce,
     });
     this.host.startDeliverySampling();
     let releasePerfMs: number;
@@ -227,10 +288,13 @@ export class DeliveryRunner {
     const commit = (result: DeliveryResult) => {
       if (committed) return committed;
       let record: DeliveryRecord;
-      if (b.kind === 'repeat' && b.source) record = { ...b.source, swing, runs: result.outcome.runs, dismissal: result.outcome.dismissal };
+      if (b.kind === 'repeat' && b.source)
+        record = { ...b.source, swing, runs: result.outcome.runs, dismissal: result.outcome.dismissal };
       else {
         record = core.engine.makeRecord(b.next!, swing, tierToleranceMs, result);
-        core.set({ innings: core.engine.inningsReducer(core.getState().innings!, { type: 'deliveryResolved', record }) });
+        core.set({
+          innings: core.engine.inningsReducer(core.getState().innings!, { type: 'deliveryResolved', record }),
+        });
         core.persist(interruptedAtSwing ? 'resumed_leave' : null);
       }
       committed = { result, record };
@@ -277,7 +341,12 @@ export class DeliveryRunner {
     return { result, record, interrupted: this.interrupted };
   }
 
-  private awaitSwing(flight: BallFlight, releasePerfMs: number, kind: BallKind, handedness: Handedness): Promise<NormalizedSwing | null> {
+  private awaitSwing(
+    flight: BallFlight,
+    releasePerfMs: number,
+    kind: BallKind,
+    handedness: Handedness,
+  ): Promise<NormalizedSwing | null> {
     const core = this.core;
     return new Promise((resolve) => {
       let done = false;
@@ -311,8 +380,15 @@ export class DeliveryRunner {
       // swing that still counts would show its cue within LEAVE_CUE_DISPATCH_MS plus its input's calibration of the
       // deadline (state.ts), so the leave settles then; a cue arriving meanwhile restores the full window. Which
       // swings count (their own start no later than the deadline) is unchanged.
-      const hookSwing = injected !== null && injected !== 'leave' && injectedStart !== null && injectedStart <= deadline;
-      const inFlight = () => hookSwing || this.swingStartPerf !== null || this.cueSeen || this.pendingNativeInput.length > 0 || this.host.ownsInput() || core.engine.pointerIsDown?.() === true;
+      const hookSwing =
+        injected !== null && injected !== 'leave' && injectedStart !== null && injectedStart <= deadline;
+      const inFlight = () =>
+        hookSwing ||
+        this.swingStartPerf !== null ||
+        this.cueSeen ||
+        this.pendingNativeInput.length > 0 ||
+        this.host.ownsInput() ||
+        core.engine.pointerIsDown?.() === true;
       const quietMs = Math.min(SWING_ARRIVAL_MS, Math.max(0, ...Object.values(calibrations)) + LEAVE_CUE_DISPATCH_MS);
       this.cueSeen = false;
       at(deadline, () => {
@@ -324,7 +400,8 @@ export class DeliveryRunner {
         const settle = (stalled: boolean) => {
           if (inFlight()) at(Math.max(core.clock.now(), deadline + SWING_ARRIVAL_MS), () => finish(null));
           // A busy page may still hold input queued before the deadline: one more turn first.
-          else if (!stalled && core.clock.now() - quietEnd > LEAVE_STALL_MS) at(core.clock.now() + LEAVE_STALL_RECHECK_MS, () => settle(true));
+          else if (!stalled && core.clock.now() - quietEnd > LEAVE_STALL_MS)
+            at(core.clock.now() + LEAVE_STALL_RECHECK_MS, () => settle(true));
           else finish(null);
         };
         at(quietEnd, () => settle(false));
@@ -332,7 +409,13 @@ export class DeliveryRunner {
       const startedInTime = (swing: NormalizedSwing): boolean => this.simToPerf(swing.startT) <= deadline;
       this.waiter = {
         gesture: (input) => {
-          const swing = core.engine.normalizeGesture(input, { releasePerfMs, calibrationMs: calibrations[input.pointer] ?? 0, calibrations, handedness, ...(core.clock.scale !== 1 ? { timeScale: core.clock.scale } : {}) });
+          const swing = core.engine.normalizeGesture(input, {
+            releasePerfMs,
+            calibrationMs: calibrations[input.pointer] ?? 0,
+            calibrations,
+            handedness,
+            ...(core.clock.scale !== 1 ? { timeScale: core.clock.scale } : {}),
+          });
           if (swing) finish(startedInTime(swing) ? swing : null);
           // Not a swing (a cancelled touch): re-arm for the rest of the delivery.
           else {

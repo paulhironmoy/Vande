@@ -40,7 +40,8 @@ function ctxToPerf(ctx: BaseAudioContext, t: number): number | null {
   const live = ctx as AudioContext;
   try {
     const ts = typeof live.getOutputTimestamp === 'function' ? live.getOutputTimestamp() : null;
-    if (ts && typeof ts.contextTime === 'number' && typeof ts.performanceTime === 'number' && ts.performanceTime > 0) return ts.performanceTime + (t - ts.contextTime) * 1000;
+    if (ts && typeof ts.contextTime === 'number' && typeof ts.performanceTime === 'number' && ts.performanceTime > 0)
+      return ts.performanceTime + (t - ts.contextTime) * 1000;
   } catch {
     /* fall through */
   }
@@ -54,8 +55,10 @@ export function perfToCtx(ctx: BaseAudioContext, perfMs: number): number {
   let t: number;
   try {
     const ts = typeof live.getOutputTimestamp === 'function' ? live.getOutputTimestamp() : null;
-    if (ts && typeof ts.contextTime === 'number' && typeof ts.performanceTime === 'number' && ts.performanceTime > 0) t = ts.contextTime + (perfMs - ts.performanceTime) / 1000;
-    else t = ctx.currentTime + (perfMs - performance.now()) / 1000 - ((live.baseLatency ?? 0) + (live.outputLatency ?? 0));
+    if (ts && typeof ts.contextTime === 'number' && typeof ts.performanceTime === 'number' && ts.performanceTime > 0)
+      t = ts.contextTime + (perfMs - ts.performanceTime) / 1000;
+    else
+      t = ctx.currentTime + (perfMs - performance.now()) / 1000 - ((live.baseLatency ?? 0) + (live.outputLatency ?? 0));
   } catch {
     t = ctx.currentTime;
   }
@@ -63,7 +66,12 @@ export function perfToCtx(ctx: BaseAudioContext, perfMs: number): number {
   return Number.isFinite(t) && t > soonest ? t : soonest;
 }
 
-export function logAudio(type: AudioLogType, name: string, atPerfMs: number, extra?: { ctx?: BaseAudioContext; ctxTime?: number; level?: number; bus?: string; detail?: string }): void {
+export function logAudio(
+  type: AudioLogType,
+  name: string,
+  atPerfMs: number,
+  extra?: { ctx?: BaseAudioContext; ctxTime?: number; level?: number; bus?: string; detail?: string },
+): void {
   if (!on) return;
   const ctxTime = extra?.ctxTime ?? null;
   entries.push({
@@ -118,4 +126,3 @@ export function enableAudioLog(enabled: boolean): void {
   entries.splice(0);
   if (enabled) install(true);
 }
-

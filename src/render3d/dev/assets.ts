@@ -51,7 +51,14 @@ export interface ViewOptions {
 
 declare global {
   interface Window {
-    __a?: { ready: boolean; errors: string[]; views: string[]; view(name: string, o?: ViewOptions): Promise<void>; stage?: StageScene; bench?(frames: number): number };
+    __a?: {
+      ready: boolean;
+      errors: string[];
+      views: string[];
+      view(name: string, o?: ViewOptions): Promise<void>;
+      stage?: StageScene;
+      bench?(frames: number): number;
+    };
   }
 }
 
@@ -62,7 +69,16 @@ const errors: string[] = [];
 window.addEventListener('error', (e) => errors.push(String(e.message)));
 
 const look = (seed: string, team: 0 | 1, gear: Look['gear']): Look => ({ seed, team, gear });
-const still = (id: string, role: ActorTrack['role'], lk: Look, x: number, z: number, heading: number, clip: ClipId, clipStart = 0): ActorTrack => ({
+const still = (
+  id: string,
+  role: ActorTrack['role'],
+  lk: Look,
+  x: number,
+  z: number,
+  heading: number,
+  clip: ClipId,
+  clipStart = 0,
+): ActorTrack => ({
   id,
   role,
   look: lk,
@@ -85,7 +101,10 @@ function lineup(z: number, x0: number, gap: number, heading: number): ActorTrack
 
 /** Everyone upright (idle), for faces and kits from the front. */
 function uprightLineup(z: number, x0: number, gap: number, heading: number): ActorTrack[] {
-  return lineup(z, x0, gap, heading).map((t) => ({ ...t, moves: [{ t0: 0, t1: 1e9, clip: t.id === 'umpire' ? 'ump_stand' : 'idle', clipStart: 0.2, rate: 0 }] }));
+  return lineup(z, x0, gap, heading).map((t) => ({
+    ...t,
+    moves: [{ t0: 0, t1: 1e9, clip: t.id === 'umpire' ? 'ump_stand' : 'idle', clipStart: 0.2, rate: 0 }],
+  }));
 }
 
 interface View {
@@ -111,36 +130,100 @@ const VIEWS: Record<string, View> = {
   'bat-toe': { cam: { pos: [3.1, 0.22, 6.32], target: [3, 0.14, 6], fov: 34 }, bat: 'face' },
   stumps: { cam: { pos: [0.35, 0.62, PITCH_HALF - 1.25], target: [0, 0.5, PITCH_HALF], fov: 34 } },
   bails: { cam: { pos: [0.08, 0.78, PITCH_HALF - 0.32], target: [0, 0.715, PITCH_HALF], fov: 34 } },
-  'stumps-hit': { cam: { pos: [1.6, 0.9, PITCH_HALF - 2.4], target: [0, 0.4, PITCH_HALF + 0.3], fov: 38 }, stumpsHit: true },
-  'pitch-eye': { cam: { pos: [-BATTER_EYE.lateral, BATTER_EYE.height, BATTER_EYE.z], target: [0.3, 0.9, -9], fov: 54 } },
+  'stumps-hit': {
+    cam: { pos: [1.6, 0.9, PITCH_HALF - 2.4], target: [0, 0.4, PITCH_HALF + 0.3], fov: 38 },
+    stumpsHit: true,
+  },
+  'pitch-eye': {
+    cam: { pos: [-BATTER_EYE.lateral, BATTER_EYE.height, BATTER_EYE.z], target: [0.3, 0.9, -9], fov: 54 },
+  },
   'pitch-near': { cam: { pos: [0.6, 1.25, PITCH_HALF - 3.2], target: [0, 0, PITCH_HALF - 0.9], fov: 46 } },
   'pitch-far': { cam: { pos: [0.4, 1.3, -PITCH_HALF + 4.6], target: [0, 0, -PITCH_HALF + 1.2], fov: 46 } },
   'pitch-rough': { cam: { pos: [1.4, 1.1, PITCH_HALF - 5.5], target: [0.55, 0, PITCH_HALF - 2.6], fov: 42 } },
   'pitch-top': { cam: { pos: [0, 31, 0.01], target: [0, 0, 0], fov: 42 } },
   'pitch-macro': { cam: { pos: [0.15, 0.55, PITCH_HALF - 2.1], target: [0.15, 0, PITCH_HALF - 1.2], fov: 40 } },
   screen: { cam: { pos: [-BATTER_EYE.lateral, BATTER_EYE.height, BATTER_EYE.z], target: [0.25, 2.6, -70], fov: 54 } },
-  gameplay: { cam: { pos: [-BATTER_EYE.lateral, BATTER_EYE.height, BATTER_EYE.z], target: [0.4, 1.5, -9], fov: 54 }, firstPerson: true },
-  gloves: { cam: { pos: [-BATTER_EYE.lateral, BATTER_EYE.height, BATTER_EYE.z], target: [0.35, 1.2, 7.4], fov: 54 }, firstPerson: true },
-  kits: { cam: { pos: [LX + 3.25, 1.15, LZ + 6.2], target: [LX + 3.25, 0.95, LZ], fov: 46 }, actors: lineup(LZ, LX, 1.3, 0) },
-  'kits-back': { cam: { pos: [LX + 3.25, 1.15, LZ - 6.2], target: [LX + 3.25, 0.95, LZ], fov: 46 }, actors: lineup(LZ, LX, 1.3, 0) },
-  'face-batter': { cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 }, actors: uprightLineup(LZ, LX, 1.3, 0), faceOf: { id: 'striker', dist: 0.62 } },
-  'face-batter-side': { cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 30 }, actors: uprightLineup(LZ, LX, 1.3, 0), faceOf: { id: 'striker', dist: 0.7, yaw: 55 } },
-  'face-keeper': { cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 }, actors: uprightLineup(LZ, LX, 1.3, 0), faceOf: { id: 'keeper', dist: 0.62 } },
-  'face-bowler': { cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 }, actors: uprightLineup(LZ, LX, 1.3, 0), faceOf: { id: 'bowler', dist: 0.62 } },
-  'face-bowler-34': { cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 }, actors: uprightLineup(LZ, LX, 1.3, 0), faceOf: { id: 'bowler', dist: 0.66, yaw: 35 } },
-  'face-fielder': { cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 }, actors: uprightLineup(LZ, LX, 1.3, 0), faceOf: { id: 'f1', dist: 0.62 } },
-  'face-fielder2': { cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 }, actors: uprightLineup(LZ, LX, 1.3, 0), faceOf: { id: 'f2', dist: 0.62 } },
-  'face-umpire': { cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 }, actors: uprightLineup(LZ, LX, 1.3, 0), faceOf: { id: 'umpire', dist: 0.62 } },
-  'heads-6m': { cam: { pos: [LX + 3.25, 1.7, LZ + 4.5], target: [LX + 3.25, 1.55, LZ], fov: 30 }, actors: uprightLineup(LZ, LX, 1.3, 0) },
-  'heads-20m': { cam: { pos: [LX + 3.25, 1.68, LZ + 19], target: [LX + 3.25, 1.5, LZ], fov: 54 }, actors: uprightLineup(LZ, LX, 1.3, 0) },
-  'pads-gloves': { cam: { pos: [head(0) + 0.4, 0.75, LZ + 1.5], target: [head(0), 0.6, LZ], fov: 40 }, actors: lineup(LZ, LX, 1.3, 0) },
-  'far-players': { cam: { pos: [-BATTER_EYE.lateral, BATTER_EYE.height, BATTER_EYE.z], target: [0, 1.4, -10], fov: 54 }, actors: [
-    still('bowler', 'bowler', look('gallery-bowl-7', 1, 'bowler'), 0.7, -PITCH_HALF + 0.6, Math.PI, 'idle'),
-    still('umpire', 'umpire', look('gallery-ump-4', 0, 'umpire'), -0.55, -PITCH_HALF - 1.7, Math.PI, 'ump_stand'),
-    still('nonStriker', 'batter', look('gallery-bat-5', 0, 'batter'), -1.15, -PITCH_HALF + 1.6, Math.PI, 'idle'),
-  ] },
+  gameplay: {
+    cam: { pos: [-BATTER_EYE.lateral, BATTER_EYE.height, BATTER_EYE.z], target: [0.4, 1.5, -9], fov: 54 },
+    firstPerson: true,
+  },
+  gloves: {
+    cam: { pos: [-BATTER_EYE.lateral, BATTER_EYE.height, BATTER_EYE.z], target: [0.35, 1.2, 7.4], fov: 54 },
+    firstPerson: true,
+  },
+  kits: {
+    cam: { pos: [LX + 3.25, 1.15, LZ + 6.2], target: [LX + 3.25, 0.95, LZ], fov: 46 },
+    actors: lineup(LZ, LX, 1.3, 0),
+  },
+  'kits-back': {
+    cam: { pos: [LX + 3.25, 1.15, LZ - 6.2], target: [LX + 3.25, 0.95, LZ], fov: 46 },
+    actors: lineup(LZ, LX, 1.3, 0),
+  },
+  'face-batter': {
+    cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 },
+    actors: uprightLineup(LZ, LX, 1.3, 0),
+    faceOf: { id: 'striker', dist: 0.62 },
+  },
+  'face-batter-side': {
+    cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 30 },
+    actors: uprightLineup(LZ, LX, 1.3, 0),
+    faceOf: { id: 'striker', dist: 0.7, yaw: 55 },
+  },
+  'face-keeper': {
+    cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 },
+    actors: uprightLineup(LZ, LX, 1.3, 0),
+    faceOf: { id: 'keeper', dist: 0.62 },
+  },
+  'face-bowler': {
+    cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 },
+    actors: uprightLineup(LZ, LX, 1.3, 0),
+    faceOf: { id: 'bowler', dist: 0.62 },
+  },
+  'face-bowler-34': {
+    cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 },
+    actors: uprightLineup(LZ, LX, 1.3, 0),
+    faceOf: { id: 'bowler', dist: 0.66, yaw: 35 },
+  },
+  'face-fielder': {
+    cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 },
+    actors: uprightLineup(LZ, LX, 1.3, 0),
+    faceOf: { id: 'f1', dist: 0.62 },
+  },
+  'face-fielder2': {
+    cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 },
+    actors: uprightLineup(LZ, LX, 1.3, 0),
+    faceOf: { id: 'f2', dist: 0.62 },
+  },
+  'face-umpire': {
+    cam: { pos: [0, 0, 0], target: [0, 0, 0], fov: 28 },
+    actors: uprightLineup(LZ, LX, 1.3, 0),
+    faceOf: { id: 'umpire', dist: 0.62 },
+  },
+  'heads-6m': {
+    cam: { pos: [LX + 3.25, 1.7, LZ + 4.5], target: [LX + 3.25, 1.55, LZ], fov: 30 },
+    actors: uprightLineup(LZ, LX, 1.3, 0),
+  },
+  'heads-20m': {
+    cam: { pos: [LX + 3.25, 1.68, LZ + 19], target: [LX + 3.25, 1.5, LZ], fov: 54 },
+    actors: uprightLineup(LZ, LX, 1.3, 0),
+  },
+  'pads-gloves': {
+    cam: { pos: [head(0) + 0.4, 0.75, LZ + 1.5], target: [head(0), 0.6, LZ], fov: 40 },
+    actors: lineup(LZ, LX, 1.3, 0),
+  },
+  'far-players': {
+    cam: { pos: [-BATTER_EYE.lateral, BATTER_EYE.height, BATTER_EYE.z], target: [0, 1.4, -10], fov: 54 },
+    actors: [
+      still('bowler', 'bowler', look('gallery-bowl-7', 1, 'bowler'), 0.7, -PITCH_HALF + 0.6, Math.PI, 'idle'),
+      still('umpire', 'umpire', look('gallery-ump-4', 0, 'umpire'), -0.55, -PITCH_HALF - 1.7, Math.PI, 'ump_stand'),
+      still('nonStriker', 'batter', look('gallery-bat-5', 0, 'batter'), -1.15, -PITCH_HALF + 1.6, Math.PI, 'idle'),
+    ],
+  },
   scuff: { cam: { pos: [0.5, 0.7, 5.6], target: [0.12, 0, 4.0], fov: 36 }, scuff: true },
-  'scuff-eye': { cam: { pos: [-BATTER_EYE.lateral, BATTER_EYE.height, BATTER_EYE.z], target: [0.2, 0.4, 1], fov: 54 }, scuff: true },
+  'scuff-eye': {
+    cam: { pos: [-BATTER_EYE.lateral, BATTER_EYE.height, BATTER_EYE.z], target: [0.2, 0.4, 1], fov: 54 },
+    scuff: true,
+  },
   'stadium-wide': { cam: { pos: [48, 26, 40], target: [0, 4, -10], fov: 50 } },
   'stadium-pavilion': { cam: { pos: [0, 6, 30], target: [0, 10, -84], fov: 40 } },
   'stadium-scoreboard': { cam: { pos: [0, 6, -30], target: [0, 14, 84], fov: 40 } },
@@ -151,7 +234,10 @@ const VIEWS: Record<string, View> = {
 async function main() {
   const profileId = (q.get('profile') ?? 'high') as QualityProfileId;
   const profile = PRACTICE_PROFILES[profileId];
-  const renderer = StageScene.createRenderer(canvas, { antialias: profile.preset.antialias, preserveDrawingBuffer: true });
+  const renderer = StageScene.createRenderer(canvas, {
+    antialias: profile.preset.antialias,
+    preserveDrawingBuffer: true,
+  });
   const stage = new StageScene(renderer, profile.preset, 'practice');
   const stadium = stage.stadium as Stadium & Extra;
   stadium.setRenderer?.(renderer);
@@ -169,7 +255,12 @@ async function main() {
     stage.setSize(w, h, Math.min(devicePixelRatio || 1, profile.maxDpr));
   };
   size();
-  const emptyScript = { stumps: { striker: null, nonStriker: null }, events: [], ball: [], actors: [] } as unknown as BallScript;
+  const emptyScript = {
+    stumps: { striker: null, nonStriker: null },
+    events: [],
+    ball: [],
+    actors: [],
+  } as unknown as BallScript;
 
   const view = async (name: string, o: ViewOptions = {}) => {
     const v = VIEWS[name];
@@ -212,18 +303,31 @@ async function main() {
     // The gallery bat, upright on its toe.
     bat.visible = Boolean(v.bat);
     if (v.bat) {
-      const face = v.bat === 'face' ? { x: 0, y: 0, z: 1 } : v.bat === 'back' ? { x: 0, y: 0, z: -1 } : { x: 1, y: 0, z: 0 };
+      const face =
+        v.bat === 'face' ? { x: 0, y: 0, z: 1 } : v.bat === 'back' ? { x: 0, y: 0, z: -1 } : { x: 1, y: 0, z: 0 };
       placeBatSpan(bat, { x: 3, y: 0.872, z: 6 }, { x: 3, y: 0.012, z: 6 }, face);
     }
-    fp.update(v.firstPerson ? batToWorld(FIRST_PERSON_READY, false) : null, { top: { x: 0, y: 1.4, z: 8.8 }, bottom: { x: 0, y: 1.3, z: 9.1 } });
+    fp.update(v.firstPerson ? batToWorld(FIRST_PERSON_READY, false) : null, {
+      top: { x: 0, y: 1.4, z: 8.8 },
+      bottom: { x: 0, y: 1.3, z: 9.1 },
+    });
     // Wickets: at rest, or broken `hit` ms after a fast ball struck middle stump.
-    const hit = v.stumpsHit ? { ...emptyScript, stumps: { striker: { t: 0, dir: { x: 0.08, y: 0, z: 1 }, strength: 1 }, nonStriker: null }, events: [{ t: 0, kind: 'stumps', intensity: 1, at: { x: 0.01, y: 0.35, z: PITCH_HALF } }] } : null;
+    const hit = v.stumpsHit
+      ? {
+          ...emptyScript,
+          stumps: { striker: { t: 0, dir: { x: 0.08, y: 0, z: 1 }, strength: 1 }, nonStriker: null },
+          events: [{ t: 0, kind: 'stumps', intensity: 1, at: { x: 0.01, y: 0.35, z: PITCH_HALF } }],
+        }
+      : null;
     stage.stumpsFx.update((hit as unknown as BallScript) ?? emptyScript, o.hit ?? 0);
     if (v.scuff) {
       const bowler = { family: 'pace' as const, paceBand: 'fast' as const, arm: 'right' as const, lookSeed: 'gallery' };
       const plan = { variation: 'stock' as const, lengthM: 6, lineM: 0.12, speedKph: 136 };
       const fl = physicsFlight({ plan, bowler, conditions: 'balanced', seed: 'gallery-scuff', handedness: 'right' });
-      const script = buildPracticeScript({ setup: { field: autoField(bowler, 'balanced', 'right'), bowler, conditions: 'balanced', handedness: 'right' }, flight: fl });
+      const script = buildPracticeScript({
+        setup: { field: autoField(bowler, 'balanced', 'right'), bowler, conditions: 'balanced', handedness: 'right' },
+        flight: fl,
+      });
       const bounce = script.events.find((e) => e.kind === 'bounce');
       stage.eventFx.update(script, (bounce?.t ?? 0) + (o.hit ?? 400), stage.camera.position, 1, false);
     } else stage.eventFx.update(emptyScript, 0, stage.camera.position, 1, false);
@@ -234,9 +338,15 @@ async function main() {
       const rig = stage.rigOf(v.faceOf.id);
       if (rig) {
         rig.root.updateMatrixWorld(true);
-        const headP = new Vector3().setFromMatrixPosition(rig.boneMap.head.matrixWorld).add(new Vector3(0, 0.1 * rig.scale, 0));
+        const headP = new Vector3()
+          .setFromMatrixPosition(rig.boneMap.head.matrixWorld)
+          .add(new Vector3(0, 0.1 * rig.scale, 0));
         const yaw = ((v.faceOf.yaw ?? 0) * Math.PI) / 180 + rig.root.rotation.y;
-        cam.position.set(headP.x + Math.sin(yaw) * v.faceOf.dist, headP.y + 0.02, headP.z + Math.cos(yaw) * v.faceOf.dist);
+        cam.position.set(
+          headP.x + Math.sin(yaw) * v.faceOf.dist,
+          headP.y + 0.02,
+          headP.z + Math.cos(yaw) * v.faceOf.dist,
+        );
         cam.lookAt(headP);
       }
     }

@@ -28,7 +28,13 @@ const KIT: PracticeKit = {
   audio: audioKit,
   createStage,
   createWork,
-  ground: { boundaryR: BOUNDARY_R, ringR: RING_R, pitchHalf: PITCH_HALF, bladeM: BLADE_L, striker: { x: STRIKER_REF.x, z: STRIKER_REF.z } },
+  ground: {
+    boundaryR: BOUNDARY_R,
+    ringR: RING_R,
+    pitchHalf: PITCH_HALF,
+    bladeM: BLADE_L,
+    striker: { x: STRIKER_REF.x, z: STRIKER_REF.z },
+  },
   fielderClass,
   batTravelMs,
 };
@@ -76,7 +82,14 @@ export default function PracticeRoute(_props: { route: RouteOf<'practice'> }) {
   }
   return (
     <PracticeKitContext.Provider value={KIT}>
-      <PracticeApp appVersion={__APP_VERSION__} analytics={track} hooks={hooks} openedAt={openedAt} onExit={back} onFlow={(f) => (flowRef.current = f)} />
+      <PracticeApp
+        appVersion={__APP_VERSION__}
+        analytics={track}
+        hooks={hooks}
+        openedAt={openedAt}
+        onExit={back}
+        onFlow={(f) => (flowRef.current = f)}
+      />
     </PracticeKitContext.Provider>
   );
 }

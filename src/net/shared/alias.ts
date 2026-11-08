@@ -30,42 +30,260 @@ export type NameCheck = { ok: true; value: string } | { ok: false; reason: NameR
 
 const SUBSTRING_ROOTS = [
   // English
-  'fuck', 'fucc', 'phuck', 'fvck', 'bitch', 'bastard', 'asshole', 'arsehole', 'nigger', 'nigga', 'whore', 'wanker', 'pussy',
-  'porno', 'pornstar', 'penis', 'vagina', 'boobs', 'hitler', 'faggot', 'dickhead', 'cocksuck', 'bollock', 'jackass', 'dumbass',
+  'fuck',
+  'fucc',
+  'phuck',
+  'fvck',
+  'bitch',
+  'bastard',
+  'asshole',
+  'arsehole',
+  'nigger',
+  'nigga',
+  'whore',
+  'wanker',
+  'pussy',
+  'porno',
+  'pornstar',
+  'penis',
+  'vagina',
+  'boobs',
+  'hitler',
+  'faggot',
+  'dickhead',
+  'cocksuck',
+  'bollock',
+  'jackass',
+  'dumbass',
   // Hinglish
-  'madarchod', 'maderchod', 'madharchod', 'madrchod', 'behenchod', 'bhenchod', 'behanchod', 'bahenchod', 'banchod',
-  'bhanchod', 'bhosd', 'bhosad', 'bhosri', 'chutiya', 'chutia', 'chotiya', 'chutiye', 'gandu', 'gandmar', 'harami', 'haramzad',
-  'haramkhor', 'randibaz', 'randikhan', 'lodu', 'jhatu', 'betichod', 'bhadwa', 'bhadva', 'chinal', 'lavdu', 'lawdu', 'chodu',
+  'madarchod',
+  'maderchod',
+  'madharchod',
+  'madrchod',
+  'behenchod',
+  'bhenchod',
+  'behanchod',
+  'bahenchod',
+  'banchod',
+  'bhanchod',
+  'bhosd',
+  'bhosad',
+  'bhosri',
+  'chutiya',
+  'chutia',
+  'chotiya',
+  'chutiye',
+  'gandu',
+  'gandmar',
+  'harami',
+  'haramzad',
+  'haramkhor',
+  'randibaz',
+  'randikhan',
+  'lodu',
+  'jhatu',
+  'betichod',
+  'bhadwa',
+  'bhadva',
+  'chinal',
+  'lavdu',
+  'lawdu',
+  'chodu',
   'tharki',
 ];
 
 const TOKEN_ROOTS = [
   // English
-  'fuk', 'fck', 'fk', 'phuk', 'shit', 'cunt', 'dick', 'cock', 'fag', 'slut', 'twat', 'prick', 'rape', 'rapist', 'retard', 'kike',
-  'chink', 'paki', 'nazi', 'porn', 'sex', 'sexy', 'xxx', 'nude', 'nudes', 'tits', 'piss', 'jihadi',
+  'fuk',
+  'fck',
+  'fk',
+  'phuk',
+  'shit',
+  'cunt',
+  'dick',
+  'cock',
+  'fag',
+  'slut',
+  'twat',
+  'prick',
+  'rape',
+  'rapist',
+  'retard',
+  'kike',
+  'chink',
+  'paki',
+  'nazi',
+  'porn',
+  'sex',
+  'sexy',
+  'xxx',
+  'nude',
+  'nudes',
+  'tits',
+  'piss',
+  'jihadi',
   // Hinglish, abbreviations and slurs
-  'mc', 'bc', 'bsdk', 'bkl', 'mkc', 'tmkc', 'mkb', 'bkc', 'gand', 'lund', 'lauda', 'lavda', 'lawda', 'lavde', 'lawde', 'loda',
-  'laude', 'randi', 'randwa', 'raand', 'kutta', 'kutte', 'kutiya', 'kuttiya', 'suar', 'suwar', 'tatti', 'jhat', 'jhant',
-  'chod', 'chud', 'chudai', 'chut', 'chuchi', 'phudi', 'fudi', 'phuddi', 'hijda', 'hijde', 'chamar', 'bhangi', 'chuhra',
-  'neech', 'katua', 'librandu', 'sickular', 'andhbhakt', 'kamina', 'kamine', 'kaminey',
+  'mc',
+  'bc',
+  'bsdk',
+  'bkl',
+  'mkc',
+  'tmkc',
+  'mkb',
+  'bkc',
+  'gand',
+  'lund',
+  'lauda',
+  'lavda',
+  'lawda',
+  'lavde',
+  'lawde',
+  'loda',
+  'laude',
+  'randi',
+  'randwa',
+  'raand',
+  'kutta',
+  'kutte',
+  'kutiya',
+  'kuttiya',
+  'suar',
+  'suwar',
+  'tatti',
+  'jhat',
+  'jhant',
+  'chod',
+  'chud',
+  'chudai',
+  'chut',
+  'chuchi',
+  'phudi',
+  'fudi',
+  'phuddi',
+  'hijda',
+  'hijde',
+  'chamar',
+  'bhangi',
+  'chuhra',
+  'neech',
+  'katua',
+  'librandu',
+  'sickular',
+  'andhbhakt',
+  'kamina',
+  'kamine',
+  'kaminey',
 ];
 
 /** Devanagari roots (after NFKC, nukta folding and removal of joiners). */
-const DEVANAGARI_SUBSTRING = ['मादरचोद', 'मादरचोत', 'भेनचोद', 'बहनचोद', 'बहनचोत', 'भोसडी', 'भोसडा', 'भोसडे', 'चूतिया', 'चुतिया', 'चूतिये', 'गांडू', 'गाँडू', 'रंडी', 'हरामी', 'हरामजादा', 'हरामखोर', 'लौडा', 'लौडे', 'बेटीचोद', 'भडवा'];
-const DEVANAGARI_TOKENS = ['गांड', 'गाँड', 'लंड', 'लण्ड', 'चोद', 'चूत', 'कुत्ता', 'कमीना', 'कमीने', 'सुअर', 'टट्टी', 'झाट', 'हिजडा', 'चमार', 'भंगी'];
+const DEVANAGARI_SUBSTRING = [
+  'मादरचोद',
+  'मादरचोत',
+  'भेनचोद',
+  'बहनचोद',
+  'बहनचोत',
+  'भोसडी',
+  'भोसडा',
+  'भोसडे',
+  'चूतिया',
+  'चुतिया',
+  'चूतिये',
+  'गांडू',
+  'गाँडू',
+  'रंडी',
+  'हरामी',
+  'हरामजादा',
+  'हरामखोर',
+  'लौडा',
+  'लौडे',
+  'बेटीचोद',
+  'भडवा',
+];
+const DEVANAGARI_TOKENS = [
+  'गांड',
+  'गाँड',
+  'लंड',
+  'लण्ड',
+  'चोद',
+  'चूत',
+  'कुत्ता',
+  'कमीना',
+  'कमीने',
+  'सुअर',
+  'टट्टी',
+  'झाट',
+  'हिजडा',
+  'चमार',
+  'भंगी',
+];
 
 /** Impersonation: the game, staff and roles, cricket bodies, platforms and competitors. */
-const RESERVED_SUBSTRING = ['vande', 'administrator', 'moderator', 'official', 'helpdesk', 'customercare', 'youtube', 'google', 'whatsapp', 'cricketleague', 'miniclip', 'anthropic'];
+const RESERVED_SUBSTRING = [
+  'vande',
+  'administrator',
+  'moderator',
+  'official',
+  'helpdesk',
+  'customercare',
+  'youtube',
+  'google',
+  'whatsapp',
+  'cricketleague',
+  'miniclip',
+  'anthropic',
+];
 const RESERVED_TOKENS = ['admin', 'support', 'staff', 'system', 'mod', 'bcci', 'icc', 'ipl'];
 
 /** Contact details (aliases are public): links and messaging or payment handles. */
 const CONTACT_RE = /(https?|www|\.com|\.in\b|\.net|\.org|wa\.me|t\.me|telegram|instagram|snapchat|paytm|gpay|phonepe)/i;
 
 const CONFUSABLES: Record<string, string> = {
-  а: 'a', е: 'e', о: 'o', р: 'p', с: 'c', у: 'y', х: 'x', к: 'k', м: 'm', т: 't', н: 'h', в: 'b', і: 'i', ј: 'j', ѕ: 's', ԁ: 'd',
-  α: 'a', ο: 'o', ρ: 'p', ε: 'e', ι: 'i', κ: 'k', ν: 'v', τ: 't', υ: 'u', χ: 'x', β: 'b', η: 'n', μ: 'm',
+  а: 'a',
+  е: 'e',
+  о: 'o',
+  р: 'p',
+  с: 'c',
+  у: 'y',
+  х: 'x',
+  к: 'k',
+  м: 'm',
+  т: 't',
+  н: 'h',
+  в: 'b',
+  і: 'i',
+  ј: 'j',
+  ѕ: 's',
+  ԁ: 'd',
+  α: 'a',
+  ο: 'o',
+  ρ: 'p',
+  ε: 'e',
+  ι: 'i',
+  κ: 'k',
+  ν: 'v',
+  τ: 't',
+  υ: 'u',
+  χ: 'x',
+  β: 'b',
+  η: 'n',
+  μ: 'm',
   // Allowed Latin letters that do not decompose to a base letter.
-  ø: 'o', ð: 'd', đ: 'd', ħ: 'h', ı: 'i', ł: 'l', ŀ: 'l', ŧ: 't', þ: 'p', ß: 'b', æ: 'ae', œ: 'oe', ŋ: 'n', ĸ: 'k', ŉ: 'n', ĳ: 'ij',
+  ø: 'o',
+  ð: 'd',
+  đ: 'd',
+  ħ: 'h',
+  ı: 'i',
+  ł: 'l',
+  ŀ: 'l',
+  ŧ: 't',
+  þ: 'p',
+  ß: 'b',
+  æ: 'ae',
+  œ: 'oe',
+  ŋ: 'n',
+  ĸ: 'k',
+  ŉ: 'n',
+  ĳ: 'ij',
 };
 
 /**
@@ -121,7 +339,11 @@ const SEPARATORS_RE = /[\s_.'&(),-]+/u;
 
 /** NFKC, joiners removed, trimmed, inner whitespace collapsed to one space. */
 function tidyName(input: string): string {
-  return input.normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g, '').trim().replace(/\s+/g, ' ');
+  return input
+    .normalize('NFKC')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .trim()
+    .replace(/\s+/g, ' ');
 }
 
 /** Runs of a letter collapsed to one ("fuuuck" → "fuck") or to two ("niiiggga" → "niigga"). */
@@ -131,7 +353,14 @@ const hasDouble = (s: string): boolean => /(.)\1/u.test(s);
 
 /** Latin folding: lowercase, accents and look-alikes removed, digits read as letters; letters only. Variants for "1". */
 function latinFold(s: string): string[] {
-  const base = [...s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')].map((c) => CONFUSABLES[c] ?? c).join('');
+  const base = [
+    ...s
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, ''),
+  ]
+    .map((c) => CONFUSABLES[c] ?? c)
+    .join('');
   const letters = (x: string) => x.replace(/[^\p{L}]/gu, '');
   const withI = letters([...base].map((c) => LEET[c] ?? c).join(''));
   const withL = letters([...base].map((c) => (c === '1' ? 'l' : (LEET[c] ?? c))).join(''));
@@ -140,12 +369,19 @@ function latinFold(s: string): string[] {
 
 function devanagariFold(s: string): string {
   // Nukta letters fold to their base (ड़ → ड); joiners are dropped.
-  return s.normalize('NFD').replace(/\u093C/g, '').replace(/[\u200C\u200D]/g, '').normalize('NFC');
+  return s
+    .normalize('NFD')
+    .replace(/\u093C/g, '')
+    .replace(/[\u200C\u200D]/g, '')
+    .normalize('NFC');
 }
 
 /** Words: split on separators and on lower→upper boundaries ("KuttaKing" → Kutta, King). */
 function wordsOf(s: string): string[] {
-  return s.replace(/(\p{Ll})(\p{Lu})/gu, '$1 $2').split(SEPARATORS_RE).filter(Boolean);
+  return s
+    .replace(/(\p{Ll})(\p{Lu})/gu, '$1 $2')
+    .split(SEPARATORS_RE)
+    .filter(Boolean);
 }
 
 /**
@@ -217,8 +453,42 @@ export function checkMessage(input: unknown): NameCheck {
 // Generated aliases: original, cricket-flavoured, never a real person.
 // ---------------------------------------------------------------------------------------------------------------
 
-const ADJECTIVES = ['Swift', 'Bold', 'Calm', 'Clever', 'Golden', 'Lucky', 'Mighty', 'Midnight', 'Rapid', 'Silent', 'Sunny', 'Brave', 'Electric', 'Steady', 'Fearless', 'Nimble'];
-const NOUNS = ['Tiger', 'Falcon', 'Cobra', 'Comet', 'Cyclone', 'Panther', 'Storm', 'Thunder', 'Spinner', 'Yorker', 'Seamer', 'Slogger', 'Keeper', 'Opener', 'Finisher', 'Striker'];
+const ADJECTIVES = [
+  'Swift',
+  'Bold',
+  'Calm',
+  'Clever',
+  'Golden',
+  'Lucky',
+  'Mighty',
+  'Midnight',
+  'Rapid',
+  'Silent',
+  'Sunny',
+  'Brave',
+  'Electric',
+  'Steady',
+  'Fearless',
+  'Nimble',
+];
+const NOUNS = [
+  'Tiger',
+  'Falcon',
+  'Cobra',
+  'Comet',
+  'Cyclone',
+  'Panther',
+  'Storm',
+  'Thunder',
+  'Spinner',
+  'Yorker',
+  'Seamer',
+  'Slogger',
+  'Keeper',
+  'Opener',
+  'Finisher',
+  'Striker',
+];
 
 /** A generated alias such as "Swift Yorker 27", chosen from 16 × 16 × 90 combinations by the given random bytes. */
 export function generatedAlias(random: Uint8Array): string {

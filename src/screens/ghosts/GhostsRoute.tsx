@@ -105,8 +105,23 @@ export default function GhostsRoute({ route }: { route: RouteOf<'ghosts'> }) {
       if (!services) return;
       const url = routeUrl({ name: 'ghosts' });
       services.analytics.track('share_initiated', { mode: 'ghost', channel: 'share_sheet' });
-      const image = await cardBlob(practiceCardModel(tr, { me: playerOf(me), ghost: playerOf(match.ref), myScore: [mine.runs, mine.wickets], ghostScore: [theirs.runs, theirs.wickets], result, url }), tr.locale);
-      const r = await services.platform.share.share({ title: t('brand.name'), text: t('ghosts.share_text', { ghost: match.ref.alias, runs: mine.runs }), url, image: image ?? undefined });
+      const image = await cardBlob(
+        practiceCardModel(tr, {
+          me: playerOf(me),
+          ghost: playerOf(match.ref),
+          myScore: [mine.runs, mine.wickets],
+          ghostScore: [theirs.runs, theirs.wickets],
+          result,
+          url,
+        }),
+        tr.locale,
+      );
+      const r = await services.platform.share.share({
+        title: t('brand.name'),
+        text: t('ghosts.share_text', { ghost: match.ref.alias, runs: mine.runs }),
+        url,
+        image: image ?? undefined,
+      });
       if (r === 'shared' || r === 'copied') {
         setShared(true);
         services.analytics.track('share_completed', { mode: 'ghost', channel: 'share_sheet' });
@@ -153,7 +168,15 @@ export default function GhostsRoute({ route }: { route: RouteOf<'ghosts'> }) {
             {engine.GHOSTS.map((g) => {
               const ref = ghostRef(g, ghostName(g));
               return (
-                <CardButton key={g.id} role="radio" aria-checked={ghost.id === g.id} className={s.ghost} padding={3} onClick={() => setGhost(g)} data-testid={`ghost-${g.id}`}>
+                <CardButton
+                  key={g.id}
+                  role="radio"
+                  aria-checked={ghost.id === g.id}
+                  className={s.ghost}
+                  padding={3}
+                  onClick={() => setGhost(g)}
+                  data-testid={`ghost-${g.id}`}
+                >
                   <Avatar avatar={ref.avatar} kit={ref.kit} size={56} decorative />
                   <span className={s.text}>
                     <span className={s.name}>{ghostName(g)}</span>
@@ -172,9 +195,21 @@ export default function GhostsRoute({ route }: { route: RouteOf<'ghosts'> }) {
             <h2 id="ghost-cond" className={s.h2}>
               {t('ghosts.conditions')}
             </h2>
-            <SegmentedControl<PitchId> label={t('duel.pitch_title')} value={pitch} onChange={setPitch} options={PITCHES.map((p) => ({ value: p, label: t(`pitch.${p}` as MessageKey) }))} block />
+            <SegmentedControl<PitchId>
+              label={t('duel.pitch_title')}
+              value={pitch}
+              onChange={setPitch}
+              options={PITCHES.map((p) => ({ value: p, label: t(`pitch.${p}` as MessageKey) }))}
+              block
+            />
             <p className={s.hint}>{t(`pitch_hint.${pitch}` as MessageKey)}</p>
-            <SegmentedControl<WeatherId> label={t('duel.weather')} value={weather} onChange={setWeather} options={WEATHERS.map((w) => ({ value: w, label: t(`weather.${w}` as MessageKey) }))} block />
+            <SegmentedControl<WeatherId>
+              label={t('duel.weather')}
+              value={weather}
+              onChange={setWeather}
+              options={WEATHERS.map((w) => ({ value: w, label: t(`weather.${w}` as MessageKey) }))}
+              block
+            />
           </section>
           <p className={s.note}>
             <Icon name="offline" size={16} /> {t('ghosts.offline_note')}

@@ -32,10 +32,22 @@ export function QrCode({ value, size = 220, label }: { value: string; size?: num
   const { n, path } = modules;
   const markSize = n * 0.2;
   return (
-    <svg className={s.qr} viewBox={`0 0 ${n} ${n}`} width={size} height={size} role="img" aria-label={label ?? t('invite.qr_label')} shapeRendering="crispEdges" data-testid="invite-qr-code">
+    <svg
+      className={s.qr}
+      viewBox={`0 0 ${n} ${n}`}
+      width={size}
+      height={size}
+      role="img"
+      aria-label={label ?? t('invite.qr_label')}
+      shapeRendering="crispEdges"
+      data-testid="invite-qr-code"
+    >
       <rect width={n} height={n} fill="#ffffff" />
       <path d={path} fill="#06051f" />
-      <g transform={`translate(${n / 2 - markSize / 2} ${n / 2 - markSize / 2}) scale(${markSize / 120})`} shapeRendering="geometricPrecision">
+      <g
+        transform={`translate(${n / 2 - markSize / 2} ${n / 2 - markSize / 2}) scale(${markSize / 120})`}
+        shapeRendering="geometricPrecision"
+      >
         <path d={MARK.hex} fill="#151143" stroke="#ffaa33" strokeWidth={6} strokeLinejoin="round" />
         <circle cx={MARK.ball.cx} cy={MARK.ball.cy} r={MARK.ball.r} fill="#f5f4ff" />
         <path d={MARK.seam} fill="none" stroke="#0aa6cc" strokeWidth={6.5} strokeLinecap="round" />

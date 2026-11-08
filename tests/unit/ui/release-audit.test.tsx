@@ -18,15 +18,27 @@ vi.mock('@/app/services', () => ({ useServices: () => services.current, getServi
 
 import SettingsRoute from '@/screens/settings/SettingsRoute';
 
-
-const offlineServices = () => ({ net: null, analytics: { track: vi.fn(), setConsent: vi.fn(), consent: () => 'unset', active: () => false, flush: async () => undefined }, platform: { push: { available: () => false, register: vi.fn(), onMessage: () => () => undefined } } });
+const offlineServices = () => ({
+  net: null,
+  analytics: {
+    track: vi.fn(),
+    setConsent: vi.fn(),
+    consent: () => 'unset',
+    active: () => false,
+    flush: async () => undefined,
+  },
+  platform: { push: { available: () => false, register: vi.fn(), onMessage: () => () => undefined } },
+});
 
 beforeAll(async () => {
   await loadI18n();
 });
 beforeEach(() => {
   localStorage.clear();
-  useApp.setState({ player: { id: null, alias: 'Night Owl', avatar: { seed: 'night-owl-3' }, kit: KITS[1] }, online: true });
+  useApp.setState({
+    player: { id: null, alias: 'Night Owl', avatar: { seed: 'night-owl-3' }, kit: KITS[1] },
+    online: true,
+  });
   useRouter.setState({ route: { name: 'settings' }, depth: 0 });
   services.current = offlineServices();
 });
@@ -37,12 +49,20 @@ afterEach(() => {
 
 describe('legal pages', () => {
   it('Android opens the hosted page when the web origin is set, otherwise the bundled copy', () => {
-    expect(legalUrl('privacy', { VITE_PUBLIC_WEB_ORIGIN: 'https://vande.example/', BASE_URL: '/' }, true)).toBe('https://vande.example/privacy.html');
-    expect(legalUrl('delete-account', { VITE_PUBLIC_WEB_ORIGIN: '', BASE_URL: '/' }, true)).toBe('/delete-account.html');
+    expect(legalUrl('privacy', { VITE_PUBLIC_WEB_ORIGIN: 'https://vande.example/', BASE_URL: '/' }, true)).toBe(
+      'https://vande.example/privacy.html',
+    );
+    expect(legalUrl('delete-account', { VITE_PUBLIC_WEB_ORIGIN: '', BASE_URL: '/' }, true)).toBe(
+      '/delete-account.html',
+    );
     // On the web the page's own origin serves it (under the deploy base path).
-    expect(legalUrl('privacy', { VITE_PUBLIC_WEB_ORIGIN: 'https://vande.example', BASE_URL: '/Vande/' }, false)).toBe('/Vande/privacy.html');
+    expect(legalUrl('privacy', { VITE_PUBLIC_WEB_ORIGIN: 'https://vande.example', BASE_URL: '/Vande/' }, false)).toBe(
+      '/Vande/privacy.html',
+    );
     // A plain-http origin is never used for the hosted copy.
-    expect(legalUrl('privacy', { VITE_PUBLIC_WEB_ORIGIN: 'http://vande.example', BASE_URL: '/' }, true)).toBe('/privacy.html');
+    expect(legalUrl('privacy', { VITE_PUBLIC_WEB_ORIGIN: 'http://vande.example', BASE_URL: '/' }, true)).toBe(
+      '/privacy.html',
+    );
   });
 
   it('Settings links the privacy policy and the web deletion page, in a new tab', () => {
@@ -88,13 +108,18 @@ describe('open-source notices', () => {
     expect(entries.find((e) => e.title.startsWith('@capacitor/app'))?.body).toContain('Permission is hereby granted');
     // Nothing is lost: every non-rule line of the file is in some entry.
     const text = entries.map((e) => `${e.title}\n${e.body}`).join('\n');
-    for (const line of NOTICES.split('\n').filter((l) => l.trim() && !/^[-=]{20,}/.test(l)).slice(0, 400)) expect(text).toContain(line.trim());
+    for (const line of NOTICES.split('\n')
+      .filter((l) => l.trim() && !/^[-=]{20,}/.test(l))
+      .slice(0, 400))
+      expect(text).toContain(line.trim());
   });
 
   it('search keeps the matching components under their section heading', () => {
     const entries = parseNotices(NOTICES);
     const hits = filterNotices(entries, 'noto devanagari');
-    expect(hits.filter((e) => !e.heading).map((e) => e.title)).toEqual([expect.stringContaining('noto-sans-devanagari')]);
+    expect(hits.filter((e) => !e.heading).map((e) => e.title)).toEqual([
+      expect.stringContaining('noto-sans-devanagari'),
+    ]);
     expect(hits[0].heading).toBe(true);
     expect(filterNotices(entries, 'no-such-package-anywhere')).toEqual([]);
   });

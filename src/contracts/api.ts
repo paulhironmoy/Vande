@@ -4,8 +4,27 @@
  * returns an opponent's plan, an exact timestamp or a sealed result before the reveal.
  */
 import type { BattingInput, MatchEventLog, OverPlan, RevealedDelivery, ShotFeedback, Conditions } from './cricket';
-import type { CupView, DailyView, LeaderboardScope, LeaderboardView, MatchView, Profile, RoomView, BanterId, ReactionId, LocaleId } from './social';
-import type { AttributionEvent, ConsentRecord, HighlightJob, HighlightPreview, HighlightPublic, Top100Entry, Visibility } from './highlights';
+import type {
+  CupView,
+  DailyView,
+  LeaderboardScope,
+  LeaderboardView,
+  MatchView,
+  Profile,
+  RoomView,
+  BanterId,
+  ReactionId,
+  LocaleId,
+} from './social';
+import type {
+  AttributionEvent,
+  ConsentRecord,
+  HighlightJob,
+  HighlightPreview,
+  HighlightPublic,
+  Top100Entry,
+  Visibility,
+} from './highlights';
 
 /** The share moments a player may claim once per match or cup (server-checked: one invite, reminder and final share). */
 export const SHARE_MOMENTS = ['invite', 'reminder', 'final'] as const;
@@ -43,7 +62,9 @@ export type RefreshRequest = { refreshToken: string };
 export type LinkGoogleRequest = { idToken: string };
 
 // ---- profile ----------------------------------------------------------------------------------------------------
-export type ProfilePatch = Partial<Pick<Profile, 'alias' | 'avatar' | 'kit' | 'locale' | 'city'>> & { adultConfirmed?: boolean };
+export type ProfilePatch = Partial<Pick<Profile, 'alias' | 'avatar' | 'kit' | 'locale' | 'city'>> & {
+  adultConfirmed?: boolean;
+};
 export type JoinGroupRequest = { code: string };
 export type CreateGroupRequest = { kind: 'college' | 'company'; name: string };
 

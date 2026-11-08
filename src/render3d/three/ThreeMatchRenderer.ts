@@ -50,11 +50,14 @@ export class ThreeMatchRenderer extends SessionBase {
     let renderer: WebGLRenderer;
     try {
       renderer = StageScene.createRenderer(canvas, {
-        antialias: options.offline ? true : PRESETS[initialGuess === 'low' || options.fps === 30 ? 'low' : initialGuess].antialias,
+        antialias: options.offline
+          ? true
+          : PRESETS[initialGuess === 'low' || options.fps === 30 ? 'low' : initialGuess].antialias,
         preserveDrawingBuffer: Boolean(options.offline),
       });
     } catch (err) {
-      const reason = err instanceof RendererUnavailableError ? err.reason : err instanceof Error ? err.message : 'no_webgl';
+      const reason =
+        err instanceof RendererUnavailableError ? err.reason : err instanceof Error ? err.message : 'no_webgl';
       this.emit('fallback', { reason: 'no_webgl', message: reason });
       throw err instanceof RendererUnavailableError ? err : new RendererUnavailableError(reason);
     }
@@ -104,7 +107,10 @@ export class ThreeMatchRenderer extends SessionBase {
     const w = off ? off.width : Math.max(1, this.canvas.clientWidth || this.canvas.width);
     const h = off ? off.height : Math.max(1, this.canvas.clientHeight || this.canvas.height);
     this.size = { w, h };
-    const dpr = off ? 1 : Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, this.qc.preset.pixelRatio) * this.renderScale;
+    const dpr = off
+      ? 1
+      : Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, this.qc.preset.pixelRatio) *
+        this.renderScale;
     this.stage.setSize(w, h, dpr);
     if (this.lastDraw && !this.isPlaying()) this.draw(this.lastDraw);
   }
@@ -144,18 +150,36 @@ export class ThreeMatchRenderer extends SessionBase {
     }
     const aspect = this.size.w / this.size.h;
     const cam = this.debugCam ?? cameraAt(script, t, plan, { aspect, reducedMotion: this.reducedMotion });
-    this.stage.drawScript(script, t, cam, { kits: input.kits, slow: input.slow, clockMs: input.timelineMs, reducedMotion: this.reducedMotion });
+    this.stage.drawScript(script, t, cam, {
+      kits: input.kits,
+      slow: input.slow,
+      clockMs: input.timelineMs,
+      reducedMotion: this.reducedMotion,
+    });
     this.stage.render();
   }
 
   /** Development aid: pins the camera (rig lab, art review). */
-  private debugCam: { pos: { x: number; y: number; z: number }; target: { x: number; y: number; z: number }; fov: number } | null = null;
+  private debugCam: {
+    pos: { x: number; y: number; z: number };
+    target: { x: number; y: number; z: number };
+    fov: number;
+  } | null = null;
   setDebugCamera(pose: ThreeMatchRenderer['debugCam']) {
     this.debugCam = pose;
   }
   /** Development aid: draws an arbitrary script at a scene time. */
   drawDebug(script: BallScript, t: number) {
-    this.draw({ script, scene: t, segment: null, timelineMs: t, slow: false, live: false, conditions: this.conditions, kits: this.kits });
+    this.draw({
+      script,
+      scene: t,
+      segment: null,
+      timelineMs: t,
+      slow: false,
+      live: false,
+      conditions: this.conditions,
+      kits: this.kits,
+    });
   }
 
   dispose() {

@@ -53,7 +53,11 @@ export default function MatchRoute({ route }: { route: RouteOf<'match'> }) {
   const cached = useMemo(() => readCache(route.matchId), [route.matchId]);
   const signedIn = Boolean(player?.id);
   const [poll, setPoll] = useState<number | null>(null);
-  const load = useLoad<MatchView>(net && signedIn ? () => net.api.call('GET /v1/matches/:id', { params: { id: route.matchId } }) : null, [net, signedIn, route.matchId], { pollMs: poll });
+  const load = useLoad<MatchView>(
+    net && signedIn ? () => net.api.call('GET /v1/matches/:id', { params: { id: route.matchId } }) : null,
+    [net, signedIn, route.matchId],
+    { pollMs: poll },
+  );
   const view = load.data ?? cached;
   useEffect(() => {
     if (load.data) writeCache(load.data);
@@ -74,9 +78,14 @@ export default function MatchRoute({ route }: { route: RouteOf<'match'> }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealAt, reload]);
 
-  const profile = useLoad<Profile>(net && signedIn && view && !view.locked[view.me] ? () => net.api.call('GET /v1/me') : null, [net, signedIn, Boolean(view && !view.locked[view.me])]);
+  const profile = useLoad<Profile>(
+    net && signedIn && view && !view.locked[view.me] ? () => net.api.call('GET /v1/me') : null,
+    [net, signedIn, Boolean(view && !view.locked[view.me])],
+  );
   const unlocked: readonly DeliveryVariant[] = useMemo(() => {
-    const extra = (profile.data?.unlocks ?? []).filter((v): v is DeliveryVariant => ['yorker', 'good_length', 'bouncer', 'slower', 'inswing', 'outswing', 'offspin', 'legspin'].includes(v));
+    const extra = (profile.data?.unlocks ?? []).filter((v): v is DeliveryVariant =>
+      ['yorker', 'good_length', 'bouncer', 'slower', 'inswing', 'outswing', 'offspin', 'legspin'].includes(v),
+    );
     return [...new Set([...engine.STARTER_VARIANTS, ...extra])];
   }, [profile.data]);
 
@@ -86,7 +95,10 @@ export default function MatchRoute({ route }: { route: RouteOf<'match'> }) {
     async (plan: OverPlan) => {
       if (!net || !view) throw new Error('offline');
       const r = await net.api.call('POST /v1/matches/:id/lock', { params: { id: view.matchId }, body: { plan } });
-      services?.analytics.track('over_locked', { mode: view.kind === 'cup' ? 'cup' : view.kind === 'daily' ? 'daily' : 'duel', ...(view.cup ? { stage: view.cup.stage } : {}) });
+      services?.analytics.track('over_locked', {
+        mode: view.kind === 'cup' ? 'cup' : view.kind === 'daily' ? 'daily' : 'duel',
+        ...(view.cup ? { stage: view.cup.stage } : {}),
+      });
       setJustLocked(true);
       setMode('view');
       load.reload();
@@ -104,15 +116,31 @@ export default function MatchRoute({ route }: { route: RouteOf<'match'> }) {
   );
 
   if (booting) return shell(<StateView kind="loading" />);
-  if (!net) return shell(<StateView kind="offline" title={t('match.needs_online_title')} body={t('match.needs_online_body')} actionLabel={t('home.ghosts.title')} onAction={() => navigate({ name: 'ghosts' })} />);
+  if (!net)
+    return shell(
+      <StateView
+        kind="offline"
+        title={t('match.needs_online_title')}
+        body={t('match.needs_online_body')}
+        actionLabel={t('home.ghosts.title')}
+        onAction={() => navigate({ name: 'ghosts' })}
+      />,
+    );
   if (!signedIn) {
     if (sync === 'alias_rejected') return shell(<AliasFix />);
-    return shell(sync === 'offline' || !online ? <StateView kind="offline" body={t('match.signup_offline')} /> : <StateView kind="loading" title={t('duel.signing_up')} />);
+    return shell(
+      sync === 'offline' || !online ? (
+        <StateView kind="offline" body={t('match.signup_offline')} />
+      ) : (
+        <StateView kind="loading" title={t('duel.signing_up')} />
+      ),
+    );
   }
   if (!view) {
     if (load.error) {
       const k = failureKind(load.error);
-      if (k === 'offline') return shell(<StateView kind="offline" body={t('match.offline_body')} onAction={load.reload} />);
+      if (k === 'offline')
+        return shell(<StateView kind="offline" body={t('match.offline_body')} onAction={load.reload} />);
       // Someone else's match (a forwarded link) is private, not an error (the server answers 404 for it).
       if (k === 'forbidden' || k === 'not_found') return shell(<PrivateMatch />);
       return shell(<StateView kind="error" onAction={load.reload} />);
@@ -160,13 +188,33 @@ export default function MatchRoute({ route }: { route: RouteOf<'match'> }) {
   switch (view.phase) {
     case 'awaiting_opponent':
     case 'planning':
-      return shell(<SealedView view={view} me={me} opponent={opp} now={now} justLocked={justLocked} onPlan={() => setMode('plan')} net={net} services={services} />);
+      return shell(
+        <SealedView
+          view={view}
+          me={me}
+          opponent={opp}
+          now={now}
+          justLocked={justLocked}
+          onPlan={() => setMode('plan')}
+          net={net}
+          services={services}
+        />,
+      );
     case 'batting':
       return shell(<BatReadyView view={view} opponent={opp} now={now} onBat={() => setMode('bat')} />);
     case 'awaiting_reveal':
       return shell(<AwaitingRevealView view={view} me={me} opponent={opp} now={now} services={services} />);
     case 'revealed':
-      return <RevealedView matchId={view.matchId} me={view.me} net={net} services={services} rematch={view.rematch ?? null} opponentName={opp?.alias ?? null} />;
+      return (
+        <RevealedView
+          matchId={view.matchId}
+          me={view.me}
+          net={net}
+          services={services}
+          rematch={view.rematch ?? null}
+          opponentName={opp?.alias ?? null}
+        />
+      );
     default:
       return shell(<ExpiredView view={view} />);
   }

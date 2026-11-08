@@ -91,7 +91,10 @@ export type UnityPracticeSenderFor<T extends UnityPracticeMessageType> = T exten
     ? 'unity'
     : 'host' | 'unity';
 
-export interface UnityPracticeEnvelope<TType extends UnityPracticeMessageType = UnityPracticeMessageType, TPayload = unknown> {
+export interface UnityPracticeEnvelope<
+  TType extends UnityPracticeMessageType = UnityPracticeMessageType,
+  TPayload = unknown,
+> {
   contractVersion: UnityPracticeContractVersion;
   simVersion: typeof PRACTICE_SIM_VERSION;
   buildId: string;
@@ -391,9 +394,8 @@ export type UnityPracticePayloadByType = {
   'unity.error': UnityPracticeError;
 };
 
-export type UnityPracticeMessage<T extends UnityPracticeMessageType = UnityPracticeMessageType> = T extends UnityPracticeMessageType
-  ? UnityPracticeEnvelope<T, UnityPracticePayloadByType[T]>
-  : never;
+export type UnityPracticeMessage<T extends UnityPracticeMessageType = UnityPracticeMessageType> =
+  T extends UnityPracticeMessageType ? UnityPracticeEnvelope<T, UnityPracticePayloadByType[T]> : never;
 
 export interface UnityPracticeEnvelopeFields {
   buildId: string;
@@ -520,7 +522,11 @@ function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function exactKeys(value: Record<string, unknown>, required: readonly string[], optional: readonly string[] = []): boolean {
+function exactKeys(
+  value: Record<string, unknown>,
+  required: readonly string[],
+  optional: readonly string[] = [],
+): boolean {
   const allowed = new Set([...required, ...optional]);
   return required.every((key) => Object.hasOwn(value, key)) && Object.keys(value).every((key) => allowed.has(key));
 }
@@ -530,9 +536,11 @@ function nonEmptyString(value: unknown): value is string {
 }
 
 function boundedIdentifier(value: unknown): value is string {
-  return nonEmptyString(value) &&
+  return (
+    nonEmptyString(value) &&
     value.length <= UNITY_PRACTICE_MAX_IDENTIFIER_LENGTH &&
-    !/[\u0000-\u001f\u007f]/u.test(value);
+    !/[\u0000-\u001f\u007f]/u.test(value)
+  );
 }
 
 function localeTag(value: unknown): value is string {
@@ -577,45 +585,83 @@ function vec3(value: unknown): boolean {
 }
 
 function batterRootOffset(value: unknown): boolean {
-  if (!record(value) || !exactKeys(value, ['x', 'z']) || !presentationNumber(value.x) || !presentationNumber(value.z)) return false;
+  if (!record(value) || !exactKeys(value, ['x', 'z']) || !presentationNumber(value.x) || !presentationNumber(value.z))
+    return false;
   return Math.hypot(value.x, value.z) <= 0.18;
 }
 
 function exactVec3(value: unknown): boolean {
-  return record(value) && exactKeys(value, ['x', 'y', 'z']) &&
-    presentationNumber(value.x) && presentationNumber(value.y) && presentationNumber(value.z);
+  return (
+    record(value) &&
+    exactKeys(value, ['x', 'y', 'z']) &&
+    presentationNumber(value.x) &&
+    presentationNumber(value.y) &&
+    presentationNumber(value.z)
+  );
 }
 
 function batterBodyFrame(value: unknown): boolean {
-  if (!(record(value) && exactKeys(value, ['stance', 'torsoTop', 'headCentre']) &&
-    record(value.stance) && exactKeys(value.stance, ['x', 'z']) &&
-    presentationNumber(value.stance.x) && presentationNumber(value.stance.z) &&
-    exactVec3(value.torsoTop) && exactVec3(value.headCentre))) return false;
+  if (!(
+    record(value) &&
+    exactKeys(value, ['stance', 'torsoTop', 'headCentre']) &&
+    record(value.stance) &&
+    exactKeys(value.stance, ['x', 'z']) &&
+    presentationNumber(value.stance.x) &&
+    presentationNumber(value.stance.z) &&
+    exactVec3(value.torsoTop) &&
+    exactVec3(value.headCentre)
+  ))
+    return false;
   const stance = value.stance as { x: number; z: number };
   const torso = value.torsoTop as Vec3;
   const head = value.headCentre as Vec3;
-  return Math.abs(stance.x) <= 3 && stance.z >= 5 && stance.z <= 11 &&
-    Math.abs(torso.x) <= 3 && torso.y >= 0 && torso.y <= 3 && torso.z >= 5 && torso.z <= 11 &&
-    Math.abs(head.x) <= 3 && head.y >= torso.y && head.y <= 3 && head.z >= 5 && head.z <= 11 &&
+  return (
+    Math.abs(stance.x) <= 3 &&
+    stance.z >= 5 &&
+    stance.z <= 11 &&
+    Math.abs(torso.x) <= 3 &&
+    torso.y >= 0 &&
+    torso.y <= 3 &&
+    torso.z >= 5 &&
+    torso.z <= 11 &&
+    Math.abs(head.x) <= 3 &&
+    head.y >= torso.y &&
+    head.y <= 3 &&
+    head.z >= 5 &&
+    head.z <= 11 &&
     Math.hypot(torso.x - stance.x, torso.z - stance.z) <= 3 &&
-    Math.hypot(head.x - torso.x, head.y - torso.y, head.z - torso.z) <= 1;
+    Math.hypot(head.x - torso.x, head.y - torso.y, head.z - torso.z) <= 1
+  );
 }
 
 function batterPosture(value: unknown): boolean {
-  return record(value) && exactKeys(value, ['crouchM']) && presentationNumber(value.crouchM) && value.crouchM >= 0 && value.crouchM <= 0.18;
+  return (
+    record(value) &&
+    exactKeys(value, ['crouchM']) &&
+    presentationNumber(value.crouchM) &&
+    value.crouchM >= 0 &&
+    value.crouchM <= 0.18
+  );
 }
 
 function batterMotion(value: unknown): boolean {
-  return record(value) && exactKeys(value, ['startT', 'contactT', 'endT']) &&
-    traceTime(value.startT) && traceTime(value.contactT) && traceTime(value.endT) &&
-    value.startT < value.contactT && value.contactT < value.endT;
+  return (
+    record(value) &&
+    exactKeys(value, ['startT', 'contactT', 'endT']) &&
+    traceTime(value.startT) &&
+    traceTime(value.contactT) &&
+    traceTime(value.endT) &&
+    value.startT < value.contactT &&
+    value.contactT < value.endT
+  );
 }
 
 function sameBatPose(left: Record<string, unknown>, right: Record<string, unknown>, tolerance = 0.000000001): boolean {
   for (const key of ['grip', 'toe', 'face'] as const) {
     const a = left[key] as Vec3;
     const b = right[key] as Vec3;
-    if (Math.abs(a.x - b.x) > tolerance || Math.abs(a.y - b.y) > tolerance || Math.abs(a.z - b.z) > tolerance) return false;
+    if (Math.abs(a.x - b.x) > tolerance || Math.abs(a.y - b.y) > tolerance || Math.abs(a.z - b.z) > tolerance)
+      return false;
   }
   return true;
 }
@@ -644,7 +690,12 @@ function hasValidBatContactKnot(bat: unknown[], events: unknown[]): boolean {
   let contactEvents = 0;
   let contactT = 0;
   for (const event of events) {
-    if (!record(event) || event.kind !== 'contact' || !oneOf(event.contact, ['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge'])) continue;
+    if (
+      !record(event) ||
+      event.kind !== 'contact' ||
+      !oneOf(event.contact, ['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge'])
+    )
+      continue;
     contactEvents++;
     contactT = event.t as number;
   }
@@ -652,7 +703,8 @@ function hasValidBatContactKnot(bat: unknown[], events: unknown[]): boolean {
   if (contactEvents === 0) return true;
   let matchingKnots = 0;
   for (const sample of bat) {
-    if (record(sample) && Math.abs((sample.t as number) - contactT) <= EXACT_TRACE_TIME_TOLERANCE_SECONDS) matchingKnots++;
+    if (record(sample) && Math.abs((sample.t as number) - contactT) <= EXACT_TRACE_TIME_TOLERANCE_SECONDS)
+      matchingKnots++;
   }
   return matchingKnots === 1;
 }
@@ -660,7 +712,21 @@ function hasValidBatContactKnot(bat: unknown[], events: unknown[]): boolean {
 function plan(value: unknown): boolean {
   return (
     record(value) &&
-    oneOf(value.variation, ['stock', 'outswing', 'inswing', 'seam', 'cutter', 'slower', 'bouncer', 'yorker', 'flighted', 'quicker', 'topspinner', 'arm_ball', 'wrong_un']) &&
+    oneOf(value.variation, [
+      'stock',
+      'outswing',
+      'inswing',
+      'seam',
+      'cutter',
+      'slower',
+      'bouncer',
+      'yorker',
+      'flighted',
+      'quicker',
+      'topspinner',
+      'arm_ball',
+      'wrong_un',
+    ]) &&
     finite(value.lengthM) &&
     finite(value.lineM) &&
     finite(value.speedKph) &&
@@ -672,7 +738,13 @@ function plan(value: unknown): boolean {
 }
 
 function bowler(value: unknown): boolean {
-  if (!record(value) || !oneOf(value.family, ['pace', 'spin']) || !oneOf(value.arm, ['right', 'left']) || !nonEmptyString(value.lookSeed)) return false;
+  if (
+    !record(value) ||
+    !oneOf(value.family, ['pace', 'spin']) ||
+    !oneOf(value.arm, ['right', 'left']) ||
+    !nonEmptyString(value.lookSeed)
+  )
+    return false;
   if (value.paceBand !== undefined && !oneOf(value.paceBand, ['controlled', 'fast', 'express'])) return false;
   if (value.spinType !== undefined && !oneOf(value.spinType, ['finger', 'wrist'])) return false;
   return value.family === 'pace' ? value.paceBand !== undefined : value.spinType !== undefined;
@@ -683,19 +755,42 @@ function ballCondition(value: unknown): boolean {
 }
 
 function field(value: unknown): boolean {
-  if (!record(value) || !nonEmptyString(value.id) || !Array.isArray(value.fielders) || value.fielders.length !== 11) return false;
+  if (!record(value) || !nonEmptyString(value.id) || !Array.isArray(value.fielders) || value.fielders.length !== 11)
+    return false;
   const ids = new Set<string>();
-  return value.fielders.every(
-    (fielder) => {
-      if (!record(fielder) || !nonEmptyString(fielder.id) || ids.has(fielder.id)) return false;
-      ids.add(fielder.id);
-      return (
-        oneOf(fielder.role, ['keeper', 'bowler', 'slip', 'gully', 'point', 'backward_point', 'cover', 'extra_cover', 'mid_off', 'mid_on', 'midwicket', 'square_leg', 'fine_leg', 'third_man', 'deep_point', 'deep_cover', 'long_off', 'long_on', 'deep_midwicket', 'deep_square', 'short_leg', 'silly_point', 'leg_slip']) &&
-        presentationNumber(fielder.x) &&
-        presentationNumber(fielder.z)
-      );
-    },
-  );
+  return value.fielders.every((fielder) => {
+    if (!record(fielder) || !nonEmptyString(fielder.id) || ids.has(fielder.id)) return false;
+    ids.add(fielder.id);
+    return (
+      oneOf(fielder.role, [
+        'keeper',
+        'bowler',
+        'slip',
+        'gully',
+        'point',
+        'backward_point',
+        'cover',
+        'extra_cover',
+        'mid_off',
+        'mid_on',
+        'midwicket',
+        'square_leg',
+        'fine_leg',
+        'third_man',
+        'deep_point',
+        'deep_cover',
+        'long_off',
+        'long_on',
+        'deep_midwicket',
+        'deep_square',
+        'short_leg',
+        'silly_point',
+        'leg_slip',
+      ]) &&
+      presentationNumber(fielder.x) &&
+      presentationNumber(fielder.z)
+    );
+  });
 }
 
 function ballSamples(value: unknown): boolean {
@@ -709,12 +804,33 @@ function ballSamples(value: unknown): boolean {
 }
 
 function flight(value: unknown): boolean {
-  if (!record(value) || value.version !== PRACTICE_SIM_VERSION || !plan(value.plan) || !nonEmptyString(value.seed)) return false;
-  if (!record(value.release) || !vec3(value.release.p) || !vec3(value.release.v) || !presentationNumber(value.release.spinRps) || !finite(value.release.seamDeg) || !finite(value.release.speedKph)) return false;
-  if (value.bounce !== null && !(record(value.bounce) && traceTime(value.bounce.t) && vec3(value.bounce.p))) return false;
-  if (!record(value.spin) || !vec3(value.spin.release) || (value.spin.afterBounce !== null && !vec3(value.spin.afterBounce))) return false;
-  if (!record(value.seam) || !vec3(value.seam.axis) || !vec3(value.seam.shine) || !finite(value.seam.wobble)) return false;
-  return traceTime(value.idealContactT) && traceTime(value.stumpsT) && typeof value.wouldHitStumps === 'boolean' && ballSamples(value.samples);
+  if (!record(value) || value.version !== PRACTICE_SIM_VERSION || !plan(value.plan) || !nonEmptyString(value.seed))
+    return false;
+  if (
+    !record(value.release) ||
+    !vec3(value.release.p) ||
+    !vec3(value.release.v) ||
+    !presentationNumber(value.release.spinRps) ||
+    !finite(value.release.seamDeg) ||
+    !finite(value.release.speedKph)
+  )
+    return false;
+  if (value.bounce !== null && !(record(value.bounce) && traceTime(value.bounce.t) && vec3(value.bounce.p)))
+    return false;
+  if (
+    !record(value.spin) ||
+    !vec3(value.spin.release) ||
+    (value.spin.afterBounce !== null && !vec3(value.spin.afterBounce))
+  )
+    return false;
+  if (!record(value.seam) || !vec3(value.seam.axis) || !vec3(value.seam.shine) || !finite(value.seam.wobble))
+    return false;
+  return (
+    traceTime(value.idealContactT) &&
+    traceTime(value.stumpsT) &&
+    typeof value.wouldHitStumps === 'boolean' &&
+    ballSamples(value.samples)
+  );
 }
 
 function normalizedSwing(value: unknown): boolean {
@@ -734,19 +850,58 @@ function normalizedSwing(value: unknown): boolean {
 }
 
 function gesture(value: unknown): boolean {
-  if (!record(value) || !exactKeys(value, ['pointer', 'samples', 'surface'], ['footwork', 'key']) || !oneOf(value.pointer, ['touch', 'mouse', 'pen', 'keyboard'])) return false;
-  if (!record(value.surface) || !exactKeys(value.surface, ['width', 'height']) || !finite(value.surface.width) || !finite(value.surface.height) || value.surface.width <= 0 || value.surface.height <= 0 || value.surface.width > 16_384 || value.surface.height > 16_384) return false;
-  if (!Array.isArray(value.samples) || value.samples.length === 0 || value.samples.length > UNITY_PRACTICE_MAX_GESTURE_SAMPLES) return false;
+  if (
+    !record(value) ||
+    !exactKeys(value, ['pointer', 'samples', 'surface'], ['footwork', 'key']) ||
+    !oneOf(value.pointer, ['touch', 'mouse', 'pen', 'keyboard'])
+  )
+    return false;
+  if (
+    !record(value.surface) ||
+    !exactKeys(value.surface, ['width', 'height']) ||
+    !finite(value.surface.width) ||
+    !finite(value.surface.height) ||
+    value.surface.width <= 0 ||
+    value.surface.height <= 0 ||
+    value.surface.width > 16_384 ||
+    value.surface.height > 16_384
+  )
+    return false;
+  if (
+    !Array.isArray(value.samples) ||
+    value.samples.length === 0 ||
+    value.samples.length > UNITY_PRACTICE_MAX_GESTURE_SAMPLES
+  )
+    return false;
   let prior = -Infinity;
   let first = 0;
   for (const sample of value.samples) {
-    if (!record(sample) || !exactKeys(sample, ['t', 'x', 'y']) || !finite(sample.t) || sample.t < prior || !finite(sample.x) || !finite(sample.y)) return false;
+    if (
+      !record(sample) ||
+      !exactKeys(sample, ['t', 'x', 'y']) ||
+      !finite(sample.t) ||
+      sample.t < prior ||
+      !finite(sample.x) ||
+      !finite(sample.y)
+    )
+      return false;
     if (prior === -Infinity) first = sample.t;
     prior = sample.t;
   }
   if (prior - first > 3_000) return false;
-  if (value.footwork !== undefined && !oneOf(value.footwork, ['auto', 'forward', 'back', 'across', 'down_track'])) return false;
-  if (value.key !== undefined && !(record(value.key) && exactKeys(value.key, ['kind', 'screenBearingDeg', 'loft']) && oneOf(value.key.kind, ['defend', 'attack']) && finite(value.key.screenBearingDeg) && typeof value.key.loft === 'boolean')) return false;
+  if (value.footwork !== undefined && !oneOf(value.footwork, ['auto', 'forward', 'back', 'across', 'down_track']))
+    return false;
+  if (
+    value.key !== undefined &&
+    !(
+      record(value.key) &&
+      exactKeys(value.key, ['kind', 'screenBearingDeg', 'loft']) &&
+      oneOf(value.key.kind, ['defend', 'attack']) &&
+      finite(value.key.screenBearingDeg) &&
+      typeof value.key.loft === 'boolean'
+    )
+  )
+    return false;
   return true;
 }
 
@@ -772,9 +927,33 @@ function deliveryRecord(value: unknown): boolean {
 }
 
 function contact(value: unknown): boolean {
-  if (!record(value) || !oneOf(value.kind, ['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge', 'pad', 'body', 'miss', 'leave'])) return false;
+  if (
+    !record(value) ||
+    !oneOf(value.kind, [
+      'middle',
+      'inside_edge',
+      'outside_edge',
+      'top_edge',
+      'leading_edge',
+      'pad',
+      'body',
+      'miss',
+      'leave',
+    ])
+  )
+    return false;
   if (!oneOf(value.timing, ['perfect', 'solid', 'mistimed', 'missed', 'none'])) return false;
-  for (const key of ['t', 'timingErrorMs', 'bladeU', 'faceBearingDeg', 'batSpeedKph', 'exitSpeedKph', 'exitBearingDeg', 'exitElevationDeg', 'intendedBearingDeg']) {
+  for (const key of [
+    't',
+    'timingErrorMs',
+    'bladeU',
+    'faceBearingDeg',
+    'batSpeedKph',
+    'exitSpeedKph',
+    'exitBearingDeg',
+    'exitElevationDeg',
+    'intendedBearingDeg',
+  ]) {
     if (value[key] !== null && !finite(value[key])) return false;
   }
   return value.point === null || vec3(value.point);
@@ -813,21 +992,64 @@ function strictlyMonotonic(values: unknown[], validate: (value: unknown) => bool
 }
 
 function fielderPath(value: unknown): boolean {
-  if (!record(value) || !nonEmptyString(value.fielderId) || !Array.isArray(value.samples) || value.samples.length === 0 || value.samples.length > UNITY_PRACTICE_MAX_TRACE_SAMPLES) return false;
+  if (
+    !record(value) ||
+    !nonEmptyString(value.fielderId) ||
+    !Array.isArray(value.samples) ||
+    value.samples.length === 0 ||
+    value.samples.length > UNITY_PRACTICE_MAX_TRACE_SAMPLES
+  )
+    return false;
   return monotonic(
     value.samples,
-    (sample) => record(sample) && traceTime(sample.t) && presentationNumber(sample.x) && presentationNumber(sample.z) && oneOf(sample.action, ['set', 'run', 'dive', 'catch', 'drop', 'pickup', 'throw', 'celebrate', 'idle']),
+    (sample) =>
+      record(sample) &&
+      traceTime(sample.t) &&
+      presentationNumber(sample.x) &&
+      presentationNumber(sample.z) &&
+      oneOf(sample.action, ['set', 'run', 'dive', 'catch', 'drop', 'pickup', 'throw', 'celebrate', 'idle']),
   );
 }
 
 function simEvent(value: unknown): boolean {
-  if (!record(value) || !traceTime(value.t) || !oneOf(value.kind, ['release', 'bounce', 'contact', 'pad', 'stumps', 'keeper_take', 'ball_bounce', 'catch', 'field', 'throw', 'boundary', 'run', 'dead'])) return false;
+  if (
+    !record(value) ||
+    !traceTime(value.t) ||
+    !oneOf(value.kind, [
+      'release',
+      'bounce',
+      'contact',
+      'pad',
+      'stumps',
+      'keeper_take',
+      'ball_bounce',
+      'catch',
+      'field',
+      'throw',
+      'boundary',
+      'run',
+      'dead',
+    ])
+  )
+    return false;
   switch (value.kind) {
     case 'release':
     case 'dead':
       return true;
     case 'contact':
-      return oneOf(value.contact, ['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge', 'pad', 'body', 'miss', 'leave']) && vec3(value.p);
+      return (
+        oneOf(value.contact, [
+          'middle',
+          'inside_edge',
+          'outside_edge',
+          'top_edge',
+          'leading_edge',
+          'pad',
+          'body',
+          'miss',
+          'leave',
+        ]) && vec3(value.p)
+      );
     case 'catch':
     case 'field':
     case 'throw':
@@ -844,61 +1066,204 @@ function simEvent(value: unknown): boolean {
 function coaching(value: unknown): boolean {
   return (
     record(value) &&
-    oneOf(value.reason, ['found_the_gap', 'hit_to_fielder', 'cleared_the_rope', 'beat_the_field', 'caught_in_the_deep', 'caught_in_the_ring', 'edged_behind', 'edged_to_slip', 'too_early', 'too_late', 'beaten_by_swing', 'beaten_by_seam', 'beaten_by_turn', 'beaten_by_pace', 'beaten_by_bounce', 'played_across_the_line', 'missed_straight_ball', 'left_well', 'left_and_bowled', 'played_on', 'pad_in_line', 'solid_defence', 'mistimed_lofted']) &&
+    oneOf(value.reason, [
+      'found_the_gap',
+      'hit_to_fielder',
+      'cleared_the_rope',
+      'beat_the_field',
+      'caught_in_the_deep',
+      'caught_in_the_ring',
+      'edged_behind',
+      'edged_to_slip',
+      'too_early',
+      'too_late',
+      'beaten_by_swing',
+      'beaten_by_seam',
+      'beaten_by_turn',
+      'beaten_by_pace',
+      'beaten_by_bounce',
+      'played_across_the_line',
+      'missed_straight_ball',
+      'left_well',
+      'left_and_bowled',
+      'played_on',
+      'pad_in_line',
+      'solid_defence',
+      'mistimed_lofted',
+    ]) &&
     (value.timing === null || oneOf(value.timing, ['early', 'on_time', 'late'])) &&
-    (value.zone === null || oneOf(value.zone, ['third_man', 'point', 'cover', 'mid_off', 'mid_on', 'midwicket', 'square_leg', 'fine_leg'])) &&
-    (value.fielderRole === null || oneOf(value.fielderRole, ['keeper', 'bowler', 'slip', 'gully', 'point', 'backward_point', 'cover', 'extra_cover', 'mid_off', 'mid_on', 'midwicket', 'square_leg', 'fine_leg', 'third_man', 'deep_point', 'deep_cover', 'long_off', 'long_on', 'deep_midwicket', 'deep_square', 'short_leg', 'silly_point', 'leg_slip'])) &&
-    (value.lbw === null || oneOf(value.lbw, ['pitched_outside_leg', 'impact_outside_leg', 'impact_outside_off', 'missing', 'high', 'out']))
+    (value.zone === null ||
+      oneOf(value.zone, ['third_man', 'point', 'cover', 'mid_off', 'mid_on', 'midwicket', 'square_leg', 'fine_leg'])) &&
+    (value.fielderRole === null ||
+      oneOf(value.fielderRole, [
+        'keeper',
+        'bowler',
+        'slip',
+        'gully',
+        'point',
+        'backward_point',
+        'cover',
+        'extra_cover',
+        'mid_off',
+        'mid_on',
+        'midwicket',
+        'square_leg',
+        'fine_leg',
+        'third_man',
+        'deep_point',
+        'deep_cover',
+        'long_off',
+        'long_on',
+        'deep_midwicket',
+        'deep_square',
+        'short_leg',
+        'silly_point',
+        'leg_slip',
+      ])) &&
+    (value.lbw === null ||
+      oneOf(value.lbw, ['pitched_outside_leg', 'impact_outside_leg', 'impact_outside_off', 'missing', 'high', 'out']))
   );
 }
 
 function deliveryResult(value: unknown): boolean {
-  if (!record(value) || value.version !== PRACTICE_SIM_VERSION || !flight(value.flight) || (value.swing !== null && !normalizedSwing(value.swing))) return false;
+  if (
+    !record(value) ||
+    value.version !== PRACTICE_SIM_VERSION ||
+    !flight(value.flight) ||
+    (value.swing !== null && !normalizedSwing(value.swing))
+  )
+    return false;
   if (!batterRootOffset(value.batterRootOffset)) return false;
   if (!batterBodyFrame(value.batterBodyFrame)) return false;
   if (!batterPosture(value.batterPosture)) return false;
-  if (!oneOf(value.footwork, ['forward', 'back', 'across', 'down_track']) || !contact(value.contact) || !ballSamples(value.ball) || !outcome(value.outcome) || !traceTime(value.deadT) || value.deadT <= 0) return false;
-  if (!Array.isArray(value.bat) || value.bat.length > UNITY_PRACTICE_MAX_TRACE_SAMPLES || !strictlyMonotonic(value.bat, rigidBatKnot)) return false;
+  if (
+    !oneOf(value.footwork, ['forward', 'back', 'across', 'down_track']) ||
+    !contact(value.contact) ||
+    !ballSamples(value.ball) ||
+    !outcome(value.outcome) ||
+    !traceTime(value.deadT) ||
+    value.deadT <= 0
+  )
+    return false;
+  if (
+    !Array.isArray(value.bat) ||
+    value.bat.length > UNITY_PRACTICE_MAX_TRACE_SAMPLES ||
+    !strictlyMonotonic(value.bat, rigidBatKnot)
+  )
+    return false;
   if (value.bat.length === 0) {
     const root = value.batterRootOffset as { x: number; z: number };
     const posture = value.batterPosture as { crouchM: number };
-    if (Math.abs(root.x) > 0.000001 || Math.abs(root.z) > 0.000001 || Math.abs(posture.crouchM) > 0.000001 || value.batterMotion !== null) return false;
+    if (
+      Math.abs(root.x) > 0.000001 ||
+      Math.abs(root.z) > 0.000001 ||
+      Math.abs(posture.crouchM) > 0.000001 ||
+      value.batterMotion !== null
+    )
+      return false;
   } else {
     if (!batterMotion(value.batterMotion)) return false;
     const motion = value.batterMotion as { startT: number; contactT: number; endT: number };
     const first = value.bat[0] as { t: number };
     const last = value.bat[value.bat.length - 1] as { t: number };
     if (motion.startT !== first.t || motion.endT > last.t) return false;
-    const contactKnots = (value.bat as unknown[]).filter((sample) => record(sample) && Math.abs((sample.t as number) - motion.contactT) <= EXACT_TRACE_TIME_TOLERANCE_SECONDS);
-    const endKnots = (value.bat as unknown[]).filter((sample) => record(sample) && Math.abs((sample.t as number) - motion.endT) <= EXACT_TRACE_TIME_TOLERANCE_SECONDS);
+    const contactKnots = (value.bat as unknown[]).filter(
+      (sample) =>
+        record(sample) && Math.abs((sample.t as number) - motion.contactT) <= EXACT_TRACE_TIME_TOLERANCE_SECONDS,
+    );
+    const endKnots = (value.bat as unknown[]).filter(
+      (sample) => record(sample) && Math.abs((sample.t as number) - motion.endT) <= EXACT_TRACE_TIME_TOLERANCE_SECONDS,
+    );
     if (contactKnots.length !== 1 || endKnots.length !== 1) return false;
     const held = endKnots[0] as Record<string, unknown>;
-    if ((value.bat as unknown[]).some((sample) => record(sample) && (sample.t as number) > motion.endT + EXACT_TRACE_TIME_TOLERANCE_SECONDS && !sameBatPose(sample, held))) return false;
+    if (
+      (value.bat as unknown[]).some(
+        (sample) =>
+          record(sample) &&
+          (sample.t as number) > motion.endT + EXACT_TRACE_TIME_TOLERANCE_SECONDS &&
+          !sameBatPose(sample, held),
+      )
+    )
+      return false;
   }
-  if (!Array.isArray(value.fielders) || value.fielders.length !== 11 || !value.fielders.every(fielderPath)) return false;
-  if (new Set((value.fielders as Array<{ fielderId: string }>).map((path) => path.fielderId)).size !== value.fielders.length) return false;
-  if (!Array.isArray(value.events) || value.events.length === 0 || value.events.length > UNITY_PRACTICE_MAX_TRACE_EVENTS || !monotonic(value.events, simEvent)) return false;
+  if (!Array.isArray(value.fielders) || value.fielders.length !== 11 || !value.fielders.every(fielderPath))
+    return false;
+  if (
+    new Set((value.fielders as Array<{ fielderId: string }>).map((path) => path.fielderId)).size !==
+    value.fielders.length
+  )
+    return false;
+  if (
+    !Array.isArray(value.events) ||
+    value.events.length === 0 ||
+    value.events.length > UNITY_PRACTICE_MAX_TRACE_EVENTS ||
+    !monotonic(value.events, simEvent)
+  )
+    return false;
   if (!hasValidBatContactKnot(value.bat, value.events)) return false;
   if (!coaching(value.coaching)) return false;
-  if (value.lbw !== null && !(record(value.lbw) && typeof value.lbw.out === 'boolean' && oneOf(value.lbw.reason, ['pitched_outside_leg', 'impact_outside_leg', 'impact_outside_off', 'missing', 'high', 'out']) && vec3(value.lbw.impact) && vec3(value.lbw.projected))) return false;
+  if (
+    value.lbw !== null &&
+    !(
+      record(value.lbw) &&
+      typeof value.lbw.out === 'boolean' &&
+      oneOf(value.lbw.reason, [
+        'pitched_outside_leg',
+        'impact_outside_leg',
+        'impact_outside_off',
+        'missing',
+        'high',
+        'out',
+      ]) &&
+      vec3(value.lbw.impact) &&
+      vec3(value.lbw.projected)
+    )
+  )
+    return false;
   return true;
 }
 
 function resolution(value: unknown): boolean {
-  if (!record(value) || !deliveryRecord(value.record) || !deliveryResult(value.result) || !record(value.score) || !digest(value.replayDigest)) return false;
+  if (
+    !record(value) ||
+    !deliveryRecord(value.record) ||
+    !deliveryResult(value.result) ||
+    !record(value.score) ||
+    !digest(value.replayDigest)
+  )
+    return false;
   const deliveryRecordValue = value.record as DeliveryRecord;
   const deliveryResultValue = value.result as DeliveryResult;
-  if (!integer(value.score.runs) || value.score.runs > 360 || (value.score.wickets !== 0 && value.score.wickets !== 1) || !integer(value.score.balls, 1) || value.score.balls > 60 || value.score.maxOvers !== 10) return false;
-  if (deliveryRecordValue.runs !== deliveryResultValue.outcome.runs || deliveryRecordValue.dismissal !== deliveryResultValue.outcome.dismissal) return false;
+  if (
+    !integer(value.score.runs) ||
+    value.score.runs > 360 ||
+    (value.score.wickets !== 0 && value.score.wickets !== 1) ||
+    !integer(value.score.balls, 1) ||
+    value.score.balls > 60 ||
+    value.score.maxOvers !== 10
+  )
+    return false;
+  if (
+    deliveryRecordValue.runs !== deliveryResultValue.outcome.runs ||
+    deliveryRecordValue.dismissal !== deliveryResultValue.outcome.dismissal
+  )
+    return false;
   if ((deliveryResultValue.outcome.dismissal === null) !== (value.score.wickets === 0)) return false;
-  if (deliveryRecordValue.seed !== deliveryResultValue.flight.seed || canonicalUnityPracticeJson(deliveryRecordValue.plan) !== canonicalUnityPracticeJson(deliveryResultValue.flight.plan)) return false;
-  return canonicalUnityPracticeJson(deliveryRecordValue.swing) === canonicalUnityPracticeJson(deliveryResultValue.swing);
+  if (
+    deliveryRecordValue.seed !== deliveryResultValue.flight.seed ||
+    canonicalUnityPracticeJson(deliveryRecordValue.plan) !== canonicalUnityPracticeJson(deliveryResultValue.flight.plan)
+  )
+    return false;
+  return (
+    canonicalUnityPracticeJson(deliveryRecordValue.swing) === canonicalUnityPracticeJson(deliveryResultValue.swing)
+  );
 }
 
 function deliveryPresentation(value: unknown): boolean {
   if (!record(value) || !exactKeys(value, ['coach', 'learnCue']) || typeof value.learnCue !== 'boolean') return false;
   if (value.coach === null) return true;
-  if (value.learnCue || !record(value.coach) || !exactKeys(value.coach, ['contactPoint', 'contactT', 'stage'])) return false;
+  if (value.learnCue || !record(value.coach) || !exactKeys(value.coach, ['contactPoint', 'contactT', 'stage']))
+    return false;
   if (![1, 2, 3, 4].includes(value.coach.stage as number)) return false;
   const contactAbsent = value.coach.contactT === null && value.coach.contactPoint === null;
   const contactPresent =
@@ -953,19 +1318,26 @@ function protectedRegions(value: Record<string, unknown>): boolean {
     !Array.isArray(value.regions) ||
     value.regions.length < 1 ||
     value.regions.length > 6
-  ) return false;
+  )
+    return false;
   const kinds = new Set<string>();
   for (const region of value.regions) {
     if (!record(region) || !exactKeys(region, ['height', 'kind', 'width', 'x', 'y'])) return false;
-    if (!oneOf(region.kind, ['bowler', 'release', 'pitch', 'ball_path', 'bat', 'contact']) || kinds.has(region.kind)) return false;
+    if (!oneOf(region.kind, ['bowler', 'release', 'pitch', 'ball_path', 'bat', 'contact']) || kinds.has(region.kind))
+      return false;
     if (
-      !finite(region.x) || region.x < 0 ||
-      !finite(region.y) || region.y < 0 ||
-      !finite(region.width) || region.width <= 0 ||
-      !finite(region.height) || region.height <= 0 ||
+      !finite(region.x) ||
+      region.x < 0 ||
+      !finite(region.y) ||
+      region.y < 0 ||
+      !finite(region.width) ||
+      region.width <= 0 ||
+      !finite(region.height) ||
+      region.height <= 0 ||
       region.x + region.width > viewportWidth ||
       region.y + region.height > viewportHeight
-    ) return false;
+    )
+      return false;
     kinds.add(region.kind);
   }
   return true;
@@ -973,14 +1345,46 @@ function protectedRegions(value: Record<string, unknown>): boolean {
 
 const PAYLOAD_KEYS: Record<UnityPracticeMessageType, readonly string[]> = {
   'bridge.ack': ['acknowledgedMessageId'],
-  'host.initialize': ['locale', 'pixelsPerDp', 'quality', 'deviceTier', 'handedness', 'assistance', 'reducedMotion', 'textScale', 'highContrast', 'captions', 'audio', 'haptics', 'coordinateSystem', 'handednessPolicy'],
+  'host.initialize': [
+    'locale',
+    'pixelsPerDp',
+    'quality',
+    'deviceTier',
+    'handedness',
+    'assistance',
+    'reducedMotion',
+    'textScale',
+    'highContrast',
+    'captions',
+    'audio',
+    'haptics',
+    'coordinateSystem',
+    'handednessPolicy',
+  ],
   'host.clock_sync': ['sampleId', 'hostSendPerfMs'],
   'host.clock_selected': ['sampleId'],
-  'host.scene': ['conditions', 'field', 'fieldIntent', 'trainingObjective', 'bowler', 'ball', 'handedness', 'batterPosition'],
+  'host.scene': [
+    'conditions',
+    'field',
+    'fieldIntent',
+    'trainingObjective',
+    'bowler',
+    'ball',
+    'handedness',
+    'batterPosition',
+  ],
   'host.delivery': ['overIndex', 'ballIndex', 'plan', 'presentation', 'seed', 'flight'],
   'host.provisional_swing': ['atPerfMs', 'calibrationMs', 'swing'],
   'host.result': ['record', 'result', 'score', 'replayDigest'],
-  'host.dead_ball_ui': ['replayDigest', 'reason', 'recommendation', 'primaryAction', 'primaryLabel', 'secondaryAction', 'secondaryLabel'],
+  'host.dead_ball_ui': [
+    'replayDigest',
+    'reason',
+    'recommendation',
+    'primaryAction',
+    'primaryLabel',
+    'secondaryAction',
+    'secondaryLabel',
+  ],
   'host.replay': ['resolution', 'speed', 'diagnostics'],
   'host.demonstration': ['delivery', 'resolution', 'speed'],
   'host.demonstration_cancel': [],
@@ -998,7 +1402,19 @@ const PAYLOAD_KEYS: Record<UnityPracticeMessageType, readonly string[]> = {
   'unity.dead': ['deadT', 'replayDigest'],
   'unity.dead_ball_action': ['action', 'replayDigest'],
   'unity.protected_regions': ['regions', 'viewportHeight', 'viewportWidth'],
-  'unity.stats': ['quality', 'sampleCount', 'spikes', 'fps', 'avgFrameMs', 'p95FrameMs', 'p99FrameMs', 'worstFrameMs', 'inputToVisibleBatMs', 'memoryMb', 'thermalState'],
+  'unity.stats': [
+    'quality',
+    'sampleCount',
+    'spikes',
+    'fps',
+    'avgFrameMs',
+    'p95FrameMs',
+    'p99FrameMs',
+    'worstFrameMs',
+    'inputToVisibleBatMs',
+    'memoryMb',
+    'thermalState',
+  ],
   'unity.benchmark': ['benchmarkId', 'quality', 'frameIntervalsMs', 'warmup', 'graphics', 'memoryMb', 'thermalState'],
   'unity.pause_request': ['reason'],
   'unity.quiet': ['quiet'],
@@ -1039,7 +1455,15 @@ function payloadShape(type: UnityPracticeMessageType, payload: Record<string, un
     case 'host.scene':
       return (
         field(payload.field) &&
-        oneOf(payload.fieldIntent, ['attack_outside_off', 'attack_the_stumps', 'short_ball_trap', 'yorker_and_boundaries', 'spin_close_catchers', 'save_singles', 'protect_boundaries']) &&
+        oneOf(payload.fieldIntent, [
+          'attack_outside_off',
+          'attack_the_stumps',
+          'short_ball_trap',
+          'yorker_and_boundaries',
+          'spin_close_catchers',
+          'save_singles',
+          'protect_boundaries',
+        ]) &&
         oneOf(payload.trainingObjective, ['reference', 'built', 'random']) &&
         bowler(payload.bowler) &&
         ballCondition(payload.ball) &&
@@ -1065,14 +1489,21 @@ function payloadShape(type: UnityPracticeMessageType, payload: Record<string, un
         !boundedUiText(payload.recommendation, 160, true) ||
         !oneOf(payload.primaryAction, ['practice_ball', 'next_ball']) ||
         !boundedUiText(payload.primaryLabel, 64)
-      ) return false;
+      )
+        return false;
       if (payload.primaryAction === 'practice_ball') {
         return payload.secondaryAction === 'next_ball' && boundedUiText(payload.secondaryLabel, 64);
       }
       return payload.secondaryAction === null && payload.secondaryLabel === null;
     }
     case 'host.replay':
-      return resolution(payload.resolution) && finite(payload.speed) && payload.speed > 0 && payload.speed <= 4 && typeof payload.diagnostics === 'boolean';
+      return (
+        resolution(payload.resolution) &&
+        finite(payload.speed) &&
+        payload.speed > 0 &&
+        payload.speed <= 4 &&
+        typeof payload.diagnostics === 'boolean'
+      );
     case 'host.demonstration':
       return (
         deliveryPayloadMatchesResolution(payload.delivery, payload.resolution) &&
@@ -1098,9 +1529,12 @@ function payloadShape(type: UnityPracticeMessageType, payload: Record<string, un
         payload.sampleCap <= UNITY_PRACTICE_MAX_BENCHMARK_INTERVALS &&
         oneOf(payload.quality, ['lite', 'standard', 'high'])
       );
-    case 'host.pause': return oneOf(payload.reason, ['player', 'background', 'interruption']);
-    case 'host.resume': return oneOf(payload.reason, ['player', 'foreground', 'recreated']);
-    case 'host.dispose': return oneOf(payload.reason, ['complete', 'cancelled', 'fallback', 'error']);
+    case 'host.pause':
+      return oneOf(payload.reason, ['player', 'background', 'interruption']);
+    case 'host.resume':
+      return oneOf(payload.reason, ['player', 'foreground', 'recreated']);
+    case 'host.dispose':
+      return oneOf(payload.reason, ['complete', 'cancelled', 'fallback', 'error']);
     case 'unity.ready':
       return nonEmptyString(payload.renderer) && nonEmptyString(payload.unityVersion);
     case 'unity.clock_sync':
@@ -1114,9 +1548,18 @@ function payloadShape(type: UnityPracticeMessageType, payload: Record<string, un
     case 'unity.release':
       return finite(payload.releaseUnityMs) && nonEmptyString(payload.clockSampleId);
     case 'unity.pointer':
-      return oneOf(payload.phase, ['down', 'cancel']) && finite(payload.atUnityMs) && nonEmptyString(payload.clockSampleId) && oneOf(payload.pointer, ['touch', 'mouse', 'pen', 'keyboard']);
+      return (
+        oneOf(payload.phase, ['down', 'cancel']) &&
+        finite(payload.atUnityMs) &&
+        nonEmptyString(payload.clockSampleId) &&
+        oneOf(payload.pointer, ['touch', 'mouse', 'pen', 'keyboard'])
+      );
     case 'unity.gesture':
-      return payload.retention === 'memory-until-resolution' && nonEmptyString(payload.clockSampleId) && gesture(payload.input);
+      return (
+        payload.retention === 'memory-until-resolution' &&
+        nonEmptyString(payload.clockSampleId) &&
+        gesture(payload.input)
+      );
     case 'unity.dead':
       return finite(payload.deadT) && digest(payload.replayDigest);
     case 'unity.dead_ball_action':
@@ -1153,7 +1596,8 @@ function payloadShape(type: UnityPracticeMessageType, payload: Record<string, un
         payload.warmup.frames > UNITY_PRACTICE_MAX_BENCHMARK_WARMUP_FRAMES ||
         !finite(payload.warmup.durationMs) ||
         payload.warmup.durationMs < 0 ||
-        (payload.warmup.shaderWarmupMs !== null && (!finite(payload.warmup.shaderWarmupMs) || payload.warmup.shaderWarmupMs < 0)) ||
+        (payload.warmup.shaderWarmupMs !== null &&
+          (!finite(payload.warmup.shaderWarmupMs) || payload.warmup.shaderWarmupMs < 0)) ||
         typeof payload.warmup.shaderWarmupCompleted !== 'boolean' ||
         !record(payload.graphics) ||
         !exactKeys(payload.graphics, ['api', 'device', 'contextGeneration', 'contextLosses']) ||
@@ -1162,7 +1606,8 @@ function payloadShape(type: UnityPracticeMessageType, payload: Record<string, un
         (payload.graphics.contextGeneration !== null && !integer(payload.graphics.contextGeneration)) ||
         (payload.graphics.contextLosses !== null && !integer(payload.graphics.contextLosses)) ||
         (payload.memoryMb !== null && (!finite(payload.memoryMb) || payload.memoryMb < 0))
-      ) return false;
+      )
+        return false;
       return oneOf(payload.thermalState, ['unknown', 'nominal', 'fair', 'serious', 'critical']);
     }
     case 'unity.pause_request':
@@ -1173,7 +1618,19 @@ function payloadShape(type: UnityPracticeMessageType, payload: Record<string, un
       return payload.retainedMemoryMb === null || finite(payload.retainedMemoryMb);
     case 'unity.error':
       return (
-        oneOf(payload.code, ['contract_version', 'simulation_version', 'integrity', 'invalid_message', 'out_of_order', 'timeout', 'unity_unavailable', 'unity_load_failed', 'unity_runtime', 'lifecycle', 'low_memory']) &&
+        oneOf(payload.code, [
+          'contract_version',
+          'simulation_version',
+          'integrity',
+          'invalid_message',
+          'out_of_order',
+          'timeout',
+          'unity_unavailable',
+          'unity_load_failed',
+          'unity_runtime',
+          'lifecycle',
+          'low_memory',
+        ]) &&
         typeof payload.recoverable === 'boolean' &&
         nonEmptyString(payload.detail) &&
         oneOf(payload.fallback, ['three', 'classic', 'return_to_practice'])
@@ -1182,9 +1639,29 @@ function payloadShape(type: UnityPracticeMessageType, payload: Record<string, un
 }
 
 export function isUnityPracticeMessage(value: unknown): value is UnityPracticeMessage {
-  if (!record(value) || value.contractVersion !== UNITY_PRACTICE_CONTRACT_VERSION || value.simVersion !== PRACTICE_SIM_VERSION) return false;
-  if (!exactKeys(value, ['contractVersion', 'simVersion', 'buildId', 'sessionId', 'deliveryId', 'messageId', 'sequence', 'sender', 'type', 'payload'])) return false;
-  if (!boundedIdentifier(value.buildId) || !boundedIdentifier(value.sessionId) || !boundedIdentifier(value.messageId)) return false;
+  if (
+    !record(value) ||
+    value.contractVersion !== UNITY_PRACTICE_CONTRACT_VERSION ||
+    value.simVersion !== PRACTICE_SIM_VERSION
+  )
+    return false;
+  if (
+    !exactKeys(value, [
+      'contractVersion',
+      'simVersion',
+      'buildId',
+      'sessionId',
+      'deliveryId',
+      'messageId',
+      'sequence',
+      'sender',
+      'type',
+      'payload',
+    ])
+  )
+    return false;
+  if (!boundedIdentifier(value.buildId) || !boundedIdentifier(value.sessionId) || !boundedIdentifier(value.messageId))
+    return false;
   if (value.deliveryId !== null && !boundedIdentifier(value.deliveryId)) return false;
   if (!Number.isSafeInteger(value.sequence) || (value.sequence as number) < 0) return false;
   if (value.sender !== 'host' && value.sender !== 'unity') return false;
@@ -1216,7 +1693,10 @@ export function parseUnityPracticeMessage(body: string): UnityPracticeMessage {
     throw new UnityPracticeContractError('invalid_json', 'Unity Practice message is not valid JSON.');
   }
   if (!isUnityPracticeMessage(value)) {
-    throw new UnityPracticeContractError('invalid_message', 'Unity Practice message has an incompatible or invalid shape.');
+    throw new UnityPracticeContractError(
+      'invalid_message',
+      'Unity Practice message has an incompatible or invalid shape.',
+    );
   }
   return value;
 }
@@ -1274,7 +1754,9 @@ function stringifyWithFragments(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map((item) => stringifyWithFragments(item)).join(',')}]`;
   if (typeof value === 'object' && value !== null) {
     const source = value as Record<string, unknown>;
-    return `{${Object.keys(source).map((key) => `${JSON.stringify(key)}:${stringifyWithFragments(source[key])}`).join(',')}}`;
+    return `{${Object.keys(source)
+      .map((key) => `${JSON.stringify(key)}:${stringifyWithFragments(source[key])}`)
+      .join(',')}}`;
   }
   return JSON.stringify(value);
 }
@@ -1328,7 +1810,10 @@ export function packedUnityPracticePacket(packet: UnityPracticePacket): PackedUn
 
 export async function packUnityPracticeMessage(message: UnityPracticeMessage): Promise<UnityPracticePacket> {
   if (!isUnityPracticeMessage(message)) {
-    throw new UnityPracticeContractError('invalid_message', 'Unity Practice message has an incompatible or invalid shape.');
+    throw new UnityPracticeContractError(
+      'invalid_message',
+      'Unity Practice message has an incompatible or invalid shape.',
+    );
   }
   const known = await verifyUnityPracticeReplayIdentity(message);
   const body = canonicalUnityPracticeJson(known === null ? message : withCanonicalResolution(message, known));
@@ -1371,12 +1856,17 @@ export interface CanonicalResolution {
 async function digestCanonicalResolution(recordJson: string, resultJson: string): Promise<CanonicalResolution> {
   // canonicalUnityPracticeJson({ simVersion, record, result }) sorts its keys as record, result, simVersion, so the
   // text it would give is these two canonical texts between the keys: no value is walked a second time.
-  const replayDigest = await unityPracticeSha256(`{"record":${recordJson},"result":${resultJson},"simVersion":${PRACTICE_SIM_VERSION}}`);
+  const replayDigest = await unityPracticeSha256(
+    `{"record":${recordJson},"result":${resultJson},"simVersion":${PRACTICE_SIM_VERSION}}`,
+  );
   return { record: new CanonicalFragment(recordJson), result: new CanonicalFragment(resultJson), replayDigest };
 }
 
 /** Canonicalizes the record and the result once and digests them, exactly as unityPracticeReplayDigest frames them. */
-export async function canonicalizeUnityPracticeResolution(record: DeliveryRecord, result: DeliveryResult): Promise<CanonicalResolution> {
+export async function canonicalizeUnityPracticeResolution(
+  record: DeliveryRecord,
+  result: DeliveryResult,
+): Promise<CanonicalResolution> {
   return digestCanonicalResolution(canonicalUnityPracticeJson(record), canonicalUnityPracticeJson(result));
 }
 
@@ -1447,7 +1937,8 @@ function foldValue(hash: number, value: unknown): number {
 
 function foldBallSamples(hash: number, samples: BallSample[]): number {
   let next = foldWord(hash, samples.length);
-  for (let i = 0; i < samples.length; i++) next = foldVec3(foldVec3(foldNumber(next, samples[i].t), samples[i].p), samples[i].v);
+  for (let i = 0; i < samples.length; i++)
+    next = foldVec3(foldVec3(foldNumber(next, samples[i].t), samples[i].p), samples[i].v);
   return next;
 }
 
@@ -1458,12 +1949,14 @@ function resolutionFingerprint(record: DeliveryRecord, result: DeliveryResult): 
   let hash = foldValue(foldValue(foldValue(0, record), resultRest), flightRest);
   hash = foldBallSamples(foldBallSamples(hash, ball), samples);
   hash = foldWord(hash, bat.length);
-  for (let i = 0; i < bat.length; i++) hash = foldVec3(foldVec3(foldVec3(foldNumber(hash, bat[i].t), bat[i].grip), bat[i].toe), bat[i].face);
+  for (let i = 0; i < bat.length; i++)
+    hash = foldVec3(foldVec3(foldVec3(foldNumber(hash, bat[i].t), bat[i].grip), bat[i].toe), bat[i].face);
   hash = foldWord(hash, fielders.length);
   for (let i = 0; i < fielders.length; i++) {
     const path = fielders[i].samples;
     hash = foldWord(foldString(hash, fielders[i].fielderId), path.length);
-    for (let j = 0; j < path.length; j++) hash = foldString(foldNumber(foldNumber(foldNumber(hash, path[j].t), path[j].x), path[j].z), path[j].action);
+    for (let j = 0; j < path.length; j++)
+      hash = foldString(foldNumber(foldNumber(foldNumber(hash, path[j].t), path[j].x), path[j].z), path[j].action);
   }
   return hash >>> 0;
 }
@@ -1503,7 +1996,8 @@ export async function makeUnityPracticeResolution(
   }
   const canonical = await digestCanonicalResolution(recordJson, resultJson);
   const resolution: UnityPracticeResolution = { record, result, score, replayDigest: canonical.replayDigest };
-  if (fingerprint !== null) (knownResolutions ??= new WeakMap()).set(resolution, { record, result, canonical, fingerprint });
+  if (fingerprint !== null)
+    (knownResolutions ??= new WeakMap()).set(resolution, { record, result, canonical, fingerprint });
   return resolution;
 }
 
@@ -1515,7 +2009,8 @@ function knownCanonicalResolution(resolution: UnityPracticeResolution): Canonica
     known.record !== resolution.record ||
     known.result !== resolution.result ||
     known.canonical.replayDigest !== resolution.replayDigest
-  ) return null;
+  )
+    return null;
   try {
     return resolutionFingerprint(known.record, known.result) === known.fingerprint ? known.canonical : null;
   } catch {
@@ -1538,9 +2033,12 @@ function sameUnityPracticeResolution(a: UnityPracticeResolution, b: UnityPractic
   if (knownA !== null && knownB !== null) {
     if (a === b) return true;
     // Everything but the record and the result is small; the two are compared as the text each was made with.
-    return knownA.record.json === knownB.record.json
-      && knownA.result.json === knownB.result.json
-      && canonicalUnityPracticeJson({ ...a, record: null, result: null }) === canonicalUnityPracticeJson({ ...b, record: null, result: null });
+    return (
+      knownA.record.json === knownB.record.json &&
+      knownA.result.json === knownB.result.json &&
+      canonicalUnityPracticeJson({ ...a, record: null, result: null }) ===
+        canonicalUnityPracticeJson({ ...b, record: null, result: null })
+    );
   }
   return canonicalUnityPracticeJson(a) === canonicalUnityPracticeJson(b);
 }
@@ -1571,14 +2069,21 @@ async function verifyUnityPracticeReplayIdentity(message: UnityPracticeMessage):
   const known = knownCanonicalResolution(resolution);
   if (known !== null) return known;
   if (!(await resolutionDigestMatches(resolution))) {
-    throw new UnityPracticeContractError('integrity', 'Unity Practice replay identity does not match its authoritative record and result.');
+    throw new UnityPracticeContractError(
+      'integrity',
+      'Unity Practice replay identity does not match its authoritative record and result.',
+    );
   }
   return null;
 }
 
 /** The same message with the record and the result of its resolution replaced by their canonical text. */
 function withCanonicalResolution(message: UnityPracticeMessage, known: CanonicalResolution): unknown {
-  const embed = (resolution: UnityPracticeResolution) => ({ ...resolution, record: known.record, result: known.result });
+  const embed = (resolution: UnityPracticeResolution) => ({
+    ...resolution,
+    record: known.record,
+    result: known.result,
+  });
   if (message.type === 'host.result') return { ...message, payload: embed(message.payload as UnityPracticeResolution) };
   if (message.type === 'host.replay' || message.type === 'host.demonstration') {
     const payload = message.payload as UnityPracticeReplay | UnityPracticeDemonstration;
@@ -1751,12 +2256,14 @@ export class UnityPracticeProtocolGuard {
         return 'accept';
 
       case 'host.clock_sync':
-        if (!['ready', 'scene_ready'].includes(this.currentPhase) || message.deliveryId !== null) return 'invalid_transition';
+        if (!['ready', 'scene_ready'].includes(this.currentPhase) || message.deliveryId !== null)
+          return 'invalid_transition';
         this.pendingClock.set(message.payload.sampleId, message.payload.hostSendPerfMs);
         return 'accept';
 
       case 'unity.clock_sync': {
-        if (!['ready', 'scene_ready'].includes(this.currentPhase) || message.deliveryId !== null) return 'invalid_transition';
+        if (!['ready', 'scene_ready'].includes(this.currentPhase) || message.deliveryId !== null)
+          return 'invalid_transition';
         const expected = this.pendingClock.get(message.payload.sampleId);
         if (expected === undefined || expected !== message.payload.hostSendPerfMs) return 'clock_mismatch';
         this.pendingClock.delete(message.payload.sampleId);
@@ -1765,13 +2272,15 @@ export class UnityPracticeProtocolGuard {
       }
 
       case 'host.clock_selected':
-        if (!['ready', 'scene_ready'].includes(this.currentPhase) || message.deliveryId !== null) return 'invalid_transition';
+        if (!['ready', 'scene_ready'].includes(this.currentPhase) || message.deliveryId !== null)
+          return 'invalid_transition';
         if (!this.clockReady || !this.acceptedClock.has(message.payload.sampleId)) return 'clock_mismatch';
         this.selectedClockId = message.payload.sampleId;
         return 'accept';
 
       case 'host.scene':
-        if (!['ready', 'scene_ready', 'dead_ball'].includes(this.currentPhase) || message.deliveryId !== null) return 'invalid_transition';
+        if (!['ready', 'scene_ready', 'dead_ball'].includes(this.currentPhase) || message.deliveryId !== null)
+          return 'invalid_transition';
         if (!this.clockReady || this.selectedClockId === null) return 'clock_unsynchronized';
         if (message.payload.handedness !== this.handedness) return 'handedness_mismatch';
         this.scene = message.payload;
@@ -1780,7 +2289,8 @@ export class UnityPracticeProtocolGuard {
         return 'accept';
 
       case 'host.delivery':
-        if (!['scene_ready', 'dead_ball'].includes(this.currentPhase) || message.deliveryId === null) return 'invalid_transition';
+        if (!['scene_ready', 'dead_ball'].includes(this.currentPhase) || message.deliveryId === null)
+          return 'invalid_transition';
         this.activeDelivery = message.payload;
         this.provisionalSwing = undefined;
         this.activeDeliveryId = message.deliveryId;
@@ -1795,24 +2305,32 @@ export class UnityPracticeProtocolGuard {
         if (message.deliveryId !== null && this.cancelledDemonstrationDigests.has(message.deliveryId)) {
           return message.payload.clockSampleId === this.selectedClockId ? 'accept' : 'clock_mismatch';
         }
-        if (!['delivery', 'demonstrating'].includes(this.currentPhase) || !this.matchesActiveDelivery(message.deliveryId)) return 'delivery_mismatch';
+        if (
+          !['delivery', 'demonstrating'].includes(this.currentPhase) ||
+          !this.matchesActiveDelivery(message.deliveryId)
+        )
+          return 'delivery_mismatch';
         return message.payload.clockSampleId === this.selectedClockId ? 'accept' : 'clock_mismatch';
 
       case 'unity.pointer':
-        if (!['delivery', 'resolved'].includes(this.currentPhase) || !this.matchesActiveDelivery(message.deliveryId)) return 'delivery_mismatch';
+        if (!['delivery', 'resolved'].includes(this.currentPhase) || !this.matchesActiveDelivery(message.deliveryId))
+          return 'delivery_mismatch';
         return message.payload.clockSampleId === this.selectedClockId ? 'accept' : 'clock_mismatch';
 
       case 'unity.gesture':
-        if (!['delivery', 'resolved'].includes(this.currentPhase) || !this.matchesActiveDelivery(message.deliveryId)) return 'delivery_mismatch';
+        if (!['delivery', 'resolved'].includes(this.currentPhase) || !this.matchesActiveDelivery(message.deliveryId))
+          return 'delivery_mismatch';
         return message.payload.clockSampleId === this.selectedClockId ? 'accept' : 'clock_mismatch';
 
       case 'host.provisional_swing':
-        if (this.currentPhase !== 'delivery' || !this.matchesActiveDelivery(message.deliveryId)) return 'delivery_mismatch';
+        if (this.currentPhase !== 'delivery' || !this.matchesActiveDelivery(message.deliveryId))
+          return 'delivery_mismatch';
         this.provisionalSwing = message.payload.swing;
         return 'accept';
 
       case 'host.result':
-        if (this.currentPhase !== 'delivery' || !this.matchesActiveDelivery(message.deliveryId)) return 'delivery_mismatch';
+        if (this.currentPhase !== 'delivery' || !this.matchesActiveDelivery(message.deliveryId))
+          return 'delivery_mismatch';
         if (!this.resultMatchesActive(message.payload)) return 'delivery_mismatch';
         this.lastDeliveryId = message.deliveryId;
         this.lastResolution = message.payload;
@@ -1823,7 +2341,8 @@ export class UnityPracticeProtocolGuard {
         return 'accept';
 
       case 'host.dead_ball_ui':
-        if (this.currentPhase !== 'dead_ball' || message.deliveryId !== this.lastDeliveryId) return 'invalid_transition';
+        if (this.currentPhase !== 'dead_ball' || message.deliveryId !== this.lastDeliveryId)
+          return 'invalid_transition';
         if (message.payload.replayDigest !== this.replayDigest) return 'replay_mismatch';
         // A Coach insight update can already be queued when the player chooses.
         // It still crosses the ordered stream and receives a benign ACK; the
@@ -1833,17 +2352,27 @@ export class UnityPracticeProtocolGuard {
         return 'accept';
 
       case 'host.replay':
-        if (!['resolved', 'scene_ready', 'dead_ball'].includes(this.currentPhase) || message.deliveryId !== this.lastDeliveryId) return 'delivery_mismatch';
+        if (
+          !['resolved', 'scene_ready', 'dead_ball'].includes(this.currentPhase) ||
+          message.deliveryId !== this.lastDeliveryId
+        )
+          return 'delivery_mismatch';
         if (this.replayDigest !== message.payload.resolution.replayDigest) return 'replay_mismatch';
-        if (this.lastResolution === null || !sameUnityPracticeResolution(this.lastResolution, message.payload.resolution)) return 'replay_mismatch';
+        if (
+          this.lastResolution === null ||
+          !sameUnityPracticeResolution(this.lastResolution, message.payload.resolution)
+        )
+          return 'replay_mismatch';
         this.activeDeliveryId = message.deliveryId;
         this.deadBallUiSent = false;
         this.currentPhase = 'replaying';
         return 'accept';
 
       case 'host.demonstration': {
-        if (!['scene_ready', 'dead_ball'].includes(this.currentPhase) || message.deliveryId === null) return 'invalid_transition';
-        if (!this.resultMatchesDelivery(message.payload.delivery, message.payload.resolution, undefined)) return 'delivery_mismatch';
+        if (!['scene_ready', 'dead_ball'].includes(this.currentPhase) || message.deliveryId === null)
+          return 'invalid_transition';
+        if (!this.resultMatchesDelivery(message.payload.delivery, message.payload.resolution, undefined))
+          return 'delivery_mismatch';
         this.lastDemonstrationId = null;
         this.demonstrationReturnPhase = this.currentPhase === 'dead_ball' ? 'dead_ball' : 'scene_ready';
         this.demonstrationDigest = message.payload.resolution.replayDigest;
@@ -1866,7 +2395,11 @@ export class UnityPracticeProtocolGuard {
             ? 'accept'
             : 'delivery_mismatch';
         }
-        if (!this.matchesActiveDelivery(message.deliveryId) || message.deliveryId === null || this.demonstrationDigest === null) {
+        if (
+          !this.matchesActiveDelivery(message.deliveryId) ||
+          message.deliveryId === null ||
+          this.demonstrationDigest === null
+        ) {
           return 'delivery_mismatch';
         }
         this.rememberCancelledDemonstration(message.deliveryId, this.demonstrationDigest);
@@ -1887,7 +2420,11 @@ export class UnityPracticeProtocolGuard {
             return message.payload.replayDigest === cancelledDigest ? 'accept' : 'replay_mismatch';
           }
         }
-        if (!['resolved', 'replaying', 'demonstrating'].includes(this.currentPhase) || !this.matchesActiveDelivery(message.deliveryId)) return 'delivery_mismatch';
+        if (
+          !['resolved', 'replaying', 'demonstrating'].includes(this.currentPhase) ||
+          !this.matchesActiveDelivery(message.deliveryId)
+        )
+          return 'delivery_mismatch';
         if (this.currentPhase === 'demonstrating') {
           if (message.payload.replayDigest !== this.demonstrationDigest) return 'replay_mismatch';
           this.lastDemonstrationId = message.deliveryId;
@@ -1912,7 +2449,8 @@ export class UnityPracticeProtocolGuard {
       }
 
       case 'unity.dead_ball_action':
-        if (this.currentPhase !== 'dead_ball' || this.paused || this.deadBallActionsHeld || !this.deadBallUiSent) return 'action_unavailable';
+        if (this.currentPhase !== 'dead_ball' || this.paused || this.deadBallActionsHeld || !this.deadBallUiSent)
+          return 'action_unavailable';
         if (message.deliveryId !== this.lastDeliveryId) return 'delivery_mismatch';
         if (message.payload.replayDigest !== this.replayDigest) return 'replay_mismatch';
         if (this.deadBallActionAccepted) return 'duplicate_action';
@@ -1921,23 +2459,38 @@ export class UnityPracticeProtocolGuard {
 
       case 'unity.protected_regions':
         if (message.deliveryId !== null && this.cancelledDemonstrationDigests.has(message.deliveryId)) return 'accept';
-        return ['delivery', 'resolved', 'demonstrating'].includes(this.currentPhase) && this.matchesActiveDelivery(message.deliveryId)
+        return ['delivery', 'resolved', 'demonstrating'].includes(this.currentPhase) &&
+          this.matchesActiveDelivery(message.deliveryId)
           ? 'accept'
           : 'delivery_mismatch';
 
       case 'host.profile':
       case 'host.locale':
-        return ['ready', 'scene_ready', 'delivery', 'resolved', 'dead_ball', 'replaying', 'demonstrating'].includes(this.currentPhase) && message.deliveryId === null
+        return ['ready', 'scene_ready', 'delivery', 'resolved', 'dead_ball', 'replaying', 'demonstrating'].includes(
+          this.currentPhase,
+        ) && message.deliveryId === null
           ? 'accept'
           : 'invalid_transition';
 
       case 'host.pause':
-        if (!['ready', 'scene_ready', 'delivery', 'resolved', 'dead_ball', 'replaying', 'demonstrating'].includes(this.currentPhase) || message.deliveryId !== null) return 'invalid_transition';
+        if (
+          !['ready', 'scene_ready', 'delivery', 'resolved', 'dead_ball', 'replaying', 'demonstrating'].includes(
+            this.currentPhase,
+          ) ||
+          message.deliveryId !== null
+        )
+          return 'invalid_transition';
         this.paused = true;
         return 'accept';
 
       case 'host.resume':
-        if (!['ready', 'scene_ready', 'delivery', 'resolved', 'dead_ball', 'replaying', 'demonstrating'].includes(this.currentPhase) || message.deliveryId !== null) return 'invalid_transition';
+        if (
+          !['ready', 'scene_ready', 'delivery', 'resolved', 'dead_ball', 'replaying', 'demonstrating'].includes(
+            this.currentPhase,
+          ) ||
+          message.deliveryId !== null
+        )
+          return 'invalid_transition';
         this.paused = false;
         // Foreground lifecycle resumes the engine/protocol but not the hidden
         // native dead-ball controls. Explicit player/recreated resume releases
@@ -1946,13 +2499,20 @@ export class UnityPracticeProtocolGuard {
         return 'accept';
 
       case 'host.benchmark':
-        if (!['ready', 'scene_ready'].includes(this.currentPhase) || message.deliveryId !== null) return 'invalid_transition';
-        if (!this.clockReady || this.selectedClockId === null || this.pendingBenchmarks.has(message.payload.benchmarkId)) return 'benchmark_mismatch';
+        if (!['ready', 'scene_ready'].includes(this.currentPhase) || message.deliveryId !== null)
+          return 'invalid_transition';
+        if (
+          !this.clockReady ||
+          this.selectedClockId === null ||
+          this.pendingBenchmarks.has(message.payload.benchmarkId)
+        )
+          return 'benchmark_mismatch';
         this.pendingBenchmarks.set(message.payload.benchmarkId, message.payload.quality);
         return 'accept';
 
       case 'unity.benchmark': {
-        if (!['ready', 'scene_ready'].includes(this.currentPhase) || message.deliveryId !== null) return 'invalid_transition';
+        if (!['ready', 'scene_ready'].includes(this.currentPhase) || message.deliveryId !== null)
+          return 'invalid_transition';
         const quality = this.pendingBenchmarks.get(message.payload.benchmarkId);
         if (quality === undefined || quality !== message.payload.quality) return 'benchmark_mismatch';
         this.pendingBenchmarks.delete(message.payload.benchmarkId);
@@ -1962,12 +2522,15 @@ export class UnityPracticeProtocolGuard {
       case 'unity.stats':
       case 'unity.pause_request':
       case 'unity.quiet':
-        return ['ready', 'scene_ready', 'delivery', 'resolved', 'dead_ball', 'replaying', 'demonstrating'].includes(this.currentPhase) && message.deliveryId === null
+        return ['ready', 'scene_ready', 'delivery', 'resolved', 'dead_ball', 'replaying', 'demonstrating'].includes(
+          this.currentPhase,
+        ) && message.deliveryId === null
           ? 'accept'
           : 'invalid_transition';
 
       case 'host.dispose':
-        if (['cold', 'disposing', 'unloaded'].includes(this.currentPhase) || message.deliveryId !== null) return 'invalid_transition';
+        if (['cold', 'disposing', 'unloaded'].includes(this.currentPhase) || message.deliveryId !== null)
+          return 'invalid_transition';
         this.currentPhase = 'disposing';
         return 'accept';
 
@@ -2007,13 +2570,27 @@ export class UnityPracticeProtocolGuard {
     const scene = this.scene;
     if (!scene) return false;
     const record = resolution.record;
-    if (record.overIndex !== delivery.overIndex || record.ballIndex !== delivery.ballIndex || record.seed !== delivery.seed) return false;
+    if (
+      record.overIndex !== delivery.overIndex ||
+      record.ballIndex !== delivery.ballIndex ||
+      record.seed !== delivery.seed
+    )
+      return false;
     if (canonicalUnityPracticeJson(record.plan) !== canonicalUnityPracticeJson(delivery.plan)) return false;
-    if (canonicalUnityPracticeJson(resolution.result.flight) !== canonicalUnityPracticeJson(delivery.flight)) return false;
+    if (canonicalUnityPracticeJson(resolution.result.flight) !== canonicalUnityPracticeJson(delivery.flight))
+      return false;
     if (canonicalUnityPracticeJson(record.bowler) !== canonicalUnityPracticeJson(scene.bowler)) return false;
     if (canonicalUnityPracticeJson(record.field) !== canonicalUnityPracticeJson(scene.field)) return false;
     if (canonicalUnityPracticeJson(record.ball) !== canonicalUnityPracticeJson(scene.ball)) return false;
-    if (record.conditions !== scene.conditions || record.handedness !== scene.handedness || record.assist !== this.assistance) return false;
-    return provisionalSwing === undefined || canonicalUnityPracticeJson(record.swing) === canonicalUnityPracticeJson(provisionalSwing);
+    if (
+      record.conditions !== scene.conditions ||
+      record.handedness !== scene.handedness ||
+      record.assist !== this.assistance
+    )
+      return false;
+    return (
+      provisionalSwing === undefined ||
+      canonicalUnityPracticeJson(record.swing) === canonicalUnityPracticeJson(provisionalSwing)
+    );
   }
 }

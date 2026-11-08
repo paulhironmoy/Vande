@@ -51,7 +51,8 @@ export const deliveriesHi: Record<string, string> = {
   'practice.build.mode.reference_hint': 'सुझाया गया: सीखने लायक छह क्लासिक गेंदें',
   'practice.build.mode.own': 'अपनी छह गेंदें',
   'practice.build.mode.own_hint': 'हर गेंद ख़ुद चुनें',
-  'practice.build.reference_body': 'हर बार वही छह गेंदें, बैलेंस्ड पिच पर नई सफ़ेद गेंद से। कोई गेंद टैप करके देखें कि वह क्या सिखाती है।',
+  'practice.build.reference_body':
+    'हर बार वही छह गेंदें, बैलेंस्ड पिच पर नई सफ़ेद गेंद से। कोई गेंद टैप करके देखें कि वह क्या सिखाती है।',
   'practice.build.reference_copy': 'कॉपी बनाकर अपनी छह गेंदें बदलें',
   'practice.build.bowler': 'गेंदबाज़',
   'practice.build.arm': 'गेंदबाज़ी का हाथ',
@@ -64,7 +65,8 @@ export const deliveriesHi: Record<string, string> = {
   'practice.build.spin.wrist_hint': 'लेग-ब्रेक: दाएँ हाथ के बल्लेबाज़ से दूर घूमती है',
   'practice.build.slots': 'छह गेंदें',
   'practice.build.slot_empty': 'पिच पर टैप करें',
-  'practice.build.chip_style': '{arm, select, left {बाएँ हाथ} other {दाएँ हाथ}} {family, select, spin {स्पिन} other {तेज़}}',
+  'practice.build.chip_style':
+    '{arm, select, left {बाएँ हाथ} other {दाएँ हाथ}} {family, select, spin {स्पिन} other {तेज़}}',
   'practice.build.editing': 'गेंद {n}',
   'practice.build.map': 'टैप करें कि यह गेंद कहाँ टप्पा खाए',
   'practice.build.map_label': 'पिच का नक्शा। गेंद {n} कहाँ टप्पा खाएगी: {target}। तीर वाली कुंजियों से जगह बदलें।',

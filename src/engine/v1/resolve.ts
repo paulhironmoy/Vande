@@ -3,13 +3,31 @@
  * with factors, an explanation key and presentation cues. The draw comes from sfc32 seeded by
  * SHA-256(`vande/v1/ball|seed|innings|ball`); five floats are always drawn in the same order (outcome, two for the executed path, six distance, camera variety).
  */
-import type { BallOutcome, BattingInput, Conditions, ExecutionGrade, FieldSetting, OverPlan, ShotType, TimingGrade } from '@/contracts';
+import type {
+  BallOutcome,
+  BattingInput,
+  Conditions,
+  ExecutionGrade,
+  FieldSetting,
+  OverPlan,
+  ShotType,
+  TimingGrade,
+} from '@/contracts';
 import { SUPER_BALL_INDEX } from '@/contracts/cricket';
 import { rngFromKey } from '../prng';
 import { isLegalZone, timingGrade } from './batting';
 import { buildCues } from './cues';
 import { deliveryPath, deliveryTiming, executedPath, planDelivery } from './delivery';
-import { evaluate, pickAtom, type Atom, type BallContext, type DeliveryCore, type Evaluation, type ModelInput, type PrevBall } from './model';
+import {
+  evaluate,
+  pickAtom,
+  type Atom,
+  type BallContext,
+  type DeliveryCore,
+  type Evaluation,
+  type ModelInput,
+  type PrevBall,
+} from './model';
 import {
   K_ADVANTAGE,
   K_MATCHUP_MIDDLE,
@@ -84,7 +102,8 @@ function goodness(a: Atom): number {
 function explainKeyFor(inp: ModelInput, ev: Evaluation, atom: Atom): string {
   const { d, shot, timing, cond, ctx, field } = inp;
   if (timing === 'interrupted') return 'explain.unanswered';
-  if (shot === 'leave') return atom.wicket ? 'explain.leave_straight' : ev.pWicket > 0 ? 'explain.leave_survived' : 'explain.leave_safe';
+  if (shot === 'leave')
+    return atom.wicket ? 'explain.leave_straight' : ev.pWicket > 0 ? 'explain.leave_survived' : 'explain.leave_safe';
   if (timing === 'no_shot') return 'explain.no_shot';
   if (atom.wicket === 'run_out') return atom.tag === 'scramble' ? 'explain.last_ball_scramble' : 'explain.run_out_risk';
   if (atom.wicket === 'stumped') return 'explain.stumped_charge';
@@ -122,13 +141,23 @@ function explainKeyFor(inp: ModelInput, ev: Evaluation, atom: Atom): string {
     case 'pitch': {
       const w = WEATHER_VAR[cond.weather][d.variant] ?? 0;
       const pv = PITCH_VAR[cond.pitch][d.variant];
-      return cond.weather !== 'clear' && Math.abs(w) > Math.abs(pv) ? `explain.weather_${cond.weather}` : `explain.pitch_${cond.pitch}`;
+      return cond.weather !== 'clear' && Math.abs(w) > Math.abs(pv)
+        ? `explain.weather_${cond.weather}`
+        : `explain.pitch_${cond.pitch}`;
     }
     case 'field':
       if (atom.tag === 'slips') return 'explain.field_slips';
       if (atom.tag === 'close') return 'explain.field_close';
       if (shot === 'defend') return f.field < 0 ? 'explain.field_close' : 'explain.field_gap';
-      return f.field >= 0.5 ? 'explain.field_gap' : f.field <= -0.55 ? 'explain.field_packed' : f.field < 0 && shot === 'loft' ? 'explain.field_deep' : f.field < 0 ? 'explain.field_ring' : 'explain.field_deep';
+      return f.field >= 0.5
+        ? 'explain.field_gap'
+        : f.field <= -0.55
+          ? 'explain.field_packed'
+          : f.field < 0 && shot === 'loft'
+            ? 'explain.field_deep'
+            : f.field < 0
+              ? 'explain.field_ring'
+              : 'explain.field_deep';
     case 'setup':
       return f.setup < 0 ? 'explain.setup_worked' : 'explain.repeat_lined_up';
     case 'new_batter':
@@ -155,10 +184,19 @@ export function contextFor(ball: number, previous: readonly BallOutcome[], d: De
   const last = previous.length ? previous[previous.length - 1] : null;
   // How many times the batter has already seen this exact delivery (same variant, length and line) in this over.
   let repeats = 0;
-  if (!superBall) for (const o of previous) if (o.delivery.variant === d.variant && o.delivery.length === d.length && o.delivery.line === d.line) repeats++;
+  if (!superBall)
+    for (const o of previous)
+      if (o.delivery.variant === d.variant && o.delivery.length === d.length && o.delivery.line === d.line) repeats++;
   const prev: PrevBall | null =
     !superBall && last
-      ? { variant: last.delivery.variant, line: last.delivery.line, length: last.delivery.length, intensity: last.delivery.intensity, intent: last.delivery.intent, grade: last.executionGrade }
+      ? {
+          variant: last.delivery.variant,
+          line: last.delivery.line,
+          length: last.delivery.length,
+          intensity: last.delivery.intensity,
+          intent: last.delivery.intent,
+          grade: last.executionGrade,
+        }
       : null;
   return {
     ball,
@@ -191,7 +229,13 @@ function modelInputFor(
 
 export function resolveBall(a: ResolveBallArgs): BallOutcome {
   const planned = planDelivery(a.plan, a.ball);
-  const d: DeliveryCore = { variant: planned.variant, line: planned.line, length: planned.length, intensity: planned.intensity, intent: planned.intent };
+  const d: DeliveryCore = {
+    variant: planned.variant,
+    line: planned.line,
+    length: planned.length,
+    intensity: planned.intensity,
+    intent: planned.intent,
+  };
   const exec = deliveryExecution(planned.gesture);
   const timingWindows = deliveryTiming(d, a.conditions);
   let shot: ShotType;
@@ -199,7 +243,10 @@ export function resolveBall(a: ResolveBallArgs): BallOutcome {
   let timing: TimingGrade;
   // Robustness (never throw): an input that could not pass validation (unknown shot, illegal zone) is treated as
   // unanswered, and a non-finite tap as no tap. Validated inputs are never affected.
-  const input = a.input && (SHOTS as readonly string[]).includes(a.input.shot) && isLegalZone(a.input.shot, a.input.zone) ? a.input : null;
+  const input =
+    a.input && (SHOTS as readonly string[]).includes(a.input.shot) && isLegalZone(a.input.shot, a.input.zone)
+      ? a.input
+      : null;
   if (!input) {
     shot = 'leave';
     zone = null;
@@ -221,7 +268,19 @@ export function resolveBall(a: ResolveBallArgs): BallOutcome {
   const variety = rng.float();
 
   const leaving = shot === 'leave' || timing === 'no_shot' || timing === 'interrupted';
-  const cues = buildCues({ d, conditions: a.conditions, path, shot, zone, atom, leaving, sixDistance, variety, superBall: ctx.superBall, lastBall: ctx.lastBall });
+  const cues = buildCues({
+    d,
+    conditions: a.conditions,
+    path,
+    shot,
+    zone,
+    atom,
+    leaving,
+    sixDistance,
+    variety,
+    superBall: ctx.superBall,
+    lastBall: ctx.lastBall,
+  });
   return {
     ball: a.ball,
     delivery: d,

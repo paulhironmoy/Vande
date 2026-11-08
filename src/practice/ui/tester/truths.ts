@@ -21,4 +21,3 @@ export function movementTruth(f: CoachingFactsLike): 'in' | 'away' | 'none' | 'u
   if (Math.abs(total) < 0.08) return 'none';
   return total > 0 ? 'away' : 'in';
 }
-

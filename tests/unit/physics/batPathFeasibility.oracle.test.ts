@@ -109,12 +109,14 @@ function targetBaseFor(
   const cached = targetBaseCache.get(cacheKey);
   if (cached) return cached;
   const flight = source?.flight ?? fly(plan, undefined, 'balanced', `bat-path-${label}`);
-  const swing = source?.swing ?? timedSwing(flight, 0, {
-    kind: 'attack',
-    directionDeg: swingInput.directionDeg ?? 0,
-    elevation: swingInput.elevation,
-    power: swingInput.power,
-  });
+  const swing =
+    source?.swing ??
+    timedSwing(flight, 0, {
+      kind: 'attack',
+      directionDeg: swingInput.directionDeg ?? 0,
+      elevation: swingInput.elevation,
+      power: swingInput.power,
+    });
   const current = buildBatTrack(flight, swing, { assist: 'real' });
   const face = solveFace(
     current.read.u,
@@ -143,7 +145,10 @@ function targetBaseFor(
   return base;
 }
 
-function lockedControlSource(index: number, plan: { variation: 'stock'; lengthM: number; lineM: number; speedKph: number }): TargetSource {
+function lockedControlSource(
+  index: number,
+  plan: { variation: 'stock'; lengthM: number; lineM: number; speedKph: number },
+): TargetSource {
   const flight = makeFlight({
     plan,
     bowler: REFERENCE_OVER.bowler,
@@ -189,7 +194,7 @@ function targetGeometry(
 ): ContactGeometry {
   const base = targetBaseFor(plan, targetSpeed, label, swingInput, source);
   const { current, face, n, facePoint } = base;
-  let a = axisOverride ?? rotate(base.baseAxis, n, axisRotationDeg * Math.PI / 180);
+  let a = axisOverride ?? rotate(base.baseAxis, n, (axisRotationDeg * Math.PI) / 180);
   if (current.horizontal < 0.5 && a.y < 0) a = scale(a, -1);
   let sweet = addScaled(facePoint, a, (SWEET_U - requestedU) * BLADE_L);
   let blade = bladeFrom(sweet, n, a);
@@ -205,9 +210,12 @@ function targetGeometry(
   // The locked CTL4/EX2 probes are ideally timed, for which the existing causal drift calibration is 1.08.
   const driftScale = 1.08;
   const requested = v3(
-    -u.x * face.vLine + drift.x * DRIFT_M_PER_MS * 1000 * (len(current.read.u) + face.vLine) / len(current.read.u) * driftScale,
-    -u.y * face.vLine + drift.y * DRIFT_M_PER_MS * 1000 * (len(current.read.u) + face.vLine) / len(current.read.u) * driftScale,
-    -u.z * face.vLine + drift.z * DRIFT_M_PER_MS * 1000 * (len(current.read.u) + face.vLine) / len(current.read.u) * driftScale,
+    -u.x * face.vLine +
+      ((drift.x * DRIFT_M_PER_MS * 1000 * (len(current.read.u) + face.vLine)) / len(current.read.u)) * driftScale,
+    -u.y * face.vLine +
+      ((drift.y * DRIFT_M_PER_MS * 1000 * (len(current.read.u) + face.vLine)) / len(current.read.u)) * driftScale,
+    -u.z * face.vLine +
+      ((drift.z * DRIFT_M_PER_MS * 1000 * (len(current.read.u) + face.vLine)) / len(current.read.u)) * driftScale,
   );
   const axial = dot(requested, a);
   const desired = addScaled(requested, a, -axial);
@@ -250,12 +258,13 @@ function productionAxes(base: TargetBase): Vec3[] {
   append(base.baseAxis);
   if (len(projected) > 0.5) append(projected);
   for (let degrees = 5; degrees <= 180; degrees += 5) {
-    append(rotate(base.baseAxis, n, degrees * Math.PI / 180));
-    append(rotate(base.baseAxis, n, -degrees * Math.PI / 180));
+    append(rotate(base.baseAxis, n, (degrees * Math.PI) / 180));
+    append(rotate(base.baseAxis, n, (-degrees * Math.PI) / 180));
   }
-  return out.sort((left, right) => (
-    Math.acos(clamp(dot(base.baseAxis, left), -1, 1)) - Math.acos(clamp(dot(base.baseAxis, right), -1, 1))
-  ));
+  return out.sort(
+    (left, right) =>
+      Math.acos(clamp(dot(base.baseAxis, left), -1, 1)) - Math.acos(clamp(dot(base.baseAxis, right), -1, 1)),
+  );
 }
 
 function productionContactGeometryCandidates(
@@ -266,8 +275,9 @@ function productionContactGeometryCandidates(
   source: TargetSource,
 ): ContactGeometry[] {
   const base = targetBaseFor(plan, targetSpeed, label, swingInput, source);
-  const us = Array.from({ length: 41 }, (_, index) => index / 40)
-    .sort((left, right) => Math.abs(left - SWEET_U) - Math.abs(right - SWEET_U));
+  const us = Array.from({ length: 41 }, (_, index) => index / 40).sort(
+    (left, right) => Math.abs(left - SWEET_U) - Math.abs(right - SWEET_U),
+  );
   const axes = productionAxes(base);
   const candidates: ContactGeometry[] = [];
   for (const u of us) {
@@ -342,17 +352,13 @@ function halfPath(
   duration: number,
   direction: -1 | 1,
 ): KinematicSample[] {
-  const gripKnots = direction < 0
-    ? [v3(), middleGripV, contactGripV, contactGripV]
-    : [contactGripV, contactGripV, middleGripV, v3()];
-  const omegaKnots = direction < 0
-    ? [v3(), middleOmega, contactOmega, contactOmega]
-    : [contactOmega, contactOmega, middleOmega, v3()];
+  const gripKnots =
+    direction < 0 ? [v3(), middleGripV, contactGripV, contactGripV] : [contactGripV, contactGripV, middleGripV, v3()];
+  const omegaKnots =
+    direction < 0 ? [v3(), middleOmega, contactOmega, contactOmega] : [contactOmega, contactOmega, middleOmega, v3()];
   const plateauS = Math.min(0.002, duration / 10);
   const rampS = duration - plateauS;
-  const knotTimes = direction < 0
-    ? [0, rampS / 2, rampS, duration]
-    : [0, plateauS, plateauS + rampS / 2, duration];
+  const knotTimes = direction < 0 ? [0, rampS / 2, rampS, duration] : [0, plateauS, plateauS + rampS / 2, duration];
   const steps = Math.ceil(duration / DT);
   const h = duration / steps;
   let pose = contact;
@@ -389,14 +395,21 @@ function localConvexPoints(pose: BatPose): Vec3[] {
   for (const along of [-HANDLE_L, -0.04]) {
     const centre = addScaled(pose.grip, f.a, along);
     for (let k = 0; k < 16; k++) {
-      const theta = 2 * Math.PI * k / 16;
+      const theta = (2 * Math.PI * k) / 16;
       points.push(addScaled(addScaled(centre, f.w, Math.cos(theta) * GLOVE_R), f.n, Math.sin(theta) * GLOVE_R));
     }
   }
   return points;
 }
 
-function sampleCaps(sample: KinematicSample): { gripSpeed: number; angularSpeed: number; pointSpeed: number; gripAccel: number; angularAccel: number; pointAccel: number } {
+function sampleCaps(sample: KinematicSample): {
+  gripSpeed: number;
+  angularSpeed: number;
+  pointSpeed: number;
+  gripAccel: number;
+  angularAccel: number;
+  pointAccel: number;
+} {
   let pointSpeed = 0;
   let pointAccel = 0;
   for (const point of localConvexPoints(sample.pose)) {
@@ -449,10 +462,7 @@ type PowerPolynomial = readonly number[];
 
 const PRE_CONTACT_LOOP: PowerPolynomial = [0, 0, 0, -4, 7, -3];
 const POST_CONTACT_LOOP: PowerPolynomial = [0, 1, 0, -6, 8, -3];
-const BAT_ENCLOSING_RADIUS_M = Math.max(
-  Math.hypot(BAT_FULL, BLADE_HALF_W, BLADE_T / 2),
-  HANDLE_L + GLOVE_R,
-);
+const BAT_ENCLOSING_RADIUS_M = Math.max(Math.hypot(BAT_FULL, BLADE_HALF_W, BLADE_T / 2), HANDLE_L + GLOVE_R);
 
 function derivativePolynomial(values: PowerPolynomial): number[] {
   return values.slice(1).map((value, index) => value * (index + 1));
@@ -467,7 +477,7 @@ function evaluatePolynomial(values: PowerPolynomial, u: number): number {
 function binomial(n: number, k: number): number {
   if (k < 0 || k > n) return 0;
   let value = 1;
-  for (let index = 1; index <= Math.min(k, n - k); index++) value = value * (n - index + 1) / index;
+  for (let index = 1; index <= Math.min(k, n - k); index++) value = (value * (n - index + 1)) / index;
   return value;
 }
 
@@ -475,7 +485,7 @@ function powerToBernstein(values: PowerPolynomial): number[] {
   const degree = values.length - 1;
   return Array.from({ length: degree + 1 }, (_, k) => {
     let value = 0;
-    for (let index = 0; index <= k; index++) value += values[index] * binomial(k, index) / binomial(degree, index);
+    for (let index = 0; index <= k; index++) value += (values[index] * binomial(k, index)) / binomial(degree, index);
     return value;
   });
 }
@@ -507,23 +517,19 @@ const LOOP_D2_BOUND = Math.max(
   bernsteinAbsoluteBound(derivativePolynomial(derivativePolynomial(POST_CONTACT_LOOP))),
 );
 
-function analyticLoopCaps(
-  twist: { gripV: Vec3; omega: Vec3 },
-  durationS: number,
-): ReturnType<typeof sampleCaps> {
+function analyticLoopCaps(twist: { gripV: Vec3; omega: Vec3 }, durationS: number): ReturnType<typeof sampleCaps> {
   const gripSpeed = len(twist.gripV) * LOOP_D1_BOUND;
   const angularSpeed = len(twist.omega) * LOOP_D1_BOUND;
-  const gripAccel = len(twist.gripV) * LOOP_D2_BOUND / durationS;
-  const angularAccel = len(twist.omega) * LOOP_D2_BOUND / durationS;
+  const gripAccel = (len(twist.gripV) * LOOP_D2_BOUND) / durationS;
+  const angularAccel = (len(twist.omega) * LOOP_D2_BOUND) / durationS;
   return {
     gripSpeed,
     angularSpeed,
     pointSpeed: gripSpeed + BAT_ENCLOSING_RADIUS_M * angularSpeed,
     gripAccel,
     angularAccel,
-    pointAccel: gripAccel
-      + BAT_ENCLOSING_RADIUS_M * angularAccel
-      + BAT_ENCLOSING_RADIUS_M * angularSpeed * angularSpeed,
+    pointAccel:
+      gripAccel + BAT_ENCLOSING_RADIUS_M * angularAccel + BAT_ENCLOSING_RADIUS_M * angularSpeed * angularSpeed,
   };
 }
 
@@ -532,20 +538,23 @@ function minimumLoopDurationS(twist: { gripV: Vec3; omega: Vec3 }): number | nul
   const gripSpeed = len(twist.gripV) * LOOP_D1_BOUND;
   const angularSpeed = len(twist.omega) * LOOP_D1_BOUND;
   const pointSpeed = gripSpeed + BAT_ENCLOSING_RADIUS_M * angularSpeed;
-  if (gripSpeed > BAT_GRIP_SPEED_LIMIT_MPS + 1e-12
-    || angularSpeed > BAT_ANGULAR_SPEED_LIMIT_RADPS + 1e-12
-    || pointSpeed > BAT_POINT_SPEED_LIMIT_MPS + 1e-12) return null;
+  if (
+    gripSpeed > BAT_GRIP_SPEED_LIMIT_MPS + 1e-12 ||
+    angularSpeed > BAT_ANGULAR_SPEED_LIMIT_RADPS + 1e-12 ||
+    pointSpeed > BAT_POINT_SPEED_LIMIT_MPS + 1e-12
+  )
+    return null;
   const centripetal = BAT_ENCLOSING_RADIUS_M * angularSpeed * angularSpeed;
   if (centripetal >= BAT_POINT_ACCEL_LIMIT_MPS2) return null;
-  const firstOrderPointAccel = (
-    len(twist.gripV) + BAT_ENCLOSING_RADIUS_M * len(twist.omega)
-  ) * LOOP_D2_BOUND;
-  return Math.max(
-    0.02,
-    len(twist.gripV) * LOOP_D2_BOUND / BAT_GRIP_ACCEL_LIMIT_MPS2,
-    len(twist.omega) * LOOP_D2_BOUND / BAT_ANGULAR_ACCEL_LIMIT_RADPS2,
-    firstOrderPointAccel / (BAT_POINT_ACCEL_LIMIT_MPS2 - centripetal),
-  ) * 1.000001;
+  const firstOrderPointAccel = (len(twist.gripV) + BAT_ENCLOSING_RADIUS_M * len(twist.omega)) * LOOP_D2_BOUND;
+  return (
+    Math.max(
+      0.02,
+      (len(twist.gripV) * LOOP_D2_BOUND) / BAT_GRIP_ACCEL_LIMIT_MPS2,
+      (len(twist.omega) * LOOP_D2_BOUND) / BAT_ANGULAR_ACCEL_LIMIT_RADPS2,
+      firstOrderPointAccel / (BAT_POINT_ACCEL_LIMIT_MPS2 - centripetal),
+    ) * 1.000001
+  );
 }
 
 function loopHalfSamples(
@@ -734,17 +743,22 @@ interface SearchDiagnostics {
   minimumCapPenalty: number;
 }
 
-function solveDenseBody(samples: readonly KinematicSample[], nominal: BatterBody): {
+function solveDenseBody(
+  samples: readonly KinematicSample[],
+  nominal: BatterBody,
+): {
   root: ReturnType<typeof solveBatterRootOffsetForPoses>;
   body: BatterBody;
   gap: number;
 } | null {
   const last = samples.length - 1;
-  const indices = [0, 1, 2, 3, 4, 5, 6]
-    .map((part) => Math.round(last * part / 6));
+  const indices = [0, 1, 2, 3, 4, 5, 6].map((part) => Math.round((last * part) / 6));
   const constraintIndices = [...new Set(indices)];
   for (let iteration = 0; iteration < 10; iteration++) {
-    const root = solveBatterRootOffsetForPoses(constraintIndices.map((index) => samples[index].pose), nominal);
+    const root = solveBatterRootOffsetForPoses(
+      constraintIndices.map((index) => samples[index].pose),
+      nominal,
+    );
     if (!root.solved) return null;
     const body = translateBatterBody(applyBatterPosture(nominal, root.crouchM), root.offset);
     let worst = Infinity;
@@ -788,15 +802,21 @@ function pathCaps(samples: readonly KinematicSample[]): ReturnType<typeof sample
 }
 
 function capsPass(value: ReturnType<typeof sampleCaps>): boolean {
-  return value.gripSpeed <= BAT_GRIP_SPEED_LIMIT_MPS + 1e-9
-    && value.angularSpeed <= BAT_ANGULAR_SPEED_LIMIT_RADPS + 1e-9
-    && value.pointSpeed <= BAT_POINT_SPEED_LIMIT_MPS + 1e-9
-    && value.gripAccel <= BAT_GRIP_ACCEL_LIMIT_MPS2 + 1e-9
-    && value.angularAccel <= BAT_ANGULAR_ACCEL_LIMIT_RADPS2 + 1e-9
-    && value.pointAccel <= BAT_POINT_ACCEL_LIMIT_MPS2 + 1e-9;
+  return (
+    value.gripSpeed <= BAT_GRIP_SPEED_LIMIT_MPS + 1e-9 &&
+    value.angularSpeed <= BAT_ANGULAR_SPEED_LIMIT_RADPS + 1e-9 &&
+    value.pointSpeed <= BAT_POINT_SPEED_LIMIT_MPS + 1e-9 &&
+    value.gripAccel <= BAT_GRIP_ACCEL_LIMIT_MPS2 + 1e-9 &&
+    value.angularAccel <= BAT_ANGULAR_ACCEL_LIMIT_RADPS2 + 1e-9 &&
+    value.pointAccel <= BAT_POINT_ACCEL_LIMIT_MPS2 + 1e-9
+  );
 }
 
-function handReachExcess(samples: readonly KinematicSample[], body: BatterBody, limit = BAT_HAND_REACH_SOLVE_M): {
+function handReachExcess(
+  samples: readonly KinematicSample[],
+  body: BatterBody,
+  limit = BAT_HAND_REACH_SOLVE_M,
+): {
   topM: number;
   lowerM: number;
 } {
@@ -823,9 +843,7 @@ function shoulderDemandSnapshot(sample: KinematicSample, body: BatterBody) {
   const deltas = hands.map((hand, index) => {
     const toward = sub(hand, shoulders[index]);
     const distanceM = len(toward);
-    return distanceM > BAT_HAND_REACH_SOLVE_M
-      ? scale(toward, (distanceM - BAT_HAND_REACH_SOLVE_M) / distanceM)
-      : v3();
+    return distanceM > BAT_HAND_REACH_SOLVE_M ? scale(toward, (distanceM - BAT_HAND_REACH_SOLVE_M) / distanceM) : v3();
   }) as unknown as readonly [Vec3, Vec3];
   const displaced = [add(shoulders[0], deltas[0]), add(shoulders[1], deltas[1])] as const;
   const staticMidpoint = scale(add(shoulders[0], shoulders[1]), 0.5);
@@ -950,19 +968,13 @@ function frameAt(
     addScaled(pose.grip, axis, -TOP_HAND_FROM_CAP),
     addScaled(pose.grip, axis, -LOWER_HAND_FROM_CAP),
   ] as const;
-  const centres = [
-    sub(hands[0], add(midpoint, rotated[0])),
-    sub(hands[1], add(midpoint, rotated[1])),
-  ] as const;
+  const centres = [sub(hands[0], add(midpoint, rotated[0])), sub(hands[1], add(midpoint, rotated[1]))] as const;
   const midpointDelta = closestTwoBallPoint(centres[0], centres[1], BAT_HAND_REACH_SOLVE_M, referenceMidpoint);
   if (!midpointDelta) return null;
   return {
     midpointDelta,
     yawRad,
-    shoulders: [
-      add(add(midpoint, midpointDelta), rotated[0]),
-      add(add(midpoint, midpointDelta), rotated[1]),
-    ],
+    shoulders: [add(add(midpoint, midpointDelta), rotated[0]), add(add(midpoint, midpointDelta), rotated[1])],
   };
 }
 
@@ -977,14 +989,14 @@ export function certifyDynamicShoulderPath(
   bounds: DynamicShoulderBounds,
   contactIndex: number,
 ): DynamicShoulderFeasibility {
-  if (bounds.yawIntervals < 1 || !Number.isInteger(bounds.yawIntervals)) throw new Error('yawIntervals must be a positive integer');
+  if (bounds.yawIntervals < 1 || !Number.isInteger(bounds.yawIntervals))
+    throw new Error('yawIntervals must be a positive integer');
   const baseShoulders = batterShoulders(body);
   const frames: DynamicShoulderFrame[] = [];
-  const zeroRequired = (index: number): boolean => (
-    (index === 0 && bounds.requireUnarticulatedStart)
-    || (index === samples.length - 1 && bounds.requireUnarticulatedEnd)
-    || (index === contactIndex && !bounds.allowContactArticulation)
-  );
+  const zeroRequired = (index: number): boolean =>
+    (index === 0 && bounds.requireUnarticulatedStart) ||
+    (index === samples.length - 1 && bounds.requireUnarticulatedEnd) ||
+    (index === contactIndex && !bounds.allowContactArticulation);
   let previousMidpointVelocity = v3();
   let previousShoulderVelocities = [v3(), v3()] as [Vec3, Vec3];
   let previousYawVelocity = 0;
@@ -1005,9 +1017,15 @@ export function certifyDynamicShoulderPath(
     const dt = index === 0 ? 0 : sample.t - samples[index - 1].t;
     const yawValues = zeroRequired(index)
       ? [0]
-      : Array.from({ length: bounds.yawIntervals + 1 }, (_, step) => (
-        -bounds.maxYawRad + 2 * bounds.maxYawRad * step / bounds.yawIntervals
-      )).concat(0).sort((left, right) => Math.abs(left - (previous?.yawRad ?? 0)) - Math.abs(right - (previous?.yawRad ?? 0)) || left - right);
+      : Array.from(
+          { length: bounds.yawIntervals + 1 },
+          (_, step) => -bounds.maxYawRad + (2 * bounds.maxYawRad * step) / bounds.yawIntervals,
+        )
+          .concat(0)
+          .sort(
+            (left, right) =>
+              Math.abs(left - (previous?.yawRad ?? 0)) - Math.abs(right - (previous?.yawRad ?? 0)) || left - right,
+          );
     let selected: null | {
       frame: DynamicShoulderFrame;
       midpointVelocity: Vec3;
@@ -1020,52 +1038,88 @@ export function certifyDynamicShoulderPath(
       if (!frame) continue;
       if (zeroRequired(index) && (len(frame.midpointDelta) > 1e-12 || Math.abs(yaw) > 1e-12)) continue;
       const midpointM = len(frame.midpointDelta);
-      const individualM = Math.max(dist(frame.shoulders[0], baseShoulders[0]), dist(frame.shoulders[1], baseShoulders[1]));
-      if (midpointM > bounds.maxMidpointDisplacementM + 1e-12
-        || individualM > bounds.maxIndividualShoulderDisplacementM + 1e-12) continue;
+      const individualM = Math.max(
+        dist(frame.shoulders[0], baseShoulders[0]),
+        dist(frame.shoulders[1], baseShoulders[1]),
+      );
+      if (
+        midpointM > bounds.maxMidpointDisplacementM + 1e-12 ||
+        individualM > bounds.maxIndividualShoulderDisplacementM + 1e-12
+      )
+        continue;
       const midpointVelocity = dt > 0 ? scale(sub(frame.midpointDelta, previous!.midpointDelta), 1 / dt) : v3();
-      const shoulderVelocities: [Vec3, Vec3] = dt > 0 ? [
-        scale(sub(frame.shoulders[0], previous!.shoulders[0]), 1 / dt),
-        scale(sub(frame.shoulders[1], previous!.shoulders[1]), 1 / dt),
-      ] : [v3(), v3()];
+      const shoulderVelocities: [Vec3, Vec3] =
+        dt > 0
+          ? [
+              scale(sub(frame.shoulders[0], previous!.shoulders[0]), 1 / dt),
+              scale(sub(frame.shoulders[1], previous!.shoulders[1]), 1 / dt),
+            ]
+          : [v3(), v3()];
       const yawVelocity = dt > 0 ? (yaw - previous!.yawRad) / dt : 0;
       const midpointAcceleration = dt > 0 ? scale(sub(midpointVelocity, previousMidpointVelocity), 1 / dt) : v3();
-      const shoulderAccelerations: [Vec3, Vec3] = dt > 0 ? [
-        scale(sub(shoulderVelocities[0], previousShoulderVelocities[0]), 1 / dt),
-        scale(sub(shoulderVelocities[1], previousShoulderVelocities[1]), 1 / dt),
-      ] : [v3(), v3()];
+      const shoulderAccelerations: [Vec3, Vec3] =
+        dt > 0
+          ? [
+              scale(sub(shoulderVelocities[0], previousShoulderVelocities[0]), 1 / dt),
+              scale(sub(shoulderVelocities[1], previousShoulderVelocities[1]), 1 / dt),
+            ]
+          : [v3(), v3()];
       const yawAcceleration = dt > 0 ? (yawVelocity - previousYawVelocity) / dt : 0;
-      if (len(midpointVelocity) > bounds.maxMidpointSpeedMps + 1e-9
-        || len(midpointAcceleration) > bounds.maxMidpointAccelerationMps2 + 1e-9
-        || Math.max(len(shoulderVelocities[0]), len(shoulderVelocities[1])) > bounds.maxIndividualShoulderSpeedMps + 1e-9
-        || Math.max(len(shoulderAccelerations[0]), len(shoulderAccelerations[1])) > bounds.maxIndividualShoulderAccelerationMps2 + 1e-9
-        || Math.abs(yawVelocity) > bounds.maxYawSpeedRadps + 1e-9
-        || Math.abs(yawAcceleration) > bounds.maxYawAccelerationRadps2 + 1e-9) continue;
-      const score = midpointM + individualM + Math.abs(yaw)
-        + (previous ? dist(frame.midpointDelta, previous.midpointDelta) : 0);
+      if (
+        len(midpointVelocity) > bounds.maxMidpointSpeedMps + 1e-9 ||
+        len(midpointAcceleration) > bounds.maxMidpointAccelerationMps2 + 1e-9 ||
+        Math.max(len(shoulderVelocities[0]), len(shoulderVelocities[1])) >
+          bounds.maxIndividualShoulderSpeedMps + 1e-9 ||
+        Math.max(len(shoulderAccelerations[0]), len(shoulderAccelerations[1])) >
+          bounds.maxIndividualShoulderAccelerationMps2 + 1e-9 ||
+        Math.abs(yawVelocity) > bounds.maxYawSpeedRadps + 1e-9 ||
+        Math.abs(yawAcceleration) > bounds.maxYawAccelerationRadps2 + 1e-9
+      )
+        continue;
+      const score =
+        midpointM + individualM + Math.abs(yaw) + (previous ? dist(frame.midpointDelta, previous.midpointDelta) : 0);
       if (!selected || score < selected.score - 1e-15) {
         selected = { frame, midpointVelocity, shoulderVelocities, yawVelocity, score };
       }
     }
     if (!selected) {
-      return { feasible: false, reason: `no bounded shoulder frame at sample ${index}/${samples.length - 1}`, contactArticulation: null, required, frames };
+      return {
+        feasible: false,
+        reason: `no bounded shoulder frame at sample ${index}/${samples.length - 1}`,
+        contactArticulation: null,
+        required,
+        frames,
+      };
     }
     const dtForRequired = index === 0 ? 0 : sample.t - samples[index - 1].t;
-    const midpointAcceleration = dtForRequired > 0 ? scale(sub(selected.midpointVelocity, previousMidpointVelocity), 1 / dtForRequired) : v3();
-    const shoulderAccelerations = dtForRequired > 0 ? [
-      scale(sub(selected.shoulderVelocities[0], previousShoulderVelocities[0]), 1 / dtForRequired),
-      scale(sub(selected.shoulderVelocities[1], previousShoulderVelocities[1]), 1 / dtForRequired),
-    ] : [v3(), v3()];
+    const midpointAcceleration =
+      dtForRequired > 0 ? scale(sub(selected.midpointVelocity, previousMidpointVelocity), 1 / dtForRequired) : v3();
+    const shoulderAccelerations =
+      dtForRequired > 0
+        ? [
+            scale(sub(selected.shoulderVelocities[0], previousShoulderVelocities[0]), 1 / dtForRequired),
+            scale(sub(selected.shoulderVelocities[1], previousShoulderVelocities[1]), 1 / dtForRequired),
+          ]
+        : [v3(), v3()];
     const yawAcceleration = dtForRequired > 0 ? (selected.yawVelocity - previousYawVelocity) / dtForRequired : 0;
     required.midpointDisplacementM = Math.max(required.midpointDisplacementM, len(selected.frame.midpointDelta));
-    required.individualShoulderDisplacementM = Math.max(required.individualShoulderDisplacementM,
-      dist(selected.frame.shoulders[0], baseShoulders[0]), dist(selected.frame.shoulders[1], baseShoulders[1]));
+    required.individualShoulderDisplacementM = Math.max(
+      required.individualShoulderDisplacementM,
+      dist(selected.frame.shoulders[0], baseShoulders[0]),
+      dist(selected.frame.shoulders[1], baseShoulders[1]),
+    );
     required.midpointSpeedMps = Math.max(required.midpointSpeedMps, len(selected.midpointVelocity));
     required.midpointAccelerationMps2 = Math.max(required.midpointAccelerationMps2, len(midpointAcceleration));
-    required.individualShoulderSpeedMps = Math.max(required.individualShoulderSpeedMps,
-      len(selected.shoulderVelocities[0]), len(selected.shoulderVelocities[1]));
-    required.individualShoulderAccelerationMps2 = Math.max(required.individualShoulderAccelerationMps2,
-      len(shoulderAccelerations[0]), len(shoulderAccelerations[1]));
+    required.individualShoulderSpeedMps = Math.max(
+      required.individualShoulderSpeedMps,
+      len(selected.shoulderVelocities[0]),
+      len(selected.shoulderVelocities[1]),
+    );
+    required.individualShoulderAccelerationMps2 = Math.max(
+      required.individualShoulderAccelerationMps2,
+      len(shoulderAccelerations[0]),
+      len(shoulderAccelerations[1]),
+    );
     required.yawRad = Math.max(required.yawRad, Math.abs(selected.frame.yawRad));
     required.yawSpeedRadps = Math.max(required.yawSpeedRadps, Math.abs(selected.yawVelocity));
     required.yawAccelerationRadps2 = Math.max(required.yawAccelerationRadps2, Math.abs(yawAcceleration));
@@ -1081,11 +1135,13 @@ export function certifyDynamicShoulderPath(
   return {
     feasible: true,
     reason: null,
-    contactArticulation: contact ? {
-      midpointM: len(contact.midpointDelta),
-      yawRad: contact.yawRad,
-      individualM: contactIndividualM,
-    } : null,
+    contactArticulation: contact
+      ? {
+          midpointM: len(contact.midpointDelta),
+          yawRad: contact.yawRad,
+          individualM: contactIndividualM,
+        }
+      : null,
     required,
     frames,
   };
@@ -1138,49 +1194,63 @@ function findIndependentHalfWitness(geometry: ContactGeometry): {
     const [ve1, ve2] = basisPerpendicular(twist.gripV);
     const omegaMid = scale(twist.omega, 0.5);
     const gripMid = scale(twist.gripV, 0.5);
-    const omegaBudget = Math.sqrt(Math.max(0, (BAT_ANGULAR_ACCEL_LIMIT_RADPS2 * segmentSeconds) ** 2 - (len(twist.omega) / 2) ** 2));
-    const gripBudget = Math.sqrt(Math.max(0, (BAT_GRIP_ACCEL_LIMIT_MPS2 * segmentSeconds) ** 2 - (len(twist.gripV) / 2) ** 2));
+    const omegaBudget = Math.sqrt(
+      Math.max(0, (BAT_ANGULAR_ACCEL_LIMIT_RADPS2 * segmentSeconds) ** 2 - (len(twist.omega) / 2) ** 2),
+    );
+    const gripBudget = Math.sqrt(
+      Math.max(0, (BAT_GRIP_ACCEL_LIMIT_MPS2 * segmentSeconds) ** 2 - (len(twist.gripV) / 2) ** 2),
+    );
     const pre: Half[] = [];
     const post: Half[] = [];
-    for (const ws1 of [-1, 0, 1]) for (const ws2 of [-1, 0, 1]) {
-      if (ws1 !== 0 && ws2 !== 0) continue;
-      for (const vs1 of [-1, 0, 1]) for (const vs2 of [-1, 0, 1]) {
-        if (vs1 !== 0 && vs2 !== 0) continue;
-        const steering = [ws1, ws2, vs1, vs2] as const;
-        const wm = addScaled(addScaled(omegaMid, we1, ws1 * omegaBudget * 0.95), we2, ws2 * omegaBudget * 0.95);
-        const vm = addScaled(addScaled(gripMid, ve1, vs1 * gripBudget * 0.95), ve2, vs2 * gripBudget * 0.95);
-        for (const direction of [-1, 1] as const) {
-          const samples = halfPath(geometry.pose, twist.gripV, twist.omega, vm, wm, duration, direction);
-          if (direction < 0) samples.reverse();
-          const caps = pathCaps(samples);
-          if (!capsPass(caps)) continue;
-          capPassHalves++;
-          const solved = solveDenseBody(samples, geometry.body);
-          if (!solved) continue;
-          const half = { samples, steering, solved, caps };
-          if (direction < 0) {
-            preFeasible++;
-            pre.push(half);
-          } else {
-            postFeasible++;
-            post.push(half);
+    for (const ws1 of [-1, 0, 1])
+      for (const ws2 of [-1, 0, 1]) {
+        if (ws1 !== 0 && ws2 !== 0) continue;
+        for (const vs1 of [-1, 0, 1])
+          for (const vs2 of [-1, 0, 1]) {
+            if (vs1 !== 0 && vs2 !== 0) continue;
+            const steering = [ws1, ws2, vs1, vs2] as const;
+            const wm = addScaled(addScaled(omegaMid, we1, ws1 * omegaBudget * 0.95), we2, ws2 * omegaBudget * 0.95);
+            const vm = addScaled(addScaled(gripMid, ve1, vs1 * gripBudget * 0.95), ve2, vs2 * gripBudget * 0.95);
+            for (const direction of [-1, 1] as const) {
+              const samples = halfPath(geometry.pose, twist.gripV, twist.omega, vm, wm, duration, direction);
+              if (direction < 0) samples.reverse();
+              const caps = pathCaps(samples);
+              if (!capsPass(caps)) continue;
+              capPassHalves++;
+              const solved = solveDenseBody(samples, geometry.body);
+              if (!solved) continue;
+              const half = { samples, steering, solved, caps };
+              if (direction < 0) {
+                preFeasible++;
+                pre.push(half);
+              } else {
+                postFeasible++;
+                post.push(half);
+              }
+            }
           }
-        }
       }
-    }
-    const orderedPairs = pre.flatMap((left) => post.map((right) => ({
-      left,
-      right,
-      rootDistance: Math.hypot(
-        left.solved.root.offset.x - right.solved.root.offset.x,
-        left.solved.root.offset.z - right.solved.root.offset.z,
-      ) + Math.abs(left.solved.root.crouchM - right.solved.root.crouchM),
-    }))).sort((a, b) => a.rootDistance - b.rootDistance);
+    const orderedPairs = pre
+      .flatMap((left) =>
+        post.map((right) => ({
+          left,
+          right,
+          rootDistance:
+            Math.hypot(
+              left.solved.root.offset.x - right.solved.root.offset.x,
+              left.solved.root.offset.z - right.solved.root.offset.z,
+            ) + Math.abs(left.solved.root.crouchM - right.solved.root.crouchM),
+        })),
+      )
+      .sort((a, b) => a.rootDistance - b.rootDistance);
     const closest = orderedPairs[0];
     if (closest && (!closestPair || closest.rootDistance < closestPair.scoreM - 1e-15)) {
       const preRoot = closest.left.solved.root;
       const postRoot = closest.right.solved.root;
-      const preUnderPostBody = translateBatterBody(applyBatterPosture(geometry.body, postRoot.crouchM), postRoot.offset);
+      const preUnderPostBody = translateBatterBody(
+        applyBatterPosture(geometry.body, postRoot.crouchM),
+        postRoot.offset,
+      );
       const postUnderPreBody = translateBatterBody(applyBatterPosture(geometry.body, preRoot.crouchM), preRoot.offset);
       let common: {
         lambda: number;
@@ -1237,14 +1307,8 @@ function findIndependentHalfWitness(geometry: ContactGeometry): {
         dist(before.pose.toe, after.pose.toe),
         dist(before.pose.n, after.pose.n),
       );
-      const velocityContinuity = Math.max(
-        dist(before.gripV, after.gripV),
-        dist(before.omega, after.omega),
-      );
-      const accelerationContinuity = Math.max(
-        dist(before.gripA, after.gripA),
-        dist(before.alpha, after.alpha),
-      );
+      const velocityContinuity = Math.max(dist(before.gripV, after.gripV), dist(before.omega, after.omega));
+      const accelerationContinuity = Math.max(dist(before.gripA, after.gripA), dist(before.alpha, after.alpha));
       if (poseContinuity > 1e-12 || velocityContinuity > 1e-12 || accelerationContinuity > 1e-12) continue;
       const samples = [...left.samples.slice(0, -1), ...right.samples];
       const solved = solveDenseBody(samples, geometry.body);
@@ -1283,7 +1347,10 @@ function findIndependentHalfWitness(geometry: ContactGeometry): {
   return { witness: null, twists: twists.length, capPassHalves, preFeasible, postFeasible, pairs, closestPair };
 }
 
-function findWitness(geometry: ContactGeometry, diagnoseHalves = false): { witness: Witness | null; diagnostics: SearchDiagnostics } {
+function findWitness(
+  geometry: ContactGeometry,
+  diagnoseHalves = false,
+): { witness: Witness | null; diagnostics: SearchDiagnostics } {
   // The authored window is an availability ceiling, not a requirement to keep moving. A real stroke reaches rest as
   // soon as the acceleration envelope permits, then holds its finish; using the full 140 ms needlessly translates
   // the hands through another third of a metre. 105 ms still permits 25 rad/s to ramp through two <=250 rad/s² legs.
@@ -1308,57 +1375,68 @@ function findWitness(geometry: ContactGeometry, diagnoseHalves = false): { witne
     const omegaMid = scale(twist.omega, 0.5);
     const gripMid = scale(twist.gripV, 0.5);
     const segmentSeconds = (duration - Math.min(0.002, duration / 10)) / 2;
-    const omegaBudget = Math.sqrt(Math.max(0, (BAT_ANGULAR_ACCEL_LIMIT_RADPS2 * segmentSeconds) ** 2 - (len(twist.omega) / 2) ** 2));
-    const gripBudget = Math.sqrt(Math.max(0, (BAT_GRIP_ACCEL_LIMIT_MPS2 * segmentSeconds) ** 2 - (len(twist.gripV) / 2) ** 2));
-    for (const ws1 of [-1, 0, 1]) for (const ws2 of [-1, 0, 1]) {
-      if (ws1 !== 0 && ws2 !== 0) continue;
-      for (const vs1 of [-1, 0, 1]) for (const vs2 of [-1, 0, 1]) {
-        if (vs1 !== 0 && vs2 !== 0) continue;
-        const wm = addScaled(addScaled(omegaMid, we1, ws1 * omegaBudget * 0.95), we2, ws2 * omegaBudget * 0.95);
-        const vm = addScaled(addScaled(gripMid, ve1, vs1 * gripBudget * 0.95), ve2, vs2 * gripBudget * 0.95);
-        const pre = halfPath(geometry.pose, twist.gripV, twist.omega, vm, wm, duration, -1).reverse();
-        const post = halfPath(geometry.pose, twist.gripV, twist.omega, vm, wm, duration, 1);
-        const samples = [...pre.slice(0, -1), ...post];
-        diagnostics.paths++;
-        const extrema = samples.map(sampleCaps).reduce((a, b) => ({
-          gripSpeed: Math.max(a.gripSpeed, b.gripSpeed),
-          angularSpeed: Math.max(a.angularSpeed, b.angularSpeed),
-          pointSpeed: Math.max(a.pointSpeed, b.pointSpeed),
-          gripAccel: Math.max(a.gripAccel, b.gripAccel),
-          angularAccel: Math.max(a.angularAccel, b.angularAccel),
-          pointAccel: Math.max(a.pointAccel, b.pointAccel),
-        }));
-        const penalty = capPenalty(extrema);
-        if (penalty < diagnostics.minimumCapPenalty) {
-          diagnostics.minimumCapPenalty = penalty;
-          diagnostics.bestCaps = extrema;
-        }
-        if (extrema.gripSpeed > BAT_GRIP_SPEED_LIMIT_MPS + 1e-9
-          || extrema.angularSpeed > BAT_ANGULAR_SPEED_LIMIT_RADPS + 1e-9
-          || extrema.pointSpeed > BAT_POINT_SPEED_LIMIT_MPS + 1e-9
-          || extrema.gripAccel > BAT_GRIP_ACCEL_LIMIT_MPS2 + 1e-9
-          || extrema.angularAccel > BAT_ANGULAR_ACCEL_LIMIT_RADPS2 + 1e-9
-          || extrema.pointAccel > BAT_POINT_ACCEL_LIMIT_MPS2 + 1e-9) continue;
-        diagnostics.capPass++;
-        if (diagnoseHalves && diagnostics.preRootPass === 0 && solveDenseBody(pre, geometry.body)) diagnostics.preRootPass++;
-        if (diagnoseHalves && diagnostics.postRootPass === 0 && solveDenseBody(post, geometry.body)) diagnostics.postRootPass++;
-        const solved = solveDenseBody(samples, geometry.body);
-        if (!solved) continue;
-        diagnostics.rootPass++;
-        diagnostics.densePass++;
-        const contactVelocity = add(twist.gripV, cross(twist.omega, sub(geometry.point, geometry.pose.grip)));
-        const witness = {
-          fraction: twist.fraction,
-          steering: [ws1, ws2, vs1, vs2] as const,
-          root: solved.root.offset,
-          crouchM: solved.root.crouchM,
-          caps: extrema,
-          gap: solved.gap,
-          contactSpeedError: dist(contactVelocity, geometry.desired),
-        };
-        if (!best || witness.gap > best.gap) best = witness;
+    const omegaBudget = Math.sqrt(
+      Math.max(0, (BAT_ANGULAR_ACCEL_LIMIT_RADPS2 * segmentSeconds) ** 2 - (len(twist.omega) / 2) ** 2),
+    );
+    const gripBudget = Math.sqrt(
+      Math.max(0, (BAT_GRIP_ACCEL_LIMIT_MPS2 * segmentSeconds) ** 2 - (len(twist.gripV) / 2) ** 2),
+    );
+    for (const ws1 of [-1, 0, 1])
+      for (const ws2 of [-1, 0, 1]) {
+        if (ws1 !== 0 && ws2 !== 0) continue;
+        for (const vs1 of [-1, 0, 1])
+          for (const vs2 of [-1, 0, 1]) {
+            if (vs1 !== 0 && vs2 !== 0) continue;
+            const wm = addScaled(addScaled(omegaMid, we1, ws1 * omegaBudget * 0.95), we2, ws2 * omegaBudget * 0.95);
+            const vm = addScaled(addScaled(gripMid, ve1, vs1 * gripBudget * 0.95), ve2, vs2 * gripBudget * 0.95);
+            const pre = halfPath(geometry.pose, twist.gripV, twist.omega, vm, wm, duration, -1).reverse();
+            const post = halfPath(geometry.pose, twist.gripV, twist.omega, vm, wm, duration, 1);
+            const samples = [...pre.slice(0, -1), ...post];
+            diagnostics.paths++;
+            const extrema = samples.map(sampleCaps).reduce((a, b) => ({
+              gripSpeed: Math.max(a.gripSpeed, b.gripSpeed),
+              angularSpeed: Math.max(a.angularSpeed, b.angularSpeed),
+              pointSpeed: Math.max(a.pointSpeed, b.pointSpeed),
+              gripAccel: Math.max(a.gripAccel, b.gripAccel),
+              angularAccel: Math.max(a.angularAccel, b.angularAccel),
+              pointAccel: Math.max(a.pointAccel, b.pointAccel),
+            }));
+            const penalty = capPenalty(extrema);
+            if (penalty < diagnostics.minimumCapPenalty) {
+              diagnostics.minimumCapPenalty = penalty;
+              diagnostics.bestCaps = extrema;
+            }
+            if (
+              extrema.gripSpeed > BAT_GRIP_SPEED_LIMIT_MPS + 1e-9 ||
+              extrema.angularSpeed > BAT_ANGULAR_SPEED_LIMIT_RADPS + 1e-9 ||
+              extrema.pointSpeed > BAT_POINT_SPEED_LIMIT_MPS + 1e-9 ||
+              extrema.gripAccel > BAT_GRIP_ACCEL_LIMIT_MPS2 + 1e-9 ||
+              extrema.angularAccel > BAT_ANGULAR_ACCEL_LIMIT_RADPS2 + 1e-9 ||
+              extrema.pointAccel > BAT_POINT_ACCEL_LIMIT_MPS2 + 1e-9
+            )
+              continue;
+            diagnostics.capPass++;
+            if (diagnoseHalves && diagnostics.preRootPass === 0 && solveDenseBody(pre, geometry.body))
+              diagnostics.preRootPass++;
+            if (diagnoseHalves && diagnostics.postRootPass === 0 && solveDenseBody(post, geometry.body))
+              diagnostics.postRootPass++;
+            const solved = solveDenseBody(samples, geometry.body);
+            if (!solved) continue;
+            diagnostics.rootPass++;
+            diagnostics.densePass++;
+            const contactVelocity = add(twist.gripV, cross(twist.omega, sub(geometry.point, geometry.pose.grip)));
+            const witness = {
+              fraction: twist.fraction,
+              steering: [ws1, ws2, vs1, vs2] as const,
+              root: solved.root.offset,
+              crouchM: solved.root.crouchM,
+              caps: extrema,
+              gap: solved.gap,
+              contactSpeedError: dist(contactVelocity, geometry.desired),
+            };
+            if (!best || witness.gap > best.gap) best = witness;
+          }
       }
-    }
   }
   return { witness: best, diagnostics };
 }
@@ -1367,17 +1445,28 @@ describe.skipIf(!ENABLED)('manual generalized rigid-bat path feasibility oracle'
   it('certifies the bounded zero-net quintic loop family on exact locked CTL4 ball-2 at 23 m/s', () => {
     const plan = { variation: 'stock', lengthM: 4.5, lineM: -0.05, speedKph: 138 } as const;
     const source = lockedControlSource(2, plan);
-    const candidates = productionContactGeometryCandidates(plan, 23, 'locked-ctl4-2-loop', {
-      power: source.swing.power,
-      elevation: source.swing.elevation,
-      directionDeg: source.swing.directionDeg,
-    }, source);
-    const contactFeasible = candidates.map((geometry, index) => ({
-      index,
-      geometry,
-      contactRoot: solveBatterRootOffsetForPoses([geometry.pose], geometry.body),
-    })).filter((entry) => entry.contactRoot.solved);
-    expect(contactFeasible.length, 'the exact locked production contact grid must contain a contact-feasible pose').toBeGreaterThan(0);
+    const candidates = productionContactGeometryCandidates(
+      plan,
+      23,
+      'locked-ctl4-2-loop',
+      {
+        power: source.swing.power,
+        elevation: source.swing.elevation,
+        directionDeg: source.swing.directionDeg,
+      },
+      source,
+    );
+    const contactFeasible = candidates
+      .map((geometry, index) => ({
+        index,
+        geometry,
+        contactRoot: solveBatterRootOffsetForPoses([geometry.pose], geometry.body),
+      }))
+      .filter((entry) => entry.contactRoot.solved);
+    expect(
+      contactFeasible.length,
+      'the exact locked production contact grid must contain a contact-feasible pose',
+    ).toBeGreaterThan(0);
     const searches: Array<{ index: number; label: string; search: LoopSearchReport }> = [];
     let witnessed: { index: number; geometry: ContactGeometry; search: LoopSearchReport } | null = null;
     for (const entry of contactFeasible) {
@@ -1388,16 +1477,24 @@ describe.skipIf(!ENABLED)('manual generalized rigid-bat path feasibility oracle'
         break;
       }
     }
-    const minimumDuration = searches.flatMap((entry) => entry.search.minimumCertifiedDuration
-      ? [{ index: entry.index, label: entry.label, ...entry.search.minimumCertifiedDuration }]
-      : []).sort((left, right) => left.seconds - right.seconds || left.index - right.index)[0] ?? null;
-    const aggregate = searches.reduce((value, entry) => ({
-      splitCount: value.splitCount + entry.search.splitCount,
-      analyticallyLegalSplits: value.analyticallyLegalSplits + entry.search.analyticallyLegalSplits,
-      availableDurationSplits: value.availableDurationSplits + entry.search.availableDurationSplits,
-      sampledCapPass: value.sampledCapPass + entry.search.sampledCapPass,
-      anatomyAttempts: value.anatomyAttempts + entry.search.anatomyAttempts,
-    }), { splitCount: 0, analyticallyLegalSplits: 0, availableDurationSplits: 0, sampledCapPass: 0, anatomyAttempts: 0 });
+    const minimumDuration =
+      searches
+        .flatMap((entry) =>
+          entry.search.minimumCertifiedDuration
+            ? [{ index: entry.index, label: entry.label, ...entry.search.minimumCertifiedDuration }]
+            : [],
+        )
+        .sort((left, right) => left.seconds - right.seconds || left.index - right.index)[0] ?? null;
+    const aggregate = searches.reduce(
+      (value, entry) => ({
+        splitCount: value.splitCount + entry.search.splitCount,
+        analyticallyLegalSplits: value.analyticallyLegalSplits + entry.search.analyticallyLegalSplits,
+        availableDurationSplits: value.availableDurationSplits + entry.search.availableDurationSplits,
+        sampledCapPass: value.sampledCapPass + entry.search.sampledCapPass,
+        anatomyAttempts: value.anatomyAttempts + entry.search.anatomyAttempts,
+      }),
+      { splitCount: 0, analyticallyLegalSplits: 0, availableDurationSplits: 0, sampledCapPass: 0, anatomyAttempts: 0 },
+    );
     const first = contactFeasible[0];
     const report = {
       scope: {
@@ -1415,7 +1512,8 @@ describe.skipIf(!ENABLED)('manual generalized rigid-bat path feasibility oracle'
         splitOrder: '513 fractions, 1 down to 0 inclusive',
         duration: 'smallest analytically capped duration, >=20ms, bounded by authored pre/post windows',
         certificate: `10-level subdivided Bernstein derivative hull + ${BAT_ENCLOSING_RADIUS_M}m whole-bat radius`,
-        limitation: 'no-witness applies only to this exact production grid, fixed-axis quintic loop family and conservative enclosing-radius certificate; never to all static-root paths',
+        limitation:
+          'no-witness applies only to this exact production grid, fixed-axis quintic loop family and conservative enclosing-radius certificate; never to all static-root paths',
       },
       desiredContactVelocityMps: len(first.geometry.desired),
       polynomialBounds: { d1: LOOP_D1_BOUND, d2: LOOP_D2_BOUND },
@@ -1454,27 +1552,37 @@ describe.skipIf(!ENABLED)('manual generalized rigid-bat path feasibility oracle'
       requireUnarticulatedStart: false,
       requireUnarticulatedEnd: false,
     };
-    const measured = candidates.map((geometry) => {
-      const sample: KinematicSample = {
-        t: 0,
-        pose: geometry.pose,
-        gripV: v3(),
-        gripA: v3(),
-        omega: v3(),
-        alpha: v3(),
-      };
-      return { geometry, result: certifyDynamicShoulderPath([sample], geometry.body, unbounded, 0) };
-    }).filter((value) => value.result.feasible)
-      .sort((left, right) => (
-        left.result.required.individualShoulderDisplacementM - right.result.required.individualShoulderDisplacementM
-        || left.result.required.midpointDisplacementM - right.result.required.midpointDisplacementM
-        || left.geometry.label.localeCompare(right.geometry.label)
-      ));
-    console.info(`YORKER_DYNAMIC_CONTACT_ORACLE ${JSON.stringify(measured[0] ? {
-      selected: measured[0].geometry.label,
-      required: measured[0].result.required,
-      contactArticulation: measured[0].result.contactArticulation,
-    } : null)}`);
+    const measured = candidates
+      .map((geometry) => {
+        const sample: KinematicSample = {
+          t: 0,
+          pose: geometry.pose,
+          gripV: v3(),
+          gripA: v3(),
+          omega: v3(),
+          alpha: v3(),
+        };
+        return { geometry, result: certifyDynamicShoulderPath([sample], geometry.body, unbounded, 0) };
+      })
+      .filter((value) => value.result.feasible)
+      .sort(
+        (left, right) =>
+          left.result.required.individualShoulderDisplacementM -
+            right.result.required.individualShoulderDisplacementM ||
+          left.result.required.midpointDisplacementM - right.result.required.midpointDisplacementM ||
+          left.geometry.label.localeCompare(right.geometry.label),
+      );
+    console.info(
+      `YORKER_DYNAMIC_CONTACT_ORACLE ${JSON.stringify(
+        measured[0]
+          ? {
+              selected: measured[0].geometry.label,
+              required: measured[0].result.required,
+              contactArticulation: measured[0].result.contactArticulation,
+            }
+          : null,
+      )}`,
+    );
     expect(measured.length).toBeGreaterThan(0);
     expect(measured[0].result.contactArticulation!.midpointM).toBeGreaterThan(0);
   });
@@ -1484,10 +1592,11 @@ describe.skipIf(!ENABLED)('manual generalized rigid-bat path feasibility oracle'
     const feasible = contactGeometryCandidates(plan, 23, 'ctl4-half')
       .map((geometry) => ({ geometry, root: solveBatterRootOffsetForPoses([geometry.pose], geometry.body) }))
       .filter((value) => value.root.solved)
-      .sort((left, right) => (
-        left.root.crouchM - right.root.crouchM
-        || Math.hypot(left.root.offset.x, left.root.offset.z) - Math.hypot(right.root.offset.x, right.root.offset.z)
-      ));
+      .sort(
+        (left, right) =>
+          left.root.crouchM - right.root.crouchM ||
+          Math.hypot(left.root.offset.x, left.root.offset.z) - Math.hypot(right.root.offset.x, right.root.offset.z),
+      );
     const attempts = [];
     for (const selected of [feasible[2] ?? feasible[0]]) {
       const result = findIndependentHalfWitness(selected.geometry);
@@ -1500,19 +1609,41 @@ describe.skipIf(!ENABLED)('manual generalized rigid-bat path feasibility oracle'
 
   it('scans planner-ordered contact locations and blade rolls before testing a path', () => {
     const cases = [
-      { plan: { variation: 'stock', lengthM: 2.5, lineM: 0, speedKph: 120 } as const, speed: 23, label: 'ctl4-0', swing: { power: 1, elevation: 0.1 } },
-      { plan: { variation: 'stock', lengthM: 3.5, lineM: 0.05, speedKph: 130 } as const, speed: 23, label: 'ctl4-1', swing: { power: 1, elevation: 0.1 } },
-      { plan: { variation: 'stock', lengthM: 4.5, lineM: -0.05, speedKph: 138 } as const, speed: 23, label: 'ctl4-2', swing: { power: 1, elevation: 0.1 } },
-      { plan: { variation: 'yorker', lengthM: 0.9, lineM: 0.02, speedKph: 140 } as const, speed: 13.2, label: 'yorker', swing: { power: 0.4, elevation: 0.05 } },
+      {
+        plan: { variation: 'stock', lengthM: 2.5, lineM: 0, speedKph: 120 } as const,
+        speed: 23,
+        label: 'ctl4-0',
+        swing: { power: 1, elevation: 0.1 },
+      },
+      {
+        plan: { variation: 'stock', lengthM: 3.5, lineM: 0.05, speedKph: 130 } as const,
+        speed: 23,
+        label: 'ctl4-1',
+        swing: { power: 1, elevation: 0.1 },
+      },
+      {
+        plan: { variation: 'stock', lengthM: 4.5, lineM: -0.05, speedKph: 138 } as const,
+        speed: 23,
+        label: 'ctl4-2',
+        swing: { power: 1, elevation: 0.1 },
+      },
+      {
+        plan: { variation: 'yorker', lengthM: 0.9, lineM: 0.02, speedKph: 140 } as const,
+        speed: 13.2,
+        label: 'yorker',
+        swing: { power: 0.4, elevation: 0.05 },
+      },
     ];
     const report = cases.map((entry) => {
       const candidates = contactGeometryCandidates(entry.plan, entry.speed, entry.label, entry.swing);
-      const feasible = candidates.map((geometry) => ({ geometry, root: solveBatterRootOffsetForPoses([geometry.pose], geometry.body) }))
+      const feasible = candidates
+        .map((geometry) => ({ geometry, root: solveBatterRootOffsetForPoses([geometry.pose], geometry.body) }))
         .filter((value) => value.root.solved)
-        .sort((left, right) => (
-          left.root.crouchM - right.root.crouchM
-          || Math.hypot(left.root.offset.x, left.root.offset.z) - Math.hypot(right.root.offset.x, right.root.offset.z)
-        ));
+        .sort(
+          (left, right) =>
+            left.root.crouchM - right.root.crouchM ||
+            Math.hypot(left.root.offset.x, left.root.offset.z) - Math.hypot(right.root.offset.x, right.root.offset.z),
+        );
       return {
         label: entry.label,
         candidates: candidates.length,
@@ -1537,10 +1668,11 @@ describe.skipIf(!ENABLED)('manual generalized rigid-bat path feasibility oracle'
         const feasible = contactGeometryCandidates(plans[index], speed, `ctl4-${index}`)
           .map((geometry) => ({ geometry, root: solveBatterRootOffsetForPoses([geometry.pose], geometry.body) }))
           .filter((value) => value.root.solved)
-          .sort((left, right) => (
-            left.root.crouchM - right.root.crouchM
-            || Math.hypot(left.root.offset.x, left.root.offset.z) - Math.hypot(right.root.offset.x, right.root.offset.z)
-          ));
+          .sort(
+            (left, right) =>
+              left.root.crouchM - right.root.crouchM ||
+              Math.hypot(left.root.offset.x, left.root.offset.z) - Math.hypot(right.root.offset.x, right.root.offset.z),
+          );
         const geometry = feasible[0]?.geometry;
         const search = geometry ? findWitness(geometry) : null;
         results.push({
@@ -1557,7 +1689,8 @@ describe.skipIf(!ENABLED)('manual generalized rigid-bat path feasibility oracle'
       13.2,
       'yorker-straight',
       { power: 0.4, elevation: 0.05 },
-    ).map((geometry) => ({ geometry, root: solveBatterRootOffsetForPoses([geometry.pose], geometry.body) }))
+    )
+      .map((geometry) => ({ geometry, root: solveBatterRootOffsetForPoses([geometry.pose], geometry.body) }))
       .filter((value) => value.root.solved);
     const yorker = yorkerCandidates[0]?.geometry;
     results.push({

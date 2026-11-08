@@ -56,7 +56,8 @@ export interface StageMoment {
   at?: Vec3;
 }
 
-export type EmotionPhase = 'between' | 'approach' | 'stride' | 'flight' | 'contact' | 'chase' | 'outcome' | 'reflection';
+export type EmotionPhase =
+  'between' | 'approach' | 'stride' | 'flight' | 'contact' | 'chase' | 'outcome' | 'reflection';
 export type EmotionOutcome = 'four' | 'six' | 'wicket' | 'close_call' | 'runs' | 'dot' | 'leave' | null;
 
 export interface EmotionState {
@@ -116,7 +117,8 @@ const EMOTION = {
 } as const;
 
 const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
-const first = <K extends SimEvent['kind']>(r: DeliveryResult, kind: K) => r.events.find((e) => e.kind === kind) as Extract<SimEvent, { kind: K }> | undefined;
+const first = <K extends SimEvent['kind']>(r: DeliveryResult, kind: K) =>
+  r.events.find((e) => e.kind === kind) as Extract<SimEvent, { kind: K }> | undefined;
 
 /** How clean a bat contact was, 0..1 (the sweet spot is 1, a thin edge about 0.35). */
 function contactQuality(kind: ContactKind, timing: SwingTiming): number {
@@ -164,7 +166,9 @@ function confirmedAt(result: DeliveryResult, sceneOf: (t: number) => number): nu
   const c = first(result, 'catch');
   if (c && result.outcome.dismissal) return sceneOf(c.t);
   if (result.outcome.dismissal === 'lbw') {
-    const pad = result.events.find((e) => e.kind === 'pad' || (e.kind === 'contact' && (e.contact === 'pad' || e.contact === 'body')));
+    const pad = result.events.find(
+      (e) => e.kind === 'pad' || (e.kind === 'contact' && (e.contact === 'pad' || e.contact === 'body')),
+    );
     // The umpire's decision follows the appeal (the umpire's signal in practice/script.ts is at the same moment).
     return sceneOf((pad?.t ?? result.deadT) + LBW_DECISION_S);
   }
@@ -210,12 +214,25 @@ export function buildEmotion(input: EmotionInput): EmotionPlan {
   const keys: Key[] = [];
   const moments: PlannedMoment[] = [];
   const phases: EmotionPlan['phases'] = [];
-  const key = (scene: number, arousal: number, valence: number, expectation: number) => keys.push({ scene, arousal: clamp01(arousal), valence: Math.max(-1, Math.min(1, valence)), expectation: clamp01(expectation) });
+  const key = (scene: number, arousal: number, valence: number, expectation: number) =>
+    keys.push({
+      scene,
+      arousal: clamp01(arousal),
+      valence: Math.max(-1, Math.min(1, valence)),
+      expectation: clamp01(expectation),
+    });
   const moment = (m: Omit<PlannedMoment, 'scene'>) => moments.push({ ...m, scene: sceneOf(m.t) });
   if (!input.delivery) {
     key(0, EMOTION.murmur, 0, 0);
     key(input.duration, EMOTION.murmur, 0, 0);
-    return { moments, keys, phases: [{ scene: 0, phase: 'between' }], outcomeAt: Number.POSITIVE_INFINITY, outcome: null, pressure };
+    return {
+      moments,
+      keys,
+      phases: [{ scene: 0, phase: 'between' }],
+      outcomeAt: Number.POSITIVE_INFINITY,
+      outcome: null,
+      pressure,
+    };
   }
   // Approach, stride, flight: the same for every ball (nothing here may hint at what is coming).
   const stride = R - EMOTION.strideMs;
@@ -230,7 +247,14 @@ export function buildEmotion(input: EmotionInput): EmotionPlan {
   if (!result) {
     // The result is not known yet: hold the breath (the plan is rebuilt when it arrives).
     key(input.duration, EMOTION.breath / k, 0, 0.78);
-    return { moments: sortMoments(moments), keys, phases, outcomeAt: Number.POSITIVE_INFINITY, outcome: null, pressure };
+    return {
+      moments: sortMoments(moments),
+      keys,
+      phases,
+      outcomeAt: Number.POSITIVE_INFINITY,
+      outcome: null,
+      pressure,
+    };
   }
   const bounce = first(result, 'bounce');
   if (bounce) moment({ kind: 'pitch', t: bounce.t, intensity: 0.6, at: bounce.p });
@@ -250,7 +274,12 @@ export function buildEmotion(input: EmotionInput): EmotionPlan {
     key(contactScene, EMOTION.breath / k, 0, 0.8);
     key(contactScene + 120, (edge ? 0.5 : 0.32 + 0.3 * q) * k, edge ? -0.25 : 0.25 + 0.2 * q, 0.6);
     // A hit travelling on: expectation follows the ball towards the rope until something confirms what happened.
-    const stopT = Math.min(result.deadT, (outcomeAt - R) / 1000, (first(result, 'field')?.t ?? Infinity) + 0.05, (first(result, 'catch')?.t ?? Infinity) + 0.05);
+    const stopT = Math.min(
+      result.deadT,
+      (outcomeAt - R) / 1000,
+      (first(result, 'field')?.t ?? Infinity) + 0.05,
+      (first(result, 'catch')?.t ?? Infinity) + 0.05,
+    );
     if (stopT > hitT + 0.3 && !(outcome === 'dot' && (c.exitSpeedKph ?? 0) < 25)) {
       phases.push({ scene: contactScene + 300, phase: 'chase' });
       for (let t = hitT + 0.3; t < stopT; t += 0.15) {
@@ -277,7 +306,10 @@ export function buildEmotion(input: EmotionInput): EmotionPlan {
   // The confirmed outcome.
   // Hold the latest causal state to confirmation. Linear interpolation directly towards the outcome key would
   // begin celebrating a four/six (or showing dismay at a catch) while the ball was still travelling.
-  const prior = [...keys].filter((entry) => entry.scene < outcomeAt).sort((a, b) => a.scene - b.scene).at(-1);
+  const prior = [...keys]
+    .filter((entry) => entry.scene < outcomeAt)
+    .sort((a, b) => a.scene - b.scene)
+    .at(-1);
   if (prior && outcomeAt > prior.scene) key(outcomeAt - 0.001, prior.arousal, prior.valence, prior.expectation);
   phases.push({ scene: outcomeAt, phase: 'outcome' });
   const runs = result.outcome.runs;
@@ -293,7 +325,12 @@ export function buildEmotion(input: EmotionInput): EmotionPlan {
       key(outcomeAt + 3500, 0.5, 0.45, 0);
       break;
     case 'wicket': {
-      moment({ kind: 'wicket', t: (outcomeAt - R) / 1000, intensity: 1, dismissal: result.outcome.dismissal ?? undefined });
+      moment({
+        kind: 'wicket',
+        t: (outcomeAt - R) / 1000,
+        intensity: 1,
+        dismissal: result.outcome.dismissal ?? undefined,
+      });
       // Shock, then the silence of a damaging dismissal (in Practice a wicket ends the innings).
       const damaging = input.context?.wicketEndsInnings ?? true;
       key(outcomeAt, 0.78, -0.9, 0);
@@ -324,7 +361,14 @@ export function buildEmotion(input: EmotionInput): EmotionPlan {
   key(reflect + EMOTION.settleMs, settled, 0, 0);
   key(Math.max(input.duration, reflect + EMOTION.settleMs + 1), settled, 0, 0);
   keys.sort((a, b) => a.scene - b.scene);
-  return { moments: sortMoments(moments), keys, phases: phases.sort((a, b) => a.scene - b.scene), outcomeAt, outcome, pressure };
+  return {
+    moments: sortMoments(moments),
+    keys,
+    phases: phases.sort((a, b) => a.scene - b.scene),
+    outcomeAt,
+    outcome,
+    pressure,
+  };
 }
 
 function sortMoments(m: PlannedMoment[]): PlannedMoment[] {

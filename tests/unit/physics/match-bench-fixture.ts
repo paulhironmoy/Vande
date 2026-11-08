@@ -26,11 +26,25 @@ const AIMS: Array<{ label: string; target: AimTarget; opts?: AimOptions; from?: 
   { label: 'ground pickup', target: { p: { x: 20, y: 0, z: 2 }, mode: 'ground' }, opts: { arriveSpeedKph: 35 } },
   { label: 'four', target: { p: { x: 44, y: 0, z: -44 }, mode: 'bounce_then_rope' } },
   { label: 'six', target: { p: { x: -14, y: 9, z: -60 }, mode: 'over_rope' } },
-  { label: 'throw 42 m', target: { p: { x: 0.3, y: 0.9, z: 10.2 }, mode: 'carry' }, opts: { elevationDeg: 12, spin: { x: 0, y: 0, z: 0 } }, from: { t: 3, p: { x: 30, y: 1.8, z: -18 } } },
+  {
+    label: 'throw 42 m',
+    target: { p: { x: 0.3, y: 0.9, z: 10.2 }, mode: 'carry' },
+    opts: { elevationDeg: 12, spin: { x: 0, y: 0, z: 0 } },
+    from: { t: 3, p: { x: 30, y: 1.8, z: -18 } },
+  },
 ];
 
 export function matchBenchFixture(): BenchBall[] {
-  const variants: DeliveryVariant[] = ['yorker', 'good_length', 'bouncer', 'slower', 'inswing', 'outswing', 'offspin', 'legspin'];
+  const variants: DeliveryVariant[] = [
+    'yorker',
+    'good_length',
+    'bouncer',
+    'slower',
+    'inswing',
+    'outswing',
+    'offspin',
+    'legspin',
+  ];
   const lines: Line[] = ['off', 'middle', 'leg'];
   const lengths: Length[] = ['full', 'good', 'short'];
   const pitches: PitchId[] = ['green', 'hard', 'slow'];
@@ -38,14 +52,27 @@ export function matchBenchFixture(): BenchBall[] {
   let i = 0;
   for (const variant of variants) {
     for (let k = 0; k < 3; k++) {
-      const d = { variant, line: lines[(i + k) % 3], length: lengths[(i * 2 + k) % 3], intensity: ((k % 3) + 1) as Intensity, intent: 'attack' as const };
+      const d = {
+        variant,
+        line: lines[(i + k) % 3],
+        length: lengths[(i * 2 + k) % 3],
+        intensity: ((k % 3) + 1) as Intensity,
+        intent: 'attack' as const,
+      };
       const c = { pitch: pitches[(i + 2 * k) % 3], weather: 'clear' as const };
       const path = deliveryPath(d, c);
       const timing = deliveryTiming(d, c);
-      const aims = [AIMS[i % AIMS.length], AIMS[(i + 3) % AIMS.length], AIMS[(i + 5) % AIMS.length]].slice(0, 2 + (i % 2));
+      const aims = [AIMS[i % AIMS.length], AIMS[(i + 3) % AIMS.length], AIMS[(i + 5) % AIMS.length]].slice(
+        0,
+        2 + (i % 2),
+      );
       out.push({
         path,
-        opts: { family: FAMILY[variant], releaseToContactMs: timing.releaseToContactMs, conditions: CONDITIONS_FOR_PITCH[c.pitch] },
+        opts: {
+          family: FAMILY[variant],
+          releaseToContactMs: timing.releaseToContactMs,
+          conditions: CONDITIONS_FOR_PITCH[c.pitch],
+        },
         contact: { x: path.lineAtBatM, y: Math.max(0.1, Math.min(1.2, path.heightAtBatM)), z: CONTACT_Z },
         aims,
       });

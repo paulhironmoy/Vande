@@ -33,7 +33,7 @@ describe('ICU-lite formatting', () => {
     expect(formatMessage(p, { count: 1 }, 'en-IN')).toBe('1 ball');
     expect(formatMessage(p, { count: 12 }, 'en-IN')).toBe('12 balls');
   });
-  it('uses each locale\'s plural rules (Hindi treats 0 and 1 as one)', () => {
+  it("uses each locale's plural rules (Hindi treats 0 and 1 as one)", () => {
     const p = '{count, plural, one {# गेंद} other {# गेंदें}}';
     expect(formatMessage(p, { count: 1 }, 'hi-IN')).toBe('1 गेंद');
     expect(formatMessage(p, { count: 3 }, 'hi-IN')).toBe('3 गेंदें');
@@ -51,7 +51,18 @@ describe('ICU-lite formatting', () => {
 });
 
 describe('catalogs', () => {
-  const all: Record<string, Record<string, string | undefined>> = { hi, 'hi-Latn': hiLatn, bn, te, mr, ta, gu, kn, ml, pa };
+  const all: Record<string, Record<string, string | undefined>> = {
+    hi,
+    'hi-Latn': hiLatn,
+    bn,
+    te,
+    mr,
+    ta,
+    gu,
+    kn,
+    ml,
+    pa,
+  };
   const enMap = en as unknown as Record<string, string>;
 
   it('every English message parses and plural/select blocks have an other branch', () => {
@@ -75,15 +86,24 @@ describe('catalogs', () => {
     expect(keys.filter((k) => hi[k] === undefined)).toEqual([]);
     expect(keys.filter((k) => hiLatn[k] === undefined)).toEqual([]);
     for (const cat of [bn, te, mr, ta, gu, kn, ml, pa]) {
-      for (const core of ['brand.tagline', 'common.continue', 'onboarding.cta', 'plan.lock', 'bat.tap', 'reveal.title']) expect(cat[core]).toBeTruthy();
+      for (const core of ['brand.tagline', 'common.continue', 'onboarding.cta', 'plan.lock', 'bat.tap', 'reveal.title'])
+        expect(cat[core]).toBeTruthy();
     }
-    expect(LOCALES.filter((l) => l.status === 'machine_draft').map((l) => l.id).sort()).toEqual(['bn', 'gu', 'kn', 'ml', 'mr', 'pa', 'ta', 'te']);
+    expect(
+      LOCALES.filter((l) => l.status === 'machine_draft')
+        .map((l) => l.id)
+        .sort(),
+    ).toEqual(['bn', 'gu', 'kn', 'ml', 'mr', 'pa', 'ta', 'te']);
   });
 });
 
 describe('translator', () => {
   it('falls back to English for missing keys and never shows raw engine keys', () => {
-    const t = createTranslator('bn', { ...bn, 'shot.drive': 'ড্রাইভ' }, { ...(en as unknown as Record<string, string>), 'shot.drive': 'Drive' });
+    const t = createTranslator(
+      'bn',
+      { ...bn, 'shot.drive': 'ড্রাইভ' },
+      { ...(en as unknown as Record<string, string>), 'shot.drive': 'Drive' },
+    );
     expect(t.t('reveal.tactics')).toBe(en['reveal.tactics']);
     expect(t.t('shot.drive')).toBe('ড্রাইভ');
     expect(t.t('common.continue')).toBe(bn['common.continue']);

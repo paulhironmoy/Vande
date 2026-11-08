@@ -49,8 +49,10 @@ export const startEn = {
   'practice.setup.six_balls': 'The six balls',
   'practice.setup.assist': 'Assistance',
   'practice.setup.how': 'Press · Pull back · Read the ball · Flick forward',
-  'practice.setup.how_more': 'Pull back farther to open a higher stroke. Flick towards the gap; forward-flick speed sets power. A quick release without a pullback defends.',
-  'practice.setup.how_keys': 'Keys: Space to defend. Arrows to hit, two at once for a diagonal. Hold Shift to loft. W forward, S back.',
+  'practice.setup.how_more':
+    'Pull back farther to open a higher stroke. Flick towards the gap; forward-flick speed sets power. A quick release without a pullback defends.',
+  'practice.setup.how_keys':
+    'Keys: Space to defend. Arrows to hit, two at once for a diagonal. Hold Shift to loft. W forward, S back.',
   'practice.setup.play': 'Play',
   'practice.setup.resume_ball': 'Ball {n} is next.',
 
@@ -84,7 +86,8 @@ export const startEn = {
 
   // ---- objectives
   'practice.objective.random': 'Read each ball from the hand: its length, line and movement.',
-  'practice.objective.first': 'Watch the ball leave the bowler’s hand. Hold your backlift, then flick forward or leave it.',
+  'practice.objective.first':
+    'Watch the ball leave the bowler’s hand. Hold your backlift, then flick forward or leave it.',
   'practice.setup.full_setup': 'The full setup',
   'practice.gloss.result': 'Length is where the ball bounced; line is how far left or right of your stumps it came.',
   'practice.objective.reference': 'Play each of the six on its merits.',

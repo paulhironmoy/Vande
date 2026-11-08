@@ -43,7 +43,11 @@ const TOKEN = `${'A'.repeat(51)}.${'b'.repeat(22)}`;
 const never = () => new Promise<never>(() => undefined);
 
 function android(): void {
-  (globalThis as { Capacitor?: unknown }).Capacitor = { isNativePlatform: () => true, getPlatform: () => 'android', isPluginAvailable: () => true };
+  (globalThis as { Capacitor?: unknown }).Capacitor = {
+    isNativePlatform: () => true,
+    getPlatform: () => 'android',
+    isPluginAvailable: () => true,
+  };
 }
 
 /**
@@ -51,7 +55,10 @@ function android(): void {
  * 30 s test timeout, and long enough that a loaded machine importing modules for the first time is not mistaken for a hang.
  */
 function settles<T>(p: Promise<T>, ms = 25_000): Promise<T> {
-  return Promise.race([p, new Promise<T>((_, reject) => setTimeout(() => reject(new Error('createPlatform never settled')), ms))]);
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('createPlatform never settled')), ms)),
+  ]);
 }
 
 function keystore(): Map<string, string> {
@@ -74,9 +81,14 @@ describe('Android boot never waits on a plugin proxy', () => {
   it('resolves with the Keystore store, the install referrer, Google sign-in and push all usable', async () => {
     android();
     const backing = keystore();
-    h.impls.VandeInstallReferrer = { getReferrer: (async () => ({ referrer: `vc_invite=${TOKEN}&vc_a=abcd1234` })) as never };
+    h.impls.VandeInstallReferrer = {
+      getReferrer: (async () => ({ referrer: `vc_invite=${TOKEN}&vc_a=abcd1234` })) as never,
+    };
     h.impls.VandeGoogleSignIn = { signIn: (async () => ({ idToken: 'id-token-native' })) as never };
-    h.impls.App = { getLaunchUrl: (async () => ({ url: '' })) as never, addListener: (async () => ({ remove: async () => undefined })) as never };
+    h.impls.App = {
+      getLaunchUrl: (async () => ({ url: '' })) as never,
+      addListener: (async () => ({ remove: async () => undefined })) as never,
+    };
     const listeners = new Map<string, (p: unknown) => void>();
     h.impls.PushNotifications = {
       createChannel: (async () => undefined) as never,
@@ -85,7 +97,8 @@ describe('Android boot never waits on a plugin proxy', () => {
         listeners.set(event, cb);
         return { remove: async () => undefined };
       }) as never,
-      register: (async () => void setTimeout(() => listeners.get('registration')?.({ value: 'fcm-native' }), 0)) as never,
+      register: (async () =>
+        void setTimeout(() => listeners.get('registration')?.({ value: 'fcm-native' }), 0)) as never,
     };
     const { createPlatform } = await import('@/platform');
     const platform = await settles(createPlatform({ VITE_PUSH_ENABLED: '1', VITE_GOOGLE_CLIENT_ID: 'cid' }));
@@ -140,7 +153,11 @@ describe('Android boot never waits on a plugin proxy', () => {
   });
 
   it('a plugin that is not installed natively is simply absent', async () => {
-    (globalThis as { Capacitor?: unknown }).Capacitor = { isNativePlatform: () => true, getPlatform: () => 'android', isPluginAvailable: () => false };
+    (globalThis as { Capacitor?: unknown }).Capacitor = {
+      isNativePlatform: () => true,
+      getPlatform: () => 'android',
+      isPluginAvailable: () => false,
+    };
     const { nativePlugin } = await import('@/platform/capacitor');
     expect(await nativePlugin('VandeSecureStorage')).toBeNull();
     const { createPlatform } = await import('@/platform');

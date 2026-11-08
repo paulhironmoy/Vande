@@ -20,7 +20,11 @@ test.describe.configure({ mode: 'serial' });
 test.use({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 });
 
 test.beforeAll(async () => {
-  server = await createServer({ configFile: 'vite.config.ts', logLevel: 'error', server: { host: '127.0.0.1', port: 5298, strictPort: false, hmr: false, watch: { ignored: ['**/*'] } } });
+  server = await createServer({
+    configFile: 'vite.config.ts',
+    logLevel: 'error',
+    server: { host: '127.0.0.1', port: 5298, strictPort: false, hmr: false, watch: { ignored: ['**/*'] } },
+  });
   await server.listen();
   const addr = server.httpServer?.address();
   base = `http://127.0.0.1:${typeof addr === 'object' && addr ? addr.port : 5298}`;
@@ -40,15 +44,25 @@ function watchErrors(page: Page) {
 
 async function open(page: Page, query: string) {
   await page.goto(`${base}/src/render3d/dev/practice.html?${query}`);
-  await page.waitForFunction(() => (window as unknown as { __p?: { ready: boolean } }).__p?.ready === true, null, { timeout: 90_000 });
+  await page.waitForFunction(() => (window as unknown as { __p?: { ready: boolean } }).__p?.ready === true, null, {
+    timeout: 90_000,
+  });
 }
 
 type Harness = {
-  stage: { kind: string; stats(): { lastInputToBatMs: number | null; renderer: string }; beginSwing(t: number, c: number): void };
+  stage: {
+    kind: string;
+    stats(): { lastInputToBatMs: number | null; renderer: string };
+    beginSwing(t: number, c: number): void;
+  };
   now(): number;
   step(ms: number): Promise<void>;
   bowl(plan?: object): Promise<{ releasePerfMs: number; flight: { idealContactT: number } }>;
-  result(kind: string, timingMs?: number, bearing?: number): { swing: { startT: number } | null; deadT: number; contact: { t: number | null } };
+  result(
+    kind: string,
+    timingMs?: number,
+    bearing?: number,
+  ): { swing: { startT: number } | null; deadT: number; contact: { t: number | null } };
   play(r: unknown): Promise<void>;
   replay(r: unknown, camera?: string, speed?: number): Promise<void>;
   errors: string[];
@@ -86,13 +100,17 @@ test('3D first-person stage plays a delivery from release to dead ball on the so
   expect(errors).toEqual([]);
 });
 
-test('the device benchmark measures real frames on software GL and classifies it Below (never "no frames")', async ({ page }) => {
+test('the device benchmark measures real frames on software GL and classifies it Below (never "no frames")', async ({
+  page,
+}) => {
   await open(page, 'stage=3d&clock=real&profile=standard');
   const a = await page.evaluate(async () => {
     // A browser-side module on the dev server (the specifier is built at run time so tsc leaves it alone).
     const specifier = '/src/perf/index.ts';
     const perf = (await import(/* @vite-ignore */ specifier)) as {
-      runDeviceBenchmark(stage: unknown): Promise<{ webgl2: boolean; hardware: boolean; reasons: string[]; tier: string; avgFps: number }>;
+      runDeviceBenchmark(
+        stage: unknown,
+      ): Promise<{ webgl2: boolean; hardware: boolean; reasons: string[]; tier: string; avgFps: number }>;
     };
     const stage = (window as unknown as { __p: { stage: unknown } }).__p.stage;
     return perf.runDeviceBenchmark(stage);

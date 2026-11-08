@@ -5,56 +5,98 @@ import { createUnityPracticeBridge, unityAvailabilityRequiresClassic } from '@/p
 
 async function hostPacket(type: 'host.initialize' | 'host.pause' = 'host.initialize'): Promise<UnityPracticePacket> {
   if (type === 'host.pause') {
-    return packUnityPracticeMessage(makeUnityPracticeMessage({
-      buildId: 'test-build', sessionId: 'session-1', messageId: 'host-2', sequence: 1, sender: 'host',
-    }, type, { reason: 'player' }));
+    return packUnityPracticeMessage(
+      makeUnityPracticeMessage(
+        {
+          buildId: 'test-build',
+          sessionId: 'session-1',
+          messageId: 'host-2',
+          sequence: 1,
+          sender: 'host',
+        },
+        type,
+        { reason: 'player' },
+      ),
+    );
   }
-  return packUnityPracticeMessage(makeUnityPracticeMessage({
-    buildId: 'test-build', sessionId: 'session-1', messageId: 'host-1', sequence: 0, sender: 'host',
-  }, type, {
-    locale: 'en-IN',
-    pixelsPerDp: 3,
-    quality: 'standard',
-    deviceTier: 'full',
-    handedness: 'right',
-    assistance: 'play',
-    reducedMotion: false,
-    textScale: 1,
-    highContrast: false,
-    captions: true,
-    audio: true,
-    haptics: true,
-    coordinateSystem: 'vande-striker-frame-v1',
-    handednessPolicy: 'physics-right-handed-presentation-mirrors-once',
-  }));
+  return packUnityPracticeMessage(
+    makeUnityPracticeMessage(
+      {
+        buildId: 'test-build',
+        sessionId: 'session-1',
+        messageId: 'host-1',
+        sequence: 0,
+        sender: 'host',
+      },
+      type,
+      {
+        locale: 'en-IN',
+        pixelsPerDp: 3,
+        quality: 'standard',
+        deviceTier: 'full',
+        handedness: 'right',
+        assistance: 'play',
+        reducedMotion: false,
+        textScale: 1,
+        highContrast: false,
+        captions: true,
+        audio: true,
+        haptics: true,
+        coordinateSystem: 'vande-striker-frame-v1',
+        handednessPolicy: 'physics-right-handed-presentation-mirrors-once',
+      },
+    ),
+  );
 }
 
 async function unityPacket(): Promise<UnityPracticePacket> {
-  return packUnityPracticeMessage(makeUnityPracticeMessage({
-    buildId: 'test-build', sessionId: 'session-1', messageId: 'unity-1', sequence: 0, sender: 'unity',
-  }, 'unity.ready', { renderer: 'Vulkan', unityVersion: '6000.3.test' }));
+  return packUnityPracticeMessage(
+    makeUnityPracticeMessage(
+      {
+        buildId: 'test-build',
+        sessionId: 'session-1',
+        messageId: 'unity-1',
+        sequence: 0,
+        sender: 'unity',
+      },
+      'unity.ready',
+      { renderer: 'Vulkan', unityVersion: '6000.3.test' },
+    ),
+  );
 }
 
 async function unityStatsPacket(): Promise<UnityPracticePacket> {
-  return packUnityPracticeMessage(makeUnityPracticeMessage({
-    buildId: 'test-build', sessionId: 'session-1', messageId: 'unity-2', sequence: 1, sender: 'unity',
-  }, 'unity.stats', {
-    quality: 'standard',
-    sampleCount: 180,
-    spikes: 2,
-    fps: 60,
-    avgFrameMs: 16.7,
-    p95FrameMs: 18,
-    p99FrameMs: 22,
-    worstFrameMs: 28,
-    inputToVisibleBatMs: 40,
-    memoryMb: 256,
-    thermalState: 'nominal',
-  }));
+  return packUnityPracticeMessage(
+    makeUnityPracticeMessage(
+      {
+        buildId: 'test-build',
+        sessionId: 'session-1',
+        messageId: 'unity-2',
+        sequence: 1,
+        sender: 'unity',
+      },
+      'unity.stats',
+      {
+        quality: 'standard',
+        sampleCount: 180,
+        spikes: 2,
+        fps: 60,
+        avgFrameMs: 16.7,
+        p95FrameMs: 18,
+        p99FrameMs: 22,
+        worstFrameMs: 28,
+        inputToVisibleBatMs: 40,
+        memoryMb: 256,
+        thermalState: 'nominal',
+      },
+    ),
+  );
 }
 
 function plugin(overrides: Partial<NativeUnityPracticePlugin> = {}): NativeUnityPracticePlugin {
-  const addListener = vi.fn(async () => ({ remove: vi.fn(async () => undefined) })) as unknown as NativeUnityPracticePlugin['addListener'];
+  const addListener = vi.fn(async () => ({
+    remove: vi.fn(async () => undefined),
+  })) as unknown as NativeUnityPracticePlugin['addListener'];
   return {
     availability: vi.fn(async () => ({
       available: true,
@@ -90,11 +132,16 @@ describe('Unity Practice platform bridge', () => {
     for (const reason of ['unsupported_native_abi', 'unsupported_graphics_api', 'unity_export_missing'] as const) {
       expect(unityAvailabilityRequiresClassic({ available: false, reason, unityVersion: null }, false)).toBe(false);
     }
-    expect(unityAvailabilityRequiresClassic({
-      available: true,
-      reason: 'ready',
-      unityVersion: '6000.3.test',
-    }, false)).toBe(false);
+    expect(
+      unityAvailabilityRequiresClassic(
+        {
+          available: true,
+          reason: 'ready',
+          unityVersion: '6000.3.test',
+        },
+        false,
+      ),
+    ).toBe(false);
   });
 
   it('is inert when the native plugin is absent', async () => {
@@ -207,14 +254,22 @@ describe('Unity Practice platform bridge', () => {
     expect(await bridge.send(pause)).toBe(true);
     expect(await bridge.setVisible(true)).toBe(true);
     expect(await bridge.setReadyVisible?.(true, 'Pull back · Watch · Flick forward')).toBe(true);
-    expect(native.launch).toHaveBeenCalledWith(expect.objectContaining({ packet: JSON.stringify(initial), operationId: expect.any(String) }));
-    expect(native.send).toHaveBeenCalledWith(expect.objectContaining({ packet: JSON.stringify(pause), operationId: expect.any(String) }));
-    expect(native.setVisible).toHaveBeenCalledWith(expect.objectContaining({ visible: true, operationId: expect.any(String) }));
-    expect(native.setReadyVisible).toHaveBeenCalledWith(expect.objectContaining({
-      visible: true,
-      hint: 'Pull back · Watch · Flick forward',
-      operationId: expect.any(String),
-    }));
+    expect(native.launch).toHaveBeenCalledWith(
+      expect.objectContaining({ packet: JSON.stringify(initial), operationId: expect.any(String) }),
+    );
+    expect(native.send).toHaveBeenCalledWith(
+      expect.objectContaining({ packet: JSON.stringify(pause), operationId: expect.any(String) }),
+    );
+    expect(native.setVisible).toHaveBeenCalledWith(
+      expect.objectContaining({ visible: true, operationId: expect.any(String) }),
+    );
+    expect(native.setReadyVisible).toHaveBeenCalledWith(
+      expect.objectContaining({
+        visible: true,
+        hint: 'Pull back · Watch · Flick forward',
+        operationId: expect.any(String),
+      }),
+    );
     expect(await bridge.unload()).toBe(true);
   });
 
@@ -232,9 +287,12 @@ describe('Unity Practice platform bridge', () => {
       const launchTimeoutMs = 15_000;
       let resolveLaunch: (value: { accepted: boolean }) => void = () => undefined;
       const native = plugin({
-        launch: vi.fn(() => new Promise<{ accepted: boolean }>((resolve) => {
-          resolveLaunch = resolve;
-        })),
+        launch: vi.fn(
+          () =>
+            new Promise<{ accepted: boolean }>((resolve) => {
+              resolveLaunch = resolve;
+            }),
+        ),
       });
       const bridge = createUnityPracticeBridge(native, 50, launchTimeoutMs);
 
@@ -270,12 +328,18 @@ describe('Unity Practice platform bridge', () => {
           }
           return Promise.resolve({ accepted: true });
         }),
-        cancelLaunch: vi.fn(() => new Promise<{ cancelled: boolean }>((resolve) => {
-          resolveCancellation = resolve;
-        })),
-        unload: vi.fn(() => new Promise<{ unloaded: boolean }>((resolve) => {
-          resolvePhysicalUnload = resolve;
-        })),
+        cancelLaunch: vi.fn(
+          () =>
+            new Promise<{ cancelled: boolean }>((resolve) => {
+              resolveCancellation = resolve;
+            }),
+        ),
+        unload: vi.fn(
+          () =>
+            new Promise<{ unloaded: boolean }>((resolve) => {
+              resolvePhysicalUnload = resolve;
+            }),
+        ),
       });
       const bridge = createUnityPracticeBridge(native, 50, launchTimeoutMs);
       const packet = await hostPacket();
@@ -326,7 +390,13 @@ describe('Unity Practice platform bridge', () => {
     const native = plugin({
       availability: vi.fn(async () => {
         await availabilityGate;
-        return { available: true, reason: 'linked_unverified' as const, unityVersion: '6000.3.test', pixelsPerDp: 3, systemTextScale: 1 };
+        return {
+          available: true,
+          reason: 'linked_unverified' as const,
+          unityVersion: '6000.3.test',
+          pixelsPerDp: 3,
+          systemTextScale: 1,
+        };
       }),
       launch: vi.fn(async () => {
         launches += 1;
@@ -359,7 +429,13 @@ describe('Unity Practice platform bridge', () => {
     const native = plugin({
       availability: vi.fn(async () => {
         await availabilityGate;
-        return { available: true, reason: 'linked_unverified' as const, unityVersion: '6000.3.test', pixelsPerDp: 3, systemTextScale: 1 };
+        return {
+          available: true,
+          reason: 'linked_unverified' as const,
+          unityVersion: '6000.3.test',
+          pixelsPerDp: 3,
+          systemTextScale: 1,
+        };
       }),
     });
     const bridge = createUnityPracticeBridge(native, 50, 500);
@@ -397,11 +473,26 @@ describe('Unity Practice platform bridge', () => {
     if (!emit) throw new Error('listener was not registered');
     const valid = await unityPacket();
     const host = await hostPacket();
-    (emit as (event: { packet: string; operationId: string }) => void)({ packet: 'not-json', operationId: activeOperationId });
-    (emit as (event: { packet: string; operationId: string }) => void)({ packet: JSON.stringify({ ...valid, sha256: '0'.repeat(64) }), operationId: activeOperationId });
-    (emit as (event: { packet: string; operationId: string }) => void)({ packet: JSON.stringify(host), operationId: activeOperationId });
-    (emit as (event: { packet: string; operationId: string }) => void)({ packet: JSON.stringify(valid), operationId: 'stale-operation' });
-    (emit as (event: { packet: string; operationId: string }) => void)({ packet: JSON.stringify(valid), operationId: activeOperationId });
+    (emit as (event: { packet: string; operationId: string }) => void)({
+      packet: 'not-json',
+      operationId: activeOperationId,
+    });
+    (emit as (event: { packet: string; operationId: string }) => void)({
+      packet: JSON.stringify({ ...valid, sha256: '0'.repeat(64) }),
+      operationId: activeOperationId,
+    });
+    (emit as (event: { packet: string; operationId: string }) => void)({
+      packet: JSON.stringify(host),
+      operationId: activeOperationId,
+    });
+    (emit as (event: { packet: string; operationId: string }) => void)({
+      packet: JSON.stringify(valid),
+      operationId: 'stale-operation',
+    });
+    (emit as (event: { packet: string; operationId: string }) => void)({
+      packet: JSON.stringify(valid),
+      operationId: activeOperationId,
+    });
     await vi.waitFor(() => expect(seen).toEqual([valid]));
     await off();
     expect(remove).toHaveBeenCalledOnce();
@@ -420,7 +511,11 @@ describe('Unity Practice platform bridge', () => {
     expect(await bridge.launch(await hostPacket())).toBe(true);
     const activeOperationId = (vi.mocked(native.launch).mock.calls[0]?.[0] as { operationId: string }).operationId;
     if (!emit) throw new Error('listener was not registered');
-    (emit as (event: { code?: string; detail?: string; operationId?: string }) => void)({ code: 'lifecycle', detail: 'failed closed', operationId: activeOperationId });
+    (emit as (event: { code?: string; detail?: string; operationId?: string }) => void)({
+      code: 'lifecycle',
+      detail: 'failed closed',
+      operationId: activeOperationId,
+    });
     expect(seen).toEqual([{ code: 'lifecycle', detail: 'failed closed', operationId: activeOperationId }]);
   });
 
@@ -433,10 +528,12 @@ describe('Unity Practice platform bridge', () => {
     const native = plugin({ addListener });
     const bridge = createUnityPracticeBridge(native, 100);
     const seen: Array<{ type: string; receivedPerfMs: number }> = [];
-    await bridge.onMessage((packet, receivedPerfMs) => seen.push({
-      type: (JSON.parse(packet.body) as { type: string }).type,
-      receivedPerfMs,
-    }));
+    await bridge.onMessage((packet, receivedPerfMs) =>
+      seen.push({
+        type: (JSON.parse(packet.body) as { type: string }).type,
+        receivedPerfMs,
+      }),
+    );
     expect(await bridge.launch(await hostPacket())).toBe(true);
     const activeOperationId = (vi.mocked(native.launch).mock.calls[0]?.[0] as { operationId: string }).operationId;
     const first = await unityPacket();
@@ -444,9 +541,7 @@ describe('Unity Practice platform bridge', () => {
     if (!emit) throw new Error('listener was not registered');
 
     const digest = globalThis.crypto.subtle.digest.bind(globalThis.crypto.subtle);
-    const nowSpy = vi.spyOn(performance, 'now')
-      .mockReturnValueOnce(101)
-      .mockReturnValueOnce(202);
+    const nowSpy = vi.spyOn(performance, 'now').mockReturnValueOnce(101).mockReturnValueOnce(202);
     let validation = 0;
     const digestSpy = vi.spyOn(globalThis.crypto.subtle, 'digest').mockImplementation(async (...args) => {
       validation += 1;
@@ -454,12 +549,20 @@ describe('Unity Practice platform bridge', () => {
       return digest(...args);
     });
     try {
-      (emit as (event: { packet: string; operationId: string }) => void)({ packet: JSON.stringify(first), operationId: activeOperationId });
-      (emit as (event: { packet: string; operationId: string }) => void)({ packet: JSON.stringify(second), operationId: activeOperationId });
-      await vi.waitFor(() => expect(seen).toEqual([
-        { type: 'unity.ready', receivedPerfMs: 101 },
-        { type: 'unity.stats', receivedPerfMs: 202 },
-      ]));
+      (emit as (event: { packet: string; operationId: string }) => void)({
+        packet: JSON.stringify(first),
+        operationId: activeOperationId,
+      });
+      (emit as (event: { packet: string; operationId: string }) => void)({
+        packet: JSON.stringify(second),
+        operationId: activeOperationId,
+      });
+      await vi.waitFor(() =>
+        expect(seen).toEqual([
+          { type: 'unity.ready', receivedPerfMs: 101 },
+          { type: 'unity.stats', receivedPerfMs: 202 },
+        ]),
+      );
     } finally {
       digestSpy.mockRestore();
       nowSpy.mockRestore();

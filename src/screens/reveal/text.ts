@@ -12,7 +12,8 @@ function resolveParams(params: Params | undefined, log: MatchEventLog, t: Transl
   if (!params) return out;
   for (const [k, v] of Object.entries(params)) {
     if (v === undefined) continue;
-    if ((k === 'batter' || k === 'bowler' || k === 'winner' || k === 'player') && (v === 0 || v === 1)) out[k] = log.players[v].alias;
+    if ((k === 'batter' || k === 'bowler' || k === 'winner' || k === 'player') && (v === 0 || v === 1))
+      out[k] = log.players[v].alias;
     else if (k === 'shot') out[k] = t.t(`shot.${v}` as MessageKey);
     else if (k === 'variant') out[k] = t.t(`variant.${v}` as MessageKey);
     else if (k === 'zone' || k === 'fielder') out[k] = t.t(`zone.${v}` as MessageKey);
@@ -58,7 +59,12 @@ export function explainText(o: BallOutcome, t: Translator): string {
  * The result line. `names` are the display names in log.players order: the match-time aliases by default; the
  * highlight composer passes the moderated current names from its render input instead.
  */
-export function resultText(r: MatchResult, log: MatchEventLog, t: Translator, names: readonly [string, string] = [log.players[0].alias, log.players[1].alias]): string {
+export function resultText(
+  r: MatchResult,
+  log: MatchEventLog,
+  t: Translator,
+  names: readonly [string, string] = [log.players[0].alias, log.players[1].alias],
+): string {
   // Daily Six is solo: the result is the attempt's score, never a tie or a winner.
   if (log.kind === 'daily') {
     const inn = log.innings[0];

@@ -7,7 +7,8 @@
  * Software rasterisers and generic fallbacks: SwiftShader (Chrome's, also inside ANGLE strings), Mesa llvmpipe and
  * softpipe, lavapipe (Vulkan), the Windows Basic Render Driver, Apple's software renderer and Mesa offscreen.
  */
-export const SOFTWARE_RENDERER_RE = /swiftshader|llvmpipe|lavapipe|softpipe|basic render|apple software renderer|mesa offscreen|software rasterizer|\bsoftware\b/i;
+export const SOFTWARE_RENDERER_RE =
+  /swiftshader|llvmpipe|lavapipe|softpipe|basic render|apple software renderer|mesa offscreen|software rasterizer|\bsoftware\b/i;
 
 /** True for a software rasteriser (an empty or unknown string is not assumed to be software). */
 export function isSoftwareRenderer(renderer: string | null | undefined): boolean {

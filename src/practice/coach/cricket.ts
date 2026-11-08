@@ -20,9 +20,30 @@ type Arc = readonly [number, number];
  * never attacked orthodoxly: leave or duck the bouncer, dig the yorker out.
  */
 export const ATTACK_ARCS: Readonly<Record<'full' | 'good' | 'short', Readonly<Record<LineBand, Arc | null>>>> = {
-  full: { down_leg: [-150, -30], leg_stump: [-90, 10], middle: [-50, 30], off_stump: [-5, 60], outside_off: [10, 80], wide_outside_off: [20, 95] },
-  good: { down_leg: [-150, -25], leg_stump: [-110, -20], middle: null, off_stump: null, outside_off: null, wide_outside_off: [55, 120] },
-  short: { down_leg: [-150, -45], leg_stump: [-115, -30], middle: [-115, -30], off_stump: [15, 75], outside_off: [55, 125], wide_outside_off: [55, 125] },
+  full: {
+    down_leg: [-150, -30],
+    leg_stump: [-90, 10],
+    middle: [-50, 30],
+    off_stump: [-5, 60],
+    outside_off: [10, 80],
+    wide_outside_off: [20, 95],
+  },
+  good: {
+    down_leg: [-150, -25],
+    leg_stump: [-110, -20],
+    middle: null,
+    off_stump: null,
+    outside_off: null,
+    wide_outside_off: [55, 120],
+  },
+  short: {
+    down_leg: [-150, -45],
+    leg_stump: [-115, -30],
+    middle: [-115, -30],
+    off_stump: [15, 75],
+    outside_off: [55, 125],
+    wide_outside_off: [55, 125],
+  },
 };
 
 export const ORTHODOXY = {
@@ -31,7 +52,14 @@ export const ORTHODOXY = {
   /** From this elevation the stroke is lofted (the input's lofted range starts here). */
   loftedFromElevation: 0.45,
   /** Across the line (the physics' own rule, scoring.ts diagnoseBeaten, plus its mirror on the leg side). */
-  acrossLine: { legSwingDeg: -25, offsideOfM: 0.06, cutDeg: 65, straightWithinM: 0.1, offSwingDeg: 45, downLegM: -0.15 },
+  acrossLine: {
+    legSwingDeg: -25,
+    offsideOfM: 0.06,
+    cutDeg: 65,
+    straightWithinM: 0.1,
+    offSwingDeg: 45,
+    downLegM: -0.15,
+  },
   /** Across the movement: to leg against a ball moving away, square on the off side against one coming in. */
   acrossMovement: { legDeg: -20, offDeg: 40 },
   /** Playing with the movement: the arc opens this much further on the side the ball moves to (deg). */

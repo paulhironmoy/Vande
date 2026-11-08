@@ -131,7 +131,12 @@ export const STUMPS_FRONT_Z = PITCH_HALF - STUMP_R - BALL_R;
 const flights = new WeakMap<BallPath, Map<string, DeliveryFlight>>();
 
 /** The delivery for a server BallPath, landing on the contact plane at releaseToContactMs (cached per path). */
-export function buildFlight(path: BallPath, family: DeliveryFamily, releaseToContactMs?: number, conditions: PitchCondition = 'balanced'): DeliveryFlight {
+export function buildFlight(
+  path: BallPath,
+  family: DeliveryFamily,
+  releaseToContactMs?: number,
+  conditions: PitchCondition = 'balanced',
+): DeliveryFlight {
   const tc = Math.max(250, releaseToContactMs ?? defaultFlightMs(path));
   const key = `${family}|${tc}|${conditions}`;
   const known = flights.get(path)?.get(key);
@@ -232,9 +237,17 @@ export function aimPath(from: Vec3, target: { p: Vec3; mode: AimMode }, opts: Ai
 }
 
 /** A launch with nothing to reach (a sealed live shot): the one integrator alone, for `seconds`. */
-export function flyFrom(from: Vec3, v: Vec3, seconds: number, opts: { backspinRps?: number; conditions?: PitchCondition } = {}): BallPathSim {
+export function flyFrom(
+  from: Vec3,
+  v: Vec3,
+  seconds: number,
+  opts: { backspinRps?: number; conditions?: PitchCondition } = {},
+): BallPathSim {
   const rps = opts.backspinRps ?? 0;
   const spin = rps !== 0 ? backspinVector(v, rps) : v3();
-  const sim = simulate({ t: 0, p: from, v, spin }, { pitch: PITCHES[opts.conditions ?? 'balanced'], untilT: seconds, stopAtBoundary: false, stopAtRest: true });
+  const sim = simulate(
+    { t: 0, p: from, v, spin },
+    { pitch: PITCHES[opts.conditions ?? 'balanced'], untilT: seconds, stopAtBoundary: false, stopAtRest: true },
+  );
   return { samples: sim.samples, seam: seamSpin(rps !== 0 ? spin : rollingSpin(v), 'pace') };
 }

@@ -28,7 +28,15 @@ import { engineV1 as engine } from '../v1';
 import { deliveryTiming } from '../v1/delivery';
 import { evaluate, type BallContext, type DeliveryCore } from '../v1/model';
 import { energyCost } from '../v1/plan';
-import { battingInputFor, fitBudget, fitSuperBall, naturalZone, readShot, releaseFor, type DeliverySpec } from '../v1/policies';
+import {
+  battingInputFor,
+  fitBudget,
+  fitSuperBall,
+  naturalZone,
+  readShot,
+  releaseFor,
+  type DeliverySpec,
+} from '../v1/policies';
 import {
   ALLOWED_LENGTHS,
   FIELD_SETTINGS,
@@ -78,7 +86,9 @@ function anchorBias(anchor: number, flightMs: number, prevFlightMs: number): num
 function phi(x: number): number {
   const z = Math.abs(x) / Math.SQRT2;
   const t = 1 / (1 + 0.3275911 * z);
-  const y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-z * z);
+  const y =
+    1 -
+    ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-z * z);
   return x >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
 }
 
@@ -101,7 +111,9 @@ export interface Option {
   shot: ShotType;
   zone: FieldZone | null;
 }
-export const OPTIONS: readonly Option[] = SHOTS.flatMap((shot): Option[] => (LEGAL_ZONES[shot].length === 0 ? [{ shot, zone: null }] : LEGAL_ZONES[shot].map((zone) => ({ shot, zone }))));
+export const OPTIONS: readonly Option[] = SHOTS.flatMap((shot): Option[] =>
+  LEGAL_ZONES[shot].length === 0 ? [{ shot, zone: null }] : LEGAL_ZONES[shot].map((zone) => ({ shot, zone })),
+);
 
 /**
  * What a batter knows when a ball is bowled. Runs and wickets are sealed until the reveal, so a batter never knows
@@ -118,13 +130,30 @@ export interface BatView {
   superBall: boolean;
 }
 
-function phaseOf(view: { conditions: Conditions; delivery: RevealedDelivery; superBall: boolean }): 'early' | 'mid' | 'last' {
+function phaseOf(view: {
+  conditions: Conditions;
+  delivery: RevealedDelivery;
+  superBall: boolean;
+}): 'early' | 'mid' | 'last' {
   if (view.superBall || view.delivery.ball >= 5) return 'last';
   return view.conditions.pitch === 'green' && view.delivery.ball <= 2 ? 'early' : 'mid';
 }
 
-function ctxFor(ball: number, phase: 'early' | 'mid' | 'last', repeats: number, newBatter: boolean, prev: BallContext['prev'] = null): BallContext {
-  const b = phase === 'early' ? Math.min(ball, 2) : phase === 'last' ? (ball === SUPER_BALL_INDEX ? SUPER_BALL_INDEX : 5) : Math.max(3, Math.min(ball, 4));
+function ctxFor(
+  ball: number,
+  phase: 'early' | 'mid' | 'last',
+  repeats: number,
+  newBatter: boolean,
+  prev: BallContext['prev'] = null,
+): BallContext {
+  const b =
+    phase === 'early'
+      ? Math.min(ball, 2)
+      : phase === 'last'
+        ? ball === SUPER_BALL_INDEX
+          ? SUPER_BALL_INDEX
+          : 5
+        : Math.max(3, Math.min(ball, 4));
   return { ball: b, superBall: b === SUPER_BALL_INDEX, lastBall: phase === 'last', newBatter, prev, repeats };
 }
 
@@ -146,13 +175,22 @@ const UNKNOWN_INTENT = {
  * (averaged over attack/contain/setup) and the execution is unknown (an average bowler's release distribution).
  */
 const tableCache = new Map<string, Float32Array>();
-function optionTable(d: DeliveryCore, field: FieldSetting, cond: Conditions, phase: 'early' | 'mid' | 'last', repeats: number, superBall: boolean): Float32Array {
+function optionTable(
+  d: DeliveryCore,
+  field: FieldSetting,
+  cond: Conditions,
+  phase: 'early' | 'mid' | 'last',
+  repeats: number,
+  superBall: boolean,
+): Float32Array {
   const key = `${d.variant}|${d.line}|${d.length}|${d.intensity}|${field}|${cond.pitch}|${cond.weather}|${phase}|${repeats}|${superBall ? 1 : 0}`;
   const hit = tableCache.get(key);
   if (hit) return hit;
   const out = new Float32Array(OPTIONS.length * GRADES.length * 2);
   const ex = execProbs(BOWL_SKILLS.average);
-  const ctx = superBall ? { ...ctxFor(SUPER_BALL_INDEX, 'last', 0, false), superBall: true } : ctxFor(phase === 'early' ? 1 : phase === 'last' ? 5 : 3, phase, repeats, false);
+  const ctx = superBall
+    ? { ...ctxFor(SUPER_BALL_INDEX, 'last', 0, false), superBall: true }
+    : ctxFor(phase === 'early' ? 1 : phase === 'last' ? 5 : 3, phase, repeats, false);
   OPTIONS.forEach((o, i) => {
     const grades = o.shot === 'leave' ? (['no_shot'] as const) : GRADES;
     grades.forEach((grade, g) => {
@@ -160,7 +198,17 @@ function optionTable(d: DeliveryCore, field: FieldSetting, cond: Conditions, pha
       let pw = 0;
       EXEC_GRADES.forEach((eg, k) => {
         if (ex[k] < 0.01) return;
-        const ev = evaluate({ d: { ...d, intent: 'contain' }, grade: eg, shot: o.shot, zone: o.zone, timing: grade, field, cond, ctx, intentMult: UNKNOWN_INTENT });
+        const ev = evaluate({
+          d: { ...d, intent: 'contain' },
+          grade: eg,
+          shot: o.shot,
+          zone: o.zone,
+          timing: grade,
+          field,
+          cond,
+          ctx,
+          intentMult: UNKNOWN_INTENT,
+        });
         er += ex[k] * ev.expectedRuns;
         pw += ex[k] * ev.pWicket;
       });
@@ -190,7 +238,12 @@ function lambdaFor(ball: number, ballsLeftAfter: number, superBall: boolean): nu
   return (0.5 + 1.2 * likelyOneDown) * ballsLeftAfter;
 }
 
-function bestOption(table: Float32Array, probs: number[], lambda: number, allowed?: (o: Option) => boolean): { index: number; value: number } {
+function bestOption(
+  table: Float32Array,
+  probs: number[],
+  lambda: number,
+  allowed?: (o: Option) => boolean,
+): { index: number; value: number } {
   let best = -1;
   let bestV = Number.NEGATIVE_INFINITY;
   for (let i = 0; i < OPTIONS.length; i++) {
@@ -216,13 +269,7 @@ function core(d: RevealedDelivery): DeliveryCore {
 // Batting strategies
 // ---------------------------------------------------------------------------------------------------------------
 
-type BatStrategyId =
-  | 'random'
-  | 'heuristic'
-  | 'oracle'
-  | 'auto'
-  | `ghost:${string}`
-  | `fixed:${AttackShot}`;
+type BatStrategyId = 'random' | 'heuristic' | 'oracle' | 'auto' | `ghost:${string}` | `fixed:${AttackShot}`;
 
 export interface BatPolicy {
   strategy: BatStrategyId;
@@ -244,8 +291,17 @@ function chooseShot(policy: BatPolicy, view: BatView, rng: Sfc32): Option {
     }
     case 'oracle': {
       const skill = BAT_SKILLS[policy.skill];
-      const table = optionTable(core(d), view.field, view.conditions, phaseOf(view), Math.min(view.repeats, 3), view.superBall);
-      const bias = view.prev ? anchorBias(skill.anchor, d.timing.releaseToContactMs, view.prev.timing.releaseToContactMs) : 0;
+      const table = optionTable(
+        core(d),
+        view.field,
+        view.conditions,
+        phaseOf(view),
+        Math.min(view.repeats, 3),
+        view.superBall,
+      );
+      const bias = view.prev
+        ? anchorBias(skill.anchor, d.timing.releaseToContactMs, view.prev.timing.releaseToContactMs)
+        : 0;
       const probs = timingDistribution(d.timing, skill.sigma, bias);
       const o = OPTIONS[bestOption(table, probs, lambdaFor(d.ball, view.ballsLeft - 1, view.superBall)).index];
       return o;
@@ -271,7 +327,8 @@ function humanTap(policy: BatPolicy, view: BatView, rng: Sfc32): number {
 
 function batInput(policy: BatPolicy, view: BatView, rng: Sfc32, seed: string): BattingInput {
   if (policy.strategy === 'auto') return engine.autoBat(seed, view.delivery, view.field);
-  if (policy.strategy.startsWith('ghost:')) return engine.ghostBat(policy.strategy.slice(6), seed, view.delivery, view.field);
+  if (policy.strategy.startsWith('ghost:'))
+    return engine.ghostBat(policy.strategy.slice(6), seed, view.delivery, view.field);
   const o = chooseShot(policy, view, rng);
   const tap = o.shot === 'leave' ? null : humanTap(policy, view, rng);
   return battingInputFor(rng, view.delivery, o.shot, o.zone, tap);
@@ -306,7 +363,13 @@ export interface BowlPolicy {
   field?: FieldSetting;
 }
 
-const S = (variant: DeliveryVariant, line: DeliverySpec['line'], length: DeliverySpec['length'], intensity: DeliverySpec['intensity'], intent: DeliverySpec['intent']): DeliverySpec => ({
+const S = (
+  variant: DeliveryVariant,
+  line: DeliverySpec['line'],
+  length: DeliverySpec['length'],
+  intensity: DeliverySpec['intensity'],
+  intent: DeliverySpec['intent'],
+): DeliverySpec => ({
   variant,
   line,
   length,
@@ -323,12 +386,26 @@ export interface OverSpec {
 export const ARCHETYPES: Record<string, OverSpec> = {
   stock: {
     field: 'balanced',
-    balls: [S('good_length', 'off', 'good', 2, 'contain'), S('good_length', 'off', 'good', 2, 'contain'), S('good_length', 'middle', 'good', 2, 'contain'), S('good_length', 'off', 'good', 2, 'attack'), S('good_length', 'wide_off', 'good', 2, 'contain'), S('good_length', 'off', 'good', 2, 'attack')],
+    balls: [
+      S('good_length', 'off', 'good', 2, 'contain'),
+      S('good_length', 'off', 'good', 2, 'contain'),
+      S('good_length', 'middle', 'good', 2, 'contain'),
+      S('good_length', 'off', 'good', 2, 'attack'),
+      S('good_length', 'wide_off', 'good', 2, 'contain'),
+      S('good_length', 'off', 'good', 2, 'attack'),
+    ],
     superBall: S('good_length', 'off', 'good', 2, 'attack'),
   },
   pace_barrage: {
     field: 'sweeper',
-    balls: [S('bouncer', 'middle', 'short', 3, 'attack'), S('yorker', 'middle', 'full', 3, 'attack'), S('bouncer', 'middle', 'short', 3, 'attack'), S('yorker', 'off', 'full', 3, 'attack'), S('bouncer', 'leg', 'short', 3, 'attack'), S('yorker', 'middle', 'full', 3, 'attack')],
+    balls: [
+      S('bouncer', 'middle', 'short', 3, 'attack'),
+      S('yorker', 'middle', 'full', 3, 'attack'),
+      S('bouncer', 'middle', 'short', 3, 'attack'),
+      S('yorker', 'off', 'full', 3, 'attack'),
+      S('bouncer', 'leg', 'short', 3, 'attack'),
+      S('yorker', 'middle', 'full', 3, 'attack'),
+    ],
     superBall: S('yorker', 'middle', 'full', 2, 'attack'),
   },
   yorker_spam: {
@@ -343,45 +420,104 @@ export const ARCHETYPES: Record<string, OverSpec> = {
   },
   swing_only: {
     field: 'attacking',
-    balls: [S('outswing', 'off', 'full', 2, 'setup'), S('inswing', 'middle', 'full', 2, 'attack'), S('outswing', 'off', 'good', 2, 'attack'), S('inswing', 'off', 'good', 2, 'contain'), S('outswing', 'off', 'full', 2, 'setup'), S('inswing', 'middle', 'full', 2, 'attack')],
+    balls: [
+      S('outswing', 'off', 'full', 2, 'setup'),
+      S('inswing', 'middle', 'full', 2, 'attack'),
+      S('outswing', 'off', 'good', 2, 'attack'),
+      S('inswing', 'off', 'good', 2, 'contain'),
+      S('outswing', 'off', 'full', 2, 'setup'),
+      S('inswing', 'middle', 'full', 2, 'attack'),
+    ],
     superBall: S('inswing', 'middle', 'full', 2, 'attack'),
   },
   spin_only: {
     field: 'balanced',
-    balls: [S('offspin', 'off', 'good', 2, 'contain'), S('legspin', 'middle', 'good', 2, 'attack'), S('offspin', 'middle', 'good', 3, 'setup'), S('legspin', 'off', 'good', 1, 'attack'), S('offspin', 'middle', 'full', 1, 'attack'), S('legspin', 'middle', 'good', 2, 'attack')],
+    balls: [
+      S('offspin', 'off', 'good', 2, 'contain'),
+      S('legspin', 'middle', 'good', 2, 'attack'),
+      S('offspin', 'middle', 'good', 3, 'setup'),
+      S('legspin', 'off', 'good', 1, 'attack'),
+      S('offspin', 'middle', 'full', 1, 'attack'),
+      S('legspin', 'middle', 'good', 2, 'attack'),
+    ],
     superBall: S('offspin', 'middle', 'good', 3, 'attack'),
   },
   slower_mix: {
     field: 'balanced',
-    balls: [S('good_length', 'off', 'good', 3, 'setup'), S('slower', 'off', 'good', 2, 'attack'), S('yorker', 'middle', 'full', 2, 'attack'), S('slower', 'middle', 'full', 2, 'attack'), S('good_length', 'off', 'good', 1, 'contain'), S('slower', 'off', 'good', 2, 'attack')],
+    balls: [
+      S('good_length', 'off', 'good', 3, 'setup'),
+      S('slower', 'off', 'good', 2, 'attack'),
+      S('yorker', 'middle', 'full', 2, 'attack'),
+      S('slower', 'middle', 'full', 2, 'attack'),
+      S('good_length', 'off', 'good', 1, 'contain'),
+      S('slower', 'off', 'good', 2, 'attack'),
+    ],
     superBall: S('slower', 'middle', 'good', 2, 'attack'),
   },
   contain_all: {
     field: 'sweeper',
-    balls: [S('good_length', 'off', 'good', 2, 'contain'), S('yorker', 'off', 'full', 2, 'contain'), S('good_length', 'wide_off', 'good', 2, 'contain'), S('bouncer', 'off', 'short', 2, 'contain'), S('offspin', 'off', 'good', 2, 'contain'), S('yorker', 'middle', 'full', 2, 'contain')],
+    balls: [
+      S('good_length', 'off', 'good', 2, 'contain'),
+      S('yorker', 'off', 'full', 2, 'contain'),
+      S('good_length', 'wide_off', 'good', 2, 'contain'),
+      S('bouncer', 'off', 'short', 2, 'contain'),
+      S('offspin', 'off', 'good', 2, 'contain'),
+      S('yorker', 'middle', 'full', 2, 'contain'),
+    ],
     superBall: S('yorker', 'off', 'full', 2, 'contain'),
   },
   attack_all: {
     field: 'attacking',
-    balls: [S('good_length', 'off', 'full', 2, 'attack'), S('yorker', 'middle', 'full', 2, 'attack'), S('good_length', 'off', 'good', 2, 'attack'), S('bouncer', 'middle', 'short', 2, 'attack'), S('offspin', 'middle', 'good', 2, 'attack'), S('yorker', 'middle', 'full', 2, 'attack')],
+    balls: [
+      S('good_length', 'off', 'full', 2, 'attack'),
+      S('yorker', 'middle', 'full', 2, 'attack'),
+      S('good_length', 'off', 'good', 2, 'attack'),
+      S('bouncer', 'middle', 'short', 2, 'attack'),
+      S('offspin', 'middle', 'good', 2, 'attack'),
+      S('yorker', 'middle', 'full', 2, 'attack'),
+    ],
     superBall: S('yorker', 'middle', 'full', 2, 'attack'),
   },
   setup_combos: {
     field: 'balanced',
-    balls: [S('bouncer', 'middle', 'short', 2, 'setup'), S('yorker', 'middle', 'full', 2, 'attack'), S('outswing', 'off', 'good', 2, 'setup'), S('inswing', 'middle', 'full', 2, 'attack'), S('slower', 'off', 'good', 1, 'setup'), S('yorker', 'off', 'full', 3, 'attack')],
+    balls: [
+      S('bouncer', 'middle', 'short', 2, 'setup'),
+      S('yorker', 'middle', 'full', 2, 'attack'),
+      S('outswing', 'off', 'good', 2, 'setup'),
+      S('inswing', 'middle', 'full', 2, 'attack'),
+      S('slower', 'off', 'good', 1, 'setup'),
+      S('yorker', 'off', 'full', 3, 'attack'),
+    ],
     superBall: S('yorker', 'middle', 'full', 2, 'attack'),
   },
   starter_mix: {
     field: 'balanced',
-    balls: [S('good_length', 'off', 'good', 2, 'contain'), S('bouncer', 'middle', 'short', 2, 'setup'), S('yorker', 'middle', 'full', 2, 'attack'), S('offspin', 'off', 'good', 2, 'contain'), S('good_length', 'wide_off', 'good', 2, 'attack'), S('yorker', 'off', 'full', 2, 'attack')],
+    balls: [
+      S('good_length', 'off', 'good', 2, 'contain'),
+      S('bouncer', 'middle', 'short', 2, 'setup'),
+      S('yorker', 'middle', 'full', 2, 'attack'),
+      S('offspin', 'off', 'good', 2, 'contain'),
+      S('good_length', 'wide_off', 'good', 2, 'attack'),
+      S('yorker', 'off', 'full', 2, 'attack'),
+    ],
     superBall: S('yorker', 'middle', 'full', 2, 'attack'),
   },
 };
 
-export function randomSpec(rng: Sfc32, variants: readonly DeliveryVariant[] = VARIANTS, allowance?: number): DeliverySpec {
+export function randomSpec(
+  rng: Sfc32,
+  variants: readonly DeliveryVariant[] = VARIANTS,
+  allowance?: number,
+): DeliverySpec {
   for (;;) {
     const variant = rng.pick(variants);
-    const d: DeliverySpec = { variant, line: rng.pick(LINES), length: rng.pick(ALLOWED_LENGTHS[variant]), intensity: rng.pick(INTENSITIES), intent: rng.pick(INTENTS) };
+    const d: DeliverySpec = {
+      variant,
+      line: rng.pick(LINES),
+      length: rng.pick(ALLOWED_LENGTHS[variant]),
+      intensity: rng.pick(INTENSITIES),
+      intent: rng.pick(INTENTS),
+    };
     if (allowance === undefined || energyCost(d) <= allowance) return d;
   }
 }
@@ -412,19 +548,30 @@ const REFERENCE_BATTER = { sigma: BAT_SKILLS.average.sigma, lambda: 1.2 };
  * bowler): the batter picks the best option for what it can see; the value is then taken under the over's true
  * intents, sequencing and the bowler's execution distribution.
  */
-export function overValue(spec: OverSpec, cond: Conditions, sigma = REFERENCE_BATTER.sigma, bowlSigma = BOWL_SKILLS.average): number {
+export function overValue(
+  spec: OverSpec,
+  cond: Conditions,
+  sigma = REFERENCE_BATTER.sigma,
+  bowlSigma = BOWL_SKILLS.average,
+): number {
   const ex = execProbs(bowlSigma);
   let total = 0;
   let prev: BallContext['prev'] = null;
   spec.balls.forEach((d, k) => {
     let repeats = 0;
-    for (let j = 0; j < k; j++) if (spec.balls[j].variant === d.variant && spec.balls[j].length === d.length && spec.balls[j].line === d.line) repeats++;
+    for (let j = 0; j < k; j++)
+      if (spec.balls[j].variant === d.variant && spec.balls[j].length === d.length && spec.balls[j].line === d.line)
+        repeats++;
     repeats = Math.min(repeats, 3);
     const phase: 'early' | 'mid' | 'last' = k >= 5 ? 'last' : cond.pitch === 'green' && k <= 2 ? 'early' : 'mid';
     const table = optionTable(d, spec.field, cond, phase, repeats, false);
     const timing = deliveryTiming(d, cond);
     const prevFlight = k > 0 ? deliveryTiming(spec.balls[k - 1], cond).releaseToContactMs : 600;
-    const probs = timingDistribution(timing, sigma, anchorBias(BAT_SKILLS.average.anchor, timing.releaseToContactMs, prevFlight));
+    const probs = timingDistribution(
+      timing,
+      sigma,
+      anchorBias(BAT_SKILLS.average.anchor, timing.releaseToContactMs, prevFlight),
+    );
     const lambda = k >= 5 ? 0 : REFERENCE_BATTER.lambda;
     const choice = OPTIONS[bestOption(table, probs, lambda).index];
     let v = 0;
@@ -433,17 +580,42 @@ export function overValue(spec: OverSpec, cond: Conditions, sigma = REFERENCE_BA
       // The previous ball's execution matters for its setup; use the likeliest grade for it.
       const ctx: BallContext = { ball: k, superBall: false, lastBall: k >= 5, newBatter: k === 0, prev, repeats };
       if (choice.shot === 'leave') {
-        const ev = evaluate({ d, grade: eg, shot: 'leave', zone: null, timing: 'no_shot', field: spec.field, cond, ctx });
+        const ev = evaluate({
+          d,
+          grade: eg,
+          shot: 'leave',
+          zone: null,
+          timing: 'no_shot',
+          field: spec.field,
+          cond,
+          ctx,
+        });
         v += ex[x] * (ev.expectedRuns - lambda * ev.pWicket);
       } else
         GRADES.forEach((grade, g) => {
           if (probs[g] < 1e-4) return;
-          const ev = evaluate({ d, grade: eg, shot: choice.shot, zone: choice.zone, timing: grade, field: spec.field, cond, ctx });
+          const ev = evaluate({
+            d,
+            grade: eg,
+            shot: choice.shot,
+            zone: choice.zone,
+            timing: grade,
+            field: spec.field,
+            cond,
+            ctx,
+          });
           v += ex[x] * probs[g] * (ev.expectedRuns - lambda * ev.pWicket);
         });
     });
     total += v;
-    prev = { variant: d.variant, line: d.line, length: d.length, intensity: d.intensity, intent: d.intent, grade: ex[0] >= ex[1] ? 'perfect' : 'good' };
+    prev = {
+      variant: d.variant,
+      line: d.line,
+      length: d.length,
+      intensity: d.intensity,
+      intent: d.intent,
+      grade: ex[0] >= ex[1] ? 'perfect' : 'good',
+    };
   });
   return total;
 }
@@ -472,7 +644,14 @@ const legal = (balls: DeliverySpec[]) => balls.reduce((s, b) => s + energyCost(b
  * Simulated-annealing search for the over that concedes the least value; deterministic for a given key. The first
  * restart begins from the best hand-made archetype that only uses allowed variants, the others from random overs.
  */
-function optimiseOver(cond: Conditions, field: FieldSetting, variants: readonly DeliveryVariant[], key: string, iterations = 1200, restarts = 4): { spec: OverSpec; value: number } {
+function optimiseOver(
+  cond: Conditions,
+  field: FieldSetting,
+  variants: readonly DeliveryVariant[],
+  key: string,
+  iterations = 1200,
+  restarts = 4,
+): { spec: OverSpec; value: number } {
   const rng = rngFromKey(`sim/optimise|${key}|${cond.pitch}|${cond.weather}|${field}|${variants.join(',')}`);
   const allowedArchetypes = Object.values(ARCHETYPES).filter((a) => a.balls.every((b) => variants.includes(b.variant)));
   let best: OverSpec | null = null;
@@ -490,7 +669,12 @@ function optimiseOver(cond: Conditions, field: FieldSetting, variants: readonly 
         }
       }
       cur = { ...seedSpec, field, balls: fitBudget(seedSpec.balls) };
-    } else cur = { field, balls: fitBudget([0, 1, 2, 3, 4, 5].map(() => randomSpec(rng, variants))), superBall: S('yorker', 'middle', 'full', 2, 'attack') };
+    } else
+      cur = {
+        field,
+        balls: fitBudget([0, 1, 2, 3, 4, 5].map(() => randomSpec(rng, variants))),
+        superBall: S('yorker', 'middle', 'full', 2, 'attack'),
+      };
     let curV = overValue(cur, cond);
     for (let it = 0; it < iterations; it++) {
       const next = mutate(rng, cur, variants);
@@ -525,7 +709,10 @@ export function optimisedSpec(cond: Conditions, starters: boolean, iterations = 
     const r = optimiseOver(cond, field, starters ? STARTER_VARIANTS : VARIANTS, 'main', iterations);
     if (!best || r.value < best.value) best = r;
   }
-  const spec = { ...(best as { spec: OverSpec }).spec, superBall: bestSuperBall(cond, (best as { spec: OverSpec }).spec.field, starters ? STARTER_VARIANTS : VARIANTS) };
+  const spec = {
+    ...(best as { spec: OverSpec }).spec,
+    superBall: bestSuperBall(cond, (best as { spec: OverSpec }).spec.field, starters ? STARTER_VARIANTS : VARIANTS),
+  };
   optimisedCache.set(key, spec);
   return spec;
 }
@@ -544,10 +731,26 @@ function bestSuperBall(cond: Conditions, field: FieldSetting, variants: readonly
             const table = optionTable(d, field, cond, 'last', 0, true);
             const probs = timingDistribution(deliveryTiming(d, cond), REFERENCE_BATTER.sigma, 0);
             const choice = OPTIONS[bestOption(table, probs, 0).index];
-            const ctx: BallContext = { ball: SUPER_BALL_INDEX, superBall: true, lastBall: true, newBatter: false, prev: null, repeats: 0 };
+            const ctx: BallContext = {
+              ball: SUPER_BALL_INDEX,
+              superBall: true,
+              lastBall: true,
+              newBatter: false,
+              prev: null,
+              repeats: 0,
+            };
             let v = 0;
             GRADES.forEach((grade, g) => {
-              const ev = evaluate({ d, grade: 'good', shot: choice.shot, zone: choice.zone, timing: choice.shot === 'leave' ? 'no_shot' : grade, field, cond, ctx });
+              const ev = evaluate({
+                d,
+                grade: 'good',
+                shot: choice.shot,
+                zone: choice.zone,
+                timing: choice.shot === 'leave' ? 'no_shot' : grade,
+                field,
+                cond,
+                ctx,
+              });
               v += probs[g] * ev.expectedRuns;
             });
             if (v < bestV) {
@@ -564,10 +767,15 @@ export function bowlPlan(policy: BowlPolicy, cond: Conditions, rng: Sfc32, seed:
   if (s === 'auto') return engine.autoOver(seed, cond);
   if (s.startsWith('ghost:')) return engine.ghostPlan(s.slice(6), seed, cond);
   if (s === 'random') return specToPlan(rng, randomOverSpec(rng), sigma);
-  if (s === 'optimised' || s === 'optimised_starters') return specToPlan(rng, optimisedSpec(cond, s === 'optimised_starters'), sigma);
+  if (s === 'optimised' || s === 'optimised_starters')
+    return specToPlan(rng, optimisedSpec(cond, s === 'optimised_starters'), sigma);
   if (s.startsWith('fixed_over:')) {
     const [pitch, starters] = s.slice(11).split('|');
-    return specToPlan(rng, optimisedSpec({ pitch: pitch as Conditions['pitch'], weather: 'clear' }, starters === 'starters'), sigma);
+    return specToPlan(
+      rng,
+      optimisedSpec({ pitch: pitch as Conditions['pitch'], weather: 'clear' }, starters === 'starters'),
+      sigma,
+    );
   }
   const spec = ARCHETYPES[s];
   if (!spec) throw new Error(`bowlPlan: ${s}`);
@@ -655,7 +863,14 @@ export interface InningsRecord {
 }
 
 /** Plays one batting innings (six balls or two wickets, then the Super Ball) against a sealed plan. */
-export function playInnings(bat: BatPolicy, plan: OverPlan, innings: 0 | 1, cond: Conditions, seed: string, rng: Sfc32): InningsRecord {
+export function playInnings(
+  bat: BatPolicy,
+  plan: OverPlan,
+  innings: 0 | 1,
+  cond: Conditions,
+  seed: string,
+  rng: Sfc32,
+): InningsRecord {
   const anomalies: string[] = [];
   const inputs: Array<BattingInput | null> = [];
   let state = engine.startInnings(innings);
@@ -684,22 +899,34 @@ export function playInnings(bat: BatPolicy, plan: OverPlan, innings: 0 | 1, cond
     inputs[ball] = input;
     const r = engine.resolveNextBall(state, { seed, conditions: cond, plan, input });
     if (r.outcome.ball !== ball) anomalies.push(`ball ${innings}.${ball}: resolved ball ${r.outcome.ball}`);
-    if (r.outcome.dead && (r.outcome.runs !== 0 || r.outcome.wicket)) anomalies.push(`ball ${innings}.${ball}: dead ball scored`);
-    if (r.outcome.dead !== undefined && state.wickets < 2) anomalies.push(`ball ${innings}.${ball}: dead ball before the second wicket`);
-    if (!r.outcome.dead && !superBall && state.wickets >= 2) anomalies.push(`ball ${innings}.${ball}: live ball after the second wicket`);
+    if (r.outcome.dead && (r.outcome.runs !== 0 || r.outcome.wicket))
+      anomalies.push(`ball ${innings}.${ball}: dead ball scored`);
+    if (r.outcome.dead !== undefined && state.wickets < 2)
+      anomalies.push(`ball ${innings}.${ball}: dead ball before the second wicket`);
+    if (!r.outcome.dead && !superBall && state.wickets >= 2)
+      anomalies.push(`ball ${innings}.${ball}: live ball after the second wicket`);
     for (const e of checkOutcome(r.outcome, delivery)) anomalies.push(`ball ${innings}.${ball}: ${e}`);
     state = r.state;
     if (!superBall) prev = delivery;
   }
-  if (state.outcomes.length !== 6 || !state.superBall) anomalies.push(`innings ${innings} did not face six balls and the Super Ball`);
+  if (state.outcomes.length !== 6 || !state.superBall)
+    anomalies.push(`innings ${innings} did not face six balls and the Super Ball`);
   if (state.wickets > 2) anomalies.push(`innings ${innings} more than two wickets`);
   if (state.runs > 36) anomalies.push(`innings ${innings} more than 36 runs`);
   return { state, inputs, anomalies };
 }
 
-export function playMatch(players: [SimPlayer, SimPlayer], cond: Conditions, seed: string, opts: PlayOptions = {}): MatchRecord {
+export function playMatch(
+  players: [SimPlayer, SimPlayer],
+  cond: Conditions,
+  seed: string,
+  opts: PlayOptions = {},
+): MatchRecord {
   const rng = rngFromKey(`sim/match|${seed}`);
-  const plans: [OverPlan, OverPlan] = [bowlPlan(players[0].bowl, cond, rng, `${seed}/p0`), bowlPlan(players[1].bowl, cond, rng, `${seed}/p1`)];
+  const plans: [OverPlan, OverPlan] = [
+    bowlPlan(players[0].bowl, cond, rng, `${seed}/p0`),
+    bowlPlan(players[1].bowl, cond, rng, `${seed}/p1`),
+  ];
   const anomalies: string[] = [];
   for (const p of [0, 1] as const) {
     const v = engine.validatePlan(plans[p], VARIANTS);
@@ -714,7 +941,14 @@ export function playMatch(players: [SimPlayer, SimPlayer], cond: Conditions, see
   let result: MatchEventLog['result'];
   let log: MatchEventLog | undefined;
   if (opts.buildLog) {
-    const commits = [0, 1].map((p) => ({ player: p as 0 | 1, hash: '', sig: 'sim', keyId: 'sim', lockedHour: '2026-10-25T00', salt: `salt${p}` })) as MatchEventLog['commits'];
+    const commits = [0, 1].map((p) => ({
+      player: p as 0 | 1,
+      hash: '',
+      sig: 'sim',
+      keyId: 'sim',
+      lockedHour: '2026-10-25T00',
+      salt: `salt${p}`,
+    })) as MatchEventLog['commits'];
     log = engine.buildMatchLog({
       matchId: `sim-${seed}`,
       kind: 'ghost',

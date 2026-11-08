@@ -35,8 +35,31 @@ describe('practice settings', () => {
     const store = memoryStore();
     updatePracticeSettings({ assist: 'real', handedness: 'left' }, store);
     expect(loadPracticeSettings(store)).toMatchObject({ assist: 'real', handedness: 'left', quality: 'auto' });
-    store.setItem(PRACTICE_KEYS.settings, JSON.stringify({ assist: 'godmode', handedness: 'left', quality: 'ultra', conditions: 'turning', hintsShown: -4, difficulty: 'legend', bowling: 'swing', teach: 'no', demoSeen: 1 }));
-    expect(loadPracticeSettings(store)).toMatchObject({ assist: 'learn', handedness: 'left', quality: 'auto', conditions: 'turning', hintsShown: 0, difficulty: 'club', bowling: 'any', teach: true, demoSeen: false });
+    store.setItem(
+      PRACTICE_KEYS.settings,
+      JSON.stringify({
+        assist: 'godmode',
+        handedness: 'left',
+        quality: 'ultra',
+        conditions: 'turning',
+        hintsShown: -4,
+        difficulty: 'legend',
+        bowling: 'swing',
+        teach: 'no',
+        demoSeen: 1,
+      }),
+    );
+    expect(loadPracticeSettings(store)).toMatchObject({
+      assist: 'learn',
+      handedness: 'left',
+      quality: 'auto',
+      conditions: 'turning',
+      hintsShown: 0,
+      difficulty: 'club',
+      bowling: 'any',
+      teach: true,
+      demoSeen: false,
+    });
     store.setItem(PRACTICE_KEYS.settings, 'not json');
     expect(loadPracticeSettings(store)).toEqual(DEFAULT_PRACTICE_SETTINGS);
   });
@@ -48,7 +71,10 @@ describe('calibration, per kind of input (CTL9)', () => {
     expect(loadCalibrations(store)).toEqual({});
     expect(saveCalibrations({ touch: { offsetMs: 41.6, attempts: 5 } }, store)).toBe(true);
     expect(saveCalibrations({ keyboard: { offsetMs: 12.2, attempts: 4 } }, store)).toBe(true);
-    expect(loadCalibrations(store)).toEqual({ touch: { offsetMs: 42, attempts: 5 }, keyboard: { offsetMs: 12, attempts: 4 } });
+    expect(loadCalibrations(store)).toEqual({
+      touch: { offsetMs: 42, attempts: 5 },
+      keyboard: { offsetMs: 12, attempts: 4 },
+    });
     expect(loadCalibration('touch', store)).toEqual({ offsetMs: 42, attempts: 5 });
     expect(loadCalibration('mouse', store)).toBeNull();
     clearCalibration(store);
@@ -73,7 +99,10 @@ describe('calibration, per kind of input (CTL9)', () => {
     expect(saveCalibrations({ touch: { offsetMs: 0, attempts: 0 } }, store)).toBe(false);
     store.setItem(PRACTICE_KEYS.calibration, JSON.stringify({ offsetMs: 9000, attempts: 5 }));
     expect(loadCalibrations(store)).toEqual({});
-    store.setItem(PRACTICE_KEYS.calibration, JSON.stringify({ v: 2, touch: { offsetMs: 'x', attempts: 5 }, mouse: { offsetMs: 20, attempts: 3 } }));
+    store.setItem(
+      PRACTICE_KEYS.calibration,
+      JSON.stringify({ v: 2, touch: { offsetMs: 'x', attempts: 5 }, mouse: { offsetMs: 20, attempts: 3 } }),
+    );
     expect(loadCalibrations(store)).toEqual({ mouse: { offsetMs: 20, attempts: 3 } });
   });
 });
@@ -104,7 +133,9 @@ describe('innings persistence', () => {
       innings({ runs: 1.5 }),
       innings({ balls: 999 }),
       innings({ version: 99 as never }),
-      innings({ current: { ...innings().current!, deliveries: Array.from({ length: 7 }, (_, i) => record(1, i % 6)) } }),
+      innings({
+        current: { ...innings().current!, deliveries: Array.from({ length: 7 }, (_, i) => record(1, i % 6)) },
+      }),
       innings({ current: { ...innings().current!, deliveries: [{ ...record(1, 0), runs: 5 as never }] } }),
       innings({ overs: Array.from({ length: 11 }, () => innings().overs[0]) }),
       innings({ dismissal: { record: { ...record(1, 2), dismissal: 'retired' as never } } }),

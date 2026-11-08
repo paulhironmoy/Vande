@@ -28,7 +28,9 @@ describe('match physics performance', () => {
     }
     const sorted = [...best].sort((a, b) => a - b);
     const median = sorted[Math.floor(sorted.length / 2)];
-    console.info(`match physics: ${balls.length} balls, per-ball median ${median.toFixed(2)} ms CPU (best of 5), worst ${sorted.at(-1)!.toFixed(2)} ms`);
+    console.info(
+      `match physics: ${balls.length} balls, per-ball median ${median.toFixed(2)} ms CPU (best of 5), worst ${sorted.at(-1)!.toFixed(2)} ms`,
+    );
     skipOverBudgetWhenLoaded(ctx, 'match physics, per-ball median', median, BUDGET_MS, 'ms');
     expect(median).toBeLessThan(BUDGET_MS);
   }, 120_000);

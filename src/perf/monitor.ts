@@ -8,7 +8,12 @@
 import type { PerfTier, QualityProfileId } from '@/contracts';
 import { frameStats, median } from './frames';
 import { toleranceFor, under, type PerfReason } from './classify';
-import { PERF_CUTOFF_FPS, PERF_FULL_AVG_FPS, PERF_FULL_SUSTAINED_FPS, PERF_REPEATED_CONTEXT_LOSSES } from './thresholds';
+import {
+  PERF_CUTOFF_FPS,
+  PERF_FULL_AVG_FPS,
+  PERF_FULL_SUSTAINED_FPS,
+  PERF_REPEATED_CONTEXT_LOSSES,
+} from './thresholds';
 
 export interface MonitorState {
   tier: PerfTier;
@@ -56,7 +61,14 @@ export class SessionMonitor {
    */
   sampleDeliverySummary(avgFrameMs: number, sampleCount: number): void {
     this.current = [];
-    if (!Number.isFinite(avgFrameMs) || avgFrameMs <= 0 || avgFrameMs >= 1000 || !Number.isInteger(sampleCount) || sampleCount <= 0) return;
+    if (
+      !Number.isFinite(avgFrameMs) ||
+      avgFrameMs <= 0 ||
+      avgFrameMs >= 1000 ||
+      !Number.isInteger(sampleCount) ||
+      sampleCount <= 0
+    )
+      return;
     if (avgFrameMs * sampleCount < MONITOR_MIN_WINDOW_MS) return;
     this.windows.push(1000 / avgFrameMs);
     if (this.windows.length > MONITOR_DELIVERIES) this.windows.shift();
@@ -80,12 +92,15 @@ export class SessionMonitor {
       if (this.windows.length > MONITOR_DELIVERIES) this.windows.shift();
     }
     const s = this.state;
-    if (this.losses >= PERF_REPEATED_CONTEXT_LOSSES && s.stage === '3d') return this.apply({ tier: 'below', profile: 'lite', stage: '2d' }, 'session_context_lost', 0);
+    if (this.losses >= PERF_REPEATED_CONTEXT_LOSSES && s.stage === '3d')
+      return this.apply({ tier: 'below', profile: 'lite', stage: '2d' }, 'session_context_lost', 0);
     if (s.stage === '2d' || this.windows.length < MONITOR_DELIVERIES) return null;
     const fps = median(this.windows);
     if (s.tier === 'full') {
-      if (under(fps, PERF_FULL_SUSTAINED_FPS)) return this.apply({ tier: 'assisted', profile: 'lite', stage: '3d' }, 'session_fps_drop', fps);
-      if (under(fps, PERF_FULL_AVG_FPS) && s.profile === 'high') return this.apply({ tier: 'full', profile: 'standard', stage: '3d' }, 'session_fps_drop', fps);
+      if (under(fps, PERF_FULL_SUSTAINED_FPS))
+        return this.apply({ tier: 'assisted', profile: 'lite', stage: '3d' }, 'session_fps_drop', fps);
+      if (under(fps, PERF_FULL_AVG_FPS) && s.profile === 'high')
+        return this.apply({ tier: 'full', profile: 'standard', stage: '3d' }, 'session_fps_drop', fps);
     } else if (s.tier === 'assisted' && under(fps, PERF_CUTOFF_FPS)) {
       return this.apply({ tier: 'below', profile: 'lite', stage: '2d' }, 'session_fps_drop', fps);
     }
@@ -108,7 +123,10 @@ export interface FrameSampler {
 /** Frame intervals from requestAnimationFrame while started (the stage renders in the same frames). */
 export function createFrameSampler(
   onInterval: (ms: number) => void,
-  env: { raf: (cb: FrameRequestCallback) => number; caf: (id: number) => void } | null = typeof requestAnimationFrame === 'function'
+  env: {
+    raf: (cb: FrameRequestCallback) => number;
+    caf: (id: number) => void;
+  } | null = typeof requestAnimationFrame === 'function'
     ? { raf: (cb) => requestAnimationFrame(cb), caf: (id) => cancelAnimationFrame(id) }
     : null,
 ): FrameSampler {

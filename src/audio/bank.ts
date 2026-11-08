@@ -29,7 +29,6 @@ export interface TakePick {
   occurrence: number;
 }
 
-
 export type FxId =
   | 'release_slow'
   | 'release_fast'
@@ -124,7 +123,17 @@ let fxSprite: AudioBuffer | null = null;
 let fxBuilding = false;
 const crowd: Partial<Record<CrowdReaction, AudioBuffer>> = {};
 /** Most needed first: the contact and close-call reactions, then the outcomes. */
-const CROWD_ORDER: readonly CrowdReaction[] = ['lift', 'ooh', 'applause', 'cheer', 'dismay', 'relief', 'groan', 'eruption', 'ovation'];
+const CROWD_ORDER: readonly CrowdReaction[] = [
+  'lift',
+  'ooh',
+  'applause',
+  'cheer',
+  'dismay',
+  'relief',
+  'groan',
+  'eruption',
+  'ovation',
+];
 let crowdQueued = false;
 
 export const fxReady = () => fxSprite !== null;
@@ -146,14 +155,26 @@ export function playFx(g: LiveGraph, id: FxId, when: number, gain: number, bus: 
   return true;
 }
 
-const FX_RENDER = Object.fromEntries(FX_SOURCES.map(([id, , render]) => [id, render])) as Record<FxId, (v: VoiceTarget, t: number) => void>;
+const FX_RENDER = Object.fromEntries(FX_SOURCES.map(([id, , render]) => [id, render])) as Record<
+  FxId,
+  (v: VoiceTarget, t: number) => void
+>;
 
 /**
  * Plays an effect heard at context time `when`: a recorded take (when `pick` names the delivery and one is loaded; its
  * onset lands on `when`), else from the sprite, else (before the bank is ready) the same voice synthesised live through
  * a gain. `dueMs` is the performance time it belongs to (for the timing log).
  */
-export function playSound(g: LiveGraph, id: FxId, when: number, gain: number, bus: Bus, dueMs: number, rate = 1, pick?: TakePick): void {
+export function playSound(
+  g: LiveGraph,
+  id: FxId,
+  when: number,
+  gain: number,
+  bus: Bus,
+  dueMs: number,
+  rate = 1,
+  pick?: TakePick,
+): void {
   if (gain <= 0) return;
   const take = pick ? pickTake(id, pick.delivery, pick.occurrence) : null;
   let heard = when;
@@ -177,7 +198,14 @@ export function playSound(g: LiveGraph, id: FxId, when: number, gain: number, bu
  * Plays a crowd reaction on the crowd bus: a recorded take when `pick` names the delivery and one is loaded (at its own
  * pitch), else the rendered synthesis. Returns what played (`rec:<take>` or `synth`), or null when neither is ready.
  */
-export function playReaction(g: LiveGraph, kind: CrowdReaction, when: number, gain: number, rate: number, pick: TakePick): string | null {
+export function playReaction(
+  g: LiveGraph,
+  kind: CrowdReaction,
+  when: number,
+  gain: number,
+  rate: number,
+  pick: TakePick,
+): string | null {
   const take = pickTake(`crowd:${kind}`, pick.delivery, pick.occurrence);
   if (take) {
     if (gain > 0) playTake(g, take, when, gain, 'crowd', 1);
@@ -204,7 +232,8 @@ export function playCrowdReaction(g: LiveGraph, kind: CrowdReaction, when: numbe
 
 type Deadline = { timeRemaining(): number };
 function idle(cb: (d: Deadline) => void): void {
-  const ric = (globalThis as { requestIdleCallback?: (cb: (d: Deadline) => void, o?: { timeout: number }) => number }).requestIdleCallback;
+  const ric = (globalThis as { requestIdleCallback?: (cb: (d: Deadline) => void, o?: { timeout: number }) => number })
+    .requestIdleCallback;
   if (typeof ric === 'function') {
     ric(cb, { timeout: 2000 });
     return;
@@ -283,4 +312,3 @@ export function prepareBanks(): void {
     buildCrowd(g);
   });
 }
-

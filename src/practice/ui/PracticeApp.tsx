@@ -72,7 +72,13 @@ export function PracticeApp({ appVersion, analytics, hooks, openedAt, onFlow }: 
       deliveryContext: kit.audio ? (s) => kit.audio!.deliveryContext(s) : undefined,
       words: {
         runup: (n) => t.t('practice.live.announce_runup', { n }),
-        outcome: (last: LastBall, board) => t.t('practice.live.announce', { result: outcomeWord(t, last.result.outcome).word, reason: reasonWords(t, last.result.coaching.reason, last.result), runs: board.runs, wickets: board.wickets }),
+        outcome: (last: LastBall, board) =>
+          t.t('practice.live.announce', {
+            result: outcomeWord(t, last.result.outcome).word,
+            reason: reasonWords(t, last.result.coaching.reason, last.result),
+            runs: board.runs,
+            wickets: board.wickets,
+          }),
       },
     });
     setFlow(f);
@@ -92,7 +98,13 @@ export function PracticeApp({ appVersion, analytics, hooks, openedAt, onFlow }: 
     if (!flow) return;
     flow.setLanguage(t.locale, t.t('practice.live.hint'), {
       runup: (n) => t.t('practice.live.announce_runup', { n }),
-      outcome: (last: LastBall, board) => t.t('practice.live.announce', { result: outcomeWord(t, last.result.outcome).word, reason: reasonWords(t, last.result.coaching.reason, last.result), runs: board.runs, wickets: board.wickets }),
+      outcome: (last: LastBall, board) =>
+        t.t('practice.live.announce', {
+          result: outcomeWord(t, last.result.outcome).word,
+          reason: reasonWords(t, last.result.coaching.reason, last.result),
+          runs: board.runs,
+          wickets: board.wickets,
+        }),
     });
   }, [flow, t]);
 
@@ -153,7 +165,13 @@ function PracticeScreens({ flow, appVersion }: { flow: PracticeFlow; appVersion:
     const draft = loadDraft();
     let plan: ReturnType<typeof planFromDraft> | null;
     try {
-      plan = draft ? planFromDraft(kit.build, draft, { assist: inn?.assist ?? settings.assist, conditions: inn?.conditions ?? 'balanced', seed: flow.seed() }) : null;
+      plan = draft
+        ? planFromDraft(kit.build, draft, {
+            assist: inn?.assist ?? settings.assist,
+            conditions: inn?.conditions ?? 'balanced',
+            seed: flow.seed(),
+          })
+        : null;
     } catch {
       plan = null;
     }
@@ -163,13 +181,17 @@ function PracticeScreens({ flow, appVersion }: { flow: PracticeFlow; appVersion:
       flow.chooseNextOver();
     }
   };
-  const harder: Difficulty | null = settings.difficulty === 'beginner' ? 'club' : settings.difficulty === 'club' ? 'expert' : null;
+  const harder: Difficulty | null =
+    settings.difficulty === 'beginner' ? 'club' : settings.difficulty === 'club' ? 'expert' : null;
   const onHarder = harder
     ? () => {
         void lockLandscape();
         updatePracticeSettings({ difficulty: harder });
         flow.refreshSettings();
-        flow.prepareOver({ kind: 'random', random: { difficulty: harder, conditions: inn?.conditions ?? settings.conditions, bowling: settings.bowling } });
+        flow.prepareOver({
+          kind: 'random',
+          random: { difficulty: harder, conditions: inn?.conditions ?? settings.conditions, bowling: settings.bowling },
+        });
       }
     : null;
   const settingsScreen = (inPlay: boolean) => (
@@ -189,39 +211,46 @@ function PracticeScreens({ flow, appVersion }: { flow: PracticeFlow; appVersion:
     />
   );
   const diagnostics = (inPlay: boolean) => (
-    <Diagnostics assessment={state.assessment} metrics={flow.metrics} recentFps={flow.sessionFps()} lastInputToBatMs={flow.lastInputToBatMs()} onReset={refresh} onBack={() => (inPlay ? setOverlay('settings') : setView('settings'))} />
+    <Diagnostics
+      assessment={state.assessment}
+      metrics={flow.metrics}
+      recentFps={flow.sessionFps()}
+      lastInputToBatMs={flow.lastInputToBatMs()}
+      onReset={refresh}
+      onBack={() => (inPlay ? setOverlay('settings') : setView('settings'))}
+    />
   );
   const play = (
     <div inert={overlay !== null || !playing ? true : undefined} style={{ display: 'contents' }}>
       <StageRegionsContext.Provider value={stageRegions}>
-      <Play
-        flow={flow}
-        state={state}
-        appVersion={appVersion}
-        tester={tester}
-        onHome={() => {
-          if (state.screen === 'over_summary') tester.nextOver('exit');
-          toHome();
-        }}
-        onSettings={() => setOverlay('settings')}
-        onNextOver={() => {
-          tester.nextOver('same');
-          void lockLandscape();
-          nextOver();
-        }}
-        onChooseOver={() => {
-          tester.nextOver('different');
-          flow.chooseNextOver();
-        }}
-        onHarder={
-          onHarder
-            ? () => {
-                tester.nextOver('harder');
-                onHarder();
-              }
-            : null
-        }
-      />
+        <Play
+          flow={flow}
+          state={state}
+          appVersion={appVersion}
+          tester={tester}
+          onHome={() => {
+            if (state.screen === 'over_summary') tester.nextOver('exit');
+            toHome();
+          }}
+          onSettings={() => setOverlay('settings')}
+          onNextOver={() => {
+            tester.nextOver('same');
+            void lockLandscape();
+            nextOver();
+          }}
+          onChooseOver={() => {
+            tester.nextOver('different');
+            flow.chooseNextOver();
+          }}
+          onHarder={
+            onHarder
+              ? () => {
+                  tester.nextOver('harder');
+                  onHarder();
+                }
+              : null
+          }
+        />
       </StageRegionsContext.Provider>
     </div>
   );
@@ -232,7 +261,9 @@ function PracticeScreens({ flow, appVersion }: { flow: PracticeFlow; appVersion:
         {play}
         {testerLayer}
         {overlay && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 'var(--z-sheet)', overflowY: 'auto', touchAction: 'auto' }}>
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 'var(--z-sheet)', overflowY: 'auto', touchAction: 'auto' }}
+          >
             {overlay === 'settings' && settingsScreen(true)}
             {overlay === 'calibration' && <Calibration onBack={() => setOverlay('settings')} />}
             {overlay === 'diagnostics' && diagnostics(true)}
@@ -281,7 +312,11 @@ function PracticeScreens({ flow, appVersion }: { flow: PracticeFlow; appVersion:
           storageOk={state.storageOk}
           onChoose={(kind) => {
             if (kind === 'predefined') setView('predefined');
-            else flow.prepareOver({ kind: 'random', random: { difficulty: settings.difficulty, conditions: settings.conditions, bowling: settings.bowling } });
+            else
+              flow.prepareOver({
+                kind: 'random',
+                random: { difficulty: settings.difficulty, conditions: settings.conditions, bowling: settings.bowling },
+              });
           }}
           onContinue={() => flow.continueInnings()}
           onDiscard={() => {

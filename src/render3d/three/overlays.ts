@@ -41,7 +41,11 @@ export interface PracticeOverlays {
    * First person: the contact happens almost under the eyes, below the view, so its flash is shown at the bottom edge
    * of the view where the contact is (clamped inside it), keyed to the contact's scene time like its sound.
    */
-  edgeFlash(script: { events: ReadonlyArray<{ t: number; kind: string; intensity: number; at?: Vec3 }> } | null, t: number, camera: PerspectiveCamera | null): void;
+  edgeFlash(
+    script: { events: ReadonlyArray<{ t: number; kind: string; intensity: number; at?: Vec3 }> } | null,
+    t: number,
+    camera: PerspectiveCamera | null,
+  ): void;
   /** Learn's landing cue: shown from release until just after the pitch (live only). */
   landing(at: Vec3 | null, t: number, releaseScene: number, bounceScene: number | null): void;
   /** Builds the replay overlays (null clears them). */
@@ -112,21 +116,42 @@ export function createOverlays(scene: Scene, flashMap: Texture | null = null): P
   group.name = 'practice-overlays';
   scene.add(group);
   const basic = (color: string, opacity = 0.9, additive = false) =>
-    new MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false, fog: false, side: DoubleSide, ...(additive ? { blending: AdditiveBlending } : {}) });
+    new MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity,
+      depthWrite: false,
+      fog: false,
+      side: DoubleSide,
+      ...(additive ? { blending: AdditiveBlending } : {}),
+    });
   const mats = {
     incoming: basic('#52e2ff', 0.85),
     outgoing: basic('#ffb347', 0.85),
     window: basic('#5dff9b', 0.32, true),
     perfect: basic('#c9ffd9', 0.55, true),
     bat: basic('#ff7ad9', 0.85),
-    ideal: new MeshBasicMaterial({ color: '#ffffff', wireframe: true, transparent: true, opacity: 0.9, depthWrite: false, fog: false }),
+    ideal: new MeshBasicMaterial({
+      color: '#ffffff',
+      wireframe: true,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+      fog: false,
+    }),
     contact: basic('#ffcf5a', 1),
     face: basic('#7ef0c5', 0.95),
     intended: basic('#ffffff', 0.85),
     actual: basic('#ffb347', 0.9),
     ring: basic('#52e2ff', 0.9, true),
     landing: basic('#7ef0c5', 0.9, true),
-    ghost: new MeshStandardMaterial({ color: '#e3c48e', transparent: true, opacity: 0.22, depthWrite: false, roughness: 0.6 }),
+    ghost: new MeshStandardMaterial({
+      color: '#e3c48e',
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false,
+      roughness: 0.6,
+    }),
     body: basic('#ffffff', 0.16),
     lbwOut: basic('#ff4d6a', 0.9),
     lbwNot: basic('#ffffff', 0.85),
@@ -142,7 +167,14 @@ export function createOverlays(scene: Scene, flashMap: Texture | null = null): P
   const batGeoSource = createBat();
 
   // Live: the contact flash at the edge of the view.
-  const flashMat = new MeshBasicMaterial({ color: '#ffffff', transparent: true, depthTest: false, depthWrite: false, blending: AdditiveBlending, fog: false });
+  const flashMat = new MeshBasicMaterial({
+    color: '#ffffff',
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    fog: false,
+  });
   const flashGeo = new PlaneGeometry(1, 1);
   const flashMesh = new Mesh(flashGeo, flashMat);
   flashMesh.visible = false;
@@ -305,7 +337,8 @@ export function createOverlays(scene: Scene, flashMap: Texture | null = null): P
           built.push(g);
           const m = new Mesh(g, mats.body);
           m.position.set((k.a.x + k.b.x) / 2, (k.a.y + k.b.y) / 2, (k.a.z + k.b.z) / 2);
-          if (len > 1e-4) m.quaternion.setFromUnitVectors(UP, new Vector3(k.b.x - k.a.x, k.b.y - k.a.y, k.b.z - k.a.z).normalize());
+          if (len > 1e-4)
+            m.quaternion.setFromUnitVectors(UP, new Vector3(k.b.x - k.a.x, k.b.y - k.a.y, k.b.z - k.a.z).normalize());
           parts.add(m);
           markers.push({ m, at: d.times.release });
         }
@@ -341,11 +374,23 @@ export function createOverlays(scene: Scene, flashMap: Texture | null = null): P
       if (d.intended) {
         // Dashes along the ground: what the player asked for.
         for (let k = 0; k < 8; k++) {
-          const from = { x: d.intended.from.x + d.intended.dir.x * k * 1.5, y: 0.04, z: d.intended.from.z + d.intended.dir.z * k * 1.5 };
+          const from = {
+            x: d.intended.from.x + d.intended.dir.x * k * 1.5,
+            y: 0.04,
+            z: d.intended.from.z + d.intended.dir.z * k * 1.5,
+          };
           arrow(from, d.intended.dir, k === 7 ? 1.2 : 0.8, 0.035, mats.intended, at);
         }
       }
-      if (d.actual) arrow({ x: d.actual.from.x, y: 0.05, z: d.actual.from.z }, d.actual.dir, d.actual.length, 0.05, mats.actual, at + 120);
+      if (d.actual)
+        arrow(
+          { x: d.actual.from.x, y: 0.05, z: d.actual.from.z },
+          d.actual.dir,
+          d.actual.length,
+          0.05,
+          mats.actual,
+          at + 120,
+        );
     },
     update(t) {
       if (!d) return;

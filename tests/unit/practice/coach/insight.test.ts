@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import type { CoachAnalysis, DeliveryRecord, NormalizedSwing } from '@/contracts/practice';
-import { analyzeBall, coachTip, compareAttempts, metStandard, praiseEarned, primaryInsight, tipOf, tipSentence, unwarnedRisks, type CoachTip } from '@/practice/coach';
+import {
+  analyzeBall,
+  coachTip,
+  compareAttempts,
+  metStandard,
+  praiseEarned,
+  primaryInsight,
+  tipOf,
+  tipSentence,
+  unwarnedRisks,
+  type CoachTip,
+} from '@/practice/coach';
 import type { BallFacts } from '@/practice/coach/facts';
 import { formatMessage } from '@/i18n/format';
 import { practiceEn } from '@/i18n/practice/en';
@@ -18,10 +29,18 @@ function attempt(record: DeliveryRecord, swing: NormalizedSwing | null): CoachAn
 }
 
 /** The recommended response's own swing, shifted in time (ms, + = late) and, optionally, with other footwork. */
-function recommendedSwing(record: DeliveryRecord, shiftMs = 0, footwork?: NormalizedSwing['footwork']): NormalizedSwing | null {
+function recommendedSwing(
+  record: DeliveryRecord,
+  shiftMs = 0,
+  footwork?: NormalizedSwing['footwork'],
+): NormalizedSwing | null {
   const rec = analyzeBall(record).options[0];
   if (!rec.swing) return null;
-  return { ...rec.swing, startT: Math.round((rec.swing.startT + shiftMs / 1000) * 1e4) / 1e4, ...(footwork ? { footwork } : {}) };
+  return {
+    ...rec.swing,
+    startT: Math.round((rec.swing.startT + shiftMs / 1000) * 1e4) / 1e4,
+    ...(footwork ? { footwork } : {}),
+  };
 }
 
 /** A reference ball the coach recommends playing (not leaving), at Real. */
@@ -50,7 +69,8 @@ describe('primaryInsight', () => {
       const p = primaryInsight(a).recommendation;
       expect(p.decision).toBe(rec.decision);
       expect(p.footwork).toBe(rec.footwork);
-      if (p.kind === 'attack_the_gap' || p.kind === 'aim_for_the_gap') expect(p.directionDeg).toBe(rec.swing!.directionDeg);
+      if (p.kind === 'attack_the_gap' || p.kind === 'aim_for_the_gap')
+        expect(p.directionDeg).toBe(rec.swing!.directionDeg);
     }
   });
 
@@ -65,7 +85,9 @@ describe('primaryInsight', () => {
   it('playing at a ball the coach would leave: leave it', () => {
     const aw = analyzeBall(WIDE);
     expect(aw.options[0].decision).toBe('leave');
-    expect(primaryInsight(attempt(WIDE, swingFor(WIDE, { kind: 'defend' }))).recommendation.kind).toBe('leave_outside_off');
+    expect(primaryInsight(attempt(WIDE, swingFor(WIDE, { kind: 'defend' }))).recommendation.kind).toBe(
+      'leave_outside_off',
+    );
   });
 
   it('the right stroke, late or early: play earlier or later, by how much', () => {
@@ -91,7 +113,16 @@ describe('primaryInsight', () => {
     const r = FULL_STRAIGHT;
     const rec = analyzeBall(r).options[0];
     expect(rec.decision).not.toBe('leave');
-    const a = attempt(r, swingFor(r, { kind: rec.swing!.kind, directionDeg: rec.swing!.directionDeg, power: rec.swing!.power, elevation: rec.swing!.elevation, footwork: 'back' }));
+    const a = attempt(
+      r,
+      swingFor(r, {
+        kind: rec.swing!.kind,
+        directionDeg: rec.swing!.directionDeg,
+        power: rec.swing!.power,
+        elevation: rec.swing!.elevation,
+        footwork: 'back',
+      }),
+    );
     expect(a.read.length).toBe('wrong');
     expect(primaryInsight(a).recommendation.kind).toBe('get_forward');
   });
@@ -105,9 +136,27 @@ describe('after a stroke that worked (RK-F06)', () => {
     // and a straight full ball. The former universal-drive grid became almost entirely misses after physical shot
     // reach/anatomy landed, so it no longer supplied enough *worked strokes* to exercise RK-F06.
     const cases = [
-      { record: referenceRecord('ref-1'), footwork: 'forward' as const, directions: [40, 50, 60], power: 0.6, elevation: 0.05 },
-      { record: referenceRecord('ref-2'), footwork: 'forward' as const, directions: [-10, 0, 10], power: 0.6, elevation: 0.05 },
-      { record: referenceRecord('ref-5'), footwork: 'back' as const, directions: [-145, -135, -125], power: 0.55, elevation: 0 },
+      {
+        record: referenceRecord('ref-1'),
+        footwork: 'forward' as const,
+        directions: [40, 50, 60],
+        power: 0.6,
+        elevation: 0.05,
+      },
+      {
+        record: referenceRecord('ref-2'),
+        footwork: 'forward' as const,
+        directions: [-10, 0, 10],
+        power: 0.6,
+        elevation: 0.05,
+      },
+      {
+        record: referenceRecord('ref-5'),
+        footwork: 'back' as const,
+        directions: [-145, -135, -125],
+        power: 0.55,
+        elevation: 0,
+      },
       { record: FULL_STRAIGHT, footwork: 'forward' as const, directions: [-10, 0, 10], power: 0.6, elevation: 0.05 },
     ];
     for (const { record, footwork, directions, power, elevation } of cases) {
@@ -121,7 +170,10 @@ describe('after a stroke that worked (RK-F06)', () => {
         // Not confirmed: the stroke was lucky, and the record shows it (a protected aim, a misread, or less value).
         const s = at.spread!;
         const value = (x: { dismissalRisk: number; expectedRuns: number }) => x.expectedRuns - 24 * x.dismissalRisk;
-        const lucky = s.risks.includes('into_protected_region') || Object.values(a.read).includes('wrong') || value(s) < value(a.options[0]) - 0.25;
+        const lucky =
+          s.risks.includes('into_protected_region') ||
+          Object.values(a.read).includes('wrong') ||
+          value(s) < value(a.options[0]) - 0.25;
         expect(lucky, `${k} after ${JSON.stringify(at)}`).toBe(true);
       }
     }
@@ -148,7 +200,10 @@ describe('after a stroke that worked (RK-F06)', () => {
   function expectNoPraise(tip: CoachTip, label: string) {
     for (const [locale, catalog, intl] of LOCALES) {
       const said = tipSentence(strict(catalog, intl), tip).toLocaleLowerCase();
-      expect(praiseIn(catalog).filter((p) => said.includes(p)), `${locale} ${label}: ${said}`).toEqual([]);
+      expect(
+        praiseIn(catalog).filter((p) => said.includes(p)),
+        `${locale} ${label}: ${said}`,
+      ).toEqual([]);
     }
   }
 
@@ -157,26 +212,81 @@ describe('after a stroke that worked (RK-F06)', () => {
     // drive (a different aim, worth as much over the execution spread) can take an edge. Recorded fields only.
     const known = {
       version: 3,
-      ball: { variation: 'cutter', speedKph: 127, lengthM: 6.4, lineAtStumpsM: 0.08, airMovementM: 0, pitchMovementM: 0.04, heightAtBatM: 0.7, wouldHitStumps: false },
+      ball: {
+        variation: 'cutter',
+        speedKph: 127,
+        lengthM: 6.4,
+        lineAtStumpsM: 0.08,
+        airMovementM: 0,
+        pitchMovementM: 0.04,
+        heightAtBatM: 0.7,
+        wouldHitStumps: false,
+      },
       read: { length: 'right', line: 'right', pace: 'unclear', movement: 'right', bounce: 'unclear' },
-      attempted: { decision: 'attack', footwork: 'forward', directionDeg: 70, elevation: 0, power: 0.6, timingErrorMs: 3, contact: 'middle', timing: 'perfect', runs: 1, dismissal: null, spread: { dismissalRisk: 0.01, expectedRuns: 1.5, risks: ['can_edge'] } },
+      attempted: {
+        decision: 'attack',
+        footwork: 'forward',
+        directionDeg: 70,
+        elevation: 0,
+        power: 0.6,
+        timingErrorMs: 3,
+        contact: 'middle',
+        timing: 'perfect',
+        runs: 1,
+        dismissal: null,
+        spread: { dismissalRisk: 0.01, expectedRuns: 1.5, risks: ['can_edge'] },
+      },
       why: ['found_the_gap'],
-      options: [{ kind: 'recommended', decision: 'attack', footwork: 'back', swing: { kind: 'attack', startT: 0.4, directionDeg: 40, power: 0.6, elevation: 0, footwork: 'back' }, outcome: { runs: 1, boundary: null, dismissal: null, fielderId: null, endBearingDeg: null, endDistanceM: null, region: 'cover' }, contact: 'middle', contactPoint: null, contactT: 0.5, dismissalRisk: 0, expectedRuns: 0.8, region: 'cover', risks: [] }],
+      options: [
+        {
+          kind: 'recommended',
+          decision: 'attack',
+          footwork: 'back',
+          swing: { kind: 'attack', startT: 0.4, directionDeg: 40, power: 0.6, elevation: 0, footwork: 'back' },
+          outcome: {
+            runs: 1,
+            boundary: null,
+            dismissal: null,
+            fielderId: null,
+            endBearingDeg: null,
+            endDistanceM: null,
+            region: 'cover',
+          },
+          contact: 'middle',
+          contactPoint: null,
+          contactT: 0.5,
+          dismissalRisk: 0,
+          expectedRuns: 0.8,
+          region: 'cover',
+          risks: [],
+        },
+      ],
     } as unknown as CoachAnalysis;
     const rec = primaryInsight(known).recommendation;
     expect(rec.kind).toBe('well_played'); // the recommendation logic is unchanged ...
     expect(unwarnedRisks(known)).toEqual(['can_edge']);
     expect(praiseEarned(known, rec)).toBe(false); // ... but its praise is not earned
-    const attemptFacts = { contact: { kind: 'middle' }, outcome: { dismissal: null, region: 'cover' }, coaching: { zone: 'cover', fielderRole: null } } as unknown as Parameters<typeof tipOf>[2];
+    const attemptFacts = {
+      contact: { kind: 'middle' },
+      outcome: { dismissal: null, region: 'cover' },
+      coaching: { zone: 'cover', fielderRole: null },
+    } as unknown as Parameters<typeof tipOf>[2];
     const tip = tipOf(known, {} as BallFacts, attemptFacts);
     expect(tip.action).toEqual(rec);
     expect(tip.fact).toEqual({ kind: 'unwarned', risk: 'can_edge', instead: 'aim_for_the_gap' });
-    expect(tipSentence(strict(practiceEn as Record<string, string>, 'en-IN'), tip)).toBe('It worked, but that stroke can take an edge: aim for the cover gap.');
+    expect(tipSentence(strict(practiceEn as Record<string, string>, 'en-IN'), tip)).toBe(
+      'It worked, but that stroke can take an edge: aim for the cover gap.',
+    );
     expectNoPraise(tip, 'known case');
     // Without the risk the same stroke is praised, as before.
-    const clean = { ...known, attempted: { ...known.attempted, spread: { ...known.attempted.spread!, risks: [] } } } as CoachAnalysis;
+    const clean = {
+      ...known,
+      attempted: { ...known.attempted, spread: { ...known.attempted.spread!, risks: [] } },
+    } as CoachAnalysis;
     expect(praiseEarned(clean, primaryInsight(clean).recommendation)).toBe(true);
-    expect(tipSentence(strict(practiceEn as Record<string, string>, 'en-IN'), tipOf(clean, {} as BallFacts, attemptFacts))).toContain('works as well as the coach');
+    expect(
+      tipSentence(strict(practiceEn as Record<string, string>, 'en-IN'), tipOf(clean, {} as BallFacts, attemptFacts)),
+    ).toContain('works as well as the coach');
   });
 
   it('when the recommended response is a leave, the action said is that leave, never the praise', () => {
@@ -184,26 +294,104 @@ describe('after a stroke that worked (RK-F06)', () => {
     // would leave the ball): the first version kept "that works as well as the coach's choice" for a leave.
     const leaveKnown = {
       version: 3,
-      ball: { variation: 'outswing', speedKph: 138, lengthM: 5.2, lineAtStumpsM: 0.32, airMovementM: 0.18, pitchMovementM: 0.01, heightAtBatM: 0.8, wouldHitStumps: false },
+      ball: {
+        variation: 'outswing',
+        speedKph: 138,
+        lengthM: 5.2,
+        lineAtStumpsM: 0.32,
+        airMovementM: 0.18,
+        pitchMovementM: 0.01,
+        heightAtBatM: 0.8,
+        wouldHitStumps: false,
+      },
       read: { length: 'right', line: 'right', pace: 'unclear', movement: 'right', bounce: 'unclear' },
-      attempted: { decision: 'attack', footwork: 'forward', directionDeg: 40, elevation: 0.05, power: 0.6, timingErrorMs: 2, contact: 'middle', timing: 'perfect', runs: 2, dismissal: null, spread: { dismissalRisk: 0.005, expectedRuns: 1.2, risks: ['can_be_caught'] } },
+      attempted: {
+        decision: 'attack',
+        footwork: 'forward',
+        directionDeg: 40,
+        elevation: 0.05,
+        power: 0.6,
+        timingErrorMs: 2,
+        contact: 'middle',
+        timing: 'perfect',
+        runs: 2,
+        dismissal: null,
+        spread: { dismissalRisk: 0.005, expectedRuns: 1.2, risks: ['can_be_caught'] },
+      },
       why: ['found_the_gap'],
-      options: [{ kind: 'recommended', decision: 'leave', swing: null, footwork: 'forward', outcome: { runs: 0, boundary: null, dismissal: null, fielderId: null, endBearingDeg: null, endDistanceM: null, region: null }, contact: 'leave', contactPoint: null, contactT: null, dismissalRisk: 0, expectedRuns: 0, region: null, risks: [] }],
+      options: [
+        {
+          kind: 'recommended',
+          decision: 'leave',
+          swing: null,
+          footwork: 'forward',
+          outcome: {
+            runs: 0,
+            boundary: null,
+            dismissal: null,
+            fielderId: null,
+            endBearingDeg: null,
+            endDistanceM: null,
+            region: null,
+          },
+          contact: 'leave',
+          contactPoint: null,
+          contactT: null,
+          dismissalRisk: 0,
+          expectedRuns: 0,
+          region: null,
+          risks: [],
+        },
+      ],
     } as unknown as CoachAnalysis;
     const rec = primaryInsight(leaveKnown).recommendation;
     expect(rec.kind).toBe('well_played');
-    const tip = tipOf(leaveKnown, {} as BallFacts, { contact: { kind: 'middle' }, outcome: { dismissal: null, region: 'cover' }, coaching: { zone: 'cover', fielderRole: null } } as unknown as Parameters<typeof tipOf>[2]);
+    const tip = tipOf(
+      leaveKnown,
+      {} as BallFacts,
+      {
+        contact: { kind: 'middle' },
+        outcome: { dismissal: null, region: 'cover' },
+        coaching: { zone: 'cover', fielderRole: null },
+      } as unknown as Parameters<typeof tipOf>[2],
+    );
     expect(tip.fact).toEqual({ kind: 'unwarned', risk: 'can_be_caught', instead: 'leave_outside_off' });
-    expect(tipSentence(strict(practiceEn as Record<string, string>, 'en-IN'), tip)).toBe('It worked, but that stroke can be caught: leave it, it is passing off stump.');
+    expect(tipSentence(strict(practiceEn as Record<string, string>, 'en-IN'), tip)).toBe(
+      'It worked, but that stroke can be caught: leave it, it is passing off stump.',
+    );
     expectNoPraise(tip, 'known leave case');
   });
 
   it('every confirmed stroke on the reference balls (Real ref-4 drives included) is praised only when earned', () => {
     const cases = [
-      { record: referenceRecord('ref-4', 'real'), footwork: 'forward' as const, directions: [30, 40, 50, 60], power: 0.6, elevation: 0.05 },
-      { record: referenceRecord('ref-4', 'real'), footwork: 'back' as const, directions: [30, 45, 60], power: 0.6, elevation: 0 },
-      { record: referenceRecord('ref-1'), footwork: 'forward' as const, directions: [40, 50, 60], power: 0.6, elevation: 0.05 },
-      { record: referenceRecord('ref-2'), footwork: 'forward' as const, directions: [-10, 0, 10], power: 0.6, elevation: 0.05 },
+      {
+        record: referenceRecord('ref-4', 'real'),
+        footwork: 'forward' as const,
+        directions: [30, 40, 50, 60],
+        power: 0.6,
+        elevation: 0.05,
+      },
+      {
+        record: referenceRecord('ref-4', 'real'),
+        footwork: 'back' as const,
+        directions: [30, 45, 60],
+        power: 0.6,
+        elevation: 0,
+      },
+      {
+        record: referenceRecord('ref-1'),
+        footwork: 'forward' as const,
+        directions: [40, 50, 60],
+        power: 0.6,
+        elevation: 0.05,
+      },
+      {
+        record: referenceRecord('ref-2'),
+        footwork: 'forward' as const,
+        directions: [-10, 0, 10],
+        power: 0.6,
+        elevation: 0.05,
+      },
       { record: FULL_STRAIGHT, footwork: 'forward' as const, directions: [-10, 0, 10], power: 0.6, elevation: 0.05 },
     ];
     for (const { record, footwork, directions, power, elevation } of cases) {
@@ -271,7 +459,12 @@ describe('compareAttempts', () => {
   it('right footwork this time', () => {
     const r = FULL_STRAIGHT;
     const rec = analyzeBall(r).options[0];
-    const o = { kind: rec.swing!.kind, directionDeg: rec.swing!.directionDeg, power: rec.swing!.power, elevation: rec.swing!.elevation };
+    const o = {
+      kind: rec.swing!.kind,
+      directionDeg: rec.swing!.directionDeg,
+      power: rec.swing!.power,
+      elevation: rec.swing!.elevation,
+    };
     const prev = attempt(r, swingFor(r, { ...o, footwork: 'back' }));
     const next = attempt(r, swingFor(r, { ...o, footwork: rec.footwork }));
     expect(rec.footwork).toBe('forward');

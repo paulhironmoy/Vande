@@ -48,7 +48,11 @@ function sharingRenderer() {
 
 vi.mock('@/render3d', async () => {
   const actual = await vi.importActual<typeof import('@/render3d')>('@/render3d');
-  return { ...actual, createMatchRenderer: async () => sharingRenderer() as unknown as StageRenderer, webglAvailable: () => true };
+  return {
+    ...actual,
+    createMatchRenderer: async () => sharingRenderer() as unknown as StageRenderer,
+    webglAvailable: () => true,
+  };
 });
 vi.mock('@/audio', async () => {
   const actual = await vi.importActual<typeof import('@/audio')>('@/audio');

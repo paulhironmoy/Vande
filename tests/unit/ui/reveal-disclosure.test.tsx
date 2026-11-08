@@ -5,7 +5,16 @@
  */
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
-import type { BattingInput, CommitRecord, Conditions, InningsState, LiveBallHandle, MatchEventLog, OverPlan, ReplayMode } from '@/contracts';
+import type {
+  BattingInput,
+  CommitRecord,
+  Conditions,
+  InningsState,
+  LiveBallHandle,
+  MatchEventLog,
+  OverPlan,
+  ReplayMode,
+} from '@/contracts';
 import { autoXiSeed, engine } from '@/engine';
 import { buildTrainingLog, trainingCoachRef, trainingPlan, trainingSetup, TRAINING_LESSON } from '@/engine/training';
 import { useApp } from '@/app/store';
@@ -87,7 +96,11 @@ const fake = { current: controllableRenderer() };
 
 vi.mock('@/render3d', async () => {
   const actual = await vi.importActual<typeof import('@/render3d')>('@/render3d');
-  return { ...actual, createMatchRenderer: async () => fake.current as unknown as StageRenderer, webglAvailable: () => true };
+  return {
+    ...actual,
+    createMatchRenderer: async () => fake.current as unknown as StageRenderer,
+    webglAvailable: () => true,
+  };
 });
 vi.mock('@/audio', async () => {
   const actual = await vi.importActual<typeof import('@/audio')>('@/audio');
@@ -121,11 +134,18 @@ afterEach(() => {
 // ---- real engine logs ------------------------------------------------------------------------------------------------
 
 const CONDITIONS: Conditions = { pitch: 'green', weather: 'clear' };
-const hexOf = (key: string) => Array.from(key, (c) => c.charCodeAt(0).toString(16)).join('').padEnd(32, '0').slice(0, 32);
+const hexOf = (key: string) =>
+  Array.from(key, (c) => c.charCodeAt(0).toString(16))
+    .join('')
+    .padEnd(32, '0')
+    .slice(0, 32);
 
 async function duelLog(key: string, autoFrom = 99): Promise<MatchEventLog> {
   const seed = hexOf(key);
-  const plans: [OverPlan, OverPlan] = [engine.ghostPlan('enforcer', `${key}-0`, CONDITIONS), engine.ghostPlan('trickster', `${key}-1`, CONDITIONS)];
+  const plans: [OverPlan, OverPlan] = [
+    engine.ghostPlan('enforcer', `${key}-0`, CONDITIONS),
+    engine.ghostPlan('trickster', `${key}-1`, CONDITIONS),
+  ];
   const states: [InningsState, InningsState] = [engine.startInnings(0), engine.startInnings(1)];
   const inputs: [Array<BattingInput | null>, Array<BattingInput | null>] = [[], []];
   for (const i of [0, 1] as const) {
@@ -134,7 +154,10 @@ async function duelLog(key: string, autoFrom = 99): Promise<MatchEventLog> {
     while (!st.done) {
       const d = engine.revealDelivery(plan, st.nextBall, CONDITIONS);
       // Player 2 misses the batting deadline from ball `autoFrom`: the platform's Auto XI bats the rest.
-      const raw = i === 1 && d.ball >= autoFrom ? engine.autoBat(autoXiSeed(seed, 1, d.ball), d, plan.field) : engine.ghostBat(i === 0 ? 'maestro' : 'swinger', `${key}-bat${i}`, d, plan.field);
+      const raw =
+        i === 1 && d.ball >= autoFrom
+          ? engine.autoBat(autoXiSeed(seed, 1, d.ball), d, plan.field)
+          : engine.ghostBat(i === 0 ? 'maestro' : 'swinger', `${key}-bat${i}`, d, plan.field);
       const c = engine.validateBattingInput(raw, d);
       const input = c.ok ? c.input : null;
       inputs[i].push(input);
@@ -144,7 +167,14 @@ async function duelLog(key: string, autoFrom = 99): Promise<MatchEventLog> {
   }
   const salts = ['salt-0', 'salt-1'];
   const commits = (await Promise.all(
-    [0, 1].map(async (p) => ({ player: p as 0 | 1, hash: await engine.commitHash(plans[p], salts[p]), sig: '', keyId: 'test', lockedHour: '2026-10-25T09:00Z', salt: salts[p] })),
+    [0, 1].map(async (p) => ({
+      player: p as 0 | 1,
+      hash: await engine.commitHash(plans[p], salts[p]),
+      sig: '',
+      keyId: 'test',
+      lockedHour: '2026-10-25T09:00Z',
+      salt: salts[p],
+    })),
   )) as [CommitRecord, CommitRecord];
   return engine.buildMatchLog({
     matchId: `duel-${key}`,
@@ -204,7 +234,13 @@ async function trainingLog(): Promise<MatchEventLog> {
   const d = engine.revealDelivery(setup.coachOver, 0, setup.conditions);
   const own = engine.validateBattingInput(engine.ghostBat('maestro', 'me', d, setup.coachOver.field), d);
   const plan = trainingPlan(TRAINING_LESSON.choices.yorker, null, setup.seed);
-  return buildTrainingLog({ setup, player: FIXTURE_PLAYERS[0], coach: trainingCoachRef('Coach', FIXTURE_PLAYERS[1].kit), plan, inputs: [own.ok ? own.input : null] });
+  return buildTrainingLog({
+    setup,
+    player: FIXTURE_PLAYERS[0],
+    coach: trainingCoachRef('Coach', FIXTURE_PLAYERS[1].kit),
+    plan,
+    inputs: [own.ok ? own.input : null],
+  });
 }
 
 // ---- driving the screen ----------------------------------------------------------------------------------------------
@@ -225,21 +261,34 @@ async function frame(ms: number) {
 }
 /** Drags the scrubber to a replay time (its value is a position on the neutral track, 0–1000). */
 function scrub(ms: number, tl?: Timeline, log?: MatchEventLog) {
-  const value = tl && log ? Math.round(neutralTrack(tl, { innings: log.kind === 'daily' ? 1 : 2, superBall: log.kind !== 'daily' }).pos(ms) * 1000) : ms;
+  const value =
+    tl && log
+      ? Math.round(
+          neutralTrack(tl, { innings: log.kind === 'daily' ? 1 : 2, superBall: log.kind !== 'daily' }).pos(ms) * 1000,
+        )
+      : ms;
   fireEvent.change(screen.getByTestId('reveal-scrub'), { target: { value: String(value) } });
 }
 
-const timelineOf = (log: MatchEventLog, mode: ReplayMode) => buildTimeline(log, mode, { reducedMotion: useApp.getState().reducedMotion });
-const segOf = (tl: Timeline, eventIndex: number) => tl.segments.find((x) => x.kind === 'ball' && x.eventIndex === eventIndex) as Segment;
+const timelineOf = (log: MatchEventLog, mode: ReplayMode) =>
+  buildTimeline(log, mode, { reducedMotion: useApp.getState().reducedMotion });
+const segOf = (tl: Timeline, eventIndex: number) =>
+  tl.segments.find((x) => x.kind === 'ball' && x.eventIndex === eventIndex) as Segment;
 const decided = (seg: Segment) => timelineTimeOf(seg, seg.script.times.decisive) + 5;
 const undecided = (seg: Segment) => seg.t0 + 1;
 
-const rowKinds = (n: 1 | 2) => Array.from(within(screen.getByTestId('reveal-timeline')).getByRole('list', { name: `Innings ${n}` }).querySelectorAll('[data-kind]')).map((x) => x.getAttribute('data-kind'));
+const rowKinds = (n: 1 | 2) =>
+  Array.from(
+    within(screen.getByTestId('reveal-timeline'))
+      .getByRole('list', { name: `Innings ${n}` })
+      .querySelectorAll('[data-kind]'),
+  ).map((x) => x.getAttribute('data-kind'));
 const tickKinds = () => Array.from(screen.getByTestId('reveal-ticks').children).map((x) => x.getAttribute('data-kind'));
 const live = () => screen.getByTestId('reveal-live').textContent ?? '';
 const panel = () => screen.getByRole('tabpanel');
 const scoreText = (runs: number, wickets: number) => `${runs}/${wickets}`;
-const markKind = (o: { runs: number; wicket: unknown }) => (o.wicket ? 'wicket' : o.runs === 6 ? 'six' : o.runs === 4 ? 'four' : o.runs === 0 ? 'dot' : 'runs');
+const markKind = (o: { runs: number; wicket: unknown }) =>
+  o.wicket ? 'wicket' : o.runs === 6 ? 'six' : o.runs === 4 ? 'four' : o.runs === 0 ? 'dot' : 'runs';
 
 describe('the reveal discloses only what playback has reached', () => {
   it('at the start: neutral placeholders, no marks, no totals, no result and a silent live region', async () => {
@@ -281,7 +330,9 @@ describe('the reveal discloses only what playback has reached', () => {
     await frame(decided(seg));
     expect(rowKinds(1)).toEqual([...balls.slice(0, k + 1).map(markKind), ...Array(5 - k).fill('upcoming')]);
     expect(tickKinds()).toHaveLength(k + 1);
-    expect(tickKinds().filter((x) => x === 'wicket')).toHaveLength(balls.slice(0, k + 1).filter((o) => o.wicket).length);
+    expect(tickKinds().filter((x) => x === 'wicket')).toHaveLength(
+      balls.slice(0, k + 1).filter((o) => o.wicket).length,
+    );
     expect(within(panel()).getAllByRole('button')).toHaveLength(k + 1);
     const after = log.events[ix.balls[0][k]];
     if (after.t !== 'ball') throw new Error('not a ball');
@@ -353,7 +404,10 @@ describe('the reveal discloses only what playback has reached', () => {
     // Lines that carry the result ("The chase falls 5 runs short.", "… wins by 7 runs!") wait for the card: not on the
     // innings-end card, not during the held breath, and never in the live region before it.
     const resultLines = log.events
-      .filter((e) => e.t === 'commentary' && /\.(chase_won|chase_short|result_\w+|player_of_match|turning_point)$/.test(e.key))
+      .filter(
+        (e) =>
+          e.t === 'commentary' && /\.(chase_won|chase_short|result_\w+|player_of_match|turning_point)$/.test(e.key),
+      )
       .map((e) => commentaryText(e as never, log, tr))
       .filter(Boolean);
     expect(resultLines.length).toBeGreaterThan(0);
@@ -375,7 +429,9 @@ describe('the reveal discloses only what playback has reached', () => {
     expect(screen.getByTestId('reveal-result-card').textContent).toContain(resultText(log.result, log, tr));
     expect(screen.queryByTestId('reveal-breath')).toBeNull();
     // Now the result may be said.
-    expect(resultLines.some((line) => live().includes(line)) || live().includes(resultText(log.result, log, tr))).toBe(true);
+    expect(resultLines.some((line) => live().includes(line)) || live().includes(resultText(log.result, log, tr))).toBe(
+      true,
+    );
   });
 
   it('the held breath: the crowd hushes, the sound builds and the camera pushes in (a still frame with reduced motion)', async () => {
@@ -395,7 +451,9 @@ describe('the reveal discloses only what playback has reached', () => {
     expect(b.pos.z).toBeGreaterThan(a.pos.z);
     expect(b.fov).toBeLessThan(a.fov);
     const still = { aspect: 0.5, reducedMotion: true };
-    expect(shotPose('result_push', seg.script, 0, 0, still)).toEqual(shotPose('result_push', seg.script, beat, 0, still));
+    expect(shotPose('result_push', seg.script, 0, 0, still)).toEqual(
+      shotPose('result_push', seg.script, beat, 0, still),
+    );
   });
 
   it('Key Moments (the default for duels) shows the skipped balls once a later ball plays, and the score bug never a ball to come', async () => {
@@ -436,7 +494,11 @@ describe('the reveal discloses only what playback has reached', () => {
     await open(log, { initialMode: 'full' });
     // Before the second wicket is decided, nothing says the innings is about to end.
     await frame(undecided(segOf(tl, ix.balls[0][n - 1])));
-    expect(rowKinds(1)).toEqual([...log.innings[0].balls.slice(0, n - 1).map(markKind), 'current', ...Array(6 - n).fill('upcoming')]);
+    expect(rowKinds(1)).toEqual([
+      ...log.innings[0].balls.slice(0, n - 1).map(markKind),
+      'current',
+      ...Array(6 - n).fill('upcoming'),
+    ]);
     // The wicket ends it: only the balls faced remain.
     await frame(decided(segOf(tl, ix.balls[0][n - 1])));
     expect(rowKinds(1)).toEqual(log.innings[0].balls.map(markKind));
@@ -475,7 +537,11 @@ describe('the reveal discloses only what playback has reached', () => {
     const seeks = () => fake.current.calls.filter(([c]) => c === 'seek').length;
     const n = seeks();
     fireEvent.click(within(row).getAllByRole('button')[4]);
-    fireEvent.click(within(within(screen.getByTestId('reveal-timeline')).getByRole('list', { name: 'Innings 2' })).getAllByRole('button')[0]);
+    fireEvent.click(
+      within(within(screen.getByTestId('reveal-timeline')).getByRole('list', { name: 'Innings 2' })).getAllByRole(
+        'button',
+      )[0],
+    );
     expect(seeks()).toBe(n);
     fireEvent.click(within(row).getAllByRole('button')[1]);
     expect(seeks()).toBe(n + 1);
@@ -490,7 +556,13 @@ describe('the reveal discloses only what playback has reached', () => {
     const ix = indexLog(log);
     await open(log, { initialMode: 'full' });
     await frame(undecided(segOf(tl, ix.balls[0][2])));
-    expect(rowKinds(1)).toEqual([...log.innings[0].balls.slice(0, 2).map(markKind), 'current', 'upcoming', 'upcoming', 'upcoming']);
+    expect(rowKinds(1)).toEqual([
+      ...log.innings[0].balls.slice(0, 2).map(markKind),
+      'current',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+    ]);
     expect(tickKinds()).toHaveLength(2);
     expect(disclosedAt(log, tl, undecided(segOf(tl, ix.balls[0][2])))).toBe(ix.balls[0][2] - 1);
   });
@@ -520,7 +592,12 @@ describe('Daily Six and Training reveals', () => {
     expect(auto.main[1]).toEqual([null, 'bowled', 'bowled', 'bowled', 'bowled', 'bowled']);
     expect(auto.super).toEqual(['batted', 'bowled']);
     await open(log);
-    const items = (n: 1 | 2) => Array.from(within(screen.getByTestId('reveal-timeline')).getByRole('list', { name: `Innings ${n}` }).querySelectorAll('li'));
+    const items = (n: 1 | 2) =>
+      Array.from(
+        within(screen.getByTestId('reveal-timeline'))
+          .getByRole('list', { name: `Innings ${n}` })
+          .querySelectorAll('li'),
+      );
     // What is on screen (the screen-reader note is checked separately).
     const captions = (n: 1 | 2) =>
       items(n).map((li) => {
@@ -532,7 +609,10 @@ describe('Daily Six and Training reveals', () => {
     expect(captions(1)).toEqual(['1', 'Auto', 'Auto', 'Auto', 'Auto', 'Auto']);
     expect(captions(2)).toEqual(['1', 'Auto', 'Auto', 'Auto', 'Auto', 'Auto']);
     // Screen readers hear it too: "Batted automatically" / "Bowled automatically" on each Auto slot.
-    expect(items(1).map((li) => li.querySelector('.sr-only')?.textContent ?? null)).toEqual([null, ...Array(5).fill('Batted automatically')]);
+    expect(items(1).map((li) => li.querySelector('.sr-only')?.textContent ?? null)).toEqual([
+      null,
+      ...Array(5).fill('Batted automatically'),
+    ]);
     expect(items(2)[1].querySelector('.sr-only')?.textContent).toBe('Bowled automatically');
     fireEvent.click(screen.getByTestId('reveal-skip'));
     const rows = within(panel()).getAllByRole('button');
@@ -546,7 +626,10 @@ describe('Daily Six and Training reveals', () => {
   it('a duel without stand-ins has no Auto labels; an Auto Over labels the over it bowled', async () => {
     const log = await findDuel(rich);
     expect(autoBalls(log).any).toBe(false);
-    const autoOver = { ...log, commits: [log.commits[0], { ...log.commits[1], auto: true }] as MatchEventLog['commits'] };
+    const autoOver = {
+      ...log,
+      commits: [log.commits[0], { ...log.commits[1], auto: true }] as MatchEventLog['commits'],
+    };
     const auto = autoBalls(autoOver);
     expect(auto.main[0]).toEqual(Array(6).fill('bowled'));
     expect(auto.main[1]).toEqual(Array(6).fill(null));
@@ -555,7 +638,8 @@ describe('Daily Six and Training reveals', () => {
     const lateAuto = autoBalls(late);
     expect(lateAuto.main[0]).toEqual(Array(6).fill(null));
     expect(lateAuto.main[1].slice(0, 3)).toEqual([null, null, null]);
-    for (const b of late.inputs[1].map((i) => i.ball).filter((b) => b >= 3 && b < 6)) expect(lateAuto.main[1][b]).toBe('batted');
+    for (const b of late.inputs[1].map((i) => i.ball).filter((b) => b >= 3 && b < 6))
+      expect(lateAuto.main[1][b]).toBe('batted');
     expect(lateAuto.super[1]).toBe('batted');
   });
 });
@@ -570,13 +654,23 @@ describe('rematch action', () => {
     expect(button.getAttribute('data-state')).toBe('idle');
     cleanup();
     fake.current = controllableRenderer();
-    await open(log, { onRematch, onShare: () => undefined, rematchState: 'sent', rematchLabel: 'Rematch sent · send again' });
+    await open(log, {
+      onRematch,
+      onShare: () => undefined,
+      rematchState: 'sent',
+      rematchLabel: 'Rematch sent · send again',
+    });
     button = screen.getByTestId('reveal-rematch');
     expect(button.textContent).toBe('Rematch sent · send again');
     expect(button.getAttribute('data-state')).toBe('sent');
     cleanup();
     fake.current = controllableRenderer();
-    await open(log, { onRematch, onShare: () => undefined, rematchState: 'offered', rematchLabel: 'Asha wants a rematch · Accept' });
+    await open(log, {
+      onRematch,
+      onShare: () => undefined,
+      rematchState: 'offered',
+      rematchLabel: 'Asha wants a rematch · Accept',
+    });
     button = screen.getByTestId('reveal-rematch');
     expect(button.getAttribute('data-state')).toBe('offered');
     expect(button.className).toMatch(/primary/);
@@ -588,11 +682,17 @@ describe('rematch action', () => {
 });
 
 describe('nothing in the scrubber gives the result away', () => {
-  const trackOf = (log: MatchEventLog, mode: ReplayMode) => neutralTrack(timelineOf(log, mode), { innings: 2, superBall: true });
+  const trackOf = (log: MatchEventLog, mode: ReplayMode) =>
+    neutralTrack(timelineOf(log, mode), { innings: 2, superBall: true });
 
   it('an innings-2 ball sits at the same place whether or not the match needs a Super Ball', async () => {
     const tie = await findDuel((l) => l.events.some((e) => e.t === 'ball' && e.innings === 'super'));
-    const plain = await findDuel((l) => !l.events.some((e) => e.t === 'ball' && e.innings === 'super') && l.innings[1].balls.length === 6 && l.innings[0].balls.length === 6);
+    const plain = await findDuel(
+      (l) =>
+        !l.events.some((e) => e.t === 'ball' && e.innings === 'super') &&
+        l.innings[1].balls.length === 6 &&
+        l.innings[0].balls.length === 6,
+    );
     const at = (log: MatchEventLog, k: number) => {
       const tl = timelineOf(log, 'full');
       const seg = segOf(tl, indexLog(log).balls[1][k]);
@@ -655,7 +755,7 @@ describe('scrubber marks on a narrow phone (N2)', () => {
 });
 
 describe("Training's reveal is short", () => {
-  it('keeps the player\'s own two balls, then the result: about half a minute', async () => {
+  it("keeps the player's own two balls, then the result: about half a minute", async () => {
     const log = await trainingLog();
     const { cutReplay } = await import('@/render3d/core/timeline');
     const { cutTrainingReplay, trainingCutBalls } = await import('@/screens/training/cut');

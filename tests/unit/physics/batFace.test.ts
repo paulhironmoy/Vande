@@ -41,15 +41,7 @@ describe('material-consistent cross-bat face solve', () => {
     const track = buildBatTrack(flight, swing, { assist: 'real' });
     const targetElevation = targetElevationDeg('attack', elevation) + track.shot.popDeg;
     const spin = incomingSpin(flight, track.idealT);
-    const oldFace = solveFace(
-      track.read.u,
-      spin,
-      directionDeg,
-      targetElevation,
-      'attack',
-      speed,
-      track.balance,
-    );
+    const oldFace = solveFace(track.read.u, spin, directionDeg, targetElevation, 'attack', speed, track.balance);
     const request = {
       incomingVelocity: track.read.u,
       incomingSpin: spin,
@@ -76,10 +68,8 @@ describe('material-consistent cross-bat face solve', () => {
     expect(Math.abs(elevationDeg(solved!.exit) - targetElevation)).toBeLessThan(1e-6);
     // The old unprojected/sweet-material face is only an initial guess; a coherent cut requires a materially
     // different normal once the exact projected point velocity and U=.475 material are used.
-    expect(Math.hypot(
-      solved!.n.x - oldFace.n.x,
-      solved!.n.y - oldFace.n.y,
-      solved!.n.z - oldFace.n.z,
-    )).toBeGreaterThan(0.02);
+    expect(Math.hypot(solved!.n.x - oldFace.n.x, solved!.n.y - oldFace.n.y, solved!.n.z - oldFace.n.z)).toBeGreaterThan(
+      0.02,
+    );
   });
 });

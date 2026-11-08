@@ -38,7 +38,14 @@ export function coachField(r: Pick<DeliveryRecord, 'field' | 'bowler' | 'conditi
     const from = Math.max(g.fromDeg, -lim);
     const to = Math.min(g.toDeg, lim);
     if (to - from < FIELD_COVER.minGapDeg) continue;
-    gaps.push({ fromDeg: from, toDeg: to, depth: g.depth, region: g.region, centreDeg: round1((from + to) / 2), widthDeg: round1(to - from) });
+    gaps.push({
+      fromDeg: from,
+      toDeg: to,
+      depth: g.depth,
+      region: g.region,
+      centreDeg: round1((from + to) / 2),
+      widthDeg: round1(to - from),
+    });
   }
   return { protected: intent.protected.map((a) => ({ ...a })), gaps };
 }
@@ -58,6 +65,7 @@ export function aimClearanceDeg(field: CoachField, directionDeg: number): number
   const holder = ring.find((a) => directionDeg >= a.fromDeg && directionDeg <= a.toDeg);
   if (holder) return round1(-Math.min(directionDeg - holder.fromDeg, holder.toDeg - directionDeg));
   let best = 90;
-  for (const a of ring) best = Math.min(best, directionDeg < a.fromDeg ? a.fromDeg - directionDeg : directionDeg - a.toDeg);
+  for (const a of ring)
+    best = Math.min(best, directionDeg < a.fromDeg ? a.fromDeg - directionDeg : directionDeg - a.toDeg);
   return round1(best);
 }

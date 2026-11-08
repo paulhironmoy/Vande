@@ -10,7 +10,11 @@ export interface Vec3 {
 export const v3 = (x = 0, y = 0, z = 0): Vec3 => ({ x, y, z });
 export const add = (a: Vec3, b: Vec3): Vec3 => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z });
 export const sub = (a: Vec3, b: Vec3): Vec3 => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z });
-export const lerpV = (a: Vec3, b: Vec3, t: number): Vec3 => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t });
+export const lerpV = (a: Vec3, b: Vec3, t: number): Vec3 => ({
+  x: a.x + (b.x - a.x) * t,
+  y: a.y + (b.y - a.y) * t,
+  z: a.z + (b.z - a.z) * t,
+});
 export const len = (a: Vec3): number => Math.hypot(a.x, a.y, a.z);
 export const dist2D = (a: Vec3, b: Vec3): number => Math.hypot(a.x - b.x, a.z - b.z);
 

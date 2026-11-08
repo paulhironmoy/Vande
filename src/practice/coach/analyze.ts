@@ -8,7 +8,14 @@
  * on the delivery, never on the swing, the innings, the player's form or any difficulty setting beyond the assistance
  * the record was played with.
  */
-import { PRACTICE_SIM_VERSION, type CoachAnalysis, type CoachOption, type DeliveryRecord, type DeliveryResult, type NormalizedSwing } from '@/contracts/practice';
+import {
+  PRACTICE_SIM_VERSION,
+  type CoachAnalysis,
+  type CoachOption,
+  type DeliveryRecord,
+  type DeliveryResult,
+  type NormalizedSwing,
+} from '@/contracts/practice';
 import { practiceFlight } from '@/physics';
 import { candidatesFor, idealTimes } from './candidates';
 import { analysisBall, ballFacts, type BallFacts } from './facts';
@@ -16,7 +23,16 @@ import { coachField, type CoachField } from './field';
 import { optionsFrom, pick, toSpread, type Picks } from './options';
 import { inferRead, whyOf } from './read';
 import { tipOf, type CoachTip } from './tip';
-import { densify, evaluate, judgeAttempt, resolveCoach, type AttemptJudgement, type CoachResult, type Evaluated, type SimContext } from './simulate';
+import {
+  densify,
+  evaluate,
+  judgeAttempt,
+  resolveCoach,
+  type AttemptJudgement,
+  type CoachResult,
+  type Evaluated,
+  type SimContext,
+} from './simulate';
 
 interface Delivery {
   facts: BallFacts;
@@ -31,7 +47,18 @@ const cache = new Map<string, Delivery>();
 
 /** Everything that defines the delivery and its physics, and nothing about the swing. */
 function deliveryKey(r: DeliveryRecord): string {
-  return JSON.stringify([r.version, r.seed, r.plan, r.bowler, r.conditions, r.ball ?? null, r.field, r.handedness, r.assist, r.tierToleranceMs]);
+  return JSON.stringify([
+    r.version,
+    r.seed,
+    r.plan,
+    r.bowler,
+    r.conditions,
+    r.ball ?? null,
+    r.field,
+    r.handedness,
+    r.assist,
+    r.tierToleranceMs,
+  ]);
 }
 
 function deliveryOf(record: DeliveryRecord): Delivery {
@@ -46,7 +73,15 @@ function deliveryOf(record: DeliveryRecord): Delivery {
   const facts = ballFacts(flight, record.bowler.family);
   const field = coachField(record);
   const ctx: SimContext = {
-    args: { flight, field: record.field, bowler: record.bowler, conditions: record.conditions, handedness: record.handedness, assist: record.assist, tierToleranceMs: record.tierToleranceMs },
+    args: {
+      flight,
+      field: record.field,
+      bowler: record.bowler,
+      conditions: record.conditions,
+      handedness: record.handedness,
+      assist: record.assist,
+      tierToleranceMs: record.tierToleranceMs,
+    },
     ideal: idealTimes(flight),
     facts,
     field,
@@ -78,7 +113,11 @@ function copy<T>(v: T): T {
 /** One decimal, never negative zero (records and analyses compare byte for byte through JSON). */
 const round1 = (v: number) => Math.round(v * 10) / 10 || 0;
 
-function attemptedOf(swing: NormalizedSwing | null, r: CoachResult, judged: AttemptJudgement | null): CoachAnalysis['attempted'] {
+function attemptedOf(
+  swing: NormalizedSwing | null,
+  r: CoachResult,
+  judged: AttemptJudgement | null,
+): CoachAnalysis['attempted'] {
   return {
     decision: swing === null ? 'leave' : swing.kind,
     footwork: r.footwork,
@@ -94,7 +133,12 @@ function attemptedOf(swing: NormalizedSwing | null, r: CoachResult, judged: Atte
   };
 }
 
-function assemble(d: Delivery, record: DeliveryRecord, attempt: CoachResult, judged: AttemptJudgement | null): CoachAnalysis {
+function assemble(
+  d: Delivery,
+  record: DeliveryRecord,
+  attempt: CoachResult,
+  judged: AttemptJudgement | null,
+): CoachAnalysis {
   const read = inferRead(d.facts, record.swing, attempt);
   return {
     version: PRACTICE_SIM_VERSION,
@@ -115,7 +159,9 @@ function assemble(d: Delivery, record: DeliveryRecord, attempt: CoachResult, jud
 function* certify(ctx: SimContext, all: Evaluated[]): Generator<void, Picks, void> {
   for (;;) {
     const p = pick(all);
-    const shown = [p.recommended, p.safest, p.higherScoring].filter((e): e is Evaluated => e !== null && e.tally !== null && !e.dense);
+    const shown = [p.recommended, p.safest, p.higherScoring].filter(
+      (e): e is Evaluated => e !== null && e.tally !== null && !e.dense,
+    );
     if (shown.length === 0) return p;
     for (const e of shown) yield* densify(ctx, e);
   }
@@ -174,7 +220,11 @@ const now = () => (typeof performance !== 'undefined' ? performance.now() : Date
  * The same analysis, computed in slices so the dead-ball screen stays responsive: identical (byte for byte) to
  * analyzeBall. Slicing only decides when to yield, never what is simulated.
  */
-export async function analyzeBallInSlices(record: DeliveryRecord, _result?: DeliveryResult | null, opts: SliceOptions = {}): Promise<CoachAnalysis> {
+export async function analyzeBallInSlices(
+  record: DeliveryRecord,
+  _result?: DeliveryResult | null,
+  opts: SliceOptions = {},
+): Promise<CoachAnalysis> {
   const sliceMs = opts.sliceMs ?? 8;
   const yieldTo = opts.yieldTo ?? defaultYield;
   abortIf(opts.signal);

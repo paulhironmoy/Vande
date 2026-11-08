@@ -1,6 +1,23 @@
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+} from 'react';
 import '../engineRules';
-import type { BattingInput, DeliveryTiming, FieldZone, LiveBallHandle, RevealedDelivery, ShotFeedback, ShotType } from '@/contracts';
+import type {
+  BattingInput,
+  DeliveryTiming,
+  FieldZone,
+  LiveBallHandle,
+  RevealedDelivery,
+  ShotFeedback,
+  ShotType,
+} from '@/contracts';
 import { SUPER_BALL_INDEX } from '@/contracts';
 import { useT, type MessageKey } from '@/i18n';
 import { useBackHandler } from '@/app/back';
@@ -78,7 +95,23 @@ type Phase = 'loading' | 'ready' | 'fetching' | 'runup' | 'live' | 'submitting' 
  * Live batting. Pick a shot, then swipe towards your target as the ball arrives: letting go is your timing.
  * Feedback is sealed: timing and contact only. Keyboard: arrow keys aim, Space plays the shot.
  */
-export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit, connectivity = 'online', ballsFaced = 0, totalBalls = 6, quickStart, title, onBallFeedback, superBall, banner, compact, includeSuperBall }: BattingScreenProps) {
+export function BattingScreen({
+  setup,
+  nextBall,
+  submitShot,
+  onComplete,
+  onExit,
+  connectivity = 'online',
+  ballsFaced = 0,
+  totalBalls = 6,
+  quickStart,
+  title,
+  onBallFeedback,
+  superBall,
+  banner,
+  compact,
+  includeSuperBall,
+}: BattingScreenProps) {
   const { t } = useT();
   const textScale = useApp((st) => st.settings.textScale);
   // Android Back pauses the innings (a revealed ball stays resumable) instead of leaving the match.
@@ -90,9 +123,21 @@ export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit,
   const [feedback, setFeedback] = useState<ShotFeedback | null>(null);
   const [delivery, setDelivery] = useState<RevealedDelivery | null>(null);
   /** The shot just played, for the feedback: what was aimed where, and when the tap landed. */
-  const [played, setPlayed] = useState<{ shot: ShotType; zone: FieldZone | null; tapMs: number | null; timing: DeliveryTiming } | null>(null);
+  const [played, setPlayed] = useState<{
+    shot: ShotType;
+    zone: FieldZone | null;
+    tapMs: number | null;
+    timing: DeliveryTiming;
+  } | null>(null);
   const renderer = useRef<StageRenderer | null>(null);
-  const ball = useRef<{ delivery: RevealedDelivery; handle: LiveBallHandle; receivedAt: number; releasedAt: number | null; done: boolean; timer: ReturnType<typeof setTimeout> | null } | null>(null);
+  const ball = useRef<{
+    delivery: RevealedDelivery;
+    handle: LiveBallHandle;
+    receivedAt: number;
+    releasedAt: number | null;
+    done: boolean;
+    timer: ReturnType<typeof setTimeout> | null;
+  } | null>(null);
   /** The press on BAT in progress, timed from its own events (the keyboard's tap is made in onKey). */
   const gesture = useRef<PointerTrace | null>(null);
   const surface = useRef<HTMLDivElement>(null);
@@ -128,7 +173,15 @@ export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit,
       const tapMs = tapAt !== null && b.releasedAt !== null ? tapAt - b.releasedAt : null;
       const sh = tapMs === null ? shotRef.current : shotRef.current;
       // clientElapsedMs runs to the tap itself (its event's timestamp); with no tap, to now.
-      const input = buildInput({ delivery: b.delivery, shot: sh, zone: zoneRef.current, gesture: g, tapMs, receivedAt: b.receivedAt, now: tapAt ?? performance.now() });
+      const input = buildInput({
+        delivery: b.delivery,
+        shot: sh,
+        zone: zoneRef.current,
+        gesture: g,
+        tapMs,
+        receivedAt: b.receivedAt,
+        now: tapAt ?? performance.now(),
+      });
       const timing = predictTiming(input.tapMs, b.delivery);
       const predicted = predictContact(sh, timing);
       // The tap is felt and heard at once, before the server answers (upgraded below when the answer lands).
@@ -137,13 +190,25 @@ export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit,
       setPhase('submitting');
       const pending = submitShot(input);
       // Animate at once: with the true contact if the answer is quick (local engine), otherwise a prediction.
-      const quick = await Promise.race([pending.then((f) => f).catch(() => null), new Promise<null>((r) => setTimeout(() => r(null), 110))]);
-      const anim = { shot: sh, timing: quick?.timing ?? timing, contact: quick?.contact ?? predicted, zone: input.zone, tapMs: input.tapMs };
+      const quick = await Promise.race([
+        pending.then((f) => f).catch(() => null),
+        new Promise<null>((r) => setTimeout(() => r(null), 110)),
+      ]);
+      const anim = {
+        shot: sh,
+        timing: quick?.timing ?? timing,
+        contact: quick?.contact ?? predicted,
+        zone: input.zone,
+        tapMs: input.tapMs,
+      };
       let shown = b.handle.showShot(anim as Parameters<LiveBallHandle['showShot']>[0]);
       try {
         const fb = await pending;
         // The real contact differs from the prediction: re-aim the animation and wait for that one.
-        if (!quick && fb.contact !== anim.contact) shown = b.handle.showShot({ ...anim, contact: fb.contact, timing: fb.timing } as Parameters<LiveBallHandle['showShot']>[0]);
+        if (!quick && fb.contact !== anim.contact)
+          shown = b.handle.showShot({ ...anim, contact: fb.contact, timing: fb.timing } as Parameters<
+            LiveBallHandle['showShot']
+          >[0]);
         if (input.tapMs !== null) playContactFeel(fb.contact, fb.timing, predicted, timing);
         await settleWithin(shown, SHOT_SETTLE_LIMIT_MS);
         setFeedback(fb);
@@ -192,9 +257,12 @@ export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit,
     // A tap already queued when the window closes (a busy main thread) is handled first: the no-tap answer waits one
     // task, and every tap is judged by its own event timestamp.
     const remaining = releasedAt + next.delivery.timing.releaseToContactMs + LATE_LIMIT_MS - performance.now();
-    b.timer = setTimeout(() => {
-      b.timer = setTimeout(() => void finishBall(null, null), 0);
-    }, Math.max(0, remaining));
+    b.timer = setTimeout(
+      () => {
+        b.timer = setTimeout(() => void finishBall(null, null), 0);
+      },
+      Math.max(0, remaining),
+    );
   }, [nextBall, finishBall]);
 
   const onReady = useCallback(
@@ -247,16 +315,30 @@ export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit,
     // The key's own timestamp, like a pointer's (eventTime falls back to now where a browser gives none).
     const at = eventTime(e.nativeEvent);
     if (!b || b.releasedAt === null || at < b.releasedAt || b.done) return;
-    void finishBall(at, { pointer: 'keyboard', t0: at - 60, samples: [[0, 0.5, 0.5], [60, 0.5, 0.5]] });
+    void finishBall(at, {
+      pointer: 'keyboard',
+      t0: at - 60,
+      samples: [
+        [0, 0.5, 0.5],
+        [60, 0.5, 0.5],
+      ],
+    });
   };
 
   const playedCount = ballsFaced + faced.length;
   const slotCount = totalBalls + (includeSuperBall ? 1 : 0);
   const slots: BallSlot[] = Array.from({ length: slotCount }, (_, i) => ({
     superBall: includeSuperBall && i === totalBalls ? true : undefined,
-    mark: i < playedCount ? { kind: 'sealed' } : i === ballIndex && phase !== 'done' ? { kind: 'current' } : { kind: 'upcoming' },
+    mark:
+      i < playedCount
+        ? { kind: 'sealed' }
+        : i === ballIndex && phase !== 'done'
+          ? { kind: 'current' }
+          : { kind: 'upcoming' },
   }));
-  const onSuperBall = superBall || (includeSuperBall && (delivery?.ball ?? (ballIndex >= totalBalls ? SUPER_BALL_INDEX : -1)) === SUPER_BALL_INDEX);
+  const onSuperBall =
+    superBall ||
+    (includeSuperBall && (delivery?.ball ?? (ballIndex >= totalBalls ? SUPER_BALL_INDEX : -1)) === SUPER_BALL_INDEX);
   const status =
     phase === 'loading'
       ? t('stage.loading')
@@ -273,7 +355,13 @@ export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit,
               : '';
 
   return (
-    <main className={s.screen} data-compact={compact || undefined} data-testid="batting-screen" data-phase={phase} data-balls={playedCount}>
+    <main
+      className={s.screen}
+      data-compact={compact || undefined}
+      data-testid="batting-screen"
+      data-phase={phase}
+      data-balls={playedCount}
+    >
       <section className={s.stageWrap}>
         <MatchStage
           live={setup}
@@ -283,12 +371,22 @@ export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit,
               <div className={s.topRow}>
                 <div className={s.ballInfo}>
                   <h1 className={s.eyebrow}>{title ?? t('bat.title')}</h1>
-                  <span className={s.ballN}>{phase === 'done' ? t('bat.innings_done') : onSuperBall ? t('bat.super_ball') : totalBalls === 1 ? t('common.ball_n', { n: 1 }) : t('bat.ball_of', { n: Math.min(ballIndex + 1, totalBalls) })}</span>
+                  <span className={s.ballN}>
+                    {phase === 'done'
+                      ? t('bat.innings_done')
+                      : onSuperBall
+                        ? t('bat.super_ball')
+                        : totalBalls === 1
+                          ? t('common.ball_n', { n: 1 })
+                          : t('bat.ball_of', { n: Math.min(ballIndex + 1, totalBalls) })}
+                  </span>
                   <span className={s.facing}>{t('bat.facing', { name: setup.bowler.alias })}</span>
                 </div>
                 <div className={s.fieldBox}>
                   <FieldMap field={setup.field} zone={shot === 'defend' || shot === 'leave' ? null : zone} size={78} />
-                  <span className={s.fieldLabel}>{t('bat.field_label', { field: t(`field.${setup.field}` as MessageKey) })}</span>
+                  <span className={s.fieldLabel}>
+                    {t('bat.field_label', { field: t(`field.${setup.field}` as MessageKey) })}
+                  </span>
                 </div>
               </div>
               {feedback && phase === 'feedback' && (
@@ -296,7 +394,10 @@ export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit,
                   <Icon name="seal" size={22} />
                   <div className={s.fbBody}>
                     <strong className={s.fbMain}>
-                      {t('bat.feedback', { timing: t(`timing.${feedback.timing}` as MessageKey), contact: t(`contact.${feedback.contact}` as MessageKey) })}
+                      {t('bat.feedback', {
+                        timing: t(`timing.${feedback.timing}` as MessageKey),
+                        contact: t(`contact.${feedback.contact}` as MessageKey),
+                      })}
                     </strong>
                     {played && <FeedbackDetail played={played} grade={feedback.timing} />}
                     <span className={s.fbSub}>{t('bat.sealed_body')}</span>
@@ -317,7 +418,16 @@ export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit,
         </div>
         <div className={s.shots} role="radiogroup" aria-label={t('bat.shot')}>
           {SHOTS.map((sh) => (
-            <button key={sh} type="button" role="radio" aria-checked={shot === sh} className={s.shot} onClick={() => pickShot(sh)} title={t(`shot_hint.${sh}` as MessageKey)} data-testid={`bat-shot-${sh}`}>
+            <button
+              key={sh}
+              type="button"
+              role="radio"
+              aria-checked={shot === sh}
+              className={s.shot}
+              onClick={() => pickShot(sh)}
+              title={t(`shot_hint.${sh}` as MessageKey)}
+              data-testid={`bat-shot-${sh}`}
+            >
               {t(`shot.${sh}` as MessageKey)}
             </button>
           ))}
@@ -335,7 +445,13 @@ export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit,
           </div>
         ) : (
           <div key="play" className={s.play}>
-            <ZonePad shot={shot} value={zone} onChange={(z) => setZone(z)} size={textScale >= 1.3 ? 128 : 148} disabled={phase === 'submitting'} />
+            <ZonePad
+              shot={shot}
+              value={zone}
+              onChange={(z) => setZone(z)}
+              size={textScale >= 1.3 ? 128 : 148}
+              disabled={phase === 'submitting'}
+            />
             {/* Between balls, Play / Next ball sits where BAT is: always on screen, whatever the text size. */}
             <div className={s.hitWrap}>
               <div
@@ -408,12 +524,27 @@ export function BattingScreen({ setup, nextBall, submitShot, onComplete, onExit,
 }
 
 /** Timing, contact and where the shot was aimed, with the meter: never runs or wickets. */
-function FeedbackDetail({ played, grade }: { played: { shot: ShotType; zone: FieldZone | null; tapMs: number | null; timing: DeliveryTiming }; grade: ShotFeedback['timing'] }) {
+function FeedbackDetail({
+  played,
+  grade,
+}: {
+  played: { shot: ShotType; zone: FieldZone | null; tapMs: number | null; timing: DeliveryTiming };
+  grade: ShotFeedback['timing'];
+}) {
   const { t } = useT();
   const shotName = t(`shot.${played.shot}` as MessageKey);
-  const aim = played.zone && played.shot !== 'defend' && played.shot !== 'leave' ? t('bat.fb_aim', { shot: shotName, zone: t(`zone.${played.zone}` as MessageKey) }) : shotName;
+  const aim =
+    played.zone && played.shot !== 'defend' && played.shot !== 'leave'
+      ? t('bat.fb_aim', { shot: shotName, zone: t(`zone.${played.zone}` as MessageKey) })
+      : shotName;
   const mark = timingMark(played.timing, played.tapMs, grade);
-  const when = !mark ? null : Math.abs(mark.offsetMs) <= 3 ? t('bat.fb_on_time') : mark.offsetMs < 0 ? t('bat.fb_early', { ms: -mark.offsetMs }) : t('bat.fb_late', { ms: mark.offsetMs });
+  const when = !mark
+    ? null
+    : Math.abs(mark.offsetMs) <= 3
+      ? t('bat.fb_on_time')
+      : mark.offsetMs < 0
+        ? t('bat.fb_early', { ms: -mark.offsetMs })
+        : t('bat.fb_late', { ms: mark.offsetMs });
   return (
     <>
       <span className={s.fbAim} data-testid="bat-feedback-detail">

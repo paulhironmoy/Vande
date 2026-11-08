@@ -7,7 +7,15 @@
  */
 import { expect, test } from '@playwright/test';
 import { GPU_ARGS, block, configure, perfect, queue, state } from './practice-helpers';
-import { completedDelivery, deliveryCheckpoint, deliveryWindows, loseContext, memory, record, toDelivery } from './perf-helpers';
+import {
+  completedDelivery,
+  deliveryCheckpoint,
+  deliveryWindows,
+  loseContext,
+  memory,
+  record,
+  toDelivery,
+} from './perf-helpers';
 
 test.use({ viewport: { width: 915, height: 412 }, hasTouch: true, serviceWorkers: 'block', ...GPU_ARGS });
 
@@ -45,7 +53,10 @@ test('[PERF4] no shader program is linked during a delivery on the first-person 
   }
 });
 
-test('[PERF4 PERF2] after warm-up, five fully offline deliveries survive wickets, explicit innings restarts and a step down to Classic', async ({ page, context }) => {
+test('[PERF4 PERF2] after warm-up, five fully offline deliveries survive wickets, explicit innings restarts and a step down to Classic', async ({
+  page,
+  context,
+}) => {
   test.setTimeout(300_000);
   await record(page);
   // Assisted on SwiftShader: the session monitor moves to Classic after three slow deliveries.
@@ -73,7 +84,9 @@ test('[PERF4 PERF2] after warm-up, five fully offline deliveries survive wickets
 });
 
 for (const restored of [true, false]) {
-  test(`[PERF5] a lost graphics context between balls ${restored ? 'is restored and play continues' : 'falls back to Classic'}, the innings intact`, async ({ page }) => {
+  test(`[PERF5] a lost graphics context between balls ${restored ? 'is restored and play continues' : 'falls back to Classic'}, the innings intact`, async ({
+    page,
+  }) => {
     test.setTimeout(300_000);
     await record(page);
     await configure(page, { tier: 'full', seed: 'perf-context' }, { guidedDone: true, settings: { demoSeen: true } });
@@ -88,27 +101,45 @@ for (const restored of [true, false]) {
     await page.waitForTimeout(restored ? 2500 : 4500);
     const recovered = await deliveryCheckpoint(page);
     expect(recovered.inningsId, 'context recovery keeps the same innings').toBe(savedBefore.inningsId);
-    expect(recovered.records, 'context recovery cannot discard or change a committed result').toEqual(savedBefore.records);
+    expect(recovered.records, 'context recovery cannot discard or change a committed result').toEqual(
+      savedBefore.records,
+    );
     expect(recovered.state?.balls).toBe(before.balls);
     expect(recovered.state?.runs).toBe(before.runs);
     const { stages } = await playBalls(page, 1);
     const after = await state(page);
     expect(after.balls, 'the next ball was bowled and counted').toBe(before.balls + 1);
-    expect((await deliveryCheckpoint(page)).inningsId, 'the next ball belongs to the same innings').toBe(savedBefore.inningsId);
+    expect((await deliveryCheckpoint(page)).inningsId, 'the next ball belongs to the same innings').toBe(
+      savedBefore.inningsId,
+    );
     expect(after.runs).toBeGreaterThanOrEqual(before.runs);
     expect(after.screen).not.toBe('error');
-    expect(stages[0], restored
-      ? 'a restored context must draw the next delivery in 3D, not silently pass through Classic fallback'
-      : 'a context that never comes back hands over to Classic before the next ball').toBe(restored ? '3d' : '2d');
+    expect(
+      stages[0],
+      restored
+        ? 'a restored context must draw the next delivery in 3D, not silently pass through Classic fallback'
+        : 'a context that never comes back hands over to Classic before the next ball',
+    ).toBe(restored ? '3d' : '2d');
   });
 }
 
-test('[MEM] twelve Classic deliveries, including legitimate wicket restarts, keep heap, DOM and listeners flat', async ({ page }) => {
+test('[MEM] twelve Classic deliveries, including legitimate wicket restarts, keep heap, DOM and listeners flat', async ({
+  page,
+}) => {
   test.setTimeout(400_000);
   await record(page);
-  await configure(page, { tier: 'below', timeScale: 3, seed: 'perf-leak' }, { guidedDone: true, settings: { demoSeen: true } });
+  await configure(
+    page,
+    { tier: 'below', timeScale: 3, seed: 'perf-leak' },
+    { guidedDone: true, settings: { demoSeen: true } },
+  );
   await page.goto('/practice');
-  await queue(page, ...Array.from({ length: 12 }, (_, i) => (i % 3 === 0 ? perfect(i * 7 - 30) : i % 3 === 1 ? block() : ('leave' as const))));
+  await queue(
+    page,
+    ...Array.from({ length: 12 }, (_, i) =>
+      i % 3 === 0 ? perfect(i * 7 - 30) : i % 3 === 1 ? block() : ('leave' as const),
+    ),
+  );
   const batchOne = await playBalls(page, 6);
   const first = await memory(page);
   const batchTwo = await playBalls(page, 6);

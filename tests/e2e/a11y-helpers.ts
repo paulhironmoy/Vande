@@ -25,7 +25,8 @@ export interface Finding {
 /** Landscape insets of a notched Android phone held with the camera on the left, with gesture navigation. */
 export const INSETS = { top: 0, left: 44, bottom: 20, right: 24 };
 
-const CONTROL_SELECTOR = 'button, a[href], input:not([type=hidden]), select, textarea, summary, [role=button], [role=link], [role=radio], [role=switch], [role=tab], [role=checkbox], [role=slider], [role=menuitem], [role=option], [tabindex]:not([tabindex="-1"])';
+const CONTROL_SELECTOR =
+  'button, a[href], input:not([type=hidden]), select, textarea, summary, [role=button], [role=link], [role=radio], [role=switch], [role=tab], [role=checkbox], [role=slider], [role=menuitem], [role=option], [tabindex]:not([tabindex="-1"])';
 
 export async function emulateInsets(cdp: CDPSession, insets = INSETS): Promise<boolean> {
   try {
@@ -37,12 +38,19 @@ export async function emulateInsets(cdp: CDPSession, insets = INSETS): Promise<b
 }
 
 export async function axe(page: Page, screen: string): Promise<{ fail: Finding[]; note: Finding[] }> {
-  const res = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+  const res = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+    .analyze();
   const fail: Finding[] = [];
   const note: Finding[] = [];
   for (const v of res.violations) {
     for (const n of v.nodes) {
-      const f = { screen, rule: `axe:${v.id}`, target: n.target.join(' '), detail: `${v.impact}: ${v.help}${n.failureSummary ? ` (${n.failureSummary.replace(/\s+/g, ' ').slice(0, 160)})` : ''}` };
+      const f = {
+        screen,
+        rule: `axe:${v.id}`,
+        target: n.target.join(' '),
+        detail: `${v.impact}: ${v.help}${n.failureSummary ? ` (${n.failureSummary.replace(/\s+/g, ' ').slice(0, 160)})` : ''}`,
+      };
       (v.impact === 'serious' || v.impact === 'critical' ? fail : note).push(f);
     }
   }
@@ -77,7 +85,14 @@ export async function inspect(page: Page, screen: string, opts: InspectionOption
         if (r.width < 1 || r.height < 1) return false;
         for (let e: Element | null = el; e; e = e.parentElement) {
           const cs = getComputedStyle(e);
-          if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0 || e.getAttribute('aria-hidden') === 'true' || (e as HTMLElement).inert) return false;
+          if (
+            cs.display === 'none' ||
+            cs.visibility === 'hidden' ||
+            Number(cs.opacity) === 0 ||
+            e.getAttribute('aria-hidden') === 'true' ||
+            (e as HTMLElement).inert
+          )
+            return false;
         }
         return true;
       };
@@ -95,7 +110,15 @@ export async function inspect(page: Page, screen: string, opts: InspectionOption
           const cs = getComputedStyle(e);
           const r = e.getBoundingClientRect();
           const zeroClip = /^rect\(0(?:px)?,\s*0(?:px)?,\s*0(?:px)?,\s*0(?:px)?\)$/.test(cs.clip);
-          if (/^(absolute|fixed)$/.test(cs.position) && r.width <= 1 && r.height <= 1 && cs.overflowX === 'hidden' && cs.overflowY === 'hidden' && zeroClip) return true;
+          if (
+            /^(absolute|fixed)$/.test(cs.position) &&
+            r.width <= 1 &&
+            r.height <= 1 &&
+            cs.overflowX === 'hidden' &&
+            cs.overflowY === 'hidden' &&
+            zeroClip
+          )
+            return true;
         }
         return false;
       };
@@ -103,20 +126,32 @@ export async function inspect(page: Page, screen: string, opts: InspectionOption
       const scrollsIntoView = (el: Element) => {
         for (let e: Element | null = el.parentElement; e; e = e.parentElement) {
           const cs = getComputedStyle(e);
-          if ((/auto|scroll/.test(cs.overflowY) && e.scrollHeight > e.clientHeight + 1) || (/auto|scroll/.test(cs.overflowX) && e.scrollWidth > e.clientWidth + 1)) return true;
+          if (
+            (/auto|scroll/.test(cs.overflowY) && e.scrollHeight > e.clientHeight + 1) ||
+            (/auto|scroll/.test(cs.overflowX) && e.scrollWidth > e.clientWidth + 1)
+          )
+            return true;
         }
         const root = document.scrollingElement;
         return Boolean(root && (root.scrollHeight > root.clientHeight + 1 || root.scrollWidth > root.clientWidth + 1));
       };
       const all = (target ? [target] : Array.from(document.querySelectorAll(selector))).filter(rendered);
       // A rendered control wholly outside the viewport that nothing can scroll into view cannot be reached at all.
-      for (const el of all) if (!inView(el) && !scrollsIntoView(el)) out.push(['cut-off', sel(el), 'control wholly outside the view, which does not scroll']);
+      for (const el of all)
+        if (!inView(el) && !scrollsIntoView(el))
+          out.push(['cut-off', sel(el), 'control wholly outside the view, which does not scroll']);
       const controls = all.filter(inView);
       for (const el of controls) {
         if (el.getAttribute('role') === 'application') continue;
         const r = el.getBoundingClientRect();
         // Inline links inside running text are exempt (WCAG 2.5.8).
-        if (el.tagName === 'A' && el.parentElement && /^(P|LI|SPAN)$/.test(el.parentElement.tagName) && (el.parentElement.textContent ?? '').length > (el.textContent ?? '').length + 20) continue;
+        if (
+          el.tagName === 'A' &&
+          el.parentElement &&
+          /^(P|LI|SPAN)$/.test(el.parentElement.tagName) &&
+          (el.parentElement.textContent ?? '').length > (el.textContent ?? '').length + 20
+        )
+          continue;
         if (r.width < 47.5 || r.height < 47.5) {
           const cx = r.left + r.width / 2;
           const cy = r.top + r.height / 2;
@@ -135,30 +170,63 @@ export async function inspect(page: Page, screen: string, opts: InspectionOption
           if (!ok) out.push(['target-size', sel(el), `${r.width.toFixed(0)}×${r.height.toFixed(0)} px`]);
         }
         // A control below or beside the viewport that nothing can scroll into view cannot be reached at all.
-        if ((r.bottom > H + 1 || r.right > W + 1) && !scrollsIntoView(el)) out.push(['cut-off', sel(el), `control at ${r.left.toFixed(0)},${r.top.toFixed(0)}–${r.right.toFixed(0)},${r.bottom.toFixed(0)} outside the ${W}×${H} view, which does not scroll`]);
+        if ((r.bottom > H + 1 || r.right > W + 1) && !scrollsIntoView(el))
+          out.push([
+            'cut-off',
+            sel(el),
+            `control at ${r.left.toFixed(0)},${r.top.toFixed(0)}–${r.right.toFixed(0)},${r.bottom.toFixed(0)} outside the ${W}×${H} view, which does not scroll`,
+          ]);
         if (insets && !scrollsIntoView(el)) {
-          const inBand = r.left < insets.left - 0.5 || r.right > W - insets.right + 0.5 || r.top < insets.top - 0.5 || r.bottom > H - insets.bottom + 0.5;
-          if (inBand) out.push(['safe-area', sel(el), `control at ${r.left.toFixed(0)},${r.top.toFixed(0)}–${r.right.toFixed(0)},${r.bottom.toFixed(0)} in a ${W}×${H} view with insets L${insets.left} R${insets.right} B${insets.bottom}`]);
+          const inBand =
+            r.left < insets.left - 0.5 ||
+            r.right > W - insets.right + 0.5 ||
+            r.top < insets.top - 0.5 ||
+            r.bottom > H - insets.bottom + 0.5;
+          if (inBand)
+            out.push([
+              'safe-area',
+              sel(el),
+              `control at ${r.left.toFixed(0)},${r.top.toFixed(0)}–${r.right.toFixed(0)},${r.bottom.toFixed(0)} in a ${W}×${H} view with insets L${insets.left} R${insets.right} B${insets.bottom}`,
+            ]);
         }
       }
       if (target) return out;
       // Text: clipped by its own box, cut by the viewport, or inside the insets.
       const texts = new Set<Element>();
       const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-      for (let n = walker.nextNode(); n; n = walker.nextNode()) if ((n.textContent ?? '').trim() && n.parentElement) texts.add(n.parentElement);
+      for (let n = walker.nextNode(); n; n = walker.nextNode())
+        if ((n.textContent ?? '').trim() && n.parentElement) texts.add(n.parentElement);
       for (const el of texts) {
-        if (!shown(el) || visuallyHiddenText(el) || el.closest('script,style,[data-testid="practice-diagnostics"]')) continue;
+        if (!shown(el) || visuallyHiddenText(el) || el.closest('script,style,[data-testid="practice-diagnostics"]'))
+          continue;
         const cs = getComputedStyle(el);
         const r = el.getBoundingClientRect();
         const clipsX = /hidden|clip/.test(cs.overflowX) || cs.textOverflow === 'ellipsis';
         const clipsY = /hidden|clip/.test(cs.overflowY) || cs.webkitLineClamp !== 'none';
-        if (clipsX && el.scrollWidth > el.clientWidth + 1) out.push(['truncation', sel(el), `text ${el.scrollWidth} px wide in a ${el.clientWidth} px box`]);
-        if (clipsY && el.scrollHeight > el.clientHeight + 1 && cs.overflowY !== 'auto' && cs.overflowY !== 'scroll') out.push(['truncation', sel(el), `text ${el.scrollHeight} px tall in a ${el.clientHeight} px box`]);
+        if (clipsX && el.scrollWidth > el.clientWidth + 1)
+          out.push(['truncation', sel(el), `text ${el.scrollWidth} px wide in a ${el.clientWidth} px box`]);
+        if (clipsY && el.scrollHeight > el.clientHeight + 1 && cs.overflowY !== 'auto' && cs.overflowY !== 'scroll')
+          out.push(['truncation', sel(el), `text ${el.scrollHeight} px tall in a ${el.clientHeight} px box`]);
         const range = document.createRange();
         range.selectNodeContents(el);
         const tr = range.getBoundingClientRect();
-        if (tr.width > 0 && (tr.right > W + 1 || tr.left < -1)) out.push(['truncation', sel(el), `text runs past the viewport (${tr.left.toFixed(0)}–${tr.right.toFixed(0)} of ${W})`]);
-        if (insets && tr.width > 0 && !scrollsIntoView(el) && (tr.left < insets.left - 0.5 || tr.right > W - insets.right + 0.5 || tr.bottom > H - insets.bottom + 0.5)) out.push(['safe-area', sel(el), `text at ${tr.left.toFixed(0)}–${tr.right.toFixed(0)} × ${tr.top.toFixed(0)}–${tr.bottom.toFixed(0)}`]);
+        if (tr.width > 0 && (tr.right > W + 1 || tr.left < -1))
+          out.push([
+            'truncation',
+            sel(el),
+            `text runs past the viewport (${tr.left.toFixed(0)}–${tr.right.toFixed(0)} of ${W})`,
+          ]);
+        if (
+          insets &&
+          tr.width > 0 &&
+          !scrollsIntoView(el) &&
+          (tr.left < insets.left - 0.5 || tr.right > W - insets.right + 0.5 || tr.bottom > H - insets.bottom + 0.5)
+        )
+          out.push([
+            'safe-area',
+            sel(el),
+            `text at ${tr.left.toFixed(0)}–${tr.right.toFixed(0)} × ${tr.top.toFixed(0)}–${tr.bottom.toFixed(0)}`,
+          ]);
         void r;
       }
       for (const el of Array.from(document.querySelectorAll('[data-tone]')).filter(shown)) {
@@ -170,17 +238,25 @@ export async function inspect(page: Page, screen: string, opts: InspectionOption
           const t = a.effect?.getTiming();
           const dur = typeof t?.duration === 'number' ? t.duration : 0;
           const target = (a.effect as KeyframeEffect | null)?.target;
-          if (a.playState === 'running' && (dur > 200 || t?.iterations === Infinity) && target) out.push(['reduced-motion', sel(target), `${a.constructor.name} ${dur} ms × ${t?.iterations}`]);
+          if (a.playState === 'running' && (dur > 200 || t?.iterations === Infinity) && target)
+            out.push(['reduced-motion', sel(target), `${a.constructor.name} ${dur} ms × ${t?.iterations}`]);
         }
       if (contrast)
         for (const el of Array.from(document.querySelectorAll('body *')).filter(shown)) {
           const cs = getComputedStyle(el);
-          const bf = cs.backdropFilter || (cs as unknown as { webkitBackdropFilter?: string }).webkitBackdropFilter || 'none';
+          const bf =
+            cs.backdropFilter || (cs as unknown as { webkitBackdropFilter?: string }).webkitBackdropFilter || 'none';
           if (bf !== 'none') out.push(['high-contrast', sel(el), `backdrop-filter ${bf}`]);
         }
       return out;
     },
-    { insets: opts.insets ?? null, reduced: Boolean(opts.reducedMotion), contrast: Boolean(opts.highContrast), selector: CONTROL_SELECTOR, target: opts.target ?? null },
+    {
+      insets: opts.insets ?? null,
+      reduced: Boolean(opts.reducedMotion),
+      contrast: Boolean(opts.highContrast),
+      selector: CONTROL_SELECTOR,
+      target: opts.target ?? null,
+    },
   );
   const seen = new Set<string>();
   return raw
@@ -198,7 +274,11 @@ export async function inspect(page: Page, screen: string, opts: InspectionOption
  * Separately prove that the centre and 48px cross can actually be hit, even for a large DOM box: clipping and overlays
  * must not make a nominally sufficient target unreachable. This does not activate disabled controls.
  * Return the census as well as failures so a caller can assert that the intended settings were actually visited. */
-export async function scrollTargetCensus(page: Page, screen: string, root: Locator): Promise<{ targets: string[]; fail: Finding[] }> {
+export async function scrollTargetCensus(
+  page: Page,
+  screen: string,
+  root: Locator,
+): Promise<{ targets: string[]; fail: Finding[] }> {
   const targets: string[] = [];
   const fail: Finding[] = [];
   for (const control of await root.locator(CONTROL_SELECTOR).all()) {
@@ -210,14 +290,28 @@ export async function scrollTargetCensus(page: Page, screen: string, root: Locat
         // isVisible includes opacity-zero and inert descendants; exclude these explicitly, as inspect does.
         for (let ancestor: Element | null = el; ancestor; ancestor = ancestor.parentElement) {
           const style = getComputedStyle(ancestor);
-          if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0 || ancestor.getAttribute('aria-hidden') === 'true' || (ancestor as HTMLElement).inert) return null;
+          if (
+            style.display === 'none' ||
+            style.visibility === 'hidden' ||
+            Number(style.opacity) === 0 ||
+            ancestor.getAttribute('aria-hidden') === 'true' ||
+            (ancestor as HTMLElement).inert
+          )
+            return null;
         }
         el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });
-        const id = el.getAttribute('data-testid') ?? el.getAttribute('aria-label') ?? el.textContent?.trim() ?? el.tagName;
+        const id =
+          el.getAttribute('data-testid') ?? el.getAttribute('aria-label') ?? el.textContent?.trim() ?? el.tagName;
         const rect = el.getBoundingClientRect();
         const cx = rect.left + rect.width / 2;
         const cy = rect.top + rect.height / 2;
-        const points = [[cx, cy], [cx - 23.5, cy], [cx + 23.5, cy], [cx, cy - 23.5], [cx, cy + 23.5]];
+        const points = [
+          [cx, cy],
+          [cx - 23.5, cy],
+          [cx + 23.5, cy],
+          [cx, cy - 23.5],
+          [cx, cy + 23.5],
+        ];
         const missed = points.filter(([x, y]) => {
           const hit = document.elementFromPoint(x, y);
           return !hit || (hit !== el && !el.contains(hit));
@@ -226,7 +320,13 @@ export async function scrollTargetCensus(page: Page, screen: string, root: Locat
       });
       if (!reached) continue;
       targets.push(reached.id);
-      if (reached.missed.length) fail.push({ screen, rule: 'target-reach', target: reached.id, detail: `after scrolling, centre/48px target probes are clipped or intercepted at ${reached.missed.join('; ')}` });
+      if (reached.missed.length)
+        fail.push({
+          screen,
+          rule: 'target-reach',
+          target: reached.id,
+          detail: `after scrolling, centre/48px target probes are clipped or intercepted at ${reached.missed.join('; ')}`,
+        });
       fail.push(...(await inspect(page, screen, { target })));
     } finally {
       await target.dispose();
@@ -241,14 +341,27 @@ export async function settings(page: Page, app: Record<string, unknown>, practic
     ([a, p]) => {
       if (sessionStorage.getItem('a11y-seeded')) return;
       sessionStorage.setItem('a11y-seeded', '1');
-      localStorage.setItem('vc:settings', JSON.stringify({ locale: 'en', reducedMotion: 'off', sound: true, haptics: true, quality: 'auto', textScale: 1, highContrast: false, ...a }));
+      localStorage.setItem(
+        'vc:settings',
+        JSON.stringify({
+          locale: 'en',
+          reducedMotion: 'off',
+          sound: true,
+          haptics: true,
+          quality: 'auto',
+          textScale: 1,
+          highContrast: false,
+          ...a,
+        }),
+      );
       localStorage.setItem('vc:practice:settings', JSON.stringify({ v: 1, teach: false, demoSeen: true, ...p }));
     },
     [app, practice] as const,
   );
 }
 
-export const describeFindings = (fs: Finding[]) => fs.map((f) => `${f.screen} · ${f.rule} · ${f.target} · ${f.detail}`).join('\n');
+export const describeFindings = (fs: Finding[]) =>
+  fs.map((f) => `${f.screen} · ${f.rule} · ${f.target} · ${f.detail}`).join('\n');
 
 /** 200% text (A11Y1): the app's own root scale (html font-size is 16px × --text-scale) at 2, past the settings' 1.3. */
 export async function doubleText(page: Page) {
@@ -269,8 +382,11 @@ export async function keyboard(page: Page, screen: string, maxTabs = 40): Promis
       const el = document.activeElement as HTMLElement | null;
       if (!el || el === document.body) return null;
       const cs = getComputedStyle(el);
-      const ring = (cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0) || (cs.boxShadow && cs.boxShadow !== 'none');
-      const id = el.getAttribute('data-testid') ?? `${el.tagName.toLowerCase()} "${(el.getAttribute('aria-label') ?? el.textContent ?? '').trim().slice(0, 30)}"`;
+      const ring =
+        (cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0) || (cs.boxShadow && cs.boxShadow !== 'none');
+      const id =
+        el.getAttribute('data-testid') ??
+        `${el.tagName.toLowerCase()} "${(el.getAttribute('aria-label') ?? el.textContent ?? '').trim().slice(0, 30)}"`;
       return { id, ring: Boolean(ring), positive: el.tabIndex > 0 };
     });
     if (!f) continue;
@@ -280,16 +396,34 @@ export async function keyboard(page: Page, screen: string, maxTabs = 40): Promis
     if (f.positive) out.push({ screen, rule: 'focus-order', target: f.id, detail: 'positive tabindex' });
   }
   const controls = await page.evaluate(() =>
-    Array.from(document.querySelectorAll('button, a[href], input:not([type=hidden]), select, textarea, summary, [role=button], [role=radio], [role=switch], [role=tab], [role=checkbox], [role=slider]'))
+    Array.from(
+      document.querySelectorAll(
+        'button, a[href], input:not([type=hidden]), select, textarea, summary, [role=button], [role=radio], [role=switch], [role=tab], [role=checkbox], [role=slider]',
+      ),
+    )
       .filter((el) => {
         const r = el.getBoundingClientRect();
         const cs = getComputedStyle(el);
-        return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && !(el as HTMLButtonElement).disabled && !el.closest('[inert],[aria-hidden="true"]');
+        return (
+          r.width > 0 &&
+          r.height > 0 &&
+          cs.visibility !== 'hidden' &&
+          !(el as HTMLButtonElement).disabled &&
+          !el.closest('[inert],[aria-hidden="true"]')
+        );
       })
-      .map((el) => el.getAttribute('data-testid') ?? `${el.tagName.toLowerCase()} "${(el.getAttribute('aria-label') ?? el.textContent ?? '').trim().slice(0, 30)}"`),
+      .map(
+        (el) =>
+          el.getAttribute('data-testid') ??
+          `${el.tagName.toLowerCase()} "${(el.getAttribute('aria-label') ?? el.textContent ?? '').trim().slice(0, 30)}"`,
+      ),
   );
   // Radio groups take one Tab stop; their other options are reached with the arrow keys.
-  const radios = await page.evaluate(() => Array.from(document.querySelectorAll('[role=radio]')).map((el) => el.getAttribute('data-testid') ?? ''));
-  for (const c of controls) if (!order.includes(c) && !radios.includes(c)) out.push({ screen, rule: 'keyboard-reach', target: c, detail: `never focused in ${order.length} Tab stops` });
+  const radios = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('[role=radio]')).map((el) => el.getAttribute('data-testid') ?? ''),
+  );
+  for (const c of controls)
+    if (!order.includes(c) && !radios.includes(c))
+      out.push({ screen, rule: 'keyboard-reach', target: c, detail: `never focused in ${order.length} Tab stops` });
   return out;
 }

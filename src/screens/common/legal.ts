@@ -8,9 +8,15 @@ import { isNativePlatform } from '@/platform';
 
 export type LegalPage = 'privacy' | 'delete-account';
 
-export function legalUrl(page: LegalPage, env: Record<string, unknown> = import.meta.env as Record<string, unknown>, native: boolean = isNativePlatform()): string {
+export function legalUrl(
+  page: LegalPage,
+  env: Record<string, unknown> = import.meta.env as Record<string, unknown>,
+  native: boolean = isNativePlatform(),
+): string {
   const file = `${page}.html`;
-  const origin = String(env.VITE_PUBLIC_WEB_ORIGIN ?? '').trim().replace(/\/+$/, '');
+  const origin = String(env.VITE_PUBLIC_WEB_ORIGIN ?? '')
+    .trim()
+    .replace(/\/+$/, '');
   if (native && /^https:\/\//.test(origin)) return `${origin}/${file}`;
   const base = String(env.BASE_URL ?? '/');
   return `${base.endsWith('/') ? base : `${base}/`}${file}`;

@@ -14,11 +14,36 @@ function medianBand(balls: readonly DraftBall[], fallback: PaceBand): PaceBand {
   return BANDS[ranks[Math.floor((ranks.length - 1) / 2)]] ?? fallback;
 }
 
-export function planFromDraft(build: BuildKit, draft: BuildDraft, opts: { assist: AssistLevel; conditions: PitchCondition; seed: string }): PracticeOverPlan {
+export function planFromDraft(
+  build: BuildKit,
+  draft: BuildDraft,
+  opts: { assist: AssistLevel; conditions: PitchCondition; seed: string },
+): PracticeOverPlan {
   if (draft.balls.some((b) => b === null)) throw new Error('practice: six balls needed');
   const balls = draft.balls as DraftBall[];
   const spinType = draft.family === 'spin' ? draft.spinType : undefined;
-  const plans = balls.map((b) => build.buildBall({ family: draft.family, target: { lineM: b.lineM, lengthM: b.lengthM }, variation: b.variation, paceBand: draft.family === 'pace' ? (b.paceBand ?? draft.paceBand) : undefined, spinType, assist: opts.assist }));
-  const bowler = build.bowlerFor({ family: draft.family, paceBand: draft.family === 'pace' ? medianBand(balls, draft.paceBand) : undefined, spinType, arm: draft.arm, seed: opts.seed });
-  return build.buildOver({ bowler, balls: plans, shuffle: draft.order === 'shuffle', seed: opts.seed, conditions: opts.conditions });
+  const plans = balls.map((b) =>
+    build.buildBall({
+      family: draft.family,
+      target: { lineM: b.lineM, lengthM: b.lengthM },
+      variation: b.variation,
+      paceBand: draft.family === 'pace' ? (b.paceBand ?? draft.paceBand) : undefined,
+      spinType,
+      assist: opts.assist,
+    }),
+  );
+  const bowler = build.bowlerFor({
+    family: draft.family,
+    paceBand: draft.family === 'pace' ? medianBand(balls, draft.paceBand) : undefined,
+    spinType,
+    arm: draft.arm,
+    seed: opts.seed,
+  });
+  return build.buildOver({
+    bowler,
+    balls: plans,
+    shuffle: draft.order === 'shuffle',
+    seed: opts.seed,
+    conditions: opts.conditions,
+  });
 }

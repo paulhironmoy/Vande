@@ -17,7 +17,12 @@ function ToastItem({ toast }: { toast: Toast }) {
     return () => window.clearTimeout(t);
   }, [toast.id, toast.duration, dismiss]);
   return (
-    <div className={s.toast} data-kind={toast.kind} data-testid="toast" role={toast.kind === 'danger' ? 'alert' : 'status'}>
+    <div
+      className={s.toast}
+      data-kind={toast.kind}
+      data-testid="toast"
+      role={toast.kind === 'danger' ? 'alert' : 'status'}
+    >
       <span className={s.icon}>
         <Icon name={ICONS[toast.kind]} size={18} />
       </span>

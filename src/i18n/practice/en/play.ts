@@ -9,7 +9,8 @@ export const playEn = {
   'practice.live.turn_body': 'Batting is played in landscape, so you see the whole delivery from the bowler’s hand.',
   'practice.live.turn_continue': 'Continue anyway',
   'practice.live.score_label': 'Score {runs} for {wickets} after {overs} overs',
-  'practice.live.gesture_label': 'Batting area. Press and pull back, hold to read the ball, then flick forward towards the gap. Do nothing to leave.',
+  'practice.live.gesture_label':
+    'Batting area. Press and pull back, hold to read the ball, then flick forward towards the gap. Do nothing to leave.',
   'practice.live.announce_runup': 'Ball {n} of 6. The bowler is running in.',
   'practice.live.announce': '{result}. {reason}. Score {runs} for {wickets}.',
   'practice.status.practice': 'Practice',
@@ -19,7 +20,8 @@ export const playEn = {
   'practice.status.conditions_does': 'Opens the full setup.',
   'practice.loading.title': 'Getting the ground ready…',
   'practice.intro.title': 'Watch first',
-  'practice.intro.body': 'The same batter plays a ball like the ones you will face. Then it is your turn: press, pull back, watch, and flick forward. Do nothing to leave.',
+  'practice.intro.body':
+    'The same batter plays a ball like the ones you will face. Then it is your turn: press, pull back, watch, and flick forward. Do nothing to leave.',
   'practice.intro.skip': 'Skip',
   'practice.intro.skip_all': 'Skip all teaching',
   'practice.brief.title': 'This over',
@@ -65,7 +67,8 @@ export const playEn = {
   // ---- calm notices (between balls, never during a delivery)
   'practice.notice.classic': 'This device is switching to Classic graphics for smoother batting.',
   'practice.notice.balanced': 'This device is switching to Balanced graphics for smoother batting.',
-  'practice.notice.help_changed': 'From this over, this device gives a little more timing help, for fair batting. Real mode gives none.',
+  'practice.notice.help_changed':
+    'From this over, this device gives a little more timing help, for fair batting. Real mode gives none.',
   'practice.notice.help_less': 'From this over, this device gives less timing help. Real mode gives none.',
   'practice.notice.interrupted': 'Practice was interrupted during that ball, so it counted as a leave.',
   'practice.notice.resumed_leave': 'The ball in play when Practice closed counted as a leave.',
@@ -134,7 +137,8 @@ export const playEn = {
   'practice.summary.end_title': 'End this innings?',
   'practice.summary.end_body': 'Your score of {runs} is final.',
   'practice.summary.out_title': 'Out · {how}',
-  'practice.summary.survived': 'Survived {overs, plural, one {# over} other {# overs}} and {balls, plural, one {# ball} other {# balls}}',
+  'practice.summary.survived':
+    'Survived {overs, plural, one {# over} other {# overs}} and {balls, plural, one {# ball} other {# balls}}',
   'practice.summary.survived_balls': 'Survived {balls, plural, one {# ball} other {# balls}}',
   'practice.summary.practise_dismissal': 'Practise the dismissal ball',
   'practice.summary.watch_dismissal': 'Watch the dismissal',

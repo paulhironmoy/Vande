@@ -63,7 +63,16 @@ export function stats(a: number[]) {
     if (v < min) min = v;
     if (v > max) max = v;
   }
-  return { n: f.length, min, p5: quantile(f, 0.05), p50: quantile(f, 0.5), p95: quantile(f, 0.95), max, mean: mean(f), sd: sd(f) };
+  return {
+    n: f.length,
+    min,
+    p5: quantile(f, 0.05),
+    p50: quantile(f, 0.5),
+    p95: quantile(f, 0.95),
+    max,
+    mean: mean(f),
+    sd: sd(f),
+  };
 }
 
 /** Spearman rank correlation (ties share their mean rank). */
@@ -71,7 +80,7 @@ export function spearman(x: ArrayLike<number>, y: ArrayLike<number>): number {
   const rank = (a: ArrayLike<number>) => {
     const idx = Array.from({ length: a.length }, (_, i) => i).sort((i, j) => a[i] - a[j]);
     const r = new Float64Array(a.length);
-    for (let i = 0; i < idx.length; ) {
+    for (let i = 0; i < idx.length;) {
       let j = i;
       while (j + 1 < idx.length && a[idx[j + 1]] === a[idx[i]]) j++;
       const m = (i + j) / 2 + 1;
@@ -117,14 +126,26 @@ export function blinkEvents(p: DirectorPlan, chan: number, minPeak = 0.35, lo = 
     const x = v(i);
     if (x < minPeak) continue;
     let top = true;
-    for (let k = i - w; k <= i + w; k++) if (v(k) > x || (v(k) === x && k < i)) { top = false; break; }
+    for (let k = i - w; k <= i + w; k++)
+      if (v(k) > x || (v(k) === x && k < i)) {
+        top = false;
+        break;
+      }
     if (!top) continue;
     let a = i;
     while (a > 0 && v(a - 1) > lo * x && v(a - 1) <= v(a)) a--;
     let b = i;
     while (b < p.n - 1 && v(b + 1) > lo * x && v(b + 1) <= v(b)) b++;
     const ms = 1000 / p.hz;
-    ev.push({ on: timeOf(p, a), off: timeOf(p, b), peak: x, tPeak: timeOf(p, i), duration: (b - a) * ms, closeMs: (i - a) * ms, openMs: (b - i) * ms });
+    ev.push({
+      on: timeOf(p, a),
+      off: timeOf(p, b),
+      peak: x,
+      tPeak: timeOf(p, i),
+      duration: (b - a) * ms,
+      closeMs: (i - a) * ms,
+      openMs: (b - i) * ms,
+    });
   }
   return ev;
 }
@@ -147,7 +168,8 @@ export interface Saccade {
 /** The achieved gaze speed (deg/s) at frames 1 .. n - 1 (index 0 is 0). */
 export function gazeSpeed(p: DirectorPlan, cy: number, cp: number): Float64Array {
   const s = new Float64Array(p.n);
-  for (let i = 1; i < p.n; i++) s[i] = (Math.hypot(val(p, i, cy) - val(p, i - 1, cy), val(p, i, cp) - val(p, i - 1, cp)) * p.hz);
+  for (let i = 1; i < p.n; i++)
+    s[i] = Math.hypot(val(p, i, cy) - val(p, i - 1, cy), val(p, i, cp) - val(p, i - 1, cp)) * p.hz;
   return s;
 }
 
@@ -159,11 +181,17 @@ export function saccades(p: DirectorPlan, cy: number, cp: number, onDegS = 130, 
   const sp = gazeSpeed(p, cy, cp);
   const out: Saccade[] = [];
   const ms = 1000 / p.hz;
-  for (let i = 1; i < p.n; ) {
-    if (sp[i] < onDegS) { i++; continue; }
+  for (let i = 1; i < p.n;) {
+    if (sp[i] < onDegS) {
+      i++;
+      continue;
+    }
     let j = i;
     let pk = i;
-    while (j + 1 < p.n && sp[j + 1] >= onDegS) { j++; if (sp[j] > sp[pk]) pk = j; }
+    while (j + 1 < p.n && sp[j + 1] >= onDegS) {
+      j++;
+      if (sp[j] > sp[pk]) pk = j;
+    }
     let a = i;
     let b = j;
     const edge = Math.max(25, 0.1 * sp[pk]);
@@ -174,14 +202,21 @@ export function saccades(p: DirectorPlan, cy: number, cp: number, onDegS = 130, 
     const back = Math.max(1, Math.round(40 / ms));
     let v0 = 0;
     for (let k = Math.max(1, a - back); k < a; k++) v0 = Math.max(v0, sp[k]);
-    if (A >= minDeg) out.push({ t: timeOf(p, a - 1), tPeak: timeOf(p, pk), A, D, vp: sp[pk], ttp: ((pk - a + 1) * ms) / D, v0 });
+    if (A >= minDeg)
+      out.push({ t: timeOf(p, a - 1), tPeak: timeOf(p, pk), A, D, vp: sp[pk], ttp: ((pk - a + 1) * ms) / D, v0 });
     i = b + 1;
   }
   return out;
 }
 
 /** Longest stretch (s) in which neither eyes nor head change by more than `rangeDeg` over a one-second window. */
-export function longestFrozenS(p: DirectorPlan, chans: number[], rangeDeg: number, fromMs = -Infinity, toMs = Infinity): number {
+export function longestFrozenS(
+  p: DirectorPlan,
+  chans: number[],
+  rangeDeg: number,
+  fromMs = -Infinity,
+  toMs = Infinity,
+): number {
   const w = Math.round(p.hz);
   const stepF = Math.max(1, w >> 3);
   const i0 = Math.max(0, frameOf(p, Math.max(fromMs, p.t0)));
@@ -193,10 +228,20 @@ export function longestFrozenS(p: DirectorPlan, chans: number[], rangeDeg: numbe
     for (const c of chans) {
       let lo = Infinity;
       let hi = -Infinity;
-      for (let k = s; k <= s + w; k++) { const v = val(p, k, c); if (v < lo) lo = v; if (v > hi) hi = v; }
-      if (hi - lo > rangeDeg) { frozen = false; break; }
+      for (let k = s; k <= s + w; k++) {
+        const v = val(p, k, c);
+        if (v < lo) lo = v;
+        if (v > hi) hi = v;
+      }
+      if (hi - lo > rangeDeg) {
+        frozen = false;
+        break;
+      }
     }
-    if (frozen) { run += stepF / p.hz; best = Math.max(best, run + 1); } else run = 0;
+    if (frozen) {
+      run += stepF / p.hz;
+      best = Math.max(best, run + 1);
+    } else run = 0;
   }
   return best;
 }
@@ -205,7 +250,10 @@ export function longestFrozenS(p: DirectorPlan, chans: number[], rangeDeg: numbe
 export function traceHash(p: DirectorPlan): string {
   let h = 0x811c9dc5;
   const u = new Uint8Array(p.trace.buffer, p.trace.byteOffset, p.trace.byteLength);
-  for (let i = 0; i < u.length; i++) { h ^= u[i]; h = Math.imul(h, 0x01000193); }
+  for (let i = 0; i < u.length; i++) {
+    h ^= u[i];
+    h = Math.imul(h, 0x01000193);
+  }
   return (h >>> 0).toString(16);
 }
 

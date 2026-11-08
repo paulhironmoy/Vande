@@ -40,7 +40,12 @@ function fakeWorkKit(): WorkKit & { calls: string[] } {
 function withWork(o: HarnessOptions = {}, extra: Partial<Parameters<typeof createOffThread>[0]> = {}) {
   const kit = fakeWorkKit();
   const h = inProcessWorker({ kit, yieldTask: () => Promise.resolve(), ...o });
-  const work: OffThreadWork = createOffThread({ build: BUILD, sim: PRACTICE_SIM_VERSION, spawn: () => h.port, ...extra });
+  const work: OffThreadWork = createOffThread({
+    build: BUILD,
+    sim: PRACTICE_SIM_VERSION,
+    spawn: () => h.port,
+    ...extra,
+  });
   return { kit, h, work };
 }
 
@@ -56,7 +61,10 @@ function recordingCoach() {
   return { coach, calls };
 }
 
-async function playOver(swingsIn: Array<NormalizedSwing | 'leave'>, deps: NonNullable<Parameters<typeof setup>[0]>['deps'] = {}) {
+async function playOver(
+  swingsIn: Array<NormalizedSwing | 'leave'>,
+  deps: NonNullable<Parameters<typeof setup>[0]>['deps'] = {},
+) {
   // Teaching off (setup's default): the first-run demonstration has its own test below.
   const t = setup({ deps });
   t.flow.init();
@@ -72,7 +80,14 @@ async function playOver(swingsIn: Array<NormalizedSwing | 'leave'>, deps: NonNul
   return { ...t, ballCalls: () => t.engine.calls.slice(mark) };
 }
 
-const OVER: Array<NormalizedSwing | 'leave'> = [attack(0.6, 30), defend(), 'leave', attack(0.9, 60), defend(), attack(0.5, 10)];
+const OVER: Array<NormalizedSwing | 'leave'> = [
+  attack(0.6, 30),
+  defend(),
+  'leave',
+  attack(0.9, 60),
+  defend(),
+  attack(0.5, 10),
+];
 
 describe('a ball resolved on the work thread', () => {
   it('gives the same innings, records, readings and saved evidence as the main thread alone', async () => {
@@ -85,7 +100,9 @@ describe('a ball resolved on the work thread', () => {
     const b = strip(off.store.getItem(PRACTICE_KEYS.innings));
     // The innings ids differ by construction (one id counter per setup); everything about the balls is the same.
     expect({ ...b, id: null, startedAt: null }).toEqual({ ...a, id: null, startedAt: null });
-    expect(JSON.stringify(off.flow.getState().innings?.current?.deliveries)).toBe(JSON.stringify(alone.flow.getState().innings?.current?.deliveries));
+    expect(JSON.stringify(off.flow.getState().innings?.current?.deliveries)).toBe(
+      JSON.stringify(alone.flow.getState().innings?.current?.deliveries),
+    );
     expect(JSON.stringify(loadFormSamples(off.store))).toBe(JSON.stringify(loadFormSamples(alone.store)));
     expect(JSON.stringify(off.flow.getState().insight)).toBe(JSON.stringify({ ...alone.flow.getState().insight }));
     // The main thread simulated no live ball and read none; the worker did all six of each.
@@ -160,7 +177,9 @@ describe('a ball resolved on the work thread', () => {
     const off = await playOver([attack(0.6, 30)], { work });
     const alone = await playOver([attack(0.6, 30)]);
     expect(work.stats().balls.at(-1)).toMatchObject({ path: 'local', reason: 'timeout' });
-    expect(JSON.stringify(off.flow.getState().innings?.current?.deliveries)).toBe(JSON.stringify(alone.flow.getState().innings?.current?.deliveries));
+    expect(JSON.stringify(off.flow.getState().innings?.current?.deliveries)).toBe(
+      JSON.stringify(alone.flow.getState().innings?.current?.deliveries),
+    );
   });
 });
 
@@ -194,7 +213,9 @@ describe('when the worker cannot read the ball, the main thread does, paced as b
     const work = createOffThread({ build: BUILD, sim: PRACTICE_SIM_VERSION, spawn: () => null });
     const off = await playOver(OVER.slice(0, 3), { work });
     const alone = await playOver(OVER.slice(0, 3));
-    expect(JSON.stringify(off.flow.getState().innings?.current?.deliveries)).toBe(JSON.stringify(alone.flow.getState().innings?.current?.deliveries));
+    expect(JSON.stringify(off.flow.getState().innings?.current?.deliveries)).toBe(
+      JSON.stringify(alone.flow.getState().innings?.current?.deliveries),
+    );
     expect(work.stats().balls.map((b) => b.reason)).toEqual(['no_worker', 'no_worker', 'no_worker']);
   });
 
@@ -226,7 +247,12 @@ describe('Coach Mode and the demonstration on the work thread', () => {
     await until(() => flow.getState().insight?.status === 'ready');
     swings.push(defend());
     flow.coachLoop.practiceThisBall();
-    await until(() => flow.getState().screen === 'coach' && flow.getState().coach?.latest !== null && flow.getState().phase === 'idle');
+    await until(
+      () =>
+        flow.getState().screen === 'coach' &&
+        flow.getState().coach?.latest !== null &&
+        flow.getState().phase === 'idle',
+    );
     // No main-thread simulation at all: not the ball, not the guide, not the attempt, not its reading.
     expect(engine.calls.slice(mark).filter((c) => c === 'repeat' || c === 'resolve')).toEqual([]);
     expect(calls).toEqual([]);
@@ -250,6 +276,8 @@ describe('Coach Mode and the demonstration on the work thread', () => {
     await until(() => createStage.stages[0].calls().includes('demonstrate'));
     expect(analyzeBall).not.toHaveBeenCalled();
     expect(h.sent.some((m) => m.t === 'analyze' && m.want.guide)).toBe(true);
-    await until(() => flow.getState().phase === 'ready' || flow.getState().phase === 'runup' || flow.getState().phase === 'live');
+    await until(
+      () => flow.getState().phase === 'ready' || flow.getState().phase === 'runup' || flow.getState().phase === 'live',
+    );
   });
 });

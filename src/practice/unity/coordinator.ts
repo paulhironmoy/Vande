@@ -31,11 +31,7 @@ import {
 } from '@/contracts';
 import { normalizeGesture } from '@/input';
 import type { UnityPracticeBridge, UnityPracticeNativeError } from '@/platform/unityPractice';
-import {
-  UNITY_PRACTICE_CLOCK_SAMPLE_COUNT,
-  UnityPracticeClock,
-  type UnityPracticeClockEstimate,
-} from './clock';
+import { UNITY_PRACTICE_CLOCK_SAMPLE_COUNT, UnityPracticeClock, type UnityPracticeClockEstimate } from './clock';
 
 export type UnityPracticeSessionStatus =
   | 'idle'
@@ -63,7 +59,13 @@ export type UnityPracticeCoordinatorEvent =
   | { type: 'scene_ready' }
   | { type: 'delivery_started'; deliveryId: string }
   | { type: 'release'; deliveryId: string; releasePerfMs: number }
-  | { type: 'pointer'; deliveryId: string; phase: 'down' | 'cancel'; atPerfMs: number; pointer: GestureInput['pointer'] }
+  | {
+      type: 'pointer';
+      deliveryId: string;
+      phase: 'down' | 'cancel';
+      atPerfMs: number;
+      pointer: GestureInput['pointer'];
+    }
   | { type: 'gesture'; deliveryId: string; swing: NormalizedSwing | null }
   | { type: 'result_committed'; deliveryId: string; replayDigest: string }
   | { type: 'dead'; deliveryId: string; deadT: number; replayDigest: string }
@@ -80,7 +82,18 @@ export type UnityPracticeCoordinatorEvent =
   | { type: 'pause_requested' }
   | { type: 'quiet'; quiet: boolean }
   | { type: 'runtime_error'; error: UnityPracticePayloadByType['unity.error'] | UnityPracticeNativeError }
-  | { type: 'protocol_rejected'; messageType: string; decision: UnityPracticeProtocolDecision | 'invalid_packet' | 'unexpected_ack' | 'unexpected_clock' | 'gesture_before_release' | 'duplicate_semantic' | 'resolution_mismatch' }
+  | {
+      type: 'protocol_rejected';
+      messageType: string;
+      decision:
+        | UnityPracticeProtocolDecision
+        | 'invalid_packet'
+        | 'unexpected_ack'
+        | 'unexpected_clock'
+        | 'gesture_before_release'
+        | 'duplicate_semantic'
+        | 'resolution_mismatch';
+    }
   | { type: 'unload_deferred'; inFlightDeliveryId: string }
   | { type: 'fallback'; reason: string; inFlightDeliveryId: string | null }
   | { type: 'unloaded'; clean: boolean; retainedMemoryMb: number | null };
@@ -224,12 +237,14 @@ export class UnityPracticeSessionCoordinator {
     if (!options.buildId || !options.sessionId) throw new TypeError('Unity Practice requires build and session ids.');
     if (!Number.isFinite(options.calibrationMs)) throw new TypeError('Unity Practice calibration must be finite.');
     this.ackTimeoutMs = options.ackTimeoutMs ?? UNITY_PRACTICE_ACK_TIMEOUT_MS;
-    if (!Number.isFinite(this.ackTimeoutMs) || this.ackTimeoutMs <= 0) throw new RangeError('Unity Practice timeout must be positive.');
+    if (!Number.isFinite(this.ackTimeoutMs) || this.ackTimeoutMs <= 0)
+      throw new RangeError('Unity Practice timeout must be positive.');
     // An explicit timeout remains an exact test/integration override for every
     // message. Production gets the separately bounded heavy-payload budget.
     this.resultAckTimeoutMs = options.ackTimeoutMs ?? UNITY_PRACTICE_RESULT_ACK_TIMEOUT_MS;
     this.launchTimeoutMs = options.launchTimeoutMs ?? UNITY_PRACTICE_LAUNCH_TIMEOUT_MS;
-    if (!Number.isFinite(this.launchTimeoutMs) || this.launchTimeoutMs <= 0) throw new RangeError('Unity Practice launch timeout must be positive.');
+    if (!Number.isFinite(this.launchTimeoutMs) || this.launchTimeoutMs <= 0)
+      throw new RangeError('Unity Practice launch timeout must be positive.');
     this.now = options.now ?? (() => performance.now());
     this.ids = options.messageId ?? ((purpose, ordinal) => `${options.sessionId}:${purpose}:${ordinal}`);
     this.timers = options.timers ?? DEFAULT_TIMERS;
@@ -275,7 +290,14 @@ export class UnityPracticeSessionCoordinator {
       });
 
       const ready = this.waitForReady(this.launchTimeoutMs);
-      const initialized = this.sendHost('host.initialize', this.options.initialize, null, true, undefined, this.launchTimeoutMs);
+      const initialized = this.sendHost(
+        'host.initialize',
+        this.options.initialize,
+        null,
+        true,
+        undefined,
+        this.launchTimeoutMs,
+      );
       if (!(await initialized) || !(await ready)) {
         await this.fallback('launch_timeout');
         return false;
@@ -340,7 +362,10 @@ export class UnityPracticeSessionCoordinator {
     return promise;
   }
 
-  async sendProvisionalSwing(deliveryId: string, payload: UnityPracticePayloadByType['host.provisional_swing']): Promise<boolean> {
+  async sendProvisionalSwing(
+    deliveryId: string,
+    payload: UnityPracticePayloadByType['host.provisional_swing'],
+  ): Promise<boolean> {
     if (this.statusValue !== 'delivery' || deliveryId !== this.activeDeliveryId) return false;
     return this.sendHost('host.provisional_swing', payload, deliveryId);
   }
@@ -367,13 +392,17 @@ export class UnityPracticeSessionCoordinator {
     this.benchmarkOrdinal += 1;
     const benchmarkId = `${this.options.sessionId}:benchmark:${this.benchmarkOrdinal}`;
     const result = this.waitForBenchmark(benchmarkId, durationMs + 5_000);
-    const sent = await this.sendHost('host.benchmark', {
-      benchmarkId,
-      durationMs,
-      warmupFrames,
-      sampleCap,
-      quality,
-    }, null);
+    const sent = await this.sendHost(
+      'host.benchmark',
+      {
+        benchmarkId,
+        durationMs,
+        warmupFrames,
+        sampleCap,
+        quality,
+      },
+      null,
+    );
     if (!sent) {
       this.cancelBenchmark(benchmarkId);
       return null;
@@ -407,15 +436,22 @@ export class UnityPracticeSessionCoordinator {
       }
       if (this.statusValue !== 'delivery' || deliveryId !== this.activeDeliveryId) return false;
       this.statusValue = 'result_pending';
-      return this.sendHost('host.result', resolution, deliveryId, false, () => {
-        this.expectedDead.set(deliveryId, {
-          deadT: resolution.result.deadT,
-          replayDigest: resolution.replayDigest,
-        });
-        this.lastDeliveryId = deliveryId;
-        this.statusValue = 'resolved';
-        this.emit({ type: 'result_committed', deliveryId, replayDigest: resolution.replayDigest });
-      }, this.resultAckTimeoutMs).then((ok) => {
+      return this.sendHost(
+        'host.result',
+        resolution,
+        deliveryId,
+        false,
+        () => {
+          this.expectedDead.set(deliveryId, {
+            deadT: resolution.result.deadT,
+            replayDigest: resolution.replayDigest,
+          });
+          this.lastDeliveryId = deliveryId;
+          this.statusValue = 'resolved';
+          this.emit({ type: 'result_committed', deliveryId, replayDigest: resolution.replayDigest });
+        },
+        this.resultAckTimeoutMs,
+      ).then((ok) => {
         if (!ok && this.statusValue !== 'fallback') this.statusValue = 'delivery';
         return ok;
       });
@@ -436,22 +472,38 @@ export class UnityPracticeSessionCoordinator {
       deliveryId !== this.lastDeliveryId ||
       !expected ||
       payload.replayDigest !== expected.replayDigest
-    ) return Promise.resolve(false);
+    )
+      return Promise.resolve(false);
     return this.sendHost('host.dead_ball_ui', payload, deliveryId);
   }
 
   async replay(deliveryId: string, replay: UnityPracticeReplay): Promise<boolean> {
-    if (!['resolved', 'scene_ready', 'dead_ball'].includes(this.statusValue) || deliveryId !== (this.activeDeliveryId ?? this.lastDeliveryId)) return false;
+    if (
+      !['resolved', 'scene_ready', 'dead_ball'].includes(this.statusValue) ||
+      deliveryId !== (this.activeDeliveryId ?? this.lastDeliveryId)
+    )
+      return false;
     if (!(await this.hasValidResolutionIdentity(replay.resolution))) {
       await this.fallback('replay_identity:host.replay');
       return false;
     }
-    if (!['resolved', 'scene_ready', 'dead_ball'].includes(this.statusValue) || deliveryId !== (this.activeDeliveryId ?? this.lastDeliveryId)) return false;
+    if (
+      !['resolved', 'scene_ready', 'dead_ball'].includes(this.statusValue) ||
+      deliveryId !== (this.activeDeliveryId ?? this.lastDeliveryId)
+    )
+      return false;
     this.statusValue = 'replay_pending';
-    const ok = await this.sendHost('host.replay', replay, deliveryId, false, () => {
-      this.activeDeliveryId = deliveryId;
-      this.statusValue = 'replaying';
-    }, this.resultAckTimeoutMs);
+    const ok = await this.sendHost(
+      'host.replay',
+      replay,
+      deliveryId,
+      false,
+      () => {
+        this.activeDeliveryId = deliveryId;
+        this.statusValue = 'replaying';
+      },
+      this.resultAckTimeoutMs,
+    );
     if (!ok && !this.inFallback()) this.statusValue = 'resolved';
     return ok;
   }
@@ -474,16 +526,23 @@ export class UnityPracticeSessionCoordinator {
         return false;
       }
       if (this.statusValue !== 'demonstration_pending' || this.pendingDeliveryId !== deliveryId) return false;
-      return this.sendHost('host.demonstration', demonstration, deliveryId, false, () => {
-        this.pendingDeliveryId = null;
-        this.activeDeliveryId = deliveryId;
-        this.expectedDead.set(deliveryId, {
-          deadT: demonstration.resolution.result.deadT,
-          replayDigest: demonstration.resolution.replayDigest,
-        });
-        this.statusValue = 'demonstrating';
-        this.emit({ type: 'demonstration_started', deliveryId });
-      }, this.resultAckTimeoutMs).then((ok) => {
+      return this.sendHost(
+        'host.demonstration',
+        demonstration,
+        deliveryId,
+        false,
+        () => {
+          this.pendingDeliveryId = null;
+          this.activeDeliveryId = deliveryId;
+          this.expectedDead.set(deliveryId, {
+            deadT: demonstration.resolution.result.deadT,
+            replayDigest: demonstration.resolution.replayDigest,
+          });
+          this.statusValue = 'demonstrating';
+          this.emit({ type: 'demonstration_started', deliveryId });
+        },
+        this.resultAckTimeoutMs,
+      ).then((ok) => {
         if (!ok && !this.inFallback()) {
           this.pendingDeliveryId = null;
           this.activeDeliveryId = null;
@@ -560,7 +619,12 @@ export class UnityPracticeSessionCoordinator {
    * Failure-only escape hatch. It reports an in-flight delivery first, sends the existing dispose message best effort,
    * then asks the native bridge to unload even when an ACK can no longer be trusted.
    */
-  async forceDispose(reason: Extract<UnityPracticePayloadByType['host.dispose']['reason'], 'cancelled' | 'fallback' | 'error'> = 'fallback'): Promise<boolean> {
+  async forceDispose(
+    reason: Extract<
+      UnityPracticePayloadByType['host.dispose']['reason'],
+      'cancelled' | 'fallback' | 'error'
+    > = 'fallback',
+  ): Promise<boolean> {
     return this.fallback(`forced_dispose:${reason}`, reason);
   }
 
@@ -643,7 +707,10 @@ export class UnityPracticeSessionCoordinator {
 
   private enqueueOutbound(work: () => Promise<boolean>): Promise<boolean> {
     const result = this.outboundTail.then(work, work);
-    this.outboundTail = result.then(() => undefined, () => undefined);
+    this.outboundTail = result.then(
+      () => undefined,
+      () => undefined,
+    );
     return result;
   }
 
@@ -663,7 +730,7 @@ export class UnityPracticeSessionCoordinator {
     const cancelledDemonstrationTail = Boolean(
       message.deliveryId &&
       this.cancelledDemonstrations.has(message.deliveryId) &&
-      (message.type === 'unity.release' || message.type === 'unity.dead' || message.type === 'unity.protected_regions')
+      (message.type === 'unity.release' || message.type === 'unity.dead' || message.type === 'unity.protected_regions'),
     );
     // Packet verification is asynchronous and native errors are delivered on a separate callback. A packet that
     // was queued before fallback/dispose must never revive gameplay afterwards. Runtime teardown reporting is the
@@ -806,7 +873,8 @@ export class UnityPracticeSessionCoordinator {
           !deliveryId ||
           deliveryId !== this.activeDeliveryId ||
           !['delivery', 'result_pending', 'resolved', 'demonstrating'].includes(this.statusValue)
-        ) return;
+        )
+          return;
         this.emit({ type: 'protected_regions', deliveryId, payload: message.payload });
         return;
       }
@@ -1021,7 +1089,10 @@ export class UnityPracticeSessionCoordinator {
 
   private fallback(
     reason: string,
-    disposeReason: Extract<UnityPracticePayloadByType['host.dispose']['reason'], 'cancelled' | 'fallback' | 'error'> = 'error',
+    disposeReason: Extract<
+      UnityPracticePayloadByType['host.dispose']['reason'],
+      'cancelled' | 'fallback' | 'error'
+    > = 'error',
   ): Promise<boolean> {
     if (this.fallbackTask) return this.fallbackTask;
     this.fallbackTask = this.performFallback(reason, disposeReason);
@@ -1043,7 +1114,9 @@ export class UnityPracticeSessionCoordinator {
     return unloaded;
   }
 
-  private async sendForcedDispose(reason: Extract<UnityPracticePayloadByType['host.dispose']['reason'], 'cancelled' | 'fallback' | 'error'>): Promise<void> {
+  private async sendForcedDispose(
+    reason: Extract<UnityPracticePayloadByType['host.dispose']['reason'], 'cancelled' | 'fallback' | 'error'>,
+  ): Promise<void> {
     const message = makeUnityPracticeMessage(
       {
         buildId: this.options.buildId,

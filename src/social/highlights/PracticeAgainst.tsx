@@ -17,12 +17,25 @@ function randomSeed(): string {
  * "Can you beat them?": bat the same over a highlight's player bowled, locally with the shared engine. Unofficial
  * practice: nothing is sent, nothing changes any result or ranking.
  */
-export default function PracticeAgainst({ log, bowler, me, onDone }: { log: MatchEventLog; bowler: 0 | 1; me: PlayerRef; onDone: () => void }) {
+export default function PracticeAgainst({
+  log,
+  bowler,
+  me,
+  onDone,
+}: {
+  log: MatchEventLog;
+  bowler: 0 | 1;
+  me: PlayerRef;
+  onDone: () => void;
+}) {
   const { t } = useSocialT();
   const [done, setDone] = useState<{ runs: number; wickets: number } | null>(null);
   // practiceAgainst(log, x) returns the over of the player who is not x: here, the chosen bowler's.
   const target = useMemo(() => practiceAgainst(log, bowler === 0 ? 1 : 0), [log, bowler]);
-  const innings = useMemo(() => localInnings({ plan: target.plan, conditions: target.conditions, seed: randomSeed() }), [target]);
+  const innings = useMemo(
+    () => localInnings({ plan: target.plan, conditions: target.conditions, seed: randomSeed() }),
+    [target],
+  );
   const real = log.innings[bowler === 0 ? 1 : 0];
   const batter = log.players[bowler === 0 ? 1 : 0];
 
@@ -33,8 +46,21 @@ export default function PracticeAgainst({ log, bowler, me, onDone }: { log: Matc
           <Card padding={5} className={s.stackSm}>
             <p className={s.eyebrow}>{t('social.practice.eyebrow')}</p>
             <h2 className={s.h2}>{t('social.practice.you_scored', { runs: done.runs, wickets: done.wickets })}</h2>
-            <p className={s.body}>{t('social.practice.they_scored', { name: batter.alias, runs: real.runs, wickets: real.wickets, bowler: target.opponent.alias })}</p>
-            <p className={s.h3}>{done.runs > real.runs ? t('social.practice.beat') : done.runs === real.runs ? t('social.practice.level') : t('social.practice.short', { n: real.runs - done.runs })}</p>
+            <p className={s.body}>
+              {t('social.practice.they_scored', {
+                name: batter.alias,
+                runs: real.runs,
+                wickets: real.wickets,
+                bowler: target.opponent.alias,
+              })}
+            </p>
+            <p className={s.h3}>
+              {done.runs > real.runs
+                ? t('social.practice.beat')
+                : done.runs === real.runs
+                  ? t('social.practice.level')
+                  : t('social.practice.short', { n: real.runs - done.runs })}
+            </p>
             <p className={s.small}>{t('social.practice.unofficial')}</p>
           </Card>
           <Button variant="primary" size="lg" block onClick={onDone}>

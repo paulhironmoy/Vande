@@ -28,7 +28,9 @@ function markAsked() {
  */
 export function PushPrompt({ push, net, opponent }: { push: PushAdapter; net: Net | null; opponent: string | null }) {
   const { t } = useT();
-  const [state, setState] = useState<'ask' | 'busy' | 'on' | 'off' | 'hidden'>(() => (push.available() && !pushAsked() ? 'ask' : 'hidden'));
+  const [state, setState] = useState<'ask' | 'busy' | 'on' | 'off' | 'hidden'>(() =>
+    push.available() && !pushAsked() ? 'ask' : 'hidden',
+  );
   if (state === 'hidden') return null;
   if (state === 'on' || state === 'off')
     return (
@@ -54,7 +56,13 @@ export function PushPrompt({ push, net, opponent }: { push: PushAdapter; net: Ne
       </h2>
       <p className={s.body}>{opponent ? t('push.body', { name: opponent }) : t('push.body_generic')}</p>
       <div className={s.choices}>
-        <Button variant="secondary" block loading={state === 'busy'} onClick={() => void enable()} data-testid="push-accept">
+        <Button
+          variant="secondary"
+          block
+          loading={state === 'busy'}
+          onClick={() => void enable()}
+          data-testid="push-accept"
+        >
           {t('push.yes')}
         </Button>
         <Button

@@ -186,7 +186,14 @@ export function GestureSurface(props: GestureSurfaceProps) {
     ...props.style,
   };
   return (
-    <div ref={ref} role="application" aria-label={props.label} data-armed={props.enabled ? 'true' : 'false'} className={props.className} style={style}>
+    <div
+      ref={ref}
+      role="application"
+      aria-label={props.label}
+      data-armed={props.enabled ? 'true' : 'false'}
+      className={props.className}
+      style={style}
+    >
       {props.children}
     </div>
   );

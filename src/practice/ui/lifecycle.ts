@@ -1,5 +1,7 @@
 /** Keep native activity state and document visibility paired; foreground never auto-resumes play. */
-interface ListenerHandle { remove(): Promise<void> }
+interface ListenerHandle {
+  remove(): Promise<void>;
+}
 interface NativeLifecycle {
   addListener(event: 'pause' | 'resume', listener: () => void): Promise<ListenerHandle>;
 }
@@ -30,13 +32,25 @@ export function bindPracticeLifecycle(
   document.addEventListener('visibilitychange', publish);
   publish();
   if (loadNative) {
-    void loadNative().then(async ({ App: app }) => {
-      if (disposed) return;
-      await Promise.all([
-        app.addListener('pause', () => { nativePaused = true; publish(); }).then(retain),
-        app.addListener('resume', () => { nativePaused = false; publish(); }).then(retain),
-      ]);
-    }).catch((error) => console.error('Practice native lifecycle registration failed', error));
+    void loadNative()
+      .then(async ({ App: app }) => {
+        if (disposed) return;
+        await Promise.all([
+          app
+            .addListener('pause', () => {
+              nativePaused = true;
+              publish();
+            })
+            .then(retain),
+          app
+            .addListener('resume', () => {
+              nativePaused = false;
+              publish();
+            })
+            .then(retain),
+        ]);
+      })
+      .catch((error) => console.error('Practice native lifecycle registration failed', error));
   }
   return () => {
     if (disposed) return;

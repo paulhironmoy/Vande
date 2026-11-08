@@ -10,7 +10,14 @@ import { sampleBall, type BallScript } from '@/render3d/core/choreo';
 import { BOUNDARY_R } from '@/render3d/core/ground';
 import { buildPracticeScript } from '@/render3d/practice/script';
 import type { PracticeSceneSetup } from '@/render3d/practice/types';
-import { INSET_FIELD_R, insetLayout, insetModel, insetMoment, paintFieldInset, type InsetModel } from '@/render3d/fallback2d/topDown';
+import {
+  INSET_FIELD_R,
+  insetLayout,
+  insetModel,
+  insetMoment,
+  paintFieldInset,
+  type InsetModel,
+} from '@/render3d/fallback2d/topDown';
 import { autoField, resolveDelivery, flight as physicsFlight } from '@/physics/index';
 import { overBalls, swingOf } from '@/practice/game/evaluate';
 import { REFERENCE_CONDITIONS, REFERENCE_OVER } from '@/practice/game/reference';
@@ -19,9 +26,25 @@ import { REFERENCE_CONDITIONS, REFERENCE_OVER } from '@/practice/game/reference'
 function reference(index: number, intent: Parameters<typeof swingOf>[1], handedness: 'right' | 'left' = 'right') {
   const b = overBalls(REFERENCE_OVER, REFERENCE_CONDITIONS)[index];
   const field = autoField(b.over.bowler, b.conditions, handedness, b.over.ball);
-  const flight = physicsFlight({ plan: b.flight.plan, bowler: b.over.bowler, conditions: b.conditions, seed: b.seed, handedness, ball: b.over.ball });
+  const flight = physicsFlight({
+    plan: b.flight.plan,
+    bowler: b.over.bowler,
+    conditions: b.conditions,
+    seed: b.seed,
+    handedness,
+    ball: b.over.ball,
+  });
   const swing = swingOf({ ...b, flight }, intent, 0);
-  const result: DeliveryResult = resolveDelivery({ flight, swing, field, bowler: b.over.bowler, conditions: b.conditions, handedness, assist: 'real', tierToleranceMs: 0 });
+  const result: DeliveryResult = resolveDelivery({
+    flight,
+    swing,
+    field,
+    bowler: b.over.bowler,
+    conditions: b.conditions,
+    handedness,
+    assist: 'real',
+    tierToleranceMs: 0,
+  });
   const setup: PracticeSceneSetup = { field, bowler: b.over.bowler, conditions: b.conditions, handedness };
   return { setup, flight, result, script: buildPracticeScript({ setup, flight, result }) };
 }
@@ -82,7 +105,9 @@ describe('field inset: every human, at the physics position', () => {
       expect(kinds.filter((k) => k === 'batter').length).toBeGreaterThanOrEqual(1);
       expect(kinds.filter((k) => k === 'umpire').length).toBeGreaterThanOrEqual(1);
       // The keeper, the bowler and the nine others: all eleven of the physics field.
-      expect(kinds.filter((k) => k === 'keeper' || k === 'bowler' || k === 'fielder')).toHaveLength(setup.field.fielders.length);
+      expect(kinds.filter((k) => k === 'keeper' || k === 'bowler' || k === 'fielder')).toHaveLength(
+        setup.field.fielders.length,
+      );
     }
   });
 
@@ -93,7 +118,10 @@ describe('field inset: every human, at the physics position', () => {
       const m = insetModel(script, t);
       if (!m) continue;
       for (const pl of m.players) {
-        const s = evaluateActor(script.actors.find((a) => a.id === pl.id)!, t).pos;
+        const s = evaluateActor(
+          script.actors.find((a) => a.id === pl.id)!,
+          t,
+        ).pos;
         expect(pl.x).toBe(s.x);
         expect(pl.z).toBe(s.z);
       }
@@ -111,7 +139,10 @@ describe('field inset: every human, at the physics position', () => {
     const first = insetModel(script, 1)!;
     for (const t of [200, p.releaseScene / 2, p.releaseScene - 1]) expect(insetModel(script, t)).toEqual(first);
     for (const pl of first.players) {
-      const s = evaluateActor(script.actors.find((a) => a.id === pl.id)!, p.releaseScene).pos;
+      const s = evaluateActor(
+        script.actors.find((a) => a.id === pl.id)!,
+        p.releaseScene,
+      ).pos;
       expect([pl.x, pl.z]).toEqual([s.x, s.z]);
     }
     expect(first.ball).toBeNull();
@@ -132,7 +163,8 @@ describe('field inset: every human, at the physics position', () => {
     }
     // Somebody chases a driven ball, and nobody is flagged running during the frozen run-up.
     let chased = false;
-    for (let t = p.firstPersonUntil; t < p.deadScene!; t += 50) chased ||= insetModel(script, t)!.players.some((pl) => pl.kind === 'fielder' && Math.hypot(pl.vx, pl.vz) > 2.5);
+    for (let t = p.firstPersonUntil; t < p.deadScene!; t += 50)
+      chased ||= insetModel(script, t)!.players.some((pl) => pl.kind === 'fielder' && Math.hypot(pl.vx, pl.vz) > 2.5);
     expect(chased).toBe(true);
     expect(insetModel(script, 10)!.players.every((pl) => pl.vx === 0 && pl.vz === 0)).toBe(true);
   });
@@ -165,14 +197,20 @@ describe('field inset: layout', () => {
 
   it('eases a slip cordon apart so each marker is countable, never moving one by more than one and a half radii', () => {
     // A pace slip cordon: 1.9 m apart beside the keeper (physics field.ts slipSpots), about two pixels at this size.
-    const cordon: Array<[number, number]> = [[0.35, 26], [2.25, 25.5], [4.15, 25], [6.05, 24.5]];
+    const cordon: Array<[number, number]> = [
+      [0.35, 26],
+      [2.25, 25.5],
+      [4.15, 25],
+      [6.05, 24.5],
+    ];
     const size = 112;
     const L = insetLayout(model(cordon), size);
     for (let i = 0; i < cordon.length; i++) {
       const hx = L.c + cordon[i][0] * L.k;
       const hy = L.c + cordon[i][1] * L.k;
       expect(Math.hypot(L.at[i * 2] - hx, L.at[i * 2 + 1] - hy)).toBeLessThanOrEqual(L.r * 1.5 + 1e-3);
-      for (let j = i + 1; j < cordon.length; j++) expect(Math.hypot(L.at[i * 2] - L.at[j * 2], L.at[i * 2 + 1] - L.at[j * 2 + 1])).toBeGreaterThan(L.r * 1.4);
+      for (let j = i + 1; j < cordon.length; j++)
+        expect(Math.hypot(L.at[i * 2] - L.at[j * 2], L.at[i * 2 + 1] - L.at[j * 2 + 1])).toBeGreaterThan(L.r * 1.4);
     }
   });
 
@@ -181,7 +219,10 @@ describe('field inset: layout', () => {
     // him and the striker in front: three markers inside about 2.5 m, under 3 px at this size before easing.
     for (const family of ['pace', 'spin'] as const) {
       for (const hand of ['right', 'left'] as const) {
-        const bowler = family === 'pace' ? ({ family, paceBand: 'fast', arm: 'right', lookSeed: 'b' } as const) : ({ family, spinType: 'finger', arm: 'right', lookSeed: 's' } as const);
+        const bowler =
+          family === 'pace'
+            ? ({ family, paceBand: 'fast', arm: 'right', lookSeed: 'b' } as const)
+            : ({ family, spinType: 'finger', arm: 'right', lookSeed: 's' } as const);
         const field = autoField(bowler, 'balanced', hand);
         const setup: PracticeSceneSetup = { field, bowler, conditions: 'balanced', handedness: hand };
         const idle = buildPracticeScript({ setup, flight: null });
@@ -199,7 +240,12 @@ describe('field inset: layout', () => {
   });
 
   it('moves nobody who already stands clear', () => {
-    const spread: Array<[number, number]> = [[-40, 0], [40, 0], [0, -40], [0, 40]];
+    const spread: Array<[number, number]> = [
+      [-40, 0],
+      [40, 0],
+      [0, -40],
+      [0, 40],
+    ];
     const L = insetLayout(model(spread), 120);
     spread.forEach(([x, z], i) => {
       expect(L.at[i * 2]).toBeCloseTo(L.c + x * L.k, 4);
@@ -232,10 +278,13 @@ describe('field inset: the DOM seam', () => {
     expect(pip.dataset.pipDrawn).toBe('1');
     expect(paintFieldInset(stage, script, script.practice!.deadScene!, { mode: 'live' })).toBe('full');
     expect(paintFieldInset(stage, script, script.practice!.deadScene!, { fieldInView: true })).toBe('hidden');
-    for (const mode of ['replay', 'demo', 'closeup', 'benchmark']) expect(paintFieldInset(stage, script, script.practice!.deadScene!, { mode })).toBe('hidden');
+    for (const mode of ['replay', 'demo', 'closeup', 'benchmark'])
+      expect(paintFieldInset(stage, script, script.practice!.deadScene!, { mode })).toBe('hidden');
     expect(pip.dataset.pipMoment).toBe('hidden');
     // Classic never draws the dead ball's picture (its card's half), but keeps the run-up's.
-    expect(paintFieldInset(stage, script, script.practice!.deadScene!, { mode: 'live', deadBall: false })).toBe('hidden');
+    expect(paintFieldInset(stage, script, script.practice!.deadScene!, { mode: 'live', deadBall: false })).toBe(
+      'hidden',
+    );
     expect(paintFieldInset(stage, script, 10, { mode: 'live', deadBall: false })).toBe('quiet');
   });
 

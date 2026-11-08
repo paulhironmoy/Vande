@@ -54,7 +54,11 @@ export function createIdbSecureStore(dbName = 'vande-secure'): SecureStore {
       const value = (await (await db()).get('items', k)) as SealedValue | undefined;
       if (!value) return null;
       try {
-        const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: value.iv, additionalData: aad(k) }, await key(), value.ct);
+        const pt = await crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv: value.iv, additionalData: aad(k) },
+          await key(),
+          value.ct,
+        );
         return new TextDecoder().decode(pt);
       } catch {
         return null;
@@ -62,7 +66,11 @@ export function createIdbSecureStore(dbName = 'vande-secure'): SecureStore {
     },
     async set(k, v) {
       const iv = crypto.getRandomValues(new Uint8Array(12));
-      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: aad(k) }, await key(), new TextEncoder().encode(v));
+      const ct = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv, additionalData: aad(k) },
+        await key(),
+        new TextEncoder().encode(v),
+      );
       await (await db()).put('items', { iv, ct } satisfies SealedValue, k);
     },
     async remove(k) {
@@ -92,7 +100,14 @@ const PROBE_KEY = 'vc.probe';
 export async function browserSecureStore(timeoutMs = NATIVE_TIMEOUT_MS): Promise<SecureStore> {
   if (typeof indexedDB !== 'undefined') {
     const store = createIdbSecureStore();
-    if (await settleWithin(store.get(PROBE_KEY).then(() => true), timeoutMs, false)) return store;
+    if (
+      await settleWithin(
+        store.get(PROBE_KEY).then(() => true),
+        timeoutMs,
+        false,
+      )
+    )
+      return store;
   }
   return createMemorySecureStore();
 }

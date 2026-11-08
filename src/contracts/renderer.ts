@@ -3,7 +3,15 @@
  * experience workstream in src/render3d. The same renderer powers live batting, in-app replay, Key Moments, and
  * offline highlight rendering (deterministic frame stepping with renderAt).
  */
-import type { BallOutcome, MatchEventLog, PlayerRef, RevealedDelivery, FieldSetting, FieldZone, Conditions } from './cricket';
+import type {
+  BallOutcome,
+  MatchEventLog,
+  PlayerRef,
+  RevealedDelivery,
+  FieldSetting,
+  FieldZone,
+  Conditions,
+} from './cricket';
 
 export type RenderQuality = 'low' | 'standard' | 'high';
 
@@ -38,7 +46,9 @@ export type RendererFallbackReason = 'no_webgl' | 'context_lost' | 'low_fps' | '
 /** Event payloads of MatchRenderer.on. */
 export interface RendererEvents {
   /** A ball starts: live batting gives the ball index; a replay gives the ball's ordinal and its index in log.events. */
-  ball: { live: true; ball: number } | { live?: false; ordinal: number; eventIndex: number; innings: 0 | 1 | 'super'; ball: number; key: boolean };
+  ball:
+    | { live: true; ball: number }
+    | { live?: false; ordinal: number; eventIndex: number; innings: 0 | 1 | 'super'; ball: number; key: boolean };
   end: { durationMs: number };
   /** The app should switch to the 2D presentation (and record `renderer_fallback`). */
   fallback: { reason: RendererFallbackReason; fps?: number; message?: string };
@@ -54,7 +64,12 @@ export interface RendererStats {
 export interface MatchRenderer {
   mount(canvas: HTMLCanvasElement, options: RendererOptions): Promise<void>;
   /** Live batting: set up the stadium, the field and the two players. */
-  prepareInnings(setup: { conditions: Conditions; field: FieldSetting; batter: PlayerRef; bowler: PlayerRef }): Promise<void>;
+  prepareInnings(setup: {
+    conditions: Conditions;
+    field: FieldSetting;
+    batter: PlayerRef;
+    bowler: PlayerRef;
+  }): Promise<void>;
   /** Live batting: bowl one revealed delivery. */
   bowl(delivery: RevealedDelivery): LiveBallHandle;
   /** Replay: load a revealed match log. */

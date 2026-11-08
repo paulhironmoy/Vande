@@ -64,7 +64,8 @@ const graphListeners: Array<(g: LiveGraph) => void> = [];
 const resumeListeners = new Set<() => void>();
 
 function applyLevels(g: LiveGraph, s: Readonly<AudioSettings>, smooth: boolean) {
-  const set = (n: GainNode, v: number) => (smooth ? n.gain.setTargetAtTime(v, g.ctx.currentTime, 0.05) : (n.gain.value = v));
+  const set = (n: GainNode, v: number) =>
+    smooth ? n.gain.setTargetAtTime(v, g.ctx.currentTime, 0.05) : (n.gain.value = v);
   set(g.level.effects, busGain(s.effects));
   set(g.level.crowd, busGain(s.crowd));
   set(g.level.music, busGain(s.music));
@@ -75,7 +76,8 @@ function applyLevels(g: LiveGraph, s: Readonly<AudioSettings>, smooth: boolean) 
 function ensureGraph(): LiveGraph | null {
   if (graph) return graph;
   if (typeof window === 'undefined') return null;
-  const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  const Ctor =
+    window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Ctor) return null;
   try {
     joinAmbientSession();
@@ -90,7 +92,11 @@ function ensureGraph(): LiveGraph | null {
     const mixBus = gain();
     action.connect(mixBus);
     const makeup = gain(10 ** (MIX.liveMakeupDb / 20));
-    mixBus.connect(makeup).connect(applyCompressor(ctx.createDynamicsCompressor(), MIX.limiter)).connect(master).connect(ctx.destination);
+    mixBus
+      .connect(makeup)
+      .connect(applyCompressor(ctx.createDynamicsCompressor(), MIX.limiter))
+      .connect(master)
+      .connect(ctx.destination);
     const input = { effects: gain(), crowd: gain(), music: gain(), interface: gain() };
     const level = { effects: gain(), crowd: gain(), music: gain(), interface: gain() };
     const duck = { crowd: gain(), bed: gain(), music: gain(), interface: gain() };
@@ -110,8 +116,21 @@ function ensureGraph(): LiveGraph | null {
       input,
       bedInput,
       noise,
-      target: { effects: target(input.effects), crowd: target(input.crowd), music: target(input.music), interface: target(input.interface) },
-      routed: { ctx, out: input.effects, crowd: input.crowd, music: input.music, ui: input.interface, noise, track: trackVoice },
+      target: {
+        effects: target(input.effects),
+        crowd: target(input.crowd),
+        music: target(input.music),
+        interface: target(input.interface),
+      },
+      routed: {
+        ctx,
+        out: input.effects,
+        crowd: input.crowd,
+        music: input.music,
+        ui: input.interface,
+        noise,
+        track: trackVoice,
+      },
       level,
       bedLevel,
       duck,
@@ -163,7 +182,8 @@ function prepareWhenIdle(): void {
     preparing = false;
     ensureGraph();
   };
-  const idle = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+  const idle = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number })
+    .requestIdleCallback;
   if (typeof idle === 'function') idle(run, { timeout: 1500 });
   else setTimeout(run, 200);
 }
@@ -273,7 +293,9 @@ function resetDucks(g: LiveGraph) {
 
 // Every scheduled source, so going to the background can stop them all (a ring: 64 is far more than ever overlap).
 const VOICE_SLOTS = 64;
-const voiceNodes: Array<AudioScheduledSourceNode | null> = new Array<AudioScheduledSourceNode | null>(VOICE_SLOTS).fill(null);
+const voiceNodes: Array<AudioScheduledSourceNode | null> = new Array<AudioScheduledSourceNode | null>(VOICE_SLOTS).fill(
+  null,
+);
 const voiceEnds = new Float64Array(VOICE_SLOTS);
 let voiceNext = 0;
 

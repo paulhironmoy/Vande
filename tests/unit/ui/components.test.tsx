@@ -1,7 +1,19 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, screen } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Avatar, BallTimeline, Button, Dialog, EnergyMeter, ExecutionMeter, OutcomeBadge, Sheet, StateView, ZonePad, markFromOutcome } from '@/ui';
+import {
+  Avatar,
+  BallTimeline,
+  Button,
+  Dialog,
+  EnergyMeter,
+  ExecutionMeter,
+  OutcomeBadge,
+  Sheet,
+  StateView,
+  ZonePad,
+  markFromOutcome,
+} from '@/ui';
 import { zoneFromSwipe, vectorForZone, legalZones } from '@/ui/cricket/aim';
 import { ZONES } from '@/render3d/core/ground';
 import { checkTrace } from '@/engine';
@@ -11,11 +23,28 @@ afterEach(cleanup);
 
 /** A pointer event with its own timestamp, as a browser stamps it (jsdom stamps epoch time, which counts as missing). */
 function stamped(type: string, x: number, y: number, t: number): PointerEvent {
-  const e = new PointerEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, pointerType: 'touch', pointerId: 1 });
+  const e = new PointerEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    clientX: x,
+    clientY: y,
+    pointerType: 'touch',
+    pointerId: 1,
+  });
   Object.defineProperty(e, 'timeStamp', { value: t });
   return e;
 }
-const box = (width: number, height: number) => ({ left: 0, top: 0, width, height, right: width, bottom: height, x: 0, y: 0, toJSON: () => ({}) });
+const box = (width: number, height: number) => ({
+  left: 0,
+  top: 0,
+  width,
+  height,
+  right: width,
+  bottom: height,
+  x: 0,
+  y: 0,
+  toJSON: () => ({}),
+});
 
 describe('Button', () => {
   it('blocks repeat taps while loading and keeps its label', () => {
@@ -52,7 +81,9 @@ describe('OutcomeBadge', () => {
 
   it('timelines can be used to seek', () => {
     const onSelect = vi.fn();
-    renderUi(<BallTimeline label="Over" slots={[{ mark: { kind: 'dot' } }, { mark: { kind: 'four' } }]} onSelect={onSelect} />);
+    renderUi(
+      <BallTimeline label="Over" slots={[{ mark: { kind: 'dot' } }, { mark: { kind: 'four' } }]} onSelect={onSelect} />,
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Ball 2: Four' }));
     expect(onSelect).toHaveBeenCalledWith(1);
   });
@@ -138,7 +169,14 @@ describe('ExecutionMeter', () => {
     fireEvent(meter, stamped('pointerup', 107, 115, 3800.06));
     expect(onComplete).toHaveBeenCalledTimes(1);
     const [trace, preview] = onComplete.mock.calls[0];
-    expect(trace).toEqual({ pointer: 'touch', samples: [[0, 0.3333, 0.4], [400, 0.3467, 0.39], [800, 0.3567, 0.3833]] });
+    expect(trace).toEqual({
+      pointer: 'touch',
+      samples: [
+        [0, 0.3333, 0.4],
+        [400, 0.3467, 0.39],
+        [800, 0.3567, 0.3833],
+      ],
+    });
     expect(preview).toEqual({ quality: 1, grade: 'perfect' });
     expect(checkTrace(trace, 'execution')).toEqual([]);
   });
@@ -158,7 +196,10 @@ describe('ExecutionMeter', () => {
     now = 2700;
     fireEvent(meter, stamped('pointerup', 170, 150, 2700));
     const [trace, preview] = onComplete.mock.calls[0];
-    expect(trace.samples).toEqual([[0, 0.5, 0.5], [1499, 0.5, 0.5]]);
+    expect(trace.samples).toEqual([
+      [0, 0.5, 0.5],
+      [1499, 0.5, 0.5],
+    ]);
     expect(preview?.grade).toBe('loose');
     expect(checkTrace(trace, 'execution')).toEqual([]);
   });
@@ -166,7 +207,22 @@ describe('ExecutionMeter', () => {
 
 describe('StateView', () => {
   it('renders every required state with copy and an optional action', () => {
-    const kinds = ['loading', 'offline', 'reconnecting', 'empty_cup', 'pending_opponent', 'locked', 'deadline_expired', 'reveal_ready', 'error', 'consent_declined', 'upload_queued', 'upload_failed', 'muted_group', 'reduced_motion'] as const;
+    const kinds = [
+      'loading',
+      'offline',
+      'reconnecting',
+      'empty_cup',
+      'pending_opponent',
+      'locked',
+      'deadline_expired',
+      'reveal_ready',
+      'error',
+      'consent_declined',
+      'upload_queued',
+      'upload_failed',
+      'muted_group',
+      'reduced_motion',
+    ] as const;
     for (const k of kinds) {
       const { unmount } = renderUi(<StateView kind={k} />);
       expect(screen.getByRole('heading').textContent?.length).toBeGreaterThan(3);
@@ -219,7 +275,12 @@ describe('local input rules mirror the engine', () => {
     const Engine = await import('@/engine');
     const { LOCAL_LEGAL_ZONES, localZoneFromSwipe, SECTOR_ORDER } = await import('@/ui/cricket/aim');
     const { LOCAL_METER } = await import('@/ui/cricket/meter');
-    const E = Engine as unknown as { LEGAL_ZONES: Record<string, readonly string[]>; zoneFromSwipe(dx: number, dy: number): string | null; EXECUTION_METER: Record<string, number>; SECTOR_ZONES: readonly string[] };
+    const E = Engine as unknown as {
+      LEGAL_ZONES: Record<string, readonly string[]>;
+      zoneFromSwipe(dx: number, dy: number): string | null;
+      EXECUTION_METER: Record<string, number>;
+      SECTOR_ZONES: readonly string[];
+    };
     expect(LOCAL_LEGAL_ZONES).toEqual(E.LEGAL_ZONES);
     expect(LOCAL_METER).toEqual(E.EXECUTION_METER);
     if (E.SECTOR_ZONES) expect([...SECTOR_ORDER]).toEqual([...E.SECTOR_ZONES]);
@@ -228,6 +289,17 @@ describe('local input rules mirror the engine', () => {
       const dy = -Math.cos((a * Math.PI) / 180);
       expect(localZoneFromSwipe(dx, dy)).toBe(E.zoneFromSwipe(dx, dy));
     }
-    for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) expect(localZoneFromSwipe(dx, dy)).toBe(E.zoneFromSwipe(dx, dy));
+    for (const [dx, dy] of [
+      [0, 0],
+      [1, 0],
+      [0, 1],
+      [-1, 0],
+      [0, -1],
+      [1, 1],
+      [-1, -1],
+      [1, -1],
+      [-1, 1],
+    ])
+      expect(localZoneFromSwipe(dx, dy)).toBe(E.zoneFromSwipe(dx, dy));
   });
 });

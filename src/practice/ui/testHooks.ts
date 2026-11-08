@@ -13,14 +13,37 @@
  * Swings go through the same pipeline as a real gesture (normalised swing → physics → record), so a hooked delivery
  * and a touched one differ only in where the swing came from. The rest only observes.
  */
-import type { AssistLevel, BallFlight, DeliveryRecord, DeliveryResult, DeviceAssessment, Handedness, NormalizedSwing, PerfTier, PitchCondition } from '@/contracts';
+import type {
+  AssistLevel,
+  BallFlight,
+  DeliveryRecord,
+  DeliveryResult,
+  DeviceAssessment,
+  Handedness,
+  NormalizedSwing,
+  PerfTier,
+  PitchCondition,
+} from '@/contracts';
 import { readRecord } from '@/practice/worker/work';
 import type { BallKind, FlowHooks, LivePhase, PracticeFlow } from './flow/controller';
 import type { BallJob, OffThreadStats } from './flow/offThread';
 import type { ResolveArgs } from './flow/types';
 
 /** Every phase, checked by the compiler (a phase missing here would make waitFor treat it as a screen name). */
-const PHASE_SET: Record<LivePhase, true> = { idle: true, loading: true, intro: true, ready: true, runup: true, live: true, playing: true, dead: true, demo: true, closeup: true, replay: true, paused: true };
+const PHASE_SET: Record<LivePhase, true> = {
+  idle: true,
+  loading: true,
+  intro: true,
+  ready: true,
+  runup: true,
+  live: true,
+  playing: true,
+  dead: true,
+  demo: true,
+  closeup: true,
+  replay: true,
+  paused: true,
+};
 const PHASES = Object.keys(PHASE_SET) as LivePhase[];
 
 export interface TestConfig {
@@ -84,7 +107,9 @@ export interface PracticeTestApi {
    * From now on the stage's ball path is this one (its other regions stay its own; null restores it): a ball's path as
    * measured on another build, so the dead ball's card can be tested against it (EVAL-WORLD K3, the band).
    */
-  ballPathRegions(regions: Array<{ kind: 'ball_path'; x: number; y: number; width: number; height: number }> | null): void;
+  ballPathRegions(
+    regions: Array<{ kind: 'ball_path'; x: number; y: number; width: number; height: number }> | null,
+  ): void;
   /**
    * Resolves when the controller reaches one of the phases or screens (true), or after `timeoutMs` (false). Driven by
    * the controller's own state, so a busy main thread (a software-rendered stage) cannot make a test miss it.
@@ -104,7 +129,8 @@ export interface PracticeTestApi {
 function sameValue(a: unknown, b: unknown, path: string): string | null {
   if (Object.is(a, b)) return null;
   if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return path;
-  if (Array.isArray(a) !== Array.isArray(b) || Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) return `${path}:type`;
+  if (Array.isArray(a) !== Array.isArray(b) || Object.getPrototypeOf(a) !== Object.getPrototypeOf(b))
+    return `${path}:type`;
   const ka = Object.keys(a);
   const kb = Object.keys(b);
   if (ka.length !== kb.length || ka.some((k, i) => k !== kb[i])) return `${path}:keys`;
@@ -127,13 +153,35 @@ const quantiles = (xs: number[]) => {
 };
 
 function assessmentFor(tier: PerfTier): DeviceAssessment {
-  const base = { webgl2: true, hardware: tier !== 'below', renderer: 'test hook', shaderCompileMs: 0, spikes: 0, contextLosses: 0, inputToFrameMs: 20, memoryGb: 8, reasons: ['ok'] };
+  const base = {
+    webgl2: true,
+    hardware: tier !== 'below',
+    renderer: 'test hook',
+    shaderCompileMs: 0,
+    spikes: 0,
+    contextLosses: 0,
+    inputToFrameMs: 20,
+    memoryGb: 8,
+    reasons: ['ok'],
+  };
   if (tier === 'full') return { ...base, avgFps: 60, p95FrameMs: 16.7, tier, profile: 'standard', toleranceMs: 0 };
-  if (tier === 'assisted') return { ...base, avgFps: 50, p95FrameMs: 22, tier, profile: 'lite', reasons: ['fps_assisted'], toleranceMs: 12 };
-  return { ...base, avgFps: 30, p95FrameMs: 40, tier, profile: 'lite', reasons: ['software_renderer'], toleranceMs: 20 };
+  if (tier === 'assisted')
+    return { ...base, avgFps: 50, p95FrameMs: 22, tier, profile: 'lite', reasons: ['fps_assisted'], toleranceMs: 12 };
+  return {
+    ...base,
+    avgFps: 30,
+    p95FrameMs: 40,
+    tier,
+    profile: 'lite',
+    reasons: ['software_renderer'],
+    toleranceMs: 20,
+  };
 }
 
-export function createTestHooks(batTravelMs: (kind: 'defend' | 'attack', power: number) => number, getFlow: () => PracticeFlow | null): FlowHooks {
+export function createTestHooks(
+  batTravelMs: (kind: 'defend' | 'attack', power: number) => number,
+  getFlow: () => PracticeFlow | null,
+): FlowHooks {
   const config: TestConfig = (typeof window !== 'undefined' && window.__VANDE_PRACTICE_TEST__) || {};
   const queue: QueuedSwing[] = [];
   let last: BallFlight | null = null;
@@ -157,8 +205,16 @@ export function createTestHooks(batTravelMs: (kind: 'defend' | 'attack', power: 
       if (q === 'leave') return 'leave';
       const kindOf = q.kind ?? 'attack';
       const power = q.power ?? (kindOf === 'defend' ? 0.2 : 0.7);
-      const startT = 'startT' in q ? q.startT : flight.idealContactT - batTravelMs(kindOf, power) / 1000 + q.contactErrorMs / 1000;
-      return { kind: kindOf, startT, directionDeg: q.directionDeg ?? 0, power, elevation: q.elevation ?? 0, footwork: q.footwork ?? 'auto' };
+      const startT =
+        'startT' in q ? q.startT : flight.idealContactT - batTravelMs(kindOf, power) / 1000 + q.contactErrorMs / 1000;
+      return {
+        kind: kindOf,
+        startT,
+        directionDeg: q.directionDeg ?? 0,
+        power,
+        elevation: q.elevation ?? 0,
+        footwork: q.footwork ?? 'auto',
+      };
     },
   };
   if (typeof window !== 'undefined') {
@@ -166,7 +222,8 @@ export function createTestHooks(batTravelMs: (kind: 'defend' | 'attack', power: 
       queueSwing: (...s) => queue.push(...s),
       clearSwings: () => void queue.splice(0),
       pending: () => queue.length,
-      lastFlight: () => (last ? { idealContactT: last.idealContactT, stumpsT: last.stumpsT, speedKph: last.release.speedKph } : null),
+      lastFlight: () =>
+        last ? { idealContactT: last.idealContactT, stumpsT: last.stumpsT, speedKph: last.release.speedKph } : null,
       stats: () => getFlow()?.stageStats() ?? null,
       sessionFps: () => getFlow()?.sessionFps() ?? [],
       protectedRegions: () => getFlow()?.protectedRegions() ?? [],
@@ -175,13 +232,18 @@ export function createTestHooks(batTravelMs: (kind: 'defend' | 'attack', power: 
         if (!f) return;
         const own = (Object.getPrototypeOf(f) as PracticeFlow).protectedRegions;
         if (regions === null) Reflect.deleteProperty(f, 'protectedRegions');
-        else Object.defineProperty(f, 'protectedRegions', { configurable: true, value: () => [...own.call(f).filter((r) => r.kind !== 'ball_path'), ...regions] });
+        else
+          Object.defineProperty(f, 'protectedRegions', {
+            configurable: true,
+            value: () => [...own.call(f).filter((r) => r.kind !== 'ball_path'), ...regions],
+          });
       },
       state: () => {
         const f = getFlow();
         if (!f) return null;
         const st = f.getState();
-        const plan = st.innings?.current?.plan ?? st.innings?.overs[st.innings.overs.length - 1]?.plan ?? st.pending?.plan ?? null;
+        const plan =
+          st.innings?.current?.plan ?? st.innings?.overs[st.innings.overs.length - 1]?.plan ?? st.pending?.plan ?? null;
         return {
           screen: st.screen,
           phase: st.phase,
@@ -194,15 +256,43 @@ export function createTestHooks(batTravelMs: (kind: 'defend' | 'attack', power: 
           tier: st.quality.tier,
           profile: st.quality.profile,
           stageReady: st.stageReady,
-          last: st.last ? { kind: st.last.kind, runs: st.last.result.outcome.runs, dismissal: st.last.result.outcome.dismissal, contact: st.last.result.contact.kind, swing: st.last.result.swing?.kind ?? null } : null,
+          last: st.last
+            ? {
+                kind: st.last.kind,
+                runs: st.last.result.outcome.runs,
+                dismissal: st.last.result.outcome.dismissal,
+                contact: st.last.result.contact.kind,
+                swing: st.last.result.swing?.kind ?? null,
+              }
+            : null,
           insight: st.insight?.status ?? null,
-          coach: st.coach ? { stage: st.coach.mastery.stage, attempts: st.coach.attempts.length, mastered: st.coach.mastery.mastered, verdict: st.coach.comparison?.verdict ?? null } : null,
+          coach: st.coach
+            ? {
+                stage: st.coach.mastery.stage,
+                attempts: st.coach.attempts.length,
+                mastered: st.coach.mastery.mastered,
+                verdict: st.coach.comparison?.verdict ?? null,
+              }
+            : null,
           notice: st.notice,
           ttfdMs: f.firstDeliveryMs(),
           overKind: st.overKind,
-          over: plan ? { source: plan.source, family: plan.bowler.family, shuffled: Boolean(plan.shuffled), variations: plan.balls.map((b) => b.variation), lengths: plan.balls.map((b) => b.lengthM) } : null,
+          over: plan
+            ? {
+                source: plan.source,
+                family: plan.bowler.family,
+                shuffled: Boolean(plan.shuffled),
+                variations: plan.balls.map((b) => b.variation),
+                lengths: plan.balls.map((b) => b.lengthM),
+              }
+            : null,
           // The timing help each innings ball was played with, by over (the over in progress last).
-          tolerances: st.innings ? [...st.innings.overs.map((o) => o.deliveries), ...(st.innings.current ? [st.innings.current.deliveries] : [])].map((d) => d.map((r) => r.tierToleranceMs)) : [],
+          tolerances: st.innings
+            ? [
+                ...st.innings.overs.map((o) => o.deliveries),
+                ...(st.innings.current ? [st.innings.current.deliveries] : []),
+              ].map((d) => d.map((r) => r.tierToleranceMs))
+            : [],
           unreadyBowls: unready,
           error: st.error,
         };
@@ -216,17 +306,71 @@ export function createTestHooks(batTravelMs: (kind: 'defend' | 'attack', power: 
         const coach = f.coach;
         const work = f.work;
         const want = opts.deliveries ?? 520;
-        const swingOf = (flight: BallFlight, kind: 'attack' | 'defend', power: number, directionDeg: number, elevation: number, footwork: NormalizedSwing['footwork'], errMs: number): NormalizedSwing => ({ kind, startT: flight.idealContactT - batTravelMs(kind, power) / 1000 + errMs / 1000, directionDeg, power, elevation, footwork });
+        const swingOf = (
+          flight: BallFlight,
+          kind: 'attack' | 'defend',
+          power: number,
+          directionDeg: number,
+          elevation: number,
+          footwork: NormalizedSwing['footwork'],
+          errMs: number,
+        ): NormalizedSwing => ({
+          kind,
+          startT: flight.idealContactT - batTravelMs(kind, power) / 1000 + errMs / 1000,
+          directionDeg,
+          power,
+          elevation,
+          footwork,
+        });
         type Case = { args: ResolveArgs; record: DeliveryRecord };
         const cases: Case[] = [];
         const readIdx: number[] = [];
-        const add = (plan: ReturnType<PracticeFlow['engine']['referenceOver']>, i: number, conditions: PitchCondition, assist: AssistLevel, handedness: Handedness, swing: (fl: BallFlight) => NormalizedSwing | null) => {
+        const add = (
+          plan: ReturnType<PracticeFlow['engine']['referenceOver']>,
+          i: number,
+          conditions: PitchCondition,
+          assist: AssistLevel,
+          handedness: Handedness,
+          swing: (fl: BallFlight) => NormalizedSwing | null,
+        ) => {
           const seed = engine.ballSeed(plan, i);
           const field = engine.autoField(plan.bowler, conditions, handedness, plan.ball);
-          const flight = engine.flight({ plan: plan.balls[i], bowler: plan.bowler, conditions, seed, handedness, ball: plan.ball });
+          const flight = engine.flight({
+            plan: plan.balls[i],
+            bowler: plan.bowler,
+            conditions,
+            seed,
+            handedness,
+            ball: plan.ball,
+          });
           const sw = swing(flight);
-          const args: ResolveArgs = { flight, swing: sw, field, bowler: plan.bowler, conditions, handedness, assist, tierToleranceMs: 0 };
-          const record: DeliveryRecord = { version: plan.version, overIndex: 0, ballIndex: i, bowler: plan.bowler, plan: plan.balls[i], seed, conditions, ball: plan.ball, field, handedness, assist, tierToleranceMs: 0, swing: sw, runs: 0, dismissal: null };
+          const args: ResolveArgs = {
+            flight,
+            swing: sw,
+            field,
+            bowler: plan.bowler,
+            conditions,
+            handedness,
+            assist,
+            tierToleranceMs: 0,
+          };
+          const record: DeliveryRecord = {
+            version: plan.version,
+            overIndex: 0,
+            ballIndex: i,
+            bowler: plan.bowler,
+            plan: plan.balls[i],
+            seed,
+            conditions,
+            ball: plan.ball,
+            field,
+            handedness,
+            assist,
+            tierToleranceMs: 0,
+            swing: sw,
+            runs: 0,
+            dismissal: null,
+          };
           cases.push({ args, record });
         };
         const ref = engine.referenceOver();
@@ -234,10 +378,15 @@ export function createTestHooks(batTravelMs: (kind: 'defend' | 'attack', power: 
         for (let i = 0; i < ref.balls.length; i++) {
           readIdx.push(cases.length);
           add(ref, i, 'balanced', 'real', 'right', () => null);
-          for (const fw of ['auto', 'forward', 'back'] as const) for (const e of [-40, 0, 40]) add(ref, i, 'balanced', 'real', 'right', (fl) => swingOf(fl, 'defend', 0.2, 0, 0, fw, e));
+          for (const fw of ['auto', 'forward', 'back'] as const)
+            for (const e of [-40, 0, 40])
+              add(ref, i, 'balanced', 'real', 'right', (fl) => swingOf(fl, 'defend', 0.2, 0, 0, fw, e));
           for (const dir of [-50, 0, 30, 55, 80])
             for (const e of [-60, -20, 0, 20, 60])
-              for (const [pw, el] of [[0.7, 0], [1, 0.8]] as const) {
+              for (const [pw, el] of [
+                [0.7, 0],
+                [1, 0.8],
+              ] as const) {
                 // The cover drive on time is read too.
                 if (dir === 55 && e === 0 && el === 0) readIdx.push(cases.length);
                 add(ref, i, 'balanced', 'real', 'right', (fl) => swingOf(fl, 'attack', pw, dir, el, 'forward', e));
@@ -250,8 +399,27 @@ export function createTestHooks(batTravelMs: (kind: 'defend' | 'attack', power: 
           const conditions = pitches[o % pitches.length];
           const assist = assists[o % assists.length];
           const handedness: Handedness = o % 2 ? 'left' : 'right';
-          const plan = engine.randomOver({ seed: `parity-${o}`, conditions, assist, difficulty: 'club', family: o % 3 === 2 ? 'spin' : 'pace' });
-          for (let i = 0; i < plan.balls.length && cases.length < want; i++) add(plan, i, conditions, assist, handedness, (fl) => (i % 5 === 4 ? null : swingOf(fl, i % 2 ? 'defend' : 'attack', i % 2 ? 0.2 : 0.75, (i * 37 + o * 11) % 120 - 40, 0, 'auto', ((i * 13 + o * 7) % 9) * 15 - 60)));
+          const plan = engine.randomOver({
+            seed: `parity-${o}`,
+            conditions,
+            assist,
+            difficulty: 'club',
+            family: o % 3 === 2 ? 'spin' : 'pace',
+          });
+          for (let i = 0; i < plan.balls.length && cases.length < want; i++)
+            add(plan, i, conditions, assist, handedness, (fl) =>
+              i % 5 === 4
+                ? null
+                : swingOf(
+                    fl,
+                    i % 2 ? 'defend' : 'attack',
+                    i % 2 ? 0.2 : 0.75,
+                    ((i * 37 + o * 11) % 120) - 40,
+                    0,
+                    'auto',
+                    ((i * 13 + o * 7) % 9) * 15 - 60,
+                  ),
+            );
         }
         const mainJson: string[] = [];
         const workerJson: string[] = [];
@@ -297,7 +465,9 @@ export function createTestHooks(batTravelMs: (kind: 'defend' | 'attack', power: 
         for (const { c, r } of readCases) {
           const record = { ...c.record, runs: r.outcome.runs, dismissal: r.outcome.dismissal } as DeliveryRecord;
           const wantRead = { tip: true, sample: { source: 'innings' as const }, guide: true };
-          const local = await readRecord({ ...coach, repeatDelivery: engine.repeatDelivery }, record, r, wantRead, { sliceMs: 1000 });
+          const local = await readRecord({ ...coach, repeatDelivery: engine.repeatDelivery }, record, r, wantRead, {
+            sliceMs: 1000,
+          });
           let remote: unknown;
           try {
             remote = await work.read(record, r, wantRead);
@@ -338,7 +508,13 @@ export function createTestHooks(batTravelMs: (kind: 'defend' | 'attack', power: 
             if (!st) return false;
             // A bare name is a phase when it is one ('live' is also a screen name: the phase is meant); otherwise a
             // screen; plus the hold before a delivery.
-            return states.some((x) => (x === 'turn' ? st.needLandscape : (PHASES as readonly string[]).includes(x) ? st.phase === x : st.screen === x));
+            return states.some((x) =>
+              x === 'turn'
+                ? st.needLandscape
+                : (PHASES as readonly string[]).includes(x)
+                  ? st.phase === x
+                  : st.screen === x,
+            );
           };
           if (hit()) {
             resolve(true);
@@ -361,7 +537,8 @@ export function createTestHooks(batTravelMs: (kind: 'defend' | 'attack', power: 
             if (hit()) done(true);
             return true;
           };
-          if (!attach()) sub = window.setInterval(() => attach() && sub !== null && (window.clearInterval(sub), (sub = null)), 20);
+          if (!attach())
+            sub = window.setInterval(() => attach() && sub !== null && (window.clearInterval(sub), (sub = null)), 20);
         }),
     };
   }

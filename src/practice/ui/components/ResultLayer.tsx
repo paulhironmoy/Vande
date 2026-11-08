@@ -11,7 +11,18 @@ import { Icon } from '@/ui';
 import { usePracticeT } from '@/i18n/practice';
 import { PButton, sys } from '../design';
 import { useKit, useStageRegions } from '../context';
-import { deliveryLine, dismissalWord, fielderWord, isConfirmation, luckyLine, outcomeWord, primaryReasonLine, readLine, recommendationLine, tipParts } from '../coaching';
+import {
+  deliveryLine,
+  dismissalWord,
+  fielderWord,
+  isConfirmation,
+  luckyLine,
+  outcomeWord,
+  primaryReasonLine,
+  readLine,
+  recommendationLine,
+  tipParts,
+} from '../coaching';
 import type { Insight, LastBall } from '../flow/state';
 import { Alternatives } from './Alternatives';
 import { BallPath } from './BallPath';
@@ -58,10 +69,18 @@ export function ResultLayer(p: ResultLayerProps) {
   const tip = primary && coach && p.insight?.tip ? tipParts(t, coach.tipWords(t, p.insight.tip)) : null;
   // A confirmation (the tick, the green) is praise: only when earned (anti-fake rule 7: no risk the recommendation avoids,
   // and the contact's own measurement, from the tip: bat speed and the sweet zone, never the contact label).
-  const earned = primary && analysis && coach ? coach.praiseEarned(analysis, primary.recommendation, p.insight?.tip ?? null) : true;
+  const earned =
+    primary && analysis && coach ? coach.praiseEarned(analysis, primary.recommendation, p.insight?.tip ?? null) : true;
   const confirm = primary ? isConfirmation(primary.recommendation) && earned : false;
   const fielder = fielderOf(record, result.outcome.fielderId);
-  const by = fielder ? t.t(result.outcome.dismissal === 'caught' || result.outcome.dismissal === 'caught_behind' ? 'practice.result.caught_by' : 'practice.result.fielded_by', { fielder: fielderWord(t, fielder.role) ?? '' }) : null;
+  const by = fielder
+    ? t.t(
+        result.outcome.dismissal === 'caught' || result.outcome.dismissal === 'caught_behind'
+          ? 'practice.result.caught_by'
+          : 'practice.result.fielded_by',
+        { fielder: fielderWord(t, fielder.role) ?? '' },
+      )
+    : null;
   const toggle = (k: Exclude<Open, null>) => setOpen((cur) => (cur === k ? null : k));
   const whyId = 'practice-result-why';
   const alternativesId = 'practice-result-alternatives';
@@ -84,10 +103,16 @@ export function ResultLayer(p: ResultLayerProps) {
       <div className={s.resultBody} tabIndex={0} data-testid="practice-result-body">
         <div className={s.outcomeRow}>
           <div className={s.outcome}>
-            <span id="practice-result-outcome" className={`${s.outcomeWord} ${o.caps ? sys.outcome : ''}`} data-tone={o.tone}>
+            <span
+              id="practice-result-outcome"
+              className={`${s.outcomeWord} ${o.caps ? sys.outcome : ''}`}
+              data-tone={o.tone}
+            >
               {o.word}
             </span>
-            {result.outcome.dismissal && <span className={sys.section}>{dismissalWord(t, result.outcome.dismissal)}</span>}
+            {result.outcome.dismissal && (
+              <span className={sys.section}>{dismissalWord(t, result.outcome.dismissal)}</span>
+            )}
             <span className={`${sys.caption} ${sys.num}`}>{p.score}</span>
           </div>
           <BallPathFloat last={p.last} />
@@ -101,7 +126,12 @@ export function ResultLayer(p: ResultLayerProps) {
             both announced (a region added with its text already in it is not read out by every screen reader). */}
         <div className={s.words} aria-live="polite" data-testid="practice-result-words">
           {tip ? (
-            <p className={`${s.rec} ${s.tip}`} data-confirm={confirm ? 'true' : 'false'} data-mistake={p.insight?.tip?.mistake ?? 'none'} data-testid="practice-result-tip">
+            <p
+              className={`${s.rec} ${s.tip}`}
+              data-confirm={confirm ? 'true' : 'false'}
+              data-mistake={p.insight?.tip?.mistake ?? 'none'}
+              data-testid="practice-result-tip"
+            >
               <span className={s.recIcon} aria-hidden="true">
                 <Icon name={confirm ? 'check' : 'forward'} size={16} />
               </span>
@@ -112,7 +142,12 @@ export function ResultLayer(p: ResultLayerProps) {
                       {part.text}
                     </span>
                   ) : part.role === 'action' ? (
-                    <span key={i} id="practice-result-recommendation" className={s.tipAction} data-testid="practice-result-recommendation">
+                    <span
+                      key={i}
+                      id="practice-result-recommendation"
+                      className={s.tipAction}
+                      data-testid="practice-result-recommendation"
+                    >
                       {part.text}
                     </span>
                   ) : (
@@ -124,10 +159,19 @@ export function ResultLayer(p: ResultLayerProps) {
           ) : (
             <>
               <p id="practice-result-reason" className={s.reason} data-testid="practice-result-reason">
-                {primary ? primaryReasonLine(t, primary, result) : p.insight?.status === 'working' ? t.t('practice.result.reading') : ''}
+                {primary
+                  ? primaryReasonLine(t, primary, result)
+                  : p.insight?.status === 'working'
+                    ? t.t('practice.result.reading')
+                    : ''}
               </p>
               {primary && (earned || !isConfirmation(primary.recommendation)) && (
-                <p id="practice-result-recommendation" className={s.rec} data-confirm={confirm ? 'true' : 'false'} data-testid="practice-result-recommendation">
+                <p
+                  id="practice-result-recommendation"
+                  className={s.rec}
+                  data-confirm={confirm ? 'true' : 'false'}
+                  data-testid="practice-result-recommendation"
+                >
                   <span className={s.recIcon} aria-hidden="true">
                     <Icon name={confirm ? 'check' : 'forward'} size={16} />
                   </span>
@@ -158,10 +202,22 @@ export function ResultLayer(p: ResultLayerProps) {
         )}
         {analysis && (
           <div className={s.disclosures}>
-            <PButton variant="quiet" aria-expanded={open === 'why'} aria-controls={whyId} onClick={() => toggle('why')} data-testid="practice-why-toggle">
+            <PButton
+              variant="quiet"
+              aria-expanded={open === 'why'}
+              aria-controls={whyId}
+              onClick={() => toggle('why')}
+              data-testid="practice-why-toggle"
+            >
               {t.t('practice.result.why')}
             </PButton>
-            <PButton variant="quiet" aria-expanded={open === 'alternatives'} aria-controls={alternativesId} onClick={() => toggle('alternatives')} data-testid="practice-alternatives-toggle">
+            <PButton
+              variant="quiet"
+              aria-expanded={open === 'alternatives'}
+              aria-controls={alternativesId}
+              onClick={() => toggle('alternatives')}
+              data-testid="practice-alternatives-toggle"
+            >
               {t.t('practice.result.alternatives')}
             </PButton>
             <PButton variant="quiet" icon="play" onClick={p.onDemo} data-testid="practice-demo">
@@ -194,7 +250,14 @@ export function ResultLayer(p: ResultLayerProps) {
             {t.t('practice.result.practice')}
           </PButton>
         )}
-        <PButton variant={p.canPractice ? 'secondary' : 'primary'} size="lg" iconEnd="forward" onClick={p.onNext} autoFocus={!p.canPractice} data-testid="practice-next-ball">
+        <PButton
+          variant={p.canPractice ? 'secondary' : 'primary'}
+          size="lg"
+          iconEnd="forward"
+          onClick={p.onNext}
+          autoFocus={!p.canPractice}
+          data-testid="practice-next-ball"
+        >
           {p.nextLabel}
         </PButton>
       </div>

@@ -12,7 +12,14 @@ export function TimingMeter({ timing, mark }: { timing: DeliveryTiming; mark: Ti
   const b = meterBands(timing);
   const pct = (f: number) => `${(50 + f * 50).toFixed(2)}%`;
   const lo = (f: number) => `${(50 - f * 50).toFixed(2)}%`;
-  const tone = Math.abs(mark.offsetMs) <= timing.perfectMs ? 'perfect' : Math.abs(mark.offsetMs) <= timing.goodMs ? 'good' : Math.abs(mark.offsetMs) <= timing.edgeMs ? 'edge' : 'wide';
+  const tone =
+    Math.abs(mark.offsetMs) <= timing.perfectMs
+      ? 'perfect'
+      : Math.abs(mark.offsetMs) <= timing.goodMs
+        ? 'good'
+        : Math.abs(mark.offsetMs) <= timing.edgeMs
+          ? 'edge'
+          : 'wide';
   return (
     <div className={s.meter} aria-hidden="true" data-testid="bat-timing-meter" data-tone={tone}>
       <div

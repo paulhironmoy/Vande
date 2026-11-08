@@ -71,10 +71,12 @@ function coachDemonstrationMatchesResult(option: CoachOption, result: DeliveryRe
     option.contact === result.contact.kind &&
     canonicalUnityPracticeJson(option.outcome) === canonicalUnityPracticeJson(result.outcome) &&
     (batContact
-      ? option.contactT !== null && canonicalUnityPracticeJson(option.contactT) === canonicalUnityPracticeJson(result.contact.t)
+      ? option.contactT !== null &&
+        canonicalUnityPracticeJson(option.contactT) === canonicalUnityPracticeJson(result.contact.t)
       : option.contactT === null) &&
     (batContact
-      ? option.contactPoint !== null && canonicalUnityPracticeJson(option.contactPoint) === canonicalUnityPracticeJson(result.contact.point)
+      ? option.contactPoint !== null &&
+        canonicalUnityPracticeJson(option.contactPoint) === canonicalUnityPracticeJson(result.contact.point)
       : option.contactPoint === null)
   );
 }
@@ -390,7 +392,15 @@ export class UnityPracticeStage implements PracticeStageLike {
   async presentReady(visible: boolean): Promise<boolean> {
     if (!this.mounted || this.disposed || this.active || this.replayWaiter || this.demonstrationWaiter) return false;
     if (!visible) return this.setReadyVisible(false);
-    if (!this.scene || !(await this.sceneTask) || this.disposed || this.active || this.replayWaiter || this.demonstrationWaiter) return false;
+    if (
+      !this.scene ||
+      !(await this.sceneTask) ||
+      this.disposed ||
+      this.active ||
+      this.replayWaiter ||
+      this.demonstrationWaiter
+    )
+      return false;
     this.retainingFinalPose = false;
     this.clearDeadBallUi();
     this.setCanvasGameplayInput(false);
@@ -410,7 +420,8 @@ export class UnityPracticeStage implements PracticeStageLike {
       this.replayWaiter !== null ||
       this.demonstrationWaiter !== null ||
       this.deadBallActionConsumed
-    ) return false;
+    )
+      return false;
     const payload: UnityPracticeDeadBallUi = {
       ...ui,
       replayDigest: last.resolution.replayDigest,
@@ -429,7 +440,8 @@ export class UnityPracticeStage implements PracticeStageLike {
     const coordinator = this.coordinator;
     if (!localeChanged || !coordinator || !this.mounted || this.disposed) return;
     void coordinator.setLocale(locale).then((accepted) => {
-      if (!accepted && !this.disposed) this.note('locale_failed', 'Unity did not acknowledge the presentation language.');
+      if (!accepted && !this.disposed)
+        this.note('locale_failed', 'Unity did not acknowledge the presentation language.');
     });
   }
 
@@ -468,7 +480,8 @@ export class UnityPracticeStage implements PracticeStageLike {
     if (demonstrationBoundary) await demonstrationBoundary.catch(() => undefined);
     const coordinator = this.requireCoordinator();
     if (!this.scene || !(await this.sceneTask)) throw new Error('Unity Practice scene is not ready.');
-    if (this.active || this.replayWaiter || this.demonstrationWaiter) throw new Error('Unity Practice already has a presentation in flight.');
+    if (this.active || this.replayWaiter || this.demonstrationWaiter)
+      throw new Error('Unity Practice already has a presentation in flight.');
     const nativeContext = context as UnityDeliveryContext;
     if (nativeContext.seed !== undefined && nativeContext.seed !== flight.seed) {
       this.note('delivery_context_mismatch', 'The flow delivery seed did not match the authoritative flight.');
@@ -515,7 +528,10 @@ export class UnityPracticeStage implements PracticeStageLike {
     }
     this.setCanvasGameplayInput(true);
     try {
-      const releasePerfMs = await this.bounded(active.release.promise, this.options.releaseTimeoutMs ?? DEFAULT_RELEASE_TIMEOUT_MS);
+      const releasePerfMs = await this.bounded(
+        active.release.promise,
+        this.options.releaseTimeoutMs ?? DEFAULT_RELEASE_TIMEOUT_MS,
+      );
       return { releasePerfMs };
     } catch {
       await this.fail('release_timeout', 'Unity did not report release within the bounded run-up window.');
@@ -801,7 +817,10 @@ export class UnityPracticeStage implements PracticeStageLike {
       if (waiter.cancelled || (error instanceof Error && error.name === 'AbortError')) throw demonstrationAbortError();
       if (this.demonstrationWaiter === waiter && !waiter.done.settled()) waiter.done.reject(error as Error);
       this.cleanupDemonstrationWaiter(waiter);
-      this.note('demonstration_failed', error instanceof Error ? error.message : 'Unity Practice demonstration failed.');
+      this.note(
+        'demonstration_failed',
+        error instanceof Error ? error.message : 'Unity Practice demonstration failed.',
+      );
       if (coordinator.snapshot().status !== 'fallback') {
         await this.fail('demonstration_failed', 'Unity Practice demonstration did not complete safely.');
       }
@@ -817,14 +836,9 @@ export class UnityPracticeStage implements PracticeStageLike {
 
   protectedRegions(): StageRegion[] {
     const snapshot = this.protectedRegionSnapshot;
-    const currentDeliveryId = this.active?.id ?? (this.retainingFinalPose ? this.last?.deliveryId ?? null : null);
+    const currentDeliveryId = this.active?.id ?? (this.retainingFinalPose ? (this.last?.deliveryId ?? null) : null);
     const scope = this.canvasViewportScope();
-    if (
-      !snapshot ||
-      !scope ||
-      snapshot.deliveryId !== currentDeliveryId ||
-      !sameCanvasScope(snapshot.scope, scope)
-    ) {
+    if (!snapshot || !scope || snapshot.deliveryId !== currentDeliveryId || !sameCanvasScope(snapshot.scope, scope)) {
       if (snapshot) this.clearProtectedRegions();
       return [];
     }
@@ -896,11 +910,16 @@ export class UnityPracticeStage implements PracticeStageLike {
       this.timeScale = 1;
       return;
     }
-    this.note('unsupported_time_scale', 'Unity Practice supports real-time play only; non-1 scales remain a test hook.');
+    this.note(
+      'unsupported_time_scale',
+      'Unity Practice supports real-time play only; non-1 scales remain a test hook.',
+    );
   }
 
   simToPerf(t: number): number {
-    return this.releasePerf === null || !Number.isFinite(t) ? Number.NaN : this.releasePerf + (t * 1000) / this.timeScale;
+    return this.releasePerf === null || !Number.isFinite(t)
+      ? Number.NaN
+      : this.releasePerf + (t * 1000) / this.timeScale;
   }
 
   setInputSink(sink: UnityPracticeInputSink | null): void {
@@ -1054,7 +1073,8 @@ export class UnityPracticeStage implements PracticeStageLike {
           shown.deliveryId !== event.deliveryId ||
           shown.payload.replayDigest !== event.replayDigest ||
           this.last?.deliveryId !== event.deliveryId
-        ) return;
+        )
+          return;
         this.deadBallActionConsumed = true;
         this.inputSink?.onDeadBallAction?.(event.action);
         return;
@@ -1069,7 +1089,8 @@ export class UnityPracticeStage implements PracticeStageLike {
             this.retainingFinalPose &&
             this.replayWaiter === null &&
             this.coordinator?.snapshot().status === 'dead_ball')
-        ) this.inputSink?.onPauseRequest?.();
+        )
+          this.inputSink?.onPauseRequest?.();
         return;
       case 'quiet':
         this.setQuiet(event.quiet);
@@ -1081,7 +1102,11 @@ export class UnityPracticeStage implements PracticeStageLike {
         void this.setVisible(false);
         return;
       case 'unload_deferred':
-        this.note('dispose_deferred', 'Unity unload was deferred at an unsafe delivery boundary.', event.inFlightDeliveryId);
+        this.note(
+          'dispose_deferred',
+          'Unity unload was deferred at an unsafe delivery boundary.',
+          event.inFlightDeliveryId,
+        );
         return;
       case 'runtime_error':
         this.rejectPending(`Unity Practice runtime error: ${event.error.detail}`);
@@ -1176,7 +1201,8 @@ export class UnityPracticeStage implements PracticeStageLike {
   }
 
   private refreshCalibrations(): void {
-    for (const key of Object.keys(this.calibrationOffsets) as Array<GestureInput['pointer']>) delete this.calibrationOffsets[key];
+    for (const key of Object.keys(this.calibrationOffsets) as Array<GestureInput['pointer']>)
+      delete this.calibrationOffsets[key];
     Object.assign(this.calibrationOffsets, this.options.calibrations?.() ?? {});
   }
 
@@ -1190,8 +1216,9 @@ export class UnityPracticeStage implements PracticeStageLike {
   }
 
   private async setReadyVisible(visible: boolean): Promise<boolean> {
-    const applied = await (this.options.bridge.setReadyVisible?.(visible, this.readyHint) ??
-      this.options.bridge.setVisible(visible)).catch(() => false);
+    const applied = await (
+      this.options.bridge.setReadyVisible?.(visible, this.readyHint) ?? this.options.bridge.setVisible(visible)
+    ).catch(() => false);
     if (applied) {
       this.visible = visible;
       this.setCanvasGameplayInput(false);
@@ -1243,11 +1270,16 @@ export class UnityPracticeStage implements PracticeStageLike {
     const clientWidth = canvas.clientWidth;
     const clientHeight = canvas.clientHeight;
     if (
-      !Number.isFinite(rect.width) || rect.width <= 0 ||
-      !Number.isFinite(rect.height) || rect.height <= 0 ||
-      !Number.isFinite(clientWidth) || clientWidth <= 0 ||
-      !Number.isFinite(clientHeight) || clientHeight <= 0
-    ) return null;
+      !Number.isFinite(rect.width) ||
+      rect.width <= 0 ||
+      !Number.isFinite(rect.height) ||
+      rect.height <= 0 ||
+      !Number.isFinite(clientWidth) ||
+      clientWidth <= 0 ||
+      !Number.isFinite(clientHeight) ||
+      clientHeight <= 0
+    )
+      return null;
     return { clientHeight, clientWidth, cssHeight: rect.height, cssWidth: rect.width };
   }
 
@@ -1296,7 +1328,11 @@ export class UnityPracticeStage implements PracticeStageLike {
     return this.coordinator;
   }
 
-  private note(code: UnityPracticeStageDiagnosticCode, detail: string, inFlightDeliveryId = this.active?.id ?? null): void {
+  private note(
+    code: UnityPracticeStageDiagnosticCode,
+    detail: string,
+    inFlightDeliveryId = this.active?.id ?? null,
+  ): void {
     this.diagnosticHistory.push({ code, detail, inFlightDeliveryId });
     if (this.diagnosticHistory.length > 32) this.diagnosticHistory.shift();
   }

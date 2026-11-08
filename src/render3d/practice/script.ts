@@ -17,9 +17,29 @@ import type {
   Vec3 as PVec3,
 } from '@/contracts/practice';
 import type { OneGestureState } from '@/input';
-import { clipStateAt, evaluateActor, lookScale, truncateMoves, type ActorTrack, type Look, type Move, type PhysicsBodyPlan } from '../core/actors';
+import {
+  clipStateAt,
+  evaluateActor,
+  lookScale,
+  truncateMoves,
+  type ActorTrack,
+  type Look,
+  type Move,
+  type PhysicsBodyPlan,
+} from '../core/actors';
 import { WALK_CLIP_MPS, bowlerRun, type BallScript, type BallSeg } from '../core/choreo';
-import { type ClipId, type MotionClipId, type SampledPose, clipDuration, clipMarker, createPose, hasMotionClip, mirrorSampledPose, motionSource, samplePresented } from '../core/clips';
+import {
+  type ClipId,
+  type MotionClipId,
+  type SampledPose,
+  clipDuration,
+  clipMarker,
+  createPose,
+  hasMotionClip,
+  mirrorSampledPose,
+  motionSource,
+  samplePresented,
+} from '../core/clips';
 import { type Joints, createJoints, forwardKinematics, jointWorld } from '../core/locomotion';
 import { humansPoseHook, type WarmablePoseHook } from '../core/motion/humansHook';
 import { PITCH_HALF, POPPING, RELEASE, SQUARE_UMPIRE_POS, UMPIRE_POS } from '../core/ground';
@@ -202,7 +222,14 @@ export function batterEye(
   crouchM = 0,
 ): Vec3 {
   const h = STANCE_BODY.head.c;
-  return toWorld(v3(h.x + root.x, clamp(h.y - crouchM + EYE_ABOVE_HEAD_CENTRE, EYE_HEIGHT_RANGE[0] - 0.18, EYE_HEIGHT_RANGE[1]), h.z + root.z), mirror);
+  return toWorld(
+    v3(
+      h.x + root.x,
+      clamp(h.y - crouchM + EYE_ABOVE_HEAD_CENTRE, EYE_HEIGHT_RANGE[0] - 0.18, EYE_HEIGHT_RANGE[1]),
+      h.z + root.z,
+    ),
+    mirror,
+  );
 }
 const CREASE_Z = PITCH_HALF - POPPING;
 
@@ -233,12 +260,16 @@ export function practiceAction(b: BowlerProfile): BowlerAction {
 export const familyOf = (b: BowlerProfile): DeliveryFamily => (b.family === 'spin' ? 'spin' : 'pace');
 
 function runOptions(b: BowlerProfile) {
-  return { preMs: PRACTICE_RUN.preMs, maxRunMs: b.family === 'spin' ? PRACTICE_RUN.maxRunMs.spin : PRACTICE_RUN.maxRunMs.pace };
+  return {
+    preMs: PRACTICE_RUN.preMs,
+    maxRunMs: b.family === 'spin' ? PRACTICE_RUN.maxRunMs.spin : PRACTICE_RUN.maxRunMs.pace,
+  };
 }
 
 /** Scene ms from the start of the run-up to the release, for a bowler (the same for every ball of the over). */
 export function practiceReleaseScene(b: BowlerProfile): number {
-  return bowlerRun({ action: practiceAction(b), look: { seed: b.lookSeed, team: 1, gear: 'bowler' }, ...runOptions(b) }).release;
+  return bowlerRun({ action: practiceAction(b), look: { seed: b.lookSeed, team: 1, gear: 'bowler' }, ...runOptions(b) })
+    .release;
 }
 
 /**
@@ -265,7 +296,12 @@ export type ReleaseHands = Vec3 & { bouncer?: Vec3 };
 export function bowlerScale(b: BowlerProfile, measured: Vec3 | null, look: Look): { scale: number; hand: Vec3 | null } {
   const own = avatarTraits(look.seed).height;
   if (!measured || measured.y <= 0) return { scale: own, hand: null };
-  const stock = releaseFor({ variation: 'stock', lengthM: 6, lineM: 0, speedKph: b.family === 'spin' ? 85 : 130 }, b, 'balanced', 'bowler-scale').p.y;
+  const stock = releaseFor(
+    { variation: 'stock', lengthM: 6, lineM: 0, speedKph: b.family === 'spin' ? 85 : 130 },
+    b,
+    'balanced',
+    'bowler-scale',
+  ).p.y;
   const [lo, hi] = BOWLER_SCALE[b.family === 'spin' ? 'spin' : 'pace'];
   const unit = measured.y / own;
   const scale = clamp(stock / unit, lo, hi);
@@ -301,7 +337,11 @@ function handOverFollowThrough(track: ActorTrack, first: number, headingBefore: 
   const delta = angleDelta(evaluateActor(track, m.t0).heading, headingBefore);
   if (Math.abs(delta) < 1e-4) return;
   const deg = Math.abs(delta) * (180 / Math.PI);
-  track.headingFade = { t0: m.t0, ms: clamp(deg * FOLLOW_HANDOVER.fadeMsPerDeg, FOLLOW_HANDOVER.minFadeMs, FOLLOW_HANDOVER.maxFadeMs), delta };
+  track.headingFade = {
+    t0: m.t0,
+    ms: clamp(deg * FOLLOW_HANDOVER.fadeMsPerDeg, FOLLOW_HANDOVER.minFadeMs, FOLLOW_HANDOVER.maxFadeMs),
+    delta,
+  };
 }
 
 /**
@@ -318,14 +358,44 @@ export function addWalkBack(track: ActorTrack, mark: Vec3, duration: number) {
   const d = Math.hypot(mark.x - from.x, mark.z - from.z);
   if (d < 1) return;
   // He turns to face the way he walks at 180 degrees a second at the fastest (a half turn took 900 ms with the cubic ease: 10 degrees a frame).
-  const turnMs = clamp((Math.abs(angleDelta(was.heading, headingOf(mark.x - from.x, mark.z - from.z))) * 180 * 8.4) / Math.PI, WALK_BACK.turnMs, 1700);
+  const turnMs = clamp(
+    (Math.abs(angleDelta(was.heading, headingOf(mark.x - from.x, mark.z - from.z))) * 180 * 8.4) / Math.PI,
+    WALK_BACK.turnMs,
+    1700,
+  );
   const t1 = t0 + (d / (WALK_BACK.mps * 0.66)) * 1000;
   track.moves.push(
     { t0: last.t1, t1: t0, clip: 'idle', from, to: from, blend: 300 },
     // MOTION-BOWL's walk back when loaded (speed-matched, MOTION-SPEC §6), else the walk cycle.
     hasMotionClip('bowl_walk_back')
-      ? { t0, t1, clip: 'vmp:bowl_walk_back', from, to: v3(mark.x, 0, mark.z), speed: [0, 0], rateBySpeed: motionSource('vmp:bowl_walk_back')!.speedMps, rateExp: 1, rateClamp: [0.75, 1.3], rate: 1, turnMs, turnEase: 'smooth', blend: 280 }
-      : { t0, t1, clip: 'walk', from, to: v3(mark.x, 0, mark.z), speed: [0, 0], rateBySpeed: WALK_CLIP_MPS, rate: 1, turnMs, turnEase: 'smooth', blend: 280 },
+      ? {
+          t0,
+          t1,
+          clip: 'vmp:bowl_walk_back',
+          from,
+          to: v3(mark.x, 0, mark.z),
+          speed: [0, 0],
+          rateBySpeed: motionSource('vmp:bowl_walk_back')!.speedMps,
+          rateExp: 1,
+          rateClamp: [0.75, 1.3],
+          rate: 1,
+          turnMs,
+          turnEase: 'smooth',
+          blend: 280,
+        }
+      : {
+          t0,
+          t1,
+          clip: 'walk',
+          from,
+          to: v3(mark.x, 0, mark.z),
+          speed: [0, 0],
+          rateBySpeed: WALK_CLIP_MPS,
+          rate: 1,
+          turnMs,
+          turnEase: 'smooth',
+          blend: 280,
+        },
     { t0: t1, t1: Math.max(t1 + 1, duration), clip: 'idle', headingTo: 0, blend: 320 },
   );
 }
@@ -366,22 +436,47 @@ export function practiceCast(b: BowlerProfile): PracticeCast {
  * the body is choreographed on it by `fieldingMoves` (practice/fielding.ts): anticipation aligned to the physics
  * events, running legs under a pickup on the move, rate-limited headings, a dive that reaches the ball.
  */
-export function pathMoves(path: FielderPath, mirror: boolean, releaseScene: number, opts: FieldingContext & { faceTowards?: (t: number) => Vec3 | null } = {}): Move[] {
+export function pathMoves(
+  path: FielderPath,
+  mirror: boolean,
+  releaseScene: number,
+  opts: FieldingContext & { faceTowards?: (t: number) => Vec3 | null } = {},
+): Move[] {
   const { faceTowards, ...ctx } = opts;
   return fieldingMoves(path, mirror, releaseScene, { ...(faceTowards ? { ball: faceTowards } : {}), ...ctx });
 }
 
 /** Close catchers crouch as the bowler runs in; everyone else in the field walks in with him and settles. */
-const CLOSE_ROLES: ReadonlySet<Fielder['role']> = new Set<Fielder['role']>(['slip', 'gully', 'leg_slip', 'short_leg', 'silly_point']);
+const CLOSE_ROLES: ReadonlySet<Fielder['role']> = new Set<Fielder['role']>([
+  'slip',
+  'gully',
+  'leg_slip',
+  'short_leg',
+  'silly_point',
+]);
 /** The walk in: about 1.3 m/s, settled into the ready crouch this long before the release (ms). */
-export const WALK_IN = { mps: 1.3, settleMs: 450, earliestMs: 350, maxMs: 1400, deepM: 2.0, ringM: 1.5, deepFromM: 38 } as const;
+export const WALK_IN = {
+  mps: 1.3,
+  settleMs: 450,
+  earliestMs: 350,
+  maxMs: 1400,
+  deepM: 2.0,
+  ringM: 1.5,
+  deepFromM: 38,
+} as const;
 
 /**
  * Where a fielder starts the walk in (world) and when (scene ms): back along his line from the striker, so he walks in
  * to his physics position and is set there before the release. Null for the keeper, close catchers and a run-up too
  * short to walk in.
  */
-export function walkIn(f: Fielder, pos: Vec3, striker: Vec3, releaseScene: number, id: string): { start: Vec3; t0: number; t1: number } | null {
+export function walkIn(
+  f: Fielder,
+  pos: Vec3,
+  striker: Vec3,
+  releaseScene: number,
+  id: string,
+): { start: Vec3; t0: number; t1: number } | null {
   if (f.role === 'keeper' || f.role === 'bowler' || CLOSE_ROLES.has(f.role)) return null;
   const dx = striker.x - pos.x;
   const dz = striker.z - pos.z;
@@ -400,32 +495,51 @@ export function walkIn(f: Fielder, pos: Vec3, striker: Vec3, releaseScene: numbe
  * (aligned to the instant the physics ball reaches him). Who caught it, the keeper and the bowler already celebrate
  * in the physics paths.
  */
-export function fieldReactions(result: DeliveryResult, fielders: readonly Fielder[], paths: ReadonlyMap<string, FielderPath>): Map<string, { t: number; clip: ClipId }> {
+export function fieldReactions(
+  result: DeliveryResult,
+  fielders: readonly Fielder[],
+  paths: ReadonlyMap<string, FielderPath>,
+): Map<string, { t: number; clip: ClipId }> {
   const out = new Map<string, { t: number; clip: ClipId }>();
   const jitter = (id: string, k: number) => ((hash32(`react:${id}`) % 1000) / 1000) * k;
   const at = (kind: DeliveryResult['events'][number]['kind']) => result.events.find((e) => e.kind === kind)?.t;
   const d = result.outcome.dismissal;
   if (d) {
-    const tD = d === 'bowled' ? (at('stumps') ?? result.deadT) : d === 'lbw' ? result.deadT + 0.4 : (at('catch') ?? at('keeper_take') ?? result.deadT);
+    const tD =
+      d === 'bowled'
+        ? (at('stumps') ?? result.deadT)
+        : d === 'lbw'
+          ? result.deadT + 0.4
+          : (at('catch') ?? at('keeper_take') ?? result.deadT);
     for (const f of fielders) {
       if (f.role === 'keeper' || f.role === 'bowler' || f.id === result.outcome.fielderId) continue;
-      out.set(f.id, CLOSE_ROLES.has(f.role) ? { t: tD + 0.2 + jitter(f.id, 0.25), clip: 'celebrate_jump' } : { t: tD + 0.45 + jitter(f.id, 0.5), clip: 'clap' });
+      out.set(
+        f.id,
+        CLOSE_ROLES.has(f.role)
+          ? { t: tD + 0.2 + jitter(f.id, 0.25), clip: 'celebrate_jump' }
+          : { t: tD + 0.45 + jitter(f.id, 0.5), clip: 'clap' },
+      );
     }
     return out;
   }
   const boundary = at('boundary');
   if (boundary !== undefined) {
     // Only the fielders who chased it down (fielding.ts chasedBall), not everyone who moved.
-    const end = result.events.find((e): e is Extract<DeliveryResult['events'][number], { kind: 'boundary' }> => e.kind === 'boundary')!.p;
+    const end = result.events.find(
+      (e): e is Extract<DeliveryResult['events'][number], { kind: 'boundary' }> => e.kind === 'boundary',
+    )!.p;
     for (const f of fielders) {
       const path = paths.get(f.id);
-      if (path && chasedBall(path, f, end, boundary)) out.set(f.id, { t: boundary + 0.35 + jitter(f.id, 0.3), clip: 'hands_on_hips' });
+      if (path && chasedBall(path, f, end, boundary))
+        out.set(f.id, { t: boundary + 0.35 + jitter(f.id, 0.3), clip: 'hands_on_hips' });
     }
     return out;
   }
   const take = at('keeper_take');
   if (take !== undefined && result.swing && result.contact.kind === 'miss') {
-    for (const f of fielders) if (f.role === 'slip' || f.role === 'gully') out.set(f.id, { t: take + 0.15 + jitter(f.id, 0.15), clip: 'hands_on_head' });
+    for (const f of fielders)
+      if (f.role === 'slip' || f.role === 'gully')
+        out.set(f.id, { t: take + 0.15 + jitter(f.id, 0.15), clip: 'hands_on_head' });
     return out;
   }
   if (at('throw') !== undefined) {
@@ -445,7 +559,12 @@ export function fieldReactions(result: DeliveryResult, fielders: readonly Fielde
 // The batter's stroke (presentation: the physics bat is drawn regardless)
 // ---------------------------------------------------------------------------------------------------------------
 
-const FOOT_CLIP = { forward: 'foot_forward', back: 'foot_back', across: 'foot_across', down_track: 'foot_charge' } as const;
+const FOOT_CLIP = {
+  forward: 'foot_forward',
+  back: 'foot_back',
+  across: 'foot_across',
+  down_track: 'foot_charge',
+} as const;
 
 /**
  * A legitimate stroke animation for the swing and the delivery: the upper body from the swing and the line and
@@ -477,7 +596,9 @@ function strokeFor(result: DeliveryResult): { clip: ClipId; lower: ClipId } {
     case 'hook':
       return { clip: lofted ? 'bat_loft' : 'bat_pull', lower: stride };
     case 'glance':
-      return result.footwork === 'forward' && swing.directionDeg < -110 ? { clip: 'bat_sweep', lower: 'foot_sweep' } : { clip: 'bat_push', lower: stride };
+      return result.footwork === 'forward' && swing.directionDeg < -110
+        ? { clip: 'bat_sweep', lower: 'foot_sweep' }
+        : { clip: 'bat_push', lower: stride };
     default:
       // The flick, the back-foot drive and punches: a firm push through the line.
       return { clip: lofted ? 'bat_loft' : 'bat_push', lower: stride };
@@ -490,7 +611,9 @@ function strokeFor(result: DeliveryResult): { clip: ClipId; lower: ClipId } {
  * the footwork the physics played; never the outcome). Null: no clip fits, and the procedural stride is drawn (a sweep's
  * kneel, a charge down the pitch).
  */
-export const STROKE_OVERLAYS: Readonly<Record<ShotFamily, 'bat_drive' | 'bat_fwd_defence' | 'bat_backfoot_punch' | 'bat_pull' | 'bat_back_defence'>> = {
+export const STROKE_OVERLAYS: Readonly<
+  Record<ShotFamily, 'bat_drive' | 'bat_fwd_defence' | 'bat_backfoot_punch' | 'bat_pull' | 'bat_back_defence'>
+> = {
   forward_defence: 'bat_fwd_defence',
   back_defence: 'bat_back_defence',
   straight_drive: 'bat_drive',
@@ -521,12 +644,19 @@ const STROKE_MIN_WINDOW_MS = { front: 233.3, back: 166.7 } as const;
  * then the procedural stride plants in it instead (as at 5f), so a pad or body hit is never drawn mid-stride for the
  * sake of a clip (the pad gap stays at its 5f numbers; the §9 caps of that procedural stride are reported).
  */
-function strokeOverlayIn(result: DeliveryResult, releaseScene: number, governed: boolean): { id: MotionClipId; plantMs: number; minMs: number } | null {
+function strokeOverlayIn(
+  result: DeliveryResult,
+  releaseScene: number,
+  governed: boolean,
+): { id: MotionClipId; plantMs: number; minMs: number } | null {
   const ov = strokeOverlay(result);
   if (!ov || !governed || !result.swing) return ov;
   const strideAt = simToScene({ releaseScene }, result.swing.startT);
   const arrival = simToScene({ releaseScene }, idealTimeFor(result.flight, result.footwork));
-  const contact = result.contact.t !== null && result.contact.kind !== 'miss' && result.contact.kind !== 'leave' ? simToScene({ releaseScene }, result.contact.t) : arrival;
+  const contact =
+    result.contact.t !== null && result.contact.kind !== 'miss' && result.contact.kind !== 'leave'
+      ? simToScene({ releaseScene }, result.contact.t)
+      : arrival;
   return Math.min(arrival, contact) - strideAt < ov.minMs ? null : ov;
 }
 
@@ -535,12 +665,22 @@ export function strokeOverlay(result: DeliveryResult): { id: MotionClipId; plant
   const swing = result.swing;
   if (!swing) return null;
   if (result.footwork === 'down_track') return null;
-  if (result.footwork === 'forward' && swing.kind === 'attack' && swing.directionDeg < -110 && shotFamily(swing.kind, swing.directionDeg, result.footwork) === 'glance') return null;
+  if (
+    result.footwork === 'forward' &&
+    swing.kind === 'attack' &&
+    swing.directionDeg < -110 &&
+    shotFamily(swing.kind, swing.directionDeg, result.footwork) === 'glance'
+  )
+    return null;
   const name = STROKE_OVERLAYS[shotFamily(swing.kind, swing.directionDeg, result.footwork)];
   if (!hasMotionClip(name)) return null;
   const id = `vmp:${name}` as const;
   const front = result.footwork === 'forward';
-  return { id, plantMs: clipMarker(id, 'plant', front ? 0.32 : 0.28) * 1000, minMs: front ? STROKE_MIN_WINDOW_MS.front : STROKE_MIN_WINDOW_MS.back };
+  return {
+    id,
+    plantMs: clipMarker(id, 'plant', front ? 0.32 : 0.28) * 1000,
+    minMs: front ? STROKE_MIN_WINDOW_MS.front : STROKE_MIN_WINDOW_MS.back,
+  };
 }
 
 /**
@@ -553,7 +693,12 @@ export function strokeOverlay(result: DeliveryResult): { id: MotionClipId; plant
 export function strikerPreSwing(releaseScene: number, duration: number, delivery: boolean): Move[] {
   const live = hasMotionClip('bat_stance_live') ? 'vmp:bat_stance_live' : null;
   if (!live) return [{ t0: 0, t1: duration, clip: 'stance' }];
-  if (!delivery || !hasMotionClip('bat_trigger') || !hasMotionClip('bat_backlift') || !hasMotionClip('bat_ready_hold')) {
+  if (
+    !delivery ||
+    !hasMotionClip('bat_trigger') ||
+    !hasMotionClip('bat_backlift') ||
+    !hasMotionClip('bat_ready_hold')
+  ) {
     return [{ t0: 0, t1: duration, clip: live }];
   }
   const trig = 'vmp:bat_trigger' as const;
@@ -581,7 +726,14 @@ const HOLD_BLEND = { inMs: 80, outMs: 90 } as const;
  * ball is drawn in that player's hand, leaving the path at exactly the physics take position and rejoining it at
  * exactly the physics release point. The physics flight before and after is unchanged.
  */
-export function holdBallInHands(balls: BallSeg[], result: DeliveryResult, releaseScene: number, duration: number, mirror: boolean, actorOf: (fielderId: string) => string) {
+export function holdBallInHands(
+  balls: BallSeg[],
+  result: DeliveryResult,
+  releaseScene: number,
+  duration: number,
+  mirror: boolean,
+  actorOf: (fielderId: string) => string,
+) {
   const path = balls.find((b): b is Extract<BallSeg, { k: 'path' }> => b.k === 'path');
   if (!path) return;
   const holds: Array<{ actor: string; t0: number; t1: number; out: boolean }> = [];
@@ -598,12 +750,16 @@ export function holdBallInHands(balls: BallSeg[], result: DeliveryResult, releas
       who = result.fielders.map((f) => f.fielderId).find((fid) => actorOf(fid) === 'keeper') ?? '__keeper__';
     }
     if (!who) continue;
-    const thr = evs.slice(i + 1).find((x): x is Extract<typeof x, { kind: 'throw' }> => x.kind === 'throw' && x.fielderId === who);
+    const thr = evs
+      .slice(i + 1)
+      .find((x): x is Extract<typeof x, { kind: 'throw' }> => x.kind === 'throw' && x.fielderId === who);
     let end = thr?.t ?? null;
     if (end === null) {
       // No throw: held until the ball moves off again (a celebration toss), else to the end.
       const at = ballAt(result.ball, e.t);
-      const off = at ? result.ball.find((b) => b.t > e.t + 0.05 && Math.hypot(b.p.x - at.x, b.p.y - at.y, b.p.z - at.z) > 0.3) : undefined;
+      const off = at
+        ? result.ball.find((b) => b.t > e.t + 0.05 && Math.hypot(b.p.x - at.x, b.p.y - at.y, b.p.z - at.z) > 0.3)
+        : undefined;
       end = off ? off.t - 0.02 : null;
     }
     const t0 = simToScene({ releaseScene }, e.t);
@@ -624,7 +780,20 @@ export function holdBallInHands(balls: BallSeg[], result: DeliveryResult, releas
       if (h.t1 <= cur || h.t0 >= seg.t1) continue;
       if (h.t0 > cur) out.push({ ...seg, t0: cur, t1: h.t0 });
       const t1 = Math.min(h.t1, seg.t1);
-      out.push({ k: 'hand', t0: Math.max(cur, h.t0), t1, actor: h.actor, ...(h.out ? { throwHand: true } : {}), path: { samples: seg.samples, release: seg.release, mirror, inMs: HOLD_BLEND.inMs, outMs: h.out && t1 === h.t1 ? HOLD_BLEND.outMs : 0 } });
+      out.push({
+        k: 'hand',
+        t0: Math.max(cur, h.t0),
+        t1,
+        actor: h.actor,
+        ...(h.out ? { throwHand: true } : {}),
+        path: {
+          samples: seg.samples,
+          release: seg.release,
+          mirror,
+          inMs: HOLD_BLEND.inMs,
+          outMs: h.out && t1 === h.t1 ? HOLD_BLEND.outMs : 0,
+        },
+      });
       cur = t1;
     }
     if (cur < seg.t1) out.push({ ...seg, t0: cur, t1: seg.t1 });
@@ -657,7 +826,11 @@ export function strideStartScene(result: DeliveryResult, releaseScene: number): 
  * contact plane, whichever is earlier; the footwork clip plays at `rate` (its plant at STRIDE_PLANT_MS) to land
  * then. `late` when even STRIDE_MAX_RATE cannot plant it in time (the plant then follows, reported, never led).
  */
-export function strideWindow(result: DeliveryResult, releaseScene: number, governed?: boolean): { strideAt: number; plantAt: number; rate: number; late: boolean; compressed: boolean } | null {
+export function strideWindow(
+  result: DeliveryResult,
+  releaseScene: number,
+  governed?: boolean,
+): { strideAt: number; plantAt: number; rate: number; late: boolean; compressed: boolean } | null {
   const strideAt = strideStartScene(result, releaseScene);
   if (strideAt === null) return null;
   const must0 = governed ?? strideMustPlant(result, strideAt, releaseScene);
@@ -668,17 +841,30 @@ export function strideWindow(result: DeliveryResult, releaseScene: number, gover
     const must = must0;
     if (!must) return { strideAt, plantAt: strideAt + ov.plantMs, rate: 1, late: false, compressed: false };
     const arrival = simToScene({ releaseScene }, idealTimeFor(result.flight, result.footwork));
-    const contact = result.contact.t !== null && result.contact.kind !== 'miss' && result.contact.kind !== 'leave' ? simToScene({ releaseScene }, result.contact.t) : arrival;
+    const contact =
+      result.contact.t !== null && result.contact.kind !== 'miss' && result.contact.kind !== 'leave'
+        ? simToScene({ releaseScene }, result.contact.t)
+        : arrival;
     const due = Math.min(arrival, contact);
     const W = Math.min(ov.plantMs, Math.max(ov.minMs, due - strideAt));
-    return { strideAt, plantAt: strideAt + W, rate: ov.plantMs / W, late: strideAt + W > due + 1, compressed: W < ov.plantMs - 1e-6 };
+    return {
+      strideAt,
+      plantAt: strideAt + W,
+      rate: ov.plantMs / W,
+      late: strideAt + W > due + 1,
+      compressed: W < ov.plantMs - 1e-6,
+    };
   }
   // Lead ruling 05:4xZ: the stride keeps its own pace (it may land just after the contact) unless the pads must be
   // where the physics has them before then: a pad or body event, or the ball passing the still-moving legs
   // (`governed`: strideGoverned, from the drawn legs; without it, the physics-frame estimate strideMustPlant).
-  if (!(governed ?? strideMustPlant(result, strideAt, releaseScene))) return { strideAt, plantAt: strideAt + STRIDE_PLANT_MS, rate: 1, late: false, compressed: false };
+  if (!(governed ?? strideMustPlant(result, strideAt, releaseScene)))
+    return { strideAt, plantAt: strideAt + STRIDE_PLANT_MS, rate: 1, late: false, compressed: false };
   const arrival = simToScene({ releaseScene }, idealTimeFor(result.flight, result.footwork));
-  const contact = result.contact.t !== null && result.contact.kind !== 'miss' && result.contact.kind !== 'leave' ? simToScene({ releaseScene }, result.contact.t) : arrival;
+  const contact =
+    result.contact.t !== null && result.contact.kind !== 'miss' && result.contact.kind !== 'leave'
+      ? simToScene({ releaseScene }, result.contact.t)
+      : arrival;
   const due = Math.min(arrival, contact);
   const window = due - strideAt;
   const rate = Math.min(STRIDE_MAX_RATE, Math.max(1, STRIDE_PLANT_MS / Math.max(1, window)));
@@ -720,18 +906,36 @@ function strideMustPlant(result: DeliveryResult, strideAt: number, releaseScene:
  * time-warped, never before the input), then at rest on the bat. A leave stays in the stance (the physics collides
  * with the stance body) and lifts the bat out of the line as the ball arrives.
  */
-export function strikerMoves(result: DeliveryResult, releaseScene: number, duration: number, governed?: boolean): Move[] {
+export function strikerMoves(
+  result: DeliveryResult,
+  releaseScene: number,
+  duration: number,
+  governed?: boolean,
+): Move[] {
   const swing = result.swing;
   const input = swing ? simToScene({ releaseScene }, swing.startT) : null;
   const upper: ClipId = swing ? strokeFor(result).clip : 'bat_leave';
-  const meet = simToScene({ releaseScene }, result.batterMotion?.contactT ?? result.contact.t ?? result.flight.idealContactT);
+  const meet = simToScene(
+    { releaseScene },
+    result.batterMotion?.contactT ?? result.contact.t ?? result.flight.idealContactT,
+  );
   const marker = clipMarker(upper, 'contact', 0.45) * 1000;
   // The stroke (or the leave's lift) starts at the input; without one, as the ball arrives (a leave).
   const strokeAt = input ?? Math.max(releaseScene + BACKLIFT_TOP_MS, meet - marker);
   const clipStart = Math.max(0, (marker - (meet - strokeAt)) / 1000);
   const strokeEnd = strokeAt + (clipDuration(upper) - clipStart) * 1000;
   const pre = strikerPreSwing(releaseScene, duration, true);
-  const moves: Move[] = truncateMoves({ id: 'striker', role: 'batter', look: { seed: '', team: 0, gear: 'batter' }, start: v3(0, 0, 0), heading: 0, moves: pre }, strokeAt);
+  const moves: Move[] = truncateMoves(
+    {
+      id: 'striker',
+      role: 'batter',
+      look: { seed: '', team: 0, gear: 'batter' },
+      start: v3(0, 0, 0),
+      heading: 0,
+      moves: pre,
+    },
+    strokeAt,
+  );
   // A leave keeps the waiting clip's legs (the ready hold, on the stance pads): the physics collides with the stance.
   const waiting = pre.filter((m) => m.t0 <= strokeAt).at(-1) ?? pre[0];
   const strideClip: ClipId = swing ? strokeFor(result).lower : waiting.clip;
@@ -756,10 +960,39 @@ export function strikerMoves(result: DeliveryResult, releaseScene: number, durat
         const u1 = (k + 1) / N;
         const t0 = strokeAt + u0 * W;
         const t1 = strokeAt + u1 * W;
-        moves.push({ t0, t1, clip: upper, clipStart: clipStart + (t0 - strokeAt) / 1000, rate: 1, lower: ov.id, lowerStart: g(u0) / 1000, lowerRate: (g(u1) - g(u0)) / (t1 - t0), ...(k === 0 ? { inertial } : { blend: 0 }) });
+        moves.push({
+          t0,
+          t1,
+          clip: upper,
+          clipStart: clipStart + (t0 - strokeAt) / 1000,
+          rate: 1,
+          lower: ov.id,
+          lowerStart: g(u0) / 1000,
+          lowerRate: (g(u1) - g(u0)) / (t1 - t0),
+          ...(k === 0 ? { inertial } : { blend: 0 }),
+        });
       }
-      moves.push({ t0: win.plantAt, t1: end, clip: upper, clipStart: clipStart + W / 1000, lower: ov.id, lowerStart: P / 1000, lowerRate: 1, blend: 0 });
-    } else moves.push({ t0: strokeAt, t1: end, clip: upper, clipStart, lower: ov.id, lowerStart: 0, lowerRate: 1, inertial });
+      moves.push({
+        t0: win.plantAt,
+        t1: end,
+        clip: upper,
+        clipStart: clipStart + W / 1000,
+        lower: ov.id,
+        lowerStart: P / 1000,
+        lowerRate: 1,
+        blend: 0,
+      });
+    } else
+      moves.push({
+        t0: strokeAt,
+        t1: end,
+        clip: upper,
+        clipStart,
+        lower: ov.id,
+        lowerStart: 0,
+        lowerRate: 1,
+        inertial,
+      });
     // Out of the stroke into the rest: an inertial hand-over long enough that the hips (often 0.2–0.3 m from the rest)
     // never step more than §9 allows (critically damped, ω = 6.6/T: the first frame's change ∝ ω²).
     moves.push({ t0: end, t1: Math.max(end + 1, duration), clip: 'bat_rest', inertial: STROKE_REST_INERTIAL_MS });
@@ -770,18 +1003,65 @@ export function strikerMoves(result: DeliveryResult, releaseScene: number, durat
     // to watch the ball past. On the waiting clip's arms and bat, its `contact` on the ball's passing.
     const lv = 'vmp:bat_leave' as const;
     const at = Math.max(releaseScene + BACKLIFT_TOP_MS, meet - clipMarker(lv, 'contact', 0.13) * 1000);
-    const kept = truncateMoves({ id: 'striker', role: 'batter', look: { seed: '', team: 0, gear: 'batter' }, start: v3(0, 0, 0), heading: 0, moves: pre }, at);
+    const kept = truncateMoves(
+      {
+        id: 'striker',
+        role: 'batter',
+        look: { seed: '', team: 0, gear: 'batter' },
+        start: v3(0, 0, 0),
+        heading: 0,
+        moves: pre,
+      },
+      at,
+    );
     const wait = pre.filter((m) => m.t0 <= at).at(-1) ?? pre[0];
     const lvEnd = at + clipDuration(lv) * 1000;
-    kept.push({ t0: at, t1: lvEnd, clip: wait.clip, clipStart: clipStateAt(wait, at).time, lower: lv, lowerStart: 0, lowerRate: 1, inertial: 220 });
+    kept.push({
+      t0: at,
+      t1: lvEnd,
+      clip: wait.clip,
+      clipStart: clipStateAt(wait, at).time,
+      lower: lv,
+      lowerStart: 0,
+      lowerRate: 1,
+      inertial: 220,
+    });
     kept.push({ t0: lvEnd, t1: Math.max(lvEnd + 1, duration), clip: 'bat_rest', inertial: 320 });
     return kept;
   }
   if (win && win.rate > 1 && win.plantAt < strokeEnd - 1) {
     // The stride played quicker to its plant, then at its own pace; the stroke clip runs on unbroken across the split.
-    moves.push({ t0: strokeAt, t1: win.plantAt, clip: upper, clipStart, lower: strideClip, lowerStart: 0, lowerRate: win.rate, inertial });
-    moves.push({ t0: win.plantAt, t1: strokeEnd, clip: upper, clipStart: clipStart + (win.plantAt - strokeAt) / 1000, lower: strideClip, lowerStart: STRIDE_PLANT_MS / 1000, lowerRate: 1, blend: 0 });
-  } else moves.push({ t0: strokeAt, t1: strokeEnd, clip: upper, clipStart, lower: strideClip, lowerStart: 0, inertial, ...leaveLegs });
+    moves.push({
+      t0: strokeAt,
+      t1: win.plantAt,
+      clip: upper,
+      clipStart,
+      lower: strideClip,
+      lowerStart: 0,
+      lowerRate: win.rate,
+      inertial,
+    });
+    moves.push({
+      t0: win.plantAt,
+      t1: strokeEnd,
+      clip: upper,
+      clipStart: clipStart + (win.plantAt - strokeAt) / 1000,
+      lower: strideClip,
+      lowerStart: STRIDE_PLANT_MS / 1000,
+      lowerRate: 1,
+      blend: 0,
+    });
+  } else
+    moves.push({
+      t0: strokeAt,
+      t1: strokeEnd,
+      clip: upper,
+      clipStart,
+      lower: strideClip,
+      lowerStart: 0,
+      inertial,
+      ...leaveLegs,
+    });
   moves.push({ t0: strokeEnd, t1: Math.max(strokeEnd + 1, duration), clip: 'bat_rest', inertial: 320 });
   return moves;
 }
@@ -790,8 +1070,13 @@ export function strikerMoves(result: DeliveryResult, releaseScene: number, durat
 export const STANCE_FIT_AT_MS = 400;
 
 /** The physics pads' axes on the ground (world, drawn form) of a physics body translated by the batter's root. */
-function padsWorld(body: { pads: ReadonlyArray<{ a: PVec3 }> }, root: { x: number; z: number }, mirror: boolean): [Vec3, Vec3] {
-  const at = (i: number) => toWorld({ x: body.pads[i].a.x + root.x, y: 0, z: body.pads[i].a.z + root.z } as PVec3, mirror);
+function padsWorld(
+  body: { pads: ReadonlyArray<{ a: PVec3 }> },
+  root: { x: number; z: number },
+  mirror: boolean,
+): [Vec3, Vec3] {
+  const at = (i: number) =>
+    toWorld({ x: body.pads[i].a.x + root.x, y: 0, z: body.pads[i].a.z + root.z } as PVec3, mirror);
   return [at(0), at(1)];
 }
 
@@ -800,13 +1085,33 @@ function padsWorld(body: { pads: ReadonlyArray<{ a: PVec3 }> }, root: { x: numbe
  * the batter's root); with a swing, the pads of the footwork body the physics played and its torso top and head
  * (batterBodyFrame), fitted at the contact (else the ball's arrival), the stride from the input to its plant.
  */
-export function strikerPhysicsBody(result: DeliveryResult | null, releaseScene: number | null, mirror: boolean, stanceRefAt: number, releaseAt: number, waiting: Move[] | null = null, arrivalScene: number | null = null, governed?: boolean): PhysicsBodyPlan {
+export function strikerPhysicsBody(
+  result: DeliveryResult | null,
+  releaseScene: number | null,
+  mirror: boolean,
+  stanceRefAt: number,
+  releaseAt: number,
+  waiting: Move[] | null = null,
+  arrivalScene: number | null = null,
+  governed?: boolean,
+): PhysicsBodyPlan {
   const root = result?.batterRootOffset ?? { x: 0, z: 0 };
   const stance = padsWorld(STANCE_BODY, root, mirror);
   // The trigger window of the waiting moves (strikerPreSwing): from its start to the backlift.
   const trig = waiting?.find((m) => m.clip === 'vmp:bat_trigger');
-  const ready = waiting && trig && arrivalScene !== null ? { moves: waiting, refAt: arrivalScene, from: trig.t0, to: trig.t1 } : null;
-  const plan: PhysicsBodyPlan = { frontLeg: mirror ? 'R' : 'L', stance, stanceRefAt, ready, stroke: null, releaseAt, fadeMs: 400 };
+  const ready =
+    waiting && trig && arrivalScene !== null
+      ? { moves: waiting, refAt: arrivalScene, from: trig.t0, to: trig.t1 }
+      : null;
+  const plan: PhysicsBodyPlan = {
+    frontLeg: mirror ? 'R' : 'L',
+    stance,
+    stanceRefAt,
+    ready,
+    stroke: null,
+    releaseAt,
+    fadeMs: 400,
+  };
   if (!result?.swing || releaseScene === null) return plan;
   const win = strideWindow(result, releaseScene, governed);
   if (!win) return plan;
@@ -820,7 +1125,10 @@ export function strikerPhysicsBody(result: DeliveryResult | null, releaseScene: 
     const i = Math.hypot(p.x - pads[0].x, p.z - pads[0].z) <= Math.hypot(p.x - pads[1].x, p.z - pads[1].z) ? 0 : 1;
     hitH[i] = clamp(pad.p.y, 0.1, 0.58);
   }
-  const contact = result.contact.t !== null && result.contact.kind !== 'miss' && result.contact.kind !== 'leave' ? simToScene({ releaseScene }, result.contact.t) : null;
+  const contact =
+    result.contact.t !== null && result.contact.kind !== 'miss' && result.contact.kind !== 'leave'
+      ? simToScene({ releaseScene }, result.contact.t)
+      : null;
   const arrival = simToScene({ releaseScene }, idealTimeFor(result.flight, result.footwork));
   const f = result.batterBodyFrame;
   plan.stroke = {
@@ -850,7 +1158,12 @@ export function strikerPhysicsBody(result: DeliveryResult | null, releaseScene: 
  * natural plant and 200 ms on. Otherwise the feet go where the clip takes them (a back-foot stroke's real back and
  * across), and the physics pads only time the stance.
  */
-export function strideGoverned(result: DeliveryResult, releaseScene: number, natural: ActorTrack, mirror: boolean): boolean {
+export function strideGoverned(
+  result: DeliveryResult,
+  releaseScene: number,
+  natural: ActorTrack,
+  mirror: boolean,
+): boolean {
   return finish(strideGovernedSteps(result, releaseScene, natural, mirror));
 }
 
@@ -877,16 +1190,35 @@ function finish<T>(steps: Generator<void, T, void>): T {
  * hook of the script's own, without the reach of the bat (humansPoseHook's `legs`), to work the legs out with; its plans
  * for `natural` are then there for the frames that draw it. Without one the decision makes a hook of its own.
  */
-export function* strideGovernedSteps(result: DeliveryResult, releaseScene: number, natural: ActorTrack, mirror: boolean, sliced = false, legs?: (track: ActorTrack, pose: SampledPose, t: number) => void): Generator<void, boolean, void> {
+export function* strideGovernedSteps(
+  result: DeliveryResult,
+  releaseScene: number,
+  natural: ActorTrack,
+  mirror: boolean,
+  sliced = false,
+  legs?: (track: ActorTrack, pose: SampledPose, t: number) => void,
+): Generator<void, boolean, void> {
   if (result.events.some((e) => e.kind === 'pad' || (e.kind === 'contact' && e.contact === 'body'))) return true;
   const strideAt = strideStartScene(result, releaseScene);
   if (strideAt === null) return false;
   // The legs exactly as the stage would draw them unguided (`natural` carries its ungoverned PhysicsBodyPlan; the same
   // planted-feet hook), each shin's axis at the ball's height. Made when the first pose is asked for.
-  let rig: { hook: (track: ActorTrack, pose: SampledPose, t: number) => void; a: SampledPose; b: SampledPose; lw: SampledPose; j: Joints } | null = null;
+  let rig: {
+    hook: (track: ActorTrack, pose: SampledPose, t: number) => void;
+    a: SampledPose;
+    b: SampledPose;
+    lw: SampledPose;
+    j: Joints;
+  } | null = null;
   const scale = lookScale(natural.look);
   const shinsAt = (t: number, y: number): Array<{ x: number; z: number }> => {
-    const { hook, a, b, lw, j } = (rig ??= { hook: legs ?? humansPoseHook({ actors: [natural] } as unknown as BallScript), a: createPose(), b: createPose(), lw: createPose(), j: createJoints() });
+    const { hook, a, b, lw, j } = (rig ??= {
+      hook: legs ?? humansPoseHook({ actors: [natural] } as unknown as BallScript),
+      a: createPose(),
+      b: createPose(),
+      lw: createPose(),
+      j: createJoints(),
+    });
     const st = evaluateActor(natural, t);
     const pose = samplePresented(st, a, b, lw);
     hook(natural, pose, t);
@@ -1092,7 +1424,13 @@ export function directorSpec(o: {
     runs: o.runsRun,
   };
   const last = o.flight?.samples.at(-1);
-  return { seed: o.flight ? o.flight.seed : null, strikerEye: batterEye(o.mirror), flightEnd: o.flight && last ? simToScene({ releaseScene: R }, last.t) : null, bowler, striker };
+  return {
+    seed: o.flight ? o.flight.seed : null,
+    strikerEye: batterEye(o.mirror),
+    flightEnd: o.flight && last ? simToScene({ releaseScene: R }, last.t) : null,
+    bowler,
+    striker,
+  };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1132,7 +1470,10 @@ export interface PracticeBuildInput {
 
 const HALF_PI = Math.PI / 2;
 
-function firstEvent<K extends DeliveryResult['events'][number]['kind']>(r: DeliveryResult, kind: K): Extract<DeliveryResult['events'][number], { kind: K }> | undefined {
+function firstEvent<K extends DeliveryResult['events'][number]['kind']>(
+  r: DeliveryResult,
+  kind: K,
+): Extract<DeliveryResult['events'][number], { kind: K }> | undefined {
   return r.events.find((e) => e.kind === kind) as Extract<DeliveryResult['events'][number], { kind: K }> | undefined;
 }
 
@@ -1163,9 +1504,16 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
   const measured = (input.releaseHand ?? null) as ReleaseHands | null;
   const bowlerFit = bowlerScale(bowler, measured, cast.bowler);
   const bowlerLook: Look = { ...cast.bowler, scale: bowlerFit.scale };
-  const bouncerClip = flight?.plan.variation === 'bouncer' && family === 'pace' && Boolean(measured?.bouncer) && bowlerFit.hand !== null;
+  const bouncerClip =
+    flight?.plan.variation === 'bouncer' && family === 'pace' && Boolean(measured?.bouncer) && bowlerFit.hand !== null;
   const own = avatarTraits(cast.bowler.seed).height;
-  const hand = bouncerClip ? v3(measured!.bouncer!.x * (bowlerFit.scale / own), measured!.bouncer!.y * (bowlerFit.scale / own), measured!.bouncer!.z * (bowlerFit.scale / own)) : (bowlerFit.hand ?? NOMINAL_RELEASE_HAND[action]);
+  const hand = bouncerClip
+    ? v3(
+        measured!.bouncer!.x * (bowlerFit.scale / own),
+        measured!.bouncer!.y * (bowlerFit.scale / own),
+        measured!.bouncer!.z * (bowlerFit.scale / own),
+      )
+    : (bowlerFit.hand ?? NOMINAL_RELEASE_HAND[action]);
   const handX = leftArm ? -hand.x : hand.x;
   const releaseRoot = v3(releaseWorld.x - handX, 0, releaseWorld.z - hand.z);
   const actors: ActorTrack[] = [];
@@ -1176,7 +1524,15 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
   // The follow-through comes to rest on the physics bowler's spot (where the physics fields from).
   const bowlerSpot = setup.field.fielders.find((f) => f.role === 'bowler');
   const followTo = bowlerSpot ? toWorld(v3(bowlerSpot.x, 0, bowlerSpot.z), mirror) : undefined;
-  const run = bowlerRun({ action, look: bowlerLook, releaseRoot, ...(bouncerClip ? { variant: 'bouncer' as const } : {}), mirror: leftArm, ...(followTo ? { followTo } : {}), ...runOptions(bowler) });
+  const run = bowlerRun({
+    action,
+    look: bowlerLook,
+    releaseRoot,
+    ...(bouncerClip ? { variant: 'bouncer' as const } : {}),
+    mirror: leftArm,
+    ...(followTo ? { followTo } : {}),
+    ...runOptions(bowler),
+  });
   const releaseScene = run.release;
   const duration = idle
     ? (input.idleMs ?? 60_000)
@@ -1205,7 +1561,9 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
     const v = ballVelocityAt(result.ball, t);
     return v ? toWorld(v, mirror) : null;
   };
-  const reactions = result ? fieldReactions(result, setup.field.fielders, paths) : new Map<string, { t: number; clip: ClipId }>();
+  const reactions = result
+    ? fieldReactions(result, setup.field.fielders, paths)
+    : new Map<string, { t: number; clip: ClipId }>();
   yield;
   /** The physics bat (or pad) contact, simulation s, for the fielders' anticipation; undefined without one. */
   const contactT = result ? result.events.find((e) => e.kind === 'contact')?.t : undefined;
@@ -1224,13 +1582,34 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
       : walk
         ? [
             { t0: 0, t1: walk.t0, clip: 'idle', heading: facing, clipStart: phase },
-            { t0: walk.t0, t1: walk.t1, clip: 'walk', from: walk.start, to: pos, rate: matchedRate(fieldClips().walk, WALK_IN.mps, scale), heading: facing, blend: 240 },
+            {
+              t0: walk.t0,
+              t1: walk.t1,
+              clip: 'walk',
+              from: walk.start,
+              to: pos,
+              rate: matchedRate(fieldClips().walk, WALK_IN.mps, scale),
+              heading: facing,
+              blend: 240,
+            },
             { t0: walk.t1, t1: duration, clip: before, heading: facing, blend: 280 },
           ]
         : [
             // The keeper is down and still before the bowler's gather (never dropping during the delivery).
-            { t0: 0, t1: Math.max(1, releaseScene - (keeperRole ? 1800 : 900)), clip: 'idle', heading: facing, clipStart: phase },
-            { t0: Math.max(1, releaseScene - (keeperRole ? 1800 : 900)), t1: duration, clip: before, heading: facing, blend: keeperRole ? 900 : 320 },
+            {
+              t0: 0,
+              t1: Math.max(1, releaseScene - (keeperRole ? 1800 : 900)),
+              clip: 'idle',
+              heading: facing,
+              clipStart: phase,
+            },
+            {
+              t0: Math.max(1, releaseScene - (keeperRole ? 1800 : 900)),
+              t1: duration,
+              clip: before,
+              heading: facing,
+              blend: keeperRole ? 900 : 320,
+            },
           ];
     const path = paths.get(f.id);
     if (path && !idle) {
@@ -1289,7 +1668,8 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
         const gap = { x: at.x - onPath.x, z: at.z - onPath.z };
         const fadeMs = Math.min(1200, Math.max(350, (Math.hypot(gap.x, gap.z) / 1.5) * 1500));
         const k = (t: number) => 1 - smooth01((t - cut) / fadeMs);
-        const shift = (p: Vec3 | undefined, t: number): Vec3 | undefined => (p ? v3(p.x + gap.x * k(t), p.y, p.z + gap.z * k(t)) : p);
+        const shift = (p: Vec3 | undefined, t: number): Vec3 | undefined =>
+          p ? v3(p.x + gap.x * k(t), p.y, p.z + gap.z * k(t)) : p;
         for (let i = 0; i < pm.length && pm[i].t0 < cut + fadeMs; i++) {
           const m = pm[i];
           const from = m.from ?? (i === 0 ? onPath : undefined);
@@ -1310,11 +1690,17 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
   if (keeper && take && !paths.has(keeperField?.id ?? '')) {
     const at = simToScene({ releaseScene }, take.t) - clipMarker('keep_take', 'catch', 0.3) * 1000;
     keeper.moves = truncateMoves(keeper, at);
-    keeper.moves.push({ t0: at, t1: at + 1000, clip: 'keep_take', blend: 80 }, { t0: at + 1000, t1: duration, clip: 'idle', blend: 300 });
+    keeper.moves.push(
+      { t0: at, t1: at + 1000, clip: 'keep_take', blend: 80 },
+      { t0: at + 1000, t1: duration, clip: 'idle', blend: 300 },
+    );
   }
 
   // Batters: the striker (hidden from the first-person camera) and a running partner at the other end.
-  const stanceWorld = toWorld(v3(STANCE_ROOT.x + batterRootOffset.x, STANCE_ROOT.y, STANCE_ROOT.z + batterRootOffset.z), mirror);
+  const stanceWorld = toWorld(
+    v3(STANCE_ROOT.x + batterRootOffset.x, STANCE_ROOT.y, STANCE_ROOT.z + batterRootOffset.z),
+    mirror,
+  );
   const waitingMoves = strikerPreSwing(releaseScene, duration, !idle || Boolean(input.runUp));
   const arrivalScene = flight ? simToScene({ releaseScene }, flight.idealContactT) : null;
   const strikerTrack: ActorTrack = {
@@ -1326,7 +1712,15 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
     ...(mirror ? { mirror: true } : {}),
     moves: waitingMoves,
     // On the physics stance pads from the start (every script alike: the fit is measured on the first stance frame).
-    physicsBody: strikerPhysicsBody(null, null, mirror, STANCE_FIT_AT_MS, Number.POSITIVE_INFINITY, waitingMoves, arrivalScene),
+    physicsBody: strikerPhysicsBody(
+      null,
+      null,
+      mirror,
+      STANCE_FIT_AT_MS,
+      Number.POSITIVE_INFINITY,
+      waitingMoves,
+      arrivalScene,
+    ),
   };
   // The non-striker: at his crease on the side away from the bowler's arm, backing up as the bowler runs in.
   const nsDelivery = !idle || Boolean(input.runUp);
@@ -1338,12 +1732,38 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
     heading: 0,
     ...(mirror ? { mirror: true } : {}),
     // With a result these are made again below (its dead ball and runs decide them): not worked out twice.
-    moves: result && flight ? [] : nonStrikerMoves({ releaseScene, duration, delivery: nsDelivery, bowlerLeftArm: leftArm, deadScene: null, scale: avatarTraits(cast.nonStriker.seed).height, mirror, ...(flight ? { arrivalScene: simToScene({ releaseScene }, flight.idealContactT) } : {}) }),
+    moves:
+      result && flight
+        ? []
+        : nonStrikerMoves({
+            releaseScene,
+            duration,
+            delivery: nsDelivery,
+            bowlerLeftArm: leftArm,
+            deadScene: null,
+            scale: avatarTraits(cast.nonStriker.seed).height,
+            mirror,
+            ...(flight ? { arrivalScene: simToScene({ releaseScene }, flight.idealContactT) } : {}),
+          }),
   };
   actors.push(strikerTrack, nsTrack);
   actors.push(
-    { id: 'umpire', role: 'umpire', look: cast.umpires[0], start: toWorld(UMPIRE_POS, mirror), heading: 0, moves: [{ t0: 0, t1: duration, clip: 'ump_stand' }] },
-    { id: 'umpire2', role: 'umpire', look: cast.umpires[1], start: toWorld(SQUARE_UMPIRE_POS, mirror), heading: mirror ? -HALF_PI : HALF_PI, moves: [{ t0: 0, t1: duration, clip: 'ump_stand' }] },
+    {
+      id: 'umpire',
+      role: 'umpire',
+      look: cast.umpires[0],
+      start: toWorld(UMPIRE_POS, mirror),
+      heading: 0,
+      moves: [{ t0: 0, t1: duration, clip: 'ump_stand' }],
+    },
+    {
+      id: 'umpire2',
+      role: 'umpire',
+      look: cast.umpires[1],
+      start: toWorld(SQUARE_UMPIRE_POS, mirror),
+      heading: mirror ? -HALF_PI : HALF_PI,
+      moves: [{ t0: 0, t1: duration, clip: 'ump_stand' }],
+    },
   );
 
   // The ball: in the bowler's hand, then the physics path (the flight until the result is known, then the result).
@@ -1357,7 +1777,13 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
   let runsRun = 0;
   const events: BallScript['events'] = [];
   const stumps: BallScript['stumps'] = { striker: null, nonStriker: null };
-  const emotion = buildEmotion({ releaseScene, result, delivery: !idle || Boolean(input.runUp), duration, context: input.context });
+  const emotion = buildEmotion({
+    releaseScene,
+    result,
+    delivery: !idle || Boolean(input.runUp),
+    duration,
+    context: input.context,
+  });
   if (idle) {
     balls.push({ k: 'hand', t0: 0, t1: duration, actor: 'bowler' });
   } else {
@@ -1370,14 +1796,28 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
     const rotation = ballRotation(flight);
     // A plane normal is axial under the left-handed mirror; the polished pole is a point on the ball, so it is polar.
     // They remain the same unoriented line because BallFlight.shine is ±BallFlight.seam.axis.
-    const seamAxis = mirror ? v3(flight.seam.axis.x, -flight.seam.axis.y, -flight.seam.axis.z) : v3(flight.seam.axis.x, flight.seam.axis.y, flight.seam.axis.z);
-    const shineAxis = mirror ? v3(-flight.seam.shine.x, flight.seam.shine.y, flight.seam.shine.z) : v3(flight.seam.shine.x, flight.seam.shine.y, flight.seam.shine.z);
+    const seamAxis = mirror
+      ? v3(flight.seam.axis.x, -flight.seam.axis.y, -flight.seam.axis.z)
+      : v3(flight.seam.axis.x, flight.seam.axis.y, flight.seam.axis.z);
+    const shineAxis = mirror
+      ? v3(-flight.seam.shine.x, flight.seam.shine.y, flight.seam.shine.z)
+      : v3(flight.seam.shine.x, flight.seam.shine.y, flight.seam.shine.z);
     // The engine defines the pole and seam plane but not texture roll around that pole. Freeze the renderer's existing
     // shortest-arc release roll as a second material axis, then carry all three axes rigidly through the bounce.
     const surfaceTangent = releaseSurfaceTangent(shineAxis);
     const surface = { seamAxis, shineAxis, surfaceTangent };
     const releaseRotation = seamSpin(rotation.release, family, mirror);
-    balls.push({ k: 'path', t0: releaseScene, t1: bounceAt, samples, release: releaseScene, spinOrigin: releaseScene, mirror, ...releaseRotation, ...surface });
+    balls.push({
+      k: 'path',
+      t0: releaseScene,
+      t1: bounceAt,
+      samples,
+      release: releaseScene,
+      spinOrigin: releaseScene,
+      mirror,
+      ...releaseRotation,
+      ...surface,
+    });
     if (bounceAt < duration && rotation.afterBounce) {
       // Carry the complete rigid surface to the bounce before changing rotation axis/rate. Without the carried axes
       // the new after-bounce spin would be applied retroactively from release and the visible seam would jump.
@@ -1387,12 +1827,28 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
         shineAxis: rotateAround(shineAxis, releaseRotation.spinAxis, atBounce),
         surfaceTangent: rotateAround(surfaceTangent, releaseRotation.spinAxis, atBounce),
       };
-      balls.push({ k: 'path', t0: bounceAt, t1: duration, samples, release: releaseScene, spinOrigin: bounceAt, mirror, ...seamSpin(rotation.afterBounce, family, mirror), ...carried });
+      balls.push({
+        k: 'path',
+        t0: bounceAt,
+        t1: duration,
+        samples,
+        release: releaseScene,
+        spinOrigin: bounceAt,
+        mirror,
+        ...seamSpin(rotation.afterBounce, family, mirror),
+        ...carried,
+      });
     }
     if (!result) {
       // Until the result lands, the delivery's own events (release, pitch) still sound on time.
       events.push({ t: releaseScene, kind: 'release', intensity: Math.min(1.1, flight.release.speedKph / 150) });
-      if (flight.bounce) events.push({ t: simToScene({ releaseScene }, flight.bounce.t), kind: 'bounce', intensity: 0.6, at: toWorld(flight.bounce.p, mirror) });
+      if (flight.bounce)
+        events.push({
+          t: simToScene({ releaseScene }, flight.bounce.t),
+          kind: 'bounce',
+          intensity: 0.6,
+          at: toWorld(flight.bounce.p, mirror),
+        });
     } else {
       cues = feedbackCues(result, releaseScene, mirror);
       yield;
@@ -1420,7 +1876,16 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
       const natural = strikerMoves(result, releaseScene, duration, false);
       yield;
       const natRest = natural.find((m) => m.clip === 'bat_rest')?.t0 ?? duration;
-      const natBody = strikerPhysicsBody(result, releaseScene, mirror, STANCE_FIT_AT_MS, result.swing ? natRest : Number.POSITIVE_INFINITY, waitingMoves, arrivalScene, false);
+      const natBody = strikerPhysicsBody(
+        result,
+        releaseScene,
+        mirror,
+        STANCE_FIT_AT_MS,
+        result.swing ? natRest : Number.POSITIVE_INFINITY,
+        waitingMoves,
+        arrivalScene,
+        false,
+      );
       const runTs = runTimes(result);
       const setOff = runTs.length ? simToScene({ releaseScene }, setOffT(runTs)) : null;
       // The decision may wait (deferStride) when nothing else the build does depends on how it comes out: the stroke ends at
@@ -1429,17 +1894,50 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
       const waits =
         governedMoves !== null &&
         (governedMoves.find((m) => m.clip === 'bat_rest')?.t0 ?? duration) === natRest &&
-        (setOff === null || samePlace(evaluateActor({ ...strikerTrack, moves: natural }, setOff).pos, evaluateActor({ ...strikerTrack, moves: governedMoves }, setOff).pos));
-      const governed = result.swing && !waits ? yield* strideGovernedSteps(result, releaseScene, { ...strikerTrack, moves: natural, physicsBody: natBody }, mirror, input.sliced) : false;
+        (setOff === null ||
+          samePlace(
+            evaluateActor({ ...strikerTrack, moves: natural }, setOff).pos,
+            evaluateActor({ ...strikerTrack, moves: governedMoves }, setOff).pos,
+          ));
+      const governed =
+        result.swing && !waits
+          ? yield* strideGovernedSteps(
+              result,
+              releaseScene,
+              { ...strikerTrack, moves: natural, physicsBody: natBody },
+              mirror,
+              input.sliced,
+            )
+          : false;
       strikerTrack.moves = governed ? strikerMoves(result, releaseScene, duration, true) : natural;
       // The drawn legs and trunk on the physics body: the stance pads, and with a swing the stroke's (strideWindow).
       const atRest = strikerTrack.moves.find((m) => m.clip === 'bat_rest')?.t0 ?? duration;
       strokeEndScene = atRest;
-      strikerTrack.physicsBody = waits ? natBody : strikerPhysicsBody(result, releaseScene, mirror, STANCE_FIT_AT_MS, result.swing ? atRest : Number.POSITIVE_INFINITY, waitingMoves, arrivalScene, governed);
+      strikerTrack.physicsBody = waits
+        ? natBody
+        : strikerPhysicsBody(
+            result,
+            releaseScene,
+            mirror,
+            STANCE_FIT_AT_MS,
+            result.swing ? atRest : Number.POSITIVE_INFINITY,
+            waitingMoves,
+            arrivalScene,
+            governed,
+          );
       // The non-striker walks back into his crease after a dead ball with no run; with runs, both batters run them
       // exactly when and as far as the physics says (practice/nonStriker.ts).
       yield;
-      nsTrack.moves = nonStrikerMoves({ releaseScene, duration, delivery: true, bowlerLeftArm: leftArm, deadScene, scale: avatarTraits(cast.nonStriker.seed).height, mirror, arrivalScene: simToScene({ releaseScene }, result.flight.idealContactT) });
+      nsTrack.moves = nonStrikerMoves({
+        releaseScene,
+        duration,
+        delivery: true,
+        bowlerLeftArm: leftArm,
+        deadScene,
+        scale: avatarTraits(cast.nonStriker.seed).height,
+        mirror,
+        arrivalScene: simToScene({ releaseScene }, result.flight.idealContactT),
+      });
       yield;
       runsRun = runTs.length;
       let running: ReturnType<typeof runningMoves> = null;
@@ -1466,7 +1964,10 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
         if (running) {
           if (!waits) {
             strikerTrack.moves = [...truncateMoves(strikerTrack, running.start), ...running.striker];
-            strikerTrack.physicsBody = { ...strikerTrack.physicsBody!, releaseAt: Math.min(strikerTrack.physicsBody!.releaseAt, running.start) };
+            strikerTrack.physicsBody = {
+              ...strikerTrack.physicsBody!,
+              releaseAt: Math.min(strikerTrack.physicsBody!.releaseAt, running.start),
+            };
           }
           nsTrack.moves = [...truncateMoves(nsTrack, running.start), ...running.nonStriker];
         }
@@ -1484,7 +1985,18 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
           shared: !runs,
           settle: (isGoverned) => {
             let moves = isGoverned ? governedMoves! : natural;
-            let physicsBody = isGoverned ? strikerPhysicsBody(result, releaseScene, mirror, STANCE_FIT_AT_MS, natRest, waitingMoves, arrivalScene, true) : natBody;
+            let physicsBody = isGoverned
+              ? strikerPhysicsBody(
+                  result,
+                  releaseScene,
+                  mirror,
+                  STANCE_FIT_AT_MS,
+                  natRest,
+                  waitingMoves,
+                  arrivalScene,
+                  true,
+                )
+              : natBody;
             if (runs) {
               moves = [...truncateMoves({ ...own, moves }, runs.start), ...runs.striker];
               physicsBody = { ...physicsBody, releaseAt: Math.min(physicsBody.releaseAt, runs.start) };
@@ -1499,10 +2011,17 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
       const umpire = actors.find((a) => a.id === 'umpire')!;
       if (boundary) {
         const at = simToScene({ releaseScene }, boundary.t);
-        umpire.moves = [{ t0: 0, t1: at + 600, clip: 'ump_stand' }, { t0: at + 600, t1: duration, clip: boundary.runs === 6 ? 'ump_six' : 'ump_four', blend: 200 }];
+        umpire.moves = [
+          { t0: 0, t1: at + 600, clip: 'ump_stand' },
+          { t0: at + 600, t1: duration, clip: boundary.runs === 6 ? 'ump_six' : 'ump_four', blend: 200 },
+        ];
       } else if (dismissal) {
         const at = simToScene({ releaseScene }, (stumpsHit ?? catchEvent)?.t ?? result.deadT);
-        if (dismissal !== 'bowled') umpire.moves = [{ t0: 0, t1: at + 900, clip: 'ump_stand' }, { t0: at + 900, t1: duration, clip: 'ump_out', blend: 200 }];
+        if (dismissal !== 'bowled')
+          umpire.moves = [
+            { t0: 0, t1: at + 900, clip: 'ump_stand' },
+            { t0: at + 900, t1: duration, clip: 'ump_out', blend: 200 },
+          ];
       }
     }
   }
@@ -1511,7 +2030,12 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
   if (result && !idle) {
     const take = result.events.find((e): e is Extract<typeof e, { kind: 'keeper_take' }> => e.kind === 'keeper_take');
     const lastT = result.ball.at(-1)?.t ?? 0;
-    if (take && (take.shortM ?? 0) > 0 && !result.events.some((e) => e.kind === 'throw' && e.t < take.t) && lastT <= take.t + 0.02) {
+    if (
+      take &&
+      (take.shortM ?? 0) > 0 &&
+      !result.events.some((e) => e.kind === 'throw' && e.t < take.t) &&
+      lastT <= take.t + 0.02
+    ) {
       const at = simToScene({ releaseScene }, take.t) + 30;
       const kept: BallSeg[] = [];
       for (const b of balls) if (b.t0 < at) kept.push(b.t1 > at ? { ...b, t1: at } : b);
@@ -1520,7 +2044,10 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
     }
   }
   // The ball in the fielder's (or keeper's) hand between the physics take and the throw's release (lead ruling).
-  if (result && !idle) holdBallInHands(balls, result, releaseScene, duration, mirror, (fid) => (fid === keeperField?.id ? 'keeper' : fid === bowlerField?.id ? 'bowler' : `fielder:${fid}`));
+  if (result && !idle)
+    holdBallInHands(balls, result, releaseScene, duration, mirror, (fid) =>
+      fid === keeperField?.id ? 'keeper' : fid === bowlerField?.id ? 'bowler' : `fielder:${fid}`,
+    );
   events.sort((a, b) => a.t - b.t);
 
   const aimSim = flight ? ballAt(flight.samples, flight.idealContactT) : null;
@@ -1536,18 +2063,19 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
     aim: reachable(aimSim ?? v3(0.1, 0.5, CREASE_Z - 0.6)),
     resultAt: input.resultAt ?? null,
     contactScene,
-    contactImpulseScene: result && result.contact.t !== null &&
-      (result.contact.kind === 'middle' || result.contact.kind.endsWith('_edge'))
-      ? simToScene({ releaseScene }, result.contact.t)
-      : null,
-    velocityPeakScene: result?.batterMotion
-      ? simToScene({ releaseScene }, result.batterMotion.contactT)
-      : null,
+    contactImpulseScene:
+      result && result.contact.t !== null && (result.contact.kind === 'middle' || result.contact.kind.endsWith('_edge'))
+        ? simToScene({ releaseScene }, result.contact.t)
+        : null,
+    velocityPeakScene: result?.batterMotion ? simToScene({ releaseScene }, result.batterMotion.contactT) : null,
   };
   // A live result takes over from the script on screen (same release, same batter): keep its eye, continue its gaze.
   const h = input.handover;
   const hp = h?.script.practice;
-  const handover = h && hp && hp.releaseScene === releaseScene && hp.mirror === mirror && Number.isFinite(h.atScene) ? { script: h.script, atScene: h.atScene } : null;
+  const handover =
+    h && hp && hp.releaseScene === releaseScene && hp.mirror === mirror && Number.isFinite(h.atScene)
+      ? { script: h.script, atScene: h.atScene }
+      : null;
   const stanceEye = batterEye(mirror, batterRootOffset, result?.batterPosture.crouchM ?? 0);
   const practice: PracticeInfo = {
     mirror,
@@ -1572,9 +2100,30 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
     deadScene,
     firstPersonHidden: ['striker'],
     emotion,
-    director: directorSpec({ flight, result, idle, runUp: Boolean(input.runUp), run, releaseScene, duration, contactScene, deadScene, strokeEndScene, runsRun, outcomeAt: emotion.outcomeAt, outcome: emotion.outcome, mirror }),
+    director: directorSpec({
+      flight,
+      result,
+      idle,
+      runUp: Boolean(input.runUp),
+      run,
+      releaseScene,
+      duration,
+      contactScene,
+      deadScene,
+      strokeEndScene,
+      runsRun,
+      outcomeAt: emotion.outcomeAt,
+      outcome: emotion.outcome,
+      mirror,
+    }),
   };
-  if (stride) Object.defineProperty(practice, 'stride', { value: stride, enumerable: false, writable: false, configurable: true });
+  if (stride)
+    Object.defineProperty(practice, 'stride', {
+      value: stride,
+      enumerable: false,
+      writable: false,
+      configurable: true,
+    });
   const contact = contactScene ?? (flight ? simToScene({ releaseScene }, flight.idealContactT) : duration);
   // A ball met on the full has no bounce before the contact (the full-toss convention), whatever the flight says.
   const pitched = flight?.bounce && (!result || presentedBounce(result, flight.bounce)) ? flight.bounce : null;
@@ -1592,11 +2141,25 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
     crowd: crowdKeys(emotion),
     slowMo: null,
     cameras: null,
-    times: { runStart: run.runStart, release: releaseScene, bounce: bounceScene, contact, decisive: deadScene ?? contact, shotEnd: contact, celebrate: null, end: duration },
+    times: {
+      runStart: run.runStart,
+      release: releaseScene,
+      bounce: bounceScene,
+      contact,
+      decisive: deadScene ?? contact,
+      shotEnd: contact,
+      celebrate: null,
+      end: duration,
+    },
     fate: { kind: 'live' },
     celebration: 'none',
     heroes: [],
-    shotBearing: result?.contact.exitBearingDeg !== null && result?.contact.exitBearingDeg !== undefined ? (mirror ? -result.contact.exitBearingDeg : result.contact.exitBearingDeg) : null,
+    shotBearing:
+      result?.contact.exitBearingDeg !== null && result?.contact.exitBearingDeg !== undefined
+        ? mirror
+          ? -result.contact.exitBearingDeg
+          : result.contact.exitBearingDeg
+        : null,
     sealAt: null,
     practice,
   };

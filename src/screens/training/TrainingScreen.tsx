@@ -2,7 +2,13 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import '../engineRules';
 import type { ExecutionGrade, InputTrace, MatchEventLog, PlayerRef } from '@/contracts';
 import { engine } from '@/engine';
-import { buildTrainingLog, trainingCoachRef, trainingPlan, trainingSetup, type TrainingStarter } from '@/engine/training';
+import {
+  buildTrainingLog,
+  trainingCoachRef,
+  trainingPlan,
+  trainingSetup,
+  type TrainingStarter,
+} from '@/engine/training';
 import { useT, type MessageKey } from '@/i18n';
 import { useApp } from '@/app/store';
 import { Button, CardButton, Chip, ExecutionMeter, Icon, StateView, KITS } from '@/ui';
@@ -41,7 +47,17 @@ const hourNow = () => `${new Date().toISOString().slice(0, 13)}:00Z`;
  * Under a minute: bat a ball, bowl a ball with the release meter, then watch the payoff in a reveal. The tutorial over
  * and the log come from the engine (src/engine/training.ts): legal overs, real commits and a log verifyMatchLog accepts.
  */
-export function TrainingScreen({ player, onDone, onSkip, onStarted, onCompleted, onStep, onFirstDelivery, doneExtra, continueTo }: TrainingScreenProps) {
+export function TrainingScreen({
+  player,
+  onDone,
+  onSkip,
+  onStarted,
+  onCompleted,
+  onStep,
+  onFirstDelivery,
+  doneExtra,
+  continueTo,
+}: TrainingScreenProps) {
   const tr = useT();
   const { t } = tr;
   const [step, setStep] = useState<Step>('bat');
@@ -64,7 +80,13 @@ export function TrainingScreen({ player, onDone, onSkip, onStarted, onCompleted,
     }
   }, []);
   const coach: PlayerRef = useMemo(() => trainingCoachRef(t('training.coach'), KITS[2]), [t]);
-  const innings = useMemo(() => (setup ? localInnings({ plan: setup.coachOver, conditions: setup.conditions, seed: setup.seed, maxBalls: 1 }) : null), [setup]);
+  const innings = useMemo(
+    () =>
+      setup
+        ? localInnings({ plan: setup.coachOver, conditions: setup.conditions, seed: setup.seed, maxBalls: 1 })
+        : null,
+    [setup],
+  );
   const stepRef = useRef(onStep);
   stepRef.current = onStep;
   useEffect(() => {
@@ -117,8 +139,13 @@ export function TrainingScreen({ player, onDone, onSkip, onStarted, onCompleted,
   const progress = (
     <ol className={s.progress} aria-label={t('training.title')}>
       {(['bat', 'bowl', 'reveal'] as const).map((k, i) => (
-        <li key={k} data-state={step === k ? 'current' : (['bat', 'bowl', 'reveal', 'done'].indexOf(step) > i ? 'done' : 'todo')}>
-          <span className={s.dot}>{['bat', 'bowl', 'reveal', 'done'].indexOf(step) > i ? <Icon name="check" size={14} /> : i + 1}</span>
+        <li
+          key={k}
+          data-state={step === k ? 'current' : ['bat', 'bowl', 'reveal', 'done'].indexOf(step) > i ? 'done' : 'todo'}
+        >
+          <span className={s.dot}>
+            {['bat', 'bowl', 'reveal', 'done'].indexOf(step) > i ? <Icon name="check" size={14} /> : i + 1}
+          </span>
           <span className={s.stepLabel}>{t(`training.${k}.title` as MessageKey)}</span>
         </li>
       ))}
@@ -161,29 +188,59 @@ export function TrainingScreen({ player, onDone, onSkip, onStarted, onCompleted,
           <p className={s.lede}>{t('training.bowl.body')}</p>
         </div>
         <div className={s.bowl}>
-          <div className={s.variants} role="radiogroup" aria-label={t('plan.delivery')} data-compact={!roomy || undefined}>
+          <div
+            className={s.variants}
+            role="radiogroup"
+            aria-label={t('plan.delivery')}
+            data-compact={!roomy || undefined}
+          >
             {BOWL_CHOICES.map((v) => (
-              <CardButton key={v} padding={roomy ? 3 : 2} role="radio" aria-checked={variant === v} onClick={() => setVariant(v)} data-testid={`training-variant-${v}`}>
+              <CardButton
+                key={v}
+                padding={roomy ? 3 : 2}
+                role="radio"
+                aria-checked={variant === v}
+                onClick={() => setVariant(v)}
+                data-testid={`training-variant-${v}`}
+              >
                 <span className={s.vName}>{t(`variant.${v}` as MessageKey)}</span>
                 {roomy && <span className={s.vHint}>{t(`variant_hint.${v}` as MessageKey)}</span>}
               </CardButton>
             ))}
           </div>
           {!roomy && <p className={s.vHintOne}>{t(`variant_hint.${variant}` as MessageKey)}</p>}
-          <ExecutionMeter size={roomy ? 210 : 164} hint={t('training.bowl.gesture_hint')} result={bowl?.grade ? { grade: bowl.grade } : null} onComplete={(trace, preview) => setBowl({ trace, grade: preview?.grade ?? null })} />
+          <ExecutionMeter
+            size={roomy ? 210 : 164}
+            hint={t('training.bowl.gesture_hint')}
+            result={bowl?.grade ? { grade: bowl.grade } : null}
+            onComplete={(trace, preview) => setBowl({ trace, grade: preview?.grade ?? null })}
+          />
           {bowl && (
             <div className={s.result} role="status">
-              <Chip tone={bowl.grade === 'perfect' ? 'amber' : bowl.grade === 'good' ? 'cyan' : 'neutral'} icon={bowl.grade === 'perfect' || bowl.grade === 'good' || !bowl.grade ? 'check' : 'alert'} size="lg">
+              <Chip
+                tone={bowl.grade === 'perfect' ? 'amber' : bowl.grade === 'good' ? 'cyan' : 'neutral'}
+                icon={bowl.grade === 'perfect' || bowl.grade === 'good' || !bowl.grade ? 'check' : 'alert'}
+                size="lg"
+              >
                 {bowl.grade ? t(`execution.${bowl.grade}` as MessageKey) : t('plan.gesture_done')}
               </Chip>
-              <p className={s.small}>{t('training.bowl.result', { grade: bowl.grade ? t(`execution.${bowl.grade}` as MessageKey) : '' })}</p>
+              <p className={s.small}>
+                {t('training.bowl.result', { grade: bowl.grade ? t(`execution.${bowl.grade}` as MessageKey) : '' })}
+              </p>
             </div>
           )}
         </div>
         {bowl && (
           // Pinned to the bottom, so it is on screen the moment the release is done, whatever the text size.
           <div className={s.bowlCta}>
-            <Button variant="accent" size="lg" block iconEnd="forward" onClick={() => setStep('reveal')} data-testid="training-to-reveal">
+            <Button
+              variant="accent"
+              size="lg"
+              block
+              iconEnd="forward"
+              onClick={() => setStep('reveal')}
+              data-testid="training-to-reveal"
+            >
               {t('training.reveal.cta')}
             </Button>
           </div>
@@ -248,7 +305,13 @@ export function TrainingScreen({ player, onDone, onSkip, onStarted, onCompleted,
             {log.innings[1].balls[0] && (
               <li>
                 <Icon name="ball" size={18} />
-                <span>{t('training.done.you_bowled', { variant: t(`variant.${variant}` as MessageKey), name: coach.alias, result: outcomeText(log.innings[1].balls[0], tr) })}</span>
+                <span>
+                  {t('training.done.you_bowled', {
+                    variant: t(`variant.${variant}` as MessageKey),
+                    name: coach.alias,
+                    result: outcomeText(log.innings[1].balls[0], tr),
+                  })}
+                </span>
               </li>
             )}
             {verified && (
@@ -260,15 +323,36 @@ export function TrainingScreen({ player, onDone, onSkip, onStarted, onCompleted,
           </ul>
         )}
         {continueTo ? (
-          <Button variant="accent" size="xl" block iconEnd="forward" onClick={continueTo.onContinue} data-testid="training-continue-match">
+          <Button
+            variant="accent"
+            size="xl"
+            block
+            iconEnd="forward"
+            onClick={continueTo.onContinue}
+            data-testid="training-continue-match"
+          >
             {continueTo.label}
           </Button>
         ) : (
           <>
-            <Button variant="accent" size="xl" block icon="users" onClick={() => onDone('duel')} data-testid="training-duel">
+            <Button
+              variant="accent"
+              size="xl"
+              block
+              icon="users"
+              onClick={() => onDone('duel')}
+              data-testid="training-duel"
+            >
               {t('training.done.duel')}
             </Button>
-            <Button variant="primary" size="lg" block icon="calendar" onClick={() => onDone('daily')} data-testid="training-daily">
+            <Button
+              variant="primary"
+              size="lg"
+              block
+              icon="calendar"
+              onClick={() => onDone('daily')}
+              data-testid="training-daily"
+            >
               {t('training.done.daily')}
             </Button>
           </>

@@ -17,12 +17,31 @@ import v8 from 'node:v8';
 import vm from 'node:vm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three';
-import type { BowlerProfile, DeliveryResult, DeliveryVariation, Footwork, Handedness, NormalizedSwing, PracticeDeliveryPlan } from '@/contracts/practice';
+import type {
+  BowlerProfile,
+  DeliveryResult,
+  DeliveryVariation,
+  Footwork,
+  Handedness,
+  NormalizedSwing,
+  PracticeDeliveryPlan,
+} from '@/contracts/practice';
 import { autoField, batTravelMs, flight, resolveDelivery } from '@/physics';
 import { idealTimeFor } from '@/physics/bat';
 import type { BallScript } from '@/render3d/core/choreo';
 import { createPose } from '@/render3d/core/clips';
-import { CH, CHANNELS, DirectorRuntime, FACE, FRAME, applyHead, createOut, frameBegin, prepare, sample } from '@/render3d/core/motion/director';
+import {
+  CH,
+  CHANNELS,
+  DirectorRuntime,
+  FACE,
+  FRAME,
+  applyHead,
+  createOut,
+  frameBegin,
+  prepare,
+  sample,
+} from '@/render3d/core/motion/director';
 import { DRAWN, SEAM } from '@/render3d/core/motion/director/stage/face';
 import { HEAD, noteDrawn } from '@/render3d/core/motion/director/stage/pose';
 import { evaluateActor } from '@/render3d/core/actors';
@@ -65,13 +84,28 @@ afterAll(() => lib.resetMotionLibrary());
 function stubStage(): StageScene {
   const stage = Object.create(StageScene.prototype) as StageScene;
   Object.assign(stage, {
-    scene: new Scene(), camera: new PerspectiveCamera(30, 1, 0.1, 1200),
-    ballFx: { update: () => undefined }, stumpsFx: { update: () => undefined }, eventFx: { update: () => undefined },
+    scene: new Scene(),
+    camera: new PerspectiveCamera(30, 1, 0.1, 1200),
+    ballFx: { update: () => undefined },
+    stumpsFx: { update: () => undefined },
+    eventFx: { update: () => undefined },
     blobs: { begin: () => undefined, end: () => undefined, add: () => undefined },
-    stadium: { group: new Group(), setTime: () => undefined, setExcitement: () => undefined, setCrowdMood: () => undefined, setBoardFlash: () => undefined },
-    preset: PRACTICE_PROFILES.standard.preset, cssHeight: 400,
-    rigs: new Map(), bats: new Map(), mirrored: new Map(),
-    pose: createPose(), poseB: createPose(), lower: createPose(), towers: [],
+    stadium: {
+      group: new Group(),
+      setTime: () => undefined,
+      setExcitement: () => undefined,
+      setCrowdMood: () => undefined,
+      setBoardFlash: () => undefined,
+    },
+    preset: PRACTICE_PROFILES.standard.preset,
+    cssHeight: 400,
+    rigs: new Map(),
+    bats: new Map(),
+    mirrored: new Map(),
+    pose: createPose(),
+    poseB: createPose(),
+    lower: createPose(),
+    towers: [],
   });
   return stage;
 }
@@ -80,7 +114,11 @@ type Hook = ScriptDrawOptions['poseHook'];
 const proto = ThreePracticeStage.prototype as unknown as { poseHooks(s: unknown, p: unknown): Hook; cueHook: unknown };
 /** The stage's own pose hooks for a script: the production composition, with or without the Director. */
 const hooksFor = (script: BallScript, director?: DirectorRuntime, reducedMotion = false): Hook =>
-  proto.poseHooks.call({ hookCache: new WeakMap(), reducedMotion, cueHook: proto.cueHook, ...(director ? { director } : {}) }, script, script.practice!);
+  proto.poseHooks.call(
+    { hookCache: new WeakMap(), reducedMotion, cueHook: proto.cueHook, ...(director ? { director } : {}) },
+    script,
+    script.practice!,
+  );
 
 interface Case {
   name: string;
@@ -89,7 +127,13 @@ interface Case {
   variation: DeliveryVariation;
   plan?: Partial<PracticeDeliveryPlan>;
   /** null: a leave. */
-  swing: { kind: 'attack' | 'defend'; directionDeg: number; power: number; elevation: number; footwork: Footwork } | null;
+  swing: {
+    kind: 'attack' | 'defend';
+    directionDeg: number;
+    power: number;
+    elevation: number;
+    footwork: Footwork;
+  } | null;
   errMs?: number;
 }
 const DRIVE = { kind: 'attack', directionDeg: 12, power: 0.8, elevation: 0.05, footwork: 'forward' } as const;
@@ -98,12 +142,48 @@ const DEFEND = { kind: 'defend', directionDeg: 0, power: 0.3, elevation: 0, foot
 const CASES: Case[] = [
   { name: 'pace right drive', bowler: PACE, hand: 'right', variation: 'stock', swing: DRIVE },
   { name: 'pace right defend', bowler: PACE, hand: 'right', variation: 'stock', swing: DEFEND },
-  { name: 'pace left-hander pull', bowler: PACE, hand: 'left', variation: 'bouncer', plan: { lengthM: 10.5 }, swing: PULL },
-  { name: 'left-arm left-hander drive', bowler: LEFT_ARM, hand: 'left', variation: 'stock', plan: { speedKph: 146 }, swing: DRIVE },
-  { name: 'left-arm right-hander leave', bowler: LEFT_ARM, hand: 'right', variation: 'yorker', plan: { lengthM: 1, speedKph: 146 }, swing: null },
+  {
+    name: 'pace left-hander pull',
+    bowler: PACE,
+    hand: 'left',
+    variation: 'bouncer',
+    plan: { lengthM: 10.5 },
+    swing: PULL,
+  },
+  {
+    name: 'left-arm left-hander drive',
+    bowler: LEFT_ARM,
+    hand: 'left',
+    variation: 'stock',
+    plan: { speedKph: 146 },
+    swing: DRIVE,
+  },
+  {
+    name: 'left-arm right-hander leave',
+    bowler: LEFT_ARM,
+    hand: 'right',
+    variation: 'yorker',
+    plan: { lengthM: 1, speedKph: 146 },
+    swing: null,
+  },
   { name: 'spin right miss (late)', bowler: FINGER, hand: 'right', variation: 'stock', swing: DRIVE, errMs: 130 },
-  { name: 'spin left-hander drive', bowler: FINGER, hand: 'left', variation: 'flighted', plan: { lengthM: 5 }, swing: DRIVE },
-  { name: 'pace right early', bowler: PACE, hand: 'right', variation: 'inswing', plan: { lengthM: 3 }, swing: DRIVE, errMs: -110 },
+  {
+    name: 'spin left-hander drive',
+    bowler: FINGER,
+    hand: 'left',
+    variation: 'flighted',
+    plan: { lengthM: 5 },
+    swing: DRIVE,
+  },
+  {
+    name: 'pace right early',
+    bowler: PACE,
+    hand: 'right',
+    variation: 'inswing',
+    plan: { lengthM: 3 },
+    swing: DRIVE,
+    errMs: -110,
+  },
 ];
 
 interface Built {
@@ -118,16 +198,48 @@ interface Built {
   resultAt: number;
 }
 function build(c: Case, k = 0): Built {
-  const full: PracticeDeliveryPlan = { variation: c.variation, lengthM: 6, lineM: 0.1, speedKph: c.bowler.family === 'spin' ? 86 : 136, ...c.plan };
-  const fl = flight({ plan: full, bowler: c.bowler, conditions: 'balanced', seed: `dir:${c.name}:${k}`, handedness: c.hand });
+  const full: PracticeDeliveryPlan = {
+    variation: c.variation,
+    lengthM: 6,
+    lineM: 0.1,
+    speedKph: c.bowler.family === 'spin' ? 86 : 136,
+    ...c.plan,
+  };
+  const fl = flight({
+    plan: full,
+    bowler: c.bowler,
+    conditions: 'balanced',
+    seed: `dir:${c.name}:${k}`,
+    handedness: c.hand,
+  });
   const field = autoField(c.bowler, 'balanced', c.hand);
   let swing: NormalizedSwing | null = null;
-  if (c.swing) swing = { ...c.swing, startT: idealTimeFor(fl, c.swing.footwork) - batTravelMs(c.swing.kind, c.swing.power) / 1000 + (c.errMs ?? 0) / 1000 };
-  const result = resolveDelivery({ flight: fl, swing, field, bowler: c.bowler, conditions: 'balanced', handedness: c.hand, assist: 'play', tierToleranceMs: 0 });
+  if (c.swing)
+    swing = {
+      ...c.swing,
+      startT:
+        idealTimeFor(fl, c.swing.footwork) - batTravelMs(c.swing.kind, c.swing.power) / 1000 + (c.errMs ?? 0) / 1000,
+    };
+  const result = resolveDelivery({
+    flight: fl,
+    swing,
+    field,
+    bowler: c.bowler,
+    conditions: 'balanced',
+    handedness: c.hand,
+    assist: 'play',
+    tierToleranceMs: 0,
+  });
   const setup = { field, bowler: c.bowler, conditions: 'balanced' as const, handedness: c.hand };
   const live = buildPracticeScript({ setup, flight: fl });
   const resultAt = live.practice!.releaseScene + 230;
-  const played = buildPracticeScript({ setup, flight: fl, result, resultAt, handover: { script: live, atScene: resultAt } });
+  const played = buildPracticeScript({
+    setup,
+    flight: fl,
+    result,
+    resultAt,
+    handover: { script: live, atScene: resultAt },
+  });
   const replay = buildPracticeScript({ setup, flight: fl, result });
   return { c, result, live, played, replay, resultAt };
 }
@@ -136,7 +248,8 @@ const cases = () => (BUILT.length ? BUILT : CASES.forEach((c, k) => BUILT.push(b
 
 const track = (s: BallScript, id: string) => s.actors.find((a) => a.id === id)!;
 const plansOf = (rt: DirectorRuntime, s: BallScript) => rt.plansOf(s)!;
-const same = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.length && Array.from(a).every((v, i) => v === b[i]);
+const same = (a: ArrayLike<number>, b: ArrayLike<number>) =>
+  a.length === b.length && Array.from(a).every((v, i) => v === b[i]);
 
 /** The picture of one actor at scene time t: its bones' local rotations and the shader's lids and iris. */
 function draw(stage: StageScene, script: BallScript, hook: Hook, id: string, t: number): number[] {
@@ -145,7 +258,12 @@ function draw(stage: StageScene, script: BallScript, hook: Hook, id: string, t: 
   const rig = stage.rigOf(id)!;
   const out: number[] = [];
   for (const b of rig.bones) out.push(b.quaternion.x, b.quaternion.y, b.quaternion.z, b.quaternion.w);
-  out.push(rig.uniforms.uLidL.value, rig.uniforms.uLidR.value, rig.uniforms.uGaze.value[0], rig.uniforms.uGaze.value[1]);
+  out.push(
+    rig.uniforms.uLidL.value,
+    rig.uniforms.uLidR.value,
+    rig.uniforms.uGaze.value[0],
+    rig.uniforms.uGaze.value[1],
+  );
   // P3: and the expression the face shader mixes (so every identity check below covers the face too)
   out.push(...rig.uniforms.uExpr.value);
   return out;
@@ -167,7 +285,20 @@ describe('honesty: the live plans know nothing the live script does not', () => 
       // the blink-free window of the live plan is never shorter than the result's
       expect(l.striker.taskEnd!, b.c.name).toBeGreaterThanOrEqual(r.striker.taskEnd! - 1e-6);
       // the bowler's anchors do not depend on the result at all (his script is as long, no more)
-      for (const k of ['runStart', 'gather', 'release', 'followEnd', 'swing', 'contact', 'taskEnd', 'outcomeAt', 'dead', 'strokeEnd', 'runs'] as const) expect(l.bowler[k], `${b.c.name} bowler ${k}`).toBe(r.bowler[k]);
+      for (const k of [
+        'runStart',
+        'gather',
+        'release',
+        'followEnd',
+        'swing',
+        'contact',
+        'taskEnd',
+        'outcomeAt',
+        'dead',
+        'strokeEnd',
+        'runs',
+      ] as const)
+        expect(l.bowler[k], `${b.c.name} bowler ${k}`).toBe(r.bowler[k]);
       // the striker's eye does not depend on the result's planted stance either
       expect(l.strikerEye).toEqual(r.strikerEye);
       expect(l.bowler.release).toBe(b.live.practice!.releaseScene);
@@ -197,7 +328,10 @@ describe('honesty: the live plans know nothing the live script does not', () => 
         const f = plansOf(fresh, b.replay)[role]!;
         expect(a.n, `${b.c.name} ${role}`).toBe(f.n);
         expect(same(a.trace, f.trace), `${b.c.name} ${role}: trace`).toBe(true);
-        expect(same(a.fix, f.fix) && same(a.blink, f.blink) && same(a.draw, f.draw), `${b.c.name} ${role}: events`).toBe(true);
+        expect(
+          same(a.fix, f.fix) && same(a.blink, f.blink) && same(a.draw, f.draw),
+          `${b.c.name} ${role}: events`,
+        ).toBe(true);
       }
       reused++;
     }
@@ -215,11 +349,23 @@ describe('honesty: the live plans know nothing the live script does not', () => 
       fresh.register(b.replay, 'replay', null);
       const res = plansOf(fresh, b.replay).striker!;
       const s = b.replay.practice!.director.striker;
-      const bound = Math.min(s.contact === null ? Infinity : s.contact + 125, s.outcomeAt === null ? Infinity : s.outcomeAt + 180, s.dead === null ? Infinity : s.dead + 125, b.live.practice!.director.flightEnd! + 125);
+      const bound = Math.min(
+        s.contact === null ? Infinity : s.contact + 125,
+        s.outcomeAt === null ? Infinity : s.outcomeAt + 180,
+        s.dead === null ? Infinity : s.dead + 125,
+        b.live.practice!.director.flightEnd! + 125,
+      );
       const i1 = Math.floor(((Math.min(bound, 8000) - live.t0) * live.hz) / 1000);
-      for (let i = 0; i < i1; i++) for (let c = 0; c < CHANNELS; c++) if (live.trace[i * CHANNELS + c] !== res.trace[i * CHANNELS + c]) throw new Error(`${b.c.name}: frame ${i} (${((i * 1000) / 60).toFixed(0)} ms, bound ${bound.toFixed(0)}) channel ${c} differs`);
+      for (let i = 0; i < i1; i++)
+        for (let c = 0; c < CHANNELS; c++)
+          if (live.trace[i * CHANNELS + c] !== res.trace[i * CHANNELS + c])
+            throw new Error(
+              `${b.c.name}: frame ${i} (${((i * 1000) / 60).toFixed(0)} ms, bound ${bound.toFixed(0)}) channel ${c} differs`,
+            );
       let differs = false;
-      for (let i = i1; i < Math.min(live.n, res.n); i++) for (let c = 0; c < CHANNELS && !differs; c++) differs = live.trace[i * CHANNELS + c] !== res.trace[i * CHANNELS + c];
+      for (let i = i1; i < Math.min(live.n, res.n); i++)
+        for (let c = 0; c < CHANNELS && !differs; c++)
+          differs = live.trace[i * CHANNELS + c] !== res.trace[i * CHANNELS + c];
       if (differs) differAfter++;
     }
     // a result that changes what the batter sees does change what he does afterwards (the test would be vacuous otherwise)
@@ -258,10 +404,18 @@ describe('honesty: the live plans know nothing the live script does not', () => 
     rig.root.updateMatrixWorld(true);
     rig.boneMap.head.updateWorldMatrix(true, false);
     const d = new Vector3(0, 0, 1).transformDirection(rig.boneMap.head.matrixWorld);
-    return [d.x, d.y, d.z, rig.uniforms.uLidL.value, rig.uniforms.uLidR.value, rig.uniforms.uGaze.value[0], rig.uniforms.uGaze.value[1]];
+    return [
+      d.x,
+      d.y,
+      d.z,
+      rig.uniforms.uLidL.value,
+      rig.uniforms.uLidR.value,
+      rig.uniforms.uGaze.value[0],
+      rig.uniforms.uGaze.value[1],
+    ];
   };
 
-  it('with the spare time of a slow phone (a slice every few frames) a deadline forces at most one slice at a time, the plan is the replay\'s, and nothing is baked in the frames before the deadline', () => {
+  it("with the spare time of a slow phone (a slice every few frames) a deadline forces at most one slice at a time, the plan is the replay's, and nothing is baked in the frames before the deadline", () => {
     let worstFrame = 0;
     let forcedFrames = 0;
     for (const b of cases().slice(0, 4)) {
@@ -289,7 +443,8 @@ describe('honesty: the live plans know nothing the live script does not', () => 
           // The same picture as the replay's, as far as the Director makes it: the lids and the iris, and where the head points in
           // space (the trunk's glove lean remembers the frames before it, so the bones themselves are the stage's to compare, not ours).
           draw(stageR, b.replay, hookR, id, t);
-          if (t > (s.contact ?? 0) + 130) expect(look(stage, id), `${b.c.name} ${id} t=${t.toFixed(0)}`).toEqual(look(stageR, id));
+          if (t > (s.contact ?? 0) + 130)
+            expect(look(stage, id), `${b.c.name} ${id} t=${t.toFixed(0)}`).toEqual(look(stageR, id));
         }
         const forced = rt.stats.forcedSlices - forcedBefore;
         forcedBefore = rt.stats.forcedSlices;
@@ -299,7 +454,11 @@ describe('honesty: the live plans know nothing the live script does not', () => 
       }
       // and what the spare time of the frames after left to do, finished, is exactly the replay's plan
       rt.finish(b.played);
-      for (const role of ['bowler', 'striker'] as const) expect(same(plansOf(rt, b.played)[role]!.trace, plansOf(fresh, b.replay)[role]!.trace), `${b.c.name} ${role}`).toBe(true);
+      for (const role of ['bowler', 'striker'] as const)
+        expect(
+          same(plansOf(rt, b.played)[role]!.trace, plansOf(fresh, b.replay)[role]!.trace),
+          `${b.c.name} ${role}`,
+        ).toBe(true);
     }
     record('forcedSlicesPerFrame', { worst: worstFrame, framesWithForcedWork: forcedFrames });
     expect(worstFrame).toBeLessThanOrEqual(1);
@@ -340,7 +499,12 @@ describe('replay identity: the same result draws the same bones and the same eye
       const sc = stubStage();
       const ha = hooksFor(b.replay, a);
       const hc = hooksFor(b.replay, c);
-      for (const t of frames(b.replay)) for (const id of ['bowler', 'striker']) expect(same(draw(sa, b.replay, ha, id, t), draw(sc, b.replay, hc, id, t)), `${b.c.name} ${id} t=${t.toFixed(0)}`).toBe(true);
+      for (const t of frames(b.replay))
+        for (const id of ['bowler', 'striker'])
+          expect(
+            same(draw(sa, b.replay, ha, id, t), draw(sc, b.replay, hc, id, t)),
+            `${b.c.name} ${id} t=${t.toFixed(0)}`,
+          ).toBe(true);
     }
   });
 
@@ -360,12 +524,13 @@ describe('replay identity: the same result draws the same bones and the same eye
       const s2 = stubStage();
       const h1 = hooksFor(b.played, live);
       const h2 = hooksFor(b.replay, rep);
-      for (const t of frames(b.replay)) for (const id of ['bowler', 'striker']) {
-        const x = draw(s1, b.played, h1, id, t);
-        const y = draw(s2, b.replay, h2, id, t);
-        // the bones; the shader's eyes
-        expect(same(x, y), `${b.c.name} ${id} t=${t.toFixed(0)}`).toBe(true);
-      }
+      for (const t of frames(b.replay))
+        for (const id of ['bowler', 'striker']) {
+          const x = draw(s1, b.played, h1, id, t);
+          const y = draw(s2, b.replay, h2, id, t);
+          // the bones; the shader's eyes
+          expect(same(x, y), `${b.c.name} ${id} t=${t.toFixed(0)}`).toBe(true);
+        }
     }
   });
 
@@ -383,7 +548,15 @@ describe('replay identity: the same result draws the same bones and the same eye
       rig.root.updateMatrixWorld(true);
       rig.boneMap.head.updateWorldMatrix(true, false);
       const d = new Vector3(0, 0, 1).transformDirection(rig.boneMap.head.matrixWorld);
-      return [d.x, d.y, d.z, rig.uniforms.uLidL.value, rig.uniforms.uLidR.value, rig.uniforms.uGaze.value[0], rig.uniforms.uGaze.value[1]];
+      return [
+        d.x,
+        d.y,
+        d.z,
+        rig.uniforms.uLidL.value,
+        rig.uniforms.uLidR.value,
+        rig.uniforms.uGaze.value[0],
+        rig.uniforms.uGaze.value[1],
+      ];
     };
     const near = (x: number[], y: number[]) => x.every((v, i) => Math.abs(v - y[i]) < (i < 3 ? 1e-5 : 1e-9));
     const free = () => !HEAD.clamped && !HEAD.limited;
@@ -411,7 +584,10 @@ describe('replay identity: the same result draws the same bones and the same eye
         // at the neck's range the head is what the trunk leaves, and the finished trunk is path dependent by design: the glove
         // solve's lean is eased frame to frame (players.easeLean) and the arms' elbows remember the frame before (reachIK);
         // measured here at most about 10 degrees apart between a forward and a backward pass over the same second
-        worstLimited = Math.max(worstLimited, Math.acos(Math.min(1, now[0] * was.look[0] + now[1] * was.look[1] + now[2] * was.look[2])) * DEG);
+        worstLimited = Math.max(
+          worstLimited,
+          Math.acos(Math.min(1, now[0] * was.look[0] + now[1] * was.look[1] + now[2] * was.look[2])) * DEG,
+        );
       }
     }
     expect(freeFrames).toBeGreaterThan(ts.length / 3);
@@ -422,7 +598,14 @@ describe('replay identity: the same result draws the same bones and the same eye
 describe('physics: the Director cannot move the feet, the grips, the bat or the release', () => {
   /** Indices of the bones that must be bit-equal: every one but the neck and the head. */
   const BODY = Array.from({ length: BONES }, (_, i) => i).filter((i) => i !== 3 && i !== 4);
-  const sameBody = (x: number[], y: number[]) => BODY.every((i) => x[i * 4] === y[i * 4] && x[i * 4 + 1] === y[i * 4 + 1] && x[i * 4 + 2] === y[i * 4 + 2] && x[i * 4 + 3] === y[i * 4 + 3]);
+  const sameBody = (x: number[], y: number[]) =>
+    BODY.every(
+      (i) =>
+        x[i * 4] === y[i * 4] &&
+        x[i * 4 + 1] === y[i * 4 + 1] &&
+        x[i * 4 + 2] === y[i * 4 + 2] &&
+        x[i * 4 + 3] === y[i * 4 + 3],
+    );
 
   it("the striker's body, from 600 ms before the release to 800 ms after the stroke, is bit-equal with and without the Director (only the neck, the head and the eyes differ)", () => {
     let frames = 0;
@@ -462,7 +645,10 @@ describe('physics: the Director cannot move the feet, the grips, the bat or the 
       const bs = b.live.practice!.director.bowler;
       for (let k = Math.ceil(bs.runStart! / DT) + 1; k * DT <= bs.release! + 150; k++) {
         const t = k * DT;
-        expect(sameBody(draw(s1, b.live, on, 'bowler', t), draw(s2, b.live, off, 'bowler', t)), `${b.c.name} t=${t.toFixed(0)}`).toBe(true);
+        expect(
+          sameBody(draw(s1, b.live, on, 'bowler', t), draw(s2, b.live, off, 'bowler', t)),
+          `${b.c.name} t=${t.toFixed(0)}`,
+        ).toBe(true);
         frames++;
       }
       // the ball leaves the hand from the same point at the same time
@@ -490,7 +676,8 @@ describe('physics: the Director cannot move the feet, the grips, the bat or the 
         expect(same(x, draw(s2, b.replay, off, id, t)), `${id} t=${t}`).toBe(true);
         expect(x[BONES * 4], `${id} keeps its own blink`).toBe(-1);
       }
-      for (const id of ['bowler', 'striker']) expect(draw(s1, b.replay, on, id, t)[BONES * 4], `${id} is directed`).toBeGreaterThanOrEqual(0);
+      for (const id of ['bowler', 'striker'])
+        expect(draw(s1, b.replay, on, id, t)[BONES * 4], `${id} is directed`).toBeGreaterThanOrEqual(0);
     }
   });
 
@@ -505,7 +692,9 @@ describe('physics: the Director cannot move the feet, the grips, the bat or the 
     const r = b.replay.practice!.releaseScene;
     expect(draw(s1, b.replay, hook, 'striker', r)[BONES * 4]).toBeGreaterThanOrEqual(0);
     rt.enabled = false;
-    for (const t of [r - 300, r + 200, r + 900]) for (const id of ['bowler', 'striker']) expect(same(draw(s1, b.replay, hook, id, t), draw(s2, b.replay, plain, id, t)), `${id} t=${t}`).toBe(true);
+    for (const t of [r - 300, r + 200, r + 900])
+      for (const id of ['bowler', 'striker'])
+        expect(same(draw(s1, b.replay, hook, id, t), draw(s2, b.replay, plain, id, t)), `${id} t=${t}`).toBe(true);
     expect(draw(s1, b.replay, hook, 'striker', r)[BONES * 4]).toBe(-1);
     // and a stage that was never given a Director draws as it always did
     const rt2 = new DirectorRuntime();
@@ -524,7 +713,10 @@ describe('the head: where the plan wants it', () => {
     const head = rig.boneMap.head;
     head.updateWorldMatrix(true, false);
     const d = new Vector3(0, 0, 1).transformDirection(head.matrixWorld);
-    return [(bowler ? Math.atan2(d.x, d.z) : Math.atan2(-d.x, -d.z)) * DEG, Math.atan2(-d.y, Math.hypot(d.x, d.z)) * DEG];
+    return [
+      (bowler ? Math.atan2(d.x, d.z) : Math.atan2(-d.x, -d.z)) * DEG,
+      Math.atan2(-d.y, Math.hypot(d.x, d.z)) * DEG,
+    ];
   }
 
   it('for both hands and both arms, the drawn head is the planned one (to 0.05 degrees) whenever the neck has the range and its speed cap does not hold it, and is nearer it than the trunk left it when not', () => {
@@ -539,7 +731,10 @@ describe('the head: where the plan wants it', () => {
       const stage = stubStage();
       const plans = plansOf(rt, b.replay);
       const r = b.replay.practice!.releaseScene;
-      for (const [id, plan] of [['bowler', plans.bowler!], ['striker', plans.striker!]] as const) {
+      for (const [id, plan] of [
+        ['bowler', plans.bowler!],
+        ['striker', plans.striker!],
+      ] as const) {
         for (let t = r - 900; t <= r + 2600; t += DT * 2) {
           draw(stage, b.replay, hook, id, t);
           const [yaw, pitch] = drawnHead(stage, id, id === 'bowler');
@@ -558,7 +753,10 @@ describe('the head: where the plan wants it', () => {
             const qh = rig.bones[4].quaternion;
             const w = qn.clone().multiply(qh);
             const dd = new Vector3(0, 0, 1).applyQuaternion(w);
-            expect(Math.abs(Math.atan2(dd.x, dd.z) * DEG), `${b.c.name} ${id} t=${t}: yaw relative to the chest`).toBeLessThanOrEqual(95);
+            expect(
+              Math.abs(Math.atan2(dd.x, dd.z) * DEG),
+              `${b.c.name} ${id} t=${t}: yaw relative to the chest`,
+            ).toBeLessThanOrEqual(95);
             const pr = Math.atan2(-dd.y, Math.hypot(dd.x, dd.z)) * DEG;
             expect(pr, `${b.c.name} ${id} t=${t}: pitch relative to the chest`).toBeLessThanOrEqual(58);
             expect(pr, `${b.c.name} ${id} t=${t}: pitch relative to the chest`).toBeGreaterThanOrEqual(-63);
@@ -591,14 +789,17 @@ describe('the head: where the plan wants it', () => {
         const dz = eye.z - h.z;
         out[0] = Math.atan2(dx, dz) * DEG;
         out[1] = Math.atan2(h.y - eye.y, Math.hypot(dx, dz)) * DEG;
-        expect(Math.hypot(yaw - out[0], pitch - out[1]), `${b.c.name} t=${(t - sp.bowler.release!).toFixed(0)}`).toBeLessThan(10);
+        expect(
+          Math.hypot(yaw - out[0], pitch - out[1]),
+          `${b.c.name} t=${(t - sp.bowler.release!).toFixed(0)}`,
+        ).toBeLessThan(10);
       }
     }
   });
 });
 
 describe('the face: lids, iris and blinks reach the shader as the plan has them', () => {
-  it('the lids are the plan\'s (plus the upper lid following a downward look, never more than 0.2), the iris is within the eye, and blinks are not tied to a clock', () => {
+  it("the lids are the plan's (plus the upper lid following a downward look, never more than 0.2), the iris is within the eye, and blinks are not tied to a clock", () => {
     let blinkFrames = 0;
     let frames = 0;
     let follow = 0;
@@ -610,13 +811,19 @@ describe('the face: lids, iris and blinks reach the shader as the plan has them'
       const plans = plansOf(rt, b.replay);
       const out = createOut();
       const r = b.replay.practice!.releaseScene;
-      for (const [id, plan] of [['bowler', plans.bowler!], ['striker', plans.striker!]] as const) {
+      for (const [id, plan] of [
+        ['bowler', plans.bowler!],
+        ['striker', plans.striker!],
+      ] as const) {
         for (let t = r - 1500; t <= r + 3000; t += DT) {
           draw(stage, b.replay, hook, id, t);
           const u = stage.rigOf(id)!.uniforms;
           sample(plan, t, out);
           // left and right lids differ by their own onset skew; each is the plan's lid plus at most the downward-look closure
-          for (const [got, want] of [[u.uLidL.value, out[CH.blinkL]], [u.uLidR.value, out[CH.blinkR]]] as const) {
+          for (const [got, want] of [
+            [u.uLidL.value, out[CH.blinkL]],
+            [u.uLidR.value, out[CH.blinkR]],
+          ] as const) {
             expect(got, `${id} t=${t}`).toBeGreaterThanOrEqual(want - 1e-6);
             expect(got, `${id} t=${t}`).toBeLessThanOrEqual(want + 0.21);
             if (got > want + 1e-6) follow++;
@@ -649,7 +856,8 @@ describe('Reduced Motion', () => {
         const pn = plansOf(nm, b.replay)[role]!;
         expect(pr.reducedMotion).toBe(true);
         for (let i = 0; i < pr.n; i++) {
-          for (const c of [CH.breath, CH.swayX, CH.swayZ, CH.swayRoll]) expect(pr.trace[i * CHANNELS + c], `${role} frame ${i} channel ${c}`).toBe(0);
+          for (const c of [CH.breath, CH.swayX, CH.swayZ, CH.swayRoll])
+            expect(pr.trace[i * CHANNELS + c], `${role} frame ${i} channel ${c}`).toBe(0);
         }
         // blinks: the lids are the same with and without Reduced Motion
         let lids = 0;
@@ -691,15 +899,22 @@ describe('Reduced Motion', () => {
     ch[CH.headPitch] = 0;
     for (const bowler of [true, false]) {
       const heading = bowler ? 0 : Math.PI; // the actor faces its opponent (role forward is +z for the bowler, -z for the striker)
-      for (const [rm, share] of [[false, 1], [true, 0.5]] as const) {
+      for (const [rm, share] of [
+        [false, 1],
+        [true, 0.5],
+      ] as const) {
         const q = bones(20, 8);
         applyHead(q, ch, { heading, bowler }, rm, 1);
         expect(HEAD.dYaw, `${bowler} rm=${rm}`).toBeCloseTo(-20 * share, 2);
         expect(HEAD.dPitch, `${bowler} rm=${rm}`).toBeCloseTo(-8 * share, 2);
         // the head is where it was plus that: look again at the bones just written
         applyHead(q, ch, { heading, bowler }, false, 0);
-        expect(Math.abs(HEAD.yaw - 20 * (1 - share)), `${bowler} rm=${rm}: the yaw the head ends at`).toBeLessThan(0.05);
-        expect(Math.abs(HEAD.pitch - 8 * (1 - share)), `${bowler} rm=${rm}: the pitch the head ends at`).toBeLessThan(0.05);
+        expect(Math.abs(HEAD.yaw - 20 * (1 - share)), `${bowler} rm=${rm}: the yaw the head ends at`).toBeLessThan(
+          0.05,
+        );
+        expect(Math.abs(HEAD.pitch - 8 * (1 - share)), `${bowler} rm=${rm}: the pitch the head ends at`).toBeLessThan(
+          0.05,
+        );
       }
     }
     // faded out (w = 0) it does nothing at all
@@ -735,7 +950,15 @@ describe('Reduced Motion', () => {
 describe('the scene between balls', () => {
   it('plans arrive in the spare time and fade in; the loop wraps without a step; it is a different scene each time', () => {
     const b = cases()[0];
-    const idle = buildPracticeScript({ setup: { field: autoField(b.c.bowler, 'balanced', b.c.hand), bowler: b.c.bowler, conditions: 'balanced', handedness: b.c.hand }, flight: null });
+    const idle = buildPracticeScript({
+      setup: {
+        field: autoField(b.c.bowler, 'balanced', b.c.hand),
+        bowler: b.c.bowler,
+        conditions: 'balanced',
+        handedness: b.c.hand,
+      },
+      flight: null,
+    });
     const rt = new DirectorRuntime();
     rt.register(idle, 'idle', null);
     expect(rt.plansOf(idle)!.bowler).toBeNull();
@@ -753,7 +976,15 @@ describe('the scene between balls', () => {
     const first = draw(stage, idle, hook, 'bowler', 5000);
     expect(first[BONES * 4]).toBeGreaterThanOrEqual(0);
     // another scene has other draws (the count is part of its key)
-    const idle2 = buildPracticeScript({ setup: { field: autoField(b.c.bowler, 'balanced', b.c.hand), bowler: b.c.bowler, conditions: 'balanced', handedness: b.c.hand }, flight: null });
+    const idle2 = buildPracticeScript({
+      setup: {
+        field: autoField(b.c.bowler, 'balanced', b.c.hand),
+        bowler: b.c.bowler,
+        conditions: 'balanced',
+        handedness: b.c.hand,
+      },
+      flight: null,
+    });
     rt.register(idle2, 'idle', null);
     rt.finish(idle2);
     expect(same(plansOf(rt, idle).bowler!.trace, plansOf(rt, idle2).bowler!.trace)).toBe(false);
@@ -782,11 +1013,17 @@ describe('the seam: a delivery continues from the head of the scene before it (P
     noteDrawn(HQ, { heading: evaluateActor(track(script, id), t).heading, bowler: id === 'bowler' });
     return [DRAWN[id].yaw, DRAWN[id].pitch, DRAWN[id].roll];
   }
-  const dist = (a: number[], b: number[]) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]), Math.abs(a[2] - b[2]));
+  const dist = (a: number[], b: number[]) =>
+    Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]), Math.abs(a[2] - b[2]));
 
   /** Draws the idle scene up to `idleAt`, then the live delivery from its start; returns the end of the idle, and per frame the head and the bones. */
   function run(b: Built, seamOn: boolean, idleAt: number) {
-    const setup = { field: autoField(b.c.bowler, 'balanced', b.c.hand), bowler: b.c.bowler, conditions: 'balanced' as const, handedness: b.c.hand };
+    const setup = {
+      field: autoField(b.c.bowler, 'balanced', b.c.hand),
+      bowler: b.c.bowler,
+      conditions: 'balanced' as const,
+      handedness: b.c.hand,
+    };
     const idle = buildPracticeScript({ setup, flight: null });
     const rt = new DirectorRuntime();
     rt.seamOn = seamOn;
@@ -803,7 +1040,10 @@ describe('the seam: a delivery continues from the head of the scene before it (P
     }
     rt.register(b.live, 'live', null);
     const hook = hooksFor(b.live, rt);
-    const out: Record<'bowler' | 'striker', Array<{ t: number; head: number[]; bones: number[] }>> = { bowler: [], striker: [] };
+    const out: Record<'bowler' | 'striker', Array<{ t: number; head: number[]; bones: number[] }>> = {
+      bowler: [],
+      striker: [],
+    };
     for (let k = 0; k * DT <= 1000; k++) {
       // the plans are baked in the spare time of the run-up: after the third frame here
       if (k === 3) rt.finish(b.live);
@@ -837,7 +1077,11 @@ describe('the seam: a delivery continues from the head of the scene before it (P
             const t = s[k].t;
             const k400 = 1 - smoothstep(t / SEAM.ms);
             // the difference from the plain delivery is the offset, a smaller share of it every frame (rate limits and the neck's range may take a little of it)
-            for (let c = 0; c < 3; c++) expect(Math.abs(s[k].head[c] - p[k].head[c] - o[c] * k400), `${id} ${b.c.name} idle@${idleAt} t=${t.toFixed(0)} c${c}`).toBeLessThan(1.5);
+            for (let c = 0; c < 3; c++)
+              expect(
+                Math.abs(s[k].head[c] - p[k].head[c] - o[c] * k400),
+                `${id} ${b.c.name} idle@${idleAt} t=${t.toFixed(0)} c${c}`,
+              ).toBeLessThan(1.5);
             // from 400 ms on, every bone and the lids and the iris are bit-equal
             if (t >= SEAM.ms + DT) {
               expect(same(s[k].bones, p[k].bones), `${id} ${b.c.name} t=${t.toFixed(0)}`).toBe(true);
@@ -847,7 +1091,11 @@ describe('the seam: a delivery continues from the head of the scene before it (P
         }
       }
     }
-    record('seam', { worstPlainJumpDeg: worstPlainJump, worstSeamJumpDeg: worstSeamJump, framesBitEqualAfter400ms: compared });
+    record('seam', {
+      worstPlainJumpDeg: worstPlainJump,
+      worstSeamJumpDeg: worstSeamJump,
+      framesBitEqualAfter400ms: compared,
+    });
     expect(worstSeamJump).toBeLessThan(0.5);
     expect(worstPlainJump).toBeGreaterThan(3); // the pop is there to be found without the seam
     expect(compared).toBeGreaterThan(1000);
@@ -855,7 +1103,12 @@ describe('the seam: a delivery continues from the head of the scene before it (P
 
   it('is for deliveries only: a result, a replay and a demonstration begin as they always did', () => {
     const b = cases()[0];
-    const setup = { field: autoField(b.c.bowler, 'balanced', b.c.hand), bowler: b.c.bowler, conditions: 'balanced' as const, handedness: b.c.hand };
+    const setup = {
+      field: autoField(b.c.bowler, 'balanced', b.c.hand),
+      bowler: b.c.bowler,
+      conditions: 'balanced' as const,
+      handedness: b.c.hand,
+    };
     const idle = buildPracticeScript({ setup, flight: null });
     const fresh = new DirectorRuntime();
     fresh.register(b.replay, 'replay', null);
@@ -864,12 +1117,17 @@ describe('the seam: a delivery continues from the head of the scene before it (P
     afterIdle.register(idle, 'idle', null);
     afterIdle.finish(idle);
     const stage = stubStage();
-    for (let t = 3000; t < 3100; t += DT) for (const id of ['bowler', 'striker']) draw(stage, idle, hooksFor(idle, afterIdle), id, t);
+    for (let t = 3000; t < 3100; t += DT)
+      for (const id of ['bowler', 'striker']) draw(stage, idle, hooksFor(idle, afterIdle), id, t);
     afterIdle.register(b.replay, 'replay', null);
     afterIdle.finish(b.replay);
     const h1 = hooksFor(b.replay, fresh);
     const h2 = hooksFor(b.replay, afterIdle);
-    for (let k = 0; k * DT < 1200; k++) for (const id of ['bowler', 'striker']) expect(same(draw(stubStage(), b.replay, h1, id, k * DT), draw(stubStage(), b.replay, h2, id, k * DT))).toBe(true);
+    for (let k = 0; k * DT < 1200; k++)
+      for (const id of ['bowler', 'striker'])
+        expect(same(draw(stubStage(), b.replay, h1, id, k * DT), draw(stubStage(), b.replay, h2, id, k * DT))).toBe(
+          true,
+        );
   });
 });
 
@@ -938,7 +1196,7 @@ describe('the face the stage draws (P3)', () => {
     expect(mag(uExpr(stage, 'striker'))).toBe(0);
   });
 
-  it('the live batter has no effort face until his result script takes over, and the effort is the swing\'s, not the result\'s: two results of one swing give the same effort', () => {
+  it("the live batter has no effort face until his result script takes over, and the effort is the swing's, not the result's: two results of one swing give the same effort", () => {
     const b = cases()[0];
     const rt = new DirectorRuntime();
     rt.register(b.live, 'live', null);
@@ -973,7 +1231,12 @@ describe('the face the stage draws (P3)', () => {
 describe('rolling laps of the scene between balls (P3)', () => {
   it('the minute never repeats itself: the next lap is baked ahead from another key, the end of one fades into the pre-roll of the next, and a scene that has not baked it wraps as it always did', () => {
     const b = cases()[0];
-    const setup = { field: autoField(b.c.bowler, 'balanced', b.c.hand), bowler: b.c.bowler, conditions: 'balanced' as const, handedness: b.c.hand };
+    const setup = {
+      field: autoField(b.c.bowler, 'balanced', b.c.hand),
+      bowler: b.c.bowler,
+      conditions: 'balanced' as const,
+      handedness: b.c.hand,
+    };
     const idle = buildPracticeScript({ setup, flight: null });
     const d = idle.duration;
     const rt = new DirectorRuntime();
@@ -1029,7 +1292,7 @@ describe('rolling laps of the scene between balls (P3)', () => {
 });
 
 describe('nobody freezes after a result (P3)', () => {
-  it('in every second of the result script after the stroke and the walk back, the batter\'s and the bowler\'s trunk and head move: the chest, spine, hips and head bones change by at least 0.3 degrees, and the root by 0.5 mm', () => {
+  it("in every second of the result script after the stroke and the walk back, the batter's and the bowler's trunk and head move: the chest, spine, hips and head bones change by at least 0.3 degrees, and the root by 0.5 mm", () => {
     const quietest = { striker: Infinity, bowler: Infinity };
     let windows = 0;
     for (const b of cases()) {
@@ -1041,7 +1304,10 @@ describe('nobody freezes after a result (P3)', () => {
       const pr = b.replay.practice!;
       const dir = pr.director;
       for (const id of ['striker', 'bowler'] as const) {
-        const from = id === 'striker' ? (dir.striker.strokeEnd ?? dir.striker.contact ?? pr.releaseScene) + 1400 : (dir.bowler.followEnd ?? pr.releaseScene + 2500) + 1500;
+        const from =
+          id === 'striker'
+            ? (dir.striker.strokeEnd ?? dir.striker.contact ?? pr.releaseScene) + 1400
+            : (dir.bowler.followEnd ?? pr.releaseScene + 2500) + 1500;
         const to = b.replay.duration - 100;
         if (to - from < 1500) continue;
         const rows: Array<{ t: number; q: Float64Array; root: number[] }> = [];
@@ -1049,7 +1315,16 @@ describe('nobody freezes after a result (P3)', () => {
           draw(stage, b.replay, hook, id, t);
           const rig = stage.rigOf(id)!;
           const q = new Float64Array(5 * 4);
-          for (let i = 0; i < 5; i++) q.set([rig.bones[i].quaternion.x, rig.bones[i].quaternion.y, rig.bones[i].quaternion.z, rig.bones[i].quaternion.w], i * 4);
+          for (let i = 0; i < 5; i++)
+            q.set(
+              [
+                rig.bones[i].quaternion.x,
+                rig.bones[i].quaternion.y,
+                rig.bones[i].quaternion.z,
+                rig.bones[i].quaternion.w,
+              ],
+              i * 4,
+            );
           rows.push({ t, q, root: [rig.root.position.x, rig.bones[0].position.y, rig.root.position.z] });
         }
         const W = Math.round(1000 / DT);
@@ -1060,10 +1335,23 @@ describe('nobody freezes after a result (P3)', () => {
             const a = rows[i0].q;
             const c = rows[j].q;
             for (let bone = 0; bone < 5; bone++) {
-              const d = Math.abs(a[bone * 4] * c[bone * 4] + a[bone * 4 + 1] * c[bone * 4 + 1] + a[bone * 4 + 2] * c[bone * 4 + 2] + a[bone * 4 + 3] * c[bone * 4 + 3]);
+              const d = Math.abs(
+                a[bone * 4] * c[bone * 4] +
+                  a[bone * 4 + 1] * c[bone * 4 + 1] +
+                  a[bone * 4 + 2] * c[bone * 4 + 2] +
+                  a[bone * 4 + 3] * c[bone * 4 + 3],
+              );
               rangeDeg = Math.max(rangeDeg, 2 * Math.acos(Math.min(1, d)) * DEG);
             }
-            rangeMm = Math.max(rangeMm, 1000 * Math.hypot(rows[j].root[0] - rows[i0].root[0], rows[j].root[1] - rows[i0].root[1], rows[j].root[2] - rows[i0].root[2]));
+            rangeMm = Math.max(
+              rangeMm,
+              1000 *
+                Math.hypot(
+                  rows[j].root[0] - rows[i0].root[0],
+                  rows[j].root[1] - rows[i0].root[1],
+                  rows[j].root[2] - rows[i0].root[2],
+                ),
+            );
           }
           windows++;
           quietest[id] = Math.min(quietest[id], Math.max(rangeDeg / 0.3, rangeMm / 0.5));
@@ -1082,8 +1370,14 @@ describe('the neck and the head keep the §9 caps', () => {
     // The brake the stage puts on the neck and the head (players.ts HEAD_LIMIT.brake: the striker's always, the bowler's once the ball
     // has left his hand): without it a head swing that ends stops dead from its speed (probe p4-headcaps over the 192-delivery corpus:
     // 22 frames of the striker's neck and head and 93 of the bowler's over the cap, all the bowler's in the follow-through).
-    const angle = (a: number[], b: number[], o: number) => 2 * Math.acos(Math.min(1, Math.abs(a[o] * b[o] + a[o + 1] * b[o + 1] + a[o + 2] * b[o + 2] + a[o + 3] * b[o + 3]))) * DEG;
-    const worst: Record<string, { speed: number; step: number; at: string }> = { striker: { speed: 0, step: 0, at: '' }, bowler: { speed: 0, step: 0, at: '' } };
+    const angle = (a: number[], b: number[], o: number) =>
+      2 *
+      Math.acos(Math.min(1, Math.abs(a[o] * b[o] + a[o + 1] * b[o + 1] + a[o + 2] * b[o + 2] + a[o + 3] * b[o + 3]))) *
+      DEG;
+    const worst: Record<string, { speed: number; step: number; at: string }> = {
+      striker: { speed: 0, step: 0, at: '' },
+      bowler: { speed: 0, step: 0, at: '' },
+    };
     let frames = 0;
     for (const b of cases()) {
       const rt = new DirectorRuntime();
@@ -1120,7 +1414,10 @@ describe('the neck and the head keep the §9 caps', () => {
   });
 
   it('and so do they with the fidgets, the glances to the side, the reaction and the shake on: three scenes between balls (60 s each) and the 8 result scripts, to the end of the script', () => {
-    const angle = (a: number[], b: number[], o: number) => 2 * Math.acos(Math.min(1, Math.abs(a[o] * b[o] + a[o + 1] * b[o + 1] + a[o + 2] * b[o + 2] + a[o + 3] * b[o + 3]))) * DEG;
+    const angle = (a: number[], b: number[], o: number) =>
+      2 *
+      Math.acos(Math.min(1, Math.abs(a[o] * b[o] + a[o + 1] * b[o + 1] + a[o + 2] * b[o + 2] + a[o + 3] * b[o + 3]))) *
+      DEG;
     const worst = { speed: 0, step: 0 };
     let frames = 0;
     const measure = (script: BallScript, rt: DirectorRuntime, from: number, to: number) => {
@@ -1145,7 +1442,12 @@ describe('the neck and the head keep the §9 caps', () => {
       }
     };
     for (const b of cases().slice(0, 3)) {
-      const setup = { field: autoField(b.c.bowler, 'balanced', b.c.hand), bowler: b.c.bowler, conditions: 'balanced' as const, handedness: b.c.hand };
+      const setup = {
+        field: autoField(b.c.bowler, 'balanced', b.c.hand),
+        bowler: b.c.bowler,
+        conditions: 'balanced' as const,
+        handedness: b.c.hand,
+      };
       const idle = buildPracticeScript({ setup, flight: null });
       const rt = new DirectorRuntime();
       rt.register(idle, 'idle', null);
@@ -1167,12 +1469,32 @@ describe('the neck and the head keep the §9 caps', () => {
 
 describe("the frames the player's input shows in", () => {
   it("the Director's spare-time bakes leave the first spare slots of a new script to the picture and the reach plan, then work", () => {
-    const proto = ThreePracticeStage.prototype as unknown as { idleWork(this: unknown, frame: unknown, budgetMs: number): void; directorWork: unknown; otherWork: unknown };
+    const proto = ThreePracticeStage.prototype as unknown as {
+      idleWork(this: unknown, frame: unknown, budgetMs: number): void;
+      directorWork: unknown;
+      otherWork: unknown;
+    };
     const idleWork = proto.idleWork;
     // P3: the Director's work is two calls, the plans with a deadline coming (ahead of the gaze and the reach plan) and the rest (after them)
     let worked = 0;
     let rest = 0;
-    const self = { director: { busy: true, urgent: true, workUrgent: () => { worked++; return true; }, workRest: () => { rest++; return true; } }, warmed: new WeakSet(), directorWork: proto.directorWork, otherWork: proto.otherWork };
+    const self = {
+      director: {
+        busy: true,
+        urgent: true,
+        workUrgent: () => {
+          worked++;
+          return true;
+        },
+        workRest: () => {
+          rest++;
+          return true;
+        },
+      },
+      warmed: new WeakSet(),
+      directorWork: proto.directorWork,
+      otherWork: proto.otherWork,
+    };
     const frameOf = (script: object) => ({ script, mode: 'live' });
     const a = { practice: null };
     const b = { practice: null };
@@ -1227,7 +1549,14 @@ describe('cost', () => {
     run(100_000);
     const ns = bestOf(5, () => run(600_000), BUDGET_NS); // the least of up to five rounds
     // The budget is exact. Only an overrun on a machine above load 20 is skipped, by name; a quiet machine fails it.
-    skipOverBudgetWhenLoaded(ctx, 'Director stage, life + applyHead nanoseconds an actor-frame', ns, BUDGET_NS, 'ns', loadavg()[0]);
+    skipOverBudgetWhenLoaded(
+      ctx,
+      'Director stage, life + applyHead nanoseconds an actor-frame',
+      ns,
+      BUDGET_NS,
+      'ns',
+      loadavg()[0],
+    );
     expect(ns).toBeLessThan(BUDGET_NS);
     // 0 bytes a frame: the heap does not grow over a million and a half calls of both passes
     v8.setFlagsFromString('--expose-gc');

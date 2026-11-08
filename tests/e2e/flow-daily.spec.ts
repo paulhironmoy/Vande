@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { batInnings, newPhone, onboard } from './flow-helpers';
 
-test('Daily Six: one attempt against the sealed over, a counted score and the "sealed before you batted" proof', async ({ browser }) => {
+test('Daily Six: one attempt against the sealed over, a counted score and the "sealed before you batted" proof', async ({
+  browser,
+}) => {
   test.setTimeout(5 * 60_000);
   const { context, page } = await newPhone(browser);
   await onboard(page, 'Daily Dasher');

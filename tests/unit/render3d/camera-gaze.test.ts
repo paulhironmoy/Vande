@@ -20,25 +20,89 @@ import { batTravelMs } from '@/physics/bat';
 import { autoField } from '@/physics/field';
 import { flight as physicsFlight } from '@/physics/delivery';
 
-import { DEG, type V, clamp, cross, dot, measures, productionGrid, shippedGaze, shippedTable, smooth, unit, windows } from './gazeReference';
+import {
+  DEG,
+  type V,
+  clamp,
+  cross,
+  dot,
+  measures,
+  productionGrid,
+  shippedGaze,
+  shippedTable,
+  smooth,
+  unit,
+  windows,
+} from './gazeReference';
 
-interface Case { label: string; script: BallScript; flight: BallFlight }
-const setupOf = (eb: EvalBall, hand: Handedness) => ({ field: hand === 'right' ? eb.field : autoField(eb.over.bowler, eb.conditions, 'left', eb.over.ball), bowler: eb.over.bowler, conditions: eb.conditions, handedness: hand });
+interface Case {
+  label: string;
+  script: BallScript;
+  flight: BallFlight;
+}
+const setupOf = (eb: EvalBall, hand: Handedness) => ({
+  field: hand === 'right' ? eb.field : autoField(eb.over.bowler, eb.conditions, 'left', eb.over.ball),
+  bowler: eb.over.bowler,
+  conditions: eb.conditions,
+  handedness: hand,
+});
 
 function referenceCases(): Case[] {
   const out: Case[] = [];
   const balls = overBalls(REFERENCE_OVER, 'balanced');
-  const drive = (e: number) => ({ kind: 'attack' as const, e, directionDeg: 55, power: 0.7, footwork: 'forward' as const });
-  const defend = (footwork: 'auto' | 'forward') => ({ kind: 'defend' as const, e: 0, directionDeg: 0, power: 0.2, footwork });
+  const drive = (e: number) => ({
+    kind: 'attack' as const,
+    e,
+    directionDeg: 55,
+    power: 0.7,
+    footwork: 'forward' as const,
+  });
+  const defend = (footwork: 'auto' | 'forward') => ({
+    kind: 'defend' as const,
+    e: 0,
+    directionDeg: 0,
+    power: 0.2,
+    footwork,
+  });
   // W0's safe swings on the reference over, and the drive 40 ms early and late.
   const safe = [null, drive(0), defend('auto'), defend('auto'), null, defend('forward')];
   for (const eb of balls) {
     const setup = setupOf(eb, 'right');
-    out.push({ label: `ref-${eb.ballIndex + 1} live`, script: buildPracticeScript({ setup, flight: eb.flight }), flight: eb.flight });
-    for (const [tag, sw] of [['safe', safe[eb.ballIndex]], ['drive-40', drive(-40)], ['drive+40', drive(40)]] as const) {
-      const swing: NormalizedSwing | null = sw ? { kind: sw.kind, startT: eb.flight.idealContactT - batTravelMs(sw.kind, sw.power) / 1000 + sw.e / 1000, directionDeg: sw.directionDeg, power: sw.power, elevation: 0, footwork: sw.footwork } : null;
-      const result: DeliveryResult = resolveDelivery({ flight: eb.flight, swing, field: eb.field, bowler: eb.over.bowler, conditions: eb.conditions, handedness: 'right', assist: 'play', tierToleranceMs: 0 });
-      out.push({ label: `ref-${eb.ballIndex + 1} ${tag}`, script: buildPracticeScript({ setup, flight: eb.flight, result }), flight: eb.flight });
+    out.push({
+      label: `ref-${eb.ballIndex + 1} live`,
+      script: buildPracticeScript({ setup, flight: eb.flight }),
+      flight: eb.flight,
+    });
+    for (const [tag, sw] of [
+      ['safe', safe[eb.ballIndex]],
+      ['drive-40', drive(-40)],
+      ['drive+40', drive(40)],
+    ] as const) {
+      const swing: NormalizedSwing | null = sw
+        ? {
+            kind: sw.kind,
+            startT: eb.flight.idealContactT - batTravelMs(sw.kind, sw.power) / 1000 + sw.e / 1000,
+            directionDeg: sw.directionDeg,
+            power: sw.power,
+            elevation: 0,
+            footwork: sw.footwork,
+          }
+        : null;
+      const result: DeliveryResult = resolveDelivery({
+        flight: eb.flight,
+        swing,
+        field: eb.field,
+        bowler: eb.over.bowler,
+        conditions: eb.conditions,
+        handedness: 'right',
+        assist: 'play',
+        tierToleranceMs: 0,
+      });
+      out.push({
+        label: `ref-${eb.ballIndex + 1} ${tag}`,
+        script: buildPracticeScript({ setup, flight: eb.flight, result }),
+        flight: eb.flight,
+      });
     }
   }
   return out;
@@ -53,15 +117,45 @@ function randomCases(): Case[] {
       evalOvers({ difficulty, overs: 6, key: `camera-gaze|${difficulty}|${family}`, family }).forEach((over, oi) =>
         over.forEach((eb) => {
           const hand: Handedness = oi % 2 === 1 ? 'left' : 'right';
-          const fl = hand === 'right' ? eb.flight : physicsFlight({ plan: eb.over.balls[eb.ballIndex], bowler: eb.over.bowler, conditions: eb.conditions, seed: eb.seed, ball: eb.over.ball, handedness: 'left' });
+          const fl =
+            hand === 'right'
+              ? eb.flight
+              : physicsFlight({
+                  plan: eb.over.balls[eb.ballIndex],
+                  bowler: eb.over.bowler,
+                  conditions: eb.conditions,
+                  seed: eb.seed,
+                  ball: eb.over.ball,
+                  handedness: 'left',
+                });
           const setup = setupOf(eb, hand);
           let result: DeliveryResult | null = null;
           if (n % 6 === 0) {
             // A sixth with an attacking swing (seeded direction and timing), for the head-follow after contact.
-            const swing: NormalizedSwing = { kind: 'attack', startT: fl.idealContactT - batTravelMs('attack', 0.7) / 1000 + (((n * 37) % 81) - 40) / 1000, directionDeg: ((n * 53) % 120) - 60, power: 0.7, elevation: 0, footwork: 'auto' };
-            result = resolveDelivery({ flight: fl, swing, field: setup.field, bowler: eb.over.bowler, conditions: eb.conditions, handedness: hand, assist: 'play', tierToleranceMs: 0 });
+            const swing: NormalizedSwing = {
+              kind: 'attack',
+              startT: fl.idealContactT - batTravelMs('attack', 0.7) / 1000 + (((n * 37) % 81) - 40) / 1000,
+              directionDeg: ((n * 53) % 120) - 60,
+              power: 0.7,
+              elevation: 0,
+              footwork: 'auto',
+            };
+            result = resolveDelivery({
+              flight: fl,
+              swing,
+              field: setup.field,
+              bowler: eb.over.bowler,
+              conditions: eb.conditions,
+              handedness: hand,
+              assist: 'play',
+              tierToleranceMs: 0,
+            });
           }
-          out.push({ label: `${difficulty} ${family} over ${oi + 1} ball ${eb.ballIndex + 1} ${hand}${result ? ' swung' : ''}`, script: buildPracticeScript({ setup, flight: fl, result }), flight: fl });
+          out.push({
+            label: `${difficulty} ${family} over ${oi + 1} ball ${eb.ballIndex + 1} ${hand}${result ? ' swung' : ''}`,
+            script: buildPracticeScript({ setup, flight: fl, result }),
+            flight: fl,
+          });
           n++;
         }),
       );
@@ -77,11 +171,24 @@ const RANDOM = randomCases();
 function expectWithinShipped(c: Case) {
   const ref = shippedTable(c.script, false);
   for (const [w, end] of windows(c.script, ref)) {
-    const s = measures(c.script, (t) => shippedGaze(ref, t), (i) => ({ yaw: ref.yaw[i], pitch: ref.pitch[i] }), ref.yaw.length, end);
-    const a = measures(c.script, (t) => practiceGaze(c.script, t, false), productionGrid(c.script, false), ref.yaw.length, end);
+    const s = measures(
+      c.script,
+      (t) => shippedGaze(ref, t),
+      (i) => ({ yaw: ref.yaw[i], pitch: ref.pitch[i] }),
+      ref.yaw.length,
+      end,
+    );
+    const a = measures(
+      c.script,
+      (t) => practiceGaze(c.script, t, false),
+      productionGrid(c.script, false),
+      ref.yaw.length,
+      end,
+    );
     for (const k of Object.keys(s)) {
       // Where the shipped gaze itself became undefined (a ball sample that is not a number), the gaze must stay defined.
-      if (!Number.isFinite(s[k])) expect(Number.isFinite(a[k]), `${c.label}, ${w}, ${k}: defined where shipped was not`).toBe(true);
+      if (!Number.isFinite(s[k]))
+        expect(Number.isFinite(a[k]), `${c.label}, ${w}, ${k}: defined where shipped was not`).toBe(true);
       else expect(a[k], `${c.label}, ${w}, ${k}`).toBeLessThanOrEqual(s[k] * (1 + 1e-9) + 1e-9);
     }
   }
@@ -101,7 +208,9 @@ describe('the gaze near the eye (F-012, A3)', () => {
       const w = gazeTrackWeight(d, false);
       if (d >= GAZE.closeFarM) expect(w, `${d} m`).toBe(shipped);
       if (d <= GAZE.closeNearM) expect(w, `${d} m`).toBe(GAZE.closeGain);
-      const expected = (GAZE.trackGain + (GAZE.closeGain - GAZE.trackGain) * smooth(GAZE.closeFarM, GAZE.closeNearM, d)) * smooth(GAZE.rampFarM, GAZE.rampNearM, d);
+      const expected =
+        (GAZE.trackGain + (GAZE.closeGain - GAZE.trackGain) * smooth(GAZE.closeFarM, GAZE.closeNearM, d)) *
+        smooth(GAZE.rampFarM, GAZE.rampNearM, d);
       expect(w, `${d} m`).toBeCloseTo(expected, 15);
       // Nearer never means less of the way.
       expect(gazeTrackWeight(Math.max(0, d - 0.01), false), `${d} m`).toBeGreaterThanOrEqual(w);
@@ -165,7 +274,12 @@ describe('the gaze near the eye (F-012, A3)', () => {
       const p = c.script.practice!;
       const ideal = simToScene(p, c.flight.idealContactT);
       const ref = shippedTable(c.script, false);
-      for (const [W, H] of [[915, 412], [844, 390], [640, 360], [1280, 720]]) {
+      for (const [W, H] of [
+        [915, 412],
+        [844, 390],
+        [640, 360],
+        [1280, 720],
+      ]) {
         const vfov = batterFov(W / H);
         const lastIn = (gaze: (t: number) => V) => {
           let last = -Infinity;
@@ -227,9 +341,16 @@ describe('the gaze is deterministic and presentation only', () => {
       const p = c.script.practice!;
       const times = Array.from({ length: 400 }, (_, i) => p.releaseScene - 100 + i * 7.3);
       const forward = times.map((t) => practiceGaze(c.script, t, false));
-      const backward = [...times].reverse().map((t) => practiceGaze(c.script, t, false)).reverse();
+      const backward = [...times]
+        .reverse()
+        .map((t) => practiceGaze(c.script, t, false))
+        .reverse();
       // An identical script built from the same input (a cache miss: its own table).
-      const again = buildPracticeScript({ setup: setupOf(overBalls(REFERENCE_OVER, 'balanced')[0], 'right'), flight: c.flight, result: c.script.practice!.result });
+      const again = buildPracticeScript({
+        setup: setupOf(overBalls(REFERENCE_OVER, 'balanced')[0], 'right'),
+        flight: c.flight,
+        result: c.script.practice!.result,
+      });
       const fresh = times.map((t) => practiceGaze(again, t, false));
       expect(backward).toEqual(forward);
       expect(fresh).toEqual(forward);
@@ -237,19 +358,43 @@ describe('the gaze is deterministic and presentation only', () => {
       for (const t of times.filter((_, i) => i % 20 === 0)) {
         for (const reducedMotion of [false, true]) {
           const ctx = { aspect: 915 / 412, reducedMotion };
-          expect(cameraAt(again, t, practicePlan(again, reducedMotion), ctx)).toEqual(cameraAt(c.script, t, practicePlan(c.script, reducedMotion), ctx));
+          expect(cameraAt(again, t, practicePlan(again, reducedMotion), ctx)).toEqual(
+            cameraAt(c.script, t, practicePlan(c.script, reducedMotion), ctx),
+          );
         }
-        expect(cameraAt(c.script, t, plan, { aspect: 915 / 412, reducedMotion: false })).toEqual(cameraAt(c.script, t, plan, { aspect: 915 / 412, reducedMotion: false }));
+        expect(cameraAt(c.script, t, plan, { aspect: 915 / 412, reducedMotion: false })).toEqual(
+          cameraAt(c.script, t, plan, { aspect: 915 / 412, reducedMotion: false }),
+        );
       }
     }
   });
 
   it('reads the script without changing it, and the physics result is the same whether or not the gaze ran', () => {
     const eb = overBalls(REFERENCE_OVER, 'balanced')[1];
-    const swing: NormalizedSwing = { kind: 'attack', startT: eb.flight.idealContactT - batTravelMs('attack', 0.7) / 1000, directionDeg: 55, power: 0.7, elevation: 0, footwork: 'forward' };
-    const args = { flight: eb.flight, swing, field: eb.field, bowler: eb.over.bowler, conditions: eb.conditions, handedness: 'right' as const, assist: 'play' as const, tierToleranceMs: 0 };
+    const swing: NormalizedSwing = {
+      kind: 'attack',
+      startT: eb.flight.idealContactT - batTravelMs('attack', 0.7) / 1000,
+      directionDeg: 55,
+      power: 0.7,
+      elevation: 0,
+      footwork: 'forward',
+    };
+    const args = {
+      flight: eb.flight,
+      swing,
+      field: eb.field,
+      bowler: eb.over.bowler,
+      conditions: eb.conditions,
+      handedness: 'right' as const,
+      assist: 'play' as const,
+      tierToleranceMs: 0,
+    };
     const before = JSON.stringify(resolveDelivery(args));
-    const script = buildPracticeScript({ setup: setupOf(eb, 'right'), flight: eb.flight, result: resolveDelivery(args) });
+    const script = buildPracticeScript({
+      setup: setupOf(eb, 'right'),
+      flight: eb.flight,
+      result: resolveDelivery(args),
+    });
     const snapshot = JSON.stringify(script);
     for (let t = 0; t < script.duration; t += 5) {
       practiceGaze(script, t, false);

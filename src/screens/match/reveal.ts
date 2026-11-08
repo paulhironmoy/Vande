@@ -6,7 +6,10 @@ import { engine } from '@/engine';
 import { useLoad } from '../app/hooks';
 
 export function useRevealLog(net: Net | null, matchId: string) {
-  const load = useLoad<MatchEventLog>(net ? () => net.api.call('GET /v1/matches/:id/reveal', { params: { id: matchId } }) : null, [net, matchId]);
+  const load = useLoad<MatchEventLog>(
+    net ? () => net.api.call('GET /v1/matches/:id/reveal', { params: { id: matchId } }) : null,
+    [net, matchId],
+  );
   const [verified, setVerified] = useState<boolean | null>(null);
   useEffect(() => {
     const log = load.data;

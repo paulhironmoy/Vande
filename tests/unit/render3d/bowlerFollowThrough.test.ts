@@ -18,7 +18,15 @@
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Group, PerspectiveCamera, Quaternion, Scene, Vector3 } from 'three';
-import type { BowlerProfile, DeliveryResult, DeliveryVariation, Footwork, Handedness, NormalizedSwing, PracticeDeliveryPlan } from '@/contracts/practice';
+import type {
+  BowlerProfile,
+  DeliveryResult,
+  DeliveryVariation,
+  Footwork,
+  Handedness,
+  NormalizedSwing,
+  PracticeDeliveryPlan,
+} from '@/contracts/practice';
 import { autoField, batTravelMs, flight, resolveDelivery } from '@/physics';
 import { idealTimeFor } from '@/physics/bat';
 import { evaluateActor, type ActorTrack } from '@/render3d/core/actors';
@@ -65,13 +73,28 @@ afterAll(() => lib.resetMotionLibrary());
 function stubStage(): StageScene {
   const stage = Object.create(StageScene.prototype) as StageScene;
   Object.assign(stage, {
-    scene: new Scene(), camera: new PerspectiveCamera(30, 1, 0.1, 1200),
-    ballFx: { update: () => undefined }, stumpsFx: { update: () => undefined }, eventFx: { update: () => undefined },
+    scene: new Scene(),
+    camera: new PerspectiveCamera(30, 1, 0.1, 1200),
+    ballFx: { update: () => undefined },
+    stumpsFx: { update: () => undefined },
+    eventFx: { update: () => undefined },
     blobs: { begin: () => undefined, end: () => undefined, add: () => undefined },
-    stadium: { group: new Group(), setTime: () => undefined, setExcitement: () => undefined, setCrowdMood: () => undefined, setBoardFlash: () => undefined },
-    preset: PRACTICE_PROFILES.standard.preset, cssHeight: 400,
-    rigs: new Map(), bats: new Map(), mirrored: new Map(),
-    pose: createPose(), poseB: createPose(), lower: createPose(), towers: [],
+    stadium: {
+      group: new Group(),
+      setTime: () => undefined,
+      setExcitement: () => undefined,
+      setCrowdMood: () => undefined,
+      setBoardFlash: () => undefined,
+    },
+    preset: PRACTICE_PROFILES.standard.preset,
+    cssHeight: 400,
+    rigs: new Map(),
+    bats: new Map(),
+    mirrored: new Map(),
+    pose: createPose(),
+    poseB: createPose(),
+    lower: createPose(),
+    towers: [],
   });
   return stage;
 }
@@ -80,7 +103,11 @@ type Hook = ScriptDrawOptions['poseHook'];
 const proto = ThreePracticeStage.prototype as unknown as { poseHooks(s: unknown, p: unknown): Hook; cueHook: unknown };
 /** The stage's own pose hooks for a script: the production composition, with the Director. */
 const hooksFor = (script: BallScript, director: DirectorRuntime): Hook =>
-  proto.poseHooks.call({ hookCache: new WeakMap(), reducedMotion: false, cueHook: proto.cueHook, director }, script, script.practice!);
+  proto.poseHooks.call(
+    { hookCache: new WeakMap(), reducedMotion: false, cueHook: proto.cueHook, director },
+    script,
+    script.practice!,
+  );
 
 interface Case {
   name: string;
@@ -88,7 +115,13 @@ interface Case {
   hand: Handedness;
   variation: DeliveryVariation;
   plan: Partial<PracticeDeliveryPlan>;
-  swing: { kind: 'attack' | 'defend'; directionDeg: number; power: number; elevation: number; footwork: Footwork } | null;
+  swing: {
+    kind: 'attack' | 'defend';
+    directionDeg: number;
+    power: number;
+    elevation: number;
+    footwork: Footwork;
+  } | null;
   errMs?: number;
 }
 
@@ -110,8 +143,20 @@ function corpus(): Case[] {
     const spin = bowler.family === 'spin';
     const speedKph = spin ? 86 : bowler.paceBand === 'express' ? 146 : 136;
     for (const hand of ['right', 'left'] as const) {
-      const mk = (label: string, variation: DeliveryVariation, plan: Partial<PracticeDeliveryPlan>, swing: Case['swing'], errMs?: number): Case => ({
-        name: `${bn} v ${hand[0].toUpperCase()}H ${label}`, bowler, hand, variation, plan: { speedKph, ...plan }, swing, ...(errMs !== undefined ? { errMs } : {}),
+      const mk = (
+        label: string,
+        variation: DeliveryVariation,
+        plan: Partial<PracticeDeliveryPlan>,
+        swing: Case['swing'],
+        errMs?: number,
+      ): Case => ({
+        name: `${bn} v ${hand[0].toUpperCase()}H ${label}`,
+        bowler,
+        hand,
+        variation,
+        plan: { speedKph, ...plan },
+        swing,
+        ...(errMs !== undefined ? { errMs } : {}),
       });
       out.push(
         mk('drive', 'stock', { lengthM: 3.5, lineM: 0.1 }, DRIVE),
@@ -120,7 +165,8 @@ function corpus(): Case[] {
         mk('bowled', 'stock', { lengthM: 4, lineM: 0.1 }, LATE, 90),
         mk('six', spin ? 'topspinner' : 'stock', { lengthM: 4, lineM: 0.1 }, LOFT),
       );
-      if (bn === 'pace R' || bn === 'wrist L') out.push(mk('edge', spin ? 'arm_ball' : 'inswing', { lengthM: 3, lineM: 0 }, EDGE, -110));
+      if (bn === 'pace R' || bn === 'wrist L')
+        out.push(mk('edge', spin ? 'arm_ball' : 'inswing', { lengthM: 3, lineM: 0 }, EDGE, -110));
     }
   }
   return out;
@@ -137,19 +183,47 @@ interface Built {
 function build(c: Case, k: number): Built {
   const stage = stubStage();
   const stock = measureReleaseBall(stage, c.bowler, KITS2)!;
-  const bouncer = c.bowler.family === 'pace' && canComposeBouncer() ? measureReleaseBall(stage, c.bowler, KITS2, 'bouncer') : null;
+  const bouncer =
+    c.bowler.family === 'pace' && canComposeBouncer() ? measureReleaseBall(stage, c.bowler, KITS2, 'bouncer') : null;
   const releaseHand = (bouncer ? { ...stock, bouncer } : stock) as never;
   const full: PracticeDeliveryPlan = { variation: c.variation, lengthM: 6, lineM: 0.1, speedKph: 136, ...c.plan };
-  const fl = flight({ plan: full, bowler: c.bowler, conditions: 'balanced', seed: `wfb:${c.name}:${k}`, handedness: c.hand });
+  const fl = flight({
+    plan: full,
+    bowler: c.bowler,
+    conditions: 'balanced',
+    seed: `wfb:${c.name}:${k}`,
+    handedness: c.hand,
+  });
   const field = autoField(c.bowler, 'balanced', c.hand);
   let swing: NormalizedSwing | null = null;
-  if (c.swing) swing = { ...c.swing, startT: idealTimeFor(fl, c.swing.footwork) - batTravelMs(c.swing.kind, c.swing.power) / 1000 + (c.errMs ?? 0) / 1000 };
-  const result = resolveDelivery({ flight: fl, swing, field, bowler: c.bowler, conditions: 'balanced', handedness: c.hand, assist: 'play', tierToleranceMs: 0 });
+  if (c.swing)
+    swing = {
+      ...c.swing,
+      startT:
+        idealTimeFor(fl, c.swing.footwork) - batTravelMs(c.swing.kind, c.swing.power) / 1000 + (c.errMs ?? 0) / 1000,
+    };
+  const result = resolveDelivery({
+    flight: fl,
+    swing,
+    field,
+    bowler: c.bowler,
+    conditions: 'balanced',
+    handedness: c.hand,
+    assist: 'play',
+    tierToleranceMs: 0,
+  });
   const setup = { field, bowler: c.bowler, conditions: 'balanced' as const, handedness: c.hand };
   const live = buildPracticeScript({ setup, flight: fl, releaseHand });
   const releaseScene = live.practice!.releaseScene;
   const resultAt = releaseScene + 230;
-  const played = buildPracticeScript({ setup, flight: fl, result, resultAt, handover: { script: live, atScene: resultAt }, releaseHand });
+  const played = buildPracticeScript({
+    setup,
+    flight: fl,
+    result,
+    resultAt,
+    handover: { script: live, atScene: resultAt },
+    releaseHand,
+  });
   const replay = buildPracticeScript({ setup, flight: fl, result, releaseHand });
   return { c, result, live, played, replay, releaseScene };
 }
@@ -166,7 +240,13 @@ interface Frame {
 }
 
 /** The bowler alone, posed at 60 Hz from t0 to t1 through drawScript with the Director (the stage's own path). */
-function pose(script: BallScript, kind: 'live' | 'result' | 'replay', t0: number, t1: number, o: { twice?: boolean } = {}): Frame[] {
+function pose(
+  script: BallScript,
+  kind: 'live' | 'result' | 'replay',
+  t0: number,
+  t1: number,
+  o: { twice?: boolean } = {},
+): Frame[] {
   const stage = stubStage();
   const rt = new DirectorRuntime();
   rt.register(script, kind, null);
@@ -175,7 +255,16 @@ function pose(script: BallScript, kind: 'live' | 'result' | 'replay', t0: number
   const hidden = new Set(script.actors.filter((a) => a.id !== 'bowler').map((a) => a.id));
   const rel = script.practice!.releaseScene;
   const out: Frame[] = [];
-  const draw = (t: number) => stage.drawScript(script, t, { pos: { x: 0, y: 1.7, z: 12 }, target: { x: 0, y: 1, z: 0 }, fov: 30 } as never, { kits: KITS2, slow: false, clockMs: t, reducedMotion: false, hidden, bat: null, poseHook: hook });
+  const draw = (t: number) =>
+    stage.drawScript(script, t, { pos: { x: 0, y: 1.7, z: 12 }, target: { x: 0, y: 1, z: 0 }, fov: 30 } as never, {
+      kits: KITS2,
+      slow: false,
+      clockMs: t,
+      reducedMotion: false,
+      hidden,
+      bat: null,
+      poseHook: hook,
+    });
   const dir = new Vector3();
   for (let t = t0; t <= t1 + 1e-6; t += DT) {
     draw(t);
@@ -186,7 +275,13 @@ function pose(script: BallScript, kind: 'live' | 'result' | 'replay', t0: number
     rig.root.updateMatrixWorld(true);
     rig.boneMap.head.updateWorldMatrix(true, false);
     dir.set(0, 0, 1).transformDirection(rig.boneMap.head.matrixWorld);
-    out.push({ t, rel: t - rel, heading: rig.root.rotation.y, q, headPitch: Math.asin(Math.max(-1, Math.min(1, -dir.y))) * DEG });
+    out.push({
+      t,
+      rel: t - rel,
+      heading: rig.root.rotation.y,
+      q,
+      headPitch: Math.asin(Math.max(-1, Math.min(1, -dir.y))) * DEG,
+    });
   }
   return out;
 }
@@ -199,8 +294,13 @@ function step(a: Frame, b: Frame, i: number): number {
 }
 const wrap = (d: number): number => ((((d + 180) % 360) + 360) % 360) - 180;
 
-const SCRIPTS = [['replay', 'replay'], ['played', 'result'], ['live', 'live']] as const;
-const scriptOf = (b: Built, name: (typeof SCRIPTS)[number][0]): BallScript => (name === 'replay' ? b.replay : name === 'played' ? b.played : b.live);
+const SCRIPTS = [
+  ['replay', 'replay'],
+  ['played', 'result'],
+  ['live', 'live'],
+] as const;
+const scriptOf = (b: Built, name: (typeof SCRIPTS)[number][0]): BallScript =>
+  name === 'replay' ? b.replay : name === 'played' ? b.played : b.live;
 
 describe('F2: the follow-through hands over to what the bowler does next', () => {
   it('has no pop in the arms, the trunk or the head: from 300 ms after the release none of those bones turns more than 25 degrees in a frame, in any script of 44 deliveries (it was 57 to 175 degrees in 93 of 118 replays)', () => {
@@ -214,7 +314,8 @@ describe('F2: the follow-through hands over to what the bowler does next', () =>
           frames++;
           for (const i of UPPER) {
             const d = step(f[k - 1], f[k], i);
-            if (d > 25) worst.push([`${b.c.name} [${name}] ${BONE_NAMES[i]} at release +${Math.round(f[k].rel)} ms`, d]);
+            if (d > 25)
+              worst.push([`${b.c.name} [${name}] ${BONE_NAMES[i]} at release +${Math.round(f[k].rel)} ms`, d]);
           }
         }
       }
@@ -223,7 +324,7 @@ describe('F2: the follow-through hands over to what the bowler does next', () =>
     expect(worst.slice(0, 6), 'the first bone steps over 25 degrees').toEqual([]);
   }, 120_000);
 
-  it('keeps the legs inside the planted-feet plan\'s own steps: no leg bone turns more than 60 degrees in a frame (27 to 58 degrees remain, the foot-plant releases in locomotion.ts, not the hand-over)', () => {
+  it("keeps the legs inside the planted-feet plan's own steps: no leg bone turns more than 60 degrees in a frame (27 to 58 degrees remain, the foot-plant releases in locomotion.ts, not the hand-over)", () => {
     let worst = 0;
     for (const b of built()) {
       const f = pose(b.replay, 'replay', b.releaseScene + 300, b.replay.duration);
@@ -241,7 +342,10 @@ describe('F2: the follow-through hands over to what the bowler does next', () =>
       const tc = last.t1;
       const f = pose(b.replay, 'replay', tc - 100, tc + 100);
       for (let k = 1; k < f.length; k++) {
-        expect(Math.abs(wrap((f[k].heading - f[k - 1].heading) * DEG)), `${b.c.name} at the hand-over ${Math.round(f[k].t - tc)} ms`).toBeLessThanOrEqual(3);
+        expect(
+          Math.abs(wrap((f[k].heading - f[k - 1].heading) * DEG)),
+          `${b.c.name} at the hand-over ${Math.round(f[k].t - tc)} ms`,
+        ).toBeLessThanOrEqual(3);
         seen++;
       }
     }
@@ -266,8 +370,22 @@ describe('F2: the follow-through hands over to what the bowler does next', () =>
       expect(Math.abs(wrap((at - before) * DEG)), b.c.name).toBeLessThan(3);
       // and the fade has gone by the end of its time: the heading is the new move's own
       const plain: ActorTrack = { ...track, headingFade: undefined };
-      expect(Math.abs(wrap((evaluateActor(track, fade.t0 + fade.ms + 1).heading - evaluateActor(plain, fade.t0 + fade.ms + 1).heading) * DEG)), b.c.name).toBeLessThan(1e-6);
-      expect(Math.abs(wrap((evaluateActor(track, fade.t0).heading - evaluateActor(plain, fade.t0).heading - fade.delta) * DEG)), b.c.name).toBeLessThan(1e-6);
+      expect(
+        Math.abs(
+          wrap(
+            (evaluateActor(track, fade.t0 + fade.ms + 1).heading -
+              evaluateActor(plain, fade.t0 + fade.ms + 1).heading) *
+              DEG,
+          ),
+        ),
+        b.c.name,
+      ).toBeLessThan(1e-6);
+      expect(
+        Math.abs(
+          wrap((evaluateActor(track, fade.t0).heading - evaluateActor(plain, fade.t0).heading - fade.delta) * DEG),
+        ),
+        b.c.name,
+      ).toBeLessThan(1e-6);
     }
     expect(faded, 'hand-overs with a turn in them').toBeGreaterThan(20);
   });
@@ -275,7 +393,7 @@ describe('F2: the follow-through hands over to what the bowler does next', () =>
 
 describe('the arms of the built-in clips the bowler fields and celebrates with', () => {
   /** The weighted, short-way aims are the bowler's (the stage turns them on for his pose only): these tests turn them on as it does. */
-  const withAims = <T,>(on: boolean, f: () => T): T => {
+  const withAims = <T>(on: boolean, f: () => T): T => {
     const was = setWeightedAims(on);
     try {
       return f();
@@ -284,7 +402,7 @@ describe('the arms of the built-in clips the bowler fields and celebrates with',
     }
   };
 
-  it('the throw\'s front arm goes the short way round: its aim between the keys at 330 and 20 degrees passes 360, never 180 (it swung through straight up, a 168 degree flip)', () => {
+  it("the throw's front arm goes the short way round: its aim between the keys at 330 and 20 degrees passes 360, never 180 (it swung through straight up, a 168 degree flip)", () => {
     withAims(true, () => {
       const pose0 = createPose();
       let prev: number | null = null;
@@ -330,14 +448,14 @@ describe('the arms of the built-in clips the bowler fields and celebrates with',
     });
   });
 
-  it('everyone else is drawn as before: with the weighted aims off (the keeper, the fielders, the batters) a cross-fade still switches the aim whole at the half-way frame and the throw\'s aim keys are interpolated as written', () => {
+  it("everyone else is drawn as before: with the weighted aims off (the keeper, the fielders, the batters) a cross-fade still switches the aim whole at the half-way frame and the throw's aim keys are interpolated as written", () => {
     withAims(false, () => {
       const plain = createPose();
       sampleClip('idle', 0, plain);
       const a = createPose();
       sampleClip('celebrate_jump', 0.55, a);
       blendPose(a, plain, 0.25);
-      expect(a.aimR, 'before the half-way frame the aim is the aimed clip\'s, whole').not.toBeNull();
+      expect(a.aimR, "before the half-way frame the aim is the aimed clip's, whole").not.toBeNull();
       expect(aimWeight(a.aimR!)).toBe(1);
       const c = createPose();
       sampleClip('celebrate_jump', 0.55, c);
@@ -349,19 +467,24 @@ describe('the arms of the built-in clips the bowler fields and celebrates with',
     });
   });
 
-  it('the bowler\'s arms are held to ARM_LIMIT once the release reach has let go of them, and are not touched before (bit-equal with the limit off)', () => {
+  it("the bowler's arms are held to ARM_LIMIT once the release reach has let go of them, and are not touched before (bit-equal with the limit off)", () => {
     const b = built().find((x) => x.c.name === 'pace R v RH drive')!;
     const dt = (ARM_LIMIT.speed * DT) / 1000;
     const on = pose(b.replay, 'replay', b.releaseScene - 400, b.releaseScene + 2500);
     for (let k = 1; k < on.length; k++) {
       if (on[k].rel < RELEASE_REACH.tailMs + DT) continue;
-      for (const i of [BONE.upperArmL, BONE.forearmL, BONE.handL, BONE.upperArmR, BONE.forearmR, BONE.handR]) expect(step(on[k - 1], on[k], i), `${BONE_NAMES[i]} at ${Math.round(on[k].rel)}`).toBeLessThanOrEqual(dt + 1e-6);
+      for (const i of [BONE.upperArmL, BONE.forearmL, BONE.handL, BONE.upperArmR, BONE.forearmR, BONE.handR])
+        expect(step(on[k - 1], on[k], i), `${BONE_NAMES[i]} at ${Math.round(on[k].rel)}`).toBeLessThanOrEqual(
+          dt + 1e-6,
+        );
     }
     const was = ARM_LIMIT.speed;
     try {
       ARM_LIMIT.speed = 1e9;
       const off = pose(b.replay, 'replay', b.releaseScene - 400, b.releaseScene + 2500);
-      for (let k = 0; k < on.length; k++) if (on[k].rel <= RELEASE_REACH.tailMs) expect(Array.from(on[k].q), `at ${Math.round(on[k].rel)}`).toEqual(Array.from(off[k].q));
+      for (let k = 0; k < on.length; k++)
+        if (on[k].rel <= RELEASE_REACH.tailMs)
+          expect(Array.from(on[k].q), `at ${Math.round(on[k].rel)}`).toEqual(Array.from(off[k].q));
     } finally {
       ARM_LIMIT.speed = was;
     }
@@ -400,7 +523,10 @@ describe('F3: the head after the bowler has turned away', () => {
       let lowest = -90;
       let pulled = 0;
       // heading -150 -> -210 -> -150 degrees in half degrees: the body passes -180, the plan stays on the batter
-      const sweep = [...Array.from({ length: 121 }, (_, k) => -150 - k * 0.5), ...Array.from({ length: 120 }, (_, k) => -210 + (k + 1) * 0.5)];
+      const sweep = [
+        ...Array.from({ length: 121 }, (_, k) => -150 - k * 0.5),
+        ...Array.from({ length: 120 }, (_, k) => -210 + (k + 1) * 0.5),
+      ];
       let prev: Float64Array | null = null;
       for (const h of sweep) {
         const heading = h * RAD;
@@ -410,7 +536,9 @@ describe('F3: the head after the bowler has turned away', () => {
         if (prev) {
           for (const i of [3, 4]) {
             const o = i * 4;
-            const d = Math.abs(prev[o] * q[o] + prev[o + 1] * q[o + 1] + prev[o + 2] * q[o + 2] + prev[o + 3] * q[o + 3]);
+            const d = Math.abs(
+              prev[o] * q[o] + prev[o + 1] * q[o + 1] + prev[o + 2] * q[o + 2] + prev[o + 3] * q[o + 3],
+            );
             worstStep = Math.max(worstStep, 2 * Math.acos(Math.min(1, d)) * DEG);
           }
         }
@@ -431,7 +559,8 @@ describe('F3: the head after the bowler has turned away', () => {
       for (const b of built()) {
         for (const [name, kind] of SCRIPTS) {
           const f = pose(scriptOf(b, name), kind, b.releaseScene - 2500, b.releaseScene + 4000);
-          for (let k = 1; k < f.length; k++) worst = Math.max(worst, step(f[k - 1], f[k], BONE.neck), step(f[k - 1], f[k], BONE.head));
+          for (let k = 1; k < f.length; k++)
+            worst = Math.max(worst, step(f[k - 1], f[k], BONE.neck), step(f[k - 1], f[k], BONE.head));
         }
       }
       expect(worst).toBeLessThan(40);
@@ -460,6 +589,7 @@ describe('F3: the head after the bowler has turned away', () => {
     const b = built().find((x) => x.c.name === 'pace R v RH six')!;
     const once = pose(b.replay, 'replay', b.releaseScene + 2000, b.releaseScene + 4000);
     const twice = pose(b.replay, 'replay', b.releaseScene + 2000, b.releaseScene + 4000, { twice: true });
-    for (let k = 0; k < once.length; k++) expect(Array.from(twice[k].q), `at ${Math.round(once[k].rel)}`).toEqual(Array.from(once[k].q));
+    for (let k = 0; k < once.length; k++)
+      expect(Array.from(twice[k].q), `at ${Math.round(once[k].rel)}`).toEqual(Array.from(once[k].q));
   });
 });

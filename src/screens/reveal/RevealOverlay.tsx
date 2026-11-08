@@ -48,8 +48,14 @@ export function RevealOverlay({ log, timeline, time, playing }: RevealOverlayPro
   }, [seg, now, ix, log, score.innings]);
 
   // Event graphic and speed readout from the current ball's overlay track.
-  const graphic = seg.kind === 'ball' ? [...seg.script.overlay].reverse().find((o) => o.kind !== 'speed' && at.scene >= o.t && at.scene < o.t + 2000) : undefined;
-  const speed = seg.kind === 'ball' ? seg.script.overlay.find((o) => o.kind === 'speed' && at.scene >= o.t && at.scene < o.t + 2600) : undefined;
+  const graphic =
+    seg.kind === 'ball'
+      ? [...seg.script.overlay].reverse().find((o) => o.kind !== 'speed' && at.scene >= o.t && at.scene < o.t + 2000)
+      : undefined;
+  const speed =
+    seg.kind === 'ball'
+      ? seg.script.overlay.find((o) => o.kind === 'speed' && at.scene >= o.t && at.scene < o.t + 2600)
+      : undefined;
   const target = seg.innings === 1 ? log.innings[0].runs + 1 : null;
   const showBug = seg.kind === 'ball' || seg.kind === 'innings_start' || seg.kind === 'super_start';
 
@@ -69,22 +75,43 @@ export function RevealOverlay({ log, timeline, time, playing }: RevealOverlayPro
           />
         </div>
       )}
-      {(seg.kind === 'innings_start' || seg.kind === 'super_start' || seg.kind === 'innings_end' || seg.kind === 'intro') && (
+      {(seg.kind === 'innings_start' ||
+        seg.kind === 'super_start' ||
+        seg.kind === 'innings_end' ||
+        seg.kind === 'intro') && (
         <div className={s.card} data-kind={seg.kind}>
-          <span className={s.eyebrow}>{seg.kind === 'super_start' ? t('reveal.super_ball') : seg.kind === 'innings_end' ? t('stage.innings_break') : seg.kind === 'intro' ? t(`pitch.${log.conditions.pitch}` as MessageKey) : t('reveal.innings_n', { n: (seg.innings === 1 ? 2 : 1) })}</span>
+          <span className={s.eyebrow}>
+            {seg.kind === 'super_start'
+              ? t('reveal.super_ball')
+              : seg.kind === 'innings_end'
+                ? t('stage.innings_break')
+                : seg.kind === 'intro'
+                  ? t(`pitch.${log.conditions.pitch}` as MessageKey)
+                  : t('reveal.innings_n', { n: seg.innings === 1 ? 2 : 1 })}
+          </span>
           <span className={s.cardTitle}>
             {seg.kind === 'intro' ? (
               <>
                 {log.players[0].alias} <em>{t('common.vs')}</em> {log.players[1].alias}
               </>
             ) : seg.kind === 'innings_end' ? (
-              t('common.score', { runs: log.innings[seg.innings === 1 ? 1 : 0].runs, wickets: log.innings[seg.innings === 1 ? 1 : 0].wickets })
+              t('common.score', {
+                runs: log.innings[seg.innings === 1 ? 1 : 0].runs,
+                wickets: log.innings[seg.innings === 1 ? 1 : 0].wickets,
+              })
             ) : (
               t('bat.facing', { name: log.players[seg.bowling].alias })
             )}
           </span>
-          {seg.kind === 'intro' && <span className={s.cardSub}>{t(`weather.${log.conditions.weather}` as MessageKey)} · {t(`pitch_hint.${log.conditions.pitch}` as MessageKey)}</span>}
-          {seg.kind === 'innings_start' && seg.innings === 1 && <span className={s.cardSub}>{t('stage.target', { n: log.innings[0].runs + 1 })}</span>}
+          {seg.kind === 'intro' && (
+            <span className={s.cardSub}>
+              {t(`weather.${log.conditions.weather}` as MessageKey)} ·{' '}
+              {t(`pitch_hint.${log.conditions.pitch}` as MessageKey)}
+            </span>
+          )}
+          {seg.kind === 'innings_start' && seg.innings === 1 && (
+            <span className={s.cardSub}>{t('stage.target', { n: log.innings[0].runs + 1 })}</span>
+          )}
         </div>
       )}
       {graphic && (
@@ -102,18 +129,31 @@ export function RevealOverlay({ log, timeline, time, playing }: RevealOverlayPro
                       ? t('outcome.dot')
                       : ''}
           </span>
-          {graphic.kind === 'wicket' && graphic.wicket && <span className={s.graphicSub}>{t(`wicket.${graphic.wicket}` as MessageKey)}</span>}
+          {graphic.kind === 'wicket' && graphic.wicket && (
+            <span className={s.graphicSub}>{t(`wicket.${graphic.wicket}` as MessageKey)}</span>
+          )}
         </div>
       )}
       {/* The held breath before the result: the picture darkens at the edges while the sound builds. */}
-      {seg.kind === 'result' && !resultShown(at) && <div className={s.breath} data-testid="reveal-breath" style={{ ['--u' as string]: Math.min(1, at.scene / Math.max(1, seg.beat ?? 1)).toFixed(3) }} />}
+      {seg.kind === 'result' && !resultShown(at) && (
+        <div
+          className={s.breath}
+          data-testid="reveal-breath"
+          style={{ ['--u' as string]: Math.min(1, at.scene / Math.max(1, seg.beat ?? 1)).toFixed(3) }}
+        />
+      )}
       {resultShown(at) && (
         <div className={s.result} data-testid="reveal-result-card">
           <span className={s.eyebrow}>{t('reveal.title')}</span>
           <span className={s.resultTitle}>{resultText(log.result, log, tr)}</span>
           {log.kind !== 'daily' && (
             <span className={s.potm}>
-              <Avatar avatar={log.players[log.result.playerOfMatch].avatar} kit={log.players[log.result.playerOfMatch].kit} size={34} decorative />
+              <Avatar
+                avatar={log.players[log.result.playerOfMatch].avatar}
+                kit={log.players[log.result.playerOfMatch].kit}
+                size={34}
+                decorative
+              />
               <span>
                 <span className={s.potmLabel}>{t('reveal.player_of_match')}</span>
                 <strong>{log.players[log.result.playerOfMatch].alias}</strong>

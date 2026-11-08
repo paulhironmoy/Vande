@@ -50,13 +50,15 @@ export const settingsHi: Record<string, string> = {
   'practice.settings.timing_run': 'टाइमिंग जाँच करें',
   'practice.settings.clear': 'प्रैक्टिस डेटा मिटाएँ',
   'practice.settings.clear_title': 'प्रैक्टिस डेटा मिटाएँ?',
-  'practice.settings.clear_body': 'इस डिवाइस से चल रही पारी, प्रैक्टिस सेटिंग्स और आवाज़, टाइमिंग जाँच, महारत, आपकी फ़ॉर्म और टेस्टर के जवाब मिट जाएँगे।',
+  'practice.settings.clear_body':
+    'इस डिवाइस से चल रही पारी, प्रैक्टिस सेटिंग्स और आवाज़, टाइमिंग जाँच, महारत, आपकी फ़ॉर्म और टेस्टर के जवाब मिट जाएँगे।',
   'practice.settings.clear_confirm': 'मिटाएँ',
 
   // ---- the timing check
   'practice.cal.title': 'टाइमिंग जाँच',
   'practice.cal.instruction': 'जब चलती गेंद लाइन पार करे, तब टैप करें।',
-  'practice.cal.body': 'पाँच टैप मापते हैं कि यह स्क्रीन और आपका इनपुट कितनी देर में जवाब देते हैं, ताकि हर शॉट की टाइमिंग निष्पक्ष रहे। टच, माउस और कीबोर्ड अपना-अपना नतीजा रखते हैं, इसी डिवाइस पर।',
+  'practice.cal.body':
+    'पाँच टैप मापते हैं कि यह स्क्रीन और आपका इनपुट कितनी देर में जवाब देते हैं, ताकि हर शॉट की टाइमिंग निष्पक्ष रहे। टच, माउस और कीबोर्ड अपना-अपना नतीजा रखते हैं, इसी डिवाइस पर।',
   'practice.cal.start': 'शुरू करें',
   'practice.cal.attempt': 'टैप {n} / {total}',
   'practice.cal.tap_area': 'जब गेंद लाइन पार करे तब यहाँ टैप करें, या स्पेस दबाएँ',
@@ -132,7 +134,8 @@ export const settingsHi: Record<string, string> = {
   'practice.tester.step': 'अध्ययन का सवाल {n}/{total}',
   'practice.tester.skip': 'छोड़ें',
   'practice.tester.consent_title': 'अध्ययन सत्र',
-  'practice.tester.consent_body': 'सिर्फ़ खिलाड़ी की सहमति से रिकॉर्ड करें। कुछ भी भेजा नहीं जाता; नाम नहीं, सिर्फ़ टैप।',
+  'practice.tester.consent_body':
+    'सिर्फ़ खिलाड़ी की सहमति से रिकॉर्ड करें। कुछ भी भेजा नहीं जाता; नाम नहीं, सिर्फ़ टैप।',
   'practice.tester.consent_yes': 'सहमति दर्ज: शुरू करें',
   'practice.tester.consent_no': 'अभी नहीं',
   'practice.tester.cohort': 'खिलाड़ी',

@@ -66,7 +66,9 @@ describe('the flow: after the dead ball, in slices that let frames be drawn', ()
     await quickPlay(flow);
     await until(() => flow.getState().phase === 'dead');
     flow.nextBall();
-    await until(() => flow.getState().phase === 'dead' && (flow.getState().innings?.current?.deliveries.length ?? 0) === 2);
+    await until(
+      () => flow.getState().phase === 'dead' && (flow.getState().innings?.current?.deliveries.length ?? 0) === 2,
+    );
     await until(() => flow.getState().insight?.status === 'ready');
     expect(calls).toHaveLength(1);
     expect(flow.getState().insight?.key.endsWith('.1')).toBe(true);

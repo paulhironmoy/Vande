@@ -11,16 +11,46 @@
  */
 import { evaluateActor, lookScale, type ActorTrack, type PhysicsBodyPlan } from '../actors';
 import type { BallScript } from '../choreo';
-import { clipDuration, createPose, mirrorSampledPose, motionSource, samplePresented, type ClipId, type SampledPose } from '../clips';
+import {
+  clipDuration,
+  createPose,
+  mirrorSampledPose,
+  motionSource,
+  samplePresented,
+  type ClipId,
+  type SampledPose,
+} from '../clips';
 import type { PoseHook } from '../fieldClips';
-import { FootPlan, createJoints, forwardKinematics, jointWorld, localToWorld, plantFeet, twoBoneIK, worldToLocal, type Joints } from '../locomotion';
+import {
+  FootPlan,
+  createJoints,
+  forwardKinematics,
+  jointWorld,
+  localToWorld,
+  plantFeet,
+  twoBoneIK,
+  worldToLocal,
+  type Joints,
+} from '../locomotion';
 import { type Vec3, smoothstep } from '../math';
 import { BONE_INDEX, type BoneName } from '../skeleton';
 
 /** The actors this hook plants. */
 const HUMAN_TRACKS: ReadonlySet<string> = new Set(['bowler', 'striker', 'nonStriker', 'bowler:measure']);
 /** Stepping cycles: the gait loops these actors run and walk with (their phase drives the stance windows). */
-const GAIT_LOOPS: ReadonlySet<string> = new Set(['bowl_runup', 'bowl_approach_spin', 'bat_run', 'walk', 'jog', 'run', 'run_drive', 'vmp:loco_walk', 'vmp:loco_jog', 'vmp:loco_run', 'vmp:loco_sprint']);
+const GAIT_LOOPS: ReadonlySet<string> = new Set([
+  'bowl_runup',
+  'bowl_approach_spin',
+  'bat_run',
+  'walk',
+  'jog',
+  'run',
+  'run_drive',
+  'vmp:loco_walk',
+  'vmp:loco_jog',
+  'vmp:loco_run',
+  'vmp:loco_sprint',
+]);
 /** The plan fades in over this long from its anchor (no step where it starts). */
 const FADE_IN_MS = 300;
 
@@ -96,7 +126,9 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
     const mirror = Boolean(track.mirror);
     if (mirror) mirrorSampledPose(pose);
     // The legs' clip: the footwork layer when there is one, else the clip itself.
-    const legs: { clip: ClipId; time: number } = st.current.lower ? { clip: st.current.lower, time: st.current.lowerTime ?? 0 } : st.current;
+    const legs: { clip: ClipId; time: number } = st.current.lower
+      ? { clip: st.current.lower, time: st.current.lowerTime ?? 0 }
+      : st.current;
     const src = motionSource(legs.clip);
     let contacts: number | undefined;
     if (src?.contacts) {
@@ -158,8 +190,19 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
      * The ankle offsets [L, R] and the hips' (index 2) that put the shins across their pads' axes at the wanted heights,
      * with the hips on `hipsAt` (world x/z) when given, else half way with the feet.
      */
-    const solve = (t: number, want: { pads: [Vec3, Vec3]; h: [number, number] }, on: ActorTrack = track, os: State = s, hipsAt: Vec3 | null = null, hit: { leg: 0 | 1; ball: Vec3; axis: Vec3 } | null = null): Fit3 => {
-      const d: Fit3 = [{ x: 0, z: 0 }, { x: 0, z: 0 }, { x: 0, z: 0 }];
+    const solve = (
+      t: number,
+      want: { pads: [Vec3, Vec3]; h: [number, number] },
+      on: ActorTrack = track,
+      os: State = s,
+      hipsAt: Vec3 | null = null,
+      hit: { leg: 0 | 1; ball: Vec3; axis: Vec3 } | null = null,
+    ): Fit3 => {
+      const d: Fit3 = [
+        { x: 0, z: 0 },
+        { x: 0, z: 0 },
+        { x: 0, z: 0 },
+      ];
       const st = evaluateActor(on, t);
       const root = { x: st.pos.x + (st.body?.x ?? 0), y: 0, z: st.pos.z + (st.body?.z ?? 0) };
       if (hipsAt) {
@@ -184,7 +227,10 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
             const dz = hit.ball.z - hit.axis.z;
             const l = Math.hypot(dx, dz) || 1;
             const y = hit.ball.y;
-            const bias = PAD_PROUD_M.shoe + (PAD_PROUD_M.shin - PAD_PROUD_M.shoe) * smoothstep(0.1, 0.35, y) + PAD_PROUD_M.knee * smoothstep(0.42, 0.52, y);
+            const bias =
+              PAD_PROUD_M.shoe +
+              (PAD_PROUD_M.shin - PAD_PROUD_M.shoe) * smoothstep(0.1, 0.35, y) +
+              PAD_PROUD_M.knee * smoothstep(0.42, 0.52, y);
             want.pads[f] = { x: hit.axis.x - (dx / l) * bias, y: 0, z: hit.axis.z - (dz / l) * bias };
           }
           const u = (want.h[f] - a.y) / Math.max(1e-3, k.y - a.y);
@@ -199,8 +245,18 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
     // The ready hold, measured on the waiting moves alone (identical before and after the result).
     let ready: Fit3 | null = null;
     if (body.ready) {
-      const waiting: ActorTrack = { ...track, id: `${track.id}:ready`, moves: body.ready.moves, physicsBody: undefined };
-      ready = solve(body.ready.refAt, byLeg(body.stance, [STANCE_FIT.heightM, STANCE_FIT.heightM]), waiting, stateOf(waiting));
+      const waiting: ActorTrack = {
+        ...track,
+        id: `${track.id}:ready`,
+        moves: body.ready.moves,
+        physicsBody: undefined,
+      };
+      ready = solve(
+        body.ready.refAt,
+        byLeg(body.stance, [STANCE_FIT.heightM, STANCE_FIT.heightM]),
+        waiting,
+        stateOf(waiting),
+      );
     }
     let stroke: StrikerFit['stroke'] = null;
     const before0 = (): Fit3 => (body.ready && ready ? ready : stance);
@@ -215,7 +271,10 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
       const root0 = { x: st0.pos.x + (st0.body?.x ?? 0), y: 0, z: st0.pos.z + (st0.body?.z ?? 0) };
       const pose0 = base(track, t, fitScratch).pose;
       legsOnPads(pose0, fitJoints, plannedAt(s, t, fitTargets), d[0], d[1], d[2], root0, st0.heading, s.scale);
-      return [jointWorld(fitJoints, 'footL', root0, st0.heading, s.scale), jointWorld(fitJoints, 'footR', root0, st0.heading, s.scale)];
+      return [
+        jointWorld(fitJoints, 'footL', root0, st0.heading, s.scale),
+        jointWorld(fitJoints, 'footR', root0, st0.heading, s.scale),
+      ];
     };
     /**
      * Each foot from where it stands as the stride starts to where it lands, by a step of its own (lifted, in the
@@ -231,7 +290,13 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
       return [0, 1].map((f) => {
         const steps = travel[f] > PLANTED_TRAVEL_M;
         const [u0, u1] = !both ? [0, 1] : f === first ? [0, 0.7] : [0.3, 1];
-        return { from: a0[f], to: a1[f], t0: b.strideAt + u0 * W, t1: b.strideAt + u1 * W, lift: steps ? Math.min(STEP_LIFT_M, 0.02 + 0.3 * travel[f]) : 0 };
+        return {
+          from: a0[f],
+          to: a1[f],
+          t0: b.strideAt + u0 * W,
+          t1: b.strideAt + u1 * W,
+          lift: steps ? Math.min(STEP_LIFT_M, 0.02 + 0.3 * travel[f]) : 0,
+        };
       }) as StrikerFit['pins'];
     };
     if (body.stroke && !body.stroke.governed) {
@@ -242,18 +307,45 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
       const st = evaluateActor(track, b.refAt);
       const root = { x: st.pos.x + (st.body?.x ?? 0), y: 0, z: st.pos.z + (st.body?.z ?? 0) };
       const pose = base(track, b.refAt, fitScratch).pose;
-      legsOnPads(pose, fitJoints, plannedAt(s, b.refAt, fitTargets), legs[0], legs[1], legs[2], root, st.heading, s.scale);
-      const trunk = trunkFit(pose, fitJoints, worldToLocal(b.torsoTop, root, st.heading, s.scale), worldToLocal(b.head, root, st.heading, s.scale), TRUNK_NATURAL_DEG);
+      legsOnPads(
+        pose,
+        fitJoints,
+        plannedAt(s, b.refAt, fitTargets),
+        legs[0],
+        legs[1],
+        legs[2],
+        root,
+        st.heading,
+        s.scale,
+      );
+      const trunk = trunkFit(
+        pose,
+        fitJoints,
+        worldToLocal(b.torsoTop, root, st.heading, s.scale),
+        worldToLocal(b.head, root, st.heading, s.scale),
+        TRUNK_NATURAL_DEG,
+      );
       // The feet step to where the clip (an authored overlay or the procedural stride) lands them, a planted foot held
       // down: no drift with the clip's hips (round 2: the overlay's own foot paths slid 10–14 cm while down, probe zz-stride).
-      stroke = { legs, trunk, pins: stepsFor(b, legs, legs), recover: null, restEnd: Infinity, hipsMs: hipsWindow(b, before0(), legs) };
+      stroke = {
+        legs,
+        trunk,
+        pins: stepsFor(b, legs, legs),
+        recover: null,
+        restEnd: Infinity,
+        hipsMs: hipsWindow(b, before0(), legs),
+      };
     } else if (body.stroke) {
       const b = body.stroke;
       // The pad the ball hits: its drawn surface on the ball (drawnPadDepth), refitted at every pass of the solve.
       const pads: [Vec3, Vec3] = [b.pads[0], b.pads[1]];
       let hit: { leg: 0 | 1; ball: Vec3; axis: Vec3 } | null = null;
       if (b.hitBall) {
-        const i = Math.hypot(b.hitBall.x - pads[0].x, b.hitBall.z - pads[0].z) <= Math.hypot(b.hitBall.x - pads[1].x, b.hitBall.z - pads[1].z) ? 0 : 1;
+        const i =
+          Math.hypot(b.hitBall.x - pads[0].x, b.hitBall.z - pads[0].z) <=
+          Math.hypot(b.hitBall.x - pads[1].x, b.hitBall.z - pads[1].z)
+            ? 0
+            : 1;
         hit = { leg: legOf(i === 0), ball: b.hitBall, axis: pads[i] };
       }
       const legs = solve(b.refAt, byLeg(pads, b.hitH), track, s, b.torsoBase, hit);
@@ -276,8 +368,15 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
     if (stroke && body.stroke && Number.isFinite(body.releaseAt)) {
       const next = track.moves.find((m) => m.t0 <= body.releaseAt && body.releaseAt < m.t1);
       if (next && next.clip === 'bat_rest') {
-        const zero: Fit3 = [{ x: 0, z: 0 }, { x: 0, z: 0 }, { x: 0, z: 0 }];
-        stroke.recover = anklesAt(Math.min(next.t1, body.releaseAt + FADE_AFTER_REST_MS + body.fadeMs + RECOVER_SETTLE_MS), zero);
+        const zero: Fit3 = [
+          { x: 0, z: 0 },
+          { x: 0, z: 0 },
+          { x: 0, z: 0 },
+        ];
+        stroke.recover = anklesAt(
+          Math.min(next.t1, body.releaseAt + FADE_AFTER_REST_MS + body.fadeMs + RECOVER_SETTLE_MS),
+          zero,
+        );
         stroke.restEnd = next.t1;
       }
     }
@@ -325,7 +424,8 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
     const planned = body ? null : plannedAt(s, at, legTargets);
     const initial = (f: number): Vec3 => {
       if (pins) return pins[f].to;
-      if (planned && planned[f * 4 + 3] >= 0.5) return { x: planned[f * 4], y: planned[f * 4 + 1], z: planned[f * 4 + 2] };
+      if (planned && planned[f * 4 + 3] >= 0.5)
+        return { x: planned[f * 4], y: planned[f * 4 + 1], z: planned[f * 4 + 2] };
       return ank[f][0];
     };
     const feet = ([0, 1] as const).map((f) => {
@@ -353,8 +453,14 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
         let land = prev.i + 1;
         while (land < n - 1 && !down[f][land] && land < prev.i + Math.round(FIRST_LEG_BACK_MS / dt)) land++;
         segs.push({ k: 'back', i0: prev.i, i1: land, A: prev.A });
-      }
-      else if (stance) segs.push({ k: 'stance', i0: stance.i, i1: n - 1, A: stance.A, hold: rollingStance(stance.A, stance.i, n - 1, sole[f], ank[f], n - 1) });
+      } else if (stance)
+        segs.push({
+          k: 'stance',
+          i0: stance.i,
+          i1: n - 1,
+          A: stance.A,
+          hold: rollingStance(stance.A, stance.i, n - 1, sole[f], ank[f], n - 1),
+        });
       return segs;
     }) as [FirstLegSeg[], FirstLegSeg[]];
     const leg: FirstLeg = { at, dt, ank, sole, feet };
@@ -363,58 +469,93 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
   };
 
   /** The striker's legs and trunk on the physics body at t (drawn form; before the reach of the bat). */
-  const strikerBody = (_track: ActorTrack, s: State, fit: StrikerFit, body: PhysicsBodyPlan, pose: SampledPose, t: number, root: Vec3, heading: number, targets: Float32Array | null) => {
+  const strikerBody = (
+    _track: ActorTrack,
+    s: State,
+    fit: StrikerFit,
+    body: PhysicsBodyPlan,
+    pose: SampledPose,
+    t: number,
+    root: Vec3,
+    heading: number,
+    targets: Float32Array | null,
+  ) => {
     const st = { heading };
-      // Round 4 (§9): the fit fades only once the rest's crossfade has settled (staggered after the clip's end), and
-      // the hips and the trunk lean move over windows long enough for their size (HIPS_ACCEL_MAX, TRUNK_RAMP_MIN_MS).
-      const fadeAt = body.releaseAt + FADE_AFTER_REST_MS;
-      const fade = 1 - smoothstep(fadeAt, fadeAt + body.fadeMs, t);
-      // Into a run the first-leg plan holds the feet (round 7): their offsets go under it, not at a set time.
-      const leg = firstLegOf(_track, s);
-      const feetFade = leg && t >= leg.at ? Math.min(fade, 1 - smoothstep(leg.at, leg.at + FIRST_LEG_OFFSETS_OUT_MS, t)) : fade;
-      const u = body.stroke && fit.stroke ? smoothstep(body.stroke.strideAt, body.stroke.plantAt, t) : 0;
-      const uh = body.stroke && fit.stroke ? smoothstep(body.stroke.strideAt, body.stroke.strideAt + fit.stroke.hipsMs, t) : 0;
-      const r = body.ready && fit.ready ? smoothstep(body.ready.from, body.ready.to, t) : 0;
-      const d = [0, 1, 2].map((f) => {
-        const a0 = fit.stance[f];
-        const a1 = fit.ready ? fit.ready[f] : a0;
-        const a = { x: a0.x + (a1.x - a0.x) * r, z: a0.z + (a1.z - a0.z) * r };
-        const b = fit.stroke ? fit.stroke.legs[f] : a;
-        const w = f === 2 ? uh : u;
-        const k = f === 2 ? fade : feetFade;
-        return { x: (a.x + (b.x - a.x) * w) * k, z: (a.z + (b.z - a.z) * w) * k };
-      }) as Fit3;
-      let pins: [Pin | null, Pin | null] | null = null;
-      if (fit.stroke?.pins && body.stroke && t >= body.stroke.strideAt) {
-        const rec = fit.stroke.recover;
-        const far = rec ? (Math.hypot(rec[0].x - fit.stroke.pins[0].to.x, rec[0].z - fit.stroke.pins[0].to.z) >= Math.hypot(rec[1].x - fit.stroke.pins[1].to.x, rec[1].z - fit.stroke.pins[1].to.z) ? 0 : 1) : 0;
-        pins = fit.stroke.pins.map((q, f) => {
-          const span = Math.max(1, q.t1 - q.t0);
-          const v = smoothstep(q.t0, q.t1, t);
-          const up = q.lift * Math.sin(Math.PI * Math.min(1, Math.max(0, (t - q.t0) / span)));
-          const p = { x: q.from.x + (q.to.x - q.from.x) * v, y: q.from.y + (q.to.y - q.from.y) * v + up, z: q.from.z + (q.to.z - q.from.z) * v };
-          if (!rec || t < body.releaseAt + FADE_AFTER_REST_MS) return { p, w: fade };
-          // Into the rest: held, then lifted and put down where the rest pose has it, one foot after the other.
-          const r = rec[f];
-          const a0 = body.releaseAt + FADE_AFTER_REST_MS + (f === far ? 0 : RECOVER_SPAN[1] * body.fadeMs);
-          const a1 = a0 + RECOVER_SPAN[0] * body.fadeMs;
-          const k = smoothstep(a0, a1, t);
-          const travel = Math.hypot(r.x - q.to.x, r.z - q.to.z);
-          const lift = travel > PLANTED_TRAVEL_M ? Math.min(STEP_LIFT_M, 0.02 + 0.3 * travel) * Math.sin(Math.PI * Math.min(1, Math.max(0, (t - a0) / (a1 - a0)))) : 0;
-          // Then held there while he stands at rest (the foot plan, which planted the clip's own feet, never takes them
-          // back across the ground), let go as a run sets off (its own first steps lift them).
-          const go = 1 - smoothstep(fit.stroke!.restEnd, fit.stroke!.restEnd + 150, t);
-          return { p: { x: q.to.x + (r.x - q.to.x) * k, y: q.to.y + (r.y - q.to.y) * k + lift, z: q.to.z + (r.z - q.to.z) * k }, w: go };
-        }) as [Pin | null, Pin | null];
-      }
-      // The run's first steps (round 7): its own plan, planted exactly, over whatever held the feet before.
-      if (leg && t >= leg.at) {
-        const own = [firstLegAt(leg, 0, t), firstLegAt(leg, 1, t)];
-        if (own[0] || own[1]) pins = [own[0] ?? pins?.[0] ?? null, own[1] ?? pins?.[1] ?? null];
-      }
-      legsOnPads(pose, s.joints, targets, d[0], d[1], d[2], root, st.heading, s.scale, pins);
-      const ut = body.stroke && fit.stroke ? smoothstep(body.stroke.strideAt, body.stroke.strideAt + Math.max(TRUNK_RAMP_MIN_MS, body.stroke.plantAt - body.stroke.strideAt), t) : 0;
-      if (fit.stroke && ut * fade > 1e-3) applyTrunk(pose, s.joints, fit.stroke.trunk, ut * fade);
+    // Round 4 (§9): the fit fades only once the rest's crossfade has settled (staggered after the clip's end), and
+    // the hips and the trunk lean move over windows long enough for their size (HIPS_ACCEL_MAX, TRUNK_RAMP_MIN_MS).
+    const fadeAt = body.releaseAt + FADE_AFTER_REST_MS;
+    const fade = 1 - smoothstep(fadeAt, fadeAt + body.fadeMs, t);
+    // Into a run the first-leg plan holds the feet (round 7): their offsets go under it, not at a set time.
+    const leg = firstLegOf(_track, s);
+    const feetFade =
+      leg && t >= leg.at ? Math.min(fade, 1 - smoothstep(leg.at, leg.at + FIRST_LEG_OFFSETS_OUT_MS, t)) : fade;
+    const u = body.stroke && fit.stroke ? smoothstep(body.stroke.strideAt, body.stroke.plantAt, t) : 0;
+    const uh =
+      body.stroke && fit.stroke ? smoothstep(body.stroke.strideAt, body.stroke.strideAt + fit.stroke.hipsMs, t) : 0;
+    const r = body.ready && fit.ready ? smoothstep(body.ready.from, body.ready.to, t) : 0;
+    const d = [0, 1, 2].map((f) => {
+      const a0 = fit.stance[f];
+      const a1 = fit.ready ? fit.ready[f] : a0;
+      const a = { x: a0.x + (a1.x - a0.x) * r, z: a0.z + (a1.z - a0.z) * r };
+      const b = fit.stroke ? fit.stroke.legs[f] : a;
+      const w = f === 2 ? uh : u;
+      const k = f === 2 ? fade : feetFade;
+      return { x: (a.x + (b.x - a.x) * w) * k, z: (a.z + (b.z - a.z) * w) * k };
+    }) as Fit3;
+    let pins: [Pin | null, Pin | null] | null = null;
+    if (fit.stroke?.pins && body.stroke && t >= body.stroke.strideAt) {
+      const rec = fit.stroke.recover;
+      const far = rec
+        ? Math.hypot(rec[0].x - fit.stroke.pins[0].to.x, rec[0].z - fit.stroke.pins[0].to.z) >=
+          Math.hypot(rec[1].x - fit.stroke.pins[1].to.x, rec[1].z - fit.stroke.pins[1].to.z)
+          ? 0
+          : 1
+        : 0;
+      pins = fit.stroke.pins.map((q, f) => {
+        const span = Math.max(1, q.t1 - q.t0);
+        const v = smoothstep(q.t0, q.t1, t);
+        const up = q.lift * Math.sin(Math.PI * Math.min(1, Math.max(0, (t - q.t0) / span)));
+        const p = {
+          x: q.from.x + (q.to.x - q.from.x) * v,
+          y: q.from.y + (q.to.y - q.from.y) * v + up,
+          z: q.from.z + (q.to.z - q.from.z) * v,
+        };
+        if (!rec || t < body.releaseAt + FADE_AFTER_REST_MS) return { p, w: fade };
+        // Into the rest: held, then lifted and put down where the rest pose has it, one foot after the other.
+        const r = rec[f];
+        const a0 = body.releaseAt + FADE_AFTER_REST_MS + (f === far ? 0 : RECOVER_SPAN[1] * body.fadeMs);
+        const a1 = a0 + RECOVER_SPAN[0] * body.fadeMs;
+        const k = smoothstep(a0, a1, t);
+        const travel = Math.hypot(r.x - q.to.x, r.z - q.to.z);
+        const lift =
+          travel > PLANTED_TRAVEL_M
+            ? Math.min(STEP_LIFT_M, 0.02 + 0.3 * travel) *
+              Math.sin(Math.PI * Math.min(1, Math.max(0, (t - a0) / (a1 - a0))))
+            : 0;
+        // Then held there while he stands at rest (the foot plan, which planted the clip's own feet, never takes them
+        // back across the ground), let go as a run sets off (its own first steps lift them).
+        const go = 1 - smoothstep(fit.stroke!.restEnd, fit.stroke!.restEnd + 150, t);
+        return {
+          p: { x: q.to.x + (r.x - q.to.x) * k, y: q.to.y + (r.y - q.to.y) * k + lift, z: q.to.z + (r.z - q.to.z) * k },
+          w: go,
+        };
+      }) as [Pin | null, Pin | null];
+    }
+    // The run's first steps (round 7): its own plan, planted exactly, over whatever held the feet before.
+    if (leg && t >= leg.at) {
+      const own = [firstLegAt(leg, 0, t), firstLegAt(leg, 1, t)];
+      if (own[0] || own[1]) pins = [own[0] ?? pins?.[0] ?? null, own[1] ?? pins?.[1] ?? null];
+    }
+    legsOnPads(pose, s.joints, targets, d[0], d[1], d[2], root, st.heading, s.scale, pins);
+    const ut =
+      body.stroke && fit.stroke
+        ? smoothstep(
+            body.stroke.strideAt,
+            body.stroke.strideAt + Math.max(TRUNK_RAMP_MIN_MS, body.stroke.plantAt - body.stroke.strideAt),
+            t,
+          )
+        : 0;
+    if (fit.stroke && ut * fade > 1e-3) applyTrunk(pose, s.joints, fit.stroke.trunk, ut * fade);
   };
 
   /** The reach the bat asks for over the stroke, smoothed (per track; null without a stroke or a bat). */
@@ -429,7 +570,13 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
    * one frame) and `warm` makes them ahead of the frame that needs them. However they are made, in whatever order, the
    * corrections are the same bit for bit.
    */
-  const reachPlanOf = (track: ActorTrack, s: State, fit: StrikerFit, body: PhysicsBodyPlan, mirror: boolean): ReachPlan | null => {
+  const reachPlanOf = (
+    track: ActorTrack,
+    s: State,
+    fit: StrikerFit,
+    body: PhysicsBodyPlan,
+    mirror: boolean,
+  ): ReachPlan | null => {
     const hit = reachPlans.get(track);
     if (hit !== undefined) return hit;
     if (!(body.stroke && opts.batOf)) {
@@ -438,7 +585,12 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
     }
     const batOf = opts.batOf;
     const t0 = body.stroke.strideAt - 250 - REACH_HIPS_SMOOTH_MS;
-    const t1 = (Number.isFinite(body.releaseAt) ? body.releaseAt : body.stroke.refAt) + FADE_AFTER_REST_MS + body.fadeMs + 900 + REACH_HIPS_SMOOTH_MS;
+    const t1 =
+      (Number.isFinite(body.releaseAt) ? body.releaseAt : body.stroke.refAt) +
+      FADE_AFTER_REST_MS +
+      body.fadeMs +
+      900 +
+      REACH_HIPS_SMOOTH_MS;
     const dt = 1000 / 60;
     const n = Math.max(2, Math.ceil((t1 - t0) / dt) + 1);
     const w = Math.round(REACH_SMOOTH_MS / dt);
@@ -460,7 +612,18 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
         const pose = base(track, t, reachScratch).pose;
         const planned = plannedAt(s, t, reachTargets);
         strikerBody(track, s, fit, body, pose, t, root, st.heading, planned);
-        reachTheBat(pose, reachJoints, bat, mirror, root, st.heading, s.scale, REACH_TRUNK_MAX_DEG, REACH_HIPS_MAX_M, c);
+        reachTheBat(
+          pose,
+          reachJoints,
+          bat,
+          mirror,
+          root,
+          st.heading,
+          s.scale,
+          REACH_TRUNK_MAX_DEG,
+          REACH_HIPS_MAX_M,
+          c,
+        );
       }
       need[i] = c;
       return c;
@@ -474,7 +637,13 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
       let c = smoothReachAt(n, i, w, wh, needAt, halfVecAt, pelvisVecAt);
       const e = Math.min(1, i / wh, (n - 1 - i) / wh);
       const k = 0.5 - 0.5 * Math.cos(Math.PI * Math.max(0, e));
-      if (k < 1) c = { pelvis: slerpQ([0, 0, 0, 1], c.pelvis, k), half: slerpQ([0, 0, 0, 1], c.half, k), hx: c.hx * k, hz: c.hz * k };
+      if (k < 1)
+        c = {
+          pelvis: slerpQ([0, 0, 0, 1], c.pelvis, k),
+          half: slerpQ([0, 0, 0, 1], c.half, k),
+          hx: c.hx * k,
+          hz: c.hz * k,
+        };
       made[i] = c;
       return c;
     };
@@ -499,7 +668,12 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
         const u = f - i;
         const a = correctionAt(i);
         const b = correctionAt(i + 1);
-        return { pelvis: slerpQ(a.pelvis, b.pelvis, u), half: slerpQ(a.half, b.half, u), hx: a.hx + (b.hx - a.hx) * u, hz: a.hz + (b.hz - a.hz) * u };
+        return {
+          pelvis: slerpQ(a.pelvis, b.pelvis, u),
+          half: slerpQ(a.half, b.half, u),
+          hx: a.hx + (b.hx - a.hx) * u,
+          hz: a.hz + (b.hz - a.hz) * u,
+        };
       },
       warm(from, budgetMs) {
         // The samples a correction at `from` is smoothed from first, then on in time order to the end of the plan.
@@ -546,7 +720,18 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
       // The planned pelvis is out before the overlay's own follow-through hip turn (round 7: the two never add).
       if (c && body.stroke?.followAt != null) c.pelvis = partial(c.pelvis, pelvisShareAt(body.stroke.followAt, t));
       if (c) applyReach(pose, s.joints, c, root, st.heading, s.scale);
-      if (bat) reachTheBat(pose, s.joints, bat, mirror, root, st.heading, s.scale, plan ? REACH_RESIDUAL.deg : REACH_TRUNK_MAX_DEG, plan ? REACH_RESIDUAL.hipsM : REACH_HIPS_MAX_M);
+      if (bat)
+        reachTheBat(
+          pose,
+          s.joints,
+          bat,
+          mirror,
+          root,
+          st.heading,
+          s.scale,
+          plan ? REACH_RESIDUAL.deg : REACH_TRUNK_MAX_DEG,
+          plan ? REACH_RESIDUAL.hipsM : REACH_HIPS_MAX_M,
+        );
       // Round 7 (§9 ankle): a shin leaning on over a flat foot lifts its heel, the ball of the foot kept where it is.
       heelsUp(pose, s.joints);
     } else if (targets) {
@@ -558,7 +743,10 @@ export function humansPoseHook(script: BallScript, opts: HumansHookOptions = {})
           const own = firstLegAt(leg, f, t);
           if (!own) continue;
           const w0 = targets[f * 4 + 3];
-          const a = w0 > 1e-3 ? { x: targets[f * 4], y: targets[f * 4 + 1], z: targets[f * 4 + 2] } : jointWorld(s.joints, f === 0 ? 'footL' : 'footR', root, st.heading, s.scale);
+          const a =
+            w0 > 1e-3
+              ? { x: targets[f * 4], y: targets[f * 4 + 1], z: targets[f * 4 + 2] }
+              : jointWorld(s.joints, f === 0 ? 'footL' : 'footR', root, st.heading, s.scale);
           targets[f * 4] = a.x + (own.p.x - a.x) * own.w;
           targets[f * 4 + 1] = a.y + (own.p.y - a.y) * own.w;
           targets[f * 4 + 2] = a.z + (own.p.z - a.z) * own.w;
@@ -606,7 +794,14 @@ interface StrikerFit {
   /** The offsets that put the shins on the stance pads (in the stance, the ready hold), and on the stroke's pads. */
   stance: Fit3;
   ready: Fit3 | null;
-  stroke: { legs: Fit3; trunk: TrunkFit; pins: StrikerFit['pins'] | undefined; recover: [Vec3, Vec3] | null; restEnd: number; hipsMs: number } | null;
+  stroke: {
+    legs: Fit3;
+    trunk: TrunkFit;
+    pins: StrikerFit['pins'] | undefined;
+    recover: [Vec3, Vec3] | null;
+    restEnd: number;
+    hipsMs: number;
+  } | null;
   pins?: [FootStep, FootStep];
 }
 /** After the stroke, into the rest: each foot steps over RECOVER_SPAN[0] of the fade, the second from RECOVER_SPAN[1]. */
@@ -663,10 +858,25 @@ const hipsOf = (a: Off, b: Off): Off => ({ x: (a.x + b.x) / 2, z: (a.z + b.z) / 
  * The legs on the pads: the hips shifted by `hips` (world), then each ankle carried by its offset from where the pose
  * (and the planted-foot plan, when it holds that foot) puts it, by leg IK. `j` is left as the result's FK.
  */
-function legsOnPads(pose: SampledPose, j: Joints, planned: Float32Array | null, dL: Off, dR: Off, hips: Off, root: Vec3, heading: number, scale: number, pins: [Pin | null, Pin | null] | null = null): void {
+function legsOnPads(
+  pose: SampledPose,
+  j: Joints,
+  planned: Float32Array | null,
+  dL: Off,
+  dR: Off,
+  hips: Off,
+  root: Vec3,
+  heading: number,
+  scale: number,
+  pins: [Pin | null, Pin | null] | null = null,
+): void {
   const c = Math.cos(heading);
   const sn = Math.sin(heading);
-  pose.root = [pose.root[0] + (c * hips.x - sn * hips.z) / scale, pose.root[1], pose.root[2] + (sn * hips.x + c * hips.z) / scale];
+  pose.root = [
+    pose.root[0] + (c * hips.x - sn * hips.z) / scale,
+    pose.root[1],
+    pose.root[2] + (sn * hips.x + c * hips.z) / scale,
+  ];
   forwardKinematics(pose, j);
   const targets = LEG_TARGETS;
   for (let f = 0; f < 2; f++) {
@@ -699,8 +909,12 @@ function fromTo(a: readonly number[], b: readonly number[], maxDeg: number): Qua
   const la = Math.hypot(a[0], a[1], a[2]);
   const lb = Math.hypot(b[0], b[1], b[2]);
   if (la < 1e-6 || lb < 1e-6) return [0, 0, 0, 1];
-  const ax = a[0] / la, ay = a[1] / la, az = a[2] / la;
-  const bx = b[0] / lb, by = b[1] / lb, bz = b[2] / lb;
+  const ax = a[0] / la,
+    ay = a[1] / la,
+    az = a[2] / la;
+  const bx = b[0] / lb,
+    by = b[1] / lb,
+    bz = b[2] / lb;
   let cx = ay * bz - az * by;
   let cy = az * bx - ax * bz;
   let cz = ax * by - ay * bx;
@@ -741,7 +955,14 @@ function rotateVec(q: readonly number[], v: readonly number[]): [number, number,
 function turnBone(pose: SampledPose, j: Joints, name: BoneName, r: Quat): void {
   const i = BONE_INDEX[name];
   const parent = i === 0 ? null : PARENT_OF[name];
-  const P: Quat = parent ? [j.q[BONE_INDEX[parent] * 4], j.q[BONE_INDEX[parent] * 4 + 1], j.q[BONE_INDEX[parent] * 4 + 2], j.q[BONE_INDEX[parent] * 4 + 3]] : [0, 0, 0, 1];
+  const P: Quat = parent
+    ? [
+        j.q[BONE_INDEX[parent] * 4],
+        j.q[BONE_INDEX[parent] * 4 + 1],
+        j.q[BONE_INDEX[parent] * 4 + 2],
+        j.q[BONE_INDEX[parent] * 4 + 3],
+      ]
+    : [0, 0, 0, 1];
   const Pi: Quat = [-P[0], -P[1], -P[2], P[3]];
   const local: Quat = [pose.q[i * 4], pose.q[i * 4 + 1], pose.q[i * 4 + 2], pose.q[i * 4 + 3]];
   const out = qmul(qmul(qmul(Pi, r), P), local);
@@ -756,7 +977,13 @@ function joint(j: Joints, name: BoneName): [number, number, number] {
 }
 
 /** The trunk's fit at the reference frame (actor frame, scale 1): see TrunkFit. `pose` is changed. */
-function trunkFit(pose: SampledPose, j: Joints, top: Vec3, head: Vec3, limits: { lean: number; neck: number } = TRUNK_MAX_DEG): TrunkFit {
+function trunkFit(
+  pose: SampledPose,
+  j: Joints,
+  top: Vec3,
+  head: Vec3,
+  limits: { lean: number; neck: number } = TRUNK_MAX_DEG,
+): TrunkFit {
   forwardKinematics(pose, j);
   // Spine and chest share the lean that carries the neck over the torso top (its height kept).
   const s0 = joint(j, 'spine');
@@ -775,7 +1002,11 @@ function trunkFit(pose: SampledPose, j: Joints, top: Vec3, head: Vec3, limits: {
   const hp = joint(j, 'head');
   const off = rotateVec(hq, HEAD_CENTRE);
   const hc = [hp[0] + off[0], hp[1] + off[1], hp[2] + off[2]];
-  const neck = fromTo([hc[0] - n1[0], hc[1] - n1[1], hc[2] - n1[2]], [head.x - n1[0], head.y - n1[1], head.z - n1[2]], limits.neck);
+  const neck = fromTo(
+    [hc[0] - n1[0], hc[1] - n1[1], hc[2] - n1[2]],
+    [head.x - n1[0], head.y - n1[1], head.z - n1[2]],
+    limits.neck,
+  );
   return { spine: half, chest: half, neck };
 }
 
@@ -793,12 +1024,29 @@ const REACH_HIPS_MAX_M = 0.2;
  * REACH_HIPS_MAX_M) towards it with the feet held where they were. Continuous in the bat (nothing happens while
  * both are in reach). Drawn form, actor frame; `j` is left as the result's FK.
  */
-function reachTheBat(pose: SampledPose, j: Joints, bat: { grip: Vec3; toe: Vec3 }, mirror: boolean, root: Vec3, heading: number, scale: number, trunkMaxDeg: number = REACH_TRUNK_MAX_DEG, hipsMaxM: number = REACH_HIPS_MAX_M, applied: ReachCorrection | null = null): void {
+function reachTheBat(
+  pose: SampledPose,
+  j: Joints,
+  bat: { grip: Vec3; toe: Vec3 },
+  mirror: boolean,
+  root: Vec3,
+  heading: number,
+  scale: number,
+  trunkMaxDeg: number = REACH_TRUNK_MAX_DEG,
+  hipsMaxM: number = REACH_HIPS_MAX_M,
+  applied: ReachCorrection | null = null,
+): void {
   const dx = bat.toe.x - bat.grip.x;
   const dy = bat.toe.y - bat.grip.y;
   const dz = bat.toe.z - bat.grip.z;
   const l = Math.hypot(dx, dy, dz) || 1;
-  const at = (k: number) => worldToLocal({ x: bat.grip.x + (dx / l) * k, y: bat.grip.y + (dy / l) * k, z: bat.grip.z + (dz / l) * k }, root, heading, scale);
+  const at = (k: number) =>
+    worldToLocal(
+      { x: bat.grip.x + (dx / l) * k, y: bat.grip.y + (dy / l) * k, z: bat.grip.z + (dz / l) * k },
+      root,
+      heading,
+      scale,
+    );
   const hands: Array<{ side: 'L' | 'R'; t: Vec3 }> = [
     { side: mirror ? 'R' : 'L', t: at(GRIP_FROM_CAP.top) },
     { side: mirror ? 'L' : 'R', t: at(GRIP_FROM_CAP.bottom) },
@@ -853,7 +1101,9 @@ function reachTheBat(pose: SampledPose, j: Joints, bat: { grip: Vec3; toe: Vec3 
     const half = partial(rest, 0.5);
     const a = limitedTurn(pose, j, 'spine', half, SPINE_CHEST_MAX_DEG);
     const b = limitedTurn(pose, j, 'chest', half, SPINE_CHEST_MAX_DEG);
-    used += ((2 * Math.acos(Math.min(1, Math.abs(pel[3])))) * 180) / Math.PI + ((2 * Math.acos(Math.min(1, Math.abs(half[3])))) * 180) / Math.PI * (a + b);
+    used +=
+      (2 * Math.acos(Math.min(1, Math.abs(pel[3]))) * 180) / Math.PI +
+      ((2 * Math.acos(Math.min(1, Math.abs(half[3]))) * 180) / Math.PI) * (a + b);
     if (applied) applied.half = qmul(partial(half, (a + b) / 2), applied.half);
     if (a + b < 1e-3 && Math.abs(pel[3]) > 0.99999) break;
   }
@@ -903,7 +1153,7 @@ export function pelvisShareAt(followAt: number, t: number): number {
 /** A bone's local rotation in all (deg). */
 function boneAngle(pose: SampledPose, name: BoneName): number {
   const i = BONE_INDEX[name] * 4;
-  return ((2 * Math.acos(Math.min(1, Math.abs(pose.q[i + 3])))) * 180) / Math.PI;
+  return (2 * Math.acos(Math.min(1, Math.abs(pose.q[i + 3]))) * 180) / Math.PI;
 }
 
 /** A thigh's twist about its own length against the pelvis (deg; the swing–twist split about the limb's y). */
@@ -911,7 +1161,7 @@ function thighTwist(pose: SampledPose, name: 'thighL' | 'thighR'): number {
   const i = BONE_INDEX[name] * 4;
   const y = pose.q[i + 1];
   const w = pose.q[i + 3];
-  return Math.abs(((2 * Math.atan2(Math.abs(y), Math.abs(w))) * 180) / Math.PI);
+  return Math.abs((2 * Math.atan2(Math.abs(y), Math.abs(w)) * 180) / Math.PI);
 }
 
 /** Turns `name` by r (actor frame), backed off as far as needed to keep it within maxDeg. Returns the share applied. */
@@ -945,7 +1195,15 @@ function limitedTurn(pose: SampledPose, j: Joints, name: BoneName, r: Quat, maxD
  * Opens the pelvis by r (actor frame) with the feet held where they are (leg IK), backed off until both thighs' twist
  * is within THIGH_TWIST_MAX_DEG and the pelvis within PELVIS_MAX_DEG. Returns the turn actually given. `j`: the FK.
  */
-function turnPelvis(pose: SampledPose, j: Joints, r: Quat, root: Vec3, heading: number, scale: number, planned = false): Quat {
+function turnPelvis(
+  pose: SampledPose,
+  j: Joints,
+  r: Quat,
+  root: Vec3,
+  heading: number,
+  scale: number,
+  planned = false,
+): Quat {
   forwardKinematics(pose, j);
   const feet = new Float32Array(8);
   for (let f = 0; f < 2; f++) {
@@ -963,7 +1221,11 @@ function turnPelvis(pose: SampledPose, j: Joints, r: Quat, root: Vec3, heading: 
     // The pelvis has no parent: turning it reads no joint, and plantFeet works the pose's joints out afresh.
     turnBone(pose, j, 'hips', partial(r, m));
     plantFeet(pose, j, feet, root, heading, scale);
-    return boneAngle(pose, 'hips') <= PELVIS_MAX_DEG && thighTwist(pose, 'thighL') <= THIGH_TWIST_MAX_DEG && thighTwist(pose, 'thighR') <= THIGH_TWIST_MAX_DEG;
+    return (
+      boneAngle(pose, 'hips') <= PELVIS_MAX_DEG &&
+      thighTwist(pose, 'thighL') <= THIGH_TWIST_MAX_DEG &&
+      thighTwist(pose, 'thighR') <= THIGH_TWIST_MAX_DEG
+    );
   };
   // A planned turn (reachPlanOf: its limits checked once, smoothed) is given as it is: no per-frame back-off (round 6).
   if (trial(1) || planned) return r;
@@ -988,7 +1250,14 @@ interface ReachCorrection {
 }
 
 /** Applies a reach correction to a pose (the feet held where they are). `j` is left as the result's FK. */
-function applyReach(pose: SampledPose, j: Joints, c: ReachCorrection, root: Vec3, heading: number, scale: number): void {
+function applyReach(
+  pose: SampledPose,
+  j: Joints,
+  c: ReachCorrection,
+  root: Vec3,
+  heading: number,
+  scale: number,
+): void {
   turnPelvis(pose, j, c.pelvis, root, heading, scale, true);
   limitedTurn(pose, j, 'spine', c.half, SPINE_CHEST_MAX_DEG);
   limitedTurn(pose, j, 'chest', c.half, SPINE_CHEST_MAX_DEG);
@@ -1021,7 +1290,12 @@ function slerpQ(a: Quat, b: Quat, u: number): Quat {
   const bb: Quat = d < 0 ? [-b[0], -b[1], -b[2], -b[3]] : [b[0], b[1], b[2], b[3]];
   d = Math.abs(d);
   if (d > 0.9995) {
-    const r: Quat = [a[0] + (bb[0] - a[0]) * u, a[1] + (bb[1] - a[1]) * u, a[2] + (bb[2] - a[2]) * u, a[3] + (bb[3] - a[3]) * u];
+    const r: Quat = [
+      a[0] + (bb[0] - a[0]) * u,
+      a[1] + (bb[1] - a[1]) * u,
+      a[2] + (bb[2] - a[2]) * u,
+      a[3] + (bb[3] - a[3]) * u,
+    ];
     const n = Math.hypot(r[0], r[1], r[2], r[3]) || 1;
     return [r[0] / n, r[1] / n, r[2] / n, r[3] / n];
   }
@@ -1059,7 +1333,14 @@ function envelope(vecAt: (k: number) => number[], n: number, i: number, width: n
     sum[2] += v[2] * g;
   }
   const sl = Math.hypot(sum[0], sum[1], sum[2]);
-  return sl < 1e-9 || best < 1e-9 ? [0, 0, 0, 1] : [(sum[0] / sl) * Math.sin(best / 2), (sum[1] / sl) * Math.sin(best / 2), (sum[2] / sl) * Math.sin(best / 2), Math.cos(best / 2)];
+  return sl < 1e-9 || best < 1e-9
+    ? [0, 0, 0, 1]
+    : [
+        (sum[0] / sl) * Math.sin(best / 2),
+        (sum[1] / sl) * Math.sin(best / 2),
+        (sum[2] / sl) * Math.sin(best / 2),
+        Math.cos(best / 2),
+      ];
 }
 
 /**
@@ -1068,7 +1349,15 @@ function envelope(vecAt: (k: number) => number[], n: number, i: number, width: n
  * hips), each weighted by a raised cosine of its distance (1 at 0, 0 at w): a smooth envelope over the needs (bounded
  * speed and acceleration), the direction kept from the sample that sets it. Reads the samples i - wh .. i + wh of the `n`.
  */
-function smoothReachAt(n: number, i: number, w: number, wh: number, needAt: (k: number) => ReachCorrection, halfVecAt: (k: number) => number[], pelvisVecAt: (k: number) => number[]): ReachCorrection {
+function smoothReachAt(
+  n: number,
+  i: number,
+  w: number,
+  wh: number,
+  needAt: (k: number) => ReachCorrection,
+  halfVecAt: (k: number) => number[],
+  pelvisVecAt: (k: number) => number[],
+): ReachCorrection {
   let bestH = 0;
   let sx = 0;
   let sz = 0;
@@ -1080,14 +1369,22 @@ function smoothReachAt(n: number, i: number, w: number, wh: number, needAt: (k: 
     sz += c.hz * gh;
   }
   const hl = Math.hypot(sx, sz);
-  return { pelvis: envelope(pelvisVecAt, n, i, w), half: envelope(halfVecAt, n, i, w), hx: hl < 1e-9 ? 0 : (sx / hl) * bestH, hz: hl < 1e-9 ? 0 : (sz / hl) * bestH };
+  return {
+    pelvis: envelope(pelvisVecAt, n, i, w),
+    half: envelope(halfVecAt, n, i, w),
+    hx: hl < 1e-9 ? 0 : (sx / hl) * bestH,
+    hz: hl < 1e-9 ? 0 : (sz / hl) * bestH,
+  };
 }
 
 /**
  * Probe hook (off in play): each stroke's largest planned trunk turn (spine and chest together, deg) and hips shift (m),
  * as the evaluators' reach-magnitude report reads them.
  */
-const REACH_STATS: { on: boolean; byTrack: WeakMap<ActorTrack, { deg: number; pelvis: number; hips: number }> } = { on: false, byTrack: new WeakMap() };
+const REACH_STATS: { on: boolean; byTrack: WeakMap<ActorTrack, { deg: number; pelvis: number; hips: number }> } = {
+  on: false,
+  byTrack: new WeakMap(),
+};
 
 /** The reach is planned this long either side of the frames that need it (ms): the trunk turns ahead of the bat. */
 const REACH_SMOOTH_MS = 300;
@@ -1143,7 +1440,11 @@ export function heelsUp(pose: SampledPose, j: Joints): void {
       // A foot in the air only turns at the ankle; one on the ground keeps its ball where it is (the ankle rises).
       if (a[1] + ball0[1] > BALL_DOWN_M) break;
       forwardKinematics(pose, j);
-      const target: [number, number, number] = [a[0] + ball0[0] - ball1[0], a[1] + ball0[1] - ball1[1], a[2] + ball0[2] - ball1[2]];
+      const target: [number, number, number] = [
+        a[0] + ball0[0] - ball1[0],
+        a[1] + ball0[1] - ball1[1],
+        a[2] + ball0[2] - ball1[2],
+      ];
       const pole = rotateVec([j.q[0], j.q[1], j.q[2], j.q[3]], [0, 0, 1]);
       twoBoneIK(pose, j, `thigh${side}`, `shin${side}`, `foot${side}`, target, 1, pole);
     }
@@ -1294,7 +1595,11 @@ function firstLegAt(leg: FirstLeg, f: number, t: number): Pin | null {
     const i0 = Math.max(0, Math.min(ank.length - 1, Math.floor(i)));
     const i1 = Math.min(ank.length - 1, i0 + 1);
     const u = Math.max(0, Math.min(1, i - i0));
-    return { x: ank[i0].x + (ank[i1].x - ank[i0].x) * u, y: ank[i0].y + (ank[i1].y - ank[i0].y) * u, z: ank[i0].z + (ank[i1].z - ank[i0].z) * u };
+    return {
+      x: ank[i0].x + (ank[i1].x - ank[i0].x) * u,
+      y: ank[i0].y + (ank[i1].y - ank[i0].y) * u,
+      z: ank[i0].z + (ank[i1].z - ank[i0].z) * u,
+    };
   };
   if (seg.k === 'stance') {
     const h = seg.hold!;
@@ -1302,7 +1607,10 @@ function firstLegAt(leg: FirstLeg, f: number, t: number): Pin | null {
     const a = Math.floor(u);
     const b = Math.min(h.length - 1, a + 1);
     const w = u - a;
-    return { p: { x: h[a].x + (h[b].x - h[a].x) * w, y: h[a].y + (h[b].y - h[a].y) * w, z: h[a].z + (h[b].z - h[a].z) * w }, w: 1 };
+    return {
+      p: { x: h[a].x + (h[b].x - h[a].x) * w, y: h[a].y + (h[b].y - h[a].y) * w, z: h[a].z + (h[b].z - h[a].z) * w },
+      w: 1,
+    };
   }
   const span = Math.max(1, seg.i1 - seg.i0);
   const sw = smoothstep(seg.i0, seg.i1, x);
@@ -1315,13 +1623,30 @@ function firstLegAt(leg: FirstLeg, f: number, t: number): Pin | null {
   const lift = { x: seg.A.x - c0.x, y: seg.A.y - c0.y, z: seg.A.z - c0.z };
   // No sole point is below the turf, and the shoe is off it by FIRST_LEG_CLEAR_M a few samples into the swing and until a few
   // before its landing: a foot pitched toe-down for the push-off took its tip through the ground, and dragged it along.
-  const above = soleClearance(leg, f, x) + FIRST_LEG_CLEAR_M * Math.min(smoothstep(seg.i0, seg.i0 + FIRST_LEG_CLEAR_RAMP, x), 1 - smoothstep(seg.i1 - FIRST_LEG_CLEAR_RAMP, seg.i1, x));
-  if (seg.k === 'back') return { p: { x: c.x + lift.x * (1 - sw), y: Math.max(c.y + lift.y * (1 - sw), above), z: c.z + lift.z * (1 - sw) }, w: 1 - sw };
+  const above =
+    soleClearance(leg, f, x) +
+    FIRST_LEG_CLEAR_M *
+      Math.min(
+        smoothstep(seg.i0, seg.i0 + FIRST_LEG_CLEAR_RAMP, x),
+        1 - smoothstep(seg.i1 - FIRST_LEG_CLEAR_RAMP, seg.i1, x),
+      );
+  if (seg.k === 'back')
+    return {
+      p: { x: c.x + lift.x * (1 - sw), y: Math.max(c.y + lift.y * (1 - sw), above), z: c.z + lift.z * (1 - sw) },
+      w: 1 - sw,
+    };
   const c1 = C(seg.i1);
   const B = seg.B!;
   // Across the ground straight from A to B, at rest at both ends (it comes down onto B, never across it); the height
   // the run's own swing's, carried from A's to B's.
-  return { p: { x: seg.A.x + (B.x - seg.A.x) * sw, y: Math.max(c.y + lift.y * (1 - sw) + (B.y - c1.y) * sw, above), z: seg.A.z + (B.z - seg.A.z) * sw }, w: 1 };
+  return {
+    p: {
+      x: seg.A.x + (B.x - seg.A.x) * sw,
+      y: Math.max(c.y + lift.y * (1 - sw) + (B.y - c1.y) * sw, above),
+      z: seg.A.z + (B.z - seg.A.z) * sw,
+    },
+    w: 1,
+  };
 }
 
 /** The lowest the ankle may be at sample x so that no sole point, as the run's legs pitch the shoe, is below the turf (m). */

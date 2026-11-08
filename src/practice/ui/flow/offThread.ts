@@ -11,7 +11,15 @@
  * No stuck states: every request ends in an answer, a local computation or an AbortError, within a bounded time.
  */
 import type { DeliveryRecord, DeliveryResult, NormalizedSwing } from '@/contracts';
-import { KEPT_RESULTS, WORK_PROTOCOL, type AnalyzeOutput, type AnalyzeWant, type BallJob, type FromWorker, type ToWorker } from '@/practice/worker/protocol';
+import {
+  KEPT_RESULTS,
+  WORK_PROTOCOL,
+  type AnalyzeOutput,
+  type AnalyzeWant,
+  type BallJob,
+  type FromWorker,
+  type ToWorker,
+} from '@/practice/worker/protocol';
 
 export type { AnalyzeOutput, AnalyzeWant, BallJob } from '@/practice/worker/protocol';
 
@@ -115,7 +123,11 @@ interface BallEntry {
   id: number;
   prepared: boolean;
   /** The pending worker request, when one was made. */
-  waiting: { requestedAt: number; settle: (r: DeliveryResult | null, stat: Omit<BallStat, 'ball' | 'requestedAt' | 'settledAt'>) => void; timer: ReturnType<typeof setTimeout> } | null;
+  waiting: {
+    requestedAt: number;
+    settle: (r: DeliveryResult | null, stat: Omit<BallStat, 'ball' | 'requestedAt' | 'settledAt'>) => void;
+    timer: ReturnType<typeof setTimeout>;
+  } | null;
   done: boolean;
 }
 
@@ -184,7 +196,8 @@ export function createOffThread(opts: OffThreadOptions): OffThreadWork {
       /* already gone */
     }
     // Everything in flight is answered on the main thread now.
-    for (const b of balls.values()) if (b.waiting) b.waiting.settle(null, { path: 'local', reason: 'worker_error', computeMs: null, mainMs: 0 });
+    for (const b of balls.values())
+      if (b.waiting) b.waiting.settle(null, { path: 'local', reason: 'worker_error', computeMs: null, mainMs: 0 });
     for (const r of [...reads.values()]) r.reject(new Error(`work: ${why}`), 'failed');
   }
 
@@ -270,7 +283,15 @@ export function createOffThread(opts: OffThreadOptions): OffThreadWork {
       const t0 = now();
       const r = local(swing);
       const t1 = now();
-      push(ballStats, { ball: id, path: 'local', reason, requestedAt, settledAt: t1, computeMs: null, mainMs: t1 - t0 });
+      push(ballStats, {
+        ball: id,
+        path: 'local',
+        reason,
+        requestedAt,
+        settledAt: t1,
+        computeMs: null,
+        mainMs: t1 - t0,
+      });
       return r;
     };
     const releaseWorker = () => {
@@ -286,7 +307,11 @@ export function createOffThread(opts: OffThreadOptions): OffThreadWork {
         if (!canAsk || !send({ t: 'resolve', ball: id, swing })) {
           releaseWorker();
           try {
-            result = computeHere(swing, mode === 'failed' ? (failure === 'no_worker' ? 'no_worker' : 'failed') : 'not_ready', requestedAt);
+            result = computeHere(
+              swing,
+              mode === 'failed' ? (failure === 'no_worker' ? 'no_worker' : 'failed') : 'not_ready',
+              requestedAt,
+            );
           } finally {
             finish();
           }
@@ -311,7 +336,10 @@ export function createOffThread(opts: OffThreadOptions): OffThreadWork {
               finish();
             }
           };
-          const timer = setTimeout(() => settle(null, { path: 'local', reason: 'timeout', computeMs: null, mainMs: 0 }), resolveTimeoutMs);
+          const timer = setTimeout(
+            () => settle(null, { path: 'local', reason: 'timeout', computeMs: null, mainMs: 0 }),
+            resolveTimeoutMs,
+          );
           entry.waiting = { requestedAt, settle, timer };
         });
       },
@@ -337,7 +365,12 @@ export function createOffThread(opts: OffThreadOptions): OffThreadWork {
     };
   }
 
-  function read(record: DeliveryRecord, result: DeliveryResult, want: AnalyzeWant, signal?: AbortSignal): Promise<AnalyzeOutput> {
+  function read(
+    record: DeliveryRecord,
+    result: DeliveryResult,
+    want: AnalyzeWant,
+    signal?: AbortSignal,
+  ): Promise<AnalyzeOutput> {
     if (signal?.aborted) return Promise.reject(abortError());
     if (!start()) return Promise.reject(new Error(`work: ${failure ?? 'unavailable'}`));
     const job = ++readSeq;
@@ -356,7 +389,15 @@ export function createOffThread(opts: OffThreadOptions): OffThreadWork {
         reused,
         resolve: (out, computeMs, mainStart) => {
           done();
-          push(readStats, { job, path: 'worker', requestedAt, settledAt: now(), computeMs, mainMs: now() - mainStart, reused });
+          push(readStats, {
+            job,
+            path: 'worker',
+            requestedAt,
+            settledAt: now(),
+            computeMs,
+            mainMs: now() - mainStart,
+            reused,
+          });
           resolve(out);
         },
         reject: (e, path) => {
@@ -375,7 +416,8 @@ export function createOffThread(opts: OffThreadOptions): OffThreadWork {
       };
       signal?.addEventListener('abort', onAbort, { once: true });
       reads.set(job, entry);
-      if (!send({ t: 'analyze', job, record, result: reused ? null : result, ball: reused ? ball! : null, want })) entry.reject(new Error(`work: ${failure ?? 'unavailable'}`), 'failed');
+      if (!send({ t: 'analyze', job, record, result: reused ? null : result, ball: reused ? ball! : null, want }))
+        entry.reject(new Error(`work: ${failure ?? 'unavailable'}`), 'failed');
     });
   }
 

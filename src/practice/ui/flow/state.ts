@@ -26,10 +26,31 @@ import type { BowlingChoice } from '@/practice/store';
 import type { CoachTipLike } from './coachTypes';
 
 export type FlowScreen = 'idle' | 'setup' | 'live' | 'coach' | 'over_summary' | 'out' | 'complete' | 'error';
-export type LivePhase = 'idle' | 'loading' | 'intro' | 'ready' | 'runup' | 'live' | 'playing' | 'dead' | 'demo' | 'closeup' | 'replay' | 'paused';
+export type LivePhase =
+  | 'idle'
+  | 'loading'
+  | 'intro'
+  | 'ready'
+  | 'runup'
+  | 'live'
+  | 'playing'
+  | 'dead'
+  | 'demo'
+  | 'closeup'
+  | 'replay'
+  | 'paused';
 export type BallKind = 'innings' | 'repeat';
 /** Calm notices, shown between balls (never during a delivery). */
-export type FlowNotice = 'classic' | 'balanced' | 'help_changed' | 'help_less' | 'interrupted' | 'resumed_leave' | 'updated' | 'unreadable' | null;
+export type FlowNotice =
+  | 'classic'
+  | 'balanced'
+  | 'help_changed'
+  | 'help_less'
+  | 'interrupted'
+  | 'resumed_leave'
+  | 'updated'
+  | 'unreadable'
+  | null;
 /** How the over was chosen: a Random Over (balanced defaults unless changed), the reference over, or the player's own six. */
 export type OverKind = 'random' | 'reference' | 'built';
 

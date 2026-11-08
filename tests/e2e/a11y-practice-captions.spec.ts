@@ -19,7 +19,12 @@ async function recordCaptions(page: Page) {
       const text = (el?.textContent ?? '').trim();
       if (!el || !text || lines.at(-1)?.text === text) return;
       const r = el.getBoundingClientRect();
-      lines.push({ text, top: r.top, bottom: r.bottom, inStrip: Boolean(el.closest('[data-testid="practice-status"]')) });
+      lines.push({
+        text,
+        top: r.top,
+        bottom: r.bottom,
+        inStrip: Boolean(el.closest('[data-testid="practice-status"]')),
+      });
     }).observe(document, { subtree: true, childList: true, characterData: true, attributes: true });
   });
 }
@@ -34,7 +39,8 @@ async function playOne(page: Page, captions: boolean) {
   await page.getByTestId('practice-settings-open').click();
   const sw = page.getByTestId('practice-settings-captions');
   await expect(sw).toBeVisible({ timeout: 20_000 });
-  const on = async () => (await sw.getAttribute('aria-checked')) === 'true' || (await sw.isChecked().catch(() => false));
+  const on = async () =>
+    (await sw.getAttribute('aria-checked')) === 'true' || (await sw.isChecked().catch(() => false));
   if ((await on()) !== captions) await sw.click();
   expect(await on(), 'the captions switch').toBe(captions);
   await page.goto('/');
@@ -46,15 +52,25 @@ async function playOne(page: Page, captions: boolean) {
   await waitFor(page, ['runup', 'live', 'playing', 'dead']);
   await waitFor(page, ['dead'], 120_000);
   await page.waitForTimeout(1500);
-  return page.evaluate(() => (window as unknown as { __captions: Array<{ text: string; top: number; bottom: number; inStrip: boolean }> }).__captions);
+  return page.evaluate(
+    () =>
+      (window as unknown as { __captions: Array<{ text: string; top: number; bottom: number; inStrip: boolean }> })
+        .__captions,
+  );
 }
 
-test('[A11Y5] captions on: the delivery’s essential sounds are captioned in the status strip, never over the play', async ({ page }) => {
+test('[A11Y5] captions on: the delivery’s essential sounds are captioned in the status strip, never over the play', async ({
+  page,
+}) => {
   test.setTimeout(240_000);
   const lines = await playOne(page, true);
   expect(lines.length, 'caption lines during one delivery').toBeGreaterThan(0);
   const vh = page.viewportSize()!.height;
-  for (const l of lines) expect(l.inStrip || l.bottom <= vh * 0.2 || l.top >= vh * 0.8, `caption "${l.text}" sits in the strip, not over the play`).toBe(true);
+  for (const l of lines)
+    expect(
+      l.inStrip || l.bottom <= vh * 0.2 || l.top >= vh * 0.8,
+      `caption "${l.text}" sits in the strip, not over the play`,
+    ).toBe(true);
 });
 
 test('[A11Y5] captions off: nothing is captioned', async ({ page }) => {

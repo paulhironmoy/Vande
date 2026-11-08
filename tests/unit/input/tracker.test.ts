@@ -41,7 +41,15 @@ function setup() {
   const gestures: GestureInput[] = [];
   const intents: Array<SwingIntent & { at: number }> = [];
   const cancellations: number[] = [];
-  const tr = new GestureTracker({ swingStart: (t, p) => starts.push([t, p]), gesture: (g) => gestures.push(g), intent: (i) => intents.push({ ...i, at: clock.now() }), cancel: () => cancellations.push(clock.now()) }, clock.sched);
+  const tr = new GestureTracker(
+    {
+      swingStart: (t, p) => starts.push([t, p]),
+      gesture: (g) => gestures.push(g),
+      intent: (i) => intents.push({ ...i, at: clock.now() }),
+      cancel: () => cancellations.push(clock.now()),
+    },
+    clock.sched,
+  );
   tr.setSurface(SURFACES.phone.width, SURFACES.phone.height);
   return { tr, clock, starts, gestures, intents, cancellations };
 }
@@ -85,7 +93,8 @@ describe('an armed press', () => {
     for (const durationMs of [TAP_HOLD_MS - 1, TAP_HOLD_MS, TAP_HOLD_MS + 1])
       for (const delivery of DELIVERIES) {
         const result = play(tapSamples(RELEASE + 500, durationMs, { driftPx: 2 }), { delivery });
-        if (durationMs <= TAP_HOLD_MS) expect(result.swing, `${durationMs} ${delivery.name}`).toMatchObject({ kind: 'defend', startT: 0.5 });
+        if (durationMs <= TAP_HOLD_MS)
+          expect(result.swing, `${durationMs} ${delivery.name}`).toMatchObject({ kind: 'defend', startT: 0.5 });
         else expect(result.swing, `${durationMs} ${delivery.name}`).toBeNull();
       }
   });
@@ -262,7 +271,8 @@ describe('a finger resting on the glass when the delivery is armed', () => {
     for (let t = 1008; t < 1300; t += 8) tr.pointerMove(7, [{ t, x: 300 + ((t / 8) % 2) * 0.6, y: 100 }]);
     clock.advance(1300);
     expect(starts).toHaveLength(0);
-    for (let t = 1300; t <= 1400; t += 8) tr.pointerMove(7, [{ t, x: 300 + (t - 1300) * 0.2, y: 100 - (t - 1300) * 1.1 }]);
+    for (let t = 1300; t <= 1400; t += 8)
+      tr.pointerMove(7, [{ t, x: 300 + (t - 1300) * 0.2, y: 100 - (t - 1300) * 1.1 }]);
     tr.pointerUp(7, { t: 1404, x: 300 + 104 * 0.2, y: 100 - 104 * 1.1 });
     expect(starts).toHaveLength(1);
     expect(Math.abs(starts[0][0] - 1300)).toBeLessThanOrEqual(8);
@@ -306,7 +316,10 @@ describe('keyboard', () => {
     expect(intents.map((i) => i.kind)).toEqual(['defend']);
     expect(gestures[0].pointer).toBe('keyboard');
     const key = normalizeGesture(gestures[0], { ...OPTS, releasePerfMs: 1000, calibrationMs: 30 })!;
-    const tap = normalizeGesture({ pointer: 'touch', samples: [{ t: 1234.5, x: 3, y: 3 }], surface: SURFACES.phone }, { ...OPTS, releasePerfMs: 1000, calibrationMs: 30 })!;
+    const tap = normalizeGesture(
+      { pointer: 'touch', samples: [{ t: 1234.5, x: 3, y: 3 }], surface: SURFACES.phone },
+      { ...OPTS, releasePerfMs: 1000, calibrationMs: 30 },
+    )!;
     expect(key).toEqual(tap);
     expect(tr.key('Space', 1300, true)).toBe('ignored');
     expect(tr.key('Enter', 1310)).toBe('ignored');
@@ -324,7 +337,14 @@ describe('keyboard', () => {
     expect(gestures).toHaveLength(0);
     clock.advance(1500 + KEYBOARD.chordMs);
     expect(gestures).toHaveLength(1);
-    expect(norm(gestures[0], 1000)).toEqual({ kind: 'attack', startT: 0.5, directionDeg: 90, power: KEYBOARD.power, elevation: 0, footwork: 'auto' });
+    expect(norm(gestures[0], 1000)).toEqual({
+      kind: 'attack',
+      startT: 0.5,
+      directionDeg: 90,
+      power: KEYBOARD.power,
+      elevation: 0,
+      footwork: 'auto',
+    });
   });
 
   it('two arrows within the chord window make the diagonal, emitted at once', () => {
@@ -351,7 +371,12 @@ describe('keyboard', () => {
     a.tr.setEnabled(true);
     a.tr.key('ArrowUp', 1500, false, { shift: true });
     a.clock.advance(1500 + KEYBOARD.chordMs);
-    expect(norm(a.gestures[0], 1000)).toMatchObject({ kind: 'attack', directionDeg: 0, power: KEYBOARD.loftPower, elevation: KEYBOARD.loftElevation });
+    expect(norm(a.gestures[0], 1000)).toMatchObject({
+      kind: 'attack',
+      directionDeg: 0,
+      power: KEYBOARD.loftPower,
+      elevation: KEYBOARD.loftElevation,
+    });
     const b = setup();
     b.tr.setEnabled(true);
     b.tr.key('ArrowDown', 1500);
@@ -361,7 +386,16 @@ describe('keyboard', () => {
   });
 
   it('keypad 1–9 give the eight directions at once, and 5 defends', () => {
-    const want: Record<string, number> = { Numpad8: 0, Numpad9: 45, Numpad6: 90, Numpad3: 135, Numpad2: 180, Numpad1: -135, Numpad4: -90, Numpad7: -45 };
+    const want: Record<string, number> = {
+      Numpad8: 0,
+      Numpad9: 45,
+      Numpad6: 90,
+      Numpad3: 135,
+      Numpad2: 180,
+      Numpad1: -135,
+      Numpad4: -90,
+      Numpad7: -45,
+    };
     for (const [code, deg] of Object.entries(want)) {
       const { tr, gestures } = setup();
       tr.setEnabled(true);

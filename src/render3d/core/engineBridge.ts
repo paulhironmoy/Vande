@@ -7,7 +7,13 @@
 import type { BallOutcome, BowlerAction, Conditions } from '@/contracts';
 import * as Engine from '@/engine';
 
-const FALLBACK_RUN_UP: Record<BowlerAction, number> = { pace_long: 2200, pace_short: 1800, swing_side_on: 2000, spin_off: 1300, spin_leg: 1350 };
+const FALLBACK_RUN_UP: Record<BowlerAction, number> = {
+  pace_long: 2200,
+  pace_short: 1800,
+  swing_side_on: 2000,
+  spin_off: 1300,
+  spin_leg: 1350,
+};
 
 export function runUpMs(action: BowlerAction): number {
   try {

@@ -36,15 +36,34 @@ for (const assist of ['play', 'real'] as AssistLevel[]) {
           expect(r.contact.kind, rb.id).toBe('leave');
         } else expect(r.contact.kind, rb.id).toBe('middle');
         // A recommended stroke goes where it is aimed (W0 #6): never a deflection off the toe behind the stumps.
-        if (rec.decision === 'attack') expect(wentWhereAimed(r.contact), `${rb.id} aimed ${r.contact.intendedBearingDeg}°, left at ${r.contact.exitBearingDeg}°`).toBe(true);
+        if (rec.decision === 'attack')
+          expect(
+            wentWhereAimed(r.contact),
+            `${rb.id} aimed ${r.contact.intendedBearingDeg}°, left at ${r.contact.exitBearingDeg}°`,
+          ).toBe(true);
         // ... and is never a slow fend (lead ruling 2026-11-03): at least half the bat speed it asks for.
-        if (rec.decision === 'attack') expect(slowFend({ decision: 'attack', power: rec.swing!.power, directionDeg: rec.swing!.directionDeg, footwork: rec.footwork }, r.contact), `${rb.id} met at ${r.contact.batSpeedKph} km/h`).toBe(false);
+        if (rec.decision === 'attack')
+          expect(
+            slowFend(
+              {
+                decision: 'attack',
+                power: rec.swing!.power,
+                directionDeg: rec.swing!.directionDeg,
+                footwork: rec.footwork,
+              },
+              r.contact,
+            ),
+            `${rb.id} met at ${r.contact.batSpeedKph} km/h`,
+          ).toBe(false);
         expect(r.outcome).toEqual(rec.outcome);
         rows.push(
           `${rb.id} ${rb.variation.padEnd(8)} → ${rec.decision} ${rec.footwork}${rec.swing && rec.decision === 'attack' ? ` ${rec.swing.directionDeg}° e${rec.swing.elevation} p${rec.swing.power}` : ''}: ${rec.contact} ${rec.outcome.runs} (E ${rec.expectedRuns}, risk ${rec.dismissalRisk}) | ` +
             a.options
               .slice(1)
-              .map((o) => `${o.kind} ${o.decision}${o.swing && o.decision === 'attack' ? ` ${o.swing.directionDeg}°${o.swing.elevation >= 0.45 ? ' lofted' : ''}` : ''} E ${o.expectedRuns} risk ${o.dismissalRisk}`)
+              .map(
+                (o) =>
+                  `${o.kind} ${o.decision}${o.swing && o.decision === 'attack' ? ` ${o.swing.directionDeg}°${o.swing.elevation >= 0.45 ? ' lofted' : ''}` : ''} E ${o.expectedRuns} risk ${o.dismissalRisk}`,
+              )
               .join(' | '),
         );
       }
@@ -64,7 +83,16 @@ for (const assist of ['play', 'real'] as AssistLevel[]) {
         const rec = a.options[0];
         if (a.ball.wouldHitStumps) expect(rec.decision, rb.id).not.toBe('leave');
         if (rec.decision !== 'attack' || !rec.risks.includes('into_protected_region')) continue;
-        const c: Candidate = { id: 'rec', index: 0, decision: 'attack', kind: 'attack', footwork: rec.swing!.footwork, directionDeg: rec.swing!.directionDeg, elevation: rec.swing!.elevation, power: rec.swing!.power };
+        const c: Candidate = {
+          id: 'rec',
+          index: 0,
+          decision: 'attack',
+          kind: 'attack',
+          footwork: rec.swing!.footwork,
+          directionDeg: rec.swing!.directionDeg,
+          elevation: rec.swing!.elevation,
+          power: rec.swing!.power,
+        };
         const ideal = idealTimes(practiceFlight(record));
         for (const p of spreadOf(c)) {
           const r = replayOption(record, swingOf(c, ideal, p.dtMs, p.aimDeg));
@@ -136,10 +164,34 @@ for (const assist of ['play', 'real'] as AssistLevel[]) {
 
 describe('owner decision 2026-11-03: a robust stroke outranks the protected-arc rule (options.ts pick)', () => {
   // Fixed candidates, so the tier order is tested whatever the physics' calibration: tally weights sum to 1.
-  const centre = (runs: number) => ({ contact: { kind: 'middle', exitBearingDeg: 47, intendedBearingDeg: 45 }, outcome: { runs, dismissal: null }, footwork: 'forward', coaching: { reason: 'found_the_gap' } }) as unknown as CoachResult;
-  const tally = (out: number, clean: number, runs: number): Tally => ({ w: 1, out, runs, clean, edges: 0, caught: out > 0 ? 1 : 0, bowled: 0, lbw: 0 });
+  const centre = (runs: number) =>
+    ({
+      contact: { kind: 'middle', exitBearingDeg: 47, intendedBearingDeg: 45 },
+      outcome: { runs, dismissal: null },
+      footwork: 'forward',
+      coaching: { reason: 'found_the_gap' },
+    }) as unknown as CoachResult;
+  const tally = (out: number, clean: number, runs: number): Tally => ({
+    w: 1,
+    out,
+    runs,
+    clean,
+    edges: 0,
+    caught: out > 0 ? 1 : 0,
+    bowled: 0,
+    lbw: 0,
+  });
   const attack = (index: number, protectedAim: boolean, t: Tally): Evaluated => ({
-    c: { id: `attack:${index}`, index, decision: 'attack', kind: 'attack', footwork: 'forward', directionDeg: 45, elevation: 0, power: 0.55 },
+    c: {
+      id: `attack:${index}`,
+      index,
+      decision: 'attack',
+      kind: 'attack',
+      footwork: 'forward',
+      directionDeg: 45,
+      elevation: 0,
+      power: 0.55,
+    },
     swing: null,
     centre: centre(1),
     played: 'forward',
@@ -169,10 +221,29 @@ describe('a recommended stroke goes where it is aimed (W0 #6; options.ts AIMED_W
   // to three yorkers (ref-6 at Learn and at Play with 15 ms) whose ideal point came off the toe end of the blade
   // (bladeU -0.037) and left 173° from its aim, behind the stumps. The physics calls that a face contact; the recorded
   // bearings say it was a deflection, so it is not clean contact at the ideal point.
-  const evaluated = (decision: 'attack' | 'defend', index: number, exitBearingDeg: number | null, runs: number): Evaluated => ({
-    c: { id: `${decision}:${index}`, index, decision, kind: decision, footwork: 'back', directionDeg: 0, elevation: decision === 'attack' ? 0.55 : 0, power: decision === 'attack' ? 0.8 : 0.2 },
+  const evaluated = (
+    decision: 'attack' | 'defend',
+    index: number,
+    exitBearingDeg: number | null,
+    runs: number,
+  ): Evaluated => ({
+    c: {
+      id: `${decision}:${index}`,
+      index,
+      decision,
+      kind: decision,
+      footwork: 'back',
+      directionDeg: 0,
+      elevation: decision === 'attack' ? 0.55 : 0,
+      power: decision === 'attack' ? 0.8 : 0.2,
+    },
     swing: null,
-    centre: { contact: { kind: 'middle', exitBearingDeg, intendedBearingDeg: 0 }, outcome: { runs, dismissal: null }, footwork: 'back', coaching: { reason: 'found_the_gap' } } as unknown as CoachResult,
+    centre: {
+      contact: { kind: 'middle', exitBearingDeg, intendedBearingDeg: 0 },
+      outcome: { runs, dismissal: null },
+      footwork: 'back',
+      coaching: { reason: 'found_the_gap' },
+    } as unknown as CoachResult,
     played: 'back',
     orthodox: decision === 'defend',
     withLine: true,
@@ -210,7 +281,10 @@ describe('a recommended stroke goes where it is aimed (W0 #6; options.ts AIMED_W
   it('the higher-scoring alternative is never a deflection either (lead decision 2026-11-03)', () => {
     // A riskier block-beating stroke that scores more but leaves backwards from its aim is not offered as "More runs".
     const block = evaluated('defend', 2, 4, 0);
-    const toeDeflection = { ...evaluated('attack', 1, 173, 1), tally: { w: 1, out: 0.05, runs: 1, clean: 0.95, edges: 0, caught: 1, bowled: 0, lbw: 0 } };
+    const toeDeflection = {
+      ...evaluated('attack', 1, 173, 1),
+      tally: { w: 1, out: 0.05, runs: 1, clean: 0.95, edges: 0, caught: 1, bowled: 0, lbw: 0 },
+    };
     expect(pick([toeDeflection, block]).higherScoring).toBeNull();
     const alongAim = { ...evaluated('attack', 1, 3, 1), tally: toeDeflection.tally };
     expect(pick([alongAim, block]).higherScoring).toBe(alongAim);

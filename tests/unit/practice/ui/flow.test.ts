@@ -119,8 +119,22 @@ describe('the innings', () => {
     expect(stage.calls()).toContain('cancelSwing');
     flow.onSwingStart(onset + 20, 'touch');
     flow.onSwingIntent({ atPerfMs: onset + 30, pointer: 'touch' });
-    flow.onContactState(contactState({ phase: 'committing', timingAtPerfMs: onset + 30, committed: true, forwardBearingDeg: 25, forwardVelocity: 3, pathPower: 0.48 }));
-    expect(stage.contactStates.at(-1)).toMatchObject({ phase: 'committing', forwardBearingDeg: 25, pathPower: 0.48, committed: true });
+    flow.onContactState(
+      contactState({
+        phase: 'committing',
+        timingAtPerfMs: onset + 30,
+        committed: true,
+        forwardBearingDeg: 25,
+        forwardVelocity: 3,
+        pathPower: 0.48,
+      }),
+    );
+    expect(stage.contactStates.at(-1)).toMatchObject({
+      phase: 'committing',
+      forwardBearingDeg: 25,
+      pathPower: 0.48,
+      committed: true,
+    });
     expect(begin).toHaveBeenLastCalledWith(onset + 30, 0);
     expect(begin).toHaveBeenCalledTimes(2);
     flow.dispose();
@@ -304,7 +318,10 @@ describe('no save-scumming', () => {
 
   it('an innings from an older version of Practice is dropped calmly, never resumed', () => {
     const a = setup();
-    a.store.setItem(PRACTICE_KEYS.innings, JSON.stringify({ v: 1, state: { version: 0, id: 'old', status: 'batting' } }));
+    a.store.setItem(
+      PRACTICE_KEYS.innings,
+      JSON.stringify({ v: 1, state: { version: 0, id: 'old', status: 'batting' } }),
+    );
     expect(a.flow.init()).toBe('menu');
     expect(a.flow.getState().notice).toBe('updated');
     expect(a.store.getItem(PRACTICE_KEYS.innings)).toBeNull();
@@ -368,7 +385,14 @@ describe('a busy main thread never turns a swing into a leave', () => {
     flow.onSwingStart(performance.now());
     await vi.advanceTimersByTimeAsync(500);
     expect(flow.getState().phase).toBe('live');
-    flow.onGesture({ pointer: 'touch', samples: [{ t: release + 300, x: 10, y: 10 }, { t: release + 340, x: 30, y: -20 }], surface: { width: 400, height: 200 } });
+    flow.onGesture({
+      pointer: 'touch',
+      samples: [
+        { t: release + 300, x: 10, y: 10 },
+        { t: release + 340, x: 30, y: -20 },
+      ],
+      surface: { width: 400, height: 200 },
+    });
     await until(() => flow.getState().phase === 'dead');
     expect(flow.getState().last?.result.swing?.kind).toBe('attack');
   });
@@ -405,7 +429,14 @@ describe('analytics', () => {
       expect(sanitizeProps(p ?? {})).toEqual(p ?? {});
     }
     const delivery = events.find(([e]) => e === 'practice_delivery')?.[1];
-    expect(delivery).toMatchObject({ mode: 'practice', assist: 'learn', tier: 'full', timing: 'on_time', outcome: 'four', latencyBucket: '<50ms' });
+    expect(delivery).toMatchObject({
+      mode: 'practice',
+      assist: 'learn',
+      tier: 'full',
+      timing: 'on_time',
+      outcome: 'four',
+      latencyBucket: '<50ms',
+    });
     expect(Object.keys(PROP_RULES)).toEqual(expect.arrayContaining(Object.keys(delivery ?? {})));
   });
 });

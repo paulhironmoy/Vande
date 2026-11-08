@@ -40,12 +40,29 @@ const PITCHES: readonly PitchCondition[] = ['balanced', 'green', 'hard', 'turnin
 const DIFFICULTIES: readonly Difficulty[] = ['beginner', 'club', 'expert'];
 const BOWLING: readonly BowlingChoice[] = ['any', 'pace', 'spin'];
 
-export function Setup({ pending: p, notice, onRandom, onAssist, onPlay, onBack, firstSession, pressFootwork }: SetupProps) {
+export function Setup({
+  pending: p,
+  notice,
+  onRandom,
+  onAssist,
+  onPlay,
+  onBack,
+  firstSession,
+  pressFootwork,
+}: SetupProps) {
   const t = usePracticeT();
   const kindTitle = t.tk(`practice.setup.kind.${p.kind}`);
   const editable = !p.continuing && p.bowled === 0;
-  const random = p.kind === 'random' && editable ? (p.random ?? { difficulty: 'club', conditions: 'balanced', bowling: 'any' }) : null;
-  const fallback = notice === 'classic' ? t.t('practice.notice.classic') : notice === 'resumed_leave' ? t.t('practice.notice.resumed_leave') : null;
+  const random =
+    p.kind === 'random' && editable
+      ? (p.random ?? { difficulty: 'club', conditions: 'balanced', bowling: 'any' })
+      : null;
+  const fallback =
+    notice === 'classic'
+      ? t.t('practice.notice.classic')
+      : notice === 'resumed_leave'
+        ? t.t('practice.notice.resumed_leave')
+        : null;
   return (
     <div className={s.overlay} data-testid="practice-setup" data-kind={p.kind}>
       <PremiumShellBackdrop variant="setup" />
@@ -79,14 +96,56 @@ export function Setup({ pending: p, notice, onRandom, onAssist, onPlay, onBack, 
             </section>
             <div className={s.side}>
               <div className={s.briefPanel}>
-                <SessionBrief kind={p.kind} plan={p.plan} field={p.field} intent={p.intent} conditions={p.conditions} assist={p.assist} handedness={p.handedness} difficulty={p.random?.difficulty ?? null} onAssist={editable ? onAssist : undefined} glossary={firstSession} simple={firstSession} />
+                <SessionBrief
+                  kind={p.kind}
+                  plan={p.plan}
+                  field={p.field}
+                  intent={p.intent}
+                  conditions={p.conditions}
+                  assist={p.assist}
+                  handedness={p.handedness}
+                  difficulty={p.random?.difficulty ?? null}
+                  onAssist={editable ? onAssist : undefined}
+                  glossary={firstSession}
+                  simple={firstSession}
+                />
               </div>
               {random && (
-                <PDisclosure className={s.adjustments} label={t.t('practice.setup.change', { difficulty: t.tk(`practice.difficulty.${random.difficulty}`), pitch: t.tk(`practice.pitch.${random.conditions}`), bowling: t.tk(`practice.bowling.${random.bowling}`) })} testId="practice-random-choices">
+                <PDisclosure
+                  className={s.adjustments}
+                  label={t.t('practice.setup.change', {
+                    difficulty: t.tk(`practice.difficulty.${random.difficulty}`),
+                    pitch: t.tk(`practice.pitch.${random.conditions}`),
+                    bowling: t.tk(`practice.bowling.${random.bowling}`),
+                  })}
+                  testId="practice-random-choices"
+                >
                   <section className={s.choices} aria-label={t.t('practice.setup.random_choices')}>
-                    <PSegmented label={t.t('practice.setup.difficulty')} value={random.difficulty} onChange={(v: Difficulty) => onRandom({ ...random, difficulty: v })} options={DIFFICULTIES.map((v) => ({ value: v, label: t.tk(`practice.difficulty.${v}`), description: t.tk(`practice.difficulty.${v}_hint`) }))} testId="practice-random-difficulty" />
-                    <PSegmented label={t.t('practice.setup.pitch')} value={random.conditions} onChange={(v: PitchCondition) => onRandom({ ...random, conditions: v })} options={PITCHES.map((v) => ({ value: v, label: t.tk(`practice.pitch.${v}`) }))} testId="practice-random-pitch" />
-                    <PSegmented label={t.t('practice.setup.bowling')} value={random.bowling} onChange={(v: BowlerFamily | 'any') => onRandom({ ...random, bowling: v })} options={BOWLING.map((v) => ({ value: v, label: t.tk(`practice.bowling.${v}`) }))} testId="practice-random-bowling" />
+                    <PSegmented
+                      label={t.t('practice.setup.difficulty')}
+                      value={random.difficulty}
+                      onChange={(v: Difficulty) => onRandom({ ...random, difficulty: v })}
+                      options={DIFFICULTIES.map((v) => ({
+                        value: v,
+                        label: t.tk(`practice.difficulty.${v}`),
+                        description: t.tk(`practice.difficulty.${v}_hint`),
+                      }))}
+                      testId="practice-random-difficulty"
+                    />
+                    <PSegmented
+                      label={t.t('practice.setup.pitch')}
+                      value={random.conditions}
+                      onChange={(v: PitchCondition) => onRandom({ ...random, conditions: v })}
+                      options={PITCHES.map((v) => ({ value: v, label: t.tk(`practice.pitch.${v}`) }))}
+                      testId="practice-random-pitch"
+                    />
+                    <PSegmented
+                      label={t.t('practice.setup.bowling')}
+                      value={random.bowling}
+                      onChange={(v: BowlerFamily | 'any') => onRandom({ ...random, bowling: v })}
+                      options={BOWLING.map((v) => ({ value: v, label: t.tk(`practice.bowling.${v}`) }))}
+                      testId="practice-random-bowling"
+                    />
                   </section>
                 </PDisclosure>
               )}

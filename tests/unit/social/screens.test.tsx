@@ -1,6 +1,14 @@
 import { cleanup, configure, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CupView, HighlightJob, HighlightPreview, HighlightPublic, LeaderboardView, RoomView, Top100Entry } from '@/contracts';
+import type {
+  CupView,
+  HighlightJob,
+  HighlightPreview,
+  HighlightPublic,
+  LeaderboardView,
+  RoomView,
+  Top100Entry,
+} from '@/contracts';
 import { useApp } from '@/app/store';
 import { useRouter } from '@/app/router';
 import { AgeNotConfirmedError, ApiClientError } from '@/net/errors';
@@ -10,7 +18,10 @@ import { fakeServices, ME, ref } from './fakeServices';
 configure({ asyncUtilTimeout: 5_000 });
 
 let current: ReturnType<typeof fakeServices>['services'] | null = null;
-vi.mock('@/app/services', async (orig) => ({ ...(await orig<typeof import('@/app/services')>()), useServices: () => current }));
+vi.mock('@/app/services', async (orig) => ({
+  ...(await orig<typeof import('@/app/services')>()),
+  useServices: () => current,
+}));
 
 const { default: Top100Route } = await import('@/social/top100/Top100Route');
 const { default: HighlightsRoute } = await import('@/social/highlights/HighlightsRoute');
@@ -29,12 +40,31 @@ afterEach(() => {
   current = null;
 });
 
-const entry = (rank: number, playerId: string, alias: string): Top100Entry => ({ day: '2026-10-25', rank, playerId, alias, score: 240 - rank, matchIds: ['m1', 'm2'], bestMatchId: 'm1', components: { wins: 2, opponentStrength: 0.4, tacticalEfficiency: 0.6, tournamentImportance: 0.4, clutch: 0.5, execution: 0.6 } });
+const entry = (rank: number, playerId: string, alias: string): Top100Entry => ({
+  day: '2026-10-25',
+  rank,
+  playerId,
+  alias,
+  score: 240 - rank,
+  matchIds: ['m1', 'm2'],
+  bestMatchId: 'm1',
+  components: {
+    wins: 2,
+    opponentStrength: 0.4,
+    tacticalEfficiency: 0.6,
+    tournamentImportance: 0.4,
+    clutch: 0.5,
+    execution: 0.6,
+  },
+});
 
 describe('Top 100', () => {
   it('today is decided at midnight IST: never a provisional list', async () => {
     vi.useFakeTimers({ toFake: ['Date'], now: Date.UTC(2026, 9, 26, 9) });
-    const f = fakeServices({ 'GET /v1/top100/:day': () => Promise.reject(new ApiClientError('sealed', 'decided at midnight', 409, null, '2026-10-26T18:30:00.000Z')) });
+    const f = fakeServices({
+      'GET /v1/top100/:day': () =>
+        Promise.reject(new ApiClientError('sealed', 'decided at midnight', 409, null, '2026-10-26T18:30:00.000Z')),
+    });
     current = f.services;
     render(<Top100Route route={{ name: 'top100', day: '2026-10-26' }} />);
     expect(await screen.findByText('Decided at midnight')).toBeTruthy();
@@ -47,7 +77,10 @@ describe('Top 100', () => {
 
   it('a past day whose midnight has passed is running late, never "being decided"', async () => {
     vi.useFakeTimers({ toFake: ['Date'], now: Date.UTC(2026, 9, 26, 9) });
-    const f = fakeServices({ 'GET /v1/top100/:day': () => Promise.reject(new ApiClientError('sealed', 'not frozen yet', 409, null, '2026-10-25T18:30:00.000Z')) });
+    const f = fakeServices({
+      'GET /v1/top100/:day': () =>
+        Promise.reject(new ApiClientError('sealed', 'not frozen yet', 409, null, '2026-10-25T18:30:00.000Z')),
+    });
     current = f.services;
     render(<Top100Route route={{ name: 'top100' }} />);
     expect(await screen.findByText('Running late')).toBeTruthy();
@@ -58,14 +91,23 @@ describe('Top 100', () => {
 
   it('a day long past that was never ranked says so plainly', async () => {
     vi.useFakeTimers({ toFake: ['Date'], now: Date.UTC(2026, 9, 26, 9) });
-    const f = fakeServices({ 'GET /v1/top100/:day': () => Promise.reject(new ApiClientError('sealed', 'not frozen', 409, null, '2026-10-20T18:30:00.000Z')) });
+    const f = fakeServices({
+      'GET /v1/top100/:day': () =>
+        Promise.reject(new ApiClientError('sealed', 'not frozen', 409, null, '2026-10-20T18:30:00.000Z')),
+    });
     current = f.services;
     render(<Top100Route route={{ name: 'top100', day: '2026-10-20' }} />);
     expect(await screen.findByText('No Top 100 for this day')).toBeTruthy();
   });
 
   it('lists a frozen day, marks me, and links every live highlight (mine and others) to its landing', async () => {
-    const f = fakeServices({ 'GET /v1/top100/:day': () => [{ ...entry(1, 'pb', 'Calm Cobra'), highlightCode: 'k7q2m9xa' }, { ...entry(2, 'pme', 'Swift Tiger'), highlightCode: 'k7q2m9xa' }, { ...entry(3, 'pc', 'Bold Falcon'), highlightCode: null }] });
+    const f = fakeServices({
+      'GET /v1/top100/:day': () => [
+        { ...entry(1, 'pb', 'Calm Cobra'), highlightCode: 'k7q2m9xa' },
+        { ...entry(2, 'pme', 'Swift Tiger'), highlightCode: 'k7q2m9xa' },
+        { ...entry(3, 'pc', 'Bold Falcon'), highlightCode: null },
+      ],
+    });
     current = f.services;
     render(<Top100Route route={{ name: 'top100', day: '2026-10-25' }} />);
     const list = await screen.findByTestId('top100-entries');
@@ -91,17 +133,54 @@ describe('Top 100', () => {
 
 describe('highlight consent', () => {
   const jobId = `j${'b'.repeat(26)}`;
-  const job: HighlightJob = { jobId, day: '2026-10-25', matchId: 'm1', participants: ['pme', 'pb'], status: 'pending_consent', title: 'Swift Tiger vs Calm Cobra · Daily Top 100 #1 | VANDE Cricket #Shorts', description: 'Friend Duel · 2026-10-25', visibility: 'public', videoKey: null, youtubeVideoId: null, scheduledFor: null, attempts: 0, lastError: null, attributionCode: 'k7q2m9xa' };
+  const job: HighlightJob = {
+    jobId,
+    day: '2026-10-25',
+    matchId: 'm1',
+    participants: ['pme', 'pb'],
+    status: 'pending_consent',
+    title: 'Swift Tiger vs Calm Cobra · Daily Top 100 #1 | VANDE Cricket #Shorts',
+    description: 'Friend Duel · 2026-10-25',
+    visibility: 'public',
+    videoKey: null,
+    youtubeVideoId: null,
+    scheduledFor: null,
+    attempts: 0,
+    lastError: null,
+    attributionCode: 'k7q2m9xa',
+  };
   // The log keeps the match-time aliases; the consent screen shows the moderated names in `aliases`.
   const log = { players: [ref('pme', 'Old Name'), ref('pb', 'Calm Cobra')] };
-  const preview = (decision: HighlightPreview['myDecision'] = null) => ({ job, input: { jobId, log, aliases: ['Swift Tiger', 'Calm Cobra'] as [string, string], locale: 'en', fixtureLabel: 'Friend Duel', day: '2026-10-25', ranks: [1, null], standings: null, cta: { url: 'https://vande.example/h/k7q2m9xa' } }, myDecision: decision });
+  const preview = (decision: HighlightPreview['myDecision'] = null) => ({
+    job,
+    input: {
+      jobId,
+      log,
+      aliases: ['Swift Tiger', 'Calm Cobra'] as [string, string],
+      locale: 'en',
+      fixtureLabel: 'Friend Duel',
+      day: '2026-10-25',
+      ranks: [1, null],
+      standings: null,
+      cta: { url: 'https://vande.example/h/k7q2m9xa' },
+    },
+    myDecision: decision,
+  });
 
   it('needs the 18+ confirmation to grant, and sends the chosen visibility', async () => {
     vi.useFakeTimers({ toFake: ['Date'], now: Date.UTC(2026, 9, 26, 9) });
     const f = fakeServices({
       'GET /v1/highlights/mine': () => [job],
       'GET /v1/highlights/:jobId/preview': () => preview(),
-      'POST /v1/highlights/:jobId/consent': ({ body }) => ({ jobId, playerId: 'pme', decision: (body as { decision: string }).decision, adultConfirmed: true, approvedTitle: job.title, approvedVisibility: 'unlisted', decidedHour: '' }),
+      'POST /v1/highlights/:jobId/consent': ({ body }) => ({
+        jobId,
+        playerId: 'pme',
+        decision: (body as { decision: string }).decision,
+        adultConfirmed: true,
+        approvedTitle: job.title,
+        approvedVisibility: 'unlisted',
+        decidedHour: '',
+      }),
     });
     current = f.services;
     render(<HighlightsRoute route={{ name: 'highlights' }} />);
@@ -116,14 +195,21 @@ describe('highlight consent', () => {
     expect(grant.disabled).toBe(false);
     fireEvent.click(grant);
     await waitFor(() => expect(f.calls.find((c) => c.route === 'POST /v1/highlights/:jobId/consent')).toBeTruthy());
-    expect(f.calls.find((c) => c.route === 'POST /v1/highlights/:jobId/consent')?.args.body).toEqual({ decision: 'granted', adultConfirmed: true, visibility: 'unlisted' });
+    expect(f.calls.find((c) => c.route === 'POST /v1/highlights/:jobId/consent')?.args.body).toEqual({
+      decision: 'granted',
+      adultConfirmed: true,
+      visibility: 'unlisted',
+    });
     expect(f.track).toHaveBeenCalledWith('highlight_consent', { decision: 'granted' });
     vi.useRealTimers();
   });
 
   it('a declined job keeps the badge and offers no withdrawal', async () => {
     const declined = { ...job, status: 'consent_declined' as const };
-    const f = fakeServices({ 'GET /v1/highlights/mine': () => [declined], 'GET /v1/highlights/:jobId/preview': () => ({ ...preview('declined'), job: declined }) });
+    const f = fakeServices({
+      'GET /v1/highlights/mine': () => [declined],
+      'GET /v1/highlights/:jobId/preview': () => ({ ...preview('declined'), job: declined }),
+    });
     current = f.services;
     render(<HighlightsRoute route={{ name: 'highlights' }} />);
     fireEvent.click(await screen.findByTestId(`highlight-open-${jobId}`));
@@ -134,7 +220,19 @@ describe('highlight consent', () => {
 
   it('withdrawing a published video states that it is deleted, then calls the API', async () => {
     const live = { ...job, status: 'published' as const, youtubeVideoId: 'dQw4w9WgXcQ' };
-    const f = fakeServices({ 'GET /v1/highlights/mine': () => [live], 'GET /v1/highlights/:jobId/preview': () => ({ ...preview('granted'), job: live }), 'POST /v1/highlights/:jobId/withdraw': () => ({ jobId, playerId: 'pme', decision: 'withdrawn', adultConfirmed: false, approvedTitle: live.title, approvedVisibility: 'public', decidedHour: '' }) });
+    const f = fakeServices({
+      'GET /v1/highlights/mine': () => [live],
+      'GET /v1/highlights/:jobId/preview': () => ({ ...preview('granted'), job: live }),
+      'POST /v1/highlights/:jobId/withdraw': () => ({
+        jobId,
+        playerId: 'pme',
+        decision: 'withdrawn',
+        adultConfirmed: false,
+        approvedTitle: live.title,
+        approvedVisibility: 'public',
+        decidedHour: '',
+      }),
+    });
     current = f.services;
     render(<HighlightsRoute route={{ name: 'highlights' }} />);
     fireEvent.click(await screen.findByTestId(`highlight-open-${jobId}`));
@@ -147,7 +245,18 @@ describe('highlight consent', () => {
 });
 
 describe('public highlight landing', () => {
-  const pub: HighlightPublic = { code: 'k7q2m9xa', day: '2026-10-25', title: 'Swift Tiger vs Calm Cobra', youtubeVideoId: 'dQw4w9WgXcQ', visibility: 'public', matchId: 'm1', participants: [{ alias: 'Swift Tiger', avatar: { seed: 'a1234567' }, rank: 1 }, { alias: 'Calm Cobra', avatar: { seed: 'b1234567' }, rank: null }] };
+  const pub: HighlightPublic = {
+    code: 'k7q2m9xa',
+    day: '2026-10-25',
+    title: 'Swift Tiger vs Calm Cobra',
+    youtubeVideoId: 'dQw4w9WgXcQ',
+    visibility: 'public',
+    matchId: 'm1',
+    participants: [
+      { alias: 'Swift Tiger', avatar: { seed: 'a1234567' }, rank: 1 },
+      { alias: 'Calm Cobra', avatar: { seed: 'b1234567' }, rank: null },
+    ],
+  };
 
   it('counts one landing open, links out to YouTube without embedding anything', async () => {
     useApp.setState({ player: null });
@@ -186,7 +295,17 @@ describe('Group Cup', () => {
     size: 6,
     members: [ref('pme', 'Swift Tiger'), ref('pb', 'Calm Cobra')],
     inviteToken: 'tokentokentoken',
-    schedule: { rounds: [{ round: 1, lockBy: '2026-10-26T12:00:00.000Z', batBy: '2026-10-26T13:00:00.000Z', revealAt: '2026-10-26T13:00:00.000Z' }], final: null },
+    schedule: {
+      rounds: [
+        {
+          round: 1,
+          lockBy: '2026-10-26T12:00:00.000Z',
+          batBy: '2026-10-26T13:00:00.000Z',
+          revealAt: '2026-10-26T13:00:00.000Z',
+        },
+      ],
+      final: null,
+    },
     fixtures: [],
     standings: [],
     roomId: 'r1',
@@ -205,7 +324,13 @@ describe('Group Cup', () => {
   });
 
   it('complete: the champion stays covered until the player asks', async () => {
-    const done: CupView = { ...base, status: 'complete', inviteToken: null, members: [ref('pme', 'Swift Tiger'), ref('pb', 'Calm Cobra'), ref('pc', 'Bold Falcon')], winner: ref('pb', 'Calm Cobra') };
+    const done: CupView = {
+      ...base,
+      status: 'complete',
+      inviteToken: null,
+      members: [ref('pme', 'Swift Tiger'), ref('pb', 'Calm Cobra'), ref('pc', 'Bold Falcon')],
+      winner: ref('pb', 'Calm Cobra'),
+    };
     const f = fakeServices({ 'GET /v1/cups/:id': () => done });
     current = f.services;
     render(<CupRoute route={{ name: 'cup', cupId: 'c1' }} />);
@@ -222,9 +347,46 @@ describe('Group Cup', () => {
       status: 'group_stage',
       members: [ref('pme', 'Swift Tiger'), ref('pb', 'Calm Cobra'), ref('pc', 'Bold Falcon')],
       inviteToken: null,
-      schedule: { rounds: [{ round: 1, lockBy: new Date(Date.now() + 3_600_000).toISOString(), batBy: new Date(Date.now() + 7_200_000).toISOString(), revealAt: new Date(Date.now() + 7_200_000).toISOString() }], final: null },
-      fixtures: [{ fixtureId: 'f1', round: 1, home: 'pme', away: 'pb', matchId: 'm1', status: 'planning', auto: [false, false] }],
-      standings: [{ playerId: 'pb', alias: 'Calm Cobra', played: 1, won: 1, lost: 0, tied: 0, points: 2, netRunRate: 1.5, form: ['W'], movement: 1 }, { playerId: 'pme', alias: 'Swift Tiger', played: 1, won: 0, lost: 1, tied: 0, points: 0, netRunRate: -1.5, form: ['L'], movement: -1 }],
+      schedule: {
+        rounds: [
+          {
+            round: 1,
+            lockBy: new Date(Date.now() + 3_600_000).toISOString(),
+            batBy: new Date(Date.now() + 7_200_000).toISOString(),
+            revealAt: new Date(Date.now() + 7_200_000).toISOString(),
+          },
+        ],
+        final: null,
+      },
+      fixtures: [
+        { fixtureId: 'f1', round: 1, home: 'pme', away: 'pb', matchId: 'm1', status: 'planning', auto: [false, false] },
+      ],
+      standings: [
+        {
+          playerId: 'pb',
+          alias: 'Calm Cobra',
+          played: 1,
+          won: 1,
+          lost: 0,
+          tied: 0,
+          points: 2,
+          netRunRate: 1.5,
+          form: ['W'],
+          movement: 1,
+        },
+        {
+          playerId: 'pme',
+          alias: 'Swift Tiger',
+          played: 1,
+          won: 0,
+          lost: 1,
+          tied: 0,
+          points: 0,
+          netRunRate: -1.5,
+          form: ['L'],
+          movement: -1,
+        },
+      ],
       myTasks: [{ kind: 'lock', matchId: 'm1', by: new Date(Date.now() + 3_600_000).toISOString() }],
       lockedCount: { round: 1, locked: 1, total: 2 },
     };
@@ -245,7 +407,32 @@ describe('Group Cup', () => {
       status: 'group_stage',
       members: [ref('pme', 'Swift Tiger'), ref(other, 'Rude Name')],
       inviteToken: null,
-      standings: [{ playerId: other, alias: 'Rude Name', played: 1, won: 1, lost: 0, tied: 0, points: 2, netRunRate: 1.5, form: ['W'], movement: 0 }, { playerId: 'pme', alias: 'Swift Tiger', played: 1, won: 0, lost: 1, tied: 0, points: 0, netRunRate: -1.5, form: ['L'], movement: 0 }],
+      standings: [
+        {
+          playerId: other,
+          alias: 'Rude Name',
+          played: 1,
+          won: 1,
+          lost: 0,
+          tied: 0,
+          points: 2,
+          netRunRate: 1.5,
+          form: ['W'],
+          movement: 0,
+        },
+        {
+          playerId: 'pme',
+          alias: 'Swift Tiger',
+          played: 1,
+          won: 0,
+          lost: 1,
+          tied: 0,
+          points: 0,
+          netRunRate: -1.5,
+          form: ['L'],
+          movement: 0,
+        },
+      ],
     };
     const f = fakeServices({ 'GET /v1/cups/:id': () => live, 'POST /v1/report': () => ({ ok: true }) });
     current = f.services;
@@ -254,7 +441,12 @@ describe('Group Cup', () => {
     expect(within(table).queryByLabelText('Report Swift Tiger')).toBeNull();
     fireEvent.click(within(table).getByLabelText('Report Rude Name'));
     fireEvent.click(within(await screen.findByTestId('report-player')).getByText('Send report'));
-    await waitFor(() => expect(f.calls.find((c) => c.route === 'POST /v1/report')?.args.body).toEqual({ playerId: other, reason: 'abusive' }));
+    await waitFor(() =>
+      expect(f.calls.find((c) => c.route === 'POST /v1/report')?.args.body).toEqual({
+        playerId: other,
+        reason: 'abusive',
+      }),
+    );
   });
 });
 
@@ -265,8 +457,34 @@ describe('Cricket Room', () => {
     title: 'Office Cup',
     members: [ref('pme', 'Swift Tiger'), ref('pb', 'Calm Cobra')],
     posts: [
-      { postId: 'p2', kind: 'scorecard', payload: { matchId: 'm1', homeAlias: 'Swift Tiger', awayAlias: 'Calm Cobra', homeRuns: 21, homeWickets: 1, awayRuns: 19, awayWickets: 2, winnerAlias: 'Swift Tiger', tie: false }, authorId: null, createdHour: '2026-10-26T10:00:00.000Z', reactions: {}, myReaction: null },
-      { postId: 'p1', kind: 'banter', payload: { phraseId: 'banter.bring_it' }, authorId: 'pb', createdHour: '2026-10-26T09:00:00.000Z', reactions: { clap: 2 }, myReaction: null },
+      {
+        postId: 'p2',
+        kind: 'scorecard',
+        payload: {
+          matchId: 'm1',
+          homeAlias: 'Swift Tiger',
+          awayAlias: 'Calm Cobra',
+          homeRuns: 21,
+          homeWickets: 1,
+          awayRuns: 19,
+          awayWickets: 2,
+          winnerAlias: 'Swift Tiger',
+          tie: false,
+        },
+        authorId: null,
+        createdHour: '2026-10-26T10:00:00.000Z',
+        reactions: {},
+        myReaction: null,
+      },
+      {
+        postId: 'p1',
+        kind: 'banter',
+        payload: { phraseId: 'banter.bring_it' },
+        authorId: 'pb',
+        createdHour: '2026-10-26T09:00:00.000Z',
+        reactions: { clap: 2 },
+        myReaction: null,
+      },
     ],
     cursor: null,
     muted: true,
@@ -288,21 +506,47 @@ describe('Cricket Room', () => {
     // Report and block only on other members' posts.
     expect(screen.getAllByLabelText('Report this post')).toHaveLength(1);
     fireEvent.click(screen.getAllByLabelText(/^Clap, 2 reactions$/)[0]);
-    await waitFor(() => expect(f.calls.find((c) => c.route === 'POST /v1/rooms/:id/react')?.args.body).toEqual({ postId: 'p1', reaction: 'clap' }));
+    await waitFor(() =>
+      expect(f.calls.find((c) => c.route === 'POST /v1/rooms/:id/react')?.args.body).toEqual({
+        postId: 'p1',
+        reaction: 'clap',
+      }),
+    );
   });
 
   it('celebrates a delivery earned in an official match', async () => {
-    const unlock = { postId: 'p3', kind: 'achievement' as const, payload: { badge: 'unlock_inswing', alias: 'Calm Cobra' }, authorId: null, createdHour: '2026-10-26T11:00:00.000Z', reactions: {}, myReaction: null };
+    const unlock = {
+      postId: 'p3',
+      kind: 'achievement' as const,
+      payload: { badge: 'unlock_inswing', alias: 'Calm Cobra' },
+      authorId: null,
+      createdHour: '2026-10-26T11:00:00.000Z',
+      reactions: {},
+      myReaction: null,
+    };
     current = fakeServices({ 'GET /v1/rooms/:id': () => ({ ...view, posts: [unlock, ...view.posts] }) }).services;
     render(<RoomRoute route={{ name: 'room', roomId: 'r1' }} />);
-    expect(await screen.findByText('Calm Cobra unlocked In-swing. It is in their planner from the next over.')).toBeTruthy();
+    expect(
+      await screen.findByText('Calm Cobra unlocked In-swing. It is in their planner from the next over.'),
+    ).toBeTruthy();
   });
 });
 
 describe('leaderboards', () => {
   it('pins my row when I am outside the list and shows the real count', async () => {
-    const board: LeaderboardView = { scope: 'national', day: '2026-10-26', entries: [{ rank: 1, playerId: 'pb', alias: 'Calm Cobra', avatar: { seed: 'b1234567' }, score: 300, isMe: false }], me: { rank: 57, playerId: 'pme', alias: 'Swift Tiger', avatar: { seed: 'a1234567' }, score: 120, isMe: true }, total: 1234 };
-    const f = fakeServices({ 'GET /v1/me': () => ({ playerId: 'pme', groups: [], city: 'pune' }), 'GET /v1/leaderboards/:scope': () => board });
+    const board: LeaderboardView = {
+      scope: 'national',
+      day: '2026-10-26',
+      entries: [
+        { rank: 1, playerId: 'pb', alias: 'Calm Cobra', avatar: { seed: 'b1234567' }, score: 300, isMe: false },
+      ],
+      me: { rank: 57, playerId: 'pme', alias: 'Swift Tiger', avatar: { seed: 'a1234567' }, score: 120, isMe: true },
+      total: 1234,
+    };
+    const f = fakeServices({
+      'GET /v1/me': () => ({ playerId: 'pme', groups: [], city: 'pune' }),
+      'GET /v1/leaderboards/:scope': () => board,
+    });
     current = f.services;
     render(<LeaderboardsRoute route={{ name: 'leaderboards', scope: 'national' }} />);
     expect(await screen.findByTestId('board-me')).toBeTruthy();
@@ -327,14 +571,19 @@ describe('private groups', () => {
     const f = fakeServices({
       'GET /v1/me': () => profile,
       'POST /v1/groups': ({ body }) => {
-        profile = { ...profile, groups: [{ groupId: 'grp000001', kind: 'college', name: (body as { name: string }).name }] };
+        profile = {
+          ...profile,
+          groups: [{ groupId: 'grp000001', kind: 'college', name: (body as { name: string }).name }],
+        };
         return { groupId: 'grp000001', code: 'ABCD-EFGH-JK' };
       },
       'GET /v1/leaderboards/:scope': () => empty,
     });
     current = f.services;
     render(<LeaderboardsRoute route={{ name: 'leaderboards', scope: 'college' }} />);
-    fireEvent.change(await screen.findByLabelText('Or create a college group'), { target: { value: 'Anna University' } });
+    fireEvent.change(await screen.findByLabelText('Or create a college group'), {
+      target: { value: 'Anna University' },
+    });
     fireEvent.click(screen.getByText('Create the group'));
     // The board of the new group loads, and the code is still there to share.
     await waitFor(() => expect(f.calls.some((c) => c.route === 'GET /v1/leaderboards/:scope')).toBe(true));
@@ -344,8 +593,25 @@ describe('private groups', () => {
 
 describe('profile', () => {
   it('saves alias, avatar and kit and updates the player on this device', async () => {
-    const profile = { playerId: 'pme', alias: 'Swift Tiger', avatar: { seed: 'abc12345' }, kit: ME.kit, locale: 'en', city: null, groups: [], badges: ['youtube_top100'], unlocks: [], rating: 1234.6, createdDay: '2026-10-01', adultConfirmed: false, linked: { google: false, passkey: false } };
-    const f = fakeServices({ 'GET /v1/me': () => profile, 'PATCH /v1/me': ({ body }) => ({ ...profile, ...(body as object) }) });
+    const profile = {
+      playerId: 'pme',
+      alias: 'Swift Tiger',
+      avatar: { seed: 'abc12345' },
+      kit: ME.kit,
+      locale: 'en',
+      city: null,
+      groups: [],
+      badges: ['youtube_top100'],
+      unlocks: [],
+      rating: 1234.6,
+      createdDay: '2026-10-01',
+      adultConfirmed: false,
+      linked: { google: false, passkey: false },
+    };
+    const f = fakeServices({
+      'GET /v1/me': () => profile,
+      'PATCH /v1/me': ({ body }) => ({ ...profile, ...(body as object) }),
+    });
     current = f.services;
     render(<ProfileRoute route={{ name: 'profile' }} />);
     const alias = (await screen.findByTestId('profile-alias')) as HTMLInputElement;
@@ -354,13 +620,21 @@ describe('profile', () => {
     fireEvent.change(alias, { target: { value: 'Calm Lion' } });
     // A later copy of the profile (here the answer to a city change) never overwrites the unsaved edit.
     fireEvent.change(screen.getByTestId('profile-city'), { target: { value: 'pune' } });
-    await waitFor(() => expect(f.calls.some((c) => c.route === 'PATCH /v1/me' && (c.args.body as { city?: string }).city === 'pune')).toBe(true));
+    await waitFor(() =>
+      expect(
+        f.calls.some((c) => c.route === 'PATCH /v1/me' && (c.args.body as { city?: string }).city === 'pune'),
+      ).toBe(true),
+    );
     expect((screen.getByTestId('profile-alias') as HTMLInputElement).value).toBe('Calm Lion');
     const save = screen.getByTestId('profile-save') as HTMLButtonElement;
     await waitFor(() => expect(save.disabled).toBe(false));
     fireEvent.click(save);
     await waitFor(() => expect(useApp.getState().player?.alias).toBe('Calm Lion'));
-    expect(f.calls.filter((c) => c.route === 'PATCH /v1/me').at(-1)?.args.body).toMatchObject({ alias: 'Calm Lion', avatar: { seed: 'abc12345' }, kit: ME.kit });
+    expect(f.calls.filter((c) => c.route === 'PATCH /v1/me').at(-1)?.args.body).toMatchObject({
+      alias: 'Calm Lion',
+      avatar: { seed: 'abc12345' },
+      kit: ME.kit,
+    });
   });
 });
 
@@ -379,7 +653,21 @@ describe('18+ only', () => {
   });
 
   it('the profile shows the confirmation as a fact, with no switch to turn it off', async () => {
-    const profile = { playerId: 'pme', alias: 'Swift Tiger', avatar: { seed: 'abc12345' }, kit: ME.kit, locale: 'en', city: null, groups: [], badges: [], unlocks: [], rating: 1200, createdDay: '2026-10-01', adultConfirmed: true, linked: { google: false, passkey: false } };
+    const profile = {
+      playerId: 'pme',
+      alias: 'Swift Tiger',
+      avatar: { seed: 'abc12345' },
+      kit: ME.kit,
+      locale: 'en',
+      city: null,
+      groups: [],
+      badges: [],
+      unlocks: [],
+      rating: 1200,
+      createdDay: '2026-10-01',
+      adultConfirmed: true,
+      linked: { google: false, passkey: false },
+    };
     current = fakeServices({ 'GET /v1/me': () => profile }).services;
     render(<ProfileRoute route={{ name: 'profile' }} />);
     expect((await screen.findByTestId('profile-adult-confirmed')).textContent).toBe('Confirmed 18 or over');
@@ -401,7 +689,11 @@ describe('report a player wherever their name shows', () => {
       me: { rank: 2, playerId: 'pme', alias: 'Swift Tiger', avatar: { seed: 'a1234567' }, score: 120, isMe: true },
       total: 2,
     };
-    const f = fakeServices({ 'GET /v1/me': () => ({ playerId: 'pme', groups: [], city: 'pune' }), 'GET /v1/leaderboards/:scope': () => board, 'POST /v1/report': () => ({ ok: true }) });
+    const f = fakeServices({
+      'GET /v1/me': () => ({ playerId: 'pme', groups: [], city: 'pune' }),
+      'GET /v1/leaderboards/:scope': () => board,
+      'POST /v1/report': () => ({ ok: true }),
+    });
     current = f.services;
     render(<LeaderboardsRoute route={{ name: 'leaderboards', scope: 'national' }} />);
     fireEvent.click(await screen.findByLabelText('Report Calm Cobra'));
@@ -410,17 +702,30 @@ describe('report a player wherever their name shows', () => {
     expect(within(dialog).getByText(/Calm Cobra is not told who reported them/)).toBeTruthy();
     fireEvent.click(within(dialog).getByLabelText('Spam'));
     fireEvent.click(within(dialog).getByText('Send report'));
-    await waitFor(() => expect(f.calls.find((c) => c.route === 'POST /v1/report')?.args.body).toEqual({ playerId: OTHER, reason: 'spam' }));
+    await waitFor(() =>
+      expect(f.calls.find((c) => c.route === 'POST /v1/report')?.args.body).toEqual({
+        playerId: OTHER,
+        reason: 'spam',
+      }),
+    );
   });
 
   it('from the Daily Top 100 (signed in), never for my own entry', async () => {
     vi.useFakeTimers({ toFake: ['Date'], now: Date.UTC(2026, 9, 26, 9) });
-    const f = fakeServices({ 'GET /v1/top100/:day': () => [{ ...entry(1, OTHER, 'Calm Cobra') }, { ...entry(2, 'pme', 'Swift Tiger') }], 'POST /v1/report': () => ({ ok: true }) });
+    const f = fakeServices({
+      'GET /v1/top100/:day': () => [{ ...entry(1, OTHER, 'Calm Cobra') }, { ...entry(2, 'pme', 'Swift Tiger') }],
+      'POST /v1/report': () => ({ ok: true }),
+    });
     current = f.services;
     render(<Top100Route route={{ name: 'top100', day: '2026-10-25' }} />);
     fireEvent.click(await screen.findByLabelText('Report Calm Cobra'));
     fireEvent.click(within(await screen.findByTestId('report-player')).getByText('Send report'));
-    await waitFor(() => expect(f.calls.find((c) => c.route === 'POST /v1/report')?.args.body).toEqual({ playerId: OTHER, reason: 'abusive' }));
+    await waitFor(() =>
+      expect(f.calls.find((c) => c.route === 'POST /v1/report')?.args.body).toEqual({
+        playerId: OTHER,
+        reason: 'abusive',
+      }),
+    );
     expect(screen.queryByLabelText('Report Swift Tiger')).toBeNull();
     vi.useRealTimers();
   });

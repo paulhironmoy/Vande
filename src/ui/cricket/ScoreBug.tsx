@@ -33,7 +33,10 @@ export function ScoreBug({ batting, bowling, runs, wickets, balls, target, speed
           <Avatar avatar={batting.avatar} kit={batting.kit} size={28} decorative />
           <span className={s.alias}>{batting.alias}</span>
         </span>
-        <span className={s.score} aria-label={sealed ? t('common.sealed') : t('common.score', { runs: runs ?? 0, wickets: wickets ?? 0 })}>
+        <span
+          className={s.score}
+          aria-label={sealed ? t('common.sealed') : t('common.score', { runs: runs ?? 0, wickets: wickets ?? 0 })}
+        >
           {sealed ? '—' : `${runs}/${wickets}`}
         </span>
         {target ? <span className={s.target}>{t('stage.target', { n: target })}</span> : null}
@@ -49,7 +52,15 @@ export function ScoreBug({ batting, bowling, runs, wickets, balls, target, speed
             <OutcomeBadge key={i} mark={m} size="sm" ball={i + 1} />
           ))}
         </span>
-        {tag && <span className={s.tag} data-tag={tag}>{tag === 'super_ball' ? t('stage.super_ball') : tag === 'slow_mo' ? t('reveal.slow_mo') : t('common.sealed')}</span>}
+        {tag && (
+          <span className={s.tag} data-tag={tag}>
+            {tag === 'super_ball'
+              ? t('stage.super_ball')
+              : tag === 'slow_mo'
+                ? t('reveal.slow_mo')
+                : t('common.sealed')}
+          </span>
+        )}
         {speedKph ? <span className={s.speed}>{t('stage.speed_kph', { kph: Math.round(speedKph) })}</span> : null}
       </div>
     </div>

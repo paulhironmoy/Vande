@@ -4,8 +4,12 @@ import { PROP_RULES } from './events';
 const MAX_VALUE_LENGTH = 32;
 
 /** True when the browser asks not to be tracked (Do Not Track or Global Privacy Control). */
-export function privacySignalBlocks(nav: Partial<Navigator> & { globalPrivacyControl?: boolean } = typeof navigator !== 'undefined' ? navigator : {}): boolean {
-  const dnt = (nav as { doNotTrack?: string | null }).doNotTrack ?? (typeof window !== 'undefined' ? (window as Window & { doNotTrack?: string }).doNotTrack : undefined);
+export function privacySignalBlocks(
+  nav: Partial<Navigator> & { globalPrivacyControl?: boolean } = typeof navigator !== 'undefined' ? navigator : {},
+): boolean {
+  const dnt =
+    (nav as { doNotTrack?: string | null }).doNotTrack ??
+    (typeof window !== 'undefined' ? (window as Window & { doNotTrack?: string }).doNotTrack : undefined);
   if (dnt === '1' || dnt === 'yes') return true;
   if (nav.globalPrivacyControl === true) return true;
   return false;

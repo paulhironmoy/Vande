@@ -9,12 +9,21 @@ const MARK_VIEWBOX = 120;
 type P = [number, number];
 
 function hexPath(cx: number, cy: number, r: number): string {
-  const pts = [-90, -30, 30, 90, 150, 210].map((a) => [cx + r * Math.cos((a * Math.PI) / 180), cy + r * Math.sin((a * Math.PI) / 180)]);
+  const pts = [-90, -30, 30, 90, 150, 210].map((a) => [
+    cx + r * Math.cos((a * Math.PI) / 180),
+    cy + r * Math.sin((a * Math.PI) / 180),
+  ]);
   return `M${pts.map((p) => `${p[0].toFixed(2)} ${p[1].toFixed(2)}`).join(' L')}Z`;
 }
 
-const qPoint = (p0: P, c: P, p1: P, t: number): P => [(1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * c[0] + t * t * p1[0], (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * c[1] + t * t * p1[1]];
-const qTangent = (p0: P, c: P, p1: P, t: number): P => [2 * (1 - t) * (c[0] - p0[0]) + 2 * t * (p1[0] - c[0]), 2 * (1 - t) * (c[1] - p0[1]) + 2 * t * (p1[1] - c[1])];
+const qPoint = (p0: P, c: P, p1: P, t: number): P => [
+  (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * c[0] + t * t * p1[0],
+  (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * c[1] + t * t * p1[1],
+];
+const qTangent = (p0: P, c: P, p1: P, t: number): P => [
+  2 * (1 - t) * (c[0] - p0[0]) + 2 * t * (p1[0] - c[0]),
+  2 * (1 - t) * (c[1] - p0[1]) + 2 * t * (p1[1] - c[1]),
+];
 
 function stitches(p0: P, c: P, p1: P, gap: number, n: number, len: number): string {
   const out: string[] = [];
@@ -30,14 +39,24 @@ function stitches(p0: P, c: P, p1: P, gap: number, n: number, len: number): stri
     for (const side of [-1, 1]) {
       const bx = x + nx * gap * side;
       const by = y + ny * gap * side;
-      out.push(`M${(bx - (tx * len) / 2 - nx * side * 1.1).toFixed(2)} ${(by - (ty * len) / 2 - ny * side * 1.1).toFixed(2)}L${(bx + (tx * len) / 2 + nx * side * 1.1).toFixed(2)} ${(by + (ty * len) / 2 + ny * side * 1.1).toFixed(2)}`);
+      out.push(
+        `M${(bx - (tx * len) / 2 - nx * side * 1.1).toFixed(2)} ${(by - (ty * len) / 2 - ny * side * 1.1).toFixed(2)}L${(bx + (tx * len) / 2 + nx * side * 1.1).toFixed(2)} ${(by + (ty * len) / 2 + ny * side * 1.1).toFixed(2)}`,
+      );
     }
   }
   return out.join('');
 }
 
-const LEFT: [P, P, P] = [[40, 36], [47, 70], [60, 88]];
-const RIGHT: [P, P, P] = [[80, 36], [73, 70], [60, 88]];
+const LEFT: [P, P, P] = [
+  [40, 36],
+  [47, 70],
+  [60, 88],
+];
+const RIGHT: [P, P, P] = [
+  [80, 36],
+  [73, 70],
+  [60, 88],
+];
 const q = ([a, b, c]: [P, P, P]) => `M${a[0]} ${a[1]}Q${b[0]} ${b[1]} ${c[0]} ${c[1]}`;
 
 export const MARK = {

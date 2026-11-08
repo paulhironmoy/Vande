@@ -29,15 +29,58 @@ export interface QualityPreset {
 }
 
 export const PRESETS: Record<RenderQuality, QualityPreset> = {
-  low: { quality: 'low', maxFps: 30, pixelRatio: 1, shadowMap: 0, blobShadows: 2, crowd: 1400, crowdAnimated: false, particles: 0.35, trailPoints: 14, lodDistance: 14, lightShafts: false, antialias: false },
-  standard: { quality: 'standard', maxFps: 60, pixelRatio: 1.5, shadowMap: 1024, blobShadows: 4, crowd: 3600, crowdAnimated: true, particles: 1, trailPoints: 26, lodDistance: 26, lightShafts: true, antialias: true },
-  high: { quality: 'high', maxFps: 60, pixelRatio: 2, shadowMap: 2048, blobShadows: 4, crowd: 6500, crowdAnimated: true, particles: 1.4, trailPoints: 36, lodDistance: 40, lightShafts: true, antialias: true },
+  low: {
+    quality: 'low',
+    maxFps: 30,
+    pixelRatio: 1,
+    shadowMap: 0,
+    blobShadows: 2,
+    crowd: 1400,
+    crowdAnimated: false,
+    particles: 0.35,
+    trailPoints: 14,
+    lodDistance: 14,
+    lightShafts: false,
+    antialias: false,
+  },
+  standard: {
+    quality: 'standard',
+    maxFps: 60,
+    pixelRatio: 1.5,
+    shadowMap: 1024,
+    blobShadows: 4,
+    crowd: 3600,
+    crowdAnimated: true,
+    particles: 1,
+    trailPoints: 26,
+    lodDistance: 26,
+    lightShafts: true,
+    antialias: true,
+  },
+  high: {
+    quality: 'high',
+    maxFps: 60,
+    pixelRatio: 2,
+    shadowMap: 2048,
+    blobShadows: 4,
+    crowd: 6500,
+    crowdAnimated: true,
+    particles: 1.4,
+    trailPoints: 36,
+    lodDistance: 40,
+    lightShafts: true,
+    antialias: true,
+  },
 };
 
 const ORDER: RenderQuality[] = ['low', 'standard', 'high'];
 
 /** The match preset for a Practice quality profile (src/perf picks profiles). */
-export const QUALITY_FOR_PROFILE: Readonly<Record<QualityProfileId, RenderQuality>> = { lite: 'low', standard: 'standard', high: 'high' };
+export const QUALITY_FOR_PROFILE: Readonly<Record<QualityProfileId, RenderQuality>> = {
+  lite: 'low',
+  standard: 'standard',
+  high: 'high',
+};
 
 /**
  * The match renderer's starting quality for 'auto': the device assessment src/perf measured, when there is one
@@ -50,7 +93,10 @@ export function autoQuality(assessment: DeviceAssessment | null, gpu: string): R
 }
 
 /** Frame budget (ms) per frame-rate cap: src/perf's sustained floor (60 fps presets; twice that at the 30 fps cap). */
-export const FRAME_BUDGET_MS: Readonly<Record<30 | 60, number>> = { 60: 1000 / PERF_FULL_SUSTAINED_FPS, 30: 2000 / PERF_FULL_SUSTAINED_FPS };
+export const FRAME_BUDGET_MS: Readonly<Record<30 | 60, number>> = {
+  60: 1000 / PERF_FULL_SUSTAINED_FPS,
+  30: 2000 / PERF_FULL_SUSTAINED_FPS,
+};
 
 export interface QualityControllerOptions {
   initial: RenderQuality;
@@ -141,7 +187,6 @@ export function shouldRender(nowMs: number, lastRenderMs: number, maxFps: 30 | 6
 // Practice profiles (src/perf chooses one; the stage applies it between deliveries)
 // ---------------------------------------------------------------------------------------------------------------
 
-
 export interface PracticeProfile {
   id: QualityProfileId;
   /** The renderer preset it builds on: stadium, players, crowd, shadows, effects. Always 60 fps. */
@@ -160,7 +205,19 @@ export const PRACTICE_PROFILES: Readonly<Record<QualityProfileId, PracticeProfil
   // ≈540–720p, static crowd, no dynamic shadows (blob shadows only), low-detail fielders, minimal particles.
   lite: {
     id: 'lite',
-    preset: { ...PRESETS.low, maxFps: 60, shadowMap: 0, blobShadows: 1, crowd: 1400, crowdAnimated: false, particles: 0.25, trailPoints: PRACTICE_BALL.trace.samples, lodDistance: 9, lightShafts: false, antialias: false },
+    preset: {
+      ...PRESETS.low,
+      maxFps: 60,
+      shadowMap: 0,
+      blobShadows: 1,
+      crowd: 1400,
+      crowdAnimated: false,
+      particles: 0.25,
+      trailPoints: PRACTICE_BALL.trace.samples,
+      lodDistance: 9,
+      lightShafts: false,
+      antialias: false,
+    },
     internal: { min: 540, max: 720 },
     maxDpr: 2,
     ball: { visualScale: PRACTICE_BALL.visualScale, trailAlpha: PRACTICE_BALL.trace.alpha },
@@ -168,7 +225,18 @@ export const PRACTICE_PROFILES: Readonly<Record<QualityProfileId, PracticeProfil
   // ≈720–900p, limited shadows (the key light only), moderate crowd and effects, standard players.
   standard: {
     id: 'standard',
-    preset: { ...PRESETS.standard, shadowMap: 1024, blobShadows: 2, crowd: 3600, crowdAnimated: true, particles: 0.8, trailPoints: PRACTICE_BALL.trace.samples, lodDistance: 22, lightShafts: false, antialias: true },
+    preset: {
+      ...PRESETS.standard,
+      shadowMap: 1024,
+      blobShadows: 2,
+      crowd: 3600,
+      crowdAnimated: true,
+      particles: 0.8,
+      trailPoints: PRACTICE_BALL.trace.samples,
+      lodDistance: 22,
+      lightShafts: false,
+      antialias: true,
+    },
     internal: { min: 720, max: 900 },
     maxDpr: 2,
     ball: { visualScale: PRACTICE_BALL.visualScale, trailAlpha: PRACTICE_BALL.trace.alpha },
@@ -176,7 +244,18 @@ export const PRACTICE_PROFILES: Readonly<Record<QualityProfileId, PracticeProfil
   // Capped high resolution, better shadows and effects, high-detail players.
   high: {
     id: 'high',
-    preset: { ...PRESETS.high, shadowMap: 2048, blobShadows: 4, crowd: 6500, crowdAnimated: true, particles: 1.2, trailPoints: PRACTICE_BALL.trace.samples, lodDistance: 40, lightShafts: true, antialias: true },
+    preset: {
+      ...PRESETS.high,
+      shadowMap: 2048,
+      blobShadows: 4,
+      crowd: 6500,
+      crowdAnimated: true,
+      particles: 1.2,
+      trailPoints: PRACTICE_BALL.trace.samples,
+      lodDistance: 40,
+      lightShafts: true,
+      antialias: true,
+    },
     internal: { min: 900, max: 1440 },
     maxDpr: 2.5,
     ball: { visualScale: PRACTICE_BALL.visualScale, trailAlpha: PRACTICE_BALL.trace.alpha },

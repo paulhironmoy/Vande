@@ -1,7 +1,17 @@
 /** Maps API failures to honest, translated states. */
 import { isApiClientError } from '@/net/errors';
 
-export type FailureKind = 'offline' | 'not_found' | 'expired' | 'forbidden' | 'sealed' | 'rate_limited' | 'conflict' | 'invalid' | 'signed_out' | 'error';
+export type FailureKind =
+  | 'offline'
+  | 'not_found'
+  | 'expired'
+  | 'forbidden'
+  | 'sealed'
+  | 'rate_limited'
+  | 'conflict'
+  | 'invalid'
+  | 'signed_out'
+  | 'error';
 
 export function failureKind(e: unknown): FailureKind {
   if (!isApiClientError(e)) return 'error';

@@ -51,7 +51,10 @@ const BAT_MIX: Weighted<BatPolicy['strategy']> = [
 ];
 const BOWL_MIX: Weighted<BowlPolicy['strategy']> = [
   ['random', 15],
-  ...Object.keys(ARCHETYPES).map((a): [BowlPolicy['strategy'], number] => [a as BowlPolicy['strategy'], 33 / Object.keys(ARCHETYPES).length]),
+  ...Object.keys(ARCHETYPES).map((a): [BowlPolicy['strategy'], number] => [
+    a as BowlPolicy['strategy'],
+    33 / Object.keys(ARCHETYPES).length,
+  ]),
   ['optimised', 12],
   ['optimised_starters', 5],
   ['auto', 10],
@@ -64,7 +67,10 @@ const BOWL_MIX_NO_OPTIMISER = BOWL_MIX.filter(([s]) => s !== 'optimised' && s !=
 function samplePlayer(rng: Sfc32, opts: { optimiser?: boolean } = {}): SimPlayer {
   return {
     bat: { strategy: pickWeighted(rng, BAT_MIX), skill: rng.pick(SKILLS) },
-    bowl: { strategy: pickWeighted(rng, opts.optimiser === false ? BOWL_MIX_NO_OPTIMISER : BOWL_MIX), skill: rng.pick(SKILLS) },
+    bowl: {
+      strategy: pickWeighted(rng, opts.optimiser === false ? BOWL_MIX_NO_OPTIMISER : BOWL_MIX),
+      skill: rng.pick(SKILLS),
+    },
   };
 }
 
@@ -84,13 +90,19 @@ const REFERENCE_BATTERS: Weighted<BatPolicy> = [
 /** Reference bowling used to judge batting policies. */
 const REFERENCE_BOWLERS: Weighted<BowlPolicy> = [
   [{ strategy: 'random', skill: 'average' }, 15],
-  ...Object.keys(ARCHETYPES).map((a): [BowlPolicy, number] => [{ strategy: a as BowlPolicy['strategy'], skill: 'average' }, 35 / Object.keys(ARCHETYPES).length]),
+  ...Object.keys(ARCHETYPES).map((a): [BowlPolicy, number] => [
+    { strategy: a as BowlPolicy['strategy'], skill: 'average' },
+    35 / Object.keys(ARCHETYPES).length,
+  ]),
   [{ strategy: 'optimised', skill: 'average' }, 20],
   [{ strategy: 'auto', skill: 'average' }, 10],
   ...GHOST_IDS.map((g): [BowlPolicy, number] => [{ strategy: `ghost:${g}`, skill: 'average' }, 4]),
 ];
 /** A typical human: thinks about the delivery and the field, average timing, a sensible starter over. */
-export const AVERAGE_HUMAN: SimPlayer = { bat: { strategy: 'heuristic', skill: 'average' }, bowl: { strategy: 'starter_mix', skill: 'average' } };
+export const AVERAGE_HUMAN: SimPlayer = {
+  bat: { strategy: 'heuristic', skill: 'average' },
+  bowl: { strategy: 'starter_mix', skill: 'average' },
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Statistics
@@ -261,7 +273,14 @@ async function buildAndVerify(rec: ReturnType<typeof playMatch>): Promise<string
   const seed = rec.seed;
   const salts = [`salt-${seed}-0`, `salt-${seed}-1`];
   const commits = (await Promise.all(
-    [0, 1].map(async (p) => ({ player: p as 0 | 1, hash: await commitHash(rec.plans[p], salts[p]), sig: 'sim', keyId: 'sim', lockedHour: '2026-10-25T00', salt: salts[p] })),
+    [0, 1].map(async (p) => ({
+      player: p as 0 | 1,
+      hash: await commitHash(rec.plans[p], salts[p]),
+      sig: 'sim',
+      keyId: 'sim',
+      lockedHour: '2026-10-25T00',
+      salt: salts[p],
+    })),
   )) as MatchEventLog['commits'];
   const log = engine.buildMatchLog({
     matchId: `sim-${seed}`,
@@ -286,7 +305,13 @@ async function buildAndVerify(rec: ReturnType<typeof playMatch>): Promise<string
 const label = (p: { strategy: string }) => p.strategy;
 
 /** Mixed-population matches [start, start + count) for `key`; every `verifyEvery`-th match is fully audited. */
-export async function runMixed(key: string, start: number, count: number, verifyEvery = 0, opts: { optimiser?: boolean } = {}): Promise<MixedStats> {
+export async function runMixed(
+  key: string,
+  start: number,
+  count: number,
+  verifyEvery = 0,
+  opts: { optimiser?: boolean } = {},
+): Promise<MixedStats> {
   const st = emptyStats();
   for (let m = start; m < start + count; m++) {
     const rng = rngFromKey(`sim/mixed|${key}|${m}`);
@@ -298,7 +323,8 @@ export async function runMixed(key: string, start: number, count: number, verify
     const r = playMatch(players, cond, seed);
     st.matches++;
     st.anomalyCount += r.anomalies.length;
-    if (r.anomalies.length && st.anomalies.length < 50) st.anomalies.push(...r.anomalies.slice(0, 3).map((x) => `${seed}: ${x}`));
+    if (r.anomalies.length && st.anomalies.length < 50)
+      st.anomalies.push(...r.anomalies.slice(0, 3).map((x) => `${seed}: ${x}`));
     if (verifyEvery && m % verifyEvery === 0) {
       st.verified++;
       const err = await buildAndVerify(r);
@@ -339,7 +365,10 @@ export async function runMixed(key: string, start: number, count: number, verify
         t[res]++;
       }
       // Bowling strategy of the opponent, credited with the runs conceded and the opponent's result.
-      for (const t of [rec(st.bowlStrategy, label(players[opp].bowl)), rec(st.bowlSkill, `${label(players[opp].bowl)}/${players[opp].bowl.skill}`)]) {
+      for (const t of [
+        rec(st.bowlStrategy, label(players[opp].bowl)),
+        rec(st.bowlSkill, `${label(players[opp].bowl)}/${players[opp].bowl.skill}`),
+      ]) {
         t.innings++;
         t.runs += runs;
         t.runsSq += runs * runs;
@@ -386,7 +415,15 @@ export function mergeCell(a: Cell, b: Cell): Cell {
   return a;
 }
 
-function innings(bat: BatPolicy, bowl: BowlPolicy, cond: Conditions, key: string, i: number, cell: Cell, planOverride?: (rng: Sfc32) => OverPlan): void {
+function innings(
+  bat: BatPolicy,
+  bowl: BowlPolicy,
+  cond: Conditions,
+  key: string,
+  i: number,
+  cell: Cell,
+  planOverride?: (rng: Sfc32) => OverPlan,
+): void {
   const rng = rngFromKey(`sim/cell|${key}|${i}`);
   const seed = hexSeed(rng);
   const plan = planOverride ? planOverride(rng) : bowlPlan(bowl, cond, rng, `${seed}/bowl`);
@@ -404,7 +441,13 @@ function innings(bat: BatPolicy, bowl: BowlPolicy, cond: Conditions, key: string
 }
 
 /** A bowling policy against the reference batters on one pitch (weather mixed). */
-export function bowlingCell(bowl: BowlPolicy, pitch: Conditions['pitch'], key: string, start: number, count: number): Cell {
+export function bowlingCell(
+  bowl: BowlPolicy,
+  pitch: Conditions['pitch'],
+  key: string,
+  start: number,
+  count: number,
+): Cell {
   const cell = zeroCell();
   for (let i = start; i < start + count; i++) {
     const rng = rngFromKey(`sim/bowlcell|${key}|${i}`);
@@ -417,7 +460,14 @@ export function bowlingCell(bowl: BowlPolicy, pitch: Conditions['pitch'], key: s
 const REFERENCE_BOWLERS_NO_OPTIMISER = REFERENCE_BOWLERS.filter(([b]) => b.strategy !== 'optimised');
 
 /** A batting policy against the reference bowling on one pitch (weather mixed; `optimiser: false` for CI speed). */
-export function battingCell(bat: BatPolicy, pitch: Conditions['pitch'], key: string, start: number, count: number, opts: { optimiser?: boolean } = {}): Cell {
+export function battingCell(
+  bat: BatPolicy,
+  pitch: Conditions['pitch'],
+  key: string,
+  start: number,
+  count: number,
+  opts: { optimiser?: boolean } = {},
+): Cell {
   const cell = zeroCell();
   for (let i = start; i < start + count; i++) {
     const rng = rngFromKey(`sim/batcell|${key}|${i}`);
@@ -428,7 +478,13 @@ export function battingCell(bat: BatPolicy, pitch: Conditions['pitch'], key: str
 }
 
 /** Head-to-head matches: player A (seat alternates) against player B; returns A's wins, losses and ties. */
-export function headToHead(a: SimPlayer, b: SimPlayer, key: string, start: number, count: number): { won: number; lost: number; tied: number; runsFor: number; runsAgainst: number } {
+export function headToHead(
+  a: SimPlayer,
+  b: SimPlayer,
+  key: string,
+  start: number,
+  count: number,
+): { won: number; lost: number; tied: number; runsFor: number; runsAgainst: number } {
   const out = { won: 0, lost: 0, tied: 0, runsFor: 0, runsAgainst: 0 };
   for (let m = start; m < start + count; m++) {
     const rng = rngFromKey(`sim/h2h|${key}|${m}`);
@@ -446,7 +502,12 @@ export function headToHead(a: SimPlayer, b: SimPlayer, key: string, start: numbe
 }
 
 /** Daily Six: average daily score and runs of a batter against each of the three daily overs over `days` days. */
-export function dailyExperiment(bat: BatPolicy, firstDay: string, days: number, perOver: number): { score: [number, number, number]; runs: [number, number, number]; n: number; byPitch: Record<string, number[]> } {
+export function dailyExperiment(
+  bat: BatPolicy,
+  firstDay: string,
+  days: number,
+  perOver: number,
+): { score: [number, number, number]; runs: [number, number, number]; n: number; byPitch: Record<string, number[]> } {
   const score: [number, number, number] = [0, 0, 0];
   const runs: [number, number, number] = [0, 0, 0];
   const byPitch: Record<string, number[]> = {};
@@ -468,7 +529,12 @@ export function dailyExperiment(bat: BatPolicy, firstDay: string, days: number, 
     n++;
   }
   const per = n * perOver;
-  return { score: score.map((s) => s / per) as [number, number, number], runs: runs.map((s) => s / per) as [number, number, number], n: per, byPitch };
+  return {
+    score: score.map((s) => s / per) as [number, number, number],
+    runs: runs.map((s) => s / per) as [number, number, number],
+    n: per,
+    byPitch,
+  };
 }
 
 /** YYYY-MM-DD for a day number since 1970-01-01 (civil-from-days, pure integer arithmetic). */

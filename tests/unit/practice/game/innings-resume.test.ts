@@ -2,13 +2,23 @@
 import { describe, expect, it } from 'vitest';
 import type { NormalizedSwing, PracticeInningsState } from '@/contracts/practice';
 import { BAT_TRAVEL_MS, autoField, replayDelivery } from '@/physics';
-import { inningsReducer, inningsSummary, leaveRecord, newInnings, nextDelivery, overSummary, resumeInnings } from '@/practice/game/innings';
+import {
+  inningsReducer,
+  inningsSummary,
+  leaveRecord,
+  newInnings,
+  nextDelivery,
+  overSummary,
+  resumeInnings,
+} from '@/practice/game/innings';
 import { bowlerFor, buildBall, buildOver, randomOver } from '@/practice/game/overs';
 import { nextFlight, playBall, replayOver, verifyRecord } from '@/practice/game/replay';
 
 const OPTS = { id: 'resume', conditions: 'balanced' as const, assist: 'play' as const, handedness: 'right' as const };
 
-function started(plan = randomOver({ seed: 'resume-over', conditions: 'balanced', assist: 'play', beginner: false })): PracticeInningsState {
+function started(
+  plan = randomOver({ seed: 'resume-over', conditions: 'balanced', assist: 'play', beginner: false }),
+): PracticeInningsState {
   const s = inningsReducer(newInnings(OPTS), { type: 'chooseOver', plan, field: autoField(plan.bowler, 'balanced') });
   return inningsReducer(s, { type: 'deliveryStarted' });
 }
@@ -32,8 +42,18 @@ describe('resuming an innings (no save-scumming)', () => {
 
   it('a ball that was going to hit the stumps still gets you out', () => {
     const bowler = bowlerFor({ family: 'pace', paceBand: 'fast', seed: 'straight' });
-    const straight = buildBall({ family: 'pace', paceBand: 'fast', variation: 'stock', target: { lineM: 0, lengthM: 4 } });
-    const plan = buildOver({ bowler, balls: [straight, straight, straight, straight, straight, straight], shuffle: false, seed: 'straight' });
+    const straight = buildBall({
+      family: 'pace',
+      paceBand: 'fast',
+      variation: 'stock',
+      target: { lineM: 0, lengthM: 4 },
+    });
+    const plan = buildOver({
+      bowler,
+      balls: [straight, straight, straight, straight, straight, straight],
+      shuffle: false,
+      seed: 'straight',
+    });
     const s = resumeInnings(started(plan));
     expect(['out']).toContain(s.status);
     expect(['bowled', 'lbw']).toContain(s.dismissal?.record.dismissal);
@@ -50,26 +70,50 @@ describe('resuming an innings (no save-scumming)', () => {
     const s = started();
     const next = nextDelivery(s)!;
     const rec = leaveRecord(next);
-    expect(rec).toMatchObject({ overIndex: 0, ballIndex: 0, swing: null, tierToleranceMs: 0, seed: next.seed, plan: next.plan });
+    expect(rec).toMatchObject({
+      overIndex: 0,
+      ballIndex: 0,
+      swing: null,
+      tierToleranceMs: 0,
+      seed: next.seed,
+      plan: next.plan,
+    });
   });
 });
 
 describe('a whole over through the physics', () => {
   it('six balls, each replaying exactly, with the summary built from the replays', () => {
-    let s = inningsReducer(newInnings(OPTS), { type: 'chooseOver', plan: randomOver({ seed: 'whole-over', conditions: 'balanced', assist: 'play', beginner: false }), field: autoField(randomOver({ seed: 'whole-over', conditions: 'balanced', assist: 'play', beginner: false }).bowler, 'balanced') });
+    let s = inningsReducer(newInnings(OPTS), {
+      type: 'chooseOver',
+      plan: randomOver({ seed: 'whole-over', conditions: 'balanced', assist: 'play', beginner: false }),
+      field: autoField(
+        randomOver({ seed: 'whole-over', conditions: 'balanced', assist: 'play', beginner: false }).bowler,
+        'balanced',
+      ),
+    });
     const results = [];
     for (let i = 0; i < 6 && s.status === 'batting'; i++) {
       const next = nextDelivery(s)!;
       const f = nextFlight(next);
       const power = 0.7;
       const travel = (BAT_TRAVEL_MS.attackMin + BAT_TRAVEL_MS.attackRange * power) / 1000;
-      const swing: NormalizedSwing | null = i % 3 === 2 ? null : { kind: i % 3 === 0 ? 'attack' : 'defend', startT: f.idealContactT - travel, directionDeg: 25 * (i - 2), power, elevation: 0.1, footwork: 'auto' };
+      const swing: NormalizedSwing | null =
+        i % 3 === 2
+          ? null
+          : {
+              kind: i % 3 === 0 ? 'attack' : 'defend',
+              startT: f.idealContactT - travel,
+              directionDeg: 25 * (i - 2),
+              power,
+              elevation: 0.1,
+              footwork: 'auto',
+            };
       const out = playBall(s, swing)!;
       results.push(out.result);
       expect(verifyRecord(out.record)).toBe(true);
       s = out.state;
     }
-    const done = s.status === 'out' ? s.current ?? s.overs[s.overs.length - 1] : s.overs[0];
+    const done = s.status === 'out' ? (s.current ?? s.overs[s.overs.length - 1]) : s.overs[0];
     expect(replayOver(done).map((r) => JSON.stringify(r))).toEqual(results.map((r) => JSON.stringify(r)));
     const sum = overSummary(done);
     expect(sum).toEqual(overSummary(done, results));

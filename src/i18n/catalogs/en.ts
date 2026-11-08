@@ -100,33 +100,38 @@ export const en = {
   'age.confirm_yes': 'Yes',
   'age.confirm_change': 'Change year',
   'age.stop_title': 'VANDE Cricket is for players aged 18 and over',
-  'age.stop_body': "Thanks for stopping by. We can't set up a player on this device, and we didn't keep your year of birth.",
+  'age.stop_body':
+    "Thanks for stopping by. We can't set up a player on this device, and we didn't keep your year of birth.",
   'legal.privacy': 'Privacy',
   'legal.privacy_policy': 'Privacy policy',
   'onboarding.recover': 'Already played? Recover your account',
   'onboarding.recover_title': 'Recover your account',
-  'onboarding.recover_body': 'Sign in with the Google account or passkey you linked to your player. Your matches, rating and badges come back on this device.',
+  'onboarding.recover_body':
+    'Sign in with the Google account or passkey you linked to your player. Your matches, rating and badges come back on this device.',
   'onboarding.recover_google': 'Continue with Google',
   'onboarding.recover_passkey': 'Use a passkey',
   'onboarding.recover_cancelled': 'Sign-in was cancelled. Nothing changed.',
   'onboarding.recover_failed': 'That sign-in could not be checked. Try again, or make a new player instead.',
   'onboarding.recover_offline': 'You are offline. Recovering an account needs a connection.',
-  'onboarding.recover_no_account': 'No player is linked to that sign-in. Try another account, or make a new player instead.',
+  'onboarding.recover_no_account':
+    'No player is linked to that sign-in. Try another account, or make a new player instead.',
   'onboarding.recover_guest_note': 'A guest player that was never linked to Google or a passkey cannot be recovered.',
   'onboarding.recover_done': 'Welcome back, {alias}.',
 
   // ---- training ------------------------------------------------------------------------------------------------
   'training.title': 'Training',
   'training.bat.title': 'Bat a ball',
-  'training.bat.body': 'Pick a shot, then tap BAT as the ball reaches you. To aim, swipe on BAT towards a gap: letting go is your timing.',
+  'training.bat.body':
+    'Pick a shot, then tap BAT as the ball reaches you. To aim, swipe on BAT towards a gap: letting go is your timing.',
   'training.bowl.title': 'Bowl a ball',
   'training.bowl.body': 'Your over is planned in secret. The release meter sets how well each ball comes out.',
-  'training.bowl.gesture_hint': 'Press and hold, then let go in the gold band. Practice: try as often as you like. In a match each ball gets one release.',
+  'training.bowl.gesture_hint':
+    'Press and hold, then let go in the gold band. Practice: try as often as you like. In a match each ball gets one release.',
   'training.bowl.result': '{grade}. The rules engine judges every release the same way, online or not.',
   'training.reveal.title': 'The reveal',
   'training.reveal.cta': 'Watch the reveal',
   'training.done.title': 'You are match ready',
-  'training.done.body': 'Challenge a friend or try today\'s Daily Six.',
+  'training.done.body': "Challenge a friend or try today's Daily Six.",
   'training.done.duel': 'Challenge a friend',
   'training.done.daily': 'Play Daily Six',
   'training.skip': 'Skip training',
@@ -190,7 +195,8 @@ export const en = {
   'bat.field_label': 'Field: {field}',
   'bat.sending': 'Saving your shot…',
   'bat.queued': 'Shot saved. It will be sent when you reconnect.',
-  'bat.leave_note': 'Tap BAT as the ball arrives. No tap at all leaves the ball: safe wide of off stump, risky on the stumps.',
+  'bat.leave_note':
+    'Tap BAT as the ball arrives. No tap at all leaves the ball: safe wide of off stump, risky on the stumps.',
   'bat.coach': 'Pick a shot, then tap BAT as the ball arrives. Swipe on BAT towards a gap to aim.',
   'bat.fb_aim': '{shot} towards {zone}',
   'bat.fb_on_time': 'Right on time',
@@ -352,14 +358,16 @@ export const en = {
 
   // ---- analytics consent and notifications ---------------------------------------------------------------------
   'consent.title': 'Help improve VANDE Cricket?',
-  'consent.body': 'Share anonymous usage stats: which screens work and where the game is slow. Never your name, contacts, messages or hidden plans.',
+  'consent.body':
+    'Share anonymous usage stats: which screens work and where the game is slow. Never your name, contacts, messages or hidden plans.',
   'consent.yes': 'Share stats',
   'consent.no': 'No thanks',
   'consent.later': 'You can change this any time in Settings. Saying no changes nothing in the game.',
   'consent.thanks_yes': 'Thanks. You can turn this off in Settings.',
   'consent.thanks_no': 'Got it. Nothing is shared.',
   'push.title': 'Know when it is your move',
-  'push.body': 'Get a notification once {name} has locked their over, and when the reveal is ready. Never the result itself.',
+  'push.body':
+    'Get a notification once {name} has locked their over, and when the reveal is ready. Never the result itself.',
   'push.body_generic': 'Get a notification when it is your move and when a reveal is ready. Never the result itself.',
   'push.yes': 'Turn on',
   'push.no': 'Not now',
@@ -388,7 +396,8 @@ export const en = {
   'invite.panel_title': 'Invite a friend',
   'invite.panel_body': 'They can play in the browser with no install. You send the message yourself.',
   'invite.panel_title_cup': 'Invite friends to the cup',
-  'invite.panel_body_cup': 'Everyone who joins before the start plays. They can play in the browser with no install. You send the message yourself.',
+  'invite.panel_body_cup':
+    'Everyone who joins before the start plays. They can play in the browser with no install. You send the message yourself.',
   'invite.whatsapp': 'Send on WhatsApp',
   'invite.more': 'More ways to share',
   'invite.copy': 'Copy link',
@@ -439,14 +448,16 @@ export const en = {
   'match.title': 'Match',
   'match.loading': 'Loading the match…',
   'match.needs_online_title': 'Matches need a connection',
-  'match.needs_online_body': 'This version plays offline only. Practice Ghosts gives you full matches without a server.',
+  'match.needs_online_body':
+    'This version plays offline only. Practice Ghosts gives you full matches without a server.',
   'match.signup_offline': 'You are offline. Your account is created as soon as you reconnect.',
   'match.offline_body': 'You are offline. The match loads when you reconnect.',
   'match.sealed': 'Sealed',
   'match.not_locked': 'Not locked',
   'match.friend_tbc': 'Your friend',
   'match.plan_title': 'Plan your over',
-  'match.plan_body': 'Six balls and a Super Ball for a tie. Once you lock it, it can never change, and nobody sees it until the reveal.',
+  'match.plan_body':
+    'Six balls and a Super Ball for a tie. Once you lock it, it can never change, and nobody sees it until the reveal.',
   'match.plan_cta': 'Plan and lock',
   'match.plan_vs': 'Your over vs {name}',
   'match.locks_in': 'Locks {when}',
@@ -480,7 +491,8 @@ export const en = {
   'match.opp_batted': '{name} has batted',
   'match.opp_not_batted': 'No innings from {name} yet',
   'match.reveal_at': 'The reveal opens {when} ({at})',
-  'match.reveal_when_done': 'The reveal gets a time for you both once {name} has batted, or when batting closes at {at}.',
+  'match.reveal_when_done':
+    'The reveal gets a time for you both once {name} has batted, or when batting closes at {at}.',
   'match.both_in_title': 'Both innings are in',
   'match.both_in_body': 'The reveal opens for you both at the same moment. Every score stays sealed until then.',
   'match.reveal_slot': 'The reveal is at {at} · {when}',
@@ -498,7 +510,8 @@ export const en = {
   'match.expired_body': 'Nobody joined before the deadline, so there is no result.',
   'match.expired_unlocked_body': 'Neither of you locked an over before the deadline, so there is no result.',
   'match.private_title': 'This match is private',
-  'match.private_body': 'Only its two players can open a match. When one of them shares the result, the link they send works for everyone.',
+  'match.private_body':
+    'Only its two players can open a match. When one of them shares the result, the link they send works for everyone.',
   'match.private_cta': 'Play VANDE Cricket',
   'match.rematch_offer_cta': '{name} wants a rematch · Accept',
   'match.rematch_sent_cta': 'Rematch sent · send it again',
@@ -524,9 +537,11 @@ export const en = {
   'daily.done_body': 'A new challenge starts {when}.',
   'daily.leaderboards': 'Leaderboards',
   'daily.fair_title': 'Fairness proof',
-  'daily.fair_body': "These codes seal today's three overs before anyone bats. Each attempt's replay reveals its over, so anyone can check it was fixed in advance.",
+  'daily.fair_body':
+    "These codes seal today's three overs before anyone bats. Each attempt's replay reveals its over, so anyone can check it was fixed in advance.",
   'daily.over_n': 'Over {n}',
-  'daily.rules': 'Three attempts a day, one sealed over each. Scores are runs-led with small bonuses; resets at midnight IST.',
+  'daily.rules':
+    'Three attempts a day, one sealed over each. Scores are runs-led with small bonuses; resets at midnight IST.',
   'daily.needs_online_title': 'Daily Six needs a connection',
   'daily.needs_online_body': 'This version plays offline only. Practice Ghosts works anywhere.',
   'daily.offline_body': "You are offline. Today's challenge loads when you reconnect.",
@@ -542,13 +557,16 @@ export const en = {
   'daily.result_pending_body': 'It is saved on this device and is sent when you reconnect.',
   'daily.result_offline': 'You are offline. Your score appears when you reconnect.',
   'daily.watch': 'Watch your attempt',
-  'daily.share_text': 'I scored {score} in today\'s Daily Six on VANDE Cricket. Same sealed overs for everyone. Can you beat it?',
+  'daily.share_text':
+    "I scored {score} in today's Daily Six on VANDE Cricket. Same sealed overs for everyone. Can you beat it?",
   'daily.shared': 'Shared',
   'daily.again': '{count, plural, one {Try again (# attempt left)} other {Try again (# attempts left)}}',
   'daily.all_used': 'That was your last attempt today. See you tomorrow.',
   'daily.sealed_before': 'Sealed before you batted: {hash}',
-  'daily.not_counted': 'This attempt does not count on the boards: more than one ball was answered late or not at all. It still used an attempt, and your streak is safe.',
-  'daily.innings_line': '{runs, plural, one {# run} other {# runs}} for {wickets, plural, one {# wicket} other {# wickets}}',
+  'daily.not_counted':
+    'This attempt does not count on the boards: more than one ball was answered late or not at all. It still used an attempt, and your streak is safe.',
+  'daily.innings_line':
+    '{runs, plural, one {# run} other {# runs}} for {wickets, plural, one {# wicket} other {# wickets}}',
   'daily.points_label': 'How the score is made',
   'daily.points_runs': '{count, plural, one {# run} other {# runs}} × 10 = {points}',
   'daily.points_fours': '{count, plural, one {# four} other {# fours}} × 4 = {points}',
@@ -561,7 +579,8 @@ export const en = {
   // ---- practice ghosts -----------------------------------------------------------------------------------------
   'ghosts.title': 'Practice Ghosts',
   'ghosts.eyebrow': 'Offline practice',
-  'ghosts.body': 'A full match against a ghost team: plan your over, bat against theirs, then watch the reveal. Nothing leaves this device.',
+  'ghosts.body':
+    'A full match against a ghost team: plan your over, bat against theirs, then watch the reveal. Nothing leaves this device.',
   'ghosts.pick': 'Choose a ghost',
   'ghosts.difficulty': 'Difficulty {n} of 3',
   'ghosts.conditions': 'Conditions',
@@ -584,7 +603,8 @@ export const en = {
   'card.cup_invite.eyebrow': 'Group Cup invite',
   'card.cup_invite.title': '{name} invited you to {cup}',
   'card.cup_invite.title_unnamed': '{name} invited you to a Group Cup',
-  'card.cup_invite.body': "Join the cup: everyone plays everyone, one sealed over per round, locked before the round's deadline. The top two meet in the final.",
+  'card.cup_invite.body':
+    "Join the cup: everyone plays everyone, one sealed over per round, locked before the round's deadline. The top two meet in the final.",
   'card.cup_invite.chip_format': 'Round robin',
   'card.cup_invite.chip_final': 'Top two: final',
   'card.cup_invite.cta': 'Join in your browser. No install needed.',
@@ -602,7 +622,7 @@ export const en = {
   'card.share.boundaries': '{winner} beat {loser} on boundaries. Watch the reveal.',
   'card.share.tie': '{a} and {b} tied. Watch the reveal.',
   'card.daily.eyebrow': 'Daily Six · {day}',
-  'card.daily.title': '{name} took on today\'s sealed overs',
+  'card.daily.title': "{name} took on today's sealed overs",
   'card.daily.body': 'Everyone faces the same three overs today. Best of three counts.',
   'card.daily.best': 'Best {score}',
   'card.daily.streak': '{count, plural, one {# day streak} other {# day streak}}',
@@ -620,11 +640,13 @@ export const en = {
   'settings.section_data': 'Your data',
   'settings.section_about': 'About',
   'settings.draft_translation': 'draft',
-  'settings.draft_note': 'This translation is a machine draft that has not been reviewed by a native speaker yet. Missing lines show in English.',
+  'settings.draft_note':
+    'This translation is a machine draft that has not been reviewed by a native speaker yet. Missing lines show in English.',
   'settings.analytics': 'Share anonymous usage stats',
   'settings.analytics_body': 'Screens, errors and performance only. Never names, contacts, messages or hidden plans.',
   'settings.analytics_off': 'This version collects no analytics.',
-  'settings.privacy_body': 'No phone number, no real name, no contacts and no location. Your alias and avatar are public in matches.',
+  'settings.privacy_body':
+    'No phone number, no real name, no contacts and no location. Your alias and avatar are public in matches.',
   'settings.push': 'Match notifications',
   'settings.push_body': 'Your move, deadlines and reveals. Never a result.',
   'settings.push_android_only': 'Notifications reach the Android app. On the web, check back for your matches.',
@@ -639,11 +661,14 @@ export const en = {
   'settings.export_body': 'Download a copy of your profile, matches and settings.',
   'settings.export_ready': 'Download your data (link expires {when})',
   'settings.delete': 'Delete my account',
-  'settings.delete_body': 'Deletes your account and profile. Finished matches show you as "Deleted player", so the other player keeps their replay.',
+  'settings.delete_body':
+    'Deletes your account and profile. Finished matches show you as "Deleted player", so the other player keeps their replay.',
   'settings.delete_confirm_title': 'Delete your account?',
-  'settings.delete_confirm_body': 'This cannot be undone. Your sign-in, profile and settings are removed from our servers and this device. Finished matches, rooms and highlights show you as "Deleted player".',
+  'settings.delete_confirm_body':
+    'This cannot be undone. Your sign-in, profile and settings are removed from our servers and this device. Finished matches, rooms and highlights show you as "Deleted player".',
   'legal.delete_web': 'Delete your account on the web',
-  'settings.delete_web_body': 'Uninstalled the app, or on another device? You can ask for your account to be deleted on the web too.',
+  'settings.delete_web_body':
+    'Uninstalled the app, or on another device? You can ask for your account to be deleted on the web too.',
   'settings.privacy_policy_body': 'How VANDE Cricket handles your data, in full.',
   'settings.deleted': 'Your account has been deleted.',
   'settings.delete_local': 'Delete data on this device',
@@ -652,14 +677,20 @@ export const en = {
   'settings.local_deleted': 'Data on this device has been deleted.',
   'settings.section_account': 'Sign-in and devices',
   'settings.revoke_others': 'Sign out other devices',
-  'settings.revoke_others_body': 'Signs this account out on every other phone and browser, for example one you lost. This device stays signed in.',
-  'settings.revoked': '{count, plural, =0 {No other devices were signed in.} one {Signed out # other device.} other {Signed out # other devices.}}',
+  'settings.revoke_others_body':
+    'Signs this account out on every other phone and browser, for example one you lost. This device stays signed in.',
+  'settings.revoked':
+    '{count, plural, =0 {No other devices were signed in.} one {Signed out # other device.} other {Signed out # other devices.}}',
   'settings.logout': 'Sign out of this device',
-  'settings.logout_body': 'Removes your sign-in and player from this device. To come back, tap "Already played? Recover your account" on the start screen and use {method, select, google {Google} passkey {your passkey} other {Google or your passkey}}.',
+  'settings.logout_body':
+    'Removes your sign-in and player from this device. To come back, tap "Already played? Recover your account" on the start screen and use {method, select, google {Google} passkey {your passkey} other {Google or your passkey}}.',
   'settings.logout_confirm_title': 'Sign out of this device?',
-  'settings.logout_confirm_body': 'Your account stays safe on our servers. Sign back in here any time with {method, select, google {Google} passkey {your passkey} other {Google or your passkey}}.',
-  'settings.logout_guest': 'This is a guest account. A guest account cannot be recovered after signing out, so its matches, rating and badges would be lost.',
-  'settings.logout_guest_next': 'To keep it, link Google or a passkey on your profile. To remove it for good, use Delete my account below.',
+  'settings.logout_confirm_body':
+    'Your account stays safe on our servers. Sign back in here any time with {method, select, google {Google} passkey {your passkey} other {Google or your passkey}}.',
+  'settings.logout_guest':
+    'This is a guest account. A guest account cannot be recovered after signing out, so its matches, rating and badges would be lost.',
+  'settings.logout_guest_next':
+    'To keep it, link Google or a passkey on your profile. To remove it for good, use Delete my account below.',
   'settings.link_on_profile': 'Link on your profile',
   'settings.signed_out': 'You are signed out of this device.',
 
@@ -673,7 +704,8 @@ export const en = {
   'shared.sealed_note': 'Checked on this device: both overs match their seals.',
   'shared.unverified': 'This replay could not be checked on this device.',
   'shared.practice_title': 'Can you bat their over?',
-  'shared.practice_body': 'Face the exact over one of them bowled, on this device. Nothing is sent and nothing changes their result.',
+  'shared.practice_body':
+    'Face the exact over one of them bowled, on this device. Nothing is sent and nothing changes their result.',
   'shared.practice': "Bat against {name}'s over",
   'shared.practice_vs': "Practice: {name}'s over",
   'shared.practice_result': "You scored {runs}/{wickets} against {name}'s over.",
@@ -687,8 +719,10 @@ export const en = {
   'shared.offline_build': 'This version plays offline only, so shared matches cannot load here.',
   'shared.gone_title': 'This link does not work',
   'shared.gone_body': 'The match may have been removed, or the link is incomplete.',
-  'settings.independent': 'VANDE Cricket is an independent game. It is not affiliated with, endorsed by or connected to any cricket board, league, team, player or broadcaster.',
-  'settings.fair_play': 'No purchase ever changes a result: every match is decided by sealed plans, your timing and published rules, and every replay can be verified.',
+  'settings.independent':
+    'VANDE Cricket is an independent game. It is not affiliated with, endorsed by or connected to any cricket board, league, team, player or broadcaster.',
+  'settings.fair_play':
+    'No purchase ever changes a result: every match is decided by sealed plans, your timing and published rules, and every replay can be verified.',
   'settings.version': 'Version',
   'settings.engine': 'Rules engine',
   'settings.guide': 'How to play',
@@ -697,7 +731,8 @@ export const en = {
   'settings.licences_search': 'Search by name or licence',
   'settings.licences_count': '{count, plural, one {# match} other {# matches}}',
   'settings.licences_none': 'Nothing matches that search.',
-  'settings.licences_assets': 'The artwork, players, stadiums and sounds are original, made by the app itself. Fonts: Manrope and Noto Sans Devanagari, under the SIL Open Font License 1.1 (full text below).',
+  'settings.licences_assets':
+    'The artwork, players, stadiums and sounds are original, made by the app itself. Fonts: Manrope and Noto Sans Devanagari, under the SIL Open Font License 1.1 (full text below).',
   'settings.licences_offline': "Couldn't load the full licence texts. Here is the short list for now.",
 
   // ---- not found -----------------------------------------------------------------------------------------------
@@ -721,7 +756,8 @@ export const en = {
   'highlight.perfect': 'PERFECT',
   'highlight.result': 'Result',
   'highlight.potm': 'Player of the Match',
-  'highlight.potm_line': '{runs, plural, one {# run} other {# runs}} · {wickets, plural, one {# wicket} other {# wickets}}',
+  'highlight.potm_line':
+    '{runs, plural, one {# run} other {# runs}} · {wickets, plural, one {# wicket} other {# wickets}}',
   'highlight.standings': 'Table movement',
   'highlight.new_entry': 'NEW',
   'highlight.cta_title': 'Can you beat them?',

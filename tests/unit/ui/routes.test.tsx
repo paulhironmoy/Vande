@@ -37,10 +37,35 @@ function fakeServices(routes: Record<string, Handler> | null) {
     if (!h) throw new Error(`unexpected ${route}`);
     return h(args);
   });
-  const share = { share: vi.fn().mockResolvedValue('shared'), whatsappUrl: (text: string, url: string) => `https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}` };
-  const analytics = { track: vi.fn(), setConsent: vi.fn(), consent: () => 'unset', active: () => false, flush: async () => undefined };
-  const net = routes ? { api: { call }, session: { ensure: vi.fn().mockResolvedValue({ playerId: 'p_new' }), clear: vi.fn() }, batting: {}, outbox: {} } : null;
-  return { call, share, analytics, value: { net, analytics, platform: { share, push: { available: () => false, register: vi.fn(), onMessage: () => () => undefined } } } };
+  const share = {
+    share: vi.fn().mockResolvedValue('shared'),
+    whatsappUrl: (text: string, url: string) => `https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}`,
+  };
+  const analytics = {
+    track: vi.fn(),
+    setConsent: vi.fn(),
+    consent: () => 'unset',
+    active: () => false,
+    flush: async () => undefined,
+  };
+  const net = routes
+    ? {
+        api: { call },
+        session: { ensure: vi.fn().mockResolvedValue({ playerId: 'p_new' }), clear: vi.fn() },
+        batting: {},
+        outbox: {},
+      }
+    : null;
+  return {
+    call,
+    share,
+    analytics,
+    value: {
+      net,
+      analytics,
+      platform: { share, push: { available: () => false, register: vi.fn(), onMessage: () => () => undefined } },
+    },
+  };
 }
 
 function view(p: Partial<MatchView>): MatchView {
@@ -59,7 +84,11 @@ function view(p: Partial<MatchView>): MatchView {
     rematch: null,
     myCommit: null,
     opponentCommit: null,
-    deadlines: { lockBy: new Date(Date.now() + 3 * 3600_000).toISOString(), batBy: new Date(Date.now() + 26 * 3600_000).toISOString(), revealAt: null },
+    deadlines: {
+      lockBy: new Date(Date.now() + 3 * 3600_000).toISOString(),
+      batBy: new Date(Date.now() + 26 * 3600_000).toISOString(),
+      revealAt: null,
+    },
     myBallsFaced: 0,
     ...p,
   };
@@ -81,7 +110,9 @@ afterEach(() => {
 
 /** The neutral age question that opens the first run: a year that is plainly 18 or over, then "Is that right?" Yes. */
 function answerAge(testId = 'age', years = 30) {
-  fireEvent.change(screen.getByTestId(`${testId}-year`), { target: { value: String(new Date().getFullYear() - years) } });
+  fireEvent.change(screen.getByTestId(`${testId}-year`), {
+    target: { value: String(new Date().getFullYear() - years) },
+  });
   if (testId === 'age') {
     fireEvent.click(screen.getByTestId('age-continue'));
     fireEvent.click(screen.getByTestId('age-confirm-yes'));
@@ -154,7 +185,10 @@ describe('first run', () => {
     // Same words, same buttons, same order: nothing says which answer lets you in.
     const shape = () => {
       const c = screen.getByTestId('age-confirm');
-      return [c.textContent?.replace(/\d{4}/, 'YYYY'), [...c.querySelectorAll('button')].map((x) => `${x.getAttribute('data-testid')}:${x.className}`)];
+      return [
+        c.textContent?.replace(/\d{4}/, 'YYYY'),
+        [...c.querySelectorAll('button')].map((x) => `${x.getAttribute('data-testid')}:${x.className}`),
+      ];
     };
     const adult = shape();
     fireEvent.change(year, { target: { value: String(new Date().getFullYear() - 10) } });
@@ -169,14 +203,30 @@ describe('first run', () => {
     const today = new Date(2026, 9, 25);
     expect(ageStep({ year: 1990, month: null, day: null }, today)).toEqual({ kind: 'answer', answer: 'adult' });
     expect(ageStep({ year: 2009, month: null, day: null }, today)).toEqual({ kind: 'answer', answer: 'under' });
-    expect(ageStep({ year: 2008, month: null, day: null }, today)).toEqual({ kind: 'need', field: 'month', invalid: false });
+    expect(ageStep({ year: 2008, month: null, day: null }, today)).toEqual({
+      kind: 'need',
+      field: 'month',
+      invalid: false,
+    });
     expect(ageStep({ year: 2008, month: 9, day: null }, today)).toEqual({ kind: 'answer', answer: 'adult' });
     expect(ageStep({ year: 2008, month: 11, day: null }, today)).toEqual({ kind: 'answer', answer: 'under' });
-    expect(ageStep({ year: 2008, month: 10, day: null }, today)).toEqual({ kind: 'need', field: 'day', invalid: false });
+    expect(ageStep({ year: 2008, month: 10, day: null }, today)).toEqual({
+      kind: 'need',
+      field: 'day',
+      invalid: false,
+    });
     expect(ageStep({ year: 2008, month: 10, day: 25 }, today)).toEqual({ kind: 'answer', answer: 'adult' });
     expect(ageStep({ year: 2008, month: 10, day: 26 }, today)).toEqual({ kind: 'answer', answer: 'under' });
-    expect(ageStep({ year: 2027, month: null, day: null }, today)).toEqual({ kind: 'need', field: 'year', invalid: true });
-    expect(ageStep({ year: Number.NaN, month: null, day: null }, today)).toEqual({ kind: 'need', field: 'year', invalid: true });
+    expect(ageStep({ year: 2027, month: null, day: null }, today)).toEqual({
+      kind: 'need',
+      field: 'year',
+      invalid: true,
+    });
+    expect(ageStep({ year: Number.NaN, month: null, day: null }, today)).toEqual({
+      kind: 'need',
+      field: 'year',
+      invalid: true,
+    });
   });
 
   it('recovering an existing account is offered on the age screen and skips it', () => {
@@ -199,9 +249,22 @@ describe('first run', () => {
 describe('hub', () => {
   it('lists real matches by urgency with honest states, and the Daily Six', async () => {
     useApp.setState({ player: localPlayer });
-    const daily: DailyView = { day: '2026-10-25', conditions: { pitch: 'slow', weather: 'dew' }, attemptsUsed: 1, attemptsMax: 3, overCommits: ['a', 'b', 'c'], bestScore: 21, streak: 3, resetsAt: new Date(Date.now() + 5 * 3600_000).toISOString() };
+    const daily: DailyView = {
+      day: '2026-10-25',
+      conditions: { pitch: 'slow', weather: 'dew' },
+      attemptsUsed: 1,
+      attemptsMax: 3,
+      overCommits: ['a', 'b', 'c'],
+      bestScore: 21,
+      streak: 3,
+      resetsAt: new Date(Date.now() + 5 * 3600_000).toISOString(),
+    };
     services.current = fakeServices({
-      'GET /v1/matches': () => [view({ matchId: 'old', phase: 'expired' }), view({ matchId: 'wait', phase: 'planning', locked: [true, false] }), view({ matchId: 'lock', phase: 'planning' })],
+      'GET /v1/matches': () => [
+        view({ matchId: 'old', phase: 'expired' }),
+        view({ matchId: 'wait', phase: 'planning', locked: [true, false] }),
+        view({ matchId: 'lock', phase: 'planning' }),
+      ],
       'GET /v1/daily': () => daily,
     }).value;
     renderUi(<HomeRoute route={{ name: 'home' }} />);
@@ -221,7 +284,17 @@ describe('hub', () => {
     services.current = fakeServices({
       'GET /v1/matches': () => {
         calls += 1;
-        return [calls === 1 ? view({ matchId: 'slot', phase: 'awaiting_reveal', locked: [true, true], battingDone: [true, true], deadlines: { lockBy: view({}).deadlines.lockBy, batBy: view({}).deadlines.batBy, revealAt: at } }) : view({ matchId: 'slot', phase: 'revealed', locked: [true, true], battingDone: [true, true] })];
+        return [
+          calls === 1
+            ? view({
+                matchId: 'slot',
+                phase: 'awaiting_reveal',
+                locked: [true, true],
+                battingDone: [true, true],
+                deadlines: { lockBy: view({}).deadlines.lockBy, batBy: view({}).deadlines.batBy, revealAt: at },
+              })
+            : view({ matchId: 'slot', phase: 'revealed', locked: [true, true], battingDone: [true, true] }),
+        ];
       },
       'GET /v1/daily': () => {
         throw new Error('not needed');
@@ -229,7 +302,10 @@ describe('hub', () => {
     }).value;
     renderUi(<HomeRoute route={{ name: 'home' }} />);
     expect((await screen.findByTestId('home-match-card')).textContent).toContain('Both innings are in. Reveal at');
-    await waitFor(() => expect(screen.getByTestId('home-match-card').textContent).toContain('The reveal is ready. Watch it'), { timeout: 4000 });
+    await waitFor(
+      () => expect(screen.getByTestId('home-match-card').textContent).toContain('The reveal is ready. Watch it'),
+      { timeout: 4000 },
+    );
     expect(calls).toBe(2);
   });
 
@@ -247,14 +323,22 @@ describe('hub', () => {
 describe('Friend Duel and the invitation', () => {
   it('creates a duel with the chosen pitch and offers WhatsApp first, once', async () => {
     useApp.setState({ player: localPlayer });
-    const f = fakeServices({ 'POST /v1/duels': () => ({ matchId: 'm5', inviteToken: 'tok_abcdefgh', inviteUrl: 'https://vande.example/i/tok_abcdefgh' }) });
+    const f = fakeServices({
+      'POST /v1/duels': () => ({
+        matchId: 'm5',
+        inviteToken: 'tok_abcdefgh',
+        inviteUrl: 'https://vande.example/i/tok_abcdefgh',
+      }),
+    });
     services.current = f.value;
     const open = vi.spyOn(window, 'open').mockImplementation(() => null);
     renderUi(<DuelNewRoute route={{ name: 'duel_new' }} />);
     fireEvent.click(screen.getByTestId('duel-pitch-green'));
     fireEvent.click(screen.getByTestId('duel-create'));
     await screen.findByTestId('invite-panel');
-    expect(f.call).toHaveBeenCalledWith('POST /v1/duels', { body: { conditions: { pitch: 'green', weather: 'clear' } } });
+    expect(f.call).toHaveBeenCalledWith('POST /v1/duels', {
+      body: { conditions: { pitch: 'green', weather: 'clear' } },
+    });
     expect(f.analytics.track).toHaveBeenCalledWith('invite_created', { mode: 'duel' });
     await act(async () => {
       fireEvent.click(screen.getByTestId('invite-whatsapp'));
@@ -268,7 +352,13 @@ describe('Friend Duel and the invitation', () => {
 
   it('credits a duel started from a highlight with its attribution code', async () => {
     useApp.setState({ player: localPlayer });
-    const f = fakeServices({ 'POST /v1/duels': () => ({ matchId: 'm6', inviteToken: 'tok_abcdefgh', inviteUrl: 'https://vande.example/i/tok_abcdefgh' }) });
+    const f = fakeServices({
+      'POST /v1/duels': () => ({
+        matchId: 'm6',
+        inviteToken: 'tok_abcdefgh',
+        inviteUrl: 'https://vande.example/i/tok_abcdefgh',
+      }),
+    });
     services.current = f.value;
     renderUi(<DuelNewRoute route={{ name: 'duel_new', attribution: 'h1ghl1te' }} />);
     fireEvent.click(screen.getByTestId('duel-create'));
@@ -279,7 +369,12 @@ describe('Friend Duel and the invitation', () => {
 
   it('opens an invite with no install: quick alias, accept, then the match', async () => {
     const f = fakeServices({
-      'GET /v1/invites/:token': () => ({ kind: 'duel', inviterAlias: 'Night Owl', conditions: { pitch: 'green', weather: 'humid' }, expiresAt: new Date(Date.now() + 86_400_000).toISOString() }),
+      'GET /v1/invites/:token': () => ({
+        kind: 'duel',
+        inviterAlias: 'Night Owl',
+        conditions: { pitch: 'green', weather: 'humid' },
+        expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+      }),
       'POST /v1/invites/:token/accept': () => ({ matchId: 'm9' }),
       'PATCH /v1/me': () => ({}),
     });
@@ -295,7 +390,9 @@ describe('Friend Duel and the invitation', () => {
     fireEvent.click(screen.getByTestId('invite-accept'));
     expect(localStorage.getItem('vc:age')).toBeNull();
     fireEvent.click(screen.getByTestId('invite-age-confirm-yes'));
-    await waitFor(() => expect(useRouter.getState().route).toEqual({ name: 'match', matchId: 'm9' }), { timeout: 5000 });
+    await waitFor(() => expect(useRouter.getState().route).toEqual({ name: 'match', matchId: 'm9' }), {
+      timeout: 5000,
+    });
     expect(localStorage.getItem('vc:age')).toBe('adult');
     expect(screen.getByTestId('invite-privacy').getAttribute('href')).toMatch(/privacy\.html$/);
     expect(useApp.getState().player).toMatchObject({ id: 'p_new', alias: 'Ravi Spin' });
@@ -304,7 +401,12 @@ describe('Friend Duel and the invitation', () => {
 
   it('an invite visitor under 18 gets the kind stop and no account', async () => {
     const f = fakeServices({
-      'GET /v1/invites/:token': () => ({ kind: 'duel', inviterAlias: 'Night Owl', conditions: { pitch: 'green', weather: 'humid' }, expiresAt: new Date(Date.now() + 86_400_000).toISOString() }),
+      'GET /v1/invites/:token': () => ({
+        kind: 'duel',
+        inviterAlias: 'Night Owl',
+        conditions: { pitch: 'green', weather: 'humid' },
+        expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+      }),
     });
     services.current = f.value;
     renderUi(<InviteRoute route={{ name: 'invite', token: 'tok_12345678' }} />);
@@ -325,7 +427,16 @@ describe('Friend Duel and the invitation', () => {
     const f = fakeServices({});
     services.current = f.value;
     const open = vi.spyOn(window, 'open').mockImplementation(() => null);
-    renderUi(<InvitePanel kind="cup" cupName="Office Cup" matchId="cup_abcdefgh" inviteUrl="https://vande.example/i/tok_cup12345" inviter={me} conditions={null} />);
+    renderUi(
+      <InvitePanel
+        kind="cup"
+        cupName="Office Cup"
+        matchId="cup_abcdefgh"
+        inviteUrl="https://vande.example/i/tok_cup12345"
+        inviter={me}
+        conditions={null}
+      />,
+    );
     expect(screen.getByText('Invite friends to the cup')).toBeTruthy();
     await act(async () => {
       fireEvent.click(screen.getByTestId('invite-whatsapp'));
@@ -364,14 +475,19 @@ describe('match phases', () => {
   beforeEach(() => useApp.setState({ player: localPlayer }));
 
   it('planning: the plan card with the public lock deadline', async () => {
-    services.current = fakeServices({ 'GET /v1/matches/:id': () => view({}), 'GET /v1/me': () => ({ unlocks: [] }) }).value;
+    services.current = fakeServices({
+      'GET /v1/matches/:id': () => view({}),
+      'GET /v1/me': () => ({ unlocks: [] }),
+    }).value;
     renderUi(<MatchRoute route={{ name: 'match', matchId: 'm1' }} />);
     expect(await screen.findByTestId('match-plan-card')).toBeTruthy();
     expect(screen.getByText(/Lock deadline in 3 hours/)).toBeTruthy();
   });
 
   it('sealed: shows the commit hash as proof and only whether the opponent has locked', async () => {
-    services.current = fakeServices({ 'GET /v1/matches/:id': () => view({ locked: [true, false], myCommit: 'f'.repeat(64) }) }).value;
+    services.current = fakeServices({
+      'GET /v1/matches/:id': () => view({ locked: [true, false], myCommit: 'f'.repeat(64) }),
+    }).value;
     renderUi(<MatchRoute route={{ name: 'match', matchId: 'm1' }} />);
     expect(await screen.findByTestId('match-sealed')).toBeTruthy();
     expect(screen.getByTestId('match-commit').textContent).toContain('ffffffffffff');
@@ -379,14 +495,20 @@ describe('match phases', () => {
   });
 
   it('waiting for a friend: shares the invite again from the server link, on any device', async () => {
-    services.current = fakeServices({ 'GET /v1/matches/:id': () => view({ phase: 'awaiting_opponent', players: [me, null], inviteUrl: 'https://vande.example/i/tok_fromserver' }), 'GET /v1/me': () => ({ unlocks: [] }) }).value;
+    services.current = fakeServices({
+      'GET /v1/matches/:id': () =>
+        view({ phase: 'awaiting_opponent', players: [me, null], inviteUrl: 'https://vande.example/i/tok_fromserver' }),
+      'GET /v1/me': () => ({ unlocks: [] }),
+    }).value;
     renderUi(<MatchRoute route={{ name: 'match', matchId: 'm1' }} />);
     expect(await screen.findByTestId('invite-panel')).toBeTruthy();
     expect(screen.queryByText('You created this invite on another device. Share it from there.')).toBeNull();
   });
 
   it('awaiting reveal: flags and public times only, no score', async () => {
-    services.current = fakeServices({ 'GET /v1/matches/:id': () => view({ phase: 'awaiting_reveal', locked: [true, true], battingDone: [true, false] }) }).value;
+    services.current = fakeServices({
+      'GET /v1/matches/:id': () => view({ phase: 'awaiting_reveal', locked: [true, true], battingDone: [true, false] }),
+    }).value;
     renderUi(<MatchRoute route={{ name: 'match', matchId: 'm1' }} />);
     const card = await screen.findByTestId('match-awaiting-reveal');
     expect(card.textContent).toContain(`No innings from ${them.alias} yet`);
@@ -411,7 +533,9 @@ describe('match phases', () => {
   });
 
   it('awaiting reveal, duel: until both innings are in, status only and no time for the reveal', async () => {
-    services.current = fakeServices({ 'GET /v1/matches/:id': () => view({ phase: 'awaiting_reveal', locked: [true, true], battingDone: [true, false] }) }).value;
+    services.current = fakeServices({
+      'GET /v1/matches/:id': () => view({ phase: 'awaiting_reveal', locked: [true, true], battingDone: [true, false] }),
+    }).value;
     renderUi(<MatchRoute route={{ name: 'match', matchId: 'm1' }} />);
     const card = await screen.findByTestId('match-awaiting-reveal');
     expect(card.textContent).toContain(`The reveal gets a time for you both once ${them.alias} has batted`);
@@ -421,7 +545,15 @@ describe('match phases', () => {
 
   it('awaiting reveal, duel: both innings in, an honest countdown to the shared reveal time', async () => {
     const at = new Date(Date.now() + 3 * 60_000 + 20_000).toISOString();
-    services.current = fakeServices({ 'GET /v1/matches/:id': () => view({ phase: 'awaiting_reveal', locked: [true, true], battingDone: [true, true], deadlines: { lockBy: view({}).deadlines.lockBy, batBy: view({}).deadlines.batBy, revealAt: at } }) }).value;
+    services.current = fakeServices({
+      'GET /v1/matches/:id': () =>
+        view({
+          phase: 'awaiting_reveal',
+          locked: [true, true],
+          battingDone: [true, true],
+          deadlines: { lockBy: view({}).deadlines.lockBy, batBy: view({}).deadlines.batBy, revealAt: at },
+        }),
+    }).value;
     renderUi(<MatchRoute route={{ name: 'match', matchId: 'm1' }} />);
     const countdown = await screen.findByTestId('match-reveal-countdown');
     expect(screen.getByTestId('match-awaiting-reveal').textContent).toContain('Both innings are in');
@@ -437,7 +569,14 @@ describe('match phases', () => {
     const f = fakeServices({
       'GET /v1/matches/:id': () => {
         calls += 1;
-        return calls === 1 ? view({ phase: 'awaiting_reveal', locked: [true, true], battingDone: [true, true], deadlines: { lockBy: view({}).deadlines.lockBy, batBy: view({}).deadlines.batBy, revealAt: at } }) : view({ phase: 'revealed', locked: [true, true], battingDone: [true, true] });
+        return calls === 1
+          ? view({
+              phase: 'awaiting_reveal',
+              locked: [true, true],
+              battingDone: [true, true],
+              deadlines: { lockBy: view({}).deadlines.lockBy, batBy: view({}).deadlines.batBy, revealAt: at },
+            })
+          : view({ phase: 'revealed', locked: [true, true], battingDone: [true, true] });
       },
       'GET /v1/matches/:id/reveal': () => new Promise(() => undefined),
     });
@@ -451,7 +590,17 @@ describe('match phases', () => {
 
   it('awaiting reveal, cup: the round reveal time, and whether the opponent has batted', async () => {
     const at = new Date(Date.now() + 2 * 3600_000).toISOString();
-    services.current = fakeServices({ 'GET /v1/matches/:id': () => view({ kind: 'cup', phase: 'awaiting_reveal', locked: [true, true], battingDone: [true, false], cup: { cupId: 'c1', fixtureId: 'f1', stage: 'group' }, deadlines: { lockBy: view({}).deadlines.lockBy, batBy: view({}).deadlines.batBy, revealAt: at } }) }).value;
+    services.current = fakeServices({
+      'GET /v1/matches/:id': () =>
+        view({
+          kind: 'cup',
+          phase: 'awaiting_reveal',
+          locked: [true, true],
+          battingDone: [true, false],
+          cup: { cupId: 'c1', fixtureId: 'f1', stage: 'group' },
+          deadlines: { lockBy: view({}).deadlines.lockBy, batBy: view({}).deadlines.batBy, revealAt: at },
+        }),
+    }).value;
     renderUi(<MatchRoute route={{ name: 'match', matchId: 'm1' }} />);
     const card = await screen.findByTestId('match-awaiting-reveal');
     expect(card.textContent).toContain(`No innings from ${them.alias} yet`);
@@ -474,7 +623,12 @@ describe('match phases', () => {
     expect(revealSlot(waiting)).toBeNull();
     expect(pollFor(waiting, now)).toBe(20_000);
     expect(refetchIn(waiting, now)).toBeNull();
-    const cup = view({ kind: 'cup', phase: 'awaiting_reveal', battingDone: [true, false], deadlines: { ...d(), revealAt: slot } });
+    const cup = view({
+      kind: 'cup',
+      phase: 'awaiting_reveal',
+      battingDone: [true, false],
+      deadlines: { ...d(), revealAt: slot },
+    });
     expect(revealSlot(cup)).toBeNull();
     expect(pollFor(cup, now)).toBe(20_000);
     expect(refetchIn(cup, now)).toBe(150_000 + REVEAL_GRACE_MS);
@@ -484,13 +638,17 @@ describe('match phases', () => {
   });
 
   it('batting: the innings card (the field arrives with the first ball)', async () => {
-    services.current = fakeServices({ 'GET /v1/matches/:id': () => view({ phase: 'batting', locked: [true, true], myBallsFaced: 3 }) }).value;
+    services.current = fakeServices({
+      'GET /v1/matches/:id': () => view({ phase: 'batting', locked: [true, true], myBallsFaced: 3 }),
+    }).value;
     renderUi(<MatchRoute route={{ name: 'match', matchId: 'm1' }} />);
     expect((await screen.findByTestId('match-bat-start')).textContent).toBe('Continue from ball 4');
   });
 
   it('expired: no result, and a way back to play', async () => {
-    services.current = fakeServices({ 'GET /v1/matches/:id': () => view({ phase: 'expired', players: [me, null] }) }).value;
+    services.current = fakeServices({
+      'GET /v1/matches/:id': () => view({ phase: 'expired', players: [me, null] }),
+    }).value;
     renderUi(<MatchRoute route={{ name: 'match', matchId: 'm1' }} />);
     expect(await screen.findByText('Nobody joined before the deadline, so there is no result.')).toBeTruthy();
   });
@@ -498,7 +656,9 @@ describe('match phases', () => {
   it('expired after both joined: says neither locked (the server expires a duel nobody locked)', async () => {
     services.current = fakeServices({ 'GET /v1/matches/:id': () => view({ phase: 'expired' }) }).value;
     renderUi(<MatchRoute route={{ name: 'match', matchId: 'm1' }} />);
-    expect(await screen.findByText('Neither of you locked an over before the deadline, so there is no result.')).toBeTruthy();
+    expect(
+      await screen.findByText('Neither of you locked an over before the deadline, so there is no result.'),
+    ).toBeTruthy();
   });
 });
 
@@ -520,13 +680,18 @@ describe('settings', () => {
     useApp.setState({ player: localPlayer });
     const f = fakeServices({
       'GET /v1/push/settings': () => ({ enabled: false, quietHours: null }),
-      'POST /v1/me/export': () => ({ downloadUrl: 'https://vande.example/v1/exports/x?t=1', expiresAt: new Date(Date.now() + 3600_000).toISOString() }),
+      'POST /v1/me/export': () => ({
+        downloadUrl: 'https://vande.example/v1/exports/x?t=1',
+        expiresAt: new Date(Date.now() + 3600_000).toISOString(),
+      }),
       'DELETE /v1/me': () => ({ deleted: true }),
     });
     services.current = f.value;
     renderUi(<SettingsRoute route={{ name: 'settings' }} />);
     fireEvent.click(screen.getByTestId('settings-export'));
-    expect((await screen.findByTestId('settings-export-link')).getAttribute('href')).toBe('https://vande.example/v1/exports/x?t=1');
+    expect((await screen.findByTestId('settings-export-link')).getAttribute('href')).toBe(
+      'https://vande.example/v1/exports/x?t=1',
+    );
     fireEvent.click(screen.getByTestId('settings-delete'));
     fireEvent.click(await screen.findByTestId('settings-delete-dialog-confirm'));
     await waitFor(() => expect(f.call).toHaveBeenCalledWith('DELETE /v1/me'));
@@ -548,13 +713,23 @@ describe('wave F: first steps for invited friends', () => {
     fireEvent.change(screen.getByTestId('invite-language'), { target: { value: 'hi' } });
     expect(useApp.getState().settings.locale).toBe('hi');
     useApp.getState().updateSettings({ locale: 'en' });
-    await act(async () => resolve({ kind: 'duel', inviterAlias: 'Night Owl', conditions: { pitch: 'green', weather: 'humid' }, expiresAt: new Date(Date.now() + 86_400_000).toISOString() }));
+    await act(async () =>
+      resolve({
+        kind: 'duel',
+        inviterAlias: 'Night Owl',
+        conditions: { pitch: 'green', weather: 'humid' },
+        expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+      }),
+    );
     expect(await screen.findByText('Night Owl challenged you to a one-over duel')).toBeTruthy();
   });
 
   it('an untrained player is offered the 1-minute training from the plan card, and it leads back', async () => {
     useApp.setState({ player: localPlayer });
-    services.current = fakeServices({ 'GET /v1/matches/:id': () => view({ phase: 'planning' }), 'GET /v1/me': () => ({ unlocks: [] }) }).value;
+    services.current = fakeServices({
+      'GET /v1/matches/:id': () => view({ phase: 'planning' }),
+      'GET /v1/me': () => ({ unlocks: [] }),
+    }).value;
     renderUi(<MatchRoute route={{ name: 'match', matchId: 'm1' }} />);
     fireEvent.click(await screen.findByTestId('match-training'));
     expect(useRouter.getState().route).toEqual({ name: 'training' });
@@ -565,7 +740,10 @@ describe('wave F: first steps for invited friends', () => {
   it('after Training, the plan card no longer offers it', async () => {
     localStorage.setItem('vc:trained', '1');
     useApp.setState({ player: localPlayer });
-    services.current = fakeServices({ 'GET /v1/matches/:id': () => view({ phase: 'planning' }), 'GET /v1/me': () => ({ unlocks: [] }) }).value;
+    services.current = fakeServices({
+      'GET /v1/matches/:id': () => view({ phase: 'planning' }),
+      'GET /v1/me': () => ({ unlocks: [] }),
+    }).value;
     renderUi(<MatchRoute route={{ name: 'match', matchId: 'm1' }} />);
     await screen.findByTestId('match-plan-card');
     expect(screen.queryByTestId('match-training')).toBeNull();
@@ -573,7 +751,14 @@ describe('wave F: first steps for invited friends', () => {
 
   it("the first over's planner explains itself once, and the energy costs say what they are", async () => {
     const { BowlingPlannerScreen } = await import('@/screens/planner/BowlingPlannerScreen');
-    renderUi(<BowlingPlannerScreen conditions={{ pitch: 'hard', weather: 'clear' }} unlocked={['good_length', 'yorker', 'bouncer', 'offspin']} onLock={vi.fn()} coach />);
+    renderUi(
+      <BowlingPlannerScreen
+        conditions={{ pitch: 'hard', weather: 'clear' }}
+        unlocked={['good_length', 'yorker', 'bouncer', 'offspin']}
+        onLock={vi.fn()}
+        coach
+      />,
+    );
     expect(screen.getByTestId('plan-coach').textContent).toContain('How to plan your over');
     expect(screen.getByText(/Each delivery costs the energy on its badge/)).toBeTruthy();
     expect(screen.getAllByText(/^Costs \d+$/).length).toBeGreaterThan(0);
@@ -586,7 +771,10 @@ describe('wave F: the hub', () => {
   it("today's match leads, then the Daily Six, then the rest; a first visit says welcome, not welcome back", async () => {
     useApp.setState({ player: localPlayer });
     services.current = fakeServices({
-      'GET /v1/matches': () => [view({ matchId: 'wait', phase: 'planning', locked: [true, false] }), view({ matchId: 'lock', phase: 'planning' })],
+      'GET /v1/matches': () => [
+        view({ matchId: 'wait', phase: 'planning', locked: [true, false] }),
+        view({ matchId: 'lock', phase: 'planning' }),
+      ],
       'GET /v1/daily': () => {
         throw new Error('offline');
       },
@@ -634,7 +822,11 @@ describe('one-time prompts', () => {
 
   it('notifications: offered once after a lock, registers the device only on "Turn on"', async () => {
     const { PushPrompt } = await import('@/screens/common/PushPrompt');
-    const push = { available: () => true, register: vi.fn().mockResolvedValue({ token: 't'.repeat(40), platform: 'android' }), onMessage: () => () => undefined };
+    const push = {
+      available: () => true,
+      register: vi.fn().mockResolvedValue({ token: 't'.repeat(40), platform: 'android' }),
+      onMessage: () => () => undefined,
+    };
     const call = vi.fn().mockResolvedValue({ ok: true });
     renderUi(<PushPrompt push={push} net={{ api: { call } } as never} opponent="Night Owl" />);
     expect(screen.getByText(/once Night Owl has locked their over/)).toBeTruthy();
@@ -642,7 +834,9 @@ describe('one-time prompts', () => {
       fireEvent.click(screen.getByTestId('push-accept'));
     });
     expect(push.register).toHaveBeenCalled();
-    expect(call).toHaveBeenCalledWith('POST /v1/push/register', { body: { token: 't'.repeat(40), platform: 'android' } });
+    expect(call).toHaveBeenCalledWith('POST /v1/push/register', {
+      body: { token: 't'.repeat(40), platform: 'android' },
+    });
     cleanup();
     renderUi(<PushPrompt push={push} net={null} opponent={null} />);
     expect(screen.queryByTestId('push-prompt')).toBeNull();

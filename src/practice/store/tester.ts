@@ -11,10 +11,24 @@ import { TESTER_ANSWERS, type TesterQuestion } from './testerQuestions';
 export * from './testerQuestions';
 
 export type TesterCohort = 'rookie' | 'rookie_fan' | 'rookie_gamer' | 'expert' | 'informed_expert';
-export const TESTER_COHORTS: readonly TesterCohort[] = ['rookie', 'rookie_fan', 'rookie_gamer', 'expert', 'informed_expert'];
+export const TESTER_COHORTS: readonly TesterCohort[] = [
+  'rookie',
+  'rookie_fan',
+  'rookie_gamer',
+  'expert',
+  'informed_expert',
+];
 
 export type GestureClass = 'tap' | 'flick_ground' | 'flick_lofted' | 'key' | 'leave';
-export type MarkerCode = 'help' | 'confusion' | 'prompted' | 'asked_to_continue' | 'exploit' | 'explained_outcome' | 'task_check' | 'end_session';
+export type MarkerCode =
+  | 'help'
+  | 'confusion'
+  | 'prompted'
+  | 'asked_to_continue'
+  | 'exploit'
+  | 'explained_outcome'
+  | 'task_check'
+  | 'end_session';
 
 /** Events in order; `t` is ms since the session began. */
 export type TesterEvent =
@@ -55,7 +69,13 @@ export type TesterEvent =
       demoWatched: boolean;
     }
   | { t: number; type: 'retry'; attempt: number; success: boolean; verdict: string | null }
-  | { t: number; type: 'next_over'; action: 'same' | 'harder' | 'different' | 'exit'; choiceMs: number; voluntary: boolean }
+  | {
+      t: number;
+      type: 'next_over';
+      action: 'same' | 'harder' | 'different' | 'exit';
+      choiceMs: number;
+      voluntary: boolean;
+    }
   | { t: number; type: 'marker'; code: MarkerCode; reason?: string; value?: string }
   | { t: number; type: 'abandon'; over: number; ball: number };
 
@@ -102,17 +122,34 @@ const str = (v: unknown): v is string => typeof v === 'string' && v.length < 200
 
 function isTesterAnswer(v: unknown): v is TesterAnswer {
   if (!isObj(v) || !str(v.q) || !(v.q in TESTER_ANSWERS) || !str(v.a)) return false;
-  return (TESTER_ANSWERS[v.q as TesterQuestion] as readonly string[]).includes(v.a) && (v.truth === undefined || str(v.truth));
+  return (
+    (TESTER_ANSWERS[v.q as TesterQuestion] as readonly string[]).includes(v.a) &&
+    (v.truth === undefined || str(v.truth))
+  );
 }
 
 function isSession(v: unknown): v is TesterSession {
-  return isObj(v) && str(v.id) && v.consent === true && TESTER_COHORTS.includes(v.cohort as TesterCohort) && str(v.startedAt) && Array.isArray(v.events) && Array.isArray(v.answers);
+  return (
+    isObj(v) &&
+    str(v.id) &&
+    v.consent === true &&
+    TESTER_COHORTS.includes(v.cohort as TesterCohort) &&
+    str(v.startedAt) &&
+    Array.isArray(v.events) &&
+    Array.isArray(v.answers)
+  );
 }
 
 function load(store: KeyStore | null): Saved {
   const raw = readJson(store, PRACTICE_KEYS.tester);
   if (!isObj(raw) || raw.v !== 2) return { v: 2, enabled: isObj(raw) && raw.enabled === true, sessions: [] };
-  const sessions = Array.isArray(raw.sessions) ? raw.sessions.filter(isSession).map((s) => ({ ...s, answers: s.answers.filter(isTesterAnswer).slice(-MAX_ANSWERS), events: s.events.filter(isObj).slice(-MAX_EVENTS) as TesterEvent[] })) : [];
+  const sessions = Array.isArray(raw.sessions)
+    ? raw.sessions.filter(isSession).map((s) => ({
+        ...s,
+        answers: s.answers.filter(isTesterAnswer).slice(-MAX_ANSWERS),
+        events: s.events.filter(isObj).slice(-MAX_EVENTS) as TesterEvent[],
+      }))
+    : [];
   return { v: 2, enabled: raw.enabled === true, sessions };
 }
 
@@ -133,7 +170,10 @@ export function testerSessions(store: KeyStore | null = localStore()): TesterSes
 }
 
 /** Begins a session once the facilitator has recorded consent (never before). */
-export function startTesterSession(session: Omit<TesterSession, 'events' | 'answers'>, store: KeyStore | null = localStore()): boolean {
+export function startTesterSession(
+  session: Omit<TesterSession, 'events' | 'answers'>,
+  store: KeyStore | null = localStore(),
+): boolean {
   if (session.consent !== true) return false;
   const saved = load(store);
   if (saved.sessions.some((s) => s.id === session.id)) return true;
@@ -159,7 +199,11 @@ export function recordTesterEvent(id: string, event: TesterEvent, store: KeyStor
   return update(id, store, (s) => ({ ...s, events: [...s.events, event].slice(-MAX_EVENTS) }));
 }
 
-export function setTesterSessionField(id: string, patch: Partial<Pick<TesterSession, 'ttfcdMs' | 'calibration' | 'device'>>, store: KeyStore | null = localStore()): boolean {
+export function setTesterSessionField(
+  id: string,
+  patch: Partial<Pick<TesterSession, 'ttfcdMs' | 'calibration' | 'device'>>,
+  store: KeyStore | null = localStore(),
+): boolean {
   return update(id, store, (s) => ({ ...s, ...patch }));
 }
 
@@ -170,7 +214,11 @@ export function clearTesterData(store: KeyStore | null = localStore()): void {
 /** The export file's content: every session as recorded, nothing derived or estimated. */
 export function testerExport(store: KeyStore | null = localStore(), exportedAt = new Date()): string {
   const sessions = load(store).sessions;
-  return JSON.stringify({ format: 'vande-practice-tester', version: 2, exportedAt: exportedAt.toISOString(), sessions }, null, 2);
+  return JSON.stringify(
+    { format: 'vande-practice-tester', version: 2, exportedAt: exportedAt.toISOString(), sessions },
+    null,
+    2,
+  );
 }
 
 /** How many answers and events are stored (0 means there is nothing to export). */

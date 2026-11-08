@@ -9,7 +9,8 @@ export const playHi: Record<string, string> = {
   'practice.live.turn_body': 'बल्लेबाज़ी लैंडस्केप में होती है, ताकि गेंदबाज़ के हाथ से पूरी गेंद दिखे।',
   'practice.live.turn_continue': 'फिर भी जारी रखें',
   'practice.live.score_label': '{overs} ओवर के बाद स्कोर {runs}/{wickets}',
-  'practice.live.gesture_label': 'बल्लेबाज़ी का हिस्सा। दबाकर पीछे खींचें, गेंद पढ़ते हुए रोकें, फिर गैप की ओर आगे फ़्लिक करें। छोड़ने के लिए कुछ न करें।',
+  'practice.live.gesture_label':
+    'बल्लेबाज़ी का हिस्सा। दबाकर पीछे खींचें, गेंद पढ़ते हुए रोकें, फिर गैप की ओर आगे फ़्लिक करें। छोड़ने के लिए कुछ न करें।',
   'practice.live.announce_runup': 'गेंद {n} / 6। गेंदबाज़ दौड़कर आ रहा है।',
   'practice.live.announce': '{result}। {reason}। स्कोर {runs} पर {wickets}।',
   'practice.status.practice': 'प्रैक्टिस',
@@ -19,7 +20,8 @@ export const playHi: Record<string, string> = {
   'practice.status.conditions_does': 'पूरा सेटअप खोलता है।',
   'practice.loading.title': 'मैदान तैयार हो रहा है…',
   'practice.intro.title': 'पहले देखें',
-  'practice.intro.body': 'यही बल्लेबाज़ आपको मिलने वाली गेंदों जैसी गेंद खेलता है। फिर आपकी बारी: दबाएँ, पीछे खींचें, गेंद देखें और आगे फ़्लिक करें। छोड़ने के लिए कुछ न करें।',
+  'practice.intro.body':
+    'यही बल्लेबाज़ आपको मिलने वाली गेंदों जैसी गेंद खेलता है। फिर आपकी बारी: दबाएँ, पीछे खींचें, गेंद देखें और आगे फ़्लिक करें। छोड़ने के लिए कुछ न करें।',
   'practice.intro.skip': 'छोड़ें',
   'practice.intro.skip_all': 'सारी सीख छोड़ें',
   'practice.brief.title': 'यह ओवर',
@@ -65,7 +67,8 @@ export const playHi: Record<string, string> = {
   // ---- calm notices (between balls, never during a delivery)
   'practice.notice.classic': 'बेहतर बल्लेबाज़ी के लिए यह डिवाइस क्लासिक ग्राफ़िक्स पर जा रहा है।',
   'practice.notice.balanced': 'बेहतर बल्लेबाज़ी के लिए यह डिवाइस बैलेंस्ड ग्राफ़िक्स पर जा रहा है।',
-  'practice.notice.help_changed': 'इस ओवर से यह डिवाइस निष्पक्ष बल्लेबाज़ी के लिए थोड़ी ज़्यादा टाइमिंग मदद देगा। रियल मोड में कोई मदद नहीं।',
+  'practice.notice.help_changed':
+    'इस ओवर से यह डिवाइस निष्पक्ष बल्लेबाज़ी के लिए थोड़ी ज़्यादा टाइमिंग मदद देगा। रियल मोड में कोई मदद नहीं।',
   'practice.notice.help_less': 'इस ओवर से यह डिवाइस कम टाइमिंग मदद देगा। रियल मोड में कोई मदद नहीं।',
   'practice.notice.interrupted': 'उस गेंद के दौरान प्रैक्टिस रुक गई, इसलिए उसे छोड़ी गई गेंद माना गया।',
   'practice.notice.resumed_leave': 'प्रैक्टिस बंद होते समय जो गेंद खेल में थी, उसे छोड़ी गई गेंद माना गया।',
@@ -134,7 +137,8 @@ export const playHi: Record<string, string> = {
   'practice.summary.end_title': 'यह पारी ख़त्म करें?',
   'practice.summary.end_body': 'आपका {runs} का स्कोर अंतिम है।',
   'practice.summary.out_title': 'आउट · {how}',
-  'practice.summary.survived': '{overs, plural, one {# ओवर} other {# ओवर}} और {balls, plural, one {# गेंद} other {# गेंदें}} टिके',
+  'practice.summary.survived':
+    '{overs, plural, one {# ओवर} other {# ओवर}} और {balls, plural, one {# गेंद} other {# गेंदें}} टिके',
   'practice.summary.survived_balls': '{balls, plural, one {# गेंद} other {# गेंदें}} टिके',
   'practice.summary.practise_dismissal': 'आउट वाली गेंद दोबारा खेलें',
   'practice.summary.watch_dismissal': 'आउट होना देखें',

@@ -72,7 +72,8 @@ export function ExecutionMeter({ onComplete, result, disabled, size = 200, hint 
     press.current = null;
     setHolding(false);
     const { hold } = p;
-    const at = hold instanceof PointerTrace && e ? hold.elapsed(e) : Math.round((performance.now() - hold.t0) * 10) / 10;
+    const at =
+      hold instanceof PointerTrace && e ? hold.elapsed(e) : Math.round((performance.now() - hold.t0) * 10) / 10;
     const t = Math.min(longest, at);
     if (up && e && hold instanceof PointerTrace && at <= longest) hold.end(e);
     else {
@@ -84,16 +85,21 @@ export function ExecutionMeter({ onComplete, result, disabled, size = 200, hint 
     onComplete(trace, previewGrade(trace));
   };
 
-  useEffect(() => () => {
-    if (press.current) cancelAnimationFrame(press.current.raf);
-  }, []);
+  useEffect(
+    () => () => {
+      if (press.current) cancelAnimationFrame(press.current.raf);
+    },
+    [],
+  );
 
   // Arc geometry: a 270° dial from bottom-left; the full sweep is the longest legal hold (maxHoldMs).
   const R = 42;
   const span = rules.maxHoldMs / rules.fillMs;
   const angleFor = (frac: number) => ((135 + (SWEEP * Math.min(span, Math.max(0, frac))) / span) * Math.PI) / 180;
-  const pt = (frac: number, r = R) => `${(Math.cos(angleFor(frac)) * r).toFixed(2)} ${(Math.sin(angleFor(frac)) * r).toFixed(2)}`;
-  const arc = (a: number, b: number, r = R) => `M${pt(a, r)} A${r} ${r} 0 ${(SWEEP * (b - a)) / span > 180 ? 1 : 0} 1 ${pt(b, r)}`;
+  const pt = (frac: number, r = R) =>
+    `${(Math.cos(angleFor(frac)) * r).toFixed(2)} ${(Math.sin(angleFor(frac)) * r).toFixed(2)}`;
+  const arc = (a: number, b: number, r = R) =>
+    `M${pt(a, r)} A${r} ${r} 0 ${(SWEEP * (b - a)) / span > 180 ? 1 : 0} 1 ${pt(b, r)}`;
   const goodHalf = ((1 - rules.goodQuality) * rules.falloffMs) / rules.fillMs;
   const perfHalf = ((1 - rules.perfectQuality) * rules.falloffMs) / rules.fillMs;
   const sweet = rules.sweetMs / rules.fillMs;
@@ -117,7 +123,9 @@ export function ExecutionMeter({ onComplete, result, disabled, size = 200, hint 
         aria-disabled={disabled || undefined}
         onPointerDown={(e) => {
           (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-          start(() => new PointerTrace(e.nativeEvent, ref.current!.getBoundingClientRect(), { maxSamples: MAX_SAMPLES }));
+          start(
+            () => new PointerTrace(e.nativeEvent, ref.current!.getBoundingClientRect(), { maxSamples: MAX_SAMPLES }),
+          );
         }}
         onPointerMove={(e) => {
           const hold = press.current?.hold;
@@ -144,12 +152,18 @@ export function ExecutionMeter({ onComplete, result, disabled, size = 200, hint 
           <path d={arc(sweet - goodHalf, sweet + goodHalf)} className={s.good} />
           <path d={arc(sweet - perfHalf, sweet + perfHalf)} className={s.perfect} />
           {needle > 0 && <path d={arc(0, Math.max(0.001, needle))} className={s.fill} />}
-          <line x1="0" y1="0" x2={Math.cos(angleFor(needle)) * (R + 5)} y2={Math.sin(angleFor(needle)) * (R + 5)} className={s.needle} />
+          <line
+            x1="0"
+            y1="0"
+            x2={Math.cos(angleFor(needle)) * (R + 5)}
+            y2={Math.sin(angleFor(needle)) * (R + 5)}
+            className={s.needle}
+          />
           <circle r="27" className={s.core} />
         </svg>
         <span className={s.center}>
           <span className={s.big} id={labelId}>
-            {holding ? `${Math.round(Math.min(150, progress * 100))}%` : gradeText ?? t('plan.gesture')}
+            {holding ? `${Math.round(Math.min(150, progress * 100))}%` : (gradeText ?? t('plan.gesture'))}
           </span>
         </span>
       </div>

@@ -14,13 +14,26 @@ export function Center({ children }: { children: ReactNode }) {
   return <div className={s.center}>{children}</div>;
 }
 
-export function PausePanel(p: { notice: string | null; canRestart: boolean; onResume: () => void; onRestart: () => void; onLeave: () => void; onSettings: () => void }) {
+export function PausePanel(p: {
+  notice: string | null;
+  canRestart: boolean;
+  onResume: () => void;
+  onRestart: () => void;
+  onLeave: () => void;
+  onSettings: () => void;
+}) {
   const t = usePracticeT();
   const sound = useApp((st) => st.settings.sound);
   const update = useApp((st) => st.updateSettings);
   return (
     <Center>
-      <section className={s.panel} role="dialog" aria-modal="true" aria-labelledby="practice-paused-title" data-testid="practice-paused">
+      <section
+        className={s.panel}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="practice-paused-title"
+        data-testid="practice-paused"
+      >
         <h2 id="practice-paused-title" className={sys.title}>
           {t.t('practice.pause.title')}
         </h2>
@@ -44,7 +57,13 @@ export function PausePanel(p: { notice: string | null; canRestart: boolean; onRe
           </PButton>
         </div>
         <div className={s.quietRow}>
-          <PButton variant="quiet" icon={sound ? 'sound' : 'sound-off'} aria-pressed={sound} onClick={() => update({ sound: !sound })} data-testid="practice-sound-toggle">
+          <PButton
+            variant="quiet"
+            icon={sound ? 'sound' : 'sound-off'}
+            aria-pressed={sound}
+            onClick={() => update({ sound: !sound })}
+            data-testid="practice-sound-toggle"
+          >
             {sound ? t.t('practice.pause.sound_on') : t.t('practice.pause.sound_off')}
           </PButton>
           <PButton variant="quiet" icon="settings" onClick={p.onSettings} data-testid="practice-pause-settings">
@@ -59,12 +78,24 @@ export function PausePanel(p: { notice: string | null; canRestart: boolean; onRe
 export function BriefSheet({ onClose, children }: { onClose: () => void; children: ReactNode }) {
   const t = usePracticeT();
   return (
-    <aside className={s.sheet} role="dialog" aria-modal="true" aria-labelledby="practice-brief-title" data-testid="practice-brief">
+    <aside
+      className={s.sheet}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="practice-brief-title"
+      data-testid="practice-brief"
+    >
       <div className={s.sheetHead}>
         <h2 id="practice-brief-title" className={sys.section}>
           {t.t('practice.brief.title')}
         </h2>
-        <PIconButton icon="close" label={t.t('practice.brief.close')} onClick={onClose} data-testid="practice-brief-close" autoFocus />
+        <PIconButton
+          icon="close"
+          label={t.t('practice.brief.close')}
+          onClick={onClose}
+          data-testid="practice-brief-close"
+          autoFocus
+        />
       </div>
       {children}
     </aside>
@@ -93,7 +124,14 @@ export function TurnPhone({ onContinue }: { onContinue: () => void }) {
   return (
     <div className={s.turn} role="dialog" aria-modal="true" aria-labelledby="practice-turn" data-testid="practice-turn">
       <div className={s.turnInner}>
-        <svg className={s.turnIcon} viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6">
+        <svg
+          className={s.turnIcon}
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+        >
           <rect x="7" y="2.5" width="10" height="19" rx="2" />
           <path d="M11 18.5h2" strokeLinecap="round" />
         </svg>
@@ -111,10 +149,23 @@ export function TurnPhone({ onContinue }: { onContinue: () => void }) {
   );
 }
 
-export function ReplayBar(p: { title: string; playing: boolean; onAgain: () => void; onClose: () => void; index: number }) {
+export function ReplayBar(p: {
+  title: string;
+  playing: boolean;
+  onAgain: () => void;
+  onClose: () => void;
+  index: number;
+}) {
   const t = usePracticeT();
   return (
-    <div className={s.replayBar} role="toolbar" aria-label={p.title} data-testid="practice-replay" data-index={p.index} data-playing={p.playing ? 'true' : 'false'}>
+    <div
+      className={s.replayBar}
+      role="toolbar"
+      aria-label={p.title}
+      data-testid="practice-replay"
+      data-index={p.index}
+      data-playing={p.playing ? 'true' : 'false'}
+    >
       <span className={sys.section}>{p.title}</span>
       {!p.playing && (
         <PButton variant="quiet" icon="replay" onClick={p.onAgain}>

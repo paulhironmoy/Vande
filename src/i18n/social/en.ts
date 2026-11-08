@@ -14,7 +14,8 @@ export const socialEn = {
   // ---- states
   'social.state.offline_body': 'You are offline. This will refresh when you are back online.',
   'social.state.needs_online_title': 'This needs a connection',
-  'social.state.needs_online_body': 'Cups, rooms and leaderboards live on the VANDE Cricket service. Training and Practice Ghosts still work offline.',
+  'social.state.needs_online_body':
+    'Cups, rooms and leaderboards live on the VANDE Cricket service. Training and Practice Ghosts still work offline.',
   'social.state.not_found_title': 'Not found',
   'social.state.not_found_body': 'This link may be old, or it was meant for someone else.',
   'social.state.forbidden_title': 'Members only',
@@ -25,7 +26,8 @@ export const socialEn = {
   'social.state.busy_body': 'The service is busy for a moment. Please try again shortly.',
   'social.state.alias_rejected': 'Your name was not accepted. Change it in your profile, then try again.',
   'social.state.age_title': 'For players aged 18 and over',
-  'social.state.age_body': 'Playing online with friends needs your age confirmed first. Training and Practice Ghosts still work on this device.',
+  'social.state.age_body':
+    'Playing online with friends needs your age confirmed first. Training and Practice Ghosts still work on this device.',
 
   // ---- sharing
   'social.share.copied': 'Link copied',
@@ -33,7 +35,8 @@ export const socialEn = {
   // ---- new cup
   'social.cup_new.title': 'New Group Cup',
   'social.cup_new.eyebrow': 'Group Cup',
-  'social.cup_new.intro': 'A round-robin cup for 3 to 10 friends with fixed deadlines. Fixtures, standings and the final run by themselves.',
+  'social.cup_new.intro':
+    'A round-robin cup for 3 to 10 friends with fixed deadlines. Fixtures, standings and the final run by themselves.',
   'social.cup_new.name_label': 'Cup name',
   'social.cup_new.name_hint': '3 to 40 letters. Everyone in the cup sees it.',
   'social.cup_new.name_placeholder': 'Office Cup 2026',
@@ -45,14 +48,17 @@ export const socialEn = {
   'social.cup_new.size_label': 'Players',
   'social.cup_new.size_less': 'One player fewer',
   'social.cup_new.size_more': 'One player more',
-  'social.cup_new.size_hint': 'Room for {min} to {max}. The cup starts with whoever has joined, as long as there are at least {min}.',
+  'social.cup_new.size_hint':
+    'Room for {min} to {max}. The cup starts with whoever has joined, as long as there are at least {min}.',
   'social.cup_new.pace_label': 'Pace',
   'social.cup_new.pace_sprint': 'Sprint',
   'social.cup_new.pace_daily': 'Daily',
   'social.cup_new.pace_weekend': 'Weekend',
-  'social.cup_new.pace_rules': '{gather, plural, one {# hour} other {# hours}} to join, then each round: {lock, plural, one {# hour} other {# hours}} to lock your over and {bat, plural, one {# hour} other {# hours}} to bat.',
+  'social.cup_new.pace_rules':
+    '{gather, plural, one {# hour} other {# hours}} to join, then each round: {lock, plural, one {# hour} other {# hours}} to lock your over and {bat, plural, one {# hour} other {# hours}} to bat.',
   'social.cup_new.how_title': 'How it runs',
-  'social.cup_new.how_start': 'It starts on time with everyone who joined (at least {min}). Invited friends who never join hold nothing up.',
+  'social.cup_new.how_start':
+    'It starts on time with everyone who joined (at least {min}). Invited friends who never join hold nothing up.',
   'social.cup_new.how_auto': 'Miss a deadline and Auto Over or Auto XI plays your side, so no round ever waits.',
   'social.cup_new.how_final': 'The top two meet in the final.',
   'social.cup_new.create': 'Create the cup',
@@ -77,7 +83,8 @@ export const socialEn = {
   'social.cup.gathering_eyebrow': 'Joining now',
   'social.cup.gathering_title': '{joined} of {size} players have joined',
   'social.cup.gathering_short_title': '{joined, plural, one {# player} other {# players}} so far, {min} needed',
-  'social.cup.gathering_body': 'It starts {when} with everyone who has joined by then, as long as there are at least {min}.',
+  'social.cup.gathering_body':
+    'It starts {when} with everyone who has joined by then, as long as there are at least {min}.',
   'social.cup.non_joiners': 'Friends who were invited but have not joined never hold anything up.',
   'social.cup.members': '{count, plural, one {# player} other {# players}}',
   'social.cup.creator': 'Created the cup',
@@ -140,14 +147,18 @@ export const socialEn = {
   'social.cup.fixture_revealed': 'Revealed',
   'social.cup.fixture_void': 'Void',
   'social.cup.auto_side': 'Auto played for {name}',
-  'social.cup.practice_note': 'Auto XI played this one for you. You can still bat against their over for practice; it does not change the result.',
+  'social.cup.practice_note':
+    'Auto XI played this one for you. You can still bat against their over for practice; it does not change the result.',
   'social.cup.practice_cta': 'Practice against their over',
   'social.cup.watch': 'Watch',
   'social.cup.open_match': 'Open',
   'social.cup.rules_title': 'Cup rules',
-  'social.cup.rules_auto': 'Missed the lock deadline? Auto Over bowls a balanced over for you. Missed batting? Auto XI bats carefully for you.',
-  'social.cup.rules_nobody_waits': 'Every step runs on the clock, so nobody, not even the creator, has to start anything.',
-  'social.cup.rules_practice': 'Playing after a deadline is unofficial practice: it never changes results or the table.',
+  'social.cup.rules_auto':
+    'Missed the lock deadline? Auto Over bowls a balanced over for you. Missed batting? Auto XI bats carefully for you.',
+  'social.cup.rules_nobody_waits':
+    'Every step runs on the clock, so nobody, not even the creator, has to start anything.',
+  'social.cup.rules_practice':
+    'Playing after a deadline is unofficial practice: it never changes results or the table.',
   'social.cup.rules_final': 'The top two play the final, revealed with the full replay treatment.',
 
   // ---- room
@@ -196,7 +207,8 @@ export const socialEn = {
   'social.room.score_winner': '{name} won',
   'social.room.score_tie': 'A tie',
   'social.room.open_match': 'Open the match',
-  'social.room.standings_leader': '{name} leads with {points, plural, one {# point} other {# points}}. {moves, plural, =0 {No places changed.} one {# place changed.} other {# places changed.}}',
+  'social.room.standings_leader':
+    '{name} leads with {points, plural, one {# point} other {# points}}. {moves, plural, =0 {No places changed.} one {# place changed.} other {# places changed.}}',
   'social.room.standings_updated': 'The table has been updated.',
   'social.room.standings_cancelled': 'The cup was cancelled: not enough players joined.',
   'social.room.achievement': '{name} earned {badge}',
@@ -259,7 +271,8 @@ export const socialEn = {
   'social.room.reported': 'Thanks. We will review it.',
   'social.report.player': 'Report {name}',
   'social.report.title': 'Report {name}',
-  'social.report.body': 'Reports go to the VANDE Cricket team, who check the name and the play. {name} is not told who reported them.',
+  'social.report.body':
+    'Reports go to the VANDE Cricket team, who check the name and the play. {name} is not told who reported them.',
   'social.report.reason': 'Why are you reporting this player?',
   'social.room.block': 'Block this player',
   'social.room.block_title': 'Block {name}?',
@@ -299,7 +312,8 @@ export const socialEn = {
   'social.board.group_private': '{name}: only members see this board.',
   'social.board.group_college_title': 'Your college board',
   'social.board.group_company_title': 'Your company board',
-  'social.board.group_body': 'Join with a code from a classmate or colleague, or create a group and share its code. Only members see it.',
+  'social.board.group_body':
+    'Join with a code from a classmate or colleague, or create a group and share its code. Only members see it.',
   'social.board.code_label': 'Group code',
   'social.board.join': 'Join',
   'social.board.joined': 'You joined the group',
@@ -326,7 +340,8 @@ export const socialEn = {
   'social.top100.sealed_title': 'Being decided',
   'social.top100.sealed_body': 'This day’s Top 100 is decided at midnight IST, {until}. Check back then.',
   'social.top100.late_title': 'Running late',
-  'social.top100.late_body': 'This day’s Top 100 was due at midnight IST, {ago}. It is still being worked out, so check back soon.',
+  'social.top100.late_body':
+    'This day’s Top 100 was due at midnight IST, {ago}. It is still being worked out, so check back soon.',
   'social.top100.none_title': 'No Top 100 for this day',
   'social.top100.none_body': 'This day was never ranked. Pick another day.',
   'social.top100.no_day_title': 'No Top 100 for this day',
@@ -334,24 +349,31 @@ export const socialEn = {
   'social.top100.empty_title': 'Nobody qualified',
   'social.top100.empty_body': 'No eligible duel or cup matches were played on this day.',
   'social.top100.list': 'Top 100',
-  'social.top100.matches_counted': '{count, plural, one {# match counted} other {# matches counted}} · {wins, plural, one {# win} other {# wins}}',
+  'social.top100.matches_counted':
+    '{count, plural, one {# match counted} other {# matches counted}} · {wins, plural, one {# win} other {# wins}}',
   'social.top100.score_note': 'Scores are out of 300: your best three matches of the day, 100 points each at most.',
   'social.top100.your_highlight': 'Watch your highlight',
   'social.top100.watch_highlight': 'Watch the highlight',
   'social.top100.review': 'Review your highlight',
   'social.top100.badge_title': 'The badge is yours for good',
-  'social.top100.badge_body': 'Everyone in a Daily Top 100 gets the permanent YouTube Top 100 badge, whether or not a video is made.',
+  'social.top100.badge_body':
+    'Everyone in a Daily Top 100 gets the permanent YouTube Top 100 badge, whether or not a video is made.',
   'social.top100.how_title': 'How the ranking works',
-  'social.top100.how_best': 'Only your best three of your first five eligible duel or cup matches of the day count, so grinding gains nothing.',
-  'social.top100.how_components': 'Wins, the strength of your opponents, tactics, the importance of the match, clutch moments and execution all count.',
-  'social.top100.how_fair': 'The Daily Six never counts. Matches with Auto sides, more than one late answer or machine-perfect timing are not eligible. Buying things never helps.',
+  'social.top100.how_best':
+    'Only your best three of your first five eligible duel or cup matches of the day count, so grinding gains nothing.',
+  'social.top100.how_components':
+    'Wins, the strength of your opponents, tactics, the importance of the match, clutch moments and execution all count.',
+  'social.top100.how_fair':
+    'The Daily Six never counts. Matches with Auto sides, more than one late answer or machine-perfect timing are not eligible. Buying things never helps.',
 
   // ---- highlights (consent)
   'social.hl.title': 'Your highlights',
   'social.hl.eyebrow': 'Daily Top 100',
-  'social.hl.intro': 'A highlight Short is made for the official VANDE Cricket YouTube channel only if both players agree.',
+  'social.hl.intro':
+    'A highlight Short is made for the official VANDE Cricket YouTube channel only if both players agree.',
   'social.hl.empty_title': 'No highlights yet',
-  'social.hl.empty_body': 'Make the Daily Top 100 and your best match can become a YouTube Short, with your permission.',
+  'social.hl.empty_body':
+    'Make the Daily Top 100 and your best match can become a YouTube Short, with your permission.',
   'social.hl.see_top100': 'See the Top 100',
   'social.hl.group_decide': 'Needs your decision',
   'social.hl.group_queued': 'Upload queued',
@@ -373,7 +395,8 @@ export const socialEn = {
   'social.hl.aliases_only': 'Only cricket names and generated avatars appear. Never a real name.',
   'social.hl.description': 'Title and description on YouTube',
   'social.hl.decide_title': 'Your decision',
-  'social.hl.decide_body': 'Both players must agree. If anyone declines, or nobody answers by {when}, there is no video.',
+  'social.hl.decide_body':
+    'Both players must agree. If anyone declines, or nobody answers by {when}, there is no video.',
   'social.hl.visibility': 'Visibility',
   'social.hl.public': 'Public',
   'social.hl.public_hint': 'Anyone can find it on YouTube',
@@ -395,17 +418,21 @@ export const socialEn = {
   'social.hl.queued_rendering': 'Both of you agreed. The video is being made from the replay.',
   'social.hl.queued_review': 'The video is made and waiting for a final check by our team.',
   'social.hl.queued_upload': 'Approved. It goes up as soon as the YouTube upload slot allows.',
-  'social.hl.queued_channel': 'Waiting for the official channel. Nothing is on YouTube yet, and we tell you when it goes live.',
+  'social.hl.queued_channel':
+    'Waiting for the official channel. Nothing is on YouTube yet, and we tell you when it goes live.',
   'social.hl.failed_title': 'Upload failed',
-  'social.hl.failed_body': 'Something went wrong making or uploading the video. We will retry; there is nothing you need to do.',
+  'social.hl.failed_body':
+    'Something went wrong making or uploading the video. We will retry; there is nothing you need to do.',
   'social.hl.declined_title': 'No video for this match',
-  'social.hl.declined_body': 'Someone declined, nobody answered in time, or consent was withdrawn. Your Top 100 badge stays.',
+  'social.hl.declined_body':
+    'Someone declined, nobody answered in time, or consent was withdrawn. Your Top 100 badge stays.',
   'social.hl.rejected_title': 'Not published',
   'social.hl.rejected_body': 'This highlight did not pass our checks, so it will not be published. Your badge stays.',
   'social.hl.removed_title': 'Removed from YouTube',
   'social.hl.removed_body': 'The video has been taken down. Your badge stays.',
   'social.hl.removing_title': 'Removal in progress',
-  'social.hl.removing_body': 'The video is being deleted from YouTube. We keep trying until it is gone. Your badge stays.',
+  'social.hl.removing_body':
+    'The video is being deleted from YouTube. We keep trying until it is gone. Your badge stays.',
   'social.hl.live_public': 'Live on YouTube',
   'social.hl.live_unlisted': 'Live on YouTube (unlisted)',
   'social.hl.open_landing': 'Open the highlight page',

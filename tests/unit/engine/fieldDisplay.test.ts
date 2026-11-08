@@ -8,7 +8,8 @@ import { CONTACT_Z, RING_R, ZONES, zoneForBearing } from '@/render3d/core/ground
 
 const DEG = Math.PI / 180;
 /** Where ground.ts puts a fielder (before its boundary clamp): metres from the centre of the pitch. */
-const fromCentre = (bearingDeg: number, distanceM: number) => Math.hypot(Math.sin(bearingDeg * DEG) * distanceM, CONTACT_Z - Math.cos(bearingDeg * DEG) * distanceM);
+const fromCentre = (bearingDeg: number, distanceM: number) =>
+  Math.hypot(Math.sin(bearingDeg * DEG) * distanceM, CONTACT_Z - Math.cos(bearingDeg * DEG) * distanceM);
 
 describe('FIELD_POSITIONS: the field players see is the field the engine plays', () => {
   it('nine fielders per setting, each a unique position', () => {
@@ -34,7 +35,9 @@ describe('FIELD_POSITIONS: the field players see is the field the engine plays',
     for (const f of FIELD_SETTINGS)
       for (const p of FIELD_POSITIONS[f]) {
         // Surface coordinates of a swipe towards that bearing: x right (off side), y down (straight is up).
-        expect(zoneFromSwipe(Math.sin(p.bearingDeg * DEG), -Math.cos(p.bearingDeg * DEG)), `${f} ${p.role} swipe`).toBe(p.zone);
+        expect(zoneFromSwipe(Math.sin(p.bearingDeg * DEG), -Math.cos(p.bearingDeg * DEG)), `${f} ${p.role} swipe`).toBe(
+          p.zone,
+        );
         expect(zoneForBearing(p.bearingDeg), `${f} ${p.role} renderer`).toBe(p.zone);
       }
   });
@@ -53,6 +56,8 @@ describe('FIELD_POSITIONS: the field players see is the field the engine plays',
     const order = [...FIELD_SETTINGS].sort((a, b) => FIELD_LAYOUTS[b].slipCatch - FIELD_LAYOUTS[a].slipCatch);
     for (let i = 1; i < order.length; i++) expect(slips(order[i - 1])).toBeGreaterThan(slips(order[i]));
     // Close catchers exist only where the engine gives close catches.
-    for (const f of FIELD_SETTINGS) if (FIELD_LAYOUTS[f].closeCatch === 0 && FIELD_LAYOUTS[f].slipCatch < 0.2) expect(FIELD_POSITIONS[f].filter((p) => p.kind === 'close')).toEqual([]);
+    for (const f of FIELD_SETTINGS)
+      if (FIELD_LAYOUTS[f].closeCatch === 0 && FIELD_LAYOUTS[f].slipCatch < 0.2)
+        expect(FIELD_POSITIONS[f].filter((p) => p.kind === 'close')).toEqual([]);
   });
 });

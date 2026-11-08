@@ -4,13 +4,35 @@ import { useApp } from '@/app/store';
 import { useBackHandler } from '@/app/back';
 import { useRouter, type RouteOf } from '@/app/router';
 import { checkMessage } from '@/net/shared/alias';
-import { Button, Card, Dialog, Field, Icon, IconButton, ScreenShell, SegmentedControl, Sheet, StateView, Switch, type IconName } from '@/ui';
+import {
+  Button,
+  Card,
+  Dialog,
+  Field,
+  Icon,
+  IconButton,
+  ScreenShell,
+  SegmentedControl,
+  Sheet,
+  StateView,
+  Switch,
+  type IconName,
+} from '@/ui';
 import { socialFailure, useAccount, useAction, usePlayerGate, useResource, useSocialServices } from '../hooks';
 import { useSocialT, type SocialT } from '../i18n';
 import { FailureState, NeedsOnline } from '../components/States';
 import { PlayerLine } from '../components/PlayerLine';
 import { deadlineText, postHourText } from '../components/time';
-import { BANTER, REACTIONS, REACTION_EMOJI, cardOf, rematchTarget, reportable, withReaction, type CardModel } from './roomModel';
+import {
+  BANTER,
+  REACTIONS,
+  REACTION_EMOJI,
+  cardOf,
+  rematchTarget,
+  reportable,
+  withReaction,
+  type CardModel,
+} from './roomModel';
 import s from '../components/social.module.css';
 
 const POLL_MS = 30_000;
@@ -46,7 +68,11 @@ export default function RoomRoute({ route }: { route: RouteOf<'room'> }) {
   const { net, services, booting } = useSocialServices();
   const account = useAccount(net, player);
   const ready = Boolean(net && account.state === 'ok');
-  const room = useResource<RoomView>(ready && net ? () => net.api.call('GET /v1/rooms/:id', { params: { id: route.roomId } }) : null, [ready, route.roomId], { pollMs: POLL_MS });
+  const room = useResource<RoomView>(
+    ready && net ? () => net.api.call('GET /v1/rooms/:id', { params: { id: route.roomId } }) : null,
+    [ready, route.roomId],
+    { pollMs: POLL_MS },
+  );
   const [older, setOlder] = useState<{ posts: RoomPost[]; cursor: string | null } | null>(null);
   const [shown, setShown] = useState<Set<string>>(() => new Set());
   const [settings, setSettings] = useState(false);
@@ -70,43 +96,86 @@ export default function RoomRoute({ route }: { route: RouteOf<'room'> }) {
       onBack={back}
       narrow
       testId="room-screen"
-      actions={view ? <IconButton icon={view.muted || view.notify === 'none' ? 'bell-off' : 'bell'} label={t('social.room.settings')} onClick={() => setSettings(true)} data-testid="room-settings-open" /> : undefined}
+      actions={
+        view ? (
+          <IconButton
+            icon={view.muted || view.notify === 'none' ? 'bell-off' : 'bell'}
+            label={t('social.room.settings')}
+            onClick={() => setSettings(true)}
+            data-testid="room-settings-open"
+          />
+        ) : undefined
+      }
       footer={footer}
     >
       {children}
     </ScreenShell>
   );
 
-  if (booting || (net && (account.state === 'idle' || account.state === 'syncing') && !view)) return shell(<StateView kind="loading" />);
-  if (!net) return shell(<NeedsOnline actionLabel={t('social.common.home')} onAction={() => navigate({ name: 'home' })} />);
-  if (account.state === 'offline' || account.state === 'error' || account.state === 'age_required') return shell(<FailureState failure={account.state} onRetry={account.retry} />);
+  if (booting || (net && (account.state === 'idle' || account.state === 'syncing') && !view))
+    return shell(<StateView kind="loading" />);
+  if (!net)
+    return shell(<NeedsOnline actionLabel={t('social.common.home')} onAction={() => navigate({ name: 'home' })} />);
+  if (account.state === 'offline' || account.state === 'error' || account.state === 'age_required')
+    return shell(<FailureState failure={account.state} onRetry={account.retry} />);
   if (!view) {
-    if (room.error) return shell(<FailureState failure={socialFailure(room.error)} onRetry={room.reload} notFoundTitle={t('social.room.not_found_title')} notFoundBody={t('social.room.not_found_body')} />);
+    if (room.error)
+      return shell(
+        <FailureState
+          failure={socialFailure(room.error)}
+          onRetry={room.reload}
+          notFoundTitle={t('social.room.not_found_title')}
+          notFoundBody={t('social.room.not_found_body')}
+        />,
+      );
     return shell(<StateView kind="loading" />);
   }
 
   const posts = [...view.posts, ...(older?.posts ?? [])];
   const cursor = older ? older.cursor : view.cursor;
   const replacePost = (next: RoomPost) => {
-    room.set((prev) => (prev ? { ...prev, posts: prev.posts.map((p) => (p.postId === next.postId ? next : p)) } : (prev as unknown as RoomView)));
+    room.set((prev) =>
+      prev
+        ? { ...prev, posts: prev.posts.map((p) => (p.postId === next.postId ? next : p)) }
+        : (prev as unknown as RoomView),
+    );
     setOlder((o) => (o ? { ...o, posts: o.posts.map((p) => (p.postId === next.postId ? next : p)) } : o));
   };
 
   const react = async (post: RoomPost, reaction: ReactionId) => {
     const next = post.myReaction === reaction ? null : reaction;
     replacePost(withReaction(post, next));
-    const r = await action.run(() => net.api.call('POST /v1/rooms/:id/react', { params: { id: view.roomId }, body: { postId: post.postId, reaction: next } }));
+    const r = await action.run(() =>
+      net.api.call('POST /v1/rooms/:id/react', {
+        params: { id: view.roomId },
+        body: { postId: post.postId, reaction: next },
+      }),
+    );
     if (!r.ok) {
       replacePost(post);
-      toast({ kind: 'warning', text: r.failure === 'offline' ? t('social.state.offline_body') : t('social.room.react_failed') });
+      toast({
+        kind: 'warning',
+        text: r.failure === 'offline' ? t('social.state.offline_body') : t('social.room.react_failed'),
+      });
     }
   };
 
   const sendBanter = async (phraseId: BanterId) => {
-    const r = await action.run(() => net.api.call('POST /v1/rooms/:id/banter', { params: { id: view.roomId }, body: { phraseId } }));
+    const r = await action.run(() =>
+      net.api.call('POST /v1/rooms/:id/banter', { params: { id: view.roomId }, body: { phraseId } }),
+    );
     setBanter(false);
     if (r.ok) room.reload();
-    else toast({ kind: 'warning', text: r.failure === 'rate_limited' ? t('social.room.banter_slow') : r.failure === 'offline' ? t('social.state.offline_body') : t('social.room.send_failed') });
+    else
+      toast({
+        kind: 'warning',
+        text:
+          r.failure === 'rate_limited'
+            ? t('social.room.banter_slow')
+            : r.failure === 'offline'
+              ? t('social.state.offline_body')
+              : t('social.room.send_failed'),
+      });
   };
 
   const sendText = async () => {
@@ -115,18 +184,29 @@ export default function RoomRoute({ route }: { route: RouteOf<'room'> }) {
       setTextError(t(`social.room.text_${check.reason}` as 'social.room.text_offensive'));
       return;
     }
-    const r = await action.run(() => net.api.call('POST /v1/rooms/:id/text', { params: { id: view.roomId }, body: { text: check.value } }));
+    const r = await action.run(() =>
+      net.api.call('POST /v1/rooms/:id/text', { params: { id: view.roomId }, body: { text: check.value } }),
+    );
     if (r.ok) {
       setText('');
       setTextError(null);
       room.reload();
-    } else setTextError(r.failure === 'invalid' ? t('social.room.text_offensive') : r.failure === 'rate_limited' ? t('social.room.banter_slow') : t('social.room.send_failed'));
+    } else
+      setTextError(
+        r.failure === 'invalid'
+          ? t('social.room.text_offensive')
+          : r.failure === 'rate_limited'
+            ? t('social.room.banter_slow')
+            : t('social.room.send_failed'),
+      );
   };
 
   const saveSettings = async (patch: { muted?: boolean; notify?: RoomView['notify'] }) => {
     const before = view;
     room.set({ ...view, ...patch });
-    const r = await action.run(() => net.api.call('POST /v1/rooms/:id/settings', { params: { id: view.roomId }, body: patch }));
+    const r = await action.run(() =>
+      net.api.call('POST /v1/rooms/:id/settings', { params: { id: view.roomId }, body: patch }),
+    );
     if (!r.ok) {
       room.set(before);
       toast({ kind: 'warning', text: t('social.room.settings_failed') });
@@ -138,9 +218,17 @@ export default function RoomRoute({ route }: { route: RouteOf<'room'> }) {
 
   const submitReport = async () => {
     if (!report) return;
-    const r = await action.run(() => net.api.call('POST /v1/report', { body: { postId: report.postId, ...(report.authorId ? { playerId: report.authorId } : {}), reason } }));
+    const r = await action.run(() =>
+      net.api.call('POST /v1/report', {
+        body: { postId: report.postId, ...(report.authorId ? { playerId: report.authorId } : {}), reason },
+      }),
+    );
     setReport(null);
-    toast(r.ok ? { kind: 'success', text: t('social.room.reported') } : { kind: 'warning', text: t('social.room.send_failed') });
+    toast(
+      r.ok
+        ? { kind: 'success', text: t('social.room.reported') }
+        : { kind: 'warning', text: t('social.room.send_failed') },
+    );
   };
 
   const submitBlock = async () => {
@@ -157,7 +245,9 @@ export default function RoomRoute({ route }: { route: RouteOf<'room'> }) {
 
   const loadOlder = async () => {
     if (!cursor) return;
-    const r = await action.run(() => net.api.call('GET /v1/rooms/:id', { params: { id: view.roomId }, query: { cursor } }));
+    const r = await action.run(() =>
+      net.api.call('GET /v1/rooms/:id', { params: { id: view.roomId }, query: { cursor } }),
+    );
     if (r.ok) setOlder((o) => ({ posts: [...(o?.posts ?? []), ...r.value.posts], cursor: r.value.cursor }));
     else toast({ kind: 'warning', text: t('social.state.offline_body') });
   };
@@ -183,7 +273,15 @@ export default function RoomRoute({ route }: { route: RouteOf<'room'> }) {
           }}
         >
           <Field label={t('social.room.text_label')} htmlFor={textId} className={s.grow}>
-            <input id={textId} type="text" value={text} maxLength={140} onChange={(e) => (setText(e.target.value), setTextError(null))} aria-invalid={Boolean(textError)} data-testid="room-text" />
+            <input
+              id={textId}
+              type="text"
+              value={text}
+              maxLength={140}
+              onChange={(e) => (setText(e.target.value), setTextError(null))}
+              aria-invalid={Boolean(textError)}
+              data-testid="room-text"
+            />
           </Field>
           <Button type="submit" variant="secondary" icon="forward" loading={action.busy} disabled={!text.trim()}>
             {t('social.room.send')}
@@ -195,7 +293,14 @@ export default function RoomRoute({ route }: { route: RouteOf<'room'> }) {
           )}
         </form>
       )}
-      <Button variant="primary" size="lg" block icon="message" onClick={() => setBanter(true)} data-testid="room-banter-open">
+      <Button
+        variant="primary"
+        size="lg"
+        block
+        icon="message"
+        onClick={() => setBanter(true)}
+        data-testid="room-banter-open"
+      >
         {t('social.room.banter')}
       </Button>
     </div>
@@ -239,14 +344,28 @@ export default function RoomRoute({ route }: { route: RouteOf<'room'> }) {
           {t('social.room.older')}
         </Button>
       )}
-      <Sheet open={settings} onClose={() => setSettings(false)} title={t('social.room.settings')} testId="room-settings">
+      <Sheet
+        open={settings}
+        onClose={() => setSettings(false)}
+        title={t('social.room.settings')}
+        testId="room-settings"
+      >
         <div className={s.stack}>
           <Field label={t('social.room.mute')} description={t('social.room.mute_hint')} inline>
-            <Switch checked={view.muted} onChange={(v) => void saveSettings({ muted: v })} label={t('social.room.mute')} data-testid="room-mute" />
+            <Switch
+              checked={view.muted}
+              onChange={(v) => void saveSettings({ muted: v })}
+              label={t('social.room.mute')}
+              data-testid="room-mute"
+            />
           </Field>
           <SegmentedControl
             label={t('social.room.notify_label')}
-            options={(['all', 'important', 'none'] as const).map((v) => ({ value: v, label: t(`social.room.notify_${v}` as 'social.room.notify_all'), description: t(`social.room.notify_${v}_hint` as 'social.room.notify_all_hint') }))}
+            options={(['all', 'important', 'none'] as const).map((v) => ({
+              value: v,
+              label: t(`social.room.notify_${v}` as 'social.room.notify_all'),
+              description: t(`social.room.notify_${v}_hint` as 'social.room.notify_all_hint'),
+            }))}
             value={view.notify}
             onChange={(v) => void saveSettings({ notify: v })}
             block
@@ -258,14 +377,29 @@ export default function RoomRoute({ route }: { route: RouteOf<'room'> }) {
       <Sheet open={banter} onClose={() => setBanter(false)} title={t('social.room.banter_title')} testId="room-banter">
         <div className={s.phrases}>
           {BANTER.map((id) => (
-            <Button key={id} variant="secondary" onClick={() => void sendBanter(id)} disabled={action.busy} data-testid={`banter-${id}`}>
+            <Button
+              key={id}
+              variant="secondary"
+              onClick={() => void sendBanter(id)}
+              disabled={action.busy}
+              data-testid={`banter-${id}`}
+            >
               {tr.tk(id)}
             </Button>
           ))}
         </div>
         <p className={s.small}>{t('social.room.banter_hint')}</p>
       </Sheet>
-      <Dialog open={report !== null} title={t('social.room.report_title')} description={t('social.room.report_body')} confirmLabel={t('social.room.report_send')} cancelLabel={t('social.common.cancel')} onConfirm={() => void submitReport()} onCancel={() => setReport(null)} testId="room-report">
+      <Dialog
+        open={report !== null}
+        title={t('social.room.report_title')}
+        description={t('social.room.report_body')}
+        confirmLabel={t('social.room.report_send')}
+        cancelLabel={t('social.common.cancel')}
+        onConfirm={() => void submitReport()}
+        onCancel={() => setReport(null)}
+        testId="room-report"
+      >
         <fieldset className={s.stackSm}>
           <legend className={s.h3}>{t('social.room.report_reason')}</legend>
           {REPORT_REASONS.map((r) => (
@@ -278,7 +412,9 @@ export default function RoomRoute({ route }: { route: RouteOf<'room'> }) {
       </Dialog>
       <Dialog
         open={block !== null}
-        title={t('social.room.block_title', { name: block ? view.members.find((m) => m.id === block.authorId)?.alias ?? '' : '' })}
+        title={t('social.room.block_title', {
+          name: block ? (view.members.find((m) => m.id === block.authorId)?.alias ?? '') : '',
+        })}
         description={t('social.room.block_body')}
         confirmLabel={t('social.room.block_confirm')}
         confirmVariant="danger"
@@ -292,7 +428,6 @@ export default function RoomRoute({ route }: { route: RouteOf<'room'> }) {
     footer,
   );
 }
-
 
 function PostCard({
   post,
@@ -313,7 +448,12 @@ function PostCard({
   onReact: (r: ReactionId) => void;
   onReport?: () => void;
   onBlock?: () => void;
-  open: { match: (id: string) => void; rematch: (c: Extract<CardModel, { kind: 'rematch' }>) => void; cup: () => void; highlight: (code: string) => void };
+  open: {
+    match: (id: string) => void;
+    rematch: (c: Extract<CardModel, { kind: 'rematch' }>) => void;
+    cup: () => void;
+    highlight: (code: string) => void;
+  };
 }) {
   const { t } = tr;
   const c = cardOf(post, view.members);
@@ -321,7 +461,13 @@ function PostCard({
   const final = (c.kind === 'fixture' || c.kind === 'reveal_ready' || c.kind === 'scorecard') && c.final;
   const label = t(`social.room.post_${c.kind}` as 'social.room.post_invite');
   return (
-    <Card as="article" padding={4} className={[s.stackSm, final ? s.final : ''].join(' ')} aria-label={label} data-kind={post.kind}>
+    <Card
+      as="article"
+      padding={4}
+      className={[s.stackSm, final ? s.final : ''].join(' ')}
+      aria-label={label}
+      data-kind={post.kind}
+    >
       <div className={s.spread}>
         <span className={s.row}>
           <Icon name={ICON[c.kind]} size={18} />
@@ -335,7 +481,17 @@ function PostCard({
           {REACTIONS.map((r) => {
             const n = post.reactions[r] ?? 0;
             return (
-              <button key={r} type="button" className={s.reaction} aria-pressed={post.myReaction === r} aria-label={t('social.room.reaction_label', { reaction: t(`social.room.reaction_${r}` as 'social.room.reaction_clap'), count: n })} onClick={() => onReact(r)}>
+              <button
+                key={r}
+                type="button"
+                className={s.reaction}
+                aria-pressed={post.myReaction === r}
+                aria-label={t('social.room.reaction_label', {
+                  reaction: t(`social.room.reaction_${r}` as 'social.room.reaction_clap'),
+                  count: n,
+                })}
+                onClick={() => onReact(r)}
+              >
                 <span aria-hidden="true">{REACTION_EMOJI[r]}</span>
                 {n > 0 && <span aria-hidden="true"> {tr.number(n)}</span>}
               </button>
@@ -353,15 +509,46 @@ function PostCard({
   );
 }
 
-function CardBody({ c, tr, now, shown, onShow, open, cupRoom }: { c: CardModel; tr: SocialT; now: number; shown: boolean; onShow: () => void; open: { match: (id: string) => void; rematch: (c: Extract<CardModel, { kind: 'rematch' }>) => void; cup: () => void; highlight: (code: string) => void }; cupRoom: boolean }) {
+function CardBody({
+  c,
+  tr,
+  now,
+  shown,
+  onShow,
+  open,
+  cupRoom,
+}: {
+  c: CardModel;
+  tr: SocialT;
+  now: number;
+  shown: boolean;
+  onShow: () => void;
+  open: {
+    match: (id: string) => void;
+    rematch: (c: Extract<CardModel, { kind: 'rematch' }>) => void;
+    cup: () => void;
+    highlight: (code: string) => void;
+  };
+  cupRoom: boolean;
+}) {
   const { t } = tr;
   switch (c.kind) {
     case 'invite':
-      return <p className={s.body}>{c.cup ? t('social.room.invite_cup', { name: c.inviterAlias, cup: c.cupName ?? '' }) : t('social.room.invite_duel', { name: c.inviterAlias })}</p>;
+      return (
+        <p className={s.body}>
+          {c.cup
+            ? t('social.room.invite_cup', { name: c.inviterAlias, cup: c.cupName ?? '' })
+            : t('social.room.invite_duel', { name: c.inviterAlias })}
+        </p>
+      );
     case 'fixture':
       return (
         <>
-          <p className={s.body}>{c.home && c.away ? t('social.room.fixture_pair', { home: c.home, away: c.away }) : t('social.room.fixture_round', { round: c.round ?? '', count: c.fixtures ?? 0 })}</p>
+          <p className={s.body}>
+            {c.home && c.away
+              ? t('social.room.fixture_pair', { home: c.home, away: c.away })
+              : t('social.room.fixture_round', { round: c.round ?? '', count: c.fixtures ?? 0 })}
+          </p>
           {c.lockBy && <p className={s.small}>{t('social.room.lock_by', { when: deadlineText(tr, c.lockBy, now) })}</p>}
         </>
       );
@@ -369,13 +556,28 @@ function CardBody({ c, tr, now, shown, onShow, open, cupRoom }: { c: CardModel; 
       return <p className={s.body}>{t('social.room.lock_status', { locked: c.locked, total: c.total })}</p>;
     case 'deadline':
       // Auto Over / Auto XI said plainly: who it played for, never a player's own lock or innings.
-      if (c.phase === 'auto_over' || c.phase === 'auto_xi') return <p className={s.body}>{t(c.phase === 'auto_over' ? 'social.room.auto_over' : 'social.room.auto_xi', { name: c.alias ?? '' })}</p>;
-      return <p className={s.body}>{t(c.phase === 'bat' ? 'social.room.deadline_bat' : 'social.room.deadline_lock', { when: deadlineText(tr, c.by, now) })}</p>;
+      if (c.phase === 'auto_over' || c.phase === 'auto_xi')
+        return (
+          <p className={s.body}>
+            {t(c.phase === 'auto_over' ? 'social.room.auto_over' : 'social.room.auto_xi', { name: c.alias ?? '' })}
+          </p>
+        );
+      return (
+        <p className={s.body}>
+          {t(c.phase === 'bat' ? 'social.room.deadline_bat' : 'social.room.deadline_lock', {
+            when: deadlineText(tr, c.by, now),
+          })}
+        </p>
+      );
     case 'reveal_ready':
       return (
         <>
           <p className={s.body}>{c.final ? t('social.room.reveal_final') : t('social.room.reveal_ready')}</p>
-          <Button variant="accent" icon="play" onClick={() => (c.matchId ? open.match(c.matchId) : cupRoom ? open.cup() : undefined)}>
+          <Button
+            variant="accent"
+            icon="play"
+            onClick={() => (c.matchId ? open.match(c.matchId) : cupRoom ? open.cup() : undefined)}
+          >
             {t('social.room.watch_reveal')}
           </Button>
         </>
@@ -383,8 +585,19 @@ function CardBody({ c, tr, now, shown, onShow, open, cupRoom }: { c: CardModel; 
     case 'scorecard':
       return shown ? (
         <>
-          <p className={s.body}>{t('social.room.score_line', { home: c.home, homeRuns: c.homeRuns, homeWickets: c.homeWickets, away: c.away, awayRuns: c.awayRuns, awayWickets: c.awayWickets })}</p>
-          <p className={s.h3}>{c.tie || !c.winner ? t('social.room.score_tie') : t('social.room.score_winner', { name: c.winner })}</p>
+          <p className={s.body}>
+            {t('social.room.score_line', {
+              home: c.home,
+              homeRuns: c.homeRuns,
+              homeWickets: c.homeWickets,
+              away: c.away,
+              awayRuns: c.awayRuns,
+              awayWickets: c.awayWickets,
+            })}
+          </p>
+          <p className={s.h3}>
+            {c.tie || !c.winner ? t('social.room.score_tie') : t('social.room.score_winner', { name: c.winner })}
+          </p>
           {c.matchId && (
             <Button variant="ghost" size="sm" iconEnd="forward" onClick={() => open.match(c.matchId as string)}>
               {t('social.room.open_match')}
@@ -398,15 +611,32 @@ function CardBody({ c, tr, now, shown, onShow, open, cupRoom }: { c: CardModel; 
       );
     case 'standings':
       if (c.status === 'cancelled') return <p className={s.body}>{t('social.room.standings_cancelled')}</p>;
-      return <p className={s.body}>{c.leader ? t('social.room.standings_leader', { name: c.leader, points: c.points ?? 0, moves: c.moves ?? 0 }) : t('social.room.standings_updated')}</p>;
+      return (
+        <p className={s.body}>
+          {c.leader
+            ? t('social.room.standings_leader', { name: c.leader, points: c.points ?? 0, moves: c.moves ?? 0 })
+            : t('social.room.standings_updated')}
+        </p>
+      );
     case 'achievement':
       // A delivery earned in an official match (the server posts `unlock_<variant>`), or a badge.
-      if (c.badge.startsWith('unlock_')) return <p className={s.body}>{t('social.room.unlocked', { name: c.alias, delivery: tr.tk(`social.delivery.${c.badge.slice(7)}`) })}</p>;
-      return <p className={s.body}>{t('social.room.achievement', { name: c.alias, badge: tr.tk(`social.badge.${c.badge}`, undefined, c.badge) })}</p>;
+      if (c.badge.startsWith('unlock_'))
+        return (
+          <p className={s.body}>
+            {t('social.room.unlocked', { name: c.alias, delivery: tr.tk(`social.delivery.${c.badge.slice(7)}`) })}
+          </p>
+        );
+      return (
+        <p className={s.body}>
+          {t('social.room.achievement', { name: c.alias, badge: tr.tk(`social.badge.${c.badge}`, undefined, c.badge) })}
+        </p>
+      );
     case 'highlight':
       return (
         <>
-          <p className={s.body}>{c.title ? t('social.room.highlight_titled', { title: c.title }) : t('social.room.highlight')}</p>
+          <p className={s.body}>
+            {c.title ? t('social.room.highlight_titled', { title: c.title }) : t('social.room.highlight')}
+          </p>
           {c.code && (
             <Button variant="accent" icon="play" onClick={() => open.highlight(c.code as string)}>
               {t('social.room.open_highlight')}

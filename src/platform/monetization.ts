@@ -8,7 +8,13 @@
 import type { AdsAdapter, BillingAdapter } from '@/contracts';
 
 type Product = Awaited<ReturnType<BillingAdapter['products']>>[number];
-const COSMETIC_KINDS: ReadonlySet<Product['kind']> = new Set(['kit', 'celebration', 'stadium_theme', 'replay_theme', 'season']);
+const COSMETIC_KINDS: ReadonlySet<Product['kind']> = new Set([
+  'kit',
+  'celebration',
+  'stadium_theme',
+  'replay_theme',
+  'season',
+]);
 
 export function createDisabledAds(): AdsAdapter {
   return { enabled: () => false, showRewarded: async () => 'unavailable' };
@@ -22,7 +28,9 @@ export function guardAds(ads: AdsAdapter, inningsActive: () => boolean): AdsAdap
   };
 }
 
-export function createMockAds(result: 'rewarded' | 'skipped' | 'unavailable' = 'rewarded'): AdsAdapter & { shown: string[] } {
+export function createMockAds(
+  result: 'rewarded' | 'skipped' | 'unavailable' = 'rewarded',
+): AdsAdapter & { shown: string[] } {
   const self = {
     shown: [] as string[],
     enabled: () => true,
@@ -38,7 +46,10 @@ export function createDisabledBilling(): BillingAdapter {
   return { enabled: () => false, products: async () => [], purchase: async () => 'unavailable' };
 }
 
-export function createMockBilling(products: Product[], result: 'purchased' | 'cancelled' | 'failed' = 'purchased'): BillingAdapter & { purchases: string[] } {
+export function createMockBilling(
+  products: Product[],
+  result: 'purchased' | 'cancelled' | 'failed' = 'purchased',
+): BillingAdapter & { purchases: string[] } {
   const cosmetic = products.filter((p) => COSMETIC_KINDS.has(p.kind));
   const self = {
     purchases: [] as string[],

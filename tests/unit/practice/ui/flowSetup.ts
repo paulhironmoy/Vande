@@ -5,8 +5,22 @@ import { memoryStore, updatePracticeSettings, type KeyStore } from '@/practice/s
 import { PracticeFlow, type FlowDeps } from '@/practice/ui/flow/controller';
 import { assessment, fakeCoach, fakeEngine, stageFactory } from './fakes';
 
-export const attack = (power = 0.6, directionDeg = 30): NormalizedSwing => ({ kind: 'attack', startT: 0.38, directionDeg, power, elevation: 0, footwork: 'auto' });
-export const defend = (): NormalizedSwing => ({ kind: 'defend', startT: 0.38, directionDeg: 0, power: 0.2, elevation: 0, footwork: 'auto' });
+export const attack = (power = 0.6, directionDeg = 30): NormalizedSwing => ({
+  kind: 'attack',
+  startT: 0.38,
+  directionDeg,
+  power,
+  elevation: 0,
+  footwork: 'auto',
+});
+export const defend = (): NormalizedSwing => ({
+  kind: 'defend',
+  startT: 0.38,
+  directionDeg: 0,
+  power: 0.2,
+  elevation: 0,
+  footwork: 'auto',
+});
 /** The fake physics' convention: an attack at 180° is caught. */
 export const caught = () => attack(0.6, 180);
 
@@ -80,7 +94,9 @@ export async function quickPlay(flow: PracticeFlow): Promise<void> {
   flow.prepareOver({ kind: 'random' });
   await until(() => flow.getState().stageReady);
   void flow.play();
-  await until(() => flow.getState().phase === 'runup' || flow.getState().phase === 'live' || flow.getState().phase === 'dead');
+  await until(
+    () => flow.getState().phase === 'runup' || flow.getState().phase === 'live' || flow.getState().phase === 'dead',
+  );
 }
 
 export function useFakeTimers() {

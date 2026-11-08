@@ -18,7 +18,17 @@ export const INTENT_MATCHES: readonly IntentMatch[] = ['on_target', 'near', 'off
 export const LATENCY_BUCKETS: readonly LatencyBucket[] = ['<50ms', '50-70ms', '70-100ms', '>100ms'];
 export const TTFD_BUCKETS: readonly TtfdBucket[] = ['<5s', '5-10s', '10-20s', '>20s'];
 const OUTCOME_PROPS: readonly OutcomeProp[] = ['dot', 'runs', 'four', 'six', 'out'];
-export const CONTACT_KINDS: readonly ContactKind[] = ['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge', 'pad', 'body', 'miss', 'leave'];
+export const CONTACT_KINDS: readonly ContactKind[] = [
+  'middle',
+  'inside_edge',
+  'outside_edge',
+  'top_edge',
+  'leading_edge',
+  'pad',
+  'body',
+  'miss',
+  'leave',
+];
 /** Timing-error histogram: 25 ms bins from −200 to +200 ms, plus one bin each side for anything beyond. */
 const TIMING_BIN_MS = 25;
 const TIMING_RANGE_MS = 200;
@@ -56,14 +66,15 @@ export function timingProp(r: Pick<DeliveryResult, 'swing' | 'contact'>): Timing
 
 /** Smallest difference between two bearings (degrees). */
 export function bearingGap(a: number, b: number): number {
-  const d = Math.abs((((a - b) % 360) + 540) % 360 - 180);
+  const d = Math.abs(((((a - b) % 360) + 540) % 360) - 180);
   return d;
 }
 
 /** The player's intended direction against where the ball actually went (attacking shots that made contact). */
 export function intentMatch(r: Pick<DeliveryResult, 'swing' | 'contact'>): IntentMatch {
   const c = r.contact;
-  if (!r.swing || r.swing.kind !== 'attack' || c.intendedBearingDeg === null || c.exitBearingDeg === null) return 'none';
+  if (!r.swing || r.swing.kind !== 'attack' || c.intendedBearingDeg === null || c.exitBearingDeg === null)
+    return 'none';
   const gap = bearingGap(c.intendedBearingDeg, c.exitBearingDeg);
   return gap <= INTENT_ON_TARGET_DEG ? 'on_target' : gap <= INTENT_NEAR_DEG ? 'near' : 'off_target';
 }
@@ -82,7 +93,8 @@ export function timingBin(errorMs: number): number {
 }
 
 type Counts<K extends string> = Record<K, number>;
-const zero = <K extends string>(keys: readonly K[]): Counts<K> => Object.fromEntries(keys.map((k) => [k, 0])) as Counts<K>;
+const zero = <K extends string>(keys: readonly K[]): Counts<K> =>
+  Object.fromEntries(keys.map((k) => [k, 0])) as Counts<K>;
 
 export interface PracticeMetrics {
   v: 1;
@@ -133,7 +145,18 @@ export function emptyMetrics(): PracticeMetrics {
   };
 }
 
-const COUNTERS = ['sessions', 'deliveries', 'warmups', 'repeats', 'overs', 'wickets', 'innings', 'nextOver', 'replays', 'fallbacks'] as const;
+const COUNTERS = [
+  'sessions',
+  'deliveries',
+  'warmups',
+  'repeats',
+  'overs',
+  'wickets',
+  'innings',
+  'nextOver',
+  'replays',
+  'fallbacks',
+] as const;
 export type MetricCounter = (typeof COUNTERS)[number];
 
 function mergeCounts<K extends string>(base: Counts<K>, raw: unknown): Counts<K> {
@@ -155,7 +178,11 @@ export function loadMetrics(store: KeyStore | null = localStore()): PracticeMetr
   m.ttfd = mergeCounts(m.ttfd, raw.ttfd);
   m.outcomes = mergeCounts(m.outcomes, raw.outcomes);
   m.tiers = mergeCounts(m.tiers, raw.tiers);
-  if (Array.isArray(raw.timingHistogram) && raw.timingHistogram.length === TIMING_BINS && raw.timingHistogram.every((x) => isInt(x) && x >= 0)) {
+  if (
+    Array.isArray(raw.timingHistogram) &&
+    raw.timingHistogram.length === TIMING_BINS &&
+    raw.timingHistogram.every((x) => isInt(x) && x >= 0)
+  ) {
     m.timingHistogram = raw.timingHistogram as number[];
   }
   return m;
@@ -170,7 +197,11 @@ export function clearMetrics(store: KeyStore | null = localStore()): void {
 }
 
 /** Adds one delivery's coarse facts (pure). `latencyMs` is the stage's input-to-bat measurement, when there was one. */
-export function addDelivery(m: PracticeMetrics, r: DeliveryResult, opts: { scoring: boolean; latencyMs?: number | null }): PracticeMetrics {
+export function addDelivery(
+  m: PracticeMetrics,
+  r: DeliveryResult,
+  opts: { scoring: boolean; latencyMs?: number | null },
+): PracticeMetrics {
   const next: PracticeMetrics = {
     ...m,
     timing: { ...m.timing },
@@ -189,7 +220,8 @@ export function addDelivery(m: PracticeMetrics, r: DeliveryResult, opts: { scori
   if (r.swing && r.contact.timingErrorMs !== null) next.timingHistogram[timingBin(r.contact.timingErrorMs)]++;
   next.contact[r.contact.kind]++;
   next.intent[intentMatch(r)]++;
-  if (typeof opts.latencyMs === 'number' && Number.isFinite(opts.latencyMs) && opts.latencyMs >= 0) next.latency[latencyBucket(opts.latencyMs)]++;
+  if (typeof opts.latencyMs === 'number' && Number.isFinite(opts.latencyMs) && opts.latencyMs >= 0)
+    next.latency[latencyBucket(opts.latencyMs)]++;
   return next;
 }
 

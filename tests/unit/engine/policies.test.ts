@@ -72,7 +72,11 @@ describe('Practice Ghosts', () => {
     const variants = (id: string) => new Set(engine.ghostPlan(id, 'x', c).balls.map((b) => b.variant));
     expect([...variants('swinger')].some((v) => v === 'inswing' || v === 'outswing')).toBe(true);
     expect(variants('enforcer').has('bouncer')).toBe(true);
-    expect(engine.ghostPlan('trickster', 'x', { pitch: 'slow', weather: 'clear' }).balls.some((b) => b.variant === 'offspin' || b.variant === 'legspin')).toBe(true);
+    expect(
+      engine
+        .ghostPlan('trickster', 'x', { pitch: 'slow', weather: 'clear' })
+        .balls.some((b) => b.variant === 'offspin' || b.variant === 'legspin'),
+    ).toBe(true);
     expect(engine.ghostPlan('anchor', 'x', c).balls.every((b) => b.intent === 'contain')).toBe(true);
   });
 });

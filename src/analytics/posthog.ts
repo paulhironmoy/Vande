@@ -79,7 +79,11 @@ export function createPostHogAdapter(opts: PostHogOptions): AnalyticsAdapter & {
   return {
     track(event, props) {
       try {
-        queue.push({ event, properties: { ...(props as Record<string, string | number | boolean>) }, timestamp: coarseTimestamp(opts.now?.() ?? new Date()) });
+        queue.push({
+          event,
+          properties: { ...(props as Record<string, string | number | boolean>) },
+          timestamp: coarseTimestamp(opts.now?.() ?? new Date()),
+        });
         if (queue.length >= batchSize) void flush();
         else if (!timer) timer = setTimeout(() => void flush(), flushMs);
       } catch {

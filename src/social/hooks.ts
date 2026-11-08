@@ -17,7 +17,19 @@ export function useSocialServices(): { services: Services | null; net: Net | nul
   return { services, net: services?.net ?? null, booting: services === null };
 }
 
-export type SocialFailure = 'offline' | 'not_found' | 'forbidden' | 'sealed' | 'expired' | 'rate_limited' | 'conflict' | 'invalid' | 'signed_out' | 'unavailable' | 'age_required' | 'error';
+export type SocialFailure =
+  | 'offline'
+  | 'not_found'
+  | 'forbidden'
+  | 'sealed'
+  | 'expired'
+  | 'rate_limited'
+  | 'conflict'
+  | 'invalid'
+  | 'signed_out'
+  | 'unavailable'
+  | 'age_required'
+  | 'error';
 
 export function socialFailure(e: unknown): SocialFailure {
   // No account without the age confirmation (18+): not a "members only" refusal.
@@ -72,12 +84,18 @@ export type AccountState = 'idle' | 'syncing' | 'ok' | 'offline' | 'alias_reject
  * The server account behind the local player, created with the player's own alias, avatar, kit and language (never
  * a generated stand-in) before any signed-in call.
  */
-export async function ensureAccount(net: Net, player: LocalPlayer, locale: string): Promise<{ id: string } | { error: AccountState }> {
+export async function ensureAccount(
+  net: Net,
+  player: LocalPlayer,
+  locale: string,
+): Promise<{ id: string } | { error: AccountState }> {
   try {
     const tokens = await net.session.ensure(player.alias);
     if (!player.id) {
       try {
-        await net.api.call('PATCH /v1/me', { body: { avatar: player.avatar, kit: player.kit, locale: locale as never } });
+        await net.api.call('PATCH /v1/me', {
+          body: { avatar: player.avatar, kit: player.kit, locale: locale as never },
+        });
       } catch {
         /* the profile can be completed later: the account exists */
       }
@@ -140,7 +158,11 @@ export interface Resource<T> {
  * Runs `fn` now, again when `deps` change, when the app is back online after a failure, and every `pollMs` while
  * the page is visible. Keeps the last good data while reloading. `fn: null` means "not yet" (e.g. no account).
  */
-export function useResource<T>(fn: (() => Promise<T>) | null, deps: unknown[], opts: { pollMs?: number | null } = {}): Resource<T> {
+export function useResource<T>(
+  fn: (() => Promise<T>) | null,
+  deps: unknown[],
+  opts: { pollMs?: number | null } = {},
+): Resource<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(Boolean(fn));
@@ -200,7 +222,12 @@ export function useResource<T>(fn: (() => Promise<T>) | null, deps: unknown[], o
 }
 
 /** A mutation in flight: `busy` while it runs; failures come back as a SocialFailure (never thrown at the UI). */
-export function useAction(): { busy: boolean; run: <T>(fn: () => Promise<T>) => Promise<{ ok: true; value: T } | { ok: false; failure: SocialFailure; error: unknown }> } {
+export function useAction(): {
+  busy: boolean;
+  run: <T>(
+    fn: () => Promise<T>,
+  ) => Promise<{ ok: true; value: T } | { ok: false; failure: SocialFailure; error: unknown }>;
+} {
   const [busy, setBusy] = useState(false);
   const alive = useRef(true);
   useEffect(
@@ -209,7 +236,7 @@ export function useAction(): { busy: boolean; run: <T>(fn: () => Promise<T>) => 
     },
     [],
   );
-  const run = useCallback(async <T,>(fn: () => Promise<T>) => {
+  const run = useCallback(async <T>(fn: () => Promise<T>) => {
     setBusy(true);
     try {
       const value = await fn();

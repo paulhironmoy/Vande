@@ -7,7 +7,21 @@ import { describe, expect, it } from 'vitest';
 import type { GestureInput, NormalizedSwing } from '@/contracts/practice';
 import { GestureTracker, normalizeGesture, referenceLength, type TrackerScheduler } from '@/input';
 import { DEPARTURE, KEYBOARD, LOFT_REACH, POWER_CURVE, READ_MAX_MS } from '@/input/constants';
-import { DELIVERIES, OPTS, PROFILES, RELEASE, SURFACES, bearingDiff, play, rng, spearman, strokeSamples, tapSamples, type ProfileName, type SurfaceName } from './fixtures';
+import {
+  DELIVERIES,
+  OPTS,
+  PROFILES,
+  RELEASE,
+  SURFACES,
+  bearingDiff,
+  play,
+  rng,
+  spearman,
+  strokeSamples,
+  tapSamples,
+  type ProfileName,
+  type SurfaceName,
+} from './fixtures';
 
 const PHONE = SURFACES.phone;
 const REF = referenceLength(PHONE);
@@ -51,7 +65,9 @@ describe('E-PX-001 acceptance (Player Experience Director)', () => {
         for (let ms = 60; ms <= 150; ms += 15)
           for (const profile of profiles)
             for (const bearingDeg of [0, 45, -60, 120]) {
-              const s = play(strokeSamples({ lengthPx: len, bearingDeg, durationMs: ms, profile }, T0), { surface }).swing!;
+              const s = play(strokeSamples({ lengthPx: len, bearingDeg, durationMs: ms, profile }, T0), {
+                surface,
+              }).swing!;
               expect(s.kind).toBe('attack');
               expect(s.elevation, `${len} px / ${ms} ms ${profile}`).toBe(0);
               n++;
@@ -68,8 +84,23 @@ describe('E-PX-001 acceptance (Player Experience Director)', () => {
       const surface = SURFACES[name];
       const ref = referenceLength(surface);
       // The documented gesture, played loosely: 1.8 reference lengths ± 12%, 90–140 ms, any profile, a curve, a short rest.
-      const st = { lengthPx: ref * 1.8 * (1 + r.gauss() * 0.06), bearingDeg: r.range(-70, 70), durationMs: r.range(90, 140), profile: r.pick(profiles), curveDeg: r.range(-15, 15), restMs: r.chance(0.2) ? r.range(5, 25) : 0, rateMs: r.pick([4, 8, 1000 / 120]), jitterPx: r.range(0.2, 0.8), x0: r.range(0.2, 0.8) * surface.width, y0: r.range(0.6, 0.95) * surface.height };
-      const s = play(strokeSamples(st, T0, r), { surface, pointer: name === 'desktop' ? 'mouse' : 'touch', delivery: r.pick(DELIVERIES) }).swing!;
+      const st = {
+        lengthPx: ref * 1.8 * (1 + r.gauss() * 0.06),
+        bearingDeg: r.range(-70, 70),
+        durationMs: r.range(90, 140),
+        profile: r.pick(profiles),
+        curveDeg: r.range(-15, 15),
+        restMs: r.chance(0.2) ? r.range(5, 25) : 0,
+        rateMs: r.pick([4, 8, 1000 / 120]),
+        jitterPx: r.range(0.2, 0.8),
+        x0: r.range(0.2, 0.8) * surface.width,
+        y0: r.range(0.6, 0.95) * surface.height,
+      };
+      const s = play(strokeSamples(st, T0, r), {
+        surface,
+        pointer: name === 'desktop' ? 'mouse' : 'touch',
+        delivery: r.pick(DELIVERIES),
+      }).swing!;
       if (s.kind === 'attack' && s.elevation >= 0.45) lofted++;
     }
     console.info(`E-PX-001 loft corpus: ${lofted}/${N} lofted (elevation ≥ 0.45)`);
@@ -85,7 +116,9 @@ describe('E-PX-001 acceptance (Player Experience Director)', () => {
       ])
         for (const profile of profiles)
           for (const d of DELIVERIES) {
-            const s = play(strokeSamples({ lengthPx: len, bearingDeg: 30, durationMs: ms, restMs, profile }, T0), { delivery: d }).swing!;
+            const s = play(strokeSamples({ lengthPx: len, bearingDeg: 30, durationMs: ms, restMs, profile }, T0), {
+              delivery: d,
+            }).swing!;
             expect(s.kind, `rest ${restMs} ${len}/${ms} ${profile} ${d.name}`).toBe('attack');
             expect(s.directionDeg).toBeCloseTo(30, 0);
           }
@@ -114,20 +147,47 @@ describe('E-PX-001 acceptance (Player Experience Director)', () => {
     expect(Math.min(...powers)).toBeLessThan(0.3);
     expect(Math.max(...powers)).toBeGreaterThan(0.8);
     // Spread across the range, not bunched: every 0.1-wide band from 0.3 to 0.8 is used.
-    for (let b = 0.3; b < 0.8; b += 0.1) expect(powers.some((p) => p >= b && p < b + 0.1), `band ${b.toFixed(1)}`).toBe(true);
+    for (let b = 0.3; b < 0.8; b += 0.1)
+      expect(
+        powers.some((p) => p >= b && p < b + 0.1),
+        `band ${b.toFixed(1)}`,
+      ).toBe(true);
   });
 
   it('the keyboard attacks: direction from the arrows, Shift to loft', () => {
     const at = (seq: Array<[string, number, boolean?]>) => normalizeGesture(keys(seq)!, { ...OPTS, releasePerfMs: 0 })!;
-    expect(at([['ArrowUp', 500]])).toMatchObject({ kind: 'attack', directionDeg: 0, elevation: 0, power: KEYBOARD.power });
-    expect(at([['ArrowRight', 500], ['ArrowUp', 510]])).toMatchObject({ kind: 'attack', directionDeg: 45 });
-    expect(at([['ArrowLeft', 500, true]])).toMatchObject({ kind: 'attack', directionDeg: -90, elevation: KEYBOARD.loftElevation });
+    expect(at([['ArrowUp', 500]])).toMatchObject({
+      kind: 'attack',
+      directionDeg: 0,
+      elevation: 0,
+      power: KEYBOARD.power,
+    });
+    expect(
+      at([
+        ['ArrowRight', 500],
+        ['ArrowUp', 510],
+      ]),
+    ).toMatchObject({ kind: 'attack', directionDeg: 45 });
+    expect(at([['ArrowLeft', 500, true]])).toMatchObject({
+      kind: 'attack',
+      directionDeg: -90,
+      elevation: KEYBOARD.loftElevation,
+    });
     expect(at([['Space', 500]])).toMatchObject({ kind: 'defend' });
   });
 });
 
 describe('CTL2 (input part): defence, grounded attack, lofted attack and leave are distinct swings', () => {
-  const kinds = (sw: NormalizedSwing | null) => (sw === null ? 'leave' : sw.kind === 'defend' ? 'defend' : sw.elevation >= 0.45 ? 'lofted' : sw.elevation === 0 ? 'grounded' : 'uppish');
+  const kinds = (sw: NormalizedSwing | null) =>
+    sw === null
+      ? 'leave'
+      : sw.kind === 'defend'
+        ? 'defend'
+        : sw.elevation >= 0.45
+          ? 'lofted'
+          : sw.elevation === 0
+            ? 'grounded'
+            : 'uppish';
   for (const [name, pointer] of [
     ['touch on a phone', 'touch'],
     ['mouse on a desktop', 'mouse'],
@@ -139,8 +199,22 @@ describe('CTL2 (input part): defence, grounded attack, lofted attack and leave a
       for (let i = 0; i < 30; i++) {
         const b = -60 + 4 * i;
         expect(kinds(play(tapSamples(T0, 50 + i * 3, { driftPx: 3 }), { surface, pointer }).swing)).toBe('defend');
-        expect(kinds(play(strokeSamples({ lengthPx: ref * (0.35 + i * 0.02), bearingDeg: b, durationMs: 70 + i * 2 }, T0), { surface, pointer }).swing)).toBe('grounded');
-        expect(kinds(play(strokeSamples({ lengthPx: ref * (1.7 + i * 0.01), bearingDeg: b, durationMs: 100 + i }, T0), { surface, pointer }).swing)).toBe('lofted');
+        expect(
+          kinds(
+            play(strokeSamples({ lengthPx: ref * (0.35 + i * 0.02), bearingDeg: b, durationMs: 70 + i * 2 }, T0), {
+              surface,
+              pointer,
+            }).swing,
+          ),
+        ).toBe('grounded');
+        expect(
+          kinds(
+            play(strokeSamples({ lengthPx: ref * (1.7 + i * 0.01), bearingDeg: b, durationMs: 100 + i }, T0), {
+              surface,
+              pointer,
+            }).swing,
+          ),
+        ).toBe('lofted');
       }
       // No input is no swing: the physics plays a leave.
       expect(kinds(null)).toBe('leave');
@@ -163,7 +237,17 @@ describe('CTL3 (input part): the read direction is the gesture’s direction', (
     for (let dir = 0; dir < 8; dir++)
       for (let i = 0; i < 60; i++) {
         const aim = -180 + dir * 45;
-        const st = { lengthPx: r.range(60, 180), bearingDeg: aim, durationMs: r.range(60, 140), profile: r.pick(profiles), curveDeg: r.range(-20, 20), rateMs: r.pick([4, 8, 1000 / 60]), jitterPx: r.range(0.2, 1), x0: 450, y0: 100 };
+        const st = {
+          lengthPx: r.range(60, 180),
+          bearingDeg: aim,
+          durationMs: r.range(60, 140),
+          profile: r.pick(profiles),
+          curveDeg: r.range(-20, 20),
+          rateMs: r.pick([4, 8, 1000 / 60]),
+          jitterPx: r.range(0.2, 1),
+          x0: 450,
+          y0: 100,
+        };
         const s = play(strokeSamples(st, T0, r), { delivery: r.pick(DELIVERIES) }).swing!;
         errs.push(Math.abs(bearingDiff(s.directionDeg, aim)));
       }
@@ -176,19 +260,29 @@ describe('CTL3 (input part): the read direction is the gesture’s direction', (
 describe('CTL4 (input part): elevation and power follow the gesture continuously', () => {
   it('11 levels of swipe speed give 11 rising powers, and a 10% faster swipe changes power by under 0.04', () => {
     const levels = Array.from({ length: 11 }, (_, i) => 0.3 + i * 0.25); // px per ms
-    const powers = levels.map((v) => play(strokeSamples({ lengthPx: v * 100, bearingDeg: 0, durationMs: 100, profile: 'linear' }, T0)).swing!.power);
+    const powers = levels.map(
+      (v) =>
+        play(strokeSamples({ lengthPx: v * 100, bearingDeg: 0, durationMs: 100, profile: 'linear' }, T0)).swing!.power,
+    );
     expect(spearman(levels, powers)).toBe(1);
     for (let v = 0.5; v <= 2.6; v += 0.1) {
-      const a = play(strokeSamples({ lengthPx: v * 80, bearingDeg: 0, durationMs: 80, profile: 'linear' }, T0)).swing!.power;
-      const b = play(strokeSamples({ lengthPx: v * 1.1 * 80, bearingDeg: 0, durationMs: 80, profile: 'linear' }, T0)).swing!.power;
+      const a = play(strokeSamples({ lengthPx: v * 80, bearingDeg: 0, durationMs: 80, profile: 'linear' }, T0)).swing!
+        .power;
+      const b = play(strokeSamples({ lengthPx: v * 1.1 * 80, bearingDeg: 0, durationMs: 80, profile: 'linear' }, T0))
+        .swing!.power;
       expect(b).toBeGreaterThanOrEqual(a);
       expect(b - a).toBeLessThan(0.04);
     }
   });
 
   it('11 levels of reach across the loft band give 11 rising elevations, from along the ground to fully lofted', () => {
-    const levels = Array.from({ length: 11 }, (_, i) => LOFT_REACH.from + (i * (LOFT_REACH.full - LOFT_REACH.from)) / 10);
-    const elev = levels.map((reach) => play(strokeSamples({ lengthPx: reach * REF, bearingDeg: 0, durationMs: 110 }, T0)).swing!.elevation);
+    const levels = Array.from(
+      { length: 11 },
+      (_, i) => LOFT_REACH.from + (i * (LOFT_REACH.full - LOFT_REACH.from)) / 10,
+    );
+    const elev = levels.map(
+      (reach) => play(strokeSamples({ lengthPx: reach * REF, bearingDeg: 0, durationMs: 110 }, T0)).swing!.elevation,
+    );
     expect(spearman(levels, elev)).toBe(1);
     expect(elev[0]).toBe(0);
     expect(elev[10]).toBe(1);
@@ -212,7 +306,10 @@ describe('CTL5 (input part): moving an identical gesture in time moves its swing
       for (const g of gestures)
         for (const d of DELIVERIES) {
           const p = play(g, { delivery: d });
-          const baseline = play(g.map((sample) => ({ ...sample, t: sample.t - offset })), { delivery: d });
+          const baseline = play(
+            g.map((sample) => ({ ...sample, t: sample.t - offset })),
+            { delivery: d },
+          );
           expect(p.swing!.startT - baseline.swing!.startT, `${offset} ms, ${d.name}`).toBeCloseTo(offset / 1000, 6);
           expect({ ...p.swing, startT: 0 }).toEqual({ ...baseline.swing, startT: 0 });
           // The ready cue remains at the press even though swipe timing uses departure.
@@ -234,13 +331,19 @@ describe('CTL9: touch, mouse and keyboard each pass on their own, calibrated per
     ] as const) {
       const ref = referenceLength(surface);
       const tap = play(tapSamples(press, 70), { surface, pointer, opts: o }).swing!;
-      const ground = play(strokeSamples({ lengthPx: ref * 0.6, bearingDeg: 30, durationMs: 90, profile: 'linear' }, press), { surface, pointer, opts: o }).swing!;
-      const loft = play(strokeSamples({ lengthPx: ref * 1.8, bearingDeg: 30, durationMs: 110, profile: 'linear' }, press), { surface, pointer, opts: o }).swing!;
+      const ground = play(
+        strokeSamples({ lengthPx: ref * 0.6, bearingDeg: 30, durationMs: 90, profile: 'linear' }, press),
+        { surface, pointer, opts: o },
+      ).swing!;
+      const loft = play(
+        strokeSamples({ lengthPx: ref * 1.8, bearingDeg: 30, durationMs: 110, profile: 'linear' }, press),
+        { surface, pointer, opts: o },
+      ).swing!;
       const want = (700 - calibrations[pointer]) / 1000;
       expect([tap.kind, ground.elevation, loft.elevation >= 0.45]).toEqual(['defend', 0, true]);
       expect(tap.startT, pointer).toBeCloseTo(want, 6);
-      expect(ground.startT, pointer).toBeCloseTo(want + DEPARTURE.radiusPx / (ref * 0.6 / 90) / 1000, 4);
-      expect(loft.startT, pointer).toBeCloseTo(want + DEPARTURE.radiusPx / (ref * 1.8 / 110) / 1000, 4);
+      expect(ground.startT, pointer).toBeCloseTo(want + DEPARTURE.radiusPx / ((ref * 0.6) / 90) / 1000, 4);
+      expect(loft.startT, pointer).toBeCloseTo(want + DEPARTURE.radiusPx / ((ref * 1.8) / 110) / 1000, 4);
     }
     const key = normalizeGesture(keys([['ArrowUp', press]])!, o)!;
     expect(key.startT).toBeCloseTo((700 - calibrations.keyboard) / 1000, 6);

@@ -111,9 +111,12 @@ export interface SimContext {
 export const COACH_RESULT_CACHE_SIZE = 512;
 
 /** Complete, order-independent identity of one normalized input. Exported so the cache contract is unit-tested. */
-export const coachResultKey = (swing: NormalizedSwing | null): string => JSON.stringify(swing === null
-  ? null
-  : [swing.kind, swing.startT, swing.directionDeg, swing.power, swing.elevation, swing.footwork]);
+export const coachResultKey = (swing: NormalizedSwing | null): string =>
+  JSON.stringify(
+    swing === null
+      ? null
+      : [swing.kind, swing.startT, swing.directionDeg, swing.power, swing.elevation, swing.footwork],
+  );
 
 /** Internal deterministic LRU seam: tests prove hits are exact and eviction causes one honest re-simulation. */
 export function memoCoachResult(
@@ -147,7 +150,12 @@ export function resolveCoach(ctx: SimContext, swing: NormalizedSwing | null): Co
   });
 }
 
-const EDGES: ReadonlySet<ContactKind> = new Set<ContactKind>(['inside_edge', 'outside_edge', 'top_edge', 'leading_edge']);
+const EDGES: ReadonlySet<ContactKind> = new Set<ContactKind>([
+  'inside_edge',
+  'outside_edge',
+  'top_edge',
+  'leading_edge',
+]);
 
 function emptyTally(): Tally {
   return { w: 0, out: 0, runs: 0, clean: 0, edges: 0, caught: 0, bowled: 0, lbw: 0 };
@@ -211,10 +219,20 @@ const byRuns = (a: Evaluated, b: Evaluated) => b.centre.outcome.runs - a.centre.
 export function finalists(all: Evaluated[]): Evaluated[] {
   const base = all.filter((e) => e.c.decision !== 'attack');
   const attacks = all.filter((e) => e.c.decision === 'attack' && centreOk(e));
-  let correct = attacks.filter((e) => e.orthodox && !e.protectedAim).sort(byRuns).slice(0, FINALISTS.orthodox);
-  if (correct.length === 0) correct = attacks.filter((e) => e.orthodox).sort(byRuns).slice(0, 2);
+  let correct = attacks
+    .filter((e) => e.orthodox && !e.protectedAim)
+    .sort(byRuns)
+    .slice(0, FINALISTS.orthodox);
+  if (correct.length === 0)
+    correct = attacks
+      .filter((e) => e.orthodox)
+      .sort(byRuns)
+      .slice(0, 2);
   const chosen = new Set(correct);
-  const open = attacks.filter((e) => !chosen.has(e) && e.readOk).sort(byRuns).slice(0, FINALISTS.open);
+  const open = attacks
+    .filter((e) => !chosen.has(e) && e.readOk)
+    .sort(byRuns)
+    .slice(0, FINALISTS.open);
   return [...base, ...correct, ...open];
 }
 
@@ -229,9 +247,21 @@ export interface AttemptJudgement {
  * its footwork and judged over the execution spread: the evidence for 'well_played' and for why a good outcome was
  * lucky. Null for a leave. Yields after each simulation.
  */
-export function* judgeAttempt(ctx: SimContext, swing: NormalizedSwing | null): Generator<void, AttemptJudgement | null, void> {
+export function* judgeAttempt(
+  ctx: SimContext,
+  swing: NormalizedSwing | null,
+): Generator<void, AttemptJudgement | null, void> {
   if (!swing) return null;
-  const c: Candidate = { id: 'attempt', index: Number.MAX_SAFE_INTEGER, decision: swing.kind, kind: swing.kind, footwork: swing.footwork, directionDeg: swing.directionDeg, elevation: swing.elevation, power: swing.power };
+  const c: Candidate = {
+    id: 'attempt',
+    index: Number.MAX_SAFE_INTEGER,
+    decision: swing.kind,
+    kind: swing.kind,
+    footwork: swing.footwork,
+    directionDeg: swing.directionDeg,
+    elevation: swing.elevation,
+    power: swing.power,
+  };
   const t = emptyTally();
   for (const p of spreadOf(c)) {
     const spreadSwing = swingOf(c, ctx.ideal, p.dtMs, p.aimDeg);
@@ -256,7 +286,16 @@ export function* evaluate(ctx: SimContext): Generator<void, Evaluated[], void> {
       swing,
       centre,
       played: centre.footwork,
-      orthodox: isOrthodox({ decision: c.decision, footwork: c.footwork, played: centre.footwork, directionDeg: c.directionDeg, elevation: c.elevation }, ctx.facts),
+      orthodox: isOrthodox(
+        {
+          decision: c.decision,
+          footwork: c.footwork,
+          played: centre.footwork,
+          directionDeg: c.directionDeg,
+          elevation: c.elevation,
+        },
+        ctx.facts,
+      ),
       withLine: withTheLine(c, ctx.facts),
       readOk: Object.values(inferRead(ctx.facts, swing, centre)).every((v) => v !== 'wrong'),
       protectedAim: c.decision === 'attack' && intoProtected(ctx.field, c.directionDeg, lofted),
@@ -275,7 +314,7 @@ function* tallyOver(ctx: SimContext, e: Evaluated, density: 'dense' | 'coarse'):
   const leave = e.c.kind === null;
   for (const p of spreadOf(e.c, density)) {
     const spreadSwing = swingOf(e.c, ctx.ideal, p.dtMs, p.aimDeg);
-    const cached = p.dtMs === 0 && p.aimDeg === 0 || ctx.results.has(coachResultKey(spreadSwing));
+    const cached = (p.dtMs === 0 && p.aimDeg === 0) || ctx.results.has(coachResultKey(spreadSwing));
     const r = p.dtMs === 0 && p.aimDeg === 0 ? e.centre : resolveCoach(ctx, spreadSwing);
     addResult(t, r, leave, p.weight);
     if (!cached) yield;

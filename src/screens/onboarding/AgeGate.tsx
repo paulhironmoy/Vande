@@ -40,7 +40,9 @@ export function AgeGate({ onAnswer, footerExtra }: { onAnswer: (answer: AgeAnswe
           </span>
           <LanguagePicker compact testId="age-language" />
         </div>
-        {LOCALES.find((l) => l.id === locale)?.status === 'machine_draft' && <p className={o.draftNote}>{t('settings.draft_note')}</p>}
+        {LOCALES.find((l) => l.id === locale)?.status === 'machine_draft' && (
+          <p className={o.draftNote}>{t('settings.draft_note')}</p>
+        )}
         <span className={o.eyebrow}>{t('age.eyebrow')}</span>
         <h1 className={o.title}>{t('age.title')}</h1>
         <p className={o.body}>{t('age.body')}</p>

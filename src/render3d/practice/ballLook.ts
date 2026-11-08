@@ -63,13 +63,18 @@ export interface ProjectedBallSurface {
   roughScuffs: readonly (readonly { x: number; y: number; visible: boolean }[])[];
 }
 
-const dot = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) => a.x * b.x + a.y * b.y + a.z * b.z;
+const dot = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) =>
+  a.x * b.x + a.y * b.y + a.z * b.z;
 const bounded = (value: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, value));
 const unit = (v: { x: number; y: number; z: number }) => {
   const n = Math.hypot(v.x, v.y, v.z) || 1;
   return { x: v.x / n, y: v.y / n, z: v.z / n };
 };
-const rotated = (v: { x: number; y: number; z: number }, rawAxis: { x: number; y: number; z: number }, angle: number) => {
+const rotated = (
+  v: { x: number; y: number; z: number },
+  rawAxis: { x: number; y: number; z: number },
+  angle: number,
+) => {
   const a = unit(rawAxis);
   const c = Math.cos(angle);
   const s = Math.sin(angle);
@@ -139,9 +144,21 @@ const cross = (a: { x: number; y: number; z: number }, b: { x: number; y: number
 // Quadratic curves in the local tangent/binormal plane. Positive local X is the rough pole; solving X from the unit
 // sphere keeps every sample on the physical ball rather than rotating a screen-space decoration.
 const ROUGH_SCUFFS = [
-  [[-0.42, -0.34], [-0.25, -0.5], [-0.02, -0.35]],
-  [[0.02, 0.55], [0.12, 0.34], [0.23, 0.1]],
-  [[0.42, 0.25], [0.5, 0.03], [0.37, -0.2]],
+  [
+    [-0.42, -0.34],
+    [-0.25, -0.5],
+    [-0.02, -0.35],
+  ],
+  [
+    [0.02, 0.55],
+    [0.12, 0.34],
+    [0.23, 0.1],
+  ],
+  [
+    [0.42, 0.25],
+    [0.5, 0.03],
+    [0.37, -0.2],
+  ],
 ] as const;
 
 /** Orthographic screen projection of the exact seam plane and polished pole after the physics rotation. */
@@ -174,19 +191,21 @@ export function projectBallSurface(
   const majorY = -dot(major, camera.up);
   const shineX = dot(shine, camera.right);
   const shineY = -dot(shine, camera.up);
-  const roughScuffs = ROUGH_SCUFFS.map(([from, control, to]) => Array.from({ length: 9 }, (_, i) => {
-    const t = i / 8;
-    const k = 1 - t;
-    const ly = k * k * from[0] + 2 * k * t * control[0] + t * t * to[0];
-    const lz = k * k * from[1] + 2 * k * t * control[1] + t * t * to[1];
-    const lx = Math.sqrt(Math.max(0, 1 - ly * ly - lz * lz));
-    const world = {
-      x: xAxis.x * lx + yAxis.x * ly + zAxis.x * lz,
-      y: xAxis.y * lx + yAxis.y * ly + zAxis.y * lz,
-      z: xAxis.z * lx + yAxis.z * ly + zAxis.z * lz,
-    };
-    return { x: dot(world, camera.right), y: -dot(world, camera.up), visible: -dot(world, camera.forward) > 0 };
-  }));
+  const roughScuffs = ROUGH_SCUFFS.map(([from, control, to]) =>
+    Array.from({ length: 9 }, (_, i) => {
+      const t = i / 8;
+      const k = 1 - t;
+      const ly = k * k * from[0] + 2 * k * t * control[0] + t * t * to[0];
+      const lz = k * k * from[1] + 2 * k * t * control[1] + t * t * to[1];
+      const lx = Math.sqrt(Math.max(0, 1 - ly * ly - lz * lz));
+      const world = {
+        x: xAxis.x * lx + yAxis.x * ly + zAxis.x * lz,
+        y: xAxis.y * lx + yAxis.y * ly + zAxis.y * lz,
+        z: xAxis.z * lx + yAxis.z * ly + zAxis.z * lz,
+      };
+      return { x: dot(world, camera.right), y: -dot(world, camera.up), visible: -dot(world, camera.forward) > 0 };
+    }),
+  );
   return {
     polishedAngle: Math.atan2(shineY, shineX),
     polishedFacing: bounded(-dot(shine, camera.forward), -1, 1),

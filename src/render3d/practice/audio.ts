@@ -24,9 +24,17 @@ export function soundLeadMs(): number {
     try {
       latencyMs = ((ctx.baseLatency ?? 0) + (ctx.outputLatency ?? 0)) * 1000;
       const ts = typeof ctx.getOutputTimestamp === 'function' ? ctx.getOutputTimestamp() : null;
-      if (ts && typeof ts.contextTime === 'number' && typeof ts.performanceTime === 'number' && ts.performanceTime > 0) {
+      if (
+        ts &&
+        typeof ts.contextTime === 'number' &&
+        typeof ts.performanceTime === 'number' &&
+        ts.performanceTime > 0
+      ) {
         // When a sound started at currentTime is heard, from now.
-        latencyMs = Math.max(latencyMs, ts.performanceTime + (ctx.currentTime - ts.contextTime) * 1000 - performance.now());
+        latencyMs = Math.max(
+          latencyMs,
+          ts.performanceTime + (ctx.currentTime - ts.contextTime) * 1000 - performance.now(),
+        );
       }
     } catch {
       /* a context that cannot report keeps the floor */

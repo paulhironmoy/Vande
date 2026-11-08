@@ -4,7 +4,20 @@
  */
 import type { KitSpec } from '@/contracts';
 
-const KIT_PALETTE = ['#1E2A78', '#00B8D9', '#FFB020', '#E5484D', '#2EAD5B', '#7C4DFF', '#FF6B9A', '#F5F5F0', '#14161F', '#FF7A1A', '#0E7C86', '#C9A227'] as const;
+const KIT_PALETTE = [
+  '#1E2A78',
+  '#00B8D9',
+  '#FFB020',
+  '#E5484D',
+  '#2EAD5B',
+  '#7C4DFF',
+  '#FF6B9A',
+  '#F5F5F0',
+  '#14161F',
+  '#FF7A1A',
+  '#0E7C86',
+  '#C9A227',
+] as const;
 const KIT_PATTERNS: readonly KitSpec['pattern'][] = ['plain', 'stripes', 'hoops', 'chevron', 'sash'];
 const STARTER_KIT_ID = 'starter';
 
@@ -26,7 +39,13 @@ export function isValidKit(kit: unknown): kit is KitSpec {
   if (keys !== 'id,pattern,primary,secondary') return false;
   if (k.id !== STARTER_KIT_ID) return false;
   const palette = KIT_PALETTE as readonly string[];
-  if (typeof k.primary !== 'string' || typeof k.secondary !== 'string' || !palette.includes(k.primary) || !palette.includes(k.secondary)) return false;
+  if (
+    typeof k.primary !== 'string' ||
+    typeof k.secondary !== 'string' ||
+    !palette.includes(k.primary) ||
+    !palette.includes(k.secondary)
+  )
+    return false;
   if (k.primary === k.secondary) return false;
   return KIT_PATTERNS.includes(k.pattern as KitSpec['pattern']);
 }

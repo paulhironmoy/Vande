@@ -30,7 +30,13 @@ describe('Unity Practice monotonic clock', () => {
     const clock = new UnityPracticeClock();
     clock.add({ sampleId: 'one', hostSendPerfMs: 100, unityReceiveMs: 50, unitySendMs: 51, hostReceivePerfMs: 110 });
     expect(() =>
-      clock.add({ sampleId: 'one', hostSendPerfMs: 200, unityReceiveMs: 150, unitySendMs: 151, hostReceivePerfMs: 210 }),
+      clock.add({
+        sampleId: 'one',
+        hostSendPerfMs: 200,
+        unityReceiveMs: 150,
+        unitySendMs: 151,
+        hostReceivePerfMs: 210,
+      }),
     ).toThrow(/unique/);
     expect(() =>
       clock.add({ sampleId: 'two', hostSendPerfMs: 90, unityReceiveMs: 160, unitySendMs: 161, hostReceivePerfMs: 220 }),

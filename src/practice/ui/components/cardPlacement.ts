@@ -66,7 +66,8 @@ export interface CardPlacement extends CardSpot {
   clear: boolean;
 }
 
-export const overlaps = (a: Box, b: Box): boolean => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+export const overlaps = (a: Box, b: Box): boolean =>
+  a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 
 const hardOf = (i: CardPlacementInput): Box[] => [...i.ballPath, ...(i.keepOut ?? [])];
 const needOf = (i: CardPlacementInput) => Math.min(i.naturalHeight, i.minRoom);
@@ -81,7 +82,14 @@ function placeAt(i: CardPlacementInput, spot: CardSpot): CardPlacement | null {
     const room = bottom - top;
     if (room <= 0) return null;
     const h = Math.min(i.naturalHeight, room);
-    return { edge, anchor, offset: i.inset, maxHeight: room, box: { x, y: bottom - h, width: i.width, height: h }, clear: true };
+    return {
+      edge,
+      anchor,
+      offset: i.inset,
+      maxHeight: room,
+      box: { x, y: bottom - h, width: i.width, height: h },
+      clear: true,
+    };
   }
   // The column's first stretch, from below the rail down, between the things the card never covers.
   const need = needOf(i);
@@ -120,7 +128,8 @@ const same = (a: CardSpot, b: CardSpot) => a.edge === b.edge && a.anchor === b.a
 export function cardPlacement(i: CardPlacementInput, current?: CardSpot | null): CardPlacement {
   const need = needOf(i);
   const hard = hardOf(i);
-  const candidate = (c: CardPlacement | null): c is CardPlacement => c !== null && c.box.height >= need && !hard.some((b) => overlaps(c.box, b));
+  const candidate = (c: CardPlacement | null): c is CardPlacement =>
+    c !== null && c.box.height >= need && !hard.some((b) => overlaps(c.box, b));
   const places = spotsOf(i.edge).map((spot) => placeAt(i, spot));
   const kept = current ? places.find((c) => c && same(c, current)) : null;
   if (kept && candidate(kept)) return kept;
@@ -129,7 +138,13 @@ export function cardPlacement(i: CardPlacementInput, current?: CardSpot | null):
   const fits = (c: CardPlacement) => c.maxHeight >= i.naturalHeight;
   const best = ok.find((c) => free(c) && fits(c)) ?? ok.find(free) ?? ok.find(fits) ?? ok[0];
   if (best) return best;
-  const own = places[0] ?? { edge: i.edge, anchor: 'bottom' as const, offset: i.inset, maxHeight: 0, box: { x: i.inset, y: i.view.height - i.inset, width: i.width, height: 0 } };
+  const own = places[0] ?? {
+    edge: i.edge,
+    anchor: 'bottom' as const,
+    offset: i.inset,
+    maxHeight: 0,
+    box: { x: i.inset, y: i.view.height - i.inset, width: i.width, height: 0 },
+  };
   return { ...own, clear: false };
 }
 
@@ -155,7 +170,10 @@ export interface BandPlacement {
  * into its first `need` px (the field inset in the top-right corner, a ball path rising at one side); its height runs
  * down to the first such thing below it. Null when it would be no wider than `minWidth` or shorter than `need`.
  */
-export function bandAt(i: CardPlacementInput, o: { maxWidth: number; minWidth: number; need: number }): BandPlacement | null {
+export function bandAt(
+  i: CardPlacementInput,
+  o: { maxWidth: number; minWidth: number; need: number },
+): BandPlacement | null {
   if (i.edge !== 'left') return null;
   const hard = hardOf(i);
   const x = i.inset;

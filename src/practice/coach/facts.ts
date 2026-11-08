@@ -5,7 +5,16 @@
  * a spinner's turn are what the coach explains. Physics frame: + x is the striker's off side (docs/PRACTICE_COACH.md).
  */
 import type { BallFlight, BowlerFamily, CoachAnalysis, DeliveryVariation, PlayedFootwork } from '@/contracts/practice';
-import { BALL_R, BEATEN_BY, PITCH_HALF, STUMPS_HALF_W, STUMPS_TOP, flightMovement, resolveFootwork, sampleAt } from '@/physics';
+import {
+  BALL_R,
+  BEATEN_BY,
+  PITCH_HALF,
+  STUMPS_HALF_W,
+  STUMPS_TOP,
+  flightMovement,
+  resolveFootwork,
+  sampleAt,
+} from '@/physics';
 import { lengthBand, lineBand, type LengthBand, type LineBand } from '@/practice/game';
 
 /** What moved the ball most: swing or seam (pace), the cutter's grip, a spinner's turn or drift. */

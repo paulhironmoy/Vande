@@ -90,7 +90,13 @@ export function flatTexture(rgba: readonly [number, number, number, number], srg
  * colour canvas keeps its own alpha) on canvases of w × h and returns one RGBA DataTexture. Row 0 of the texture is the
  * canvas's bottom row (v = 0), as for a CanvasTexture with flipY.
  */
-function paintTexture(w: number, h: number, color: Painter, alpha: Painter | null, o: { srgb?: boolean; repeat?: boolean; fallback: readonly [number, number, number, number] }): DataTexture {
+function paintTexture(
+  w: number,
+  h: number,
+  color: Painter,
+  alpha: Painter | null,
+  o: { srgb?: boolean; repeat?: boolean; fallback: readonly [number, number, number, number] },
+): DataTexture {
   const g = context2d(w, h);
   if (!g) return flatTexture(o.fallback, o.srgb ?? true);
   color(g, w, h);
@@ -119,7 +125,14 @@ function paintTexture(w: number, h: number, color: Painter, alpha: Painter | nul
  * A tangent-space normal map from a greyscale height painter (red channel; white is high). `strength` is the slope
  * scale; `wrap` makes the differences wrap around (tiling textures); `scale` paints the same art on a smaller canvas.
  */
-function paintNormalMap(w0: number, h0: number, height: Painter, strength0: number, wrap = false, scale = 1): DataTexture {
+function paintNormalMap(
+  w0: number,
+  h0: number,
+  height: Painter,
+  strength0: number,
+  wrap = false,
+  scale = 1,
+): DataTexture {
   const w = Math.max(1, Math.round(w0 * scale));
   const h = Math.max(1, Math.round(h0 * scale));
   const strength = strength0 * scale;
@@ -155,7 +168,13 @@ function paintNormalMap(w0: number, h0: number, height: Painter, strength0: numb
  * A sRGB CanvasTexture (plain colour art: decals, boards). `scale` paints the same art on a smaller canvas (lower
  * tiers). Falls back to a flat texture without a canvas.
  */
-export function canvasArt(w: number, h: number, draw: Painter, fallback: readonly [number, number, number, number] = [255, 255, 255, 255], scale = 1): Texture {
+export function canvasArt(
+  w: number,
+  h: number,
+  draw: Painter,
+  fallback: readonly [number, number, number, number] = [255, 255, 255, 255],
+  scale = 1,
+): Texture {
   const g = context2d(Math.max(1, Math.round(w * scale)), Math.max(1, Math.round(h * scale)));
   if (!g) return flatTexture(fallback);
   if (scale !== 1) g.scale(scale, scale);
@@ -169,7 +188,11 @@ export function canvasArt(w: number, h: number, draw: Painter, fallback: readonl
 /** Seeded helpers for painters. */
 export function rng(seed: number) {
   const r = seededStream(seed);
-  return { r, range: (a: number, b: number) => a + (b - a) * r(), pick: <T>(xs: readonly T[]) => xs[Math.floor(r() * xs.length) % xs.length] };
+  return {
+    r,
+    range: (a: number, b: number) => a + (b - a) * r(),
+    pick: <T>(xs: readonly T[]) => xs[Math.floor(r() * xs.length) % xs.length],
+  };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -195,7 +218,14 @@ export const GRIP_R = 0.0182;
 
 /** Atlas columns (u ranges) of the bat texture, in order around the blade's section: left edge (front half), face,
  * right edge, back (spine), left edge (back half), then the handle. */
-const AT = { el1: [0, 0.035], face: [0.035, 0.41], er: [0.41, 0.49], back: [0.49, 0.865], el2: [0.865, 0.9], handle: [0.9, 1] } as const;
+const AT = {
+  el1: [0, 0.035],
+  face: [0.035, 0.41],
+  er: [0.41, 0.49],
+  back: [0.49, 0.865],
+  el2: [0.865, 0.9],
+  handle: [0.9, 1],
+} as const;
 
 interface Section {
   y: number;
@@ -249,22 +279,30 @@ function sectionOutline(sec: Section): Array<[number, number, number]> {
   // Left edge, front half (from the middle up to the face corner).
   for (let i = 0; i <= 2; i++) {
     const t = i / 3;
-    const z = (F + B) / 2 + t * ((F - r) - (F + B) / 2);
+    const z = (F + B) / 2 + t * (F - r - (F + B) / 2);
     pts.push([-s.hw - EDGE_BULGE * Math.sin(Math.PI * (0.5 + t * 0.5)), z, lerpU(AT.el1, t * 0.75)]);
   }
   // Front-left corner, face, front-right corner.
   for (let i = 0; i <= 2; i++) {
     const a = Math.PI - (i / 2) * (Math.PI / 2);
-    pts.push([-s.hw + r + Math.cos(a) * r, F - r + Math.sin(a) * r, i < 2 ? lerpU(AT.el1, 0.75 + (i / 2) * 0.25) : AT.face[0]]);
+    pts.push([
+      -s.hw + r + Math.cos(a) * r,
+      F - r + Math.sin(a) * r,
+      i < 2 ? lerpU(AT.el1, 0.75 + (i / 2) * 0.25) : AT.face[0],
+    ]);
   }
   const NF = 10;
   for (let i = 1; i < NF; i++) {
-    const x = -s.hw + r + ((2 * (s.hw - r)) * i) / NF;
+    const x = -s.hw + r + (2 * (s.hw - r) * i) / NF;
     pts.push([x, F + 0.0006 * (1 - (x / s.hw) ** 2), lerpU(AT.face, i / NF)]);
   }
   for (let i = 0; i <= 2; i++) {
     const a = Math.PI / 2 - (i / 2) * (Math.PI / 2);
-    pts.push([s.hw - r + Math.cos(a) * r, F - r + Math.sin(a) * r, i === 0 ? AT.face[1] : lerpU(AT.er, (i / 2) * 0.25)]);
+    pts.push([
+      s.hw - r + Math.cos(a) * r,
+      F - r + Math.sin(a) * r,
+      i === 0 ? AT.face[1] : lerpU(AT.er, (i / 2) * 0.25),
+    ]);
   }
   // Right edge (slightly convex), back-right corner.
   for (let i = 1; i <= 3; i++) {
@@ -273,19 +311,27 @@ function sectionOutline(sec: Section): Array<[number, number, number]> {
   }
   for (let i = 0; i <= 2; i++) {
     const a = 0 - (i / 2) * (Math.PI / 2);
-    pts.push([s.hw - r + Math.cos(a) * r, B + r + Math.sin(a) * r, i < 2 ? lerpU(AT.er, 0.75 + (i / 2) * 0.25) : AT.back[0]]);
+    pts.push([
+      s.hw - r + Math.cos(a) * r,
+      B + r + Math.sin(a) * r,
+      i < 2 ? lerpU(AT.er, 0.75 + (i / 2) * 0.25) : AT.back[0],
+    ]);
   }
   // Back: the spine, a rounded ridge from edge to edge.
   const NB = 14;
   for (let i = 1; i < NB; i++) {
-    const x = s.hw - r - ((2 * (s.hw - r)) * i) / NB;
+    const x = s.hw - r - (2 * (s.hw - r) * i) / NB;
     const q = Math.abs(x) / Math.max(1e-4, s.hw - r);
     const ridge = Math.pow(Math.max(0, 1 - q * q), 0.85);
     pts.push([x, B - (s.depth - s.edge) * ridge, lerpU(AT.back, i / NB)]);
   }
   for (let i = 0; i <= 2; i++) {
     const a = -Math.PI / 2 - (i / 2) * (Math.PI / 2);
-    pts.push([-s.hw + r + Math.cos(a) * r, B + r + Math.sin(a) * r, i === 0 ? AT.back[1] : lerpU(AT.el2, (i / 2) * 0.25)]);
+    pts.push([
+      -s.hw + r + Math.cos(a) * r,
+      B + r + Math.sin(a) * r,
+      i === 0 ? AT.back[1] : lerpU(AT.el2, (i / 2) * 0.25),
+    ]);
   }
   // Left edge, back half, up to the middle (the ring closes here, in the edge column).
   for (let i = 1; i <= 3; i++) {
@@ -370,7 +416,7 @@ function sectionCap(s: Section, dir: 1 | -1): BufferGeometry {
   for (const [x, z] of pts) {
     pos.push(x, s.y, z);
     // End grain: the edge column's first rows (painted as the toe's end grain and dirt).
-    uv.push(AT.er[0] + ((x / (BLADE_W + 0.002)) + 0.5) * (AT.er[1] - AT.er[0]), dir < 0 ? 0.004 : 0.996);
+    uv.push(AT.er[0] + (x / (BLADE_W + 0.002) + 0.5) * (AT.er[1] - AT.er[0]), dir < 0 ? 0.004 : 0.996);
     nor.push(0, dir, 0);
   }
   // The outline runs clockwise seen from above (+y): the toe cap (facing −y) keeps that order, the top reverses it.
@@ -471,7 +517,7 @@ function grainLines(g: CanvasRenderingContext2D, seed: number, alpha: number, co
       const wl = range(260, 700);
       const ph = r() * 6.28;
       for (let y = 0; y <= ATLAS_H; y += 8) {
-        const xx = x + Math.sin(y / wl * 6.28 + ph) * amp + Math.sin(y / 61 + ph * 3) * 0.25;
+        const xx = x + Math.sin((y / wl) * 6.28 + ph) * amp + Math.sin(y / 61 + ph * 3) * 0.25;
         if (y === 0) g.moveTo(xx, y);
         else g.lineTo(xx, y);
       }
@@ -504,7 +550,16 @@ function chevron(g: CanvasRenderingContext2D, cx: number, cy: number, size: numb
   g.stroke();
 }
 
-function wordmark(g: CanvasRenderingContext2D, text: string, cx: number, cy: number, px: number, color: string, rotate = 0, spacing = 0.18) {
+function wordmark(
+  g: CanvasRenderingContext2D,
+  text: string,
+  cx: number,
+  cy: number,
+  px: number,
+  color: string,
+  rotate = 0,
+  spacing = 0.18,
+) {
   g.save();
   g.translate(cx, cy);
   g.rotate(rotate);
@@ -512,7 +567,8 @@ function wordmark(g: CanvasRenderingContext2D, text: string, cx: number, cy: num
   g.font = `800 ${px}px "Manrope Variable", Manrope, system-ui, sans-serif`;
   g.textAlign = 'center';
   g.textBaseline = 'middle';
-  if ('letterSpacing' in g) (g as unknown as { letterSpacing: string }).letterSpacing = `${(px * spacing).toFixed(1)}px`;
+  if ('letterSpacing' in g)
+    (g as unknown as { letterSpacing: string }).letterSpacing = `${(px * spacing).toFixed(1)}px`;
   g.fillText(text, 0, 0);
   g.restore();
 }
@@ -608,10 +664,15 @@ function paintBatColor(g: CanvasRenderingContext2D) {
   for (let i = 0; i < 30; i++) {
     const onEdge = i % 8 === 0;
     const col = onEdge ? (marks.r() < 0.5 ? AT.er : AT.el1) : AT.face;
-    const cx = ax(col[0]) + (ax(col[1]) - ax(col[0])) * (onEdge ? marks.range(0.2, 0.8) : clamp(0.5 + (marks.r() + marks.r() - 1) * 0.36, 0.08, 0.92));
+    const cx =
+      ax(col[0]) +
+      (ax(col[1]) - ax(col[0])) *
+        (onEdge ? marks.range(0.2, 0.8) : clamp(0.5 + (marks.r() + marks.r() - 1) * 0.36, 0.08, 0.92));
     const cy = ay(clamp(sweetV + (marks.r() + marks.r() + marks.r() - 1.5) * 0.12, 0.03, 0.6));
     const red = marks.r() < 0.55;
-    g.fillStyle = red ? `rgba(160,52,44,${marks.range(0.08, 0.2).toFixed(2)})` : `rgba(128,124,116,${marks.range(0.07, 0.15).toFixed(2)})`;
+    g.fillStyle = red
+      ? `rgba(160,52,44,${marks.range(0.08, 0.2).toFixed(2)})`
+      : `rgba(128,124,116,${marks.range(0.07, 0.15).toFixed(2)})`;
     g.beginPath();
     g.ellipse(cx, cy, marks.range(2.5, 5), marks.range(3, 7), marks.range(-0.4, 0.4), 0, Math.PI * 2);
     g.fill();
@@ -682,7 +743,8 @@ function paintBatHeight(g: CanvasRenderingContext2D) {
   grainLines(g, 11, 0.5, 'rgb(96,96,96)');
   const marks = rng(41);
   for (let i = 0; i < 30; i++) {
-    const cx = ax(AT.face[0]) + (ax(AT.face[1]) - ax(AT.face[0])) * clamp(0.5 + (marks.r() + marks.r() - 1) * 0.36, 0.08, 0.92);
+    const cx =
+      ax(AT.face[0]) + (ax(AT.face[1]) - ax(AT.face[0])) * clamp(0.5 + (marks.r() + marks.r() - 1) * 0.36, 0.08, 0.92);
     const cy = ay(clamp(SWEET_U + (marks.r() + marks.r() + marks.r() - 1.5) * 0.12, 0.03, 0.6));
     g.fillStyle = 'rgba(70,70,70,0.5)';
     g.beginPath();
@@ -731,9 +793,18 @@ function batTextures() {
 /** The bat's material: willow colour with roughness from the atlas's alpha, a normal map for grain, grip and marks. */
 function createBatMaterial(): MeshStandardMaterial {
   const { color, normal } = batTextures();
-  const m = new MeshStandardMaterial({ map: color, normalMap: normal, normalScale: new Vector2(0.55, 0.55), roughness: 1, metalness: 0 });
+  const m = new MeshStandardMaterial({
+    map: color,
+    normalMap: normal,
+    normalScale: new Vector2(0.55, 0.55),
+    roughness: 1,
+    metalness: 0,
+  });
   m.onBeforeCompile = (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = texture2D( map, vMapUv ).a;');
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <roughnessmap_fragment>',
+      '#include <roughnessmap_fragment>\nroughnessFactor = texture2D( map, vMapUv ).a;',
+    );
   };
   m.customProgramCacheKey = () => 'vande-bat-v2';
   return m;
@@ -766,7 +837,10 @@ export function placeBat(bat: Object3D, grip: Vector3, dir: Vector3, faceHint: V
   bat.quaternion.copy(tq);
   // Twist so the blade face points as close as possible to faceHint.
   const face = new Vector3(0, 0, 1).applyQuaternion(tq);
-  const want = faceHint.clone().sub(dir.clone().multiplyScalar(faceHint.dot(dir))).normalize();
+  const want = faceHint
+    .clone()
+    .sub(dir.clone().multiplyScalar(faceHint.dot(dir)))
+    .normalize();
   if (want.lengthSq() > 0.1) {
     const ang = Math.atan2(face.clone().cross(want).dot(dir), face.dot(want));
     bat.quaternion.premultiply(new Quaternion().setFromAxisAngle(dir, ang));
@@ -783,7 +857,12 @@ const spanFace = new Vector3();
  * Places the bat exactly on a physics bat: the top of the handle at `grip`, the toe at `toe` (the blade stretches
  * to the physics length), the face turned towards `face` (all world).
  */
-export function placeBatSpan(bat: Object3D, grip: { x: number; y: number; z: number }, toe: { x: number; y: number; z: number }, face: { x: number; y: number; z: number }) {
+export function placeBatSpan(
+  bat: Object3D,
+  grip: { x: number; y: number; z: number },
+  toe: { x: number; y: number; z: number },
+  face: { x: number; y: number; z: number },
+) {
   spanDir.set(toe.x - grip.x, toe.y - grip.y, toe.z - grip.z);
   const len = spanDir.length() || BAT_MESH_LENGTH;
   spanDir.divideScalar(len);
@@ -807,7 +886,14 @@ export function placeBatSpan(bat: Object3D, grip: { x: number; y: number; z: num
 // ---------------------------------------------------------------------------------------------------------------
 
 /** Bails (Law 8.3): 10.95 cm overall, a 5.40 cm barrel, spigots of 3.50 cm (on the outer stump) and 2.06 cm. */
-export const BAIL = Object.freeze({ length: 0.1095, barrel: 0.054, longSpigot: 0.035, shortSpigot: 0.0206, barrelR: 0.0069, spigotR: 0.0045 });
+export const BAIL = Object.freeze({
+  length: 0.1095,
+  barrel: 0.054,
+  longSpigot: 0.035,
+  shortSpigot: 0.0206,
+  barrelR: 0.0069,
+  spigotR: 0.0045,
+});
 /** The groove cut across each stump's domed top, which seats the spigots. */
 export const STUMP_GROOVE = Object.freeze({ depth: 0.003, halfWidth: 0.005, dome: 0.006 });
 /** Height of the bails' axis when seated (spigots resting on the groove floor), and of their highest point. */
@@ -828,7 +914,11 @@ export function wicketLayout(): { stumps: number[]; bails: Array<{ x: number; y:
 }
 
 /** A tube of revolution with explicit v (by height), seam at the back. */
-function tube(profile: ReadonlyArray<readonly [number, number]>, segments: number, v: (y: number) => number): BufferGeometry {
+function tube(
+  profile: ReadonlyArray<readonly [number, number]>,
+  segments: number,
+  v: (y: number) => number,
+): BufferGeometry {
   const pos: number[] = [];
   const uv: number[] = [];
   const idx: number[] = [];
@@ -858,7 +948,16 @@ export function stumpGeometry(): BufferGeometry {
   const { dome, depth, halfWidth } = STUMP_GROOVE;
   const bodyTop = STUMP_H - dome;
   const v = (y: number) => clamp(y / STUMP_H, 0, 1);
-  const body = tube([[0, STUMP_R], [0.02, STUMP_R], [bodyTop - 0.002, STUMP_R], [bodyTop, STUMP_R * 0.985]], 24, v);
+  const body = tube(
+    [
+      [0, STUMP_R],
+      [0.02, STUMP_R],
+      [bodyTop - 0.002, STUMP_R],
+      [bodyTop, STUMP_R * 0.985],
+    ],
+    24,
+    v,
+  );
   // The dome: rings from the rim to the top, lowered into a flat-bottomed groove across x.
   const rings = 9;
   const seg = 32;
@@ -889,7 +988,8 @@ export function stumpGeometry(): BufferGeometry {
   // The crown either side of the groove stands exactly at STUMP_H (the Law's height of the stumps).
   let crown = 0;
   for (let k = 1; k < pos.length; k += 3) crown = Math.max(crown, pos[k]);
-  for (let k = 1; k < pos.length; k += 3) pos[k] += (STUMP_H - crown) * clamp((pos[k] - bodyTop) / (crown - bodyTop), 0, 1);
+  for (let k = 1; k < pos.length; k += 3)
+    pos[k] += (STUMP_H - crown) * clamp((pos[k] - bodyTop) / (crown - bodyTop), 0, 1);
   top.setAttribute('position', new BufferAttribute(new Float32Array(pos), 3));
   top.setAttribute('uv', new BufferAttribute(new Float32Array(uv), 2));
   top.setIndex(idx);
@@ -905,12 +1005,34 @@ export function bailGeometry(): BufferGeometry {
   const b1 = s1 + barrel;
   const e = L / 2;
   const pts: Array<[number, number]> = [
-    [0.0001, s0], [s * 0.66, s0 + 0.0008], [s * 0.9, s0 + 0.0025], [s, s0 + 0.005], [s, s1 - 0.003], [s * 1.12, s1 - 0.0014],
-    [b * 0.84, s1], [b * 0.9, s1 + 0.002], [b * 0.78, s1 + 0.0045], [b * 0.87, s1 + 0.007], [b * 0.98, s1 + 0.017], [b, (s1 + b1) / 2],
-    [b * 0.98, b1 - 0.017], [b * 0.87, b1 - 0.007], [b * 0.78, b1 - 0.0045], [b * 0.9, b1 - 0.002], [b * 0.84, b1], [s * 1.12, b1 + 0.0014],
-    [s, b1 + 0.003], [s, e - 0.005], [s * 0.9, e - 0.0025], [s * 0.66, e - 0.0008], [0.0001, e],
+    [0.0001, s0],
+    [s * 0.66, s0 + 0.0008],
+    [s * 0.9, s0 + 0.0025],
+    [s, s0 + 0.005],
+    [s, s1 - 0.003],
+    [s * 1.12, s1 - 0.0014],
+    [b * 0.84, s1],
+    [b * 0.9, s1 + 0.002],
+    [b * 0.78, s1 + 0.0045],
+    [b * 0.87, s1 + 0.007],
+    [b * 0.98, s1 + 0.017],
+    [b, (s1 + b1) / 2],
+    [b * 0.98, b1 - 0.017],
+    [b * 0.87, b1 - 0.007],
+    [b * 0.78, b1 - 0.0045],
+    [b * 0.9, b1 - 0.002],
+    [b * 0.84, b1],
+    [s * 1.12, b1 + 0.0014],
+    [s, b1 + 0.003],
+    [s, e - 0.005],
+    [s * 0.9, e - 0.0025],
+    [s * 0.66, e - 0.0008],
+    [0.0001, e],
   ];
-  const g = new LatheGeometry(pts.map(([r, y]) => new Vector2(r, y)), 14);
+  const g = new LatheGeometry(
+    pts.map(([r, y]) => new Vector2(r, y)),
+    14,
+  );
   g.rotateZ(-Math.PI / 2);
   return g;
 }
@@ -1075,8 +1197,21 @@ export function createStumps(): StumpsFx {
   const ledMap = paintTexture(64, 512, paintLedStump, null, { fallback: [37, 40, 47, 255] });
   const ledGlow = paintTexture(64, 512, paintLedStumpGlow, null, { fallback: [0, 0, 0, 255] });
   const ledEnds = ENDS.map(() => {
-    const stumpMat = new MeshStandardMaterial({ map: ledMap, emissiveMap: ledGlow, emissive: '#ff3324', emissiveIntensity: 0, roughness: 0.38, metalness: 0.1 });
-    const bailMat = new MeshStandardMaterial({ color: '#7a1712', emissive: '#ff2414', emissiveIntensity: 0.05, roughness: 0.22, metalness: 0 });
+    const stumpMat = new MeshStandardMaterial({
+      map: ledMap,
+      emissiveMap: ledGlow,
+      emissive: '#ff3324',
+      emissiveIntensity: 0,
+      roughness: 0.38,
+      metalness: 0.1,
+    });
+    const bailMat = new MeshStandardMaterial({
+      color: '#7a1712',
+      emissive: '#ff2414',
+      emissiveIntensity: 0.05,
+      roughness: 0.22,
+      metalness: 0,
+    });
     const stumps = new InstancedMesh(stumpGeo, stumpMat, 3);
     const bails = new InstancedMesh(bailGeo, bailMat, 2);
     stumps.castShadow = bails.castShadow = true;
@@ -1100,7 +1235,14 @@ export function createStumps(): StumpsFx {
   /** The stump the ball hit (nearest to the stumps event), else the middle one. */
   const hitStump = (script: BallScript, endZ: number, t: number): number => {
     let best: SceneEvent | null = null;
-    for (const e of script.events) if (e.kind === 'stumps' && e.at && Math.abs(e.at.z - endZ) < 2 && (!best || Math.abs(e.t - t) < Math.abs(best.t - t))) best = e;
+    for (const e of script.events)
+      if (
+        e.kind === 'stumps' &&
+        e.at &&
+        Math.abs(e.at.z - endZ) < 2 &&
+        (!best || Math.abs(e.t - t) < Math.abs(best.t - t))
+      )
+        best = e;
     if (!best?.at) return 1;
     const x = best.at.x;
     return x < -STUMP_SPACING / 2 ? 0 : x > STUMP_SPACING / 2 ? 2 : 1;
@@ -1133,7 +1275,9 @@ export function createStumps(): StumpsFx {
             // Its neighbours shudder (a damped flex) and keep a slight lean.
             const near = 1 / (1 + Math.abs(i - h));
             const amp = ((3 + 7 * k) * near * Math.PI) / 180;
-            const th = amp * Math.exp(-s / 0.2) * Math.sin(2 * Math.PI * 6.5 * s) + ((1.5 + 3 * k) * near * Math.PI) / 180 * (1 - Math.exp(-s / 0.08));
+            const th =
+              amp * Math.exp(-s / 0.2) * Math.sin(2 * Math.PI * 6.5 * s) +
+              (((1.5 + 3 * k) * near * Math.PI) / 180) * (1 - Math.exp(-s / 0.08));
             o.quaternion.premultiply(fq.setFromAxisAngle(axis, th));
           }
         }
@@ -1166,7 +1310,9 @@ export function createStumps(): StumpsFx {
         ledEnds[e].bails.setMatrixAt(j, mat);
       }
       // LED: a few calm pulses once the wicket is broken (about a second), then a steady glow that fades.
-      const glow = broken ? (0.55 + 0.45 * Math.cos(2 * Math.PI * 3 * s) ** 2) * (1 - 0.7 * clamp((s - 0.9) / 0.6, 0, 1)) : 0;
+      const glow = broken
+        ? (0.55 + 0.45 * Math.cos(2 * Math.PI * 3 * s) ** 2) * (1 - 0.7 * clamp((s - 0.9) / 0.6, 0, 1))
+        : 0;
       ledEnds[e].stumpMat.emissiveIntensity = glow * 2.2;
       ledEnds[e].bailMat.emissiveIntensity = broken ? 0.4 + glow * 2.6 : 0.05;
       ledEnds[e].stumps.instanceMatrix.needsUpdate = true;
@@ -1248,7 +1394,10 @@ function paintScuff(g: CanvasRenderingContext2D, w: number, h: number) {
   for (let i = 0; i < 16; i++) {
     const x = w / 2 + range(-0.3, 0.3) * w;
     const y0 = h * range(0.18, 0.45);
-    g.strokeStyle = i % 3 === 0 ? `rgba(60,42,24,${range(0.25, 0.45).toFixed(2)})` : `rgba(236,218,184,${range(0.18, 0.4).toFixed(2)})`;
+    g.strokeStyle =
+      i % 3 === 0
+        ? `rgba(60,42,24,${range(0.25, 0.45).toFixed(2)})`
+        : `rgba(236,218,184,${range(0.18, 0.4).toFixed(2)})`;
     g.lineWidth = range(0.8, 1.8);
     g.beginPath();
     g.moveTo(x, y0);
@@ -1260,20 +1409,63 @@ function paintScuff(g: CanvasRenderingContext2D, w: number, h: number) {
 export function createEventFx(glowTex: Texture): EventFx {
   const group = new Group();
   group.name = 'event-fx';
-  const bounce = new Mesh(new RingGeometry(0.05, 0.11, 24), new MeshBasicMaterial({ color: '#52e2ff', transparent: true, depthWrite: false, blending: AdditiveBlending, fog: false }));
+  const bounce = new Mesh(
+    new RingGeometry(0.05, 0.11, 24),
+    new MeshBasicMaterial({
+      color: '#52e2ff',
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+      fog: false,
+    }),
+  );
   bounce.rotation.x = -Math.PI / 2;
-  const flash = new Mesh(new PlaneGeometry(1, 1), new MeshBasicMaterial({ map: glowTex, color: '#ffffff', transparent: true, depthWrite: false, blending: AdditiveBlending, fog: false }));
-  const seal = new Mesh(new RingGeometry(0.8, 1, 48), new MeshBasicMaterial({ color: '#52e2ff', transparent: true, depthWrite: false, blending: AdditiveBlending, side: DoubleSide, fog: false }));
+  const flash = new Mesh(
+    new PlaneGeometry(1, 1),
+    new MeshBasicMaterial({
+      map: glowTex,
+      color: '#ffffff',
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+      fog: false,
+    }),
+  );
+  const seal = new Mesh(
+    new RingGeometry(0.8, 1, 48),
+    new MeshBasicMaterial({
+      color: '#52e2ff',
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+      side: DoubleSide,
+      fog: false,
+    }),
+  );
   // The scuff: lit like the pitch, drawn just above it without writing depth.
   const scuffTex = paintTexture(64, 128, paintScuff, null, { fallback: [80, 58, 36, 0] });
   const scuffGeo = new PlaneGeometry(1, 1);
   scuffGeo.rotateX(-Math.PI / 2);
-  const scuffMat = new MeshLambertMaterial({ map: scuffTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  const scuffMat = new MeshLambertMaterial({
+    map: scuffTex,
+    transparent: true,
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -2,
+  });
   const scuff = new Mesh(scuffGeo, scuffMat);
   scuff.renderOrder = 1;
   scuff.visible = false;
   const partGeo = new PlaneGeometry(1, 1);
-  const partMat = new MeshBasicMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: AdditiveBlending, vertexColors: false, fog: false });
+  const partMat = new MeshBasicMaterial({
+    map: glowTex,
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    vertexColors: false,
+    fog: false,
+  });
   const parts = new InstancedMesh(partGeo, partMat, MAX_PARTICLES);
   parts.instanceMatrix.setUsage(DynamicDrawUsage);
   parts.frustumCulled = false;
@@ -1298,7 +1490,18 @@ export function createEventFx(glowTex: Texture): EventFx {
   const DUST = new Color('#d9c29a');
   const SPLINTER = new Color('#e9dcc0');
 
-  const emitBurst = (e: SceneEvent, dt: number, n: number, spread: number, life: number, colors: Color[], gravity: number, size: number, start: number, seed: number): number => {
+  const emitBurst = (
+    e: SceneEvent,
+    dt: number,
+    n: number,
+    spread: number,
+    life: number,
+    colors: Color[],
+    gravity: number,
+    size: number,
+    start: number,
+    seed: number,
+  ): number => {
     const rand = seededStream(seed);
     let k = start;
     for (let i = 0; i < n && k < MAX_PARTICLES; i++) {
@@ -1309,7 +1512,11 @@ export function createEventFx(glowTex: Texture): EventFx {
       if (dt > lifeI) continue;
       const tt = dt / 1000;
       const at = e.at ?? { x: 0, y: 1, z: 0 };
-      p.set(at.x + Math.sin(v) * Math.cos(u) * speed * tt, at.y + Math.cos(v) * speed * tt - 0.5 * gravity * tt * tt, at.z + Math.sin(v) * Math.sin(u) * speed * tt);
+      p.set(
+        at.x + Math.sin(v) * Math.cos(u) * speed * tt,
+        at.y + Math.cos(v) * speed * tt - 0.5 * gravity * tt * tt,
+        at.z + Math.sin(v) * Math.sin(u) * speed * tt,
+      );
       const fade = 1 - dt / lifeI;
       s.setScalar(size * (0.6 + fade * 0.6));
       q.setFromRotationMatrix(look);
@@ -1363,11 +1570,30 @@ export function createEventFx(glowTex: Texture): EventFx {
           if (practice) {
             // Live-delivery discipline: nothing near the ball, only the scuff the bounce leaves on the pitch.
             if (e.kind === 'bounce' && e.at) placeScuff(script, e, dt);
-            if (e.kind === 'bounce' || e.kind === 'bat' || e.kind === 'edge' || e.kind === 'pad' || e.kind === 'fireworks' || e.kind === 'seal') continue;
+            if (
+              e.kind === 'bounce' ||
+              e.kind === 'bat' ||
+              e.kind === 'edge' ||
+              e.kind === 'pad' ||
+              e.kind === 'fireworks' ||
+              e.kind === 'seal'
+            )
+              continue;
             if (e.kind === 'stumps' && dt < 700) {
               // The broken wicket: a little dust and a few splinters at its foot (the bails and LEDs do the rest).
               const foot = { ...e, at: e.at ? { x: e.at.x, y: 0.12, z: e.at.z } : { x: 0, y: 0.12, z: PITCH_HALF } };
-              k = emitBurst(foot, dt, Math.round(10 * particleScale) + 4, 1.1, 650, [DUST, SPLINTER], 5, 0.045, k, ei * 31 + 11);
+              k = emitBurst(
+                foot,
+                dt,
+                Math.round(10 * particleScale) + 4,
+                1.1,
+                650,
+                [DUST, SPLINTER],
+                5,
+                0.045,
+                k,
+                ei * 31 + 11,
+              );
               continue;
             }
             if (e.kind === 'catch' && dt < 600 && e.at) {
@@ -1386,7 +1612,18 @@ export function createEventFx(glowTex: Texture): EventFx {
             continue;
           }
           if (e.kind === 'bounce' && bounceMark === 'dust' && dt < 260 && e.at) {
-            k = emitBurst({ ...e, at: { x: e.at.x, y: 0.03, z: e.at.z } }, dt, 7, 0.9, 260, [DUST], 6, 0.035, k, ei * 31 + 37);
+            k = emitBurst(
+              { ...e, at: { x: e.at.x, y: 0.03, z: e.at.z } },
+              dt,
+              7,
+              0.9,
+              260,
+              [DUST],
+              6,
+              0.035,
+              k,
+              ei * 31 + 37,
+            );
           } else if (e.kind === 'bounce' && bounceMark === 'ring' && dt < 650 && e.at) {
             bounce.visible = true;
             bounce.position.set(e.at.x, 0.03, e.at.z);
@@ -1400,7 +1637,19 @@ export function createEventFx(glowTex: Texture): EventFx {
             const u = dt / 220;
             flash.scale.setScalar((0.5 + u * 1.4) * (e.kind === 'bat' ? 1 : 0.6) * (0.6 + e.intensity * 0.6));
             (flash.material as MeshBasicMaterial).opacity = (1 - u) * 0.9;
-            if (!reducedMotion) k = emitBurst(e, dt, Math.round(26 * particleScale * e.intensity), 4.5, 420, [WHITE, CYAN], 6, 0.06, k, ei * 31 + 7);
+            if (!reducedMotion)
+              k = emitBurst(
+                e,
+                dt,
+                Math.round(26 * particleScale * e.intensity),
+                4.5,
+                420,
+                [WHITE, CYAN],
+                6,
+                0.06,
+                k,
+                ei * 31 + 7,
+              );
           } else if (e.kind === 'pad' && dt < 420 && e.at) {
             // A dull, low puff off the pad: grey-white, few and slow (nothing like the bat's bright crack).
             k = emitBurst(e, dt, Math.round(10 * particleScale) + 3, 1.2, 400, [GREY, WHITE], 2, 0.05, k, ei * 31 + 23);
@@ -1413,18 +1662,44 @@ export function createEventFx(glowTex: Texture): EventFx {
             seal.scale.setScalar(0.08 + easeOut(u) * 0.9);
             (seal.material as MeshBasicMaterial).color.copy(GOLD);
             (seal.material as MeshBasicMaterial).opacity = (1 - u) * 0.9;
-            if (!reducedMotion) k = emitBurst(e, dt, Math.round(18 * particleScale), 2.4, 600, [GOLD, WHITE], 3, 0.06, k, ei * 31 + 29);
+            if (!reducedMotion)
+              k = emitBurst(e, dt, Math.round(18 * particleScale), 2.4, 600, [GOLD, WHITE], 3, 0.06, k, ei * 31 + 29);
           } else if ((e.kind === 'stumps' || e.kind === 'bails') && dt < 900 && !reducedMotion) {
             k = emitBurst(e, dt, Math.round(30 * particleScale), 3.2, 800, [AMBER, WHITE], 4, 0.07, k, ei * 31 + 11);
           } else if (e.kind === 'six' && dt < 1400 && !reducedMotion) {
-            k = emitBurst(e, dt, Math.round(60 * particleScale), 6, 1300, [AMBER, CYAN, WHITE], 3, 0.35, k, ei * 31 + 3);
+            k = emitBurst(
+              e,
+              dt,
+              Math.round(60 * particleScale),
+              6,
+              1300,
+              [AMBER, CYAN, WHITE],
+              3,
+              0.35,
+              k,
+              ei * 31 + 3,
+            );
           } else if (e.kind === 'fireworks' && dt < 2600) {
             for (let b = 0; b < 3; b++) {
               const bt = dt - b * 380;
               if (bt < 0) continue;
               const at = e.at ?? { x: 0, y: 30, z: 0 };
-              const burst: SceneEvent = { ...e, at: { x: at.x + (b - 1) * 18, y: Math.max(26, at.y + 14 + b * 6), z: at.z + (b - 1) * 9 } };
-              k = emitBurst(burst, bt, Math.round((reducedMotion ? 30 : 90) * particleScale), 16, 1800, b % 2 ? [AMBER, WHITE] : [CYAN, PINK], 4, reducedMotion ? 0.7 : 1.1, k, ei * 31 + b * 5 + 19);
+              const burst: SceneEvent = {
+                ...e,
+                at: { x: at.x + (b - 1) * 18, y: Math.max(26, at.y + 14 + b * 6), z: at.z + (b - 1) * 9 },
+              };
+              k = emitBurst(
+                burst,
+                bt,
+                Math.round((reducedMotion ? 30 : 90) * particleScale),
+                16,
+                1800,
+                b % 2 ? [AMBER, WHITE] : [CYAN, PINK],
+                4,
+                reducedMotion ? 0.7 : 1.1,
+                k,
+                ei * 31 + b * 5 + 19,
+              );
             }
           } else if (e.kind === 'seal' && dt < 900) {
             const pos = sampleBall(script, e.t - 1).pos;
@@ -1480,7 +1755,14 @@ export function createBlobShadows(shadowTex: Texture, max = 128): BlobShadows {
   const geo = new PlaneGeometry(1, 1);
   geo.rotateX(-Math.PI / 2);
   geo.translate(0, 0, 0.5);
-  const mat = new MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, color: '#000000', opacity: 0.42, fog: false });
+  const mat = new MeshBasicMaterial({
+    map: shadowTex,
+    transparent: true,
+    depthWrite: false,
+    color: '#000000',
+    opacity: 0.42,
+    fog: false,
+  });
   const mesh = new InstancedMesh(geo, mat, max);
   mesh.frustumCulled = false;
   mesh.renderOrder = 1;

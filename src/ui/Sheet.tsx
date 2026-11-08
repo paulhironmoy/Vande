@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { IconButton } from './Button';
 import { useFocusTrap } from './focusTrap';
@@ -32,7 +39,19 @@ const DRAG_CLOSE_PX = 110;
  * Bottom sheet (mobile/tablet) or side panel (desktop). Focus-trapped, Esc/backdrop closes,
  * spring drag-to-close from the handle. Rendered in a portal.
  */
-export function Sheet({ open, onClose, title, ariaLabel, children, footer, side = true, actions, testId, className, draggable = true }: SheetProps) {
+export function Sheet({
+  open,
+  onClose,
+  title,
+  ariaLabel,
+  children,
+  footer,
+  side = true,
+  actions,
+  testId,
+  className,
+  draggable = true,
+}: SheetProps) {
   const [mounted, setMounted] = useState(open);
   const [closing, setClosing] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -53,10 +72,13 @@ export function Sheet({ open, onClose, title, ariaLabel, children, footer, side 
     if (!mounted) return;
     setClosing(true);
     const reduced = document.documentElement.getAttribute('data-motion') === 'reduced';
-    const t = window.setTimeout(() => {
-      setMounted(false);
-      setClosing(false);
-    }, reduced ? 0 : CLOSE_MS);
+    const t = window.setTimeout(
+      () => {
+        setMounted(false);
+        setClosing(false);
+      },
+      reduced ? 0 : CLOSE_MS,
+    );
     return () => window.clearTimeout(t);
   }, [open, mounted]);
 
@@ -125,7 +147,14 @@ export function Sheet({ open, onClose, title, ariaLabel, children, footer, side 
         data-settling={settling || undefined}
         data-testid={testId}
       >
-        <div className={s.handleArea} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} aria-hidden="true">
+        <div
+          className={s.handleArea}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          aria-hidden="true"
+        >
           <div className={s.handle} />
         </div>
         <div className={s.header}>

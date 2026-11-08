@@ -29,7 +29,14 @@ export interface OnboardingScreenProps {
 export { validateAlias } from './alias';
 
 /** First run: a cricket name, a generated player and kit, and the language. No phone number, no real name. */
-export function OnboardingScreen({ onComplete, initialAlias = '', initialSeed, aliasError, busy, footerExtra }: OnboardingScreenProps) {
+export function OnboardingScreen({
+  onComplete,
+  initialAlias = '',
+  initialSeed,
+  aliasError,
+  busy,
+  footerExtra,
+}: OnboardingScreenProps) {
   const { t } = useT();
   const locale = useApp((st) => st.settings.locale);
   const [alias, setAlias] = useState(initialAlias);
@@ -48,7 +55,8 @@ export function OnboardingScreen({ onComplete, initialAlias = '', initialSeed, a
     if (problem) return;
     onComplete({ alias: alias.trim(), avatar, kit, locale });
   };
-  const error = (touched && problem ? t(`onboarding.alias_error_${problem}` as MessageKey) : null) ?? aliasError ?? null;
+  const error =
+    (touched && problem ? t(`onboarding.alias_error_${problem}` as MessageKey) : null) ?? aliasError ?? null;
 
   return (
     <main className={s.screen} data-testid="onboarding-screen">
@@ -60,7 +68,9 @@ export function OnboardingScreen({ onComplete, initialAlias = '', initialSeed, a
           {/* The language first: the device's language is the default, and anyone can change it before reading on. */}
           <LanguagePicker compact testId="onboarding-language" />
         </div>
-        {LOCALES.find((l) => l.id === locale)?.status === 'machine_draft' && <p className={s.draftNote}>{t('settings.draft_note')}</p>}
+        {LOCALES.find((l) => l.id === locale)?.status === 'machine_draft' && (
+          <p className={s.draftNote}>{t('settings.draft_note')}</p>
+        )}
         <span className={s.eyebrow}>{t('onboarding.eyebrow')}</span>
         <h1 className={s.title}>{t('onboarding.title')}</h1>
         <p className={s.body}>{t('onboarding.body')}</p>
@@ -114,13 +124,20 @@ export function OnboardingScreen({ onComplete, initialAlias = '', initialSeed, a
           <legend className={s.legend}>{t('onboarding.kit_label')}</legend>
           <div className={s.kitRow}>
             {KITS.map((k, i) => (
-              <button key={`${k.primary}-${k.secondary}-${k.pattern}`} type="button" className={s.kit} aria-pressed={kitIndex === i} aria-label={t('onboarding.kit_n', { n: i + 1 })} onClick={() => setKitIndex(i)} style={{ ['--a' as string]: k.primary, ['--b' as string]: k.secondary }}>
+              <button
+                key={`${k.primary}-${k.secondary}-${k.pattern}`}
+                type="button"
+                className={s.kit}
+                aria-pressed={kitIndex === i}
+                aria-label={t('onboarding.kit_n', { n: i + 1 })}
+                onClick={() => setKitIndex(i)}
+                style={{ ['--a' as string]: k.primary, ['--b' as string]: k.secondary }}
+              >
                 <span className={s.kitSwatch} data-pattern={k.pattern} />
               </button>
             ))}
           </div>
         </fieldset>
-
       </section>
 
       <footer className={s.footer}>
@@ -130,7 +147,15 @@ export function OnboardingScreen({ onComplete, initialAlias = '', initialSeed, a
             {t('legal.privacy')}
           </LegalLink>
         </p>
-        <Button variant="accent" size="xl" block iconEnd="forward" onClick={submit} loading={busy} data-testid="onboarding-submit">
+        <Button
+          variant="accent"
+          size="xl"
+          block
+          iconEnd="forward"
+          onClick={submit}
+          loading={busy}
+          data-testid="onboarding-submit"
+        >
           {t('onboarding.cta')}
         </Button>
         {footerExtra}

@@ -5,9 +5,18 @@ import { GestureSurface, normalizeGesture, type SwingIntent } from '@/input';
 import { KEYBOARD, LATE_SAMPLE_WAIT_MS, TAP_HOLD_MS } from '@/input/constants';
 
 function pointer(type: string, init: { id?: number; kind?: string; x: number; y: number }) {
-  return new PointerEvent(type, { pointerId: init.id ?? 1, pointerType: init.kind ?? 'touch', clientX: init.x, clientY: init.y, bubbles: true, cancelable: true, button: 0 });
+  return new PointerEvent(type, {
+    pointerId: init.id ?? 1,
+    pointerType: init.kind ?? 'touch',
+    clientX: init.x,
+    clientY: init.y,
+    bubbles: true,
+    cancelable: true,
+    button: 0,
+  });
 }
-const key = (code: string, shiftKey = false) => new KeyboardEvent('keydown', { code, shiftKey, bubbles: true, cancelable: true });
+const key = (code: string, shiftKey = false) =>
+  new KeyboardEvent('keydown', { code, shiftKey, bubbles: true, cancelable: true });
 
 describe('GestureSurface', () => {
   it('sits across the lower part of the screen and blocks browser gestures', () => {
@@ -25,7 +34,14 @@ describe('GestureSurface', () => {
     const starts: Array<[number, string]> = [];
     const intents: SwingIntent[] = [];
     const gestures: GestureInput[] = [];
-    const { container } = render(<GestureSurface enabled onSwingStart={(t, p) => starts.push([t, p])} onIntent={(i) => intents.push(i)} onGesture={(g) => gestures.push(g)} />);
+    const { container } = render(
+      <GestureSurface
+        enabled
+        onSwingStart={(t, p) => starts.push([t, p])}
+        onIntent={(i) => intents.push(i)}
+        onGesture={(g) => gestures.push(g)}
+      />,
+    );
     const el = container.firstElementChild as HTMLElement;
     let down!: PointerEvent;
     act(() => {
@@ -75,7 +91,14 @@ describe('GestureSurface', () => {
     const gestures: GestureInput[] = [];
     const intents: SwingIntent[] = [];
     const cancel = vi.fn();
-    const { container } = render(<GestureSurface enabled onGesture={(g) => gestures.push(g)} onIntent={(i) => intents.push(i)} onCancel={cancel} />);
+    const { container } = render(
+      <GestureSurface
+        enabled
+        onGesture={(g) => gestures.push(g)}
+        onIntent={(i) => intents.push(i)}
+        onCancel={cancel}
+      />,
+    );
     const el = container.firstElementChild as HTMLElement;
     act(() => {
       const down = pointer('pointerdown', { x: 50, y: 80 });
@@ -97,7 +120,9 @@ describe('GestureSurface', () => {
 
   it('defends on Space while enabled, ignores it while disabled, and re-arms per delivery', () => {
     const gestures: GestureInput[] = [];
-    const ui = (enabled: boolean, k: number) => <GestureSurface enabled={enabled} deliveryKey={k} onGesture={(g) => gestures.push(g)} />;
+    const ui = (enabled: boolean, k: number) => (
+      <GestureSurface enabled={enabled} deliveryKey={k} onGesture={(g) => gestures.push(g)} />
+    );
     const { rerender } = render(ui(false, 0));
     act(() => {
       window.dispatchEvent(key('Space'));

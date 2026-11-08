@@ -20,7 +20,13 @@ export function quatFromEulerDeg(ex: number, ey: number, ez: number, out: Quat =
   return out;
 }
 
-export function quatSlerp(a: ArrayLike<number>, b: ArrayLike<number>, t: number, out: Float32Array | Quat, o = 0): void {
+export function quatSlerp(
+  a: ArrayLike<number>,
+  b: ArrayLike<number>,
+  t: number,
+  out: Float32Array | Quat,
+  o = 0,
+): void {
   let bx = b[0];
   let by = b[1];
   let bz = b[2];

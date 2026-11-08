@@ -18,14 +18,15 @@ const opened = new Map<string, Promise<IDBPDatabase | null>>();
 export function openNetDb(name = NET_DB): Promise<IDBPDatabase | null> {
   let db = opened.get(name);
   if (!db) {
-    db = (typeof indexedDB === 'undefined'
-      ? Promise.resolve(null)
-      : openDB(name, VERSION, {
-          upgrade(d) {
-            if (!d.objectStoreNames.contains('outbox')) d.createObjectStore('outbox', { keyPath: 'id' });
-            if (!d.objectStoreNames.contains('kv')) d.createObjectStore('kv');
-          },
-        })
+    db = (
+      typeof indexedDB === 'undefined'
+        ? Promise.resolve(null)
+        : openDB(name, VERSION, {
+            upgrade(d) {
+              if (!d.objectStoreNames.contains('outbox')) d.createObjectStore('outbox', { keyPath: 'id' });
+              if (!d.objectStoreNames.contains('kv')) d.createObjectStore('kv');
+            },
+          })
     ).catch(() => null);
     opened.set(name, db);
   }

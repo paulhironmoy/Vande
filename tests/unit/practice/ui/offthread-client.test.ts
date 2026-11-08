@@ -15,9 +15,37 @@ import { skipOverBudgetWhenLoaded } from '../../support/timing';
 
 const engine = fakeEngine();
 const flight = engine.flight({ plan: plan(), bowler, conditions: 'balanced', seed: 's1', handedness: 'right' });
-const job = { kind: 'resolve' as const, args: { flight, field, bowler, conditions: 'balanced' as const, handedness: 'right' as const, assist: 'real' as const, tierToleranceMs: 0 } };
-const local = (swing: Parameters<typeof engine.resolveDelivery>[0]['swing']) => engine.resolveDelivery({ ...job.args, swing });
-const record: DeliveryRecord = { version: PRACTICE_SIM_VERSION, overIndex: 0, ballIndex: 0, bowler, plan: plan(), seed: 's1', conditions: 'balanced', ball: { colour: 'white', age: 'new' }, field, handedness: 'right', assist: 'real', tierToleranceMs: 0, swing: null, runs: 0, dismissal: null };
+const job = {
+  kind: 'resolve' as const,
+  args: {
+    flight,
+    field,
+    bowler,
+    conditions: 'balanced' as const,
+    handedness: 'right' as const,
+    assist: 'real' as const,
+    tierToleranceMs: 0,
+  },
+};
+const local = (swing: Parameters<typeof engine.resolveDelivery>[0]['swing']) =>
+  engine.resolveDelivery({ ...job.args, swing });
+const record: DeliveryRecord = {
+  version: PRACTICE_SIM_VERSION,
+  overIndex: 0,
+  ballIndex: 0,
+  bowler,
+  plan: plan(),
+  seed: 's1',
+  conditions: 'balanced',
+  ball: { colour: 'white', age: 'new' },
+  field,
+  handedness: 'right',
+  assist: 'real',
+  tierToleranceMs: 0,
+  swing: null,
+  runs: 0,
+  dismissal: null,
+};
 
 /** A coach whose reading is `steps` simulations long, each one a yield; it records each step's start. */
 function slowKit(steps: number, log: string[]): WorkKit {
@@ -74,7 +102,14 @@ describe('on the worker the live ball comes first', () => {
     await tick(40);
     // At most the one simulation that was already running when the ball arrived.
     expect(log.length - heldAt).toBeLessThanOrEqual(1);
-    const swing = { kind: 'attack' as const, startT: 0.38, directionDeg: 30, power: 0.6, elevation: 0, footwork: 'auto' as const };
+    const swing = {
+      kind: 'attack' as const,
+      startT: 0.38,
+      directionDeg: 30,
+      power: 0.6,
+      elevation: 0,
+      footwork: 'auto' as const,
+    };
     const r = await ticket.resolve(swing);
     expect(JSON.stringify(r)).toBe(JSON.stringify(local(swing)));
     expect(log.slice(heldAt)).toContain('resolve');
@@ -119,7 +154,14 @@ describe('a ball left alone is answered at once (bowled-leave step 1)', () => {
     await until(() => ticket.ready());
     await until(() => log.filter((x) => x === 'resolve').length >= 2);
     const before = log.filter((x) => x === 'resolve').length;
-    const swing = { kind: 'defend' as const, startT: 0.38, directionDeg: 0, power: 0.2, elevation: 0, footwork: 'auto' as const };
+    const swing = {
+      kind: 'defend' as const,
+      startT: 0.38,
+      directionDeg: 0,
+      power: 0.2,
+      elevation: 0,
+      footwork: 'auto' as const,
+    };
     const r = await ticket.resolve(swing);
     expect(log.filter((x) => x === 'resolve').length).toBe(before + 1);
     expect(JSON.stringify(r)).toBe(JSON.stringify(local(swing)));
@@ -146,7 +188,9 @@ describe('nothing waits for ever', () => {
   it('a reading the worker never answers fails within its bound (the flow then reads it itself)', async (ctx) => {
     const { work } = make({ kit: slowKit(1, []), drop: ['analyzed'] }, { readTimeoutMs: 100 });
     const t0 = Date.now();
-    await expect(work.read(record, local(null), { tip: false, sample: null, guide: false })).rejects.toThrow(/timed out/);
+    await expect(work.read(record, local(null), { tip: false, sample: null, guide: false })).rejects.toThrow(
+      /timed out/,
+    );
     // The bound is exact. Only an overrun on a machine above load 20 is skipped, by name; a quiet machine fails it.
     const elapsed = Date.now() - t0;
     skipOverBudgetWhenLoaded(ctx, 'a reading the worker never answers (readTimeoutMs 100)', elapsed, 2_000, 'ms');
@@ -183,7 +227,16 @@ describe('a result is named, not sent back, only while the worker keeps it', () 
     for (let i = 0; i < KEPT_RESULTS + 1; i++) {
       const t = work.prepare(job, local);
       await until(() => t.ready());
-      results.push(await t.resolve({ kind: 'defend', startT: 0.38 + i / 1000, directionDeg: 0, power: 0.2, elevation: 0, footwork: 'auto' }));
+      results.push(
+        await t.resolve({
+          kind: 'defend',
+          startT: 0.38 + i / 1000,
+          directionDeg: 0,
+          power: 0.2,
+          elevation: 0,
+          footwork: 'auto',
+        }),
+      );
     }
     await work.read(record, results[0], { tip: false, sample: null, guide: false });
     await work.read(record, results[KEPT_RESULTS], { tip: false, sample: null, guide: false });

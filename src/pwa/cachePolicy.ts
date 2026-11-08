@@ -21,7 +21,9 @@ export function isRuntimeImageOrJsonRequest(
   serviceWorkerOrigin: string,
   base: string,
 ): boolean {
-  return url.origin === serviceWorkerOrigin &&
+  return (
+    url.origin === serviceWorkerOrigin &&
     !isUnityRuntimeRequest(url, serviceWorkerOrigin, base) &&
-    (requestDestination === 'image' || url.pathname.endsWith('.json'));
+    (requestDestination === 'image' || url.pathname.endsWith('.json'))
+  );
 }

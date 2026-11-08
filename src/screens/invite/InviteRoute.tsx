@@ -48,15 +48,26 @@ export default function InviteRoute({ route }: { route: RouteOf<'invite'> }) {
     setAgePending(null);
     set(v);
   };
-  const ageEditing = { ...ageQ, setYear: ageEdit(ageQ.setYear), setMonth: ageEdit(ageQ.setMonth), setDay: ageEdit(ageQ.setDay) };
+  const ageEditing = {
+    ...ageQ,
+    setYear: ageEdit(ageQ.setYear),
+    setMonth: ageEdit(ageQ.setMonth),
+    setDay: ageEdit(ageQ.setDay),
+  };
 
-  const preview = useLoad<InvitePreview>(net ? () => net.api.call('GET /v1/invites/:token', { params: { token: route.token } }) : null, [net, route.token]);
+  const preview = useLoad<InvitePreview>(
+    net ? () => net.api.call('GET /v1/invites/:token', { params: { token: route.token } }) : null,
+    [net, route.token],
+  );
   const mine = useMemo(() => savedInvite({ token: route.token }), [route.token]);
 
   useEffect(() => {
     if (!preview.data || opened.current) return;
     opened.current = true;
-    services?.analytics.track('invite_opened', { mode: preview.data.kind === 'cup' ? 'cup' : 'duel', ...(route.attribution ? { attribution: route.attribution } : {}) });
+    services?.analytics.track('invite_opened', {
+      mode: preview.data.kind === 'cup' ? 'cup' : 'duel',
+      ...(route.attribution ? { attribution: route.attribution } : {}),
+    });
   }, [preview.data, services, route.attribution]);
 
   const problem = player ? null : validateAlias(alias);
@@ -101,7 +112,10 @@ export default function InviteRoute({ route }: { route: RouteOf<'invite'> }) {
     setPlayer(me);
     try {
       const r = await net.api.call('POST /v1/invites/:token/accept', { params: { token: route.token } });
-      services?.analytics.track('invite_accepted', { mode: r.cupId ? 'cup' : 'duel', ...(route.attribution ? { attribution: route.attribution } : {}) });
+      services?.analytics.track('invite_accepted', {
+        mode: r.cupId ? 'cup' : 'duel',
+        ...(route.attribution ? { attribution: route.attribution } : {}),
+      });
       if (r.matchId) navigate({ name: 'match', matchId: r.matchId }, { replace: true });
       else if (r.cupId) navigate({ name: 'cup', cupId: r.cupId }, { replace: true });
       else navigate({ name: 'home' }, { replace: true });
@@ -114,15 +128,31 @@ export default function InviteRoute({ route }: { route: RouteOf<'invite'> }) {
 
   const main = (() => {
     if (booting) return <StateView kind="loading" />;
-    if (!net) return <StateView kind="offline" title={t('invite.needs_online_title')} body={t('invite.needs_online_body')} actionLabel={t('home.ghosts.title')} onAction={() => navigate({ name: 'ghosts' })} />;
+    if (!net)
+      return (
+        <StateView
+          kind="offline"
+          title={t('invite.needs_online_title')}
+          body={t('invite.needs_online_body')}
+          actionLabel={t('home.ghosts.title')}
+          onAction={() => navigate({ name: 'ghosts' })}
+        />
+      );
     if (preview.loading && !preview.data) return <StateView kind="loading" title={t('invite.loading')} />;
     if (preview.error && !preview.data) {
       const k = failureKind(preview.error);
-      if (k === 'offline') return <StateView kind="offline" body={t('invite.offline_body')} onAction={preview.reload} />;
+      if (k === 'offline')
+        return <StateView kind="offline" body={t('invite.offline_body')} onAction={preview.reload} />;
       if (k === 'not_found' || k === 'expired')
         return (
           // An unknown code and an expired one answer alike (410), so codes cannot be enumerated: one honest message.
-          <StateView kind="deadline_expired" title={t('invite.gone_title')} body={t('invite.expired_body')} actionLabel={t('invite.practice')} onAction={() => navigate(player ? { name: 'ghosts' } : { name: 'onboarding' })} />
+          <StateView
+            kind="deadline_expired"
+            title={t('invite.gone_title')}
+            body={t('invite.expired_body')}
+            actionLabel={t('invite.practice')}
+            onAction={() => navigate(player ? { name: 'ghosts' } : { name: 'onboarding' })}
+          />
         );
       return <StateView kind="error" onAction={preview.reload} />;
     }
@@ -135,7 +165,11 @@ export default function InviteRoute({ route }: { route: RouteOf<'invite'> }) {
         <Card className={s.card} padding={5} data-testid="invite-preview">
           <span className={s.glow} aria-hidden="true" />
           <p className={s.eyebrow}>{p.kind === 'cup' ? t('invite.cup_eyebrow') : t('invite.duel_eyebrow')}</p>
-          <h1 className={s.h1}>{p.kind === 'cup' ? t('invite.cup_title', { name: p.inviterAlias, cup: p.cupName ?? '' }) : t('invite.duel_title', { name: p.inviterAlias })}</h1>
+          <h1 className={s.h1}>
+            {p.kind === 'cup'
+              ? t('invite.cup_title', { name: p.inviterAlias, cup: p.cupName ?? '' })
+              : t('invite.duel_title', { name: p.inviterAlias })}
+          </h1>
           <div className={s.chips}>
             {p.conditions && (
               <>
@@ -170,7 +204,8 @@ export default function InviteRoute({ route }: { route: RouteOf<'invite'> }) {
             <li>
               <span className={s.n}>3</span>
               <span>
-                <strong>{t('invite.step3_title')}</strong> {p.kind === 'cup' ? t('invite.step3_body_cup') : t('invite.step3_body')}
+                <strong>{t('invite.step3_title')}</strong>{' '}
+                {p.kind === 'cup' ? t('invite.step3_body_cup') : t('invite.step3_body')}
               </span>
             </li>
           </ol>
@@ -184,7 +219,13 @@ export default function InviteRoute({ route }: { route: RouteOf<'invite'> }) {
             <p className={s.small}>{t('age.stop_body')}</p>
           </section>
         ) : mine && failure === 'forbidden' ? (
-          <StateView kind="pending_opponent" title={t('invite.own_title')} body={t('invite.own_body')} actionLabel={t('invite.open_match')} onAction={() => navigate({ name: 'match', matchId: mine.matchId })} />
+          <StateView
+            kind="pending_opponent"
+            title={t('invite.own_title')}
+            body={t('invite.own_body')}
+            actionLabel={t('invite.open_match')}
+            onAction={() => navigate({ name: 'match', matchId: mine.matchId })}
+          />
         ) : (
           <section className={s.join} aria-labelledby="invite-join">
             <h2 id="invite-join" className={s.h2}>
@@ -198,15 +239,36 @@ export default function InviteRoute({ route }: { route: RouteOf<'invite'> }) {
             ) : (
               <div className={s.quick}>
                 {age === null && <AgeFields q={ageEditing} testId="invite-age" />}
-                {age === null && agePending && <AgeConfirm q={ageQ} onYes={confirmAge} onChange={() => setAgePending(null)} testId="invite-age" />}
+                {age === null && agePending && (
+                  <AgeConfirm q={ageQ} onYes={confirmAge} onChange={() => setAgePending(null)} testId="invite-age" />
+                )}
                 <div className={s.quickRow}>
                   <Avatar avatar={{ seed }} kit={KITS[0]} size={72} label={t('onboarding.avatar_label')} />
                   <Button variant="secondary" icon="shuffle" onClick={() => setSeed(newAvatarSeed())}>
                     {t('onboarding.avatar_shuffle')}
                   </Button>
                 </div>
-                <Field label={t('onboarding.alias_label')} description={touched && problem ? t(`onboarding.alias_error_${problem}` as MessageKey) : t('onboarding.alias_hint')} htmlFor={aliasId}>
-                  <input id={aliasId} value={alias} maxLength={24} autoComplete="nickname" autoCapitalize="words" onChange={(e) => setAlias(e.target.value)} onBlur={() => setTouched(true)} placeholder={t('onboarding.alias_placeholder')} data-testid="invite-alias" aria-invalid={Boolean(touched && problem)} />
+                <Field
+                  label={t('onboarding.alias_label')}
+                  description={
+                    touched && problem
+                      ? t(`onboarding.alias_error_${problem}` as MessageKey)
+                      : t('onboarding.alias_hint')
+                  }
+                  htmlFor={aliasId}
+                >
+                  <input
+                    id={aliasId}
+                    value={alias}
+                    maxLength={24}
+                    autoComplete="nickname"
+                    autoCapitalize="words"
+                    onChange={(e) => setAlias(e.target.value)}
+                    onBlur={() => setTouched(true)}
+                    placeholder={t('onboarding.alias_placeholder')}
+                    data-testid="invite-alias"
+                    aria-invalid={Boolean(touched && problem)}
+                  />
                 </Field>
                 <p className={s.small}>{t('onboarding.privacy')}</p>
               </div>
@@ -227,11 +289,28 @@ export default function InviteRoute({ route }: { route: RouteOf<'invite'> }) {
                           : t('state.error.body')}
               </p>
             )}
-            {!agePending && <Button variant="accent" size="xl" block iconEnd="forward" loading={busy} disabled={!online} onClick={() => void accept()} data-testid="invite-accept">
-              {t('invite.accept')}
-            </Button>}
+            {!agePending && (
+              <Button
+                variant="accent"
+                size="xl"
+                block
+                iconEnd="forward"
+                loading={busy}
+                disabled={!online}
+                onClick={() => void accept()}
+                data-testid="invite-accept"
+              >
+                {t('invite.accept')}
+              </Button>
+            )}
             {!isNativePlatform() && (
-              <a className={s.install} href={playStoreUrl({ token: route.token, attribution: route.attribution ?? null })} target="_blank" rel="noopener noreferrer" data-testid="invite-install">
+              <a
+                className={s.install}
+                href={playStoreUrl({ token: route.token, attribution: route.attribution ?? null })}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="invite-install"
+              >
                 {t('invite.install')} <Icon name="external" size={14} />
               </a>
             )}

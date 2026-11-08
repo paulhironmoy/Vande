@@ -2,7 +2,15 @@
  * What the batter sees: flight timing windows and the presentation path, deterministic from the delivery and the
  * conditions (engine v1). The executed path used in the replay adds the bowler's execution error on top.
  */
-import type { BallPath, Conditions, DeliveryPlan, DeliveryTiming, ExecutionGrade, OverPlan, RevealedDelivery } from '@/contracts';
+import type {
+  BallPath,
+  Conditions,
+  DeliveryPlan,
+  DeliveryTiming,
+  ExecutionGrade,
+  OverPlan,
+  RevealedDelivery,
+} from '@/contracts';
 import { SUPER_BALL_INDEX } from '@/contracts/cricket';
 import type { Sfc32 } from '../prng';
 import {
@@ -50,9 +58,19 @@ export function speedKph(d: Core): number {
 export function deliveryTiming(d: Core, c: Conditions): DeliveryTiming {
   const family = FAMILY[d.variant];
   const mps = speedKph(d) / 3.6;
-  const factor = DRAG[family] * LENGTH_TIME[d.length] * (VARIANT_TIME[d.variant] ?? 1) * PITCH_TIME[c.pitch] * (family === 'spin' ? 1 : WEATHER_TIME[c.weather]);
-  const releaseToContactMs = Math.round(((FLIGHT_DISTANCE_M / mps) * 1000 * factor));
-  const perfect = PERFECT_MS[family] * INTENSITY_WINDOW[d.intensity] * (VARIANT_WINDOW[d.variant] ?? 1) * PITCH_WINDOW[c.pitch] * WEATHER_WINDOW[c.weather];
+  const factor =
+    DRAG[family] *
+    LENGTH_TIME[d.length] *
+    (VARIANT_TIME[d.variant] ?? 1) *
+    PITCH_TIME[c.pitch] *
+    (family === 'spin' ? 1 : WEATHER_TIME[c.weather]);
+  const releaseToContactMs = Math.round((FLIGHT_DISTANCE_M / mps) * 1000 * factor);
+  const perfect =
+    PERFECT_MS[family] *
+    INTENSITY_WINDOW[d.intensity] *
+    (VARIANT_WINDOW[d.variant] ?? 1) *
+    PITCH_WINDOW[c.pitch] *
+    WEATHER_WINDOW[c.weather];
   const perfectMs = Math.round(perfect);
   const goodMs = Math.round(perfect * GOOD_MULT);
   const edgeMs = Math.round(perfect * GOOD_MULT * EDGE_MULT);
@@ -82,7 +100,15 @@ export function deliveryPath(d: Core, c: Conditions): BallPath {
   let turn = TURN_M[d.variant] ?? 0;
   if (spin) turn *= TURN_PITCH[c.pitch] * TURN_WEATHER[c.weather] * SPIN_TURN_INTENSITY[d.intensity];
   if (d.variant === 'slower' && c.pitch === 'slow') turn = d.line === 'leg' ? 0.03 : -0.03;
-  const releaseHeightM = spin ? (d.variant === 'offspin' ? 1.95 : 1.9) : family === 'swing' ? 2.12 : d.variant === 'slower' ? 2.15 : 2.2 + 0.02 * (d.intensity - 2);
+  const releaseHeightM = spin
+    ? d.variant === 'offspin'
+      ? 1.95
+      : 1.9
+    : family === 'swing'
+      ? 2.12
+      : d.variant === 'slower'
+        ? 2.15
+        : 2.2 + 0.02 * (d.intensity - 2);
   const spinRpm = spin
     ? (d.variant === 'offspin' ? 2100 : 2300) + (d.intensity === 1 ? 300 : d.intensity === 3 ? -300 : 0)
     : d.variant === 'slower'
@@ -108,7 +134,12 @@ export function executedPath(path: BallPath, d: Core, grade: ExecutionGrade, rng
   const u = rng.float();
   const v = rng.float();
   if (grade === 'perfect') return path;
-  if (grade === 'good') return { ...path, lineAtBatM: r2(path.lineAtBatM + (u - 0.5) * 0.06), bounceAtM: r2(path.bounceAtM + (v - 0.5) * 0.4) };
+  if (grade === 'good')
+    return {
+      ...path,
+      lineAtBatM: r2(path.lineAtBatM + (u - 0.5) * 0.06),
+      bounceAtM: r2(path.bounceAtM + (v - 0.5) * 0.4),
+    };
   const family = FAMILY[d.variant];
   let bounceAtM: number;
   let heightAtBatM: number;

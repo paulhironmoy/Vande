@@ -203,7 +203,10 @@ function stackAt(moves: readonly Move[], i: number, t: number, clipT: number, de
   const blend = m.blend ?? 140;
   if (depth > 0 && i > 0 && blend > 0 && t - m.t0 < blend) {
     const prev = moves[i - 1];
-    return [...stackAt(moves, i - 1, t, Math.min(t, prev.t1 + blend), depth - 1), { clip: state, weight: clamp((t - m.t0) / blend, 0, 1) }];
+    return [
+      ...stackAt(moves, i - 1, t, Math.min(t, prev.t1 + blend), depth - 1),
+      { clip: state, weight: clamp((t - m.t0) / blend, 0, 1) },
+    ];
   }
   return [{ clip: state, weight: 1 }];
 }
@@ -255,7 +258,7 @@ function pacedClipTime(m: Move, local: number): number {
   const h = local / n;
   let sum = 0;
   for (let i = 0; i <= n; i++) {
-    const u = clamp(((i * h) * 1000) / span, 0, 1);
+    const u = clamp((i * h * 1000) / span, 0, 1);
     const ratio = Math.max(0, hermiteSpeed(u, m.speed![0], m.speed![1], len, span)) / ref;
     let f = (m.rateExp ?? 0.5) === 0.5 ? Math.sqrt(ratio) : ratio ** (m.rateExp ?? 0.5);
     if (m.rateClamp) f = clamp(f, m.rateClamp[0], m.rateClamp[1]);
@@ -271,7 +274,9 @@ export function clipStateAt(m: Move, t: number): ClipState {
   const paced = m.rateBySpeed !== undefined && m.speed !== undefined && m.from !== undefined && m.to !== undefined;
   const clock = paced ? pacedClipTime(m, Math.max(0, local)) : local;
   const time = (m.clipStart ?? 0) + clock * rate;
-  return m.lower ? { clip: m.clip, time, lower: m.lower, lowerTime: (m.lowerStart ?? 0) + clock * (m.lowerRate ?? rate) } : { clip: m.clip, time };
+  return m.lower
+    ? { clip: m.clip, time, lower: m.lower, lowerTime: (m.lowerStart ?? 0) + clock * (m.lowerRate ?? rate) }
+    : { clip: m.clip, time };
 }
 
 /** Position and heading at the end of move `i` (resolving inherited values). */
@@ -293,7 +298,13 @@ function resolveUpTo(track: ActorTrack, i: number): { pos: Vec3; heading: number
 export function evaluateActor(track: ActorTrack, t: number): ActorState {
   const moves = track.moves;
   if (moves.length === 0) {
-    return { pos: track.start, heading: track.heading, current: { clip: 'idle', time: t / 1000 }, previous: null, weight: 1 };
+    return {
+      pos: track.start,
+      heading: track.heading,
+      current: { clip: 'idle', time: t / 1000 },
+      previous: null,
+      weight: 1,
+    };
   }
   let i = 0;
   while (i < moves.length - 1 && t >= moves[i + 1].t0) i++;
@@ -303,7 +314,13 @@ export function evaluateActor(track: ActorTrack, t: number): ActorState {
   const to = m.to ?? from;
   const span = Math.max(1, m.t1 - m.t0);
   const u = clamp((t - m.t0) / span, 0, 1);
-  const pos = lerpV(from, to, m.speed ? hermiteProgress(u, m.speed[0], m.speed[1], Math.hypot(to.x - from.x, to.y - from.y, to.z - from.z), span) : ease(m.ease, u));
+  const pos = lerpV(
+    from,
+    to,
+    m.speed
+      ? hermiteProgress(u, m.speed[0], m.speed[1], Math.hypot(to.x - from.x, to.y - from.y, to.z - from.z), span)
+      : ease(m.ease, u),
+  );
   const moving = Math.hypot(to.x - from.x, to.z - from.z) > 0.05;
   let heading: number;
   const turn = (x: number) => (m.headingEase === 'linear' ? x : easeInOut(x));
@@ -314,7 +331,18 @@ export function evaluateActor(track: ActorTrack, t: number): ActorState {
     const target = headingOf(to.x - from.x, to.z - from.z);
     // Turn into the run quickly rather than snapping.
     const turned = clamp((t - m.t0) / (m.turnMs ?? 220), 0, 1);
-    heading = Math.abs(angleDelta(before.heading, target)) > 0.01 ? lerpAngle(before.heading, target, m.turnMs === undefined ? turned : m.turnEase === 'smooth' ? turned * turned * (3 - 2 * turned) : easeInOut(turned)) : target;
+    heading =
+      Math.abs(angleDelta(before.heading, target)) > 0.01
+        ? lerpAngle(
+            before.heading,
+            target,
+            m.turnMs === undefined
+              ? turned
+              : m.turnEase === 'smooth'
+                ? turned * turned * (3 - 2 * turned)
+                : easeInOut(turned),
+          )
+        : target;
   } else heading = before.heading;
   if (track.headingFade && t >= track.headingFade.t0) {
     const f = track.headingFade;
@@ -342,7 +370,15 @@ export function evaluateActor(track: ActorTrack, t: number): ActorState {
   if (i > 0 && blend > 0 && t - m.t0 < blend) {
     const prev = moves[i - 1];
     const stack = stackAt(moves, i, t, t, 3);
-    return { pos, heading, current, previous: clipStateAt(prev, Math.min(t, prev.t1 + blend)), weight: clamp((t - m.t0) / blend, 0, 1), ...(body ? { body } : {}), ...(stack.length > 2 ? { stack } : {}) };
+    return {
+      pos,
+      heading,
+      current,
+      previous: clipStateAt(prev, Math.min(t, prev.t1 + blend)),
+      weight: clamp((t - m.t0) / blend, 0, 1),
+      ...(body ? { body } : {}),
+      ...(stack.length > 2 ? { stack } : {}),
+    };
   }
   return { pos, heading, current, previous: null, weight: 1, ...(body ? { body } : {}) };
 }
@@ -379,8 +415,8 @@ export function truncateMoves(track: ActorTrack, cut: number): Move[] {
       // Re-express the eased stretch as a Hermite with the same end speeds (eases are not closed under cutting).
       const e = (x: number) => ease(m.ease, x);
       const h = 1e-3;
-      const v0 = ((e(h) - e(0)) / h) * (len * 1000) / span;
-      const v1 = ((e(u) - e(Math.max(0, u - h))) / h) * (len * 1000) / span;
+      const v0 = (((e(h) - e(0)) / h) * (len * 1000)) / span;
+      const v1 = (((e(u) - e(Math.max(0, u - h))) / h) * (len * 1000)) / span;
       cutMove.speed = [v0, v1];
       delete cutMove.ease;
     }

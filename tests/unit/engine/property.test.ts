@@ -11,7 +11,9 @@ import { clone, logFor, randomMatch } from './helpers';
 const RUNS = new Set([0, 1, 2, 3, 4, 6]);
 
 describe('properties over 300 random matches', () => {
-  const matches = Array.from({ length: 300 }, (_, k) => randomMatch(`prop|${k}`, { sigma: 30 + (k % 5) * 30, pUnanswered: (k % 7) / 40 }));
+  const matches = Array.from({ length: 300 }, (_, k) =>
+    randomMatch(`prop|${k}`, { sigma: 30 + (k % 5) * 30, pUnanswered: (k % 7) / 40 }),
+  );
 
   it('every outcome is legal and every factor is in range', () => {
     for (const m of matches)
@@ -24,7 +26,8 @@ describe('properties over 300 random matches', () => {
           if (o.timing === 'interrupted') expect(o.wicket).toBeNull();
           if (o.dead) expect([o.runs, o.wicket]).toEqual([0, null]);
           if (o.shot === 'leave' || o.timing === 'no_shot' || o.timing === 'interrupted') expect(o.runs).toBe(0);
-          for (const k of ['matchup', 'timing', 'execution', 'pitch', 'field', 'setup'] as const) expect(Math.abs(o.factors[k])).toBeLessThanOrEqual(1);
+          for (const k of ['matchup', 'timing', 'execution', 'pitch', 'field', 'setup'] as const)
+            expect(Math.abs(o.factors[k])).toBeLessThanOrEqual(1);
           expect(o.factors.risk).toBeGreaterThanOrEqual(0);
           expect(o.factors.risk).toBeLessThanOrEqual(1);
           expect(EXPLAIN_KEYS).toContain(o.factors.explainKey);
@@ -42,7 +45,8 @@ describe('properties over 300 random matches', () => {
           if (o.cues.fate.kind === 'six') expect(o.runs).toBe(6);
           if (o.cues.fate.kind === 'four') expect(o.runs).toBe(4);
           if (o.cues.fate.kind === 'wicket') expect(o.wicket).toBe(o.cues.fate.wicket);
-          if (o.wicket === 'stumped') expect(o.delivery.variant === 'offspin' || o.delivery.variant === 'legspin').toBe(true);
+          if (o.wicket === 'stumped')
+            expect(o.delivery.variant === 'offspin' || o.delivery.variant === 'legspin').toBe(true);
           if (o.wicket === 'lbw') expect(o.delivery.line).not.toBe('wide_off');
         }
   });

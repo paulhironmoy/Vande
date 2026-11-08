@@ -22,7 +22,8 @@ async function phone(browser: Browser) {
   // The store shows the 3D stage, even from a browser that draws WebGL in software ('auto' uses the 2D view there).
   await context.addInitScript(() => {
     try {
-      if (!localStorage.getItem('vc:settings')) localStorage.setItem('vc:settings', JSON.stringify({ quality: 'standard' }));
+      if (!localStorage.getItem('vc:settings'))
+        localStorage.setItem('vc:settings', JSON.stringify({ quality: 'standard' }));
     } catch {
       /* storage unavailable */
     }
@@ -32,7 +33,9 @@ async function phone(browser: Browser) {
 
 const shot = (page: Page, name: string) => page.screenshot({ path: `${OUT}/${name}.png` });
 
-test('store screenshots: first run, training, invite, planner, batting, reveal, hub, Daily Six, room', async ({ browser }) => {
+test('store screenshots: first run, training, invite, planner, batting, reveal, hub, Daily Six, room', async ({
+  browser,
+}) => {
   test.setTimeout(10 * 60_000);
   mkdirSync(OUT, { recursive: true });
   const a = await phone(browser);

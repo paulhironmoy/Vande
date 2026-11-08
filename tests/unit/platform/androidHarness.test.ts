@@ -18,8 +18,16 @@ describe('Android harness display parsing', () => {
 
   it.each([
     ['physical size', 'Physical size: 1080x2400', { width: 1080, height: 2400, source: 'physical' }],
-    ['override before physical', 'Override size: 720x1600\nPhysical size: 1080x2400', { width: 720, height: 1600, source: 'override' }],
-    ['override after physical', 'Physical size: 1080x2400\nOverride size: 720x1600', { width: 720, height: 1600, source: 'override' }],
+    [
+      'override before physical',
+      'Override size: 720x1600\nPhysical size: 1080x2400',
+      { width: 720, height: 1600, source: 'override' },
+    ],
+    [
+      'override after physical',
+      'Physical size: 1080x2400\nOverride size: 720x1600',
+      { width: 720, height: 1600, source: 'override' },
+    ],
     ['unlabelled legacy size', '1080x2400', { width: 1080, height: 2400, source: 'raw' }],
     ['zero size', 'Physical size: 0x0', null],
     ['unknown output', 'size unavailable', null],

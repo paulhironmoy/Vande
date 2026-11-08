@@ -4,7 +4,16 @@
  * (src/screens/routes.ts: experience, src/social/routes.ts: social); a route without a screen shows Not found.
  * A normal start opens Practice (Stage 1 of docs/VANDE-PRODUCT-SEQUENCE.md); deep links open their own screens.
  */
-import { Component, Suspense, useEffect, useRef, useState, type ComponentType, type ErrorInfo, type ReactNode } from 'react';
+import {
+  Component,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type ErrorInfo,
+  type ReactNode,
+} from 'react';
 import { StateView, StatusBanner, UiProvider } from '@/ui';
 import { UpdateBanner } from '@/pwa/UpdateBanner';
 import { isNativePlatform } from '@/platform';

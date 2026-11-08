@@ -7,7 +7,14 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PRACTICE_SIM_VERSION, type CoachAnalysis } from '@/contracts';
-import { MASTERY_SUCCESS_VERSION, masteryEvent, masteryKey, masteryProgress, recordAttempt, startMastery } from '@/practice/coach';
+import {
+  MASTERY_SUCCESS_VERSION,
+  masteryEvent,
+  masteryKey,
+  masteryProgress,
+  recordAttempt,
+  startMastery,
+} from '@/practice/coach';
 import { loadMastery, memoryStore, saveMastery } from '@/practice/store';
 import { attack, quickPlay, setup, until, useFakeTimers } from './flowSetup';
 
@@ -26,9 +33,26 @@ async function attemptsWith(cleanContact: boolean | undefined, attempts: number)
   coach.analyzeBallInSlices = async (record, result, opts) => {
     const a = await inner(record, result, opts);
     const option = { ...a.options[0], decision: 'attack' as const, footwork: 'forward' as const };
-    return { ...a, attempted: { ...a.attempted, decision: 'attack', footwork: 'forward', contact: 'middle', dismissal: null, power: 0.7, directionDeg: 55 }, options: [option] } as CoachAnalysis;
+    return {
+      ...a,
+      attempted: {
+        ...a.attempted,
+        decision: 'attack',
+        footwork: 'forward',
+        contact: 'middle',
+        dismissal: null,
+        power: 0.7,
+        directionDeg: 55,
+      },
+      options: [option],
+    } as CoachAnalysis;
   };
-  coach.coachTip = (_r, a) => ({ mistake: null, fact: { kind: 'reason', reason: a.why[0], zone: null, fielder: null }, action: coach.primaryInsight(a).recommendation, ...(cleanContact === undefined ? {} : { cleanContact }) });
+  coach.coachTip = (_r, a) => ({
+    mistake: null,
+    fact: { kind: 'reason', reason: a.why[0], zone: null, fielder: null },
+    action: coach.primaryInsight(a).recommendation,
+    ...(cleanContact === undefined ? {} : { cleanContact }),
+  });
   // The coach's real mastery rule.
   coach.startMastery = startMastery;
   coach.recordAttempt = recordAttempt;

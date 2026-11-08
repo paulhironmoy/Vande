@@ -4,7 +4,15 @@
  * training objective and the assistance. Shown before the over (the setup screen) and, one tap from the status strip,
  * between balls. A Random Over's own deliveries are never shown: only what any batter could know of the bowler.
  */
-import type { AssistLevel, Difficulty, FieldIntent, FieldLayout, Handedness, PitchCondition, PracticeOverPlan } from '@/contracts';
+import type {
+  AssistLevel,
+  Difficulty,
+  FieldIntent,
+  FieldLayout,
+  Handedness,
+  PitchCondition,
+  PracticeOverPlan,
+} from '@/contracts';
 import { usePracticeT } from '@/i18n/practice';
 import { useKit } from '../context';
 import { bowlerStyle, intentionLine, paceRangeText, variationName, zoneWord } from '../coaching';
@@ -62,7 +70,9 @@ export function SessionBrief(p: SessionBriefProps) {
     .join(', ');
   const gaps = (p.intent?.gaps ?? []).filter((g) => g.depth === 'deep').map((g) => zoneWord(t, g.region) ?? '');
   const ringGaps = (p.intent?.gaps ?? []).filter((g) => g.depth === 'ring').map((g) => zoneWord(t, g.region) ?? '');
-  const catchers = p.field.fielders.filter((f) => p.intent?.attacking.includes(f.id) && f.role !== 'keeper').map((f) => t.tk(`practice.pos.${f.role}`));
+  const catchers = p.field.fielders
+    .filter((f) => p.intent?.attacking.includes(f.id) && f.role !== 'keeper')
+    .map((f) => t.tk(`practice.pos.${f.role}`));
   const reference = p.kind === 'reference' ? engine.referenceBalls() : [];
   const uniq = (xs: string[]) => Array.from(new Set(xs.filter(Boolean))).join(', ');
   const pace = fixed || p.difficulty ? ` · ${paceRangeText(t, build, b, p.difficulty ?? undefined)}` : '';
@@ -101,7 +111,9 @@ export function SessionBrief(p: SessionBriefProps) {
         <h3 id="brief-conditions" className={s.label}>
           {t.t('practice.setup.conditions')}
         </h3>
-        <p className={s.value}>{t.t('practice.setup.pitch_value', { pitch: t.tk(`practice.pitch.${p.conditions}`) })}</p>
+        <p className={s.value}>
+          {t.t('practice.setup.pitch_value', { pitch: t.tk(`practice.pitch.${p.conditions}`) })}
+        </p>
         <p className={sys.caption}>{t.tk(`practice.pitch.${p.conditions}_behaviour`)}</p>
         <p className={s.value}>{t.tk(`practice.ball.${p.plan.ball.colour}_${p.plan.ball.age}`)}</p>
         <p className={sys.caption}>{t.tk(`practice.ball.${p.plan.ball.age}_hint`)}</p>
@@ -133,9 +145,15 @@ export function SessionBrief(p: SessionBriefProps) {
         </h3>
         {p.intent && <p className={s.value}>{intentionLine(t, p.intent.intention)}</p>}
         {gaps.length > 0 && <p className={sys.caption}>{t.t('practice.setup.gaps', { list: uniq(gaps) })}</p>}
-        {ringGaps.length > 0 && <p className={sys.caption}>{t.t('practice.setup.ring_gaps', { list: uniq(ringGaps) })}</p>}
-        {catchers.length > 0 && <p className={sys.caption}>{t.t('practice.setup.catchers', { list: uniq(catchers) })}</p>}
-        {p.map && <FieldMap field={p.field} intent={p.intent} handedness={p.handedness} testId="practice-brief-field" />}
+        {ringGaps.length > 0 && (
+          <p className={sys.caption}>{t.t('practice.setup.ring_gaps', { list: uniq(ringGaps) })}</p>
+        )}
+        {catchers.length > 0 && (
+          <p className={sys.caption}>{t.t('practice.setup.catchers', { list: uniq(catchers) })}</p>
+        )}
+        {p.map && (
+          <FieldMap field={p.field} intent={p.intent} handedness={p.handedness} testId="practice-brief-field" />
+        )}
       </section>
       <section className={s.block} aria-labelledby="brief-objective" data-testid="practice-setup-objective">
         <h3 id="brief-objective" className={s.label}>
@@ -157,7 +175,11 @@ export function SessionBrief(p: SessionBriefProps) {
         ) : p.kind === 'built' ? (
           <>
             <p className={s.value}>{t.t('practice.objective.built')}</p>
-            <p className={sys.caption}>{shuffled ? t.t('practice.objective.built_shuffled') : p.plan.balls.map((x) => variationName(t, x.variation, b.spinType)).join(' · ')}</p>
+            <p className={sys.caption}>
+              {shuffled
+                ? t.t('practice.objective.built_shuffled')
+                : p.plan.balls.map((x) => variationName(t, x.variation, b.spinType)).join(' · ')}
+            </p>
           </>
         ) : (
           <p className={s.value}>{t.t('practice.objective.random')}</p>
@@ -179,10 +201,21 @@ export function SessionBrief(p: SessionBriefProps) {
           {t.t('practice.setup.assist')}
         </h3>
         {p.onAssist ? (
-          <PSegmented label={t.t('practice.setup.assist')} value={p.assist} onChange={p.onAssist} options={(['learn', 'play', 'real'] as AssistLevel[]).map((v) => ({ value: v, label: t.tk(`practice.settings.assist.${v}`), description: t.tk(`practice.settings.assist.${v}_hint`) }))} testId="practice-setup-assist" />
+          <PSegmented
+            label={t.t('practice.setup.assist')}
+            value={p.assist}
+            onChange={p.onAssist}
+            options={(['learn', 'play', 'real'] as AssistLevel[]).map((v) => ({
+              value: v,
+              label: t.tk(`practice.settings.assist.${v}`),
+              description: t.tk(`practice.settings.assist.${v}_hint`),
+            }))}
+            testId="practice-setup-assist"
+          />
         ) : (
           <p className={sys.caption}>
-            <span className={s.value}>{t.tk(`practice.settings.assist.${p.assist}`)}</span> · {t.tk(`practice.settings.assist.${p.assist}_hint`)}
+            <span className={s.value}>{t.tk(`practice.settings.assist.${p.assist}`)}</span> ·{' '}
+            {t.tk(`practice.settings.assist.${p.assist}_hint`)}
           </p>
         )}
       </section>

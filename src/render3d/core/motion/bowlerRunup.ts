@@ -13,11 +13,14 @@
  */
 import { motionSource, type MotionSource, type SampledPose } from '../clips';
 
-
 const LOOPS = ['bowl_jog', 'bowl_run', 'bowl_stride'] as const;
 export type RunupAction = 'pace' | 'off' | 'leg';
 const DELIVERY: Record<RunupAction, string> = { pace: 'bowl_pace', off: 'bowl_off', leg: 'bowl_leg' };
-const FOLLOW: Record<RunupAction, string> = { pace: 'bowl_pace_follow', off: 'bowl_spin_off_follow', leg: 'bowl_spin_leg_follow' };
+const FOLLOW: Record<RunupAction, string> = {
+  pace: 'bowl_pace_follow',
+  off: 'bowl_spin_off_follow',
+  leg: 'bowl_spin_leg_follow',
+};
 /** The clips this composer uses for an action (all cleared by the lead, 2026-11-04 03:24Z). */
 const runupClips = (a: RunupAction) => ['bowl_start', ...LOOPS, DELIVERY[a], FOLLOW[a]];
 const K_SPIN: readonly [number, number] = [0.96, 1.04];
@@ -140,7 +143,10 @@ export function planRunup(D: number, action: RunupAction = 'pace', allowRoll = t
   const v1 = action === 'pace' ? src('bowl_stride').speedMps : v0;
   const stepJog = table[0].T / 2;
   let best: { score: number; p: RunupPlan } | null = null;
-  for (const [exit, parity, phase0] of [['exitL', 0, 0], ['exitR', 1, 0.5]] as const) {
+  for (const [exit, parity, phase0] of [
+    ['exitL', 0, 0],
+    ['exitR', 1, 0.5],
+  ] as const) {
     const tX = start[exit];
     if (tX === undefined) continue;
     const aStar = D - tX - tau;
@@ -187,7 +193,8 @@ export function planRunup(D: number, action: RunupAction = 'pace', allowRoll = t
       }
       const [tA, R] = action === 'pace' ? paceRamp(A, lam) : [0, 0];
       const score = Math.round(hold * 1e4) * 1e3 + Math.round(Math.abs(k - 1) * 1e3);
-      if (!best || score < best.score) best = { score, p: { action, k, D, exit, phase0, steps: n, A, tA, R, lam, hold, preRoll: 0 } };
+      if (!best || score < best.score)
+        best = { score, p: { action, k, D, exit, phase0, steps: n, A, tA, R, lam, hold, preRoll: 0 } };
     }
   }
   if (best) return best.p;
@@ -223,7 +230,9 @@ const BOUNCER = { delivery: 'bowl_pace_bouncer', follow: 'bowl_pace_bouncer_foll
 
 /** True when the pace bouncer's own delivery and follow-through are loaded (with the stock follow-through it joins). */
 export function canComposeBouncer(): boolean {
-  return canComposeRunup('pace') && [BOUNCER.delivery, BOUNCER.follow].every((id) => motionSource(`vmp:${id}`) !== undefined);
+  return (
+    canComposeRunup('pace') && [BOUNCER.delivery, BOUNCER.follow].every((id) => motionSource(`vmp:${id}`) !== undefined)
+  );
 }
 
 /**
@@ -242,7 +251,7 @@ function bouncerFollow(): MotionSource {
     speedMps: 0,
     markers: b.markers,
     sample: (t, out) => (t < join ? a.sample(t, out) : b.sample(t, out)),
-    contacts: (t) => (t < join ? a.contacts?.(t) ?? 0 : b.contacts?.(t) ?? 0),
+    contacts: (t) => (t < join ? (a.contacts?.(t) ?? 0) : (b.contacts?.(t) ?? 0)),
     ground: (t) => {
       if (t < join) return a.ground!(t);
       const g = b.ground!(t);
@@ -251,7 +260,11 @@ function bouncerFollow(): MotionSource {
   };
 }
 
-export function composeRunup(plan: RunupPlan, scratch: { a: SampledPose; b: SampledPose }, variant: 'bouncer' | null = null): ComposedRunup {
+export function composeRunup(
+  plan: RunupPlan,
+  scratch: { a: SampledPose; b: SampledPose },
+  variant: 'bouncer' | null = null,
+): ComposedRunup {
   const table = loopTable();
   const st = src('bowl_start');
   const bouncer = variant === 'bouncer' && plan.action === 'pace' && canComposeBouncer();
@@ -300,7 +313,11 @@ export function composeRunup(plan: RunupPlan, scratch: { a: SampledPose; b: Samp
     // The follow-through from where the delivery left him, in his heading then.
     const f = fl.ground!(Math.min(t, tFollowEnd) - tEnd);
     const yaw = (dEnd.yawDeg * Math.PI) / 180;
-    return { x: dEnd.x + f.x * Math.cos(yaw) + f.z * Math.sin(yaw), z: dEnd.z - f.x * Math.sin(yaw) + f.z * Math.cos(yaw), yawDeg: dEnd.yawDeg + f.yawDeg };
+    return {
+      x: dEnd.x + f.x * Math.cos(yaw) + f.z * Math.sin(yaw),
+      z: dEnd.z - f.x * Math.sin(yaw) + f.z * Math.cos(yaw),
+      yawDeg: dEnd.yawDeg + f.yawDeg,
+    };
   };
   const contactsAt = (t: number): number => {
     if (t <= tX) return st.contacts?.(Math.max(0, t - plan.hold)) ?? 0;
@@ -331,7 +348,11 @@ export function composeRunup(plan: RunupPlan, scratch: { a: SampledPose; b: Samp
         if (w > 0 && a !== b) {
           src(b.id).sample(phase * b.T, scratch.b);
           nlerpInto(out.q, scratch.b.q, w, out.q);
-          out.root = [out.root[0] + (scratch.b.root[0] - out.root[0]) * w, out.root[1] + (scratch.b.root[1] - out.root[1]) * w, out.root[2] + (scratch.b.root[2] - out.root[2]) * w];
+          out.root = [
+            out.root[0] + (scratch.b.root[0] - out.root[0]) * w,
+            out.root[1] + (scratch.b.root[1] - out.root[1]) * w,
+            out.root[2] + (scratch.b.root[2] - out.root[2]) * w,
+          ];
         }
         return;
       }

@@ -61,7 +61,12 @@ export function StateView({ kind, title, body, actionLabel, onAction, compact, c
   const { t } = useT();
   const busy = kind === 'loading' || kind === 'reconnecting';
   return (
-    <div className={[s.state, compact ? s.compact : ''].join(' ')} data-tone={TONE[kind] ?? 'cyan'} role={kind === 'error' || kind === 'upload_failed' ? 'alert' : 'status'} aria-busy={busy || undefined}>
+    <div
+      className={[s.state, compact ? s.compact : ''].join(' ')}
+      data-tone={TONE[kind] ?? 'cyan'}
+      role={kind === 'error' || kind === 'upload_failed' ? 'alert' : 'status'}
+      aria-busy={busy || undefined}
+    >
       <div className={s.emblem} data-busy={busy || undefined} aria-hidden="true">
         <span className={s.ring} />
         <Icon name={ICON[kind]} size={compact ? 22 : 30} />
@@ -72,7 +77,11 @@ export function StateView({ kind, title, body, actionLabel, onAction, compact, c
       </div>
       {children}
       {onAction && (
-        <Button variant={kind === 'reveal_ready' ? 'accent' : 'primary'} onClick={onAction} icon={kind === 'error' || kind === 'upload_failed' ? 'refresh' : undefined}>
+        <Button
+          variant={kind === 'reveal_ready' ? 'accent' : 'primary'}
+          onClick={onAction}
+          icon={kind === 'error' || kind === 'upload_failed' ? 'refresh' : undefined}
+        >
           {actionLabel ?? t('common.retry')}
         </Button>
       )}

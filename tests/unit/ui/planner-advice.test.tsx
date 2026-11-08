@@ -33,7 +33,14 @@ afterEach(() => {
 });
 
 const STARTERS = engine.STARTER_VARIANTS;
-const ball = (variant: DeliveryVariant, line: 'wide_off' | 'off' | 'middle' | 'leg', length: 'full' | 'good' | 'short', intensity: 1 | 2 | 3, intent: 'attack' | 'contain' | 'setup', k: number) => ({
+const ball = (
+  variant: DeliveryVariant,
+  line: 'wide_off' | 'off' | 'middle' | 'leg',
+  length: 'full' | 'good' | 'short',
+  intensity: 1 | 2 | 3,
+  intent: 'attack' | 'contain' | 'setup',
+  k: number,
+) => ({
   variant,
   line,
   length,
@@ -62,13 +69,16 @@ function storeDraft(key: string) {
 
 describe('locked deliveries say how they are earned', () => {
   it('each locked card shows its achievement; starters show their family; the note says unlocks are never bought', () => {
-    renderUi(<BowlingPlannerScreen conditions={{ pitch: 'hard', weather: 'clear' }} unlocked={STARTERS} onLock={vi.fn()} />);
+    renderUi(
+      <BowlingPlannerScreen conditions={{ pitch: 'hard', weather: 'clear' }} unlocked={STARTERS} onLock={vi.fn()} />,
+    );
     const card = (v: DeliveryVariant) => screen.getByTestId(`plan-variant-${v}`);
     expect(card('legspin').textContent).toContain('Unlock: take a wicket with off-spin');
     expect(card('slower').textContent).toContain('Unlock: keep a batter to 6 runs or fewer in your over');
     expect(card('inswing').textContent).toContain('Unlock: hit the stumps (bowled or LBW)');
     expect(card('outswing').textContent).toContain('Unlock: get a batter caught');
-    for (const v of ['legspin', 'slower', 'inswing', 'outswing'] as const) expect(card(v)).toHaveProperty('disabled', true);
+    for (const v of ['legspin', 'slower', 'inswing', 'outswing'] as const)
+      expect(card(v)).toHaveProperty('disabled', true);
     for (const v of STARTERS) {
       expect(card(v).textContent).not.toContain('Unlock');
       expect(card(v)).toHaveProperty('disabled', false);
@@ -77,7 +87,13 @@ describe('locked deliveries say how they are earned', () => {
   });
 
   it('with everything unlocked there are no unlock hints', () => {
-    renderUi(<BowlingPlannerScreen conditions={{ pitch: 'hard', weather: 'clear' }} unlocked={['good_length', 'yorker', 'bouncer', 'slower', 'inswing', 'outswing', 'offspin', 'legspin']} onLock={vi.fn()} />);
+    renderUi(
+      <BowlingPlannerScreen
+        conditions={{ pitch: 'hard', weather: 'clear' }}
+        unlocked={['good_length', 'yorker', 'bouncer', 'slower', 'inswing', 'outswing', 'offspin', 'legspin']}
+        onLock={vi.fn()}
+      />,
+    );
     expect(screen.queryByText(/^Unlock:/)).toBeNull();
     expect(screen.queryByText(/never be bought/)).toBeNull();
   });
@@ -85,22 +101,32 @@ describe('locked deliveries say how they are earned', () => {
 
 describe('the pitch tip', () => {
   it('names what works on this pitch, and the weather when it matters', () => {
-    renderUi(<BowlingPlannerScreen conditions={{ pitch: 'green', weather: 'humid' }} unlocked={STARTERS} onLock={vi.fn()} />);
+    renderUi(
+      <BowlingPlannerScreen conditions={{ pitch: 'green', weather: 'humid' }} unlocked={STARTERS} onLock={vi.fn()} />,
+    );
     const tip = screen.getByTestId('plan-pitch-tip');
     expect(tip.textContent).toContain(tr.t('advice.pitch.green'));
     expect(tip.textContent).toContain(tr.t('advice.weather.humid'));
     cleanup();
-    renderUi(<BowlingPlannerScreen conditions={{ pitch: 'hard', weather: 'clear' }} unlocked={STARTERS} onLock={vi.fn()} />);
+    renderUi(
+      <BowlingPlannerScreen conditions={{ pitch: 'hard', weather: 'clear' }} unlocked={STARTERS} onLock={vi.fn()} />,
+    );
     const hard = screen.getByTestId('plan-pitch-tip');
     expect(hard.textContent).toBe(tr.t('advice.pitch.hard'));
   });
 
   it('speaks Hindi (आप) and Hinglish (tum)', () => {
-    renderUi(<BowlingPlannerScreen conditions={{ pitch: 'slow', weather: 'dew' }} unlocked={STARTERS} onLock={vi.fn()} />, { locale: 'hi' });
+    renderUi(
+      <BowlingPlannerScreen conditions={{ pitch: 'slow', weather: 'dew' }} unlocked={STARTERS} onLock={vi.fn()} />,
+      { locale: 'hi' },
+    );
     expect(screen.getByTestId('plan-pitch-tip').textContent).toContain('धीमी पिच');
     expect(screen.getByTestId('plan-variant-legspin').textContent).toContain('ऑफ़-स्पिन से विकेट लें');
     cleanup();
-    renderUi(<BowlingPlannerScreen conditions={{ pitch: 'slow', weather: 'dew' }} unlocked={STARTERS} onLock={vi.fn()} />, { locale: 'hi-Latn' });
+    renderUi(
+      <BowlingPlannerScreen conditions={{ pitch: 'slow', weather: 'dew' }} unlocked={STARTERS} onLock={vi.fn()} />,
+      { locale: 'hi-Latn' },
+    );
     expect(screen.getByTestId('plan-variant-legspin').textContent).toContain('off-spin se wicket lo');
   });
 });
@@ -117,8 +143,12 @@ describe('the over summary before locking', () => {
     const dialog = screen.getByTestId('plan-lock-dialog');
     const summary = within(dialog).getByTestId('plan-summary');
     const expected = overSummary(draft, conditions, { unlocked: STARTERS });
-    expect(summary.textContent).toContain(`Your over: ${expected.families.pace} pace · ${expected.families.spin} spin · energy ${expected.energy.used}/15 · balanced field`);
-    expect(summary.textContent).toContain(`${expected.lengths.full} full · ${expected.lengths.good} good length · ${expected.lengths.short} short`);
+    expect(summary.textContent).toContain(
+      `Your over: ${expected.families.pace} pace · ${expected.families.spin} spin · energy ${expected.energy.used}/15 · balanced field`,
+    );
+    expect(summary.textContent).toContain(
+      `${expected.lengths.full} full · ${expected.lengths.good} good length · ${expected.lengths.short} short`,
+    );
     expect(summary.textContent).toContain('Super Ball: Yorker');
     // The two most important reads (the dialog stays compact).
     for (const r of expected.reads.slice(0, 2)) expect(summary.textContent).toContain(tr.t(r.key as never, r.params));
@@ -132,7 +162,14 @@ describe('the over summary before locking', () => {
   });
 
   it('every target is at least the standard tap size (no small buttons)', () => {
-    renderUi(<BowlingPlannerScreen conditions={{ pitch: 'hard', weather: 'clear' }} unlocked={STARTERS} onLock={vi.fn()} coach />);
+    renderUi(
+      <BowlingPlannerScreen
+        conditions={{ pitch: 'hard', weather: 'clear' }}
+        unlocked={STARTERS}
+        onLock={vi.fn()}
+        coach
+      />,
+    );
     const ok = screen.getByTestId('plan-coach-ok');
     expect(ok.className).not.toMatch(/(^|[\s_])sm([\s_]|$)/);
     fireEvent.click(screen.getByTestId('plan-ball-1'));

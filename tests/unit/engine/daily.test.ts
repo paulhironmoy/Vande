@@ -8,11 +8,28 @@ import { dayIndex } from '@/engine/v1/policies';
 import { ALL_VARIANTS, clone } from './helpers';
 import golden from './fixtures/golden-v1.json';
 
-const PLAYER: PlayerRef = { id: 'p-daily-tester', alias: 'Tester', avatar: { seed: 't' }, kit: { id: 'k', primary: '#123456', secondary: '#abcdef', pattern: 'plain' }, kind: 'human' };
-const SETTER: PlayerRef = { id: 'p-daily-six', alias: 'Daily Six', avatar: { seed: 'dailysix' }, kit: { id: 'starter', primary: '#1E2A78', secondary: '#FFB020', pattern: 'chevron' }, kind: 'daily' };
+const PLAYER: PlayerRef = {
+  id: 'p-daily-tester',
+  alias: 'Tester',
+  avatar: { seed: 't' },
+  kit: { id: 'k', primary: '#123456', secondary: '#abcdef', pattern: 'plain' },
+  kind: 'human',
+};
+const SETTER: PlayerRef = {
+  id: 'p-daily-six',
+  alias: 'Daily Six',
+  avatar: { seed: 'dailysix' },
+  kit: { id: 'starter', primary: '#1E2A78', secondary: '#FFB020', pattern: 'chevron' },
+  kind: 'daily',
+};
 const SALT = 'server-secret-0f3a9c';
 
-function playDaily(day: string, attempt: 1 | 2 | 3, seed: string, answer: (ball: number) => 'auto' | null = () => 'auto') {
+function playDaily(
+  day: string,
+  attempt: 1 | 2 | 3,
+  seed: string,
+  answer: (ball: number) => 'auto' | null = () => 'auto',
+) {
   const { conditions, overs } = engine.dailyChallenge(day, SALT);
   const plan = overs[attempt - 1];
   let state: InningsState = engine.startInnings(0);
@@ -26,9 +43,25 @@ function playDaily(day: string, attempt: 1 | 2 | 3, seed: string, answer: (ball:
   return { state, inputs };
 }
 
-function dailyLog(day: string, attempt: 1 | 2 | 3, seed: string, answer?: (ball: number) => 'auto' | null): MatchEventLog {
+function dailyLog(
+  day: string,
+  attempt: 1 | 2 | 3,
+  seed: string,
+  answer?: (ball: number) => 'auto' | null,
+): MatchEventLog {
   const { state, inputs } = playDaily(day, attempt, seed, answer);
-  return engine.buildDailyLog({ attemptId: `att-${day}-${attempt}`, day, attempt, seed, serverSalt: SALT, player: PLAYER, setter: SETTER, inputs, innings: state, meta: { createdHour: `${day}T08`, revealedHour: `${day}T09` } });
+  return engine.buildDailyLog({
+    attemptId: `att-${day}-${attempt}`,
+    day,
+    attempt,
+    seed,
+    serverSalt: SALT,
+    player: PLAYER,
+    setter: SETTER,
+    inputs,
+    innings: state,
+    meta: { createdHour: `${day}T08`, revealedHour: `${day}T09` },
+  });
 }
 
 describe('dailyChallenge with a server salt', () => {
@@ -43,7 +76,9 @@ describe('dailyChallenge with a server salt', () => {
 
   it('keeps the unsalted practice version exactly as before (deterministic, rotating pitches)', () => {
     expect(engine.dailyChallenge('2026-10-25')).toEqual(engine.dailyChallenge('2026-10-25', ''));
-    expect(engine.dailyChallenge('2026-10-25').conditions.pitch).toBe(['green', 'hard', 'slow'][dayIndex('2026-10-25') % 3]);
+    expect(engine.dailyChallenge('2026-10-25').conditions.pitch).toBe(
+      ['green', 'hard', 'slow'][dayIndex('2026-10-25') % 3],
+    );
   });
 
   it('salts the pitch order too, but still plays each pitch once in every three-day block', () => {
@@ -101,13 +136,22 @@ describe('buildDailyLog', () => {
     const log = dailyLog('2026-10-25', 1, 'tamper-me');
     const a = clone(log);
     a.result.dailyScore = (a.result.dailyScore ?? 0) + 10;
-    expect(await engine.verifyMatchLog(a)).toMatchObject({ ok: false, errors: expect.arrayContaining(['result.daily_score']) });
+    expect(await engine.verifyMatchLog(a)).toMatchObject({
+      ok: false,
+      errors: expect.arrayContaining(['result.daily_score']),
+    });
     const a2 = clone(log);
     a2.result.marginRuns = a2.result.dailyScore ?? 1;
-    expect(await engine.verifyMatchLog(a2)).toMatchObject({ ok: false, errors: expect.arrayContaining(['result.daily_margin_not_zero']) });
+    expect(await engine.verifyMatchLog(a2)).toMatchObject({
+      ok: false,
+      errors: expect.arrayContaining(['result.daily_margin_not_zero']),
+    });
     const a3 = clone(log);
     delete a3.result.dailyScore;
-    expect(await engine.verifyMatchLog(a3)).toMatchObject({ ok: false, errors: expect.arrayContaining(['result.daily_score']) });
+    expect(await engine.verifyMatchLog(a3)).toMatchObject({
+      ok: false,
+      errors: expect.arrayContaining(['result.daily_score']),
+    });
     const b = clone(log);
     b.plans[1].balls[0].intent = b.plans[1].balls[0].intent === 'attack' ? 'contain' : 'attack';
     b.plans[0] = clone(b.plans[1]);
@@ -136,7 +180,18 @@ describe('buildDailyLog', () => {
 
   it('refuses an unfinished innings', () => {
     expect(() =>
-      engine.buildDailyLog({ attemptId: 'x', day: '2026-10-25', attempt: 1, seed: 's', serverSalt: SALT, player: PLAYER, setter: SETTER, inputs: [], innings: engine.startInnings(0), meta: { createdHour: 'h', revealedHour: 'h' } }),
+      engine.buildDailyLog({
+        attemptId: 'x',
+        day: '2026-10-25',
+        attempt: 1,
+        seed: 's',
+        serverSalt: SALT,
+        player: PLAYER,
+        setter: SETTER,
+        inputs: [],
+        innings: engine.startInnings(0),
+        meta: { createdHour: 'h', revealedHour: 'h' },
+      }),
     ).toThrow();
   });
 });

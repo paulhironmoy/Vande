@@ -47,11 +47,19 @@ function timingOf(job: Job): Timing | null {
   const striker = job.script.actors.find((a) => a.id === 'striker')!;
   const last = p.bat.samples?.at(-1);
   if (!last) {
-    if (p.bat.delivery === false || (p.bat.samples !== null && p.bat.samples.length > 0) || p.bat.provisionalStart !== null) return null;
+    if (
+      p.bat.delivery === false ||
+      (p.bat.samples !== null && p.bat.samples.length > 0) ||
+      p.bat.provisionalStart !== null
+    )
+      return null;
     return { job, handOver: p.bat.releaseScene + BACKLIFT.toMs + LEAVE_HOLD_MS, release: BAT_RELEASE_MS, runs: false };
   }
   const lastScene = p.bat.releaseScene + last.t * 1000;
-  const sets = striker.moves.find((m) => m.t1 > lastScene && (m.clip === 'bat_run' || String(m.lower ?? '').startsWith('vmp:loco_')))?.t0 ?? Number.POSITIVE_INFINITY;
+  const sets =
+    striker.moves.find(
+      (m) => m.t1 > lastScene && (m.clip === 'bat_run' || String(m.lower ?? '').startsWith('vmp:loco_')),
+    )?.t0 ?? Number.POSITIVE_INFINITY;
   const handOver = Math.min(lastScene + BAT_HOLD_MS, Math.max(lastScene, sets));
   const release = Math.max(BAT_RUN_RELEASE_MS, Math.min(BAT_RELEASE_MS, sets - handOver));
   return { job, handOver, release, runs: release < BAT_RELEASE_MS };
@@ -74,8 +82,8 @@ const capStep = (a: BatPose, b: BatPose) => Math.hypot(a.grip.x - b.grip.x, a.gr
 /** The deliveries every test below walks: the 192 of WEB-HUMANS' corpus and the 128 that end early or miss (spin and pace, both hands). */
 const corpus = (): Job[] => [...overJobs(4), ...deadBallJobs()];
 
-describe('the striker\'s bat in the external views: the hand-over to the body\'s clip', () => {
-  it('turns the blade no more than 25° between two frames of a hand-over (it jumped 39-138° in 19 of 432 deliveries when the held bat was a half turn from the clip\'s)', async () => {
+describe("the striker's bat in the external views: the hand-over to the body's clip", () => {
+  it("turns the blade no more than 25° between two frames of a hand-over (it jumped 39-138° in 19 of 432 deliveries when the held bat was a half turn from the clip's)", async () => {
     await withPacks(() => {
       const offenders: string[] = [];
       let walked = 0;
@@ -96,16 +104,20 @@ describe('the striker\'s bat in the external views: the hand-over to the body\'s
             const turn = bladeTurn(prev, now);
             blade = Math.max(blade, turn);
             step = Math.max(step, capStep(prev, now));
-            if (turn > 25) offenders.push(`${job.key} at release+${(t - p.releaseScene).toFixed(0)} ms: ${turn.toFixed(0)}°`);
+            if (turn > 25)
+              offenders.push(`${job.key} at release+${(t - p.releaseScene).toFixed(0)} ms: ${turn.toFixed(0)}°`);
           }
           prev = now;
         }
       }
       expect(walked, 'deliveries with a hand-over').toBeGreaterThan(280);
       expect(frames, 'frames of hand-overs').toBeGreaterThan(9000);
-      expect(offenders, `blade turns over 25° in a frame (the worst case measured after the fix: ${blade.toFixed(1)}°)`).toEqual([]);
+      expect(
+        offenders,
+        `blade turns over 25° in a frame (the worst case measured after the fix: ${blade.toFixed(1)}°)`,
+      ).toEqual([]);
       expect(blade, 'the largest blade turn in a frame of a hand-over (deg)').toBeLessThan(20);
-      expect(step * 100, 'the bat\'s largest step in a frame of a hand-over (cm; the gate is 10)').toBeLessThan(10);
+      expect(step * 100, "the bat's largest step in a frame of a hand-over (cm; the gate is 10)").toBeLessThan(10);
     });
   }, 120_000);
 
@@ -119,26 +131,38 @@ describe('the striker\'s bat in the external views: the hand-over to the body\'s
         if (!tm) continue;
         const p = job.script.practice!;
         const striker = job.script.actors.find((a) => a.id === 'striker')!;
-        expect(externalBatPose(p.bat, striker, tm.handOver + tm.release - 1, 1), `${job.key}: still blending 1 ms before the end of the hand-over`).not.toBeNull();
-        expect(externalBatPose(p.bat, striker, tm.handOver + tm.release + 1, 1), `${job.key}: the clip's own bat 1 ms after the end of the hand-over`).toBeNull();
+        expect(
+          externalBatPose(p.bat, striker, tm.handOver + tm.release - 1, 1),
+          `${job.key}: still blending 1 ms before the end of the hand-over`,
+        ).not.toBeNull();
+        expect(
+          externalBatPose(p.bat, striker, tm.handOver + tm.release + 1, 1),
+          `${job.key}: the clip's own bat 1 ms after the end of the hand-over`,
+        ).toBeNull();
         const last = p.bat.samples?.at(-1);
         if (tm.runs) {
           runs++;
           expect(tm.release, `${job.key}: a runner's release`).toBe(BAT_RUN_RELEASE_MS);
         } else if (last) {
           stays++;
-          expect(tm.handOver + tm.release - (p.bat.releaseScene + last.t * 1000), `${job.key}: ms from the physics bat's last sample to the settled bat`).toBeCloseTo(BAT_HOLD_MS + BAT_RELEASE_MS, 6);
+          expect(
+            tm.handOver + tm.release - (p.bat.releaseScene + last.t * 1000),
+            `${job.key}: ms from the physics bat's last sample to the settled bat`,
+          ).toBeCloseTo(BAT_HOLD_MS + BAT_RELEASE_MS, 6);
         } else leaves++;
       }
       expect(stays, 'standing batters').toBeGreaterThan(150);
       expect(runs, 'batters who set off running before a standing hand-over would be over').toBeGreaterThan(15);
       expect(leaves, 'leaves').toBeGreaterThan(20);
-      expect(BAT_HOLD_MS + BAT_RELEASE_MS, 'the settle time is a presentation choice: it is not to creep towards slow motion').toBeLessThanOrEqual(1100);
-      expect(BAT_RUN_RELEASE_MS, 'a runner\'s hand-over is the quicker one').toBeLessThan(BAT_RELEASE_MS);
+      expect(
+        BAT_HOLD_MS + BAT_RELEASE_MS,
+        'the settle time is a presentation choice: it is not to creep towards slow motion',
+      ).toBeLessThanOrEqual(1100);
+      expect(BAT_RUN_RELEASE_MS, "a runner's hand-over is the quicker one").toBeLessThan(BAT_RELEASE_MS);
     });
   }, 120_000);
 
-  it('is rigidBatBlend, bit for bit, wherever rigidBatBlend\'s own nearer way never changed (only the half-turn cases differ)', async () => {
+  it("is rigidBatBlend, bit for bit, wherever rigidBatBlend's own nearer way never changed (only the half-turn cases differ)", async () => {
     await withPacks(() => {
       let same = 0;
       let flipping = 0;
@@ -167,18 +191,24 @@ describe('the striker\'s bat in the external views: the hand-over to the body\'s
         for (let k = 0; k < old.length; k++) {
           const a = old[k];
           const b = now[k]!;
-          for (const c of ['grip', 'toe', 'face'] as const) for (const axis of ['x', 'y', 'z'] as const) moved = Math.max(moved, Math.abs(a[c][axis] - b[c][axis]));
+          for (const c of ['grip', 'toe', 'face'] as const)
+            for (const axis of ['x', 'y', 'z'] as const) moved = Math.max(moved, Math.abs(a[c][axis] - b[c][axis]));
         }
       }
       expect(same, 'standing deliveries whose old path never flipped').toBeGreaterThan(200);
       expect(flipping, 'standing deliveries whose old path flipped (the cases the fix is for)').toBeGreaterThan(8);
-      expect(moved, 'largest difference of any coordinate between the old and the new path where the old one never flipped (m)').toBeLessThan(1e-12);
+      expect(
+        moved,
+        'largest difference of any coordinate between the old and the new path where the old one never flipped (m)',
+      ).toBeLessThan(1e-12);
     });
   }, 120_000);
 
-  it('changes no value by remembering the clip\'s half-way bat: a striker track that misses the memo is given the same bat (frames of different hand-overs interleaved)', async () => {
+  it("changes no value by remembering the clip's half-way bat: a striker track that misses the memo is given the same bat (frames of different hand-overs interleaved)", async () => {
     await withPacks(() => {
-      const jobs = corpus().filter((j) => timingOf(j) && !timingOf(j)!.runs).filter((_, i) => i % 23 === 0);
+      const jobs = corpus()
+        .filter((j) => timingOf(j) && !timingOf(j)!.runs)
+        .filter((_, i) => i % 23 === 0);
       expect(jobs.length, 'deliveries compared').toBeGreaterThan(8);
       const at = (j: Job, k: number) => {
         const tm = timingOf(j)!;

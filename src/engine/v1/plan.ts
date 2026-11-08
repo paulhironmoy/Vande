@@ -42,7 +42,8 @@ function checkDelivery(d: DeliveryPlan, label: string, unlocked: ReadonlySet<str
   if (!(VARIANTS as readonly string[]).includes(d.variant)) errors.push(`${label}.variant`);
   else {
     if (!unlocked.has(d.variant)) errors.push(`${label}.locked_variant`);
-    if ((LENGTHS as readonly string[]).includes(d.length) && !ALLOWED_LENGTHS[d.variant].includes(d.length)) errors.push(`${label}.length_not_allowed`);
+    if ((LENGTHS as readonly string[]).includes(d.length) && !ALLOWED_LENGTHS[d.variant].includes(d.length))
+      errors.push(`${label}.length_not_allowed`);
   }
   if (!(LINES as readonly string[]).includes(d.line)) errors.push(`${label}.line`);
   if (!(LENGTHS as readonly string[]).includes(d.length)) errors.push(`${label}.length`);
@@ -62,7 +63,10 @@ function sameTrace(a: DeliveryPlan['gesture'], b: DeliveryPlan['gesture']): bool
   return true;
 }
 
-export function validatePlan(plan: OverPlan, unlocked: readonly DeliveryVariant[]): { ok: true; plan: OverPlan } | { ok: false; errors: string[] } {
+export function validatePlan(
+  plan: OverPlan,
+  unlocked: readonly DeliveryVariant[],
+): { ok: true; plan: OverPlan } | { ok: false; errors: string[] } {
   if (!plan || typeof plan !== 'object') return { ok: false, errors: ['plan.missing'] };
   const errors: string[] = [];
   if (plan.v !== 1) errors.push('plan.version');

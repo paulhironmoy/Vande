@@ -32,11 +32,7 @@ describe('canonical rigid-bat geometry', () => {
   it('finds segment-to-OBB crossings, face tangency, interior minima and a degenerate point', () => {
     const frame = bladeFrame(CANONICAL_POSE);
     expect(segmentBladeDistance(frame, { x: 0, y: 0.28, z: -1 }, { x: 0, y: 0.28, z: 1 })).toBe(0);
-    expect(segmentBladeDistance(
-      frame,
-      { x: BLADE_HALF_W, y: 0.1, z: 0 },
-      { x: BLADE_HALF_W, y: 0.46, z: 0 },
-    )).toBe(0);
+    expect(segmentBladeDistance(frame, { x: BLADE_HALF_W, y: 0.1, z: 0 }, { x: BLADE_HALF_W, y: 0.46, z: 0 })).toBe(0);
 
     const parallelStart = { x: 0.1, y: -1, z: 0.1 };
     const parallelEnd = { x: 0.1, y: 2, z: 0.1 };
@@ -88,10 +84,10 @@ describe('canonical rigid-bat geometry', () => {
         for (const nSign of [-1, 1]) {
           lowestVertexY = Math.min(
             lowestVertexY,
-            frame.centre.y
-              + uSign * BLADE_L / 2 * frame.a.y
-              + wSign * BLADE_HALF_W * frame.w.y
-              + nSign * BLADE_T / 2 * frame.n.y,
+            frame.centre.y +
+              ((uSign * BLADE_L) / 2) * frame.a.y +
+              wSign * BLADE_HALF_W * frame.w.y +
+              ((nSign * BLADE_T) / 2) * frame.n.y,
           );
         }
       }
@@ -100,20 +96,22 @@ describe('canonical rigid-bat geometry', () => {
 
     const onGround = translatedY(pose, BAT_TOE_GROUND_M - bladeGroundSupportY(frame));
     expect(bladeGroundSupportY(bladeFrame(onGround))).toBeCloseTo(BAT_TOE_GROUND_M, 14);
-    expect(bladeGroundSupportY(bladeFrame(translatedY(onGround, 1e-6))) - BAT_TOE_GROUND_M)
-      .toBeCloseTo(1e-6, 14);
-    expect(bladeGroundSupportY(bladeFrame(translatedY(onGround, -1e-6))) - BAT_TOE_GROUND_M)
-      .toBeCloseTo(-1e-6, 14);
+    expect(bladeGroundSupportY(bladeFrame(translatedY(onGround, 1e-6))) - BAT_TOE_GROUND_M).toBeCloseTo(1e-6, 14);
+    expect(bladeGroundSupportY(bladeFrame(translatedY(onGround, -1e-6))) - BAT_TOE_GROUND_M).toBeCloseTo(-1e-6, 14);
 
-    expect(handleGroundSupportY({
-      a: { x: 0, y: 0.3, z: 0 },
-      b: { x: 0, y: 0.2, z: 0 },
-      r: 0.05,
-    })).toBeCloseTo(0.15, 14);
-    expect(handleGroundSupportY({
-      a: { x: 0, y: 0.055, z: 0 },
-      b: { x: 0, y: 0.055, z: 0 },
-      r: 0.05,
-    })).toBeCloseTo(BAT_TOE_GROUND_M, 14);
+    expect(
+      handleGroundSupportY({
+        a: { x: 0, y: 0.3, z: 0 },
+        b: { x: 0, y: 0.2, z: 0 },
+        r: 0.05,
+      }),
+    ).toBeCloseTo(0.15, 14);
+    expect(
+      handleGroundSupportY({
+        a: { x: 0, y: 0.055, z: 0 },
+        b: { x: 0, y: 0.055, z: 0 },
+        r: 0.05,
+      }),
+    ).toBeCloseTo(BAT_TOE_GROUND_M, 14);
   });
 });

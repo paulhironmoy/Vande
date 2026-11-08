@@ -2,7 +2,17 @@
  * Scores derived from a finished match (engine v1): the Daily Six score and the per-match performance components used
  * by the Daily Top 100 (tactical efficiency, clutch, execution). All values are documented in docs/GAME_RULES.md.
  */
-import type { BallOutcome, Conditions, DeliveryVariant, FieldSetting, FieldZone, InningsSummary, MatchEventLog, ShotType, TimingGrade } from '@/contracts';
+import type {
+  BallOutcome,
+  Conditions,
+  DeliveryVariant,
+  FieldSetting,
+  FieldZone,
+  InningsSummary,
+  MatchEventLog,
+  ShotType,
+  TimingGrade,
+} from '@/contracts';
 import { SUPER_BALL_INDEX } from '@/contracts/cricket';
 import { energyCost } from './plan';
 import { evaluate, type BallContext, type DeliveryCore } from './model';
@@ -47,13 +57,37 @@ const OPTIONS: readonly Option[] = SHOTS.flatMap((shot): Option[] =>
   LEGAL_ZONES[shot].length === 0 ? [{ shot, zone: null }] : LEGAL_ZONES[shot].map((zone) => ({ shot, zone })),
 );
 
-function optionValue(d: DeliveryCore, grade: BallOutcome['executionGrade'], o: Option, field: FieldSetting, cond: Conditions, ctx: BallContext, lambda: number): number {
-  const ev = evaluate({ d, grade, shot: o.shot, zone: o.zone, timing: o.shot === 'leave' ? 'no_shot' : 'good', field, cond, ctx });
+function optionValue(
+  d: DeliveryCore,
+  grade: BallOutcome['executionGrade'],
+  o: Option,
+  field: FieldSetting,
+  cond: Conditions,
+  ctx: BallContext,
+  lambda: number,
+): number {
+  const ev = evaluate({
+    d,
+    grade,
+    shot: o.shot,
+    zone: o.zone,
+    timing: o.shot === 'leave' ? 'no_shot' : 'good',
+    field,
+    cond,
+    ctx,
+  });
   return ev.expectedRuns - lambda * ev.pWicket;
 }
 
 /** Best and worst option values for the batter facing `d` (good timing assumed: this measures decisions, not hands). */
-export function optionRange(d: DeliveryCore, grade: BallOutcome['executionGrade'], field: FieldSetting, cond: Conditions, ctx: BallContext, lambda: number): { best: number; worst: number } {
+export function optionRange(
+  d: DeliveryCore,
+  grade: BallOutcome['executionGrade'],
+  field: FieldSetting,
+  cond: Conditions,
+  ctx: BallContext,
+  lambda: number,
+): { best: number; worst: number } {
   let best = Number.NEGATIVE_INFINITY;
   let worst = Number.POSITIVE_INFINITY;
   for (const o of OPTIONS) {
@@ -70,11 +104,26 @@ const alternativesCache = new Map<string, { min: number; max: number }>();
  * Range of the batter's best-response value over every delivery of the same energy cost and intent (neutral context),
  * among `variants` (default: all of them).
  */
-function deliveryRange(cost: number, intent: DeliveryCore['intent'], field: FieldSetting, cond: Conditions, ball: number, lambda: number, variants: readonly DeliveryVariant[] = VARIANTS): { min: number; max: number } {
+function deliveryRange(
+  cost: number,
+  intent: DeliveryCore['intent'],
+  field: FieldSetting,
+  cond: Conditions,
+  ball: number,
+  lambda: number,
+  variants: readonly DeliveryVariant[] = VARIANTS,
+): { min: number; max: number } {
   const key = `${cost}|${intent}|${field}|${cond.pitch}|${cond.weather}|${ball <= 2 ? 'new' : ball === SUPER_BALL_INDEX ? 'super' : 'old'}|${lambda}|${variants === VARIANTS ? 'all' : variants.join(',')}`;
   const hit = alternativesCache.get(key);
   if (hit) return hit;
-  const ctx: BallContext = { ball, superBall: ball === SUPER_BALL_INDEX, lastBall: ball >= 5, newBatter: false, prev: null, repeats: 0 };
+  const ctx: BallContext = {
+    ball,
+    superBall: ball === SUPER_BALL_INDEX,
+    lastBall: ball >= 5,
+    newBatter: false,
+    prev: null,
+    repeats: 0,
+  };
   let min = Number.POSITIVE_INFINITY;
   let max = Number.NEGATIVE_INFINITY;
   for (const variant of variants)
@@ -100,10 +149,22 @@ const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
  * bowling half of tactical efficiency (matchPerformance). `best` is the batter's best-response value (lower is better
  * for the bowler); `min` and `max` bound it over those alternatives.
  */
-export function bowlingChoice(d: DeliveryCore, field: FieldSetting, cond: Conditions, ctx: BallContext, lambda: number, variants: readonly DeliveryVariant[] = VARIANTS): { score: number; best: number; min: number; max: number } {
+export function bowlingChoice(
+  d: DeliveryCore,
+  field: FieldSetting,
+  cond: Conditions,
+  ctx: BallContext,
+  lambda: number,
+  variants: readonly DeliveryVariant[] = VARIANTS,
+): { score: number; best: number; min: number; max: number } {
   const best = optionRange(d, 'good', field, cond, ctx, lambda).best;
   const range = deliveryRange(energyCost(d), d.intent, field, cond, ctx.ball, lambda, variants);
-  return { score: range.max - range.min > 1e-9 ? clamp01((range.max - best) / (range.max - range.min)) : 1, best, min: range.min, max: range.max };
+  return {
+    score: range.max - range.min > 1e-9 ? clamp01((range.max - best) / (range.max - range.min)) : 1,
+    best,
+    min: range.min,
+    max: range.max,
+  };
 }
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
 const mean = (xs: number[]) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : 0);
@@ -117,7 +178,10 @@ const mean = (xs: number[]) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.l
  *   dots and wickets), +0.15 for winning a close match (≤ 3 runs or decided by a tie-break).
  * - execution: half the bowler's release quality, half the batter's timing on shots played.
  */
-export function matchPerformance(log: MatchEventLog, player: 0 | 1): { tacticalEfficiency: number; clutch: number; execution: number } {
+export function matchPerformance(
+  log: MatchEventLog,
+  player: 0 | 1,
+): { tacticalEfficiency: number; clutch: number; execution: number } {
   const opp = player === 0 ? 1 : 0;
   const batting = log.innings[player];
   const bowlingInn = log.innings[opp];
@@ -132,7 +196,10 @@ export function matchPerformance(log: MatchEventLog, player: 0 | 1): { tacticalE
     const ctx = contextFor(o.ball, batting.balls.slice(0, i), o.delivery);
     const lambda = wicketCost(ctx, wkts);
     const { best, worst } = optionRange(o.delivery, o.executionGrade, oppField, cond, ctx, lambda);
-    const chosen = o.timing === 'interrupted' ? worst : optionValue(o.delivery, o.executionGrade, { shot: o.shot, zone: o.zone }, oppField, cond, ctx, lambda);
+    const chosen =
+      o.timing === 'interrupted'
+        ? worst
+        : optionValue(o.delivery, o.executionGrade, { shot: o.shot, zone: o.zone }, oppField, cond, ctx, lambda);
     batDecisions.push(best - worst > 1e-9 ? clamp01((chosen - worst) / (best - worst)) : 1);
     if (o.shot !== 'leave' && o.timing !== 'interrupted') timings.push(TIMING_SCORE[o.timing]);
     if (o.wicket) wkts++;
@@ -152,8 +219,34 @@ export function matchPerformance(log: MatchEventLog, player: 0 | 1): { tacticalE
   });
 
   const pressure: number[] = [];
-  const batValue = (o: BallOutcome) => (o.wicket ? 0 : o.runs === 6 ? 1 : o.runs === 4 ? 0.85 : o.runs === 3 ? 0.65 : o.runs === 2 ? 0.55 : o.runs === 1 ? 0.4 : 0.2);
-  const bowlValue = (o: BallOutcome) => (o.wicket ? 1 : o.runs === 0 ? 0.85 : o.runs === 1 ? 0.6 : o.runs === 2 ? 0.4 : o.runs === 3 ? 0.3 : o.runs === 4 ? 0.1 : 0);
+  const batValue = (o: BallOutcome) =>
+    o.wicket
+      ? 0
+      : o.runs === 6
+        ? 1
+        : o.runs === 4
+          ? 0.85
+          : o.runs === 3
+            ? 0.65
+            : o.runs === 2
+              ? 0.55
+              : o.runs === 1
+                ? 0.4
+                : 0.2;
+  const bowlValue = (o: BallOutcome) =>
+    o.wicket
+      ? 1
+      : o.runs === 0
+        ? 0.85
+        : o.runs === 1
+          ? 0.6
+          : o.runs === 2
+            ? 0.4
+            : o.runs === 3
+              ? 0.3
+              : o.runs === 4
+                ? 0.1
+                : 0;
   for (const o of batting.balls) if (o.ball >= 4) pressure.push(batValue(o));
   for (const o of bowlingInn.balls) if (o.ball >= 4) pressure.push(bowlValue(o));
   if (log.superBall.used && log.superBall.outcomes) {
@@ -163,7 +256,10 @@ export function matchPerformance(log: MatchEventLog, player: 0 | 1): { tacticalE
   const close = log.result.winner === player && (log.result.decidedBy !== 'runs' || log.result.marginRuns <= 3);
   const clutch = clamp01(mean(pressure) + (close ? 0.15 : 0));
 
-  const tactical = batDecisions.length && bowlChoices.length ? 0.5 * mean(batDecisions) + 0.5 * mean(bowlChoices) : mean([...batDecisions, ...bowlChoices]);
+  const tactical =
+    batDecisions.length && bowlChoices.length
+      ? 0.5 * mean(batDecisions) + 0.5 * mean(bowlChoices)
+      : mean([...batDecisions, ...bowlChoices]);
   const execution = timings.length ? 0.5 * mean(execs) + 0.5 * mean(timings) : mean(execs);
   return { tacticalEfficiency: r3(tactical), clutch: r3(clutch), execution: r3(execution) };
 }

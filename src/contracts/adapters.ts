@@ -11,7 +11,12 @@ export interface SecureStore {
 
 export interface ShareAdapter {
   /** Opens the system share sheet (never sends anything by itself). */
-  share(input: { title: string; text: string; url: string; image?: Blob }): Promise<'shared' | 'copied' | 'cancelled' | 'failed'>;
+  share(input: {
+    title: string;
+    text: string;
+    url: string;
+    image?: Blob;
+  }): Promise<'shared' | 'copied' | 'cancelled' | 'failed'>;
   /** WhatsApp-specific deep link (wa.me) opened only on the player's tap. */
   whatsappUrl(text: string, url: string): string;
 }
@@ -44,6 +49,8 @@ export interface AdsAdapter {
 
 export interface BillingAdapter {
   enabled(): boolean;
-  products(): Promise<Array<{ id: string; kind: 'kit' | 'celebration' | 'stadium_theme' | 'replay_theme' | 'season'; price: string }>>;
+  products(): Promise<
+    Array<{ id: string; kind: 'kit' | 'celebration' | 'stadium_theme' | 'replay_theme' | 'season'; price: string }>
+  >;
   purchase(productId: string): Promise<'purchased' | 'cancelled' | 'failed' | 'unavailable'>;
 }

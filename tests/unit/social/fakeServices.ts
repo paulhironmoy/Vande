@@ -2,7 +2,11 @@
 import { vi } from 'vitest';
 import { ApiClientError } from '@/net/errors';
 
-export type Handler = (args: { params?: Record<string, string>; body?: unknown; query?: Record<string, string | undefined> }) => unknown;
+export type Handler = (args: {
+  params?: Record<string, string>;
+  body?: unknown;
+  query?: Record<string, string | undefined>;
+}) => unknown;
 
 export function fakeServices(routes: Record<string, Handler>) {
   const calls: Array<{ route: string; args: Parameters<Handler>[0] }> = [];
@@ -19,7 +23,10 @@ export function fakeServices(routes: Record<string, Handler>) {
     platform: {
       share: { share, whatsappUrl: (t: string, u: string) => `https://wa.me/?text=${encodeURIComponent(`${t} ${u}`)}` },
       webOrigins: ['https://vande.example'],
-      identity: { google: { id: 'google', available: () => false, obtainCredential: async () => null }, passkey: { id: 'passkey', available: () => false, obtainCredential: async () => null } },
+      identity: {
+        google: { id: 'google', available: () => false, obtainCredential: async () => null },
+        passkey: { id: 'passkey', available: () => false, obtainCredential: async () => null },
+      },
     },
     net: {
       api: { call, baseUrl: 'http://127.0.0.1:8787' },
@@ -31,8 +38,19 @@ export function fakeServices(routes: Record<string, Handler>) {
   return { services, calls, call, report, track, share };
 }
 
-export const ME = { id: 'pme', alias: 'Swift Tiger', avatar: { seed: 'abc12345' }, kit: { id: 'starter' as const, primary: '#1E2A78', secondary: '#00B8D9', pattern: 'chevron' as const } };
+export const ME = {
+  id: 'pme',
+  alias: 'Swift Tiger',
+  avatar: { seed: 'abc12345' },
+  kit: { id: 'starter' as const, primary: '#1E2A78', secondary: '#00B8D9', pattern: 'chevron' as const },
+};
 
 export function ref(id: string, alias: string) {
-  return { id, alias, avatar: { seed: `${id}seed1` }, kit: { id: 'starter' as const, primary: '#111111', secondary: '#222222', pattern: 'plain' as const }, kind: 'human' as const };
+  return {
+    id,
+    alias,
+    avatar: { seed: `${id}seed1` },
+    kit: { id: 'starter' as const, primary: '#111111', secondary: '#222222', pattern: 'plain' as const },
+    kind: 'human' as const,
+  };
 }

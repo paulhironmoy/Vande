@@ -25,11 +25,28 @@ import { result } from './fixtures';
 
 describe('buckets', () => {
   it('time to first delivery', () => {
-    expect([1000, 4999, 5000, 9999, 10000, 19999, 20000].map(ttfdBucket)).toEqual(['<5s', '<5s', '5-10s', '5-10s', '10-20s', '10-20s', '>20s']);
+    expect([1000, 4999, 5000, 9999, 10000, 19999, 20000].map(ttfdBucket)).toEqual([
+      '<5s',
+      '<5s',
+      '5-10s',
+      '5-10s',
+      '10-20s',
+      '10-20s',
+      '>20s',
+    ]);
   });
 
   it('input-to-bat latency', () => {
-    expect([12, 49.9, 50, 69, 70, 99, 100, 400].map(latencyBucket)).toEqual(['<50ms', '<50ms', '50-70ms', '50-70ms', '70-100ms', '70-100ms', '>100ms', '>100ms']);
+    expect([12, 49.9, 50, 69, 70, 99, 100, 400].map(latencyBucket)).toEqual([
+      '<50ms',
+      '<50ms',
+      '50-70ms',
+      '50-70ms',
+      '70-100ms',
+      '70-100ms',
+      '>100ms',
+      '>100ms',
+    ]);
   });
 
   it('durations, frame rates and over numbers', () => {
@@ -82,8 +99,21 @@ describe('local aggregates', () => {
   it('counts deliveries without keeping any gesture, time or identifier', () => {
     let m = emptyMetrics();
     m = addDelivery(m, result({ timing: 'perfect', errorMs: 8 }), { scoring: true, latencyMs: 41 });
-    m = addDelivery(m, result({ timing: 'mistimed', errorMs: 120, kind: 'outside_edge', dismissal: 'caught_behind', runs: 0, boundary: null }), { scoring: true, latencyMs: 75 });
-    m = addDelivery(m, result({ swing: null, timing: 'none', errorMs: null, kind: 'leave', runs: 0, boundary: null }), { scoring: false });
+    m = addDelivery(
+      m,
+      result({
+        timing: 'mistimed',
+        errorMs: 120,
+        kind: 'outside_edge',
+        dismissal: 'caught_behind',
+        runs: 0,
+        boundary: null,
+      }),
+      { scoring: true, latencyMs: 75 },
+    );
+    m = addDelivery(m, result({ swing: null, timing: 'none', errorMs: null, kind: 'leave', runs: 0, boundary: null }), {
+      scoring: false,
+    });
     m = addTtfd(bump(bump(m, 'nextOver'), 'replays', 2), 6200);
     m = addTier(m, 'assisted');
     expect(m.deliveries).toBe(2);
@@ -103,7 +133,10 @@ describe('local aggregates', () => {
     const m = bump(emptyMetrics(), 'sessions');
     saveMetrics(m, store);
     expect(loadMetrics(store)).toEqual(m);
-    store.setItem(PRACTICE_KEYS.metrics, JSON.stringify({ ...m, deliveries: 'lots', timing: { on_time: -3, late: 2 }, timingHistogram: [1, 2] }));
+    store.setItem(
+      PRACTICE_KEYS.metrics,
+      JSON.stringify({ ...m, deliveries: 'lots', timing: { on_time: -3, late: 2 }, timingHistogram: [1, 2] }),
+    );
     const r = loadMetrics(store);
     expect(r.deliveries).toBe(0);
     expect(r.timing).toEqual({ early: 0, on_time: 0, late: 2, none: 0 });

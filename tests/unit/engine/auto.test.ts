@@ -32,7 +32,11 @@ function deadlineMatch(key: string, late: 0 | 1, answered: number): PlayedMatch 
 
 describe('autoXiBalls', () => {
   it("finds exactly the balls the platform's Auto XI batted, after a JSON round trip", async () => {
-    for (const [late, answered] of [[1, 2], [0, 0], [1, 6]] as const) {
+    for (const [late, answered] of [
+      [1, 2],
+      [0, 0],
+      [1, 6],
+    ] as const) {
       const log = clone(await logFor(deadlineMatch(`${late}-${answered}`, late, answered)));
       expect(await engine.verifyMatchLog(log)).toEqual({ ok: true });
       const expected = log.inputs[late].map((i) => i.ball).filter((b) => b >= answered);

@@ -124,7 +124,12 @@ export function strokeSamples(st: Stroke, t0: number, r: Rng | null = null): Ges
 }
 
 /** A tap: a press held `durationMs` with contact jitter and a slow drift, then a lift (with a little roll). */
-export function tapSamples(t0: number, durationMs: number, opts: { rateMs?: number; jitterPx?: number; driftPx?: number; liftRollPx?: number; x0?: number; y0?: number } = {}, r: Rng | null = null): GestureSample[] {
+export function tapSamples(
+  t0: number,
+  durationMs: number,
+  opts: { rateMs?: number; jitterPx?: number; driftPx?: number; liftRollPx?: number; x0?: number; y0?: number } = {},
+  r: Rng | null = null,
+): GestureSample[] {
   const rate = opts.rateMs ?? 4;
   const x0 = opts.x0 ?? 450;
   const y0 = opts.y0 ?? 150;
@@ -175,7 +180,17 @@ export interface Played {
 /** Plays samples through the real tracker (with a delivery) and normalizes the gesture it emits. */
 export function play(
   samples: readonly GestureSample[],
-  args: { surface?: { width: number; height: number }; pointer?: TraceOptions['pointer']; delivery?: Delivery; lifted?: boolean; armAtMs?: number; footwork?: Footwork; pressFootwork?: boolean; handedness?: Handedness; opts?: Partial<NormalizeOptions> } = {},
+  args: {
+    surface?: { width: number; height: number };
+    pointer?: TraceOptions['pointer'];
+    delivery?: Delivery;
+    lifted?: boolean;
+    armAtMs?: number;
+    footwork?: Footwork;
+    pressFootwork?: boolean;
+    handedness?: Handedness;
+    opts?: Partial<NormalizeOptions>;
+  } = {},
 ): Played {
   const trace = traceGesture({
     surface: args.surface ?? SURFACES.phone,
@@ -200,7 +215,7 @@ export function spearman(xs: readonly number[], ys: readonly number[]): number {
   const rank = (v: readonly number[]) => {
     const idx = v.map((x, i) => [x, i] as const).sort((a, b) => a[0] - b[0]);
     const r = new Array<number>(v.length);
-    for (let i = 0; i < idx.length; ) {
+    for (let i = 0; i < idx.length;) {
       let j = i;
       while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++;
       const avg = (i + j) / 2 + 1;
@@ -227,7 +242,7 @@ export function spearman(xs: readonly number[], ys: readonly number[]): number {
 
 /** Smallest signed difference between two bearings (deg). */
 export function bearingDiff(a: number, b: number): number {
-  let d = (((a - b) % 360) + 540) % 360 - 180;
+  let d = ((((a - b) % 360) + 540) % 360) - 180;
   if (d === -180) d = 180;
   return d;
 }

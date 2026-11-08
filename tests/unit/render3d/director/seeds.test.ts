@@ -110,16 +110,32 @@ describe('seeds: nothing in the Director reads a clock, a random source or a pla
   const dir = `${process.cwd()}/src/render3d/core/motion/director/`;
   const files = readdirSync(dir).filter((f) => f.endsWith('.ts'));
   /** Source text with block and line comments removed (the comments say what is not used). */
-  const code = (f: string) => readFileSync(dir + f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+  const code = (f: string) =>
+    readFileSync(dir + f, 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/(^|[^:])\/\/.*$/gm, '$1');
 
   it('finds the director sources', () => {
-    expect(files).toEqual(expect.arrayContaining(['seeds.ts', 'noise.ts', 'plan.ts', 'bake.ts', 'director.ts', 'channels.ts', 'types.ts', 'index.ts']));
+    expect(files).toEqual(
+      expect.arrayContaining([
+        'seeds.ts',
+        'noise.ts',
+        'plan.ts',
+        'bake.ts',
+        'director.ts',
+        'channels.ts',
+        'types.ts',
+        'index.ts',
+      ]),
+    );
   });
 
   it('has no Math.random, Date, performance.now, setTimeout or wall-clock access', () => {
     for (const f of files) {
       const src = code(f);
-      expect(src, f).not.toMatch(/Math\.random|\bDate\b|performance\.now|setTimeout|setInterval|requestAnimationFrame|crypto\./);
+      expect(src, f).not.toMatch(
+        /Math\.random|\bDate\b|performance\.now|setTimeout|setInterval|requestAnimationFrame|crypto\./,
+      );
     }
   });
 
@@ -128,13 +144,31 @@ describe('seeds: nothing in the Director reads a clock, a random source or a pla
     const sfiles = readdirSync(sdir).filter((f) => f.endsWith('.ts'));
     expect(sfiles).toEqual(expect.arrayContaining(['face.ts', 'pose.ts', 'runtime.ts']));
     for (const f of sfiles) {
-      const src = readFileSync(sdir + f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
-      expect(src, f).not.toMatch(/Math\.random|\bDate\b|performance\.now|setTimeout|setInterval|requestAnimationFrame|crypto\./);
+      const src = readFileSync(sdir + f, 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/(^|[^:])\/\/.*$/gm, '$1');
+      expect(src, f).not.toMatch(
+        /Math\.random|\bDate\b|performance\.now|setTimeout|setInterval|requestAnimationFrame|crypto\./,
+      );
     }
   });
 
   it('uses only arithmetic, sin, cos, exp, log, sqrt, pow and rounding (the set a C# port reproduces)', () => {
-    const allowed = new Set(['sin', 'cos', 'exp', 'log', 'sqrt', 'pow', 'abs', 'min', 'max', 'floor', 'round', 'imul', 'PI']);
+    const allowed = new Set([
+      'sin',
+      'cos',
+      'exp',
+      'log',
+      'sqrt',
+      'pow',
+      'abs',
+      'min',
+      'max',
+      'floor',
+      'round',
+      'imul',
+      'PI',
+    ]);
     for (const f of files) {
       for (const m of code(f).matchAll(/Math\.(\w+)/g)) expect(allowed.has(m[1]), `${f}: Math.${m[1]}`).toBe(true);
     }

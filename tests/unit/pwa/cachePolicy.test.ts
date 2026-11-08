@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  isRuntimeImageOrJsonRequest,
-  isUnityRuntimeRequest,
-  unityRuntimePathPrefix,
-} from '@/pwa/cachePolicy';
+import { isRuntimeImageOrJsonRequest, isUnityRuntimeRequest, unityRuntimePathPrefix } from '@/pwa/cachePolicy';
 
 const ORIGIN = 'https://play.vande.example';
 
@@ -29,7 +25,9 @@ describe('service-worker Unity cache policy', () => {
     expect(isUnityRuntimeRequest(new URL('/Vande/unity/Build/game.wasm', ORIGIN), ORIGIN, '/Vande/')).toBe(true);
     expect(isUnityRuntimeRequest(new URL('/unity/Build/game.wasm', ORIGIN), ORIGIN, '/Vande/')).toBe(false);
     expect(isUnityRuntimeRequest(new URL('/Vande/unity-preview/config.json', ORIGIN), ORIGIN, '/Vande/')).toBe(false);
-    expect(isUnityRuntimeRequest(new URL('/Vande/unity/config.json', 'https://cdn.example'), ORIGIN, '/Vande/')).toBe(false);
+    expect(isUnityRuntimeRequest(new URL('/Vande/unity/config.json', 'https://cdn.example'), ORIGIN, '/Vande/')).toBe(
+      false,
+    );
   });
 
   it('excludes Unity JSON and images from the stale-while-revalidate runtime cache', () => {

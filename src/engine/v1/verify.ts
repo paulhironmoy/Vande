@@ -30,7 +30,12 @@ async function checkCommit(log: MatchEventLog, p: 0 | 1, errors: string[]): Prom
 }
 
 /** Re-plays innings `i` against `plan` from the log's stored inputs; returns the state and the inputs by ball. */
-function replay(log: MatchEventLog, i: 0 | 1, plan: OverPlan, errors: string[]): { state: InningsState; byBall: Array<BattingInput | null> } {
+function replay(
+  log: MatchEventLog,
+  i: 0 | 1,
+  plan: OverPlan,
+  errors: string[],
+): { state: InningsState; byBall: Array<BattingInput | null> } {
   const map = new Map<number, BattingInput>();
   for (const input of log.inputs[i]) {
     if (!input || typeof input.ball !== 'number') {
@@ -99,7 +104,8 @@ export async function verifyMatchLog(log: MatchEventLog): Promise<{ ok: true } |
     if (!log || typeof log !== 'object') return fail(['log.missing']);
     if (log.schema !== EVENT_SCHEMA_VERSION) return fail(['log.schema']);
     if (log.engine !== RULES_VERSION) return fail(['log.engine_version']);
-    if (!Array.isArray(log.plans) || log.plans.length !== 2 || !Array.isArray(log.commits) || log.commits.length !== 2) return fail(['log.shape']);
+    if (!Array.isArray(log.plans) || log.plans.length !== 2 || !Array.isArray(log.commits) || log.commits.length !== 2)
+      return fail(['log.shape']);
     if (!Array.isArray(log.inputs) || log.inputs.length !== 2) return fail(['log.shape']);
     if (log.kind === 'daily') return await verifyDaily(log);
     const errors: string[] = [];

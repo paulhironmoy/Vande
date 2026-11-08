@@ -17,7 +17,17 @@
 import { describe, expect, it } from 'vitest';
 import { readGesture } from '@/input';
 import { MIN_READ_MS, POWER_CURVE } from '@/input/constants';
-import { DELIVERIES, SURFACES, bearingDiff, play, strokeSamples, tapSamples, type Played, type ProfileName, type Stroke } from './fixtures';
+import {
+  DELIVERIES,
+  SURFACES,
+  bearingDiff,
+  play,
+  strokeSamples,
+  tapSamples,
+  type Played,
+  type ProfileName,
+  type Stroke,
+} from './fixtures';
 
 const T0 = 10_300;
 const RATES = [8, 1000 / 60, 1000 / 30, 50];
@@ -27,7 +37,10 @@ function within(reference: Played, sampled: Played, powerTol: number, label: str
   const b = sampled.swing!;
   expect(b.kind, label).toBe(a.kind);
   if (sampleIntervalMs === 0) expect(b.startT, label).toBe(a.startT);
-  else expect(Math.abs(b.startT - a.startT) * 1000, `${label}: departure timing`).toBeLessThanOrEqual(sampleIntervalMs + 4 + 0.1);
+  else
+    expect(Math.abs(b.startT - a.startT) * 1000, `${label}: departure timing`).toBeLessThanOrEqual(
+      sampleIntervalMs + 4 + 0.1,
+    );
   expect(b.elevation, label).toBeCloseTo(a.elevation, 2);
   expect(Math.abs(bearingDiff(b.directionDeg, a.directionDeg)), label).toBeLessThanOrEqual(0.2);
   let bound = powerTol;
@@ -75,8 +88,22 @@ describe('the same motion reads the same at every cadence (PERF3, F-003)', () =>
           const st: Stroke = { lengthPx, bearingDeg, durationMs, profile };
           const ref = play(strokeSamples(st, T0));
           expect(ref.swing!.kind).toBe('attack');
-          for (const d of DELIVERIES) within(ref, play(strokeSamples(st, T0), { delivery: d }), 0.02, `${profile} ${lengthPx}/${durationMs} @${bearingDeg} ${d.name}`, d.coalesced === false ? d.frameMs : 0);
-          for (const rateMs of RATES) within(ref, play(strokeSamples({ ...st, rateMs }, T0)), 0.02, `${profile} ${lengthPx}/${durationMs} @${bearingDeg} every ${rateMs.toFixed(1)} ms`, rateMs);
+          for (const d of DELIVERIES)
+            within(
+              ref,
+              play(strokeSamples(st, T0), { delivery: d }),
+              0.02,
+              `${profile} ${lengthPx}/${durationMs} @${bearingDeg} ${d.name}`,
+              d.coalesced === false ? d.frameMs : 0,
+            );
+          for (const rateMs of RATES)
+            within(
+              ref,
+              play(strokeSamples({ ...st, rateMs }, T0)),
+              0.02,
+              `${profile} ${lengthPx}/${durationMs} @${bearingDeg} every ${rateMs.toFixed(1)} ms`,
+              rateMs,
+            );
         }
   });
 
@@ -88,12 +115,25 @@ describe('the same motion reads the same at every cadence (PERF3, F-003)', () =>
           const ref = play(strokeSamples(st, T0));
           expect(ref.swing!.kind).toBe('attack');
           for (const d of DELIVERIES) {
-            const tol = d.coalesced !== false ? (d.latencyMs ? 0.05 : 0.001) : (d.frameMs ?? 0) <= 1000 / 60 + 1e-9 ? 0.03 : 0.07;
-            within(ref, play(strokeSamples(st, T0), { delivery: d }), tol, `rest ${restMs} ${profile} ${d.name}`, d.coalesced === false ? d.frameMs : 0);
+            const tol =
+              d.coalesced !== false ? (d.latencyMs ? 0.05 : 0.001) : (d.frameMs ?? 0) <= 1000 / 60 + 1e-9 ? 0.03 : 0.07;
+            within(
+              ref,
+              play(strokeSamples(st, T0), { delivery: d }),
+              tol,
+              `rest ${restMs} ${profile} ${d.name}`,
+              d.coalesced === false ? d.frameMs : 0,
+            );
           }
           for (const rateMs of RATES) {
             const tol = rateMs <= 1000 / 60 + 1e-9 ? 0.03 : rateMs <= 1000 / 30 + 1e-9 ? 0.07 : 0.1;
-            within(ref, play(strokeSamples({ ...st, rateMs }, T0)), tol, `rest ${restMs} ${profile} every ${rateMs.toFixed(1)} ms`, rateMs);
+            within(
+              ref,
+              play(strokeSamples({ ...st, rateMs }, T0)),
+              tol,
+              `rest ${restMs} ${profile} every ${rateMs.toFixed(1)} ms`,
+              rateMs,
+            );
           }
         }
   });
@@ -110,11 +150,36 @@ describe('the same motion reads the same at every cadence (PERF3, F-003)', () =>
           const ref = play(strokeSamples(st, T0));
           for (const d of DELIVERIES) {
             const tol = d.coalesced !== false ? 0.001 : (d.frameMs ?? 0) <= 1000 / 60 + 1e-9 ? 0.05 : 0.1;
-            within(ref, play(strokeSamples(st, T0), { delivery: d }), tol, `hold ${profile} ${lengthPx}/${durationMs} ${d.name}`, d.coalesced === false ? d.frameMs : 0);
+            within(
+              ref,
+              play(strokeSamples(st, T0), { delivery: d }),
+              tol,
+              `hold ${profile} ${lengthPx}/${durationMs} ${d.name}`,
+              d.coalesced === false ? d.frameMs : 0,
+            );
           }
-          for (const rateMs of [8, 1000 / 60]) within(ref, play(strokeSamples({ ...st, rateMs }, T0)), 0.05, `hold ${profile} ${lengthPx}/${durationMs} every ${rateMs.toFixed(1)} ms`, rateMs);
-          within(ref, play(strokeSamples({ ...st, rateMs: 1000 / 30 }, T0)), 0.1, `hold ${profile} ${lengthPx}/${durationMs} every 33.3 ms`, 1000 / 30);
-          within(ref, play(strokeSamples({ ...st, rateMs: 50 }, T0)), 0.17, `hold ${profile} ${lengthPx}/${durationMs} every 50 ms`, 50);
+          for (const rateMs of [8, 1000 / 60])
+            within(
+              ref,
+              play(strokeSamples({ ...st, rateMs }, T0)),
+              0.05,
+              `hold ${profile} ${lengthPx}/${durationMs} every ${rateMs.toFixed(1)} ms`,
+              rateMs,
+            );
+          within(
+            ref,
+            play(strokeSamples({ ...st, rateMs: 1000 / 30 }, T0)),
+            0.1,
+            `hold ${profile} ${lengthPx}/${durationMs} every 33.3 ms`,
+            1000 / 30,
+          );
+          within(
+            ref,
+            play(strokeSamples({ ...st, rateMs: 50 }, T0)),
+            0.17,
+            `hold ${profile} ${lengthPx}/${durationMs} every 50 ms`,
+            50,
+          );
         }
   });
 
@@ -122,7 +187,11 @@ describe('the same motion reads the same at every cadence (PERF3, F-003)', () =>
     for (const durationMs of [30, 60, 110, 200]) {
       const ref = play(tapSamples(T0, durationMs, { driftPx: 4 })).swing!;
       expect(ref).toMatchObject({ kind: 'defend', startT: 0.3 });
-      for (const d of DELIVERIES) expect(play(tapSamples(T0, durationMs, { driftPx: 4 }), { delivery: d }).swing, `${durationMs} ms ${d.name}`).toEqual(ref);
+      for (const d of DELIVERIES)
+        expect(
+          play(tapSamples(T0, durationMs, { driftPx: 4 }), { delivery: d }).swing,
+          `${durationMs} ms ${d.name}`,
+        ).toEqual(ref);
       for (const rateMs of RATES) expect(play(tapSamples(T0, durationMs, { driftPx: 4, rateMs })).swing).toEqual(ref);
     }
   });
@@ -158,7 +227,14 @@ describe('the same motion reads the same at every cadence (PERF3, F-003)', () =>
       for (const pointer of ['touch', 'mouse', 'pen'] as const) {
         const st: Stroke = { lengthPx: 110, bearingDeg: 60, durationMs: 100 };
         const ref = play(strokeSamples(st, T0), { surface, pointer });
-        for (const d of DELIVERIES) within(ref, play(strokeSamples(st, T0), { surface, pointer, delivery: d }), 0.02, `${name} ${pointer} ${d.name}`, d.coalesced === false ? d.frameMs : 0);
+        for (const d of DELIVERIES)
+          within(
+            ref,
+            play(strokeSamples(st, T0), { surface, pointer, delivery: d }),
+            0.02,
+            `${name} ${pointer} ${d.name}`,
+            d.coalesced === false ? d.frameMs : 0,
+          );
       }
   });
 });

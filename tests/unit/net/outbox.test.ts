@@ -1,13 +1,22 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ApiClientError } from '@/net/errors';
 import { __closeNetDbs } from '@/net/idb';
-import { Outbox, backoffDelay, idbOutboxStorage, memoryOutboxStorage, type OutboxEntry, type OutboxResult } from '@/net/outbox';
+import {
+  Outbox,
+  backoffDelay,
+  idbOutboxStorage,
+  memoryOutboxStorage,
+  type OutboxEntry,
+  type OutboxResult,
+} from '@/net/outbox';
 
 afterEach(async () => {
   await __closeNetDbs();
 });
 
-function harness(opts: { storage?: ReturnType<typeof memoryOutboxStorage>; send?: (e: OutboxEntry) => Promise<unknown> } = {}) {
+function harness(
+  opts: { storage?: ReturnType<typeof memoryOutboxStorage>; send?: (e: OutboxEntry) => Promise<unknown> } = {},
+) {
   let now = 1_000_000;
   const sent: OutboxEntry[] = [];
   let mode: 'online' | 'offline' | ((e: OutboxEntry) => Promise<unknown>) = 'online';
@@ -42,8 +51,17 @@ describe('outbox', () => {
   it('persists an entry before sending it', async () => {
     const storage = memoryOutboxStorage();
     let storedAtSend = 0;
-    const outbox = new Outbox({ storage, send: async () => (storedAtSend = (await storage.list()).length), schedule: () => () => undefined });
-    const r = await outbox.submit({ route: 'POST /v1/matches/:id/bat/shot', params: { id: 'm1' }, body: { x: 1 }, group: 'match:m1' });
+    const outbox = new Outbox({
+      storage,
+      send: async () => (storedAtSend = (await storage.list()).length),
+      schedule: () => () => undefined,
+    });
+    const r = await outbox.submit({
+      route: 'POST /v1/matches/:id/bat/shot',
+      params: { id: 'm1' },
+      body: { x: 1 },
+      group: 'match:m1',
+    });
     expect(storedAtSend).toBe(1);
     expect(r.status).toBe('sent');
     expect(await storage.list()).toEqual([]);
@@ -52,7 +70,12 @@ describe('outbox', () => {
   it('keeps a shot made offline and delivers it with its idempotency key once the network is back', async () => {
     const h = harness();
     h.setMode('offline');
-    const r = await h.outbox.submit<{ ok: string }>({ route: 'POST /v1/matches/:id/bat/shot', params: { id: 'm1' }, body: { input: 1 }, group: 'match:m1' });
+    const r = await h.outbox.submit<{ ok: string }>({
+      route: 'POST /v1/matches/:id/bat/shot',
+      params: { id: 'm1' },
+      body: { input: 1 },
+      group: 'match:m1',
+    });
     expect(r.status).toBe('queued');
     if (r.status !== 'queued') return;
     const [entry] = await h.outbox.pending();
@@ -70,7 +93,8 @@ describe('outbox', () => {
   it('keeps each lane in order and lets other lanes go on', async () => {
     const h = harness();
     h.setMode(async (e) => {
-      if (e.group === 'match:a' && (e.body as { n: number }).n === 1) throw new ApiClientError('unavailable', 'busy', 503);
+      if (e.group === 'match:a' && (e.body as { n: number }).n === 1)
+        throw new ApiClientError('unavailable', 'busy', 503);
       h.sent.push(e);
       return {};
     });
@@ -91,7 +115,9 @@ describe('outbox', () => {
       h.sent.push(e);
       return { fine: true };
     });
-    const first = await h.outbox.submit({ route: 'POST /x', group: 'g', body: { n: 1 } }).catch((e) => e as ApiClientError);
+    const first = await h.outbox
+      .submit({ route: 'POST /x', group: 'g', body: { n: 1 } })
+      .catch((e) => e as ApiClientError);
     expect(first).toMatchObject({ code: 'deadline_passed' });
     await h.outbox.submit({ route: 'POST /x', group: 'g', body: { n: 2 } });
     expect(h.results.map((r) => r.ok)).toEqual([false, true]);
@@ -114,10 +140,21 @@ describe('outbox', () => {
     const storage = idbOutboxStorage('vande-net-test-restart');
     const first = harness({ storage });
     first.setMode('offline');
-    await first.outbox.submit({ route: 'POST /v1/matches/:id/bat/shot', params: { id: 'm9' }, body: { ballToken: 't', input: {} }, group: 'match:m9', idempotencyKey: '11111111-2222-4333-8444-555555555555' });
+    await first.outbox.submit({
+      route: 'POST /v1/matches/:id/bat/shot',
+      params: { id: 'm9' },
+      body: { ballToken: 't', input: {} },
+      group: 'match:m9',
+      idempotencyKey: '11111111-2222-4333-8444-555555555555',
+    });
     await __closeNetDbs();
     const delivered: OutboxEntry[] = [];
-    const reopened = new Outbox({ storage: idbOutboxStorage('vande-net-test-restart'), now: () => 2_000_000, send: async (e) => void delivered.push(e), schedule: () => () => undefined });
+    const reopened = new Outbox({
+      storage: idbOutboxStorage('vande-net-test-restart'),
+      now: () => 2_000_000,
+      send: async (e) => void delivered.push(e),
+      schedule: () => () => undefined,
+    });
     await reopened.flush();
     expect(delivered).toHaveLength(1);
     expect(delivered[0].id).toBe('11111111-2222-4333-8444-555555555555');

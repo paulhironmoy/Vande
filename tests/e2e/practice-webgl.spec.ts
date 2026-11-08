@@ -21,7 +21,10 @@ test('a WebGL failure becomes Classic practice, said plainly, with Play as the o
   await configure(page, { timeScale: 4, seed: 'e2e-webgl' });
   await page.goto('/');
   await page.getByTestId('practice-random').click();
-  await expect(page.getByTestId('practice-panel-notice')).toHaveText('This device is switching to Classic graphics for smoother batting.', { timeout: 60_000 });
+  await expect(page.getByTestId('practice-panel-notice')).toHaveText(
+    'This device is switching to Classic graphics for smoother batting.',
+    { timeout: 60_000 },
+  );
   // No technical words on the player's screen.
   await expect(page.getByTestId('practice-setup')).not.toContainText(/WebGL|GPU|fps|frame/i);
   await queue(page, block());

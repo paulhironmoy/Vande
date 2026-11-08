@@ -52,7 +52,19 @@ export function sharedUrl(webOrigin: string, code: string): string {
   return `${webOrigin.replace(/\/+$/, '')}${SHARED_PATH}${code}`;
 }
 
-export const LOCALE_IDS = ['en', 'hi', 'hi-Latn', 'bn', 'te', 'mr', 'ta', 'gu', 'kn', 'ml', 'pa'] as const satisfies readonly LocaleId[];
+export const LOCALE_IDS = [
+  'en',
+  'hi',
+  'hi-Latn',
+  'bn',
+  'te',
+  'mr',
+  'ta',
+  'gu',
+  'kn',
+  'ml',
+  'pa',
+] as const satisfies readonly LocaleId[];
 
 export function isLocaleId(value: unknown): value is LocaleId {
   return typeof value === 'string' && (LOCALE_IDS as readonly string[]).includes(value);

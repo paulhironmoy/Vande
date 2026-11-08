@@ -18,7 +18,9 @@ export function connectAnalytics(analytics: Pick<Analytics, 'track'>, platform: 
     if (m.kind !== 'deadline_reminder' || m.data?.tapped !== '1') return;
     analytics.track('reminder_opened', { mode: m.data.cupId ? 'cup' : 'duel' });
   });
-  const offInstall = platform.onAttributedInstall?.((code) => analytics.track('attributed_install', { attribution: code })) ?? (() => undefined);
+  const offInstall =
+    platform.onAttributedInstall?.((code) => analytics.track('attributed_install', { attribution: code })) ??
+    (() => undefined);
   return () => {
     offPush();
     offInstall();

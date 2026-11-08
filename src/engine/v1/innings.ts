@@ -39,18 +39,37 @@ const feedbackOf = (o: BallOutcome): ShotFeedback => ({ ball: o.ball, timing: o.
  * Resolves `state.nextBall` (0–5, then the Super Ball). Never throws: an input addressed to a different ball is
  * ignored (the ball resolves as unanswered), and a finished innings returns its final ball again (idempotent).
  */
-export function resolveNextBall(state: InningsState, args: ResolveArgs): { state: InningsState; outcome: BallOutcome; feedback: ShotFeedback } {
+export function resolveNextBall(
+  state: InningsState,
+  args: ResolveArgs,
+): { state: InningsState; outcome: BallOutcome; feedback: ShotFeedback } {
   if (state.done || state.nextBall > SUPER_BALL_INDEX) {
     const last = state.superBall ?? state.outcomes[state.outcomes.length - 1];
     if (last) return { state, outcome: last, feedback: feedbackOf(last) };
   }
   const nb = state.nextBall;
-  const ball = state.mainDone ? SUPER_BALL_INDEX : Number.isInteger(nb) && nb >= 0 && nb < BALLS_PER_OVER ? nb : Math.min(state.outcomes.length, BALLS_PER_OVER - 1);
+  const ball = state.mainDone
+    ? SUPER_BALL_INDEX
+    : Number.isInteger(nb) && nb >= 0 && nb < BALLS_PER_OVER
+      ? nb
+      : Math.min(state.outcomes.length, BALLS_PER_OVER - 1);
   const input = args.input && args.input.ball === ball ? args.input : null;
   const live = state.outcomes.filter((o) => !o.dead);
-  const raw = resolveBall({ seed: args.seed, conditions: args.conditions, plan: args.plan, input, innings: state.innings, ball, previous: live });
+  const raw = resolveBall({
+    seed: args.seed,
+    conditions: args.conditions,
+    plan: args.plan,
+    input,
+    innings: state.innings,
+    ball,
+    previous: live,
+  });
   if (state.mainDone) {
-    return { state: { ...state, outcomes: state.outcomes.slice(), superBall: raw, nextBall: SUPER_BALL_INDEX + 1, done: true }, outcome: raw, feedback: feedbackOf(raw) };
+    return {
+      state: { ...state, outcomes: state.outcomes.slice(), superBall: raw, nextBall: SUPER_BALL_INDEX + 1, done: true },
+      outcome: raw,
+      feedback: feedbackOf(raw),
+    };
   }
   const outcome = state.wickets >= WICKETS_PER_INNINGS ? deadBall(raw) : raw;
   const runs = state.runs + (outcome.dead ? 0 : outcome.runs);
@@ -58,7 +77,15 @@ export function resolveNextBall(state: InningsState, args: ResolveArgs): { state
   const outcomes = [...state.outcomes, outcome];
   const mainDone = ball >= BALLS_PER_OVER - 1;
   return {
-    state: { ...state, runs, wickets, outcomes, nextBall: mainDone ? SUPER_BALL_INDEX : ball + 1, mainDone, done: false },
+    state: {
+      ...state,
+      runs,
+      wickets,
+      outcomes,
+      nextBall: mainDone ? SUPER_BALL_INDEX : ball + 1,
+      mainDone,
+      done: false,
+    },
     outcome,
     feedback: feedbackOf(outcome),
   };
@@ -67,5 +94,12 @@ export function resolveNextBall(state: InningsState, args: ResolveArgs): { state
 /** Summary of the main innings: live balls only (dead balls after the second wicket are left out). */
 export function summarise(state: InningsState, batter: 0 | 1): InningsSummary {
   const balls = state.outcomes.filter((o) => !o.dead);
-  return { batter, bowler: batter === 0 ? 1 : 0, balls, runs: state.runs, wickets: state.wickets, ballsFaced: balls.length };
+  return {
+    batter,
+    bowler: batter === 0 ? 1 : 0,
+    balls,
+    runs: state.runs,
+    wickets: state.wickets,
+    ballsFaced: balls.length,
+  };
 }

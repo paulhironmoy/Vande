@@ -32,14 +32,25 @@ export const GPU_ARGS = { launchOptions: { args: ['--ignore-gpu-blocklist', '--e
  * Configures the hooks and Practice settings before any page script. By default the first-run teaching is off (as if
  * the player skipped it), so a journey starts bowling at once; `teach: true` keeps it.
  */
-export async function configure(page: Page, config: PracticeTestConfig, opts: { teach?: boolean; settings?: Record<string, unknown>; /** @deprecated the first-run guided over is gone; teaching is off unless `teach`. */ guidedDone?: boolean } = {}) {
-  const settings = opts.teach ? (opts.settings ?? null) : { v: 1, teach: false, demoSeen: true, ...(opts.settings ?? {}) };
+export async function configure(
+  page: Page,
+  config: PracticeTestConfig,
+  opts: {
+    teach?: boolean;
+    settings?: Record<string, unknown>;
+    /** @deprecated the first-run guided over is gone; teaching is off unless `teach`. */ guidedDone?: boolean;
+  } = {},
+) {
+  const settings = opts.teach
+    ? (opts.settings ?? null)
+    : { v: 1, teach: false, demoSeen: true, ...(opts.settings ?? {}) };
   await page.addInitScript(
     ([cfg, s]) => {
       (window as unknown as { __VANDE_PRACTICE_TEST__: unknown }).__VANDE_PRACTICE_TEST__ = cfg;
       if (s) {
         try {
-          if (!localStorage.getItem('vc:practice:settings')) localStorage.setItem('vc:practice:settings', JSON.stringify(s));
+          if (!localStorage.getItem('vc:practice:settings'))
+            localStorage.setItem('vc:practice:settings', JSON.stringify(s));
         } catch {
           /* storage blocked */
         }
@@ -54,7 +65,12 @@ export async function configure(page: Page, config: PracticeTestConfig, opts: { 
           if (!(id in seen) || (text && !seen[id])) seen[id] = text;
         }
       };
-      new MutationObserver(scan).observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+      new MutationObserver(scan).observe(document, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        characterData: true,
+      });
     },
     [config, settings] as const,
   );
@@ -66,19 +82,32 @@ export async function seen(page: Page, testId: string): Promise<string | null> {
 }
 
 async function hooks(page: Page) {
-  await page.waitForFunction(() => Boolean((window as unknown as { __vandePractice?: unknown }).__vandePractice), undefined, { timeout: 60_000 });
+  await page.waitForFunction(
+    () => Boolean((window as unknown as { __vandePractice?: unknown }).__vandePractice),
+    undefined,
+    { timeout: 60_000 },
+  );
 }
 
 export async function queue(page: Page, ...swings: Swing[]) {
   await hooks(page);
-  await page.evaluate((s) => (window as unknown as { __vandePractice: { queueSwing: (...x: unknown[]) => number } }).__vandePractice.queueSwing(...s), swings);
+  await page.evaluate(
+    (s) =>
+      (
+        window as unknown as { __vandePractice: { queueSwing: (...x: unknown[]) => number } }
+      ).__vandePractice.queueSwing(...s),
+    swings,
+  );
 }
 
 /** Waits for the controller to reach one of these phases or screens (its own state, not the DOM). */
 export async function waitFor(page: Page, states: string[], timeoutMs = 90_000) {
   await hooks(page);
   const ok = await page.evaluate(
-    ([s, ms]) => (window as unknown as { __vandePractice: { waitFor(x: string[], t: number): Promise<boolean> } }).__vandePractice.waitFor(s, ms),
+    ([s, ms]) =>
+      (
+        window as unknown as { __vandePractice: { waitFor(x: string[], t: number): Promise<boolean> } }
+      ).__vandePractice.waitFor(s, ms),
     [states, timeoutMs] as const,
   );
   expect(ok, `Practice never reached ${states.join(' or ')}`).toBe(true);
@@ -91,7 +120,8 @@ export async function waitFor(page: Page, states: string[], timeoutMs = 90_000) 
 export async function whileInFlight(page: Page, action: 'background' | 'reload') {
   await hooks(page);
   const run = page.evaluate(async (what) => {
-    const api = (window as unknown as { __vandePractice: { waitFor(x: string[], t: number): Promise<boolean> } }).__vandePractice;
+    const api = (window as unknown as { __vandePractice: { waitFor(x: string[], t: number): Promise<boolean> } })
+      .__vandePractice;
     if (!(await api.waitFor(['live'], 90_000))) throw new Error('never in flight');
     if (what === 'reload') {
       location.reload();
@@ -137,22 +167,42 @@ export interface HookState {
 
 export async function state(page: Page): Promise<HookState> {
   await hooks(page);
-  return page.evaluate(() => (window as unknown as { __vandePractice: { state(): HookState } }).__vandePractice.state());
+  return page.evaluate(() =>
+    (window as unknown as { __vandePractice: { state(): HookState } }).__vandePractice.state(),
+  );
 }
 
 export async function delivered(page: Page): Promise<Record<'innings' | 'repeat', number>> {
-  return page.evaluate(() => (window as unknown as { __vandePractice: { delivered(): Record<'innings' | 'repeat', number> } }).__vandePractice.delivered());
+  return page.evaluate(() =>
+    (
+      window as unknown as { __vandePractice: { delivered(): Record<'innings' | 'repeat', number> } }
+    ).__vandePractice.delivered(),
+  );
 }
 
 /** The batter's-eye regions the interface must never cover (from the stage, CSS px relative to the canvas). */
-export async function protectedRegions(page: Page): Promise<Array<{ kind: string; x: number; y: number; width: number; height: number }>> {
-  return page.evaluate(() => (window as unknown as { __vandePractice: { protectedRegions(): Array<{ kind: string; x: number; y: number; width: number; height: number }> } }).__vandePractice.protectedRegions());
+export async function protectedRegions(
+  page: Page,
+): Promise<Array<{ kind: string; x: number; y: number; width: number; height: number }>> {
+  return page.evaluate(() =>
+    (
+      window as unknown as {
+        __vandePractice: {
+          protectedRegions(): Array<{ kind: string; x: number; y: number; width: number; height: number }>;
+        };
+      }
+    ).__vandePractice.protectedRegions(),
+  );
 }
 
 export const play = (page: Page) => page.getByTestId('practice-play');
 
 /** Opens Practice (the app's first screen) and waits for the home. */
-export async function openPractice(page: Page, cfg: PracticeTestConfig, opts: { teach?: boolean; settings?: Record<string, unknown> } = {}) {
+export async function openPractice(
+  page: Page,
+  cfg: PracticeTestConfig,
+  opts: { teach?: boolean; settings?: Record<string, unknown> } = {},
+) {
   await configure(page, cfg, opts);
   await page.goto('/');
   await expect(page.getByTestId('practice-menu')).toBeVisible({ timeout: 45_000 });
@@ -163,11 +213,19 @@ export async function playFromSetup(page: Page) {
   await expect(page.getByTestId('practice-setup')).toBeVisible({ timeout: 45_000 });
   // Subscribe before clicking: accelerated, auto-next journeys can finish a ball before a second CDP command arrives.
   await page.evaluate(() => {
-    const w = window as unknown as { __vandePractice: { waitFor(states: string[], ms: number): Promise<boolean> }; __practiceStartWait?: Promise<boolean> };
-    w.__practiceStartWait = w.__vandePractice.waitFor(['runup', 'live', 'playing', 'dead', 'out', 'over_summary'], 90_000);
+    const w = window as unknown as {
+      __vandePractice: { waitFor(states: string[], ms: number): Promise<boolean> };
+      __practiceStartWait?: Promise<boolean>;
+    };
+    w.__practiceStartWait = w.__vandePractice.waitFor(
+      ['runup', 'live', 'playing', 'dead', 'out', 'over_summary'],
+      90_000,
+    );
   });
   await page.getByTestId('practice-play-start').click();
-  const begun = await page.evaluate(() => (window as unknown as { __practiceStartWait: Promise<boolean> }).__practiceStartWait);
+  const begun = await page.evaluate(
+    () => (window as unknown as { __practiceStartWait: Promise<boolean> }).__practiceStartWait,
+  );
   expect(begun, 'the requested over started').toBe(true);
 }
 
@@ -180,7 +238,9 @@ export async function startRandom(page: Page) {
 /** Bats out an over in progress (the swings queued, autoNext on) to its summary. */
 export async function toOverSummary(page: Page, timeoutMs = 180_000) {
   await waitFor(page, ['over_summary', 'out', 'error'], timeoutMs);
-  expect((await state(page)).screen, 'the innings must survive all six deliveries, not end with a wicket').toBe('over_summary');
+  expect((await state(page)).screen, 'the innings must survive all six deliveries, not end with a wicket').toBe(
+    'over_summary',
+  );
   await expect(page.getByTestId('practice-over-summary')).toBeVisible();
 }
 
@@ -203,5 +263,10 @@ export async function buildBall(page: Page, lineM: number, lengthM: number, vari
 }
 
 /** A swing timed perfectly (zero contact error, the physics' own bat travel) in the given direction. */
-export const perfect = (directionDeg = 0, power = 0.6): Swing => ({ kind: 'attack', contactErrorMs: 0, directionDeg, power });
+export const perfect = (directionDeg = 0, power = 0.6): Swing => ({
+  kind: 'attack',
+  contactErrorMs: 0,
+  directionDeg,
+  power,
+});
 export const block = (): Swing => ({ kind: 'defend', contactErrorMs: 0 });

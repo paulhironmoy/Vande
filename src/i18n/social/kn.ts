@@ -11,7 +11,8 @@ const catalog: SocialCatalog = {
   'social.common.you_suffix': '(ನೀವು)',
   'social.state.offline_body': 'ನೀವು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದ್ದೀರಿ. ಮತ್ತೆ ಆನ್‌ಲೈನ್ ಆದಾಗ ಇದು ತಾನಾಗಿಯೇ ರಿಫ್ರೆಶ್ ಆಗುತ್ತದೆ.',
   'social.state.needs_online_title': 'ಇದಕ್ಕೆ ಇಂಟರ್ನೆಟ್ ಬೇಕು',
-  'social.state.needs_online_body': 'ಕಪ್‌ಗಳು, ರೂಮ್‌ಗಳು ಮತ್ತು ಲೀಡರ್‌ಬೋರ್ಡ್‌ಗಳು VANDE Cricket ಸೇವೆಯಲ್ಲಿ ನಡೆಯುತ್ತವೆ. ತರಬೇತಿ ಮತ್ತು ಪ್ರಾಕ್ಟೀಸ್ ಘೋಸ್ಟ್ಸ್ ಆಫ್‌ಲೈನ್‌ನಲ್ಲೂ ನಡೆಯುತ್ತವೆ.',
+  'social.state.needs_online_body':
+    'ಕಪ್‌ಗಳು, ರೂಮ್‌ಗಳು ಮತ್ತು ಲೀಡರ್‌ಬೋರ್ಡ್‌ಗಳು VANDE Cricket ಸೇವೆಯಲ್ಲಿ ನಡೆಯುತ್ತವೆ. ತರಬೇತಿ ಮತ್ತು ಪ್ರಾಕ್ಟೀಸ್ ಘೋಸ್ಟ್ಸ್ ಆಫ್‌ಲೈನ್‌ನಲ್ಲೂ ನಡೆಯುತ್ತವೆ.',
   'social.state.not_found_title': 'ಸಿಗಲಿಲ್ಲ',
   'social.state.forbidden_title': 'ಸದಸ್ಯರಿಗೆ ಮಾತ್ರ',
   'social.state.busy_title': 'ಈಗ ತುಂಬಾ ಕ್ರಿಕೆಟ್ ನಡೆಯುತ್ತಿದೆ',

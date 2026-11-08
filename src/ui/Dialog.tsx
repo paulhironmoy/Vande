@@ -68,7 +68,12 @@ export function Dialog({
         )}
         {children}
         <div className={s.actions}>
-          <Button ref={cancelRef} variant="secondary" onClick={onCancel} data-testid={testId ? `${testId}-cancel` : undefined}>
+          <Button
+            ref={cancelRef}
+            variant="secondary"
+            onClick={onCancel}
+            data-testid={testId ? `${testId}-cancel` : undefined}
+          >
             {cancelLabel ?? t('common.cancel')}
           </Button>
           <Button variant={confirmVariant} onClick={onConfirm} data-testid={testId ? `${testId}-confirm` : undefined}>

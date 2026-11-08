@@ -1,8 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { createIdbSecureStore, createMemorySecureStore, createNativeSecureStore } from '@/platform/secureStore';
-import { createDisabledPushAdapter, createFcmPushAdapter, createMockPushAdapter, type PushNotificationsPlugin } from '@/platform/push';
-import { createGoogleIdentityProvider, createMockIdentityProvider, createPasskeyIdentityProvider } from '@/platform/identity';
-import { createDisabledAds, createDisabledBilling, createMockAds, createMockBilling, guardAds } from '@/platform/monetization';
+import {
+  createDisabledPushAdapter,
+  createFcmPushAdapter,
+  createMockPushAdapter,
+  type PushNotificationsPlugin,
+} from '@/platform/push';
+import {
+  createGoogleIdentityProvider,
+  createMockIdentityProvider,
+  createPasskeyIdentityProvider,
+} from '@/platform/identity';
+import {
+  createDisabledAds,
+  createDisabledBilling,
+  createMockAds,
+  createMockBilling,
+  guardAds,
+} from '@/platform/monetization';
 
 describe('secure storage', () => {
   it('encrypts values at rest in IndexedDB with a non-extractable key', async () => {
@@ -38,7 +53,10 @@ describe('secure storage', () => {
 });
 
 describe('push', () => {
-  function fakePlugin(perm: 'granted' | 'denied', token = 'fcm-token-xyz'): PushNotificationsPlugin & { emit(event: string, payload: unknown): void } {
+  function fakePlugin(
+    perm: 'granted' | 'denied',
+    token = 'fcm-token-xyz',
+  ): PushNotificationsPlugin & { emit(event: string, payload: unknown): void } {
     const listeners = new Map<string, Array<(p: unknown) => void>>();
     return {
       requestPermissions: async () => ({ receive: perm }),
@@ -49,7 +67,10 @@ describe('push', () => {
         listeners.set(event, [...(listeners.get(event) ?? []), cb]);
         return {
           remove: async () => {
-            listeners.set(event, (listeners.get(event) ?? []).filter((x) => x !== cb));
+            listeners.set(
+              event,
+              (listeners.get(event) ?? []).filter((x) => x !== cb),
+            );
           },
         };
       }) as unknown as PushNotificationsPlugin['addListener'],
@@ -64,12 +85,16 @@ describe('push', () => {
     const plugin = fakePlugin('granted');
     const on = createFcmPushAdapter({ enabled: true, plugin: async () => ({ plugin }) });
     expect(await on.register()).toEqual({ token: 'fcm-token-xyz', platform: 'android' });
-    expect(await createFcmPushAdapter({ enabled: true, plugin: async () => ({ plugin: fakePlugin('denied') }) }).register()).toBeNull();
+    expect(
+      await createFcmPushAdapter({ enabled: true, plugin: async () => ({ plugin: fakePlugin('denied') }) }).register(),
+    ).toBeNull();
     const got: Array<{ kind: string }> = [];
     on.onMessage((m) => got.push(m));
     await new Promise((r) => setTimeout(r, 0));
     plugin.emit('pushNotificationReceived', { data: { kind: 'reveal_ready', matchId: 'm1' } });
-    plugin.emit('pushNotificationActionPerformed', { notification: { data: { kind: 'opponent_locked', matchId: 'm1' } } });
+    plugin.emit('pushNotificationActionPerformed', {
+      notification: { data: { kind: 'opponent_locked', matchId: 'm1' } },
+    });
     plugin.emit('pushNotificationReceived', { data: { kind: 'unknown_kind' } });
     expect(got.map((m) => m.kind)).toEqual(['reveal_ready', 'opponent_locked']);
   });
@@ -95,12 +120,21 @@ describe('identity providers', () => {
     const web = createGoogleIdentityProvider({
       clientId: 'cid',
       native: () => false,
-      gis: async () => ({ initialize: (c) => setTimeout(() => c.callback({ credential: 'id-token-web' }), 0), prompt: () => undefined }),
+      gis: async () => ({
+        initialize: (c) => setTimeout(() => c.callback({ credential: 'id-token-web' }), 0),
+        prompt: () => undefined,
+      }),
     });
     expect(await web.obtainCredential()).toBe('id-token-web');
-    const app = createGoogleIdentityProvider({ clientId: 'cid', native: () => true, nativePlugin: async () => ({ plugin: { signIn: async () => ({ idToken: 'id-token-app' }) } }) });
+    const app = createGoogleIdentityProvider({
+      clientId: 'cid',
+      native: () => true,
+      nativePlugin: async () => ({ plugin: { signIn: async () => ({ idToken: 'id-token-app' }) } }),
+    });
     expect(await app.obtainCredential()).toBe('id-token-app');
-    expect(await createMockIdentityProvider('passkey', 'mock-passkey:abc12345').obtainCredential()).toBe('mock-passkey:abc12345');
+    expect(await createMockIdentityProvider('passkey', 'mock-passkey:abc12345').obtainCredential()).toBe(
+      'mock-passkey:abc12345',
+    );
   });
 });
 

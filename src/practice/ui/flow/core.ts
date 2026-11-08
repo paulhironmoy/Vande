@@ -4,7 +4,16 @@
  * (./delivery.ts) work through it, so the controller's pieces share one state and one generation counter.
  */
 import type { AnalyticsEventName, AnalyticsProps, BallFlight, DeviceAssessment, NormalizedSwing } from '@/contracts';
-import { loadMetrics, loadPracticeSettings, localStore, saveInnings, saveMetrics, type KeyStore, type PracticeMetrics, type PracticeSettings } from '@/practice/store';
+import {
+  loadMetrics,
+  loadPracticeSettings,
+  localStore,
+  saveInnings,
+  saveMetrics,
+  type KeyStore,
+  type PracticeMetrics,
+  type PracticeSettings,
+} from '@/practice/store';
 import type { FrameSampler } from '@/perf';
 import { createClock, type FlowClock } from './clock';
 import type { CoachKit, PracticeEngine, PracticeStageLike, StageFactory } from './types';
@@ -48,7 +57,10 @@ export interface FlowDeps {
   analytics?: (event: AnalyticsEventName, props?: AnalyticsProps) => void;
   store?: KeyStore | null;
   clock?: FlowClock;
-  benchmark?: (stage: PracticeStageLike | null, opts: { durationMs?: number; allowProbeFallback?: boolean }) => Promise<DeviceAssessment>;
+  benchmark?: (
+    stage: PracticeStageLike | null,
+    opts: { durationMs?: number; allowProbeFallback?: boolean },
+  ) => Promise<DeviceAssessment>;
   reducedMotion?: () => boolean;
   newId?: () => string;
   newSeed?: () => string;
@@ -61,7 +73,11 @@ export interface FlowDeps {
   /** The restrained mastery confirmation (src/audio playMasteryFeel), on the coach's mastery event. */
   masteryFeel?: (event: 'mastered' | 'stage_up') => void;
   /** The match context for the stage's emotion signals (src/audio deliveryContext); never the simulation. */
-  deliveryContext?: (s: { runs: number; wicketsInHand: number; ballsLeft: number | null }) => import('./types').StageDeliveryContext;
+  deliveryContext?: (s: {
+    runs: number;
+    wicketsInHand: number;
+    ballsLeft: number | null;
+  }) => import('./types').StageDeliveryContext;
 }
 
 export function randomHex(bytes = 16): string {

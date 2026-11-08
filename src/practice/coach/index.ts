@@ -4,7 +4,25 @@
  * attempts, mastery of the exact ball and the form report. Pure and deterministic; nothing here feeds the physics.
  */
 export { analyzeBall, analyzeBallInSlices, clearCoachCache, coachTip, type SliceOptions } from './analyze';
-export { faceOffLineDeg, praiseEarned, spokenAction, tipActionWords, tipFactWords, tipOf, tipSentence, tipWords, unwarnedRisks, whereOf, zonePhrases, type CoachTip, type TipAttempt, type TipFact, type TipMistake, type TipTranslator, type TipWhere } from './tip';
+export {
+  faceOffLineDeg,
+  praiseEarned,
+  spokenAction,
+  tipActionWords,
+  tipFactWords,
+  tipOf,
+  tipSentence,
+  tipWords,
+  unwarnedRisks,
+  whereOf,
+  zonePhrases,
+  type CoachTip,
+  type TipAttempt,
+  type TipFact,
+  type TipMistake,
+  type TipTranslator,
+  type TipWhere,
+} from './tip';
 export { optionOf, PICK, worksAcrossSpread } from './options';
 export { PRAISE_MIN_SPEED_SHARE, cleanByMeasure, requestedKph } from './quality';
 export {
@@ -34,7 +52,17 @@ export {
   startMastery,
   type MasteryProgress,
 } from './mastery';
-export { FORM_RULES, FORM_SAMPLE_VERSION, FORM_SKILLS, evidenceOf, formFromAttempts, formSample, isFormSample, type FormContext, type FormSample } from './form';
+export {
+  FORM_RULES,
+  FORM_SAMPLE_VERSION,
+  FORM_SKILLS,
+  evidenceOf,
+  formFromAttempts,
+  formSample,
+  isFormSample,
+  type FormContext,
+  type FormSample,
+} from './form';
 export { ATTACK_ARCS, ORTHODOXY } from './cricket';
 export { GRID } from './candidates';
 export { EXECUTION_SPREAD, FINALISTS } from './simulate';

@@ -9,12 +9,31 @@ import { readFileSync } from 'node:fs';
 import type { FieldLayout } from '@/contracts';
 import { BOUNDARY_R, PITCH_HALF, RING_R, STRIKER_REF, fielderClass, autoField } from '@/physics';
 import { PracticeKitContext, type PracticeKit } from '@/practice/ui/context';
-import { FIELD_PIP_FLOOR, FIELD_PIP_MIN, FIELD_PIP_QUIET_BUDGET, FieldPip, FieldPipShown, MiniRadar, fieldPipSize, quietBudgetOver } from '@/practice/ui/components/MiniRadar';
+import {
+  FIELD_PIP_FLOOR,
+  FIELD_PIP_MIN,
+  FIELD_PIP_QUIET_BUDGET,
+  FieldPip,
+  FieldPipShown,
+  MiniRadar,
+  fieldPipSize,
+  quietBudgetOver,
+} from '@/practice/ui/components/MiniRadar';
 import { fieldPipPhase } from '@/practice/ui/screens/Play';
 
-const kit = { ground: { boundaryR: BOUNDARY_R, ringR: RING_R, pitchHalf: PITCH_HALF, bladeM: 0.96, striker: { x: STRIKER_REF.x, z: STRIKER_REF.z } }, fielderClass } as unknown as PracticeKit;
+const kit = {
+  ground: {
+    boundaryR: BOUNDARY_R,
+    ringR: RING_R,
+    pitchHalf: PITCH_HALF,
+    bladeM: 0.96,
+    striker: { x: STRIKER_REF.x, z: STRIKER_REF.z },
+  },
+  fielderClass,
+} as unknown as PracticeKit;
 const field: FieldLayout = autoField({ family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'b' }, 'balanced');
-const withKit = (node: React.ReactNode) => render(<PracticeKitContext.Provider value={kit}>{node}</PracticeKitContext.Provider>);
+const withKit = (node: React.ReactNode) =>
+  render(<PracticeKitContext.Provider value={kit}>{node}</PracticeKitContext.Provider>);
 
 afterEach(cleanup);
 
@@ -31,7 +50,8 @@ describe('fieldPipPhase', () => {
     expect(fieldPipPhase('live', 'dead', { ...o, replay: true })).toBeNull();
     expect(fieldPipPhase('live', 'runup', { ...o, unity: true })).toBeNull();
     expect(fieldPipPhase('live', 'runup', { ...o, field: false })).toBeNull();
-    for (const phase of ['paused', 'demo', 'closeup', 'replay', 'intro', 'loading', 'idle'] as const) expect(fieldPipPhase('live', phase, o)).toBeNull();
+    for (const phase of ['paused', 'demo', 'closeup', 'replay', 'intro', 'loading', 'idle'] as const)
+      expect(fieldPipPhase('live', phase, o)).toBeNull();
     for (const s of ['coach', 'setup', 'over_summary'] as const) expect(fieldPipPhase(s, 'dead', o)).toBeNull();
   });
   it('steps out at Classic’s dead ball, where the card takes the right half', () => {
@@ -63,10 +83,14 @@ describe('FieldPip', () => {
 
   it('mirrors the stand-in for a left-hander, like the first-person view', () => {
     const { unmount } = withKit(<FieldPip field={field} handedness="right" phase="calm" side="right" />);
-    const right = Array.from(screen.getByTestId('practice-pip-static').querySelectorAll('circle[fill="#f3efe7"]')).map((c) => Number(c.getAttribute('cx')));
+    const right = Array.from(screen.getByTestId('practice-pip-static').querySelectorAll('circle[fill="#f3efe7"]')).map(
+      (c) => Number(c.getAttribute('cx')),
+    );
     unmount();
     withKit(<FieldPip field={field} handedness="left" phase="calm" side="right" />);
-    const left = Array.from(screen.getByTestId('practice-pip-static').querySelectorAll('circle[fill="#f3efe7"]')).map((c) => Number(c.getAttribute('cx')));
+    const left = Array.from(screen.getByTestId('practice-pip-static').querySelectorAll('circle[fill="#f3efe7"]')).map(
+      (c) => Number(c.getAttribute('cx')),
+    );
     expect(left).toEqual(right.map((x) => -x));
   });
 
@@ -111,7 +135,11 @@ describe('fieldPipSize', () => {
     expect(fieldPipSize(1080, 120)).toBe(148);
   });
   it('keeps its bottom above the floor, and gives way when that leaves too little room (a tall rail at 200% text)', () => {
-    for (const [h, top] of [[360, 120], [390, 140], [412, 150]] as const) {
+    for (const [h, top] of [
+      [360, 120],
+      [390, 140],
+      [412, 150],
+    ] as const) {
       const side = fieldPipSize(h, top);
       if (side) expect(top + side).toBeLessThanOrEqual(h * FIELD_PIP_FLOOR);
       if (side) expect(side).toBeGreaterThanOrEqual(FIELD_PIP_MIN);
@@ -158,7 +186,8 @@ describe('the run-up budget (owner decision 2026-11-04: rail + inset ≤ 8% of t
     const box = (id: string, w: number, h: number) => {
       const el = document.createElement('div');
       el.dataset.testid = id;
-      el.getBoundingClientRect = () => ({ x: 0, y: 0, left: 0, top: 0, right: w, bottom: h, width: w, height: h, toJSON: () => ({}) }) as DOMRect;
+      el.getBoundingClientRect = () =>
+        ({ x: 0, y: 0, left: 0, top: 0, right: w, bottom: h, width: w, height: h, toJSON: () => ({}) }) as DOMRect;
       root.append(el);
     };
     box('practice-status', 147, 68);
@@ -166,7 +195,12 @@ describe('the run-up budget (owner decision 2026-11-04: rail + inset ≤ 8% of t
     box('practice-pause', 48, 48);
     document.body.append(root);
     const width = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth');
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, get() { return (this as HTMLElement).hasAttribute('data-pip') ? 104 : 0; } });
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
+      configurable: true,
+      get() {
+        return (this as HTMLElement).hasAttribute('data-pip') ? 104 : 0;
+      },
+    });
     const seen: boolean[] = [];
     const host = document.createElement('div');
     root.append(host);

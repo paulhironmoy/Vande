@@ -10,7 +10,12 @@ import { memoryOutboxStorage } from '@/net/outbox';
 import { SESSION_KEY } from '@/net/session';
 import { createMemorySecureStore } from '@/platform/secureStore';
 
-const TOKENS: SessionTokens = { playerId: 'pme', accessToken: 'access-1', refreshToken: 'refresh-1', expiresAt: '2099-01-01T00:00:00.000Z' };
+const TOKENS: SessionTokens = {
+  playerId: 'pme',
+  accessToken: 'access-1',
+  refreshToken: 'refresh-1',
+  expiresAt: '2099-01-01T00:00:00.000Z',
+};
 const CONFIG = { apiUrl: 'http://127.0.0.1:8787', timeoutMs: 2_000, clientId: 'vande-cricket/test' };
 
 afterEach(() => vi.restoreAllMocks());
@@ -29,7 +34,16 @@ function harness(answer: (method: string, path: string) => Answer) {
   });
   const store = createMemorySecureStore();
   const outboxStorage = memoryOutboxStorage();
-  const net = createNet({ adultConfirmed: () => true, secureStore: store, setOnline: () => undefined, locale: () => 'en', config: CONFIG, fetch, outboxStorage, connectivity: { setOnline: () => undefined } });
+  const net = createNet({
+    adultConfirmed: () => true,
+    secureStore: store,
+    setOnline: () => undefined,
+    locale: () => 'en',
+    config: CONFIG,
+    fetch,
+    outboxStorage,
+    connectivity: { setOnline: () => undefined },
+  });
   if (!net) throw new Error('no net');
   return { net, calls, store, outboxStorage };
 }
@@ -44,7 +58,11 @@ describe('sign-out', () => {
     await h.net.outbox.enqueue({ route: 'POST /v1/report', body: { reason: 'spam' }, group: 'reports' });
     const dropped = h.net.outbox.waitFor((await h.net.outbox.pending())[0].id).catch((e: Error) => e.message);
     await h.net.signOut();
-    expect(h.calls.find((c) => c.path === '/v1/auth/logout')).toEqual({ method: 'POST', path: '/v1/auth/logout', auth: 'Bearer access-1' });
+    expect(h.calls.find((c) => c.path === '/v1/auth/logout')).toEqual({
+      method: 'POST',
+      path: '/v1/auth/logout',
+      auth: 'Bearer access-1',
+    });
     expect(await h.net.outbox.pending()).toEqual([]);
     expect(await dropped).toBe('signed out on this device');
     expect(await h.net.session.current()).toBeNull();
@@ -64,7 +82,11 @@ describe('sign-out', () => {
   });
 
   it('a session the server already ended is simply forgotten', async () => {
-    const h = harness((_m, p) => (p === '/v1/auth/refresh' ? { status: 401, body: { error: { code: 'unauthorized', message: 'revoked' } } } : { status: 401, body: { error: { code: 'unauthorized', message: 'revoked' } } }));
+    const h = harness((_m, p) =>
+      p === '/v1/auth/refresh'
+        ? { status: 401, body: { error: { code: 'unauthorized', message: 'revoked' } } }
+        : { status: 401, body: { error: { code: 'unauthorized', message: 'revoked' } } },
+    );
     await h.net.session.adopt(TOKENS);
     await h.net.signOut();
     expect(await h.net.session.current()).toBeNull();

@@ -17,7 +17,8 @@ import { newIdempotencyKey } from './routes';
 
 export const matchLane = (matchId: string): string => `match:${matchId}`;
 
-export type ShotOutcome = { status: 'resolved'; response: ShotResponse } | { status: 'queued'; delivered: Promise<ShotResponse> };
+export type ShotOutcome =
+  { status: 'resolved'; response: ShotResponse } | { status: 'queued'; delivered: Promise<ShotResponse> };
 
 export class BattingClient {
   constructor(
@@ -35,7 +36,11 @@ export class BattingClient {
       key = newIdempotencyKey();
       await this.kv.set(slot, key);
     }
-    const ball = await this.api.call('POST /v1/matches/:id/bat/next', { params: { id: matchId } }, { idempotencyKey: key });
+    const ball = await this.api.call(
+      'POST /v1/matches/:id/bat/next',
+      { params: { id: matchId } },
+      { idempotencyKey: key },
+    );
     await this.kv.remove(slot);
     await this.kv.set(`ball:${matchId}`, JSON.stringify(ball));
     return ball;
@@ -49,7 +54,14 @@ export class BattingClient {
 
   async shot(matchId: string, ballToken: string, input: BattingInput): Promise<ShotOutcome> {
     await this.kv.remove(`ball:${matchId}`);
-    const result = await this.outbox.submit<ShotResponse>({ route: 'POST /v1/matches/:id/bat/shot', params: { id: matchId }, body: { ballToken, input }, group: matchLane(matchId) });
-    return result.status === 'sent' ? { status: 'resolved', response: result.response } : { status: 'queued', delivered: result.delivered };
+    const result = await this.outbox.submit<ShotResponse>({
+      route: 'POST /v1/matches/:id/bat/shot',
+      params: { id: matchId },
+      body: { ballToken, input },
+      group: matchLane(matchId),
+    });
+    return result.status === 'sent'
+      ? { status: 'resolved', response: result.response }
+      : { status: 'queued', delivered: result.delivered };
   }
 }

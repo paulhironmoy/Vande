@@ -154,8 +154,27 @@ export class DirectorRuntime {
     const spec = script.practice?.director;
     if (!this.enabled || !spec || this.entries.has(script)) return;
     const look = script.actors.find((x) => x.id === 'bowler')?.look.seed ?? '';
-    const key = spec.seed !== null ? deliveryTakeKey({ seed: spec.seed }) : `${look}|${kind}.${kind === 'idle' ? ++this.idleCount : 0}`;
-    const e: Entry = { script, spec, kind, key, rm: this.reducedMotion, plans: { bowler: null, striker: null }, pending: [], fade: false, fade0: Number.NaN, loop: kind === 'idle', seam: {}, lap: { bowler: 0, striker: 0 }, next: { bowler: null, striker: null }, nextQueued: { bowler: false, striker: false }, lastT: { bowler: Number.NaN, striker: Number.NaN } };
+    const key =
+      spec.seed !== null
+        ? deliveryTakeKey({ seed: spec.seed })
+        : `${look}|${kind}.${kind === 'idle' ? ++this.idleCount : 0}`;
+    const e: Entry = {
+      script,
+      spec,
+      kind,
+      key,
+      rm: this.reducedMotion,
+      plans: { bowler: null, striker: null },
+      pending: [],
+      fade: false,
+      fade0: Number.NaN,
+      loop: kind === 'idle',
+      seam: {},
+      lap: { bowler: 0, striker: 0 },
+      next: { bowler: null, striker: null },
+      nextQueued: { bowler: false, striker: false },
+      lastT: { bowler: Number.NaN, striker: Number.NaN },
+    };
     try {
       this.entries.set(script, e);
       if (kind === 'idle') {
@@ -230,7 +249,11 @@ export class DirectorRuntime {
         z: st.pos.z + (st.body?.z ?? 0) - Math.sin(h) * side + Math.cos(h) * fwd,
       };
     };
-    const dir = (from: { x: number; y: number; z: number }, p: { x: number; y: number; z: number }, out: Float64Array): void => {
+    const dir = (
+      from: { x: number; y: number; z: number },
+      p: { x: number; y: number; z: number },
+      out: Float64Array,
+    ): void => {
       const fwd = role === 'bowler' ? p.z - from.z : from.z - p.z;
       const left = role === 'bowler' ? p.x - from.x : from.x - p.x;
       out[0] = Math.atan2(left, fwd) * DEG;
@@ -305,7 +328,14 @@ export class DirectorRuntime {
   private queueBoth(e: Entry, rm: boolean, fadeIn: boolean, deadline: number): void {
     e.rm = rm;
     for (const role of ['bowler', 'striker'] as const) {
-      e.pending.push({ role, make: () => startPrepare(this.anchors(e, role, rm), { hz: 60 }), job: null, deadline, fadeIn, serving: false });
+      e.pending.push({
+        role,
+        make: () => startPrepare(this.anchors(e, role, rm), { hz: 60 }),
+        job: null,
+        deadline,
+        fadeIn,
+        serving: false,
+      });
       this.stats.jobs++;
     }
     if (!this.queue.includes(e)) this.queue.push(e);
@@ -325,7 +355,13 @@ export class DirectorRuntime {
     const s = e.spec.striker;
     const liveS = live.spec.striker;
     const nz = (x: number | null, add: number) => (x === null ? Number.POSITIVE_INFINITY : x + add);
-    const ball = Math.min(nz(s.contact, BALL_LAG_MS), nz(s.outcomeAt, 180), nz(s.dead, BALL_LAG_MS), nz(live.spec.flightEnd, BALL_LAG_MS), nz(liveS.taskEnd, 150 - 12));
+    const ball = Math.min(
+      nz(s.contact, BALL_LAG_MS),
+      nz(s.outcomeAt, 180),
+      nz(s.dead, BALL_LAG_MS),
+      nz(live.spec.flightEnd, BALL_LAG_MS),
+      nz(liveS.taskEnd, 150 - 12),
+    );
     for (const role of ['bowler', 'striker'] as const) {
       const livePlan = live.plans[role]!;
       const own = role === 'striker' ? Math.min(ball, nz(s.strokeEnd, 0)) : ball;
@@ -383,11 +419,19 @@ export class DirectorRuntime {
     return Number.isFinite(p.deadline) && (!p.job || p.job.horizonMs <= p.deadline + AHEAD_MS);
   }
 
-  private run(budgetMs: number, now: () => number, shown: BallScript | undefined, mode: 'all' | 'urgent' | 'rest'): boolean {
+  private run(
+    budgetMs: number,
+    now: () => number,
+    shown: BallScript | undefined,
+    mode: 'all' | 'urgent' | 'rest',
+  ): boolean {
     if (this.queue.length === 0) return false;
     const until = now() + budgetMs;
     for (;;) {
-      const e = this.queue.find((x) => (x.kind !== 'idle' || x.script === shown) && (mode !== 'urgent' || x.pending.some((p) => this.isUrgent(p))));
+      const e = this.queue.find(
+        (x) =>
+          (x.kind !== 'idle' || x.script === shown) && (mode !== 'urgent' || x.pending.some((p) => this.isUrgent(p))),
+      );
       const p = e ? this.next(e, mode) : undefined;
       if (!e || !p) {
         // an entry with nothing pending leaves the queue; one that is waiting for its scene to be shown stays
@@ -515,7 +559,15 @@ export class DirectorRuntime {
   private queueNext(e: Entry, role: Role): void {
     e.nextQueued[role] = true;
     const key = `${e.key}.${e.lap[role] + 1}`;
-    e.pending.push({ role, make: () => startPrepare(this.anchors(e, role, e.rm, key), { hz: 60 }), job: null, deadline: Number.POSITIVE_INFINITY, fadeIn: false, serving: false, next: true });
+    e.pending.push({
+      role,
+      make: () => startPrepare(this.anchors(e, role, e.rm, key), { hz: 60 }),
+      job: null,
+      deadline: Number.POSITIVE_INFINITY,
+      fadeIn: false,
+      serving: false,
+      next: true,
+    });
     if (!this.queue.includes(e)) this.queue.push(e);
   }
 
@@ -528,7 +580,7 @@ export class DirectorRuntime {
     if (s.swing === null) return 0;
     const [strength, riseMs, decayMs] = P.expr.effort;
     const slow = rm ? P.expr.slowRm : 1;
-    const end = s.strokeEnd ?? (s.contact ?? s.swing + 900);
+    const end = s.strokeEnd ?? s.contact ?? s.swing + 900;
     return strength * smooth((t - s.swing) / (riseMs * slow)) * (1 - smooth((t - end) / (decayMs * slow)));
   }
 
@@ -608,7 +660,8 @@ export class DirectorRuntime {
           head.rm = this.reducedMotion;
           head.w = 0;
           head.bowler = id === 'bowler';
-          head.brake = id === 'striker' || t > (entry.spec.bowler.release ?? Number.POSITIVE_INFINITY) + BRAKE.bowlerAfterMs;
+          head.brake =
+            id === 'striker' || t > (entry.spec.bowler.release ?? Number.POSITIVE_INFINITY) + BRAKE.bowlerAfterMs;
           head.seam = seam;
         }
         return;
@@ -623,7 +676,8 @@ export class DirectorRuntime {
       head.w = w;
       head.bowler = id === 'bowler';
       // The striker's neck and head brake on arrival; the bowler's only after the release (until then they hold him on the batter)
-      head.brake = id === 'striker' || t > (entry.spec.bowler.release ?? Number.POSITIVE_INFINITY) + BRAKE.bowlerAfterMs;
+      head.brake =
+        id === 'striker' || t > (entry.spec.bowler.release ?? Number.POSITIVE_INFINITY) + BRAKE.bowlerAfterMs;
       head.seam = seam;
     };
     h = { life };
@@ -643,4 +697,3 @@ export class DirectorRuntime {
     for (const p of e.pending.slice()) this.complete(e, p);
   }
 }
-

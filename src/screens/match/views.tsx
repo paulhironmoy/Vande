@@ -33,7 +33,13 @@ function Players({ view, me, opponent }: { view: MatchView; me: PlayerRef; oppon
         {t('common.vs')}
       </span>
       <div className={s.side}>
-        {opponent ? <Avatar avatar={opponent.avatar} kit={opponent.kit} size={64} decorative /> : <span className={s.empty} aria-hidden="true"><Icon name="plus" size={22} /></span>}
+        {opponent ? (
+          <Avatar avatar={opponent.avatar} kit={opponent.kit} size={64} decorative />
+        ) : (
+          <span className={s.empty} aria-hidden="true">
+            <Icon name="plus" size={22} />
+          </span>
+        )}
         <span className={s.name}>{opponent ? opponent.alias : t('match.friend_tbc')}</span>
         {opponent && (
           <span className={s.flag} data-on={view.locked[(1 - view.me) as 0 | 1] || undefined}>
@@ -72,7 +78,9 @@ function RivalryLine({ rivalry, name }: { rivalry: Rivalry | null; name: string 
   return (
     <p className={s.rivalry} data-testid="match-rivalry">
       <Icon name="trophy" size={16} />
-      {rivalry.played === 0 ? t('match.rivalry_first', { name }) : t('match.rivalry', { name, won: rivalry.won, lost: rivalry.lost, tied: rivalry.tied })}
+      {rivalry.played === 0
+        ? t('match.rivalry_first', { name })
+        : t('match.rivalry', { name, won: rivalry.won, lost: rivalry.lost, tied: rivalry.tied })}
     </p>
   );
 }
@@ -89,7 +97,9 @@ function SealProof({ hash, label }: { hash: string; label: string }) {
       <button
         type="button"
         className={s.hash}
-        onClick={async () => toast({ kind: (await copyText(hash)) ? 'success' : 'warning', text: t('match.hash_copied') })}
+        onClick={async () =>
+          toast({ kind: (await copyText(hash)) ? 'success' : 'warning', text: t('match.hash_copied') })
+        }
         title={hash}
       >
         {/* The accessible name starts with what is visible (the code), then says what the button does. */}
@@ -104,12 +114,33 @@ function SealProof({ hash, label }: { hash: string; label: string }) {
 }
 
 /** Before batting: plan and lock, or the sealed proof while the other side locks (or joins). */
-export function SealedView({ view, me, opponent, now, justLocked, onPlan, net, services }: { view: MatchView; me: PlayerRef; opponent: PlayerRef | null; now: number; justLocked: boolean; onPlan?: () => void; net: Net; services: Services | null }) {
+export function SealedView({
+  view,
+  me,
+  opponent,
+  now,
+  justLocked,
+  onPlan,
+  net,
+  services,
+}: {
+  view: MatchView;
+  me: PlayerRef;
+  opponent: PlayerRef | null;
+  now: number;
+  justLocked: boolean;
+  onPlan?: () => void;
+  net: Net;
+  services: Services | null;
+}) {
   const tr = useT();
   const { t } = tr;
   const navigate = useRouter((st) => st.navigate);
   // The creator's invite link comes from the server (any device); the link saved at creation is the fallback.
-  const inviteUrl = useMemo(() => view.inviteUrl ?? savedInvite({ matchId: view.matchId })?.inviteUrl ?? null, [view.inviteUrl, view.matchId]);
+  const inviteUrl = useMemo(
+    () => view.inviteUrl ?? savedInvite({ matchId: view.matchId })?.inviteUrl ?? null,
+    [view.inviteUrl, view.matchId],
+  );
   const mine = view.locked[view.me];
   const oppLocked = view.locked[(1 - view.me) as 0 | 1];
   const lockIn = untilText(tr, view.deadlines.lockBy, now);
@@ -156,12 +187,20 @@ export function SealedView({ view, me, opponent, now, justLocked, onPlan, net, s
           {view.myCommit && <SealProof hash={view.myCommit} label={t('match.your_commit')} />}
           <p className={s.status}>
             <Icon name={oppLocked ? 'check' : 'clock'} size={16} />
-            {!opponent ? t('match.waiting_join') : oppLocked ? t('match.opp_locked', { name: opponent.alias }) : t('match.opp_not_locked', { name: opponent.alias })}
+            {!opponent
+              ? t('match.waiting_join')
+              : oppLocked
+                ? t('match.opp_locked', { name: opponent.alias })
+                : t('match.opp_not_locked', { name: opponent.alias })}
           </p>
-          {!oppLocked && lockIn && <p className={s.small}>{t('match.lock_deadline', { when: lockIn, at: lockAt ?? '' })}</p>}
+          {!oppLocked && lockIn && (
+            <p className={s.small}>{t('match.lock_deadline', { when: lockIn, at: lockAt ?? '' })}</p>
+          )}
         </Card>
       )}
-      {mine && justLocked && view.kind === 'duel' && services && <PushPrompt push={services.platform.push} net={net} opponent={opponent?.alias ?? null} />}
+      {mine && justLocked && view.kind === 'duel' && services && (
+        <PushPrompt push={services.platform.push} net={net} opponent={opponent?.alias ?? null} />
+      )}
       {view.phase === 'awaiting_opponent' &&
         (inviteUrl ? (
           <InvitePanel matchId={view.matchId} inviteUrl={inviteUrl} inviter={me} conditions={view.conditions} />
@@ -179,7 +218,17 @@ export function SealedView({ view, me, opponent, now, justLocked, onPlan, net, s
 }
 
 /** Both overs sealed: the innings is ready (the field is shown with the first ball). */
-export function BatReadyView({ view, opponent, now, onBat }: { view: MatchView; opponent: PlayerRef | null; now: number; onBat: () => void }) {
+export function BatReadyView({
+  view,
+  opponent,
+  now,
+  onBat,
+}: {
+  view: MatchView;
+  opponent: PlayerRef | null;
+  now: number;
+  onBat: () => void;
+}) {
   const tr = useT();
   const { t } = tr;
   const by = untilText(tr, view.deadlines.batBy, now);
@@ -222,7 +271,19 @@ export function BatReadyView({ view, opponent, now, onBat }: { view: MatchView; 
  * the shared reveal moment (a public time, the same for both players) is counted down; the route fetches the match
  * again at that moment and rolls into the reveal.
  */
-export function AwaitingRevealView({ view, me, opponent, now, services }: { view: MatchView; me: PlayerRef; opponent: PlayerRef | null; now: number; services: Services | null }) {
+export function AwaitingRevealView({
+  view,
+  me,
+  opponent,
+  now,
+  services,
+}: {
+  view: MatchView;
+  me: PlayerRef;
+  opponent: PlayerRef | null;
+  now: number;
+  services: Services | null;
+}) {
   const tr = useT();
   const { t } = tr;
   const oppDone = view.battingDone[(1 - view.me) as 0 | 1];
@@ -238,9 +299,16 @@ export function AwaitingRevealView({ view, me, opponent, now, services }: { view
   // offered only while there is such a task (reminderFor), before its deadline and once per match; worked out on
   // every render, so a poll that brings their innings in takes the offer away.
   const task = reminderFor(view);
-  const ctx = { kind: view.kind === 'cup' ? ('cup' as const) : ('duel' as const), id: view.matchId, url: routeUrl({ name: 'match', matchId: view.matchId }), locale: shareLocale(tr.locale), ...(task ?? {}) };
+  const ctx = {
+    kind: view.kind === 'cup' ? ('cup' as const) : ('duel' as const),
+    id: view.matchId,
+    url: routeUrl({ name: 'match', matchId: view.matchId }),
+    locale: shareLocale(tr.locale),
+    ...(task ?? {}),
+  };
   const [, setShared] = useState(0);
-  const canNudge = Boolean(task) && !oppDone && !isPast(task?.deadline ?? batBy, now) && momentAvailable('reminder', ctx);
+  const canNudge =
+    Boolean(task) && !oppDone && !isPast(task?.deadline ?? batBy, now) && momentAvailable('reminder', ctx);
   const nudge = async () => {
     if (!services) return;
     services.analytics.track('share_initiated', { mode: ctx.kind, channel: 'whatsapp' });
@@ -261,7 +329,9 @@ export function AwaitingRevealView({ view, me, opponent, now, services }: { view
           <p className={s.body}>{t('match.both_in_body')}</p>
           <p className={s.deadline} role="timer" data-testid="match-reveal-countdown" data-reveal-at={slot}>
             <Icon name="clock" size={16} />
-            {tick >= slotMs ? t('match.reveal_opening') : t('match.reveal_slot', { at: clockText(tr, slot, tick) ?? '', when: untilText(tr, slot, tick) ?? '' })}
+            {tick >= slotMs
+              ? t('match.reveal_opening')
+              : t('match.reveal_slot', { at: clockText(tr, slot, tick) ?? '', when: untilText(tr, slot, tick) ?? '' })}
           </p>
         </Card>
         {opponent && <RivalryLine rivalry={rivalry} name={opponent.alias} />}
@@ -279,7 +349,9 @@ export function AwaitingRevealView({ view, me, opponent, now, services }: { view
         <p className={s.body}>{t('match.wait_body')}</p>
         <p className={s.status}>
           <Icon name={oppDone ? 'check' : 'clock'} size={16} />
-          {oppDone ? t('match.opp_batted', { name: opponent?.alias ?? '' }) : t('match.opp_not_batted', { name: opponent?.alias ?? '' })}
+          {oppDone
+            ? t('match.opp_batted', { name: opponent?.alias ?? '' })
+            : t('match.opp_not_batted', { name: opponent?.alias ?? '' })}
         </p>
         <p className={s.deadline}>
           <Icon name="clock" size={16} />
@@ -305,7 +377,13 @@ export function ExpiredView({ view }: { view: MatchView }) {
   return (
     <div className={s.stack} data-testid="match-phase" data-phase={view.phase}>
       {/* A duel expires when nobody joined, or when both joined but neither locked by the lock deadline. */}
-      <StateView kind="deadline_expired" title={t('match.expired_title')} body={view.players[1] ? t('match.expired_unlocked_body') : t('match.expired_body')} actionLabel={t('match.new_duel')} onAction={() => navigate({ name: 'duel_new' })} />
+      <StateView
+        kind="deadline_expired"
+        title={t('match.expired_title')}
+        body={view.players[1] ? t('match.expired_unlocked_body') : t('match.expired_body')}
+        actionLabel={t('match.new_duel')}
+        onAction={() => navigate({ name: 'duel_new' })}
+      />
       <Button variant="ghost" icon="ghost" onClick={() => navigate({ name: 'ghosts' })}>
         {t('home.ghosts.title')}
       </Button>

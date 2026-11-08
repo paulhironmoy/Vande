@@ -4,7 +4,13 @@
  * the real integrator (src/physics/ball.ts) so the fielding rules can be tested against controlled, known shots; it
  * is never used by production code.
  */
-import { PRACTICE_SIM_VERSION, type BallFlight, type BallSample, type DeliveryVariation, type Vec3 } from '@/contracts/practice';
+import {
+  PRACTICE_SIM_VERSION,
+  type BallFlight,
+  type BallSample,
+  type DeliveryVariation,
+  type Vec3,
+} from '@/contracts/practice';
 import { BALL_R, BOUNDARY_R, G, PITCH_HALF } from '@/physics/constants';
 import { seamCue } from '@/physics/delivery';
 import type { PostContactBall } from '@/physics/fielding';
@@ -37,7 +43,9 @@ export function stubShot(s: StubShot): PostContactBall {
   const el = (s.elevationDeg * Math.PI) / 180;
   const sp0 = s.speedKph / 3.6;
   let p: Vec3 = { ...(s.from ?? { x: 0, y: 0.6, z: 8.3 }) };
-  let v: Vec3 = s.v0 ? { ...s.v0 } : { x: sp0 * Math.cos(el) * Math.sin(b), y: sp0 * Math.sin(el), z: -sp0 * Math.cos(el) * Math.cos(b) };
+  let v: Vec3 = s.v0
+    ? { ...s.v0 }
+    : { x: sp0 * Math.cos(el) * Math.sin(b), y: sp0 * Math.sin(el), z: -sp0 * Math.cos(el) * Math.cos(b) };
   const samples: BallSample[] = [{ t: t0, p: { ...p }, v: { ...v } }];
   const bounces: PostContactBall['bounces'] = [];
   let boundary: PostContactBall['boundary'] = null;
@@ -78,10 +86,25 @@ export function stubShot(s: StubShot): PostContactBall {
  * A drag-free ball from the bat that passes over the ground point (x, z) at height `h` exactly `T` seconds after
  * contact, then carries on, lands and rolls (for precise catching geometry).
  */
-export function stubThrough(x: number, z: number, h: number, T: number, opts: { t0?: number; dt?: number; from?: Vec3 } = {}): PostContactBall {
+export function stubThrough(
+  x: number,
+  z: number,
+  h: number,
+  T: number,
+  opts: { t0?: number; dt?: number; from?: Vec3 } = {},
+): PostContactBall {
   const from = opts.from ?? { x: 0, y: 0.6, z: 8.3 };
   const v0 = { x: (x - from.x) / T, y: (h - from.y + 0.5 * G * T * T) / T, z: (z - from.z) / T };
-  return stubShot({ t0: opts.t0, dt: opts.dt ?? 1 / 480, from, bearingDeg: 0, speedKph: 0, elevationDeg: 0, v0, drag: 0 });
+  return stubShot({
+    t0: opts.t0,
+    dt: opts.dt ?? 1 / 480,
+    from,
+    bearingDeg: 0,
+    speedKph: 0,
+    elevationDeg: 0,
+    v0,
+    drag: 0,
+  });
 }
 
 /**
@@ -118,8 +141,20 @@ export function stubFlight(o: {
   const vxPre = vx0 + ax * tb;
   const state = (t: number): BallSample =>
     t <= tb
-      ? { t, p: { x: p0.x + vx0 * t + 0.5 * ax * t * t, y: p0.y + vy0 * t - 0.5 * G * t * t, z: p0.z + vz * t }, v: { x: vx0 + ax * t, y: vy0 - G * t, z: vz } }
-      : { t, p: { x: xb + (vxPre + dvx) * (t - tb), y: BALL_R + vyAfter * (t - tb) - 0.5 * G * (t - tb) * (t - tb), z: zb + vz * (t - tb) }, v: { x: vxPre + dvx, y: vyAfter - G * (t - tb), z: vz } };
+      ? {
+          t,
+          p: { x: p0.x + vx0 * t + 0.5 * ax * t * t, y: p0.y + vy0 * t - 0.5 * G * t * t, z: p0.z + vz * t },
+          v: { x: vx0 + ax * t, y: vy0 - G * t, z: vz },
+        }
+      : {
+          t,
+          p: {
+            x: xb + (vxPre + dvx) * (t - tb),
+            y: BALL_R + vyAfter * (t - tb) - 0.5 * G * (t - tb) * (t - tb),
+            z: zb + vz * (t - tb),
+          },
+          v: { x: vxPre + dvx, y: vyAfter - G * (t - tb), z: vz },
+        };
   for (let t = 0; t <= end + 1e-9; t += dt) samples.push(state(t));
   const stumpsT = (PITCH_HALF - p0.z) / vz;
   const atStumps = state(stumpsT);
@@ -137,6 +172,12 @@ export function stubFlight(o: {
     // A synthetic flight without spin (its movement is prescribed above, not produced by spin).
     spin: { release: { x: 0, y: 0, z: 0 }, afterBounce: null },
     // An upright seam with its shine away from the prescribed swing, as the physics would present it.
-    seam: seamCue({ v: { x: vx0, y: vy0, z: vz }, spin: { x: 0, y: 0, z: 0 }, seamDeg: 0, swingCs: o.airSwingM ?? 0, presentation: 'upright' }),
+    seam: seamCue({
+      v: { x: vx0, y: vy0, z: vz },
+      spin: { x: 0, y: 0, z: 0 },
+      seamDeg: 0,
+      swingCs: o.airSwingM ?? 0,
+      presentation: 'upright',
+    }),
   };
 }

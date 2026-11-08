@@ -74,19 +74,50 @@ describe('timing mark', () => {
 
 describe('batting feel', () => {
   async function playIdealBall(answer: () => Promise<ShotFeedback>) {
-    const delivery = engine.revealDelivery(engine.ghostPlan(engine.GHOSTS[0].id, 'test', { pitch: 'hard', weather: 'clear' }), 0, { pitch: 'hard', weather: 'clear' });
-    renderUi(<BattingScreen setup={{ conditions: { pitch: 'hard', weather: 'clear' }, field: 'balanced', batter: FIXTURE_PLAYERS[0], bowler: FIXTURE_PLAYERS[1] }} nextBall={vi.fn(async () => ({ delivery, ballsLeft: 5 }))} submitShot={vi.fn(answer)} onComplete={vi.fn()} />);
+    const delivery = engine.revealDelivery(
+      engine.ghostPlan(engine.GHOSTS[0].id, 'test', { pitch: 'hard', weather: 'clear' }),
+      0,
+      { pitch: 'hard', weather: 'clear' },
+    );
+    renderUi(
+      <BattingScreen
+        setup={{
+          conditions: { pitch: 'hard', weather: 'clear' },
+          field: 'balanced',
+          batter: FIXTURE_PLAYERS[0],
+          bowler: FIXTURE_PLAYERS[1],
+        }}
+        nextBall={vi.fn(async () => ({ delivery, ballsLeft: 5 }))}
+        submitShot={vi.fn(answer)}
+        onComplete={vi.fn()}
+      />,
+    );
     await waitFor(() => screen.getByRole('button', { name: 'Play' }));
     releaseAt = now + 2000;
     fireEvent.click(screen.getByRole('button', { name: 'Play' }));
     const surface = screen.getByRole('button', { name: 'Bat' });
     await waitFor(() => expect(surface.getAttribute('data-live')).toBe('true'));
-    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 300, height: 160, right: 300, bottom: 160, x: 0, y: 0, toJSON: () => ({}) });
+    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 300,
+      height: 160,
+      right: 300,
+      bottom: 160,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
     now = releaseAt + delivery.timing.releaseToContactMs - 180;
     fireEvent.pointerDown(surface, { clientX: 150, clientY: 110, pointerType: 'touch', pointerId: 1 });
     for (let i = 1; i <= 6; i++) {
       now += 30;
-      fireEvent.pointerMove(surface, { clientX: 150 + i * 12, clientY: 110 - i * 9, pointerType: 'touch', pointerId: 1 });
+      fireEvent.pointerMove(surface, {
+        clientX: 150 + i * 12,
+        clientY: 110 - i * 9,
+        pointerType: 'touch',
+        pointerId: 1,
+      });
     }
     now = releaseAt + delivery.timing.releaseToContactMs;
     await act(async () => {
@@ -105,12 +136,16 @@ describe('batting feel', () => {
     await waitFor(() => expect(screen.getByTestId('batting-screen').getAttribute('data-phase')).toBe('feedback'));
     expect(feel.log[1]).toEqual(['contact', 'middle', 'perfect', 'middle', 'perfect']);
     expect(screen.getByText('Perfect · Middle of the bat')).toBeTruthy();
-    expect(screen.getByTestId('bat-feedback-detail').textContent).toMatch(/^Drive towards (Cover|Mid-off|Point) · Right on time$/);
+    expect(screen.getByTestId('bat-feedback-detail').textContent).toMatch(
+      /^Drive towards (Cover|Mid-off|Point) · Right on time$/,
+    );
     const meter = screen.getByTestId('bat-timing-meter');
     expect(meter.getAttribute('aria-hidden')).toBe('true');
     expect(meter.textContent).toBe('EarlyPerfectLate');
     // Still sealed: no runs, no wickets.
-    expect(screen.getByTestId('bat-feedback').textContent?.replace('Runs and wickets stay hidden until the reveal.', '')).not.toMatch(/\d+\s*runs?|wicket|out\b|four|six/i);
+    expect(
+      screen.getByTestId('bat-feedback').textContent?.replace('Runs and wickets stay hidden until the reveal.', ''),
+    ).not.toMatch(/\d+\s*runs?|wicket|out\b|four|six/i);
   });
 
   it('an edge the tap did not predict is felt and named when the answer lands', async () => {
@@ -127,31 +162,64 @@ describe('batting feel', () => {
 describe('the tap and its trace are timed from the events, never from when a handler ran', () => {
   /** A pointer event with its own timestamp, as a browser stamps it (jsdom stamps epoch time, which counts as missing). */
   function stamped(type: string, x: number, y: number, t: number): PointerEvent {
-    const e = new PointerEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, pointerType: 'touch', pointerId: 1 });
+    const e = new PointerEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      clientX: x,
+      clientY: y,
+      pointerType: 'touch',
+      pointerId: 1,
+    });
     Object.defineProperty(e, 'timeStamp', { value: t });
     return e;
   }
 
   /** Bowls one ball and waits until it is live; BAT is 300 × 170 CSS px at (10, 20). */
   async function liveBall() {
-    const delivery = engine.revealDelivery(engine.ghostPlan(engine.GHOSTS[0].id, 'test', { pitch: 'hard', weather: 'clear' }), 0, { pitch: 'hard', weather: 'clear' });
+    const delivery = engine.revealDelivery(
+      engine.ghostPlan(engine.GHOSTS[0].id, 'test', { pitch: 'hard', weather: 'clear' }),
+      0,
+      { pitch: 'hard', weather: 'clear' },
+    );
     const submitted: BattingInput[] = [];
     const submitShot = vi.fn(async (input: BattingInput): Promise<ShotFeedback> => {
       submitted.push(input);
       return { ball: 0, timing: 'perfect', contact: 'middle' };
     });
-    renderUi(<BattingScreen setup={{ conditions: { pitch: 'hard', weather: 'clear' }, field: 'balanced', batter: FIXTURE_PLAYERS[0], bowler: FIXTURE_PLAYERS[1] }} nextBall={vi.fn(async () => ({ delivery, ballsLeft: 5 }))} submitShot={submitShot} onComplete={vi.fn()} />);
+    renderUi(
+      <BattingScreen
+        setup={{
+          conditions: { pitch: 'hard', weather: 'clear' },
+          field: 'balanced',
+          batter: FIXTURE_PLAYERS[0],
+          bowler: FIXTURE_PLAYERS[1],
+        }}
+        nextBall={vi.fn(async () => ({ delivery, ballsLeft: 5 }))}
+        submitShot={submitShot}
+        onComplete={vi.fn()}
+      />,
+    );
     await waitFor(() => screen.getByRole('button', { name: 'Play' }));
     const receivedAt = now;
     releaseAt = now + 2000;
     fireEvent.click(screen.getByRole('button', { name: 'Play' }));
     const surface = screen.getByRole('button', { name: 'Bat' });
     await waitFor(() => expect(surface.getAttribute('data-live')).toBe('true'));
-    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({ left: 10, top: 20, width: 300, height: 170, right: 310, bottom: 190, x: 10, y: 20, toJSON: () => ({}) });
+    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({
+      left: 10,
+      top: 20,
+      width: 300,
+      height: 170,
+      right: 310,
+      bottom: 190,
+      x: 10,
+      y: 20,
+      toJSON: () => ({}),
+    });
     return { delivery, surface, submitted, submitShot, receivedAt };
   }
 
-  it('tapMs is the up event\'s timestamp minus the rendered release; the trace is [ms since the press (0.1 ms), x, y (4 decimals)]', async () => {
+  it("tapMs is the up event's timestamp minus the rendered release; the trace is [ms since the press (0.1 ms), x, y (4 decimals)]", async () => {
     const { delivery, surface, submitted, receivedAt } = await liveBall();
     const ideal = releaseAt + delivery.timing.releaseToContactMs;
     const t0 = ideal - 150.04;
@@ -199,7 +267,7 @@ describe('the tap and its trace are timed from the events, never from when a han
     expect(screen.getByTestId('batting-screen').getAttribute('data-phase')).toBe('live');
   });
 
-  it('Space plays the shot at the key event\'s own timestamp, with the fixed keyboard trace', async () => {
+  it("Space plays the shot at the key event's own timestamp, with the fixed keyboard trace", async () => {
     const { delivery, surface, submitted } = await liveBall();
     const pressed = releaseAt + delivery.timing.releaseToContactMs + 7.04;
     // The handler runs late (a busy main thread); the press itself is what counts.
@@ -211,12 +279,18 @@ describe('the tap and its trace are timed from the events, never from when a han
     });
     await waitFor(() => expect(submitted).toHaveLength(1));
     expect(submitted[0].tapMs).toBe(Math.round((pressed - releaseAt) * 10) / 10);
-    expect(submitted[0].trace).toEqual({ pointer: 'keyboard', samples: [[0, 0.5, 0.5], [60, 0.5, 0.5]] });
+    expect(submitted[0].trace).toEqual({
+      pointer: 'keyboard',
+      samples: [
+        [0, 0.5, 0.5],
+        [60, 0.5, 0.5],
+      ],
+    });
     const check = engine.validateBattingInput(submitted[0], delivery);
     expect(check.ok ? 'ok' : check.errors.join(',')).toBe('ok');
   });
 
-  it('Space without a usable event timestamp (jsdom stamps epoch time) falls back to the handler\'s time', async () => {
+  it("Space without a usable event timestamp (jsdom stamps epoch time) falls back to the handler's time", async () => {
     const { delivery, surface, submitted } = await liveBall();
     now = releaseAt + delivery.timing.releaseToContactMs + 7.04;
     await act(async () => {
@@ -224,7 +298,13 @@ describe('the tap and its trace are timed from the events, never from when a han
     });
     await waitFor(() => expect(submitted).toHaveLength(1));
     expect(submitted[0].tapMs).toBe(Math.round((now - releaseAt) * 10) / 10);
-    expect(submitted[0].trace).toEqual({ pointer: 'keyboard', samples: [[0, 0.5, 0.5], [60, 0.5, 0.5]] });
+    expect(submitted[0].trace).toEqual({
+      pointer: 'keyboard',
+      samples: [
+        [0, 0.5, 0.5],
+        [60, 0.5, 0.5],
+      ],
+    });
     const check = engine.validateBattingInput(submitted[0], delivery);
     expect(check.ok ? 'ok' : check.errors.join(',')).toBe('ok');
   });

@@ -47,7 +47,8 @@ export function avatarInner(avatar: AvatarSpec, kit: KitSpec | undefined, id: st
 
   const eye = (x: number) => {
     if (tr.eyes === 'round') return `<circle cx="${x}" cy="${eyeY}" r="2.4" fill="#120d1c"/>`;
-    if (tr.eyes === 'narrow') return `<path d="M${x - 3.2} ${eyeY} Q${x} ${eyeY - 2} ${x + 3.2} ${eyeY}" stroke="#120d1c" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+    if (tr.eyes === 'narrow')
+      return `<path d="M${x - 3.2} ${eyeY} Q${x} ${eyeY - 2} ${x + 3.2} ${eyeY}" stroke="#120d1c" stroke-width="2" fill="none" stroke-linecap="round"/>`;
     return `<path d="M${x - 3.6} ${eyeY} Q${x} ${eyeY - 3.4} ${x + 3.6} ${eyeY} Q${x} ${eyeY + 2.4} ${x - 3.6} ${eyeY}Z" fill="#120d1c"/>`;
   };
 
@@ -63,9 +64,13 @@ export function avatarInner(avatar: AvatarSpec, kit: KitSpec | undefined, id: st
   const pattern = (() => {
     switch (k.pattern) {
       case 'stripes':
-        return [0, 1, 2, 3, 4, 5].map((i) => `<rect x="${20 + i * 16}" y="84" width="5" height="40" fill="${secondary}" opacity="0.85"/>`).join('');
+        return [0, 1, 2, 3, 4, 5]
+          .map((i) => `<rect x="${20 + i * 16}" y="84" width="5" height="40" fill="${secondary}" opacity="0.85"/>`)
+          .join('');
       case 'hoops':
-        return [0, 1].map((i) => `<rect x="10" y="${98 + i * 12}" width="100" height="5" fill="${secondary}" opacity="0.85"/>`).join('');
+        return [0, 1]
+          .map((i) => `<rect x="10" y="${98 + i * 12}" width="100" height="5" fill="${secondary}" opacity="0.85"/>`)
+          .join('');
       case 'chevron':
         return `<path d="M30 96 L60 112 L90 96 L90 104 L60 120 L30 104Z" fill="${secondary}" opacity="0.9"/>`;
       case 'sash':
@@ -78,7 +83,8 @@ export function avatarInner(avatar: AvatarSpec, kit: KitSpec | undefined, id: st
   const headwear = (() => {
     if (tr.headwear === 'cap')
       return `<path d="M${cx - rx - 2} ${cy - 8} Q${cx - rx} ${hairTop - 8} ${cx} ${hairTop - 9} Q${cx + rx} ${hairTop - 8} ${cx + rx + 2} ${cy - 8}Z" fill="${primary}"/><path d="M${cx - rx - 3} ${cy - 8} Q${cx} ${cy - 13} ${cx + rx + 12} ${cy - 6} L${cx + rx + 11} ${cy - 3} Q${cx} ${cy - 9} ${cx - rx - 3} ${cy - 5}Z" fill="${secondary}"/>`;
-    if (tr.headwear === 'band') return `<rect x="${cx - rx - 1}" y="${cy - 15}" width="${rx * 2 + 2}" height="4.5" rx="2" fill="${secondary}"/>`;
+    if (tr.headwear === 'band')
+      return `<rect x="${cx - rx - 1}" y="${cy - 15}" width="${rx * 2 + 2}" height="4.5" rx="2" fill="${secondary}"/>`;
     if (tr.headwear === 'patka')
       return `<path d="M${cx - rx - 2} ${cy - 6} Q${cx - rx - 3} ${hairTop - 6} ${cx} ${hairTop - 8} Q${cx + rx + 3} ${hairTop - 6} ${cx + rx + 2} ${cy - 6} Q${cx} ${cy - 12} ${cx - rx - 2} ${cy - 6}Z" fill="${secondary}"/><circle cx="${cx}" cy="${hairTop - 8}" r="6" fill="${secondary}"/>`;
     return '';
@@ -86,7 +92,8 @@ export function avatarInner(avatar: AvatarSpec, kit: KitSpec | undefined, id: st
 
   const beard = (() => {
     if (tr.beard === 'none') return '';
-    if (tr.beard === 'moustache') return `<path d="M${cx - 7} ${mouthY - 3} Q${cx} ${mouthY - 7} ${cx + 7} ${mouthY - 3} Q${cx} ${mouthY - 4} ${cx - 7} ${mouthY - 3}Z" fill="${tr.hair}"/>`;
+    if (tr.beard === 'moustache')
+      return `<path d="M${cx - 7} ${mouthY - 3} Q${cx} ${mouthY - 7} ${cx + 7} ${mouthY - 3} Q${cx} ${mouthY - 4} ${cx - 7} ${mouthY - 3}Z" fill="${tr.hair}"/>`;
     const full = tr.beard === 'full';
     const d = `M${cx - rx + 1} ${cy + 2} Q${cx - rx + 2} ${cy + ry + (full ? 6 : 1)} ${cx} ${cy + ry + (full ? 8 : 3)} Q${cx + rx - 2} ${cy + ry + (full ? 6 : 1)} ${cx + rx - 1} ${cy + 2} Q${cx + rx - 4} ${cy + 12} ${cx + 6} ${mouthY - 3} Q${cx} ${mouthY - 5} ${cx - 6} ${mouthY - 3} Q${cx - rx + 4} ${cy + 12} ${cx - rx + 1} ${cy + 2}Z`;
     // Stubble is a fine stipple of hair-coloured dots on the jaw, not a translucent block.
@@ -108,7 +115,9 @@ export function avatarInner(avatar: AvatarSpec, kit: KitSpec | undefined, id: st
     `<rect x="${cx - 9}" y="${cy + ry - 8}" width="18" height="18" rx="6" fill="${tr.skinShade}"/>`,
     `<ellipse cx="${cx - rx - 1}" cy="${cy}" rx="4" ry="6" fill="${tr.skinShade}"/><ellipse cx="${cx + rx + 1}" cy="${cy}" rx="4" ry="6" fill="${tr.skinShade}"/>`,
     `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${tr.skin}"/>`,
-    tr.face === 'square' ? `<rect x="${cx - rx + 2}" y="${cy + 4}" width="${rx * 2 - 4}" height="${ry - 6}" rx="8" fill="${tr.skin}"/>` : '',
+    tr.face === 'square'
+      ? `<rect x="${cx - rx + 2}" y="${cy + 4}" width="${rx * 2 - 4}" height="${ry - 6}" rx="8" fill="${tr.skin}"/>`
+      : '',
     // The floodlight's cyan rim: a soft wash on the face's right edge (inside the face, never a stray line).
     `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#rim${id})"/>`,
     beard,

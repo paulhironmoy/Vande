@@ -36,7 +36,20 @@ export function env(g: GainNode, when: number, attack: number, peak: number, dec
   g.gain.exponentialRampToValueAtTime(0.0001, when + attack + decay);
 }
 
-export function noiseBurst(v: VoiceTarget, when: number, opts: { type: BiquadFilterType; freq: number; q: number; attack: number; decay: number; gain: number; offset?: number }, out: AudioNode = v.out) {
+export function noiseBurst(
+  v: VoiceTarget,
+  when: number,
+  opts: {
+    type: BiquadFilterType;
+    freq: number;
+    q: number;
+    attack: number;
+    decay: number;
+    gain: number;
+    offset?: number;
+  },
+  out: AudioNode = v.out,
+) {
   const { ctx } = v;
   const src = ctx.createBufferSource();
   src.buffer = v.noise;
@@ -52,7 +65,13 @@ export function noiseBurst(v: VoiceTarget, when: number, opts: { type: BiquadFil
   v.track?.(src, when + opts.attack + opts.decay + 0.05);
 }
 
-export function tone(v: VoiceTarget, when: number, freq: number, opts: { type?: OscillatorType; attack?: number; decay: number; gain: number; glideTo?: number }, out: AudioNode = v.out) {
+export function tone(
+  v: VoiceTarget,
+  when: number,
+  freq: number,
+  opts: { type?: OscillatorType; attack?: number; decay: number; gain: number; glideTo?: number },
+  out: AudioNode = v.out,
+) {
   const { ctx } = v;
   const o = ctx.createOscillator();
   o.type = opts.type ?? 'sine';
@@ -68,34 +87,80 @@ export function tone(v: VoiceTarget, when: number, freq: number, opts: { type?: 
 
 export const voices = {
   release(v: VoiceTarget, when: number, intensity: number) {
-    noiseBurst(v, when, { type: 'bandpass', freq: 900 + intensity * 900, q: 0.8, attack: 0.05, decay: 0.22, gain: 0.08 + intensity * 0.06 });
+    noiseBurst(v, when, {
+      type: 'bandpass',
+      freq: 900 + intensity * 900,
+      q: 0.8,
+      attack: 0.05,
+      decay: 0.22,
+      gain: 0.08 + intensity * 0.06,
+    });
   },
   bounce(v: VoiceTarget, when: number, _i: number, pitch = 1) {
     tone(v, when, 120 * pitch, { decay: 0.09 / pitch, gain: 0.35 });
-    noiseBurst(v, when, { type: 'lowpass', freq: 1400 * pitch, q: 0.7, attack: 0.002, decay: 0.05 / pitch, gain: 0.18 });
+    noiseBurst(v, when, {
+      type: 'lowpass',
+      freq: 1400 * pitch,
+      q: 0.7,
+      attack: 0.002,
+      decay: 0.05 / pitch,
+      gain: 0.18,
+    });
   },
   /** Willow on leather: a sharp transient, two body resonances and a low thump. */
   bat(v: VoiceTarget, when: number, intensity: number, pitch = 1) {
     const k = 0.55 + intensity * 0.45;
-    noiseBurst(v, when, { type: 'bandpass', freq: 3200 * pitch, q: 1.2, attack: 0.0015, decay: 0.035 / pitch, gain: 0.9 * k });
+    noiseBurst(v, when, {
+      type: 'bandpass',
+      freq: 3200 * pitch,
+      q: 1.2,
+      attack: 0.0015,
+      decay: 0.035 / pitch,
+      gain: 0.9 * k,
+    });
     tone(v, when, 820 * pitch, { decay: 0.11 / pitch, gain: 0.32 * k, type: 'triangle' });
     tone(v, when, 1760 * pitch, { decay: 0.06 / pitch, gain: 0.18 * k });
     tone(v, when, 140 * pitch, { decay: 0.12 / pitch, gain: 0.3 * k });
   },
   edge(v: VoiceTarget, when: number, intensity: number, pitch = 1) {
-    noiseBurst(v, when, { type: 'highpass', freq: 3800 * pitch, q: 0.9, attack: 0.001, decay: 0.025 / pitch, gain: 0.5 * (0.5 + intensity * 0.5) });
+    noiseBurst(v, when, {
+      type: 'highpass',
+      freq: 3800 * pitch,
+      q: 0.9,
+      attack: 0.001,
+      decay: 0.025 / pitch,
+      gain: 0.5 * (0.5 + intensity * 0.5),
+    });
     tone(v, when, 1300 * pitch, { decay: 0.04 / pitch, gain: 0.12 });
   },
   pad(v: VoiceTarget, when: number, intensity: number, pitch = 1) {
-    noiseBurst(v, when, { type: 'lowpass', freq: 520 * pitch, q: 0.7, attack: 0.003, decay: 0.12 / pitch, gain: 0.55 * (0.6 + intensity * 0.4) });
+    noiseBurst(v, when, {
+      type: 'lowpass',
+      freq: 520 * pitch,
+      q: 0.7,
+      attack: 0.003,
+      decay: 0.12 / pitch,
+      gain: 0.55 * (0.6 + intensity * 0.4),
+    });
     tone(v, when, 95 * pitch, { decay: 0.1 / pitch, gain: 0.28 });
   },
   /** Stumps clattering: several wooden knocks. */
   stumps(v: VoiceTarget, when: number, intensity: number, pitch = 1) {
     const knocks = [0, 0.034, 0.071, 0.118];
     knocks.forEach((dt, i) => {
-      tone(v, when + dt / pitch, (640 + i * 95) * pitch, { decay: 0.07 / pitch, gain: (0.42 - i * 0.07) * intensity, type: 'triangle' });
-      noiseBurst(v, when + dt / pitch, { type: 'bandpass', freq: 2100 * pitch, q: 2, attack: 0.001, decay: 0.03 / pitch, gain: 0.25 * intensity });
+      tone(v, when + dt / pitch, (640 + i * 95) * pitch, {
+        decay: 0.07 / pitch,
+        gain: (0.42 - i * 0.07) * intensity,
+        type: 'triangle',
+      });
+      noiseBurst(v, when + dt / pitch, {
+        type: 'bandpass',
+        freq: 2100 * pitch,
+        q: 2,
+        attack: 0.001,
+        decay: 0.03 / pitch,
+        gain: 0.25 * intensity,
+      });
     });
   },
   /** Bails flying off LED stumps: two light clicks and a rising electronic zing. */
@@ -105,7 +170,14 @@ export const voices = {
     tone(v, when + 0.02, 1500 * pitch, { decay: 0.32, gain: 0.07, glideTo: 3200 * pitch, type: 'sawtooth' });
   },
   gloves(v: VoiceTarget, when: number, intensity: number, pitch = 1) {
-    noiseBurst(v, when, { type: 'lowpass', freq: 900 * pitch, q: 0.9, attack: 0.002, decay: 0.07, gain: 0.5 * (0.5 + intensity * 0.5) });
+    noiseBurst(v, when, {
+      type: 'lowpass',
+      freq: 900 * pitch,
+      q: 0.9,
+      attack: 0.002,
+      decay: 0.07,
+      gain: 0.5 * (0.5 + intensity * 0.5),
+    });
     tone(v, when, 260 * pitch, { decay: 0.06, gain: 0.2 });
   },
   catch(v: VoiceTarget, when: number, intensity: number, pitch = 1) {
@@ -137,7 +209,10 @@ export const voices = {
       g.gain.exponentialRampToValueAtTime(gain * intensity, when + 0.35);
       g.gain.setValueAtTime(gain * intensity, when + length * 0.45);
       g.gain.exponentialRampToValueAtTime(0.0001, when + length);
-      src.connect(f).connect(g).connect(v.crowd ?? v.out);
+      src
+        .connect(f)
+        .connect(g)
+        .connect(v.crowd ?? v.out);
       src.start(when, (freq / 1000) % 1.5);
       src.stop(when + length + 0.1);
       v.track?.(src, when + length + 0.1);
@@ -149,21 +224,48 @@ export const voices = {
     const out = v.music ?? v.out;
     pattern.forEach((dt, i) => {
       const low = i % 3 !== 2;
-      tone(v, when + dt, low ? 92 : 210, { decay: low ? 0.22 : 0.09, gain: (low ? 0.42 : 0.24) * intensity, glideTo: low ? 62 : 180 }, out);
-      if (!low) noiseBurst(v, when + dt, { type: 'bandpass', freq: 2400, q: 1.4, attack: 0.001, decay: 0.05, gain: 0.12 * intensity }, out);
+      tone(
+        v,
+        when + dt,
+        low ? 92 : 210,
+        { decay: low ? 0.22 : 0.09, gain: (low ? 0.42 : 0.24) * intensity, glideTo: low ? 62 : 180 },
+        out,
+      );
+      if (!low)
+        noiseBurst(
+          v,
+          when + dt,
+          { type: 'bandpass', freq: 2400, q: 1.4, attack: 0.001, decay: 0.05, gain: 0.12 * intensity },
+          out,
+        );
     });
   },
   fireworks(v: VoiceTarget, when: number, intensity: number) {
     for (let i = 0; i < 3; i++) {
       const t = when + i * 0.38;
       tone(v, t, 58, { decay: 0.5, gain: 0.32 * intensity, glideTo: 38 });
-      for (let k = 0; k < 9; k++) noiseBurst(v, t + 0.12 + k * 0.045 + ((k * 37) % 7) * 0.006, { type: 'highpass', freq: 3000 + k * 120, q: 0.7, attack: 0.001, decay: 0.03, gain: 0.08 * intensity });
+      for (let k = 0; k < 9; k++)
+        noiseBurst(v, t + 0.12 + k * 0.045 + ((k * 37) % 7) * 0.006, {
+          type: 'highpass',
+          freq: 3000 + k * 120,
+          q: 0.7,
+          attack: 0.001,
+          decay: 0.03,
+          gain: 0.08 * intensity,
+        });
     }
   },
   /** The swing itself: a short airy swish (heard at the tap, before anything else is known). */
   swish(v: VoiceTarget, when: number, intensity = 0.7) {
     noiseBurst(v, when, { type: 'bandpass', freq: 2300, q: 0.9, attack: 0.012, decay: 0.09, gain: 0.22 * intensity });
-    noiseBurst(v, when + 0.02, { type: 'highpass', freq: 4200, q: 0.7, attack: 0.008, decay: 0.06, gain: 0.08 * intensity });
+    noiseBurst(v, when + 0.02, {
+      type: 'highpass',
+      freq: 4200,
+      q: 0.7,
+      attack: 0.008,
+      decay: 0.06,
+      gain: 0.08 * intensity,
+    });
   },
   /** The middle of the bat: a bright ring that says "sweet spot" (brighter and longer for perfect timing). */
   ring(v: VoiceTarget, when: number, perfect: boolean) {
@@ -191,12 +293,18 @@ export const voices = {
     o.stop(when + length + 0.1);
     v.track?.(o, when + length + 0.1);
     // A heartbeat under it.
-    for (let k = 0; k * 0.5 < length - 0.2; k++) tone(v, when + k * 0.5, 62, { decay: 0.16, gain: 0.22 + k * 0.03, glideTo: 48 }, out);
+    for (let k = 0; k * 0.5 < length - 0.2; k++)
+      tone(v, when + k * 0.5, 62, { decay: 0.16, gain: 0.22 + k * 0.03, glideTo: 48 }, out);
   },
   /** The result lands: one big hit and a crowd swell. */
   resultHit(v: VoiceTarget, when: number) {
     tone(v, when, 82, { decay: 0.6, gain: 0.5, glideTo: 44 }, v.music ?? v.out);
-    noiseBurst(v, when, { type: 'lowpass', freq: 900, q: 0.7, attack: 0.002, decay: 0.3, gain: 0.35 }, v.music ?? v.out);
+    noiseBurst(
+      v,
+      when,
+      { type: 'lowpass', freq: 900, q: 0.7, attack: 0.002, decay: 0.3, gain: 0.35 },
+      v.music ?? v.out,
+    );
     voices.roar(v, when + 0.05, 0.9, 3);
   },
   /** Sealed: the brand chime when an over locks or a shot is sealed. */

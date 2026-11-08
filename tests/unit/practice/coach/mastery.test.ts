@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { PRACTICE_SIM_VERSION, type AssistanceStage, type CoachAnalysis, type MasteryState } from '@/contracts/practice';
+import {
+  PRACTICE_SIM_VERSION,
+  type AssistanceStage,
+  type CoachAnalysis,
+  type MasteryState,
+} from '@/contracts/practice';
 import {
   MASTERY_RULE,
   MASTERY_SUCCESS_VERSION,
@@ -38,7 +43,13 @@ function run(seq: string, state: MasteryState = startMastery('k'), forced?: Assi
 describe('mastery: the attempts are judged against the recommended response', () => {
   it('the recommended stroke is a success; leaving the ball onto the stumps is not', () => {
     expect(REC.decision).not.toBe('leave');
-    expect(masteryAttempt(GOOD, 1)).toMatchObject({ stage: 1, decision: REC.decision, contact: 'middle', out: false, success: true });
+    expect(masteryAttempt(GOOD, 1)).toMatchObject({
+      stage: 1,
+      decision: REC.decision,
+      contact: 'middle',
+      out: false,
+      success: true,
+    });
     expect(masteryAttempt(BAD, 2)).toMatchObject({ stage: 2, decision: 'leave', out: true, success: false });
   });
 
@@ -46,16 +57,30 @@ describe('mastery: the attempts are judged against the recommended response', ()
     expect(MASTERY_RULE).toMatchObject({ advanceAfter: 2, masteredStage: 4, masteredWindow: 4, masteredSuccesses: 3 });
     // 2026-11-03 (lead ruling, WA7): a stroke's success also needs a measured clean contact (strokeMeasuredClean). The
     // rule is stricter; every earlier condition is unchanged and still pinned.
-    expect(MASTERY_RULE.success).toEqual({ noDismissal: true, recommendedDecision: true, contact: 'middle', strokeMeasuredClean: true, orCorrectLeave: true });
+    expect(MASTERY_RULE.success).toEqual({
+      noDismissal: true,
+      recommendedDecision: true,
+      contact: 'middle',
+      strokeMeasuredClean: true,
+      orCorrectLeave: true,
+    });
   });
 
   it('a stroke met as a slow fend or off the sweet zone is not a success; a block is judged by its face alone (WA7)', () => {
     // The attempt's own measured contact comes with its tip (coachTip: CoachTip.cleanContact, quality.ts cleanByMeasure).
-    const stroke = { ...GOOD, attempted: { ...GOOD.attempted, decision: 'attack', contact: 'middle' }, options: [{ ...GOOD.options[0], decision: 'attack' }] } as CoachAnalysis;
+    const stroke = {
+      ...GOOD,
+      attempted: { ...GOOD.attempted, decision: 'attack', contact: 'middle' },
+      options: [{ ...GOOD.options[0], decision: 'attack' }],
+    } as CoachAnalysis;
     expect(masteryAttempt(stroke, 1, { cleanContact: false }).success).toBe(false);
     expect(masteryAttempt(stroke, 1, { cleanContact: true }).success).toBe(true);
     expect(masteryAttempt(stroke, 1).success).toBe(true); // without the measurement the label decides (callers pass the tip)
-    const block = { ...GOOD, attempted: { ...GOOD.attempted, decision: 'defend', contact: 'middle' }, options: [{ ...GOOD.options[0], decision: 'defend' }] } as CoachAnalysis;
+    const block = {
+      ...GOOD,
+      attempted: { ...GOOD.attempted, decision: 'defend', contact: 'middle' },
+      options: [{ ...GOOD.options[0], decision: 'defend' }],
+    } as CoachAnalysis;
     expect(masteryAttempt(block, 1, { cleanContact: false }).success).toBe(true);
     // Recorded through recordAttempt, two measured slow fends never advance the stage.
     let s = startMastery('k');
@@ -136,8 +161,22 @@ describe('mastery: never one lucky result', () => {
 
 describe('mastery: feedback', () => {
   it('progress says where the player stands', () => {
-    expect(masteryProgress(run('g'))).toEqual({ stage: 1, streak: 1, neededToAdvance: 1, stageAttempts: 1, recentSuccesses: null, recentWindow: 4, mastered: false });
-    expect(masteryProgress(run('gggggggb'))).toMatchObject({ stage: 4, neededToAdvance: 0, stageAttempts: 2, recentSuccesses: 1, mastered: false });
+    expect(masteryProgress(run('g'))).toEqual({
+      stage: 1,
+      streak: 1,
+      neededToAdvance: 1,
+      stageAttempts: 1,
+      recentSuccesses: null,
+      recentWindow: 4,
+      mastered: false,
+    });
+    expect(masteryProgress(run('gggggggb'))).toMatchObject({
+      stage: 4,
+      neededToAdvance: 0,
+      stageAttempts: 2,
+      recentSuccesses: 1,
+      mastered: false,
+    });
   });
 
   it('events for audio: stage_up, mastered, or nothing', () => {

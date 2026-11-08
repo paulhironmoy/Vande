@@ -27,7 +27,11 @@ function webOrientation(): LockableOrientation | null {
 /** A fine pointer and no touch: a desktop browser, where rotating is not a thing to ask for. */
 export function prefersPointerFine(): boolean {
   try {
-    return typeof window !== 'undefined' && window.matchMedia?.('(pointer: fine)').matches === true && window.matchMedia?.('(any-pointer: coarse)').matches !== true;
+    return (
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(pointer: fine)').matches === true &&
+      window.matchMedia?.('(any-pointer: coarse)').matches !== true
+    );
   } catch {
     return false;
   }
@@ -77,7 +81,9 @@ export function lockLandscape(): Promise<LandscapeLock> {
   }
   const o = webOrientation();
   if (!o?.lock || typeof document === 'undefined' || prefersPointerFine()) return Promise.resolve('none');
-  const root = document.documentElement as HTMLElement & { requestFullscreen?: (opts?: FullscreenOptions) => Promise<void> };
+  const root = document.documentElement as HTMLElement & {
+    requestFullscreen?: (opts?: FullscreenOptions) => Promise<void>;
+  };
   let fullscreen: Promise<void> = Promise.resolve();
   if (!document.fullscreenElement && typeof root.requestFullscreen === 'function') {
     try {

@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { DailyResultResponse, DailyView, FieldSetting, LeaderboardView, MatchEventLog, PlayerRef } from '@/contracts';
+import type {
+  DailyResultResponse,
+  DailyView,
+  FieldSetting,
+  LeaderboardView,
+  MatchEventLog,
+  PlayerRef,
+} from '@/contracts';
 import { WICKETS_PER_INNINGS } from '@/contracts';
 import { useApp } from '@/app/store';
 import { localPlayerRef } from '@/app/storeTypes';
@@ -19,7 +26,11 @@ import { shareLedger, shareToast } from '../share/share';
 import { dailyTransport, saveAttempt, savedAttempt, type SavedAttempt } from './dailyTransport';
 import s from './DailyRoute.module.css';
 
-type Stage = { kind: 'overview' } | { kind: 'bat'; attempt: SavedAttempt } | { kind: 'result'; attempt: SavedAttempt } | { kind: 'watch'; result: DailyResultResponse & { verified?: boolean | null } };
+type Stage =
+  | { kind: 'overview' }
+  | { kind: 'bat'; attempt: SavedAttempt }
+  | { kind: 'result'; attempt: SavedAttempt }
+  | { kind: 'watch'; result: DailyResultResponse & { verified?: boolean | null } };
 
 /** Daily Six: the same three sealed overs for everyone today, best of three, with a streak and the leaderboards. */
 export default function DailyRoute({ route }: { route: RouteOf<'daily'> }) {
@@ -48,10 +59,25 @@ export default function DailyRoute({ route }: { route: RouteOf<'daily'> }) {
   );
 
   if (booting) return shell(<StateView kind="loading" />);
-  if (!net) return shell(<StateView kind="offline" title={t('daily.needs_online_title')} body={t('daily.needs_online_body')} actionLabel={t('home.ghosts.title')} onAction={() => navigate({ name: 'ghosts' })} />);
+  if (!net)
+    return shell(
+      <StateView
+        kind="offline"
+        title={t('daily.needs_online_title')}
+        body={t('daily.needs_online_body')}
+        actionLabel={t('home.ghosts.title')}
+        onAction={() => navigate({ name: 'ghosts' })}
+      />,
+    );
   if (!signedIn) {
     if (sync === 'alias_rejected') return shell(<AliasFix />);
-    return shell(sync === 'offline' || !online ? <StateView kind="offline" body={t('daily.signup_offline')} /> : <StateView kind="loading" title={t('duel.signing_up')} />);
+    return shell(
+      sync === 'offline' || !online ? (
+        <StateView kind="offline" body={t('daily.signup_offline')} />
+      ) : (
+        <StateView kind="loading" title={t('duel.signing_up')} />
+      ),
+    );
   }
 
   if (stage.kind === 'bat' && daily.data)
@@ -84,13 +110,27 @@ export default function DailyRoute({ route }: { route: RouteOf<'daily'> }) {
     );
 
   if (stage.kind === 'watch')
-    return <RevealScreen log={stage.result.log} me={0} verified={stage.result.verified ?? null} onClose={() => setStage({ kind: 'overview' })} onFallback={(reason) => services?.analytics.track('renderer_fallback', { reason, quality: '2d' })} />;
+    return (
+      <RevealScreen
+        log={stage.result.log}
+        me={0}
+        verified={stage.result.verified ?? null}
+        onClose={() => setStage({ kind: 'overview' })}
+        onFallback={(reason) => services?.analytics.track('renderer_fallback', { reason, quality: '2d' })}
+      />
+    );
 
   // ---- overview -------------------------------------------------------------------------------------------------
   if (!daily.data) {
     if (daily.error) {
       const k = failureKind(daily.error);
-      return shell(k === 'offline' ? <StateView kind="offline" body={t('daily.offline_body')} onAction={daily.reload} /> : <StateView kind="error" onAction={daily.reload} />);
+      return shell(
+        k === 'offline' ? (
+          <StateView kind="offline" body={t('daily.offline_body')} onAction={daily.reload} />
+        ) : (
+          <StateView kind="error" onAction={daily.reload} />
+        ),
+      );
     }
     return shell(<StateView kind="loading" title={t('daily.loading')} />);
   }
@@ -107,7 +147,9 @@ export default function DailyRoute({ route }: { route: RouteOf<'daily'> }) {
       setStage({ kind: 'bat', attempt });
     } catch (e) {
       const k = failureKind(e);
-      setStartError(k === 'conflict' ? t('daily.no_attempts') : k === 'offline' ? t('daily.offline_body') : t('state.error.body'));
+      setStartError(
+        k === 'conflict' ? t('daily.no_attempts') : k === 'offline' ? t('daily.offline_body') : t('state.error.body'),
+      );
       daily.reload();
     } finally {
       setStarting(false);
@@ -118,7 +160,14 @@ export default function DailyRoute({ route }: { route: RouteOf<'daily'> }) {
     <div className={s.stack}>
       <Card className={s.hero} padding={5}>
         <span className={s.glow} aria-hidden="true" />
-        <p className={s.eyebrow}>{tr.date(`${d.day}T12:00:00+05:30`, { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' })}</p>
+        <p className={s.eyebrow}>
+          {tr.date(`${d.day}T12:00:00+05:30`, {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            timeZone: 'Asia/Kolkata',
+          })}
+        </p>
         <h1 className={s.h1}>{t('daily.headline')}</h1>
         <p className={s.body}>{t('daily.body')}</p>
         <div className={s.chips}>
@@ -151,7 +200,8 @@ export default function DailyRoute({ route }: { route: RouteOf<'daily'> }) {
           </div>
         </div>
         <p className={s.resets}>
-          <Icon name="clock" size={16} /> {t('daily.resets', { when: untilText(tr, d.resetsAt, now) ?? '', at: clockText(tr, d.resetsAt, now) ?? '' })}
+          <Icon name="clock" size={16} />{' '}
+          {t('daily.resets', { when: untilText(tr, d.resetsAt, now) ?? '', at: clockText(tr, d.resetsAt, now) ?? '' })}
         </p>
       </Card>
 
@@ -161,22 +211,53 @@ export default function DailyRoute({ route }: { route: RouteOf<'daily'> }) {
         </p>
       )}
       {resume ? (
-        <Button variant="accent" size="xl" block icon="bat" onClick={() => setStage({ kind: 'bat', attempt: resume })} data-testid="daily-resume">
+        <Button
+          variant="accent"
+          size="xl"
+          block
+          icon="bat"
+          onClick={() => setStage({ kind: 'bat', attempt: resume })}
+          data-testid="daily-resume"
+        >
           {t('daily.resume', { n: resume.attempt })}
         </Button>
       ) : left > 0 ? (
-        <Button variant="accent" size="xl" block icon="bat" loading={starting} onClick={() => void start()} data-testid="daily-start">
+        <Button
+          variant="accent"
+          size="xl"
+          block
+          icon="bat"
+          loading={starting}
+          onClick={() => void start()}
+          data-testid="daily-start"
+        >
           {t('daily.start', { n: d.attemptsUsed + 1, total: d.attemptsMax })}
         </Button>
       ) : (
-        <StateView kind="locked" title={t('daily.done_title')} body={t('daily.done_body', { when: untilText(tr, d.resetsAt, now) ?? '' })} compact />
+        <StateView
+          kind="locked"
+          title={t('daily.done_title')}
+          body={t('daily.done_body', { when: untilText(tr, d.resetsAt, now) ?? '' })}
+          compact
+        />
       )}
 
       <div className={s.row}>
-        <Button variant="secondary" icon="chart" onClick={() => navigate({ name: 'leaderboards', scope: 'national' })} data-testid="daily-leaderboards">
+        <Button
+          variant="secondary"
+          icon="chart"
+          onClick={() => navigate({ name: 'leaderboards', scope: 'national' })}
+          data-testid="daily-leaderboards"
+        >
           {t('daily.leaderboards')}
         </Button>
-        <Button variant="ghost" icon="seal" aria-expanded={showProof} onClick={() => setShowProof((v) => !v)} data-testid="daily-proof">
+        <Button
+          variant="ghost"
+          icon="seal"
+          aria-expanded={showProof}
+          onClick={() => setShowProof((v) => !v)}
+          data-testid="daily-proof"
+        >
           {t('daily.fair_title')}
         </Button>
       </div>
@@ -201,12 +282,27 @@ function setterRef(day: string, alias: string): PlayerRef {
   return { id: `daily-${day}`, alias, avatar: { seed: `daily-setter-${day}` }, kit: KITS[5], kind: 'daily' };
 }
 
-function DailyBat({ attempt, view, me, onDone, onExit }: { attempt: SavedAttempt; view: DailyView; me: PlayerRef; onDone: () => void; onExit: () => void }) {
+function DailyBat({
+  attempt,
+  view,
+  me,
+  onDone,
+  onExit,
+}: {
+  attempt: SavedAttempt;
+  view: DailyView;
+  me: PlayerRef;
+  onDone: () => void;
+  onExit: () => void;
+}) {
   const { t } = useT();
   const online = useApp((st) => st.online);
   const { net } = useNet();
   const [queued, setQueued] = useState(false);
-  const innings = useMemo(() => (net ? netInnings(dailyTransport(net), attempt.attemptId, { onQueued: setQueued }) : null), [net, attempt.attemptId]);
+  const innings = useMemo(
+    () => (net ? netInnings(dailyTransport(net), attempt.attemptId, { onQueued: setQueued }) : null),
+    [net, attempt.attemptId],
+  );
   const [field, setField] = useState<FieldSetting | null>(null);
   const [error, setError] = useState<'offline' | 'error' | null>(null);
   const [tries, setTries] = useState(0);
@@ -230,7 +326,11 @@ function DailyBat({ attempt, view, me, onDone, onExit }: { attempt: SavedAttempt
   if (!innings || !field)
     return (
       <ScreenShell title={t('daily.title')} onBack={onExit} narrow testId="daily-bat-loading">
-        {error ? <StateView kind={error === 'offline' ? 'offline' : 'error'} onAction={() => setTries((n) => n + 1)} /> : <StateView kind="loading" title={t('match.bat_loading')} />}
+        {error ? (
+          <StateView kind={error === 'offline' ? 'offline' : 'error'} onAction={() => setTries((n) => n + 1)} />
+        ) : (
+          <StateView kind="loading" title={t('match.bat_loading')} />
+        )}
       </ScreenShell>
     );
   return (
@@ -250,15 +350,35 @@ function DailyBat({ attempt, view, me, onDone, onExit }: { attempt: SavedAttempt
   );
 }
 
-export function DailyResult({ attempt, me, view, onWatch, onAgain }: { attempt: SavedAttempt; me: PlayerRef; view: DailyView | null; onWatch: (r: DailyResultResponse & { verified: boolean | null }) => void; onAgain: () => void }) {
+export function DailyResult({
+  attempt,
+  me,
+  view,
+  onWatch,
+  onAgain,
+}: {
+  attempt: SavedAttempt;
+  me: PlayerRef;
+  view: DailyView | null;
+  onWatch: (r: DailyResultResponse & { verified: boolean | null }) => void;
+  onAgain: () => void;
+}) {
   const tr = useT();
   const { t } = tr;
   const navigate = useRouter((st) => st.navigate);
   const toast = useApp((st) => st.toast);
   const { net, services } = useNet();
-  const result = useLoad<DailyResultResponse>(net ? () => net.api.call('GET /v1/daily/attempts/:id/result', { params: { id: attempt.attemptId } }) : null, [net, attempt.attemptId]);
+  const result = useLoad<DailyResultResponse>(
+    net ? () => net.api.call('GET /v1/daily/attempts/:id/result', { params: { id: attempt.attemptId } }) : null,
+    [net, attempt.attemptId],
+  );
   // Today's rank, from the national board's own "you" row (boards can lag a little behind the result).
-  const rank = useLoad<LeaderboardView>(net && result.data?.counted ? () => net.api.call('GET /v1/leaderboards/:scope', { params: { scope: 'national' } }) : null, [net, Boolean(result.data?.counted)]);
+  const rank = useLoad<LeaderboardView>(
+    net && result.data?.counted
+      ? () => net.api.call('GET /v1/leaderboards/:scope', { params: { scope: 'national' } })
+      : null,
+    [net, Boolean(result.data?.counted)],
+  );
   const [shared, setShared] = useState(() => shareLedger().used(attempt.attemptId, 'final'));
   const [verified, setVerified] = useState<boolean | null>(null);
   useEffect(() => {
@@ -276,7 +396,16 @@ export function DailyResult({ attempt, me, view, onWatch, onAgain }: { attempt: 
   if (!result.data) {
     const k = result.error ? failureKind(result.error) : null;
     if (k === 'offline') return <StateView kind="offline" body={t('daily.result_offline')} onAction={result.reload} />;
-    if (k === 'sealed') return <StateView kind="upload_queued" title={t('daily.result_pending')} body={t('daily.result_pending_body')} onAction={result.reload} actionLabel={t('common.retry')} />;
+    if (k === 'sealed')
+      return (
+        <StateView
+          kind="upload_queued"
+          title={t('daily.result_pending')}
+          body={t('daily.result_pending_body')}
+          onAction={result.reload}
+          actionLabel={t('common.retry')}
+        />
+      );
     if (k) return <StateView kind="error" onAction={result.reload} />;
     return <StateView kind="loading" title={t('daily.result_loading')} />;
   }
@@ -289,8 +418,24 @@ export function DailyResult({ attempt, me, view, onWatch, onAgain }: { attempt: 
     if (!services) return;
     const url = routeUrl({ name: 'daily' });
     services.analytics.track('share_initiated', { mode: 'daily', channel: 'share_sheet' });
-    const image = await cardBlob(dailyCardModel(tr, { player: playerOf(me), day: attempt.day, score: r.score, best: r.bestScore, streak: view?.streak ?? 0, conditions: r.log.conditions, url }), tr.locale);
-    const out = await services.platform.share.share({ title: t('brand.name'), text: t('daily.share_text', { score: r.score }), url, image: image ?? undefined });
+    const image = await cardBlob(
+      dailyCardModel(tr, {
+        player: playerOf(me),
+        day: attempt.day,
+        score: r.score,
+        best: r.bestScore,
+        streak: view?.streak ?? 0,
+        conditions: r.log.conditions,
+        url,
+      }),
+      tr.locale,
+    );
+    const out = await services.platform.share.share({
+      title: t('brand.name'),
+      text: t('daily.share_text', { score: r.score }),
+      url,
+      image: image ?? undefined,
+    });
     if (out === 'shared' || out === 'copied') {
       shareLedger().mark(attempt.attemptId, 'final');
       setShared(true);
@@ -313,7 +458,8 @@ export function DailyResult({ attempt, me, view, onWatch, onAgain }: { attempt: 
         <DailyBreakdown log={r.log} score={r.score} />
         {r.counted && rank.data?.me && (
           <p className={s.rank} data-testid="daily-rank">
-            <Icon name="chart" size={16} /> {t('daily.rank_today', { rank: tr.number(rank.data.me.rank), total: tr.number(rank.data.total) })}
+            <Icon name="chart" size={16} />{' '}
+            {t('daily.rank_today', { rank: tr.number(rank.data.me.rank), total: tr.number(rank.data.total) })}
           </p>
         )}
         <div className={s.chips}>
@@ -327,23 +473,51 @@ export function DailyResult({ attempt, me, view, onWatch, onAgain }: { attempt: 
           )}
         </div>
         <p className={s.body} data-testid="daily-counted" data-counted={r.counted ? 'true' : 'false'}>
-          {!r.counted ? t('daily.not_counted') : r.bestScore !== null && r.score >= r.bestScore ? t('daily.result_best') : t('daily.result_not_best')}
+          {!r.counted
+            ? t('daily.not_counted')
+            : r.bestScore !== null && r.score >= r.bestScore
+              ? t('daily.result_best')
+              : t('daily.result_not_best')}
         </p>
         {sealedBefore !== null && (
-          <p className={s.proofLine} data-ok={sealedBefore && verified !== false ? true : undefined} data-testid="daily-proof-line">
+          <p
+            className={s.proofLine}
+            data-ok={sealedBefore && verified !== false ? true : undefined}
+            data-testid="daily-proof-line"
+          >
             <Icon name={sealedBefore && verified !== false ? 'seal' : 'alert'} size={16} />
-            {sealedBefore && verified !== false ? t('daily.sealed_before', { hash: `${published!.slice(0, 10)}…` }) : t('daily.sealed_mismatch')}
+            {sealedBefore && verified !== false
+              ? t('daily.sealed_before', { hash: `${published!.slice(0, 10)}…` })
+              : t('daily.sealed_mismatch')}
           </p>
         )}
       </Card>
-      <Button variant="primary" size="lg" block icon="replay" onClick={() => onWatch({ ...r, verified })} data-testid="daily-watch">
+      <Button
+        variant="primary"
+        size="lg"
+        block
+        icon="replay"
+        onClick={() => onWatch({ ...r, verified })}
+        data-testid="daily-watch"
+      >
         {t('daily.watch')}
       </Button>
       <div className={s.row}>
-        <Button variant="secondary" icon="share" disabled={shared} onClick={() => void share()} data-testid="daily-share">
+        <Button
+          variant="secondary"
+          icon="share"
+          disabled={shared}
+          onClick={() => void share()}
+          data-testid="daily-share"
+        >
           {shared ? t('daily.shared') : t('common.share')}
         </Button>
-        <Button variant="secondary" icon="chart" onClick={() => navigate({ name: 'leaderboards', scope: 'national' })} data-testid="daily-leaderboards">
+        <Button
+          variant="secondary"
+          icon="chart"
+          onClick={() => navigate({ name: 'leaderboards', scope: 'national' })}
+          data-testid="daily-leaderboards"
+        >
           {t('daily.leaderboards')}
         </Button>
       </div>
@@ -359,13 +533,27 @@ export function DailyResult({ attempt, me, view, onWatch, onAgain }: { attempt: 
 }
 
 /** The Daily Six score made visible: runs and wickets, then how the points add up (GAME_RULES: Daily Six score). */
-export function dailyBreakdown(log: MatchEventLog): { runs: number; wickets: number; fours: number; sixes: number; inHand: number; total: number } {
+export function dailyBreakdown(log: MatchEventLog): {
+  runs: number;
+  wickets: number;
+  fours: number;
+  sixes: number;
+  inHand: number;
+  total: number;
+} {
   const inn = log.innings[0];
   const live = inn.balls.filter((b) => !b.dead);
   const fours = live.filter((b) => b.runs === 4).length;
   const sixes = live.filter((b) => b.runs === 6).length;
   const inHand = Math.max(0, WICKETS_PER_INNINGS - inn.wickets);
-  return { runs: inn.runs, wickets: inn.wickets, fours, sixes, inHand, total: inn.runs * 10 + fours * 4 + sixes * 8 + inHand * 12 };
+  return {
+    runs: inn.runs,
+    wickets: inn.wickets,
+    fours,
+    sixes,
+    inHand,
+    total: inn.runs * 10 + fours * 4 + sixes * 8 + inHand * 12,
+  };
 }
 
 function DailyBreakdown({ log, score }: { log: MatchEventLog; score: number }) {

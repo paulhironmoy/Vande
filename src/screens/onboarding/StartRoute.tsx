@@ -45,7 +45,10 @@ export default function StartRoute(_props: { route: RouteOf<'onboarding'> }) {
     finishing.current = true;
     if (net && online) {
       setBusy(true);
-      const res = await Promise.race([syncAccount(net, local, r.locale), new Promise<{ error: 'offline' }>((resolve) => setTimeout(() => resolve({ error: 'offline' }), SIGNUP_WAIT_MS))]);
+      const res = await Promise.race([
+        syncAccount(net, local, r.locale),
+        new Promise<{ error: 'offline' }>((resolve) => setTimeout(() => resolve({ error: 'offline' }), SIGNUP_WAIT_MS)),
+      ]);
       setBusy(false);
       if ('error' in res && res.error === 'alias_rejected') {
         finishing.current = false;

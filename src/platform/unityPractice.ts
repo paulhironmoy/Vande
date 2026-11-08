@@ -88,10 +88,7 @@ const UNITY_UNLOAD_TIMEOUT_MS = 8_000;
 const MAX_NATIVE_EVENT_BYTES = UNITY_PRACTICE_MAX_PACKET_BYTES * 2 + 4 * 1024;
 
 /** Low-memory native admission is the one reason that must bypass both Unity and retained WebGL for Classic. */
-export function unityAvailabilityRequiresClassic(
-  availability: UnityPracticeAvailability,
-  webUnity: boolean,
-): boolean {
+export function unityAvailabilityRequiresClassic(availability: UnityPracticeAvailability, webUnity: boolean): boolean {
   return !webUnity && !availability.available && availability.reason === 'low_memory_device';
 }
 
@@ -109,7 +106,8 @@ async function validatedPacket(value: string, sender: 'host' | 'unity'): Promise
     const parsed = JSON.parse(value) as unknown;
     if (typeof parsed !== 'object' || parsed === null) return null;
     const candidate = parsed as Partial<UnityPracticePacket>;
-    if (Object.keys(candidate).length !== 2 || !Object.hasOwn(candidate, 'body') || !Object.hasOwn(candidate, 'sha256')) return null;
+    if (Object.keys(candidate).length !== 2 || !Object.hasOwn(candidate, 'body') || !Object.hasOwn(candidate, 'sha256'))
+      return null;
     if (typeof candidate.body !== 'string' || typeof candidate.sha256 !== 'string') return null;
     const packet = { body: candidate.body, sha256: candidate.sha256 };
     const message = await unpackUnityPracticePacket(packet);
@@ -127,16 +125,18 @@ async function registerBoundedListener<TEvent extends keyof NativeUnityPracticeE
 ): Promise<() => Promise<void>> {
   let active = true;
   let handle: NativeListenerHandle | null = null;
-  const registration = plugin.addListener(event, (value) => {
-    if (active) listener(value);
-  }).then(
-    async (registered) => {
-      if (!active) await registered.remove().catch(() => undefined);
-      else handle = registered;
-      return registered;
-    },
-    () => null,
-  );
+  const registration = plugin
+    .addListener(event, (value) => {
+      if (active) listener(value);
+    })
+    .then(
+      async (registered) => {
+        if (!active) await registered.remove().catch(() => undefined);
+        else handle = registered;
+        return registered;
+      },
+      () => null,
+    );
   await settleWithin(registration, timeoutMs, null);
   if (handle === null) active = false;
   return async () => {
@@ -166,16 +166,20 @@ export function createUnityPracticeBridge(
 
   const availability = async (): Promise<UnityPracticeAvailability> => {
     if (!plugin) return UNAVAILABLE;
-    const result = await bounded(
-      plugin.availability(),
-      { available: false, reason: 'unresponsive', unityVersion: null } satisfies UnityPracticeAvailability,
-    );
+    const result = await bounded(plugin.availability(), {
+      available: false,
+      reason: 'unresponsive',
+      unityVersion: null,
+    } satisfies UnityPracticeAvailability);
     const usableReason = result.reason === 'ready' || result.reason === 'linked_unverified';
     const density = result.pixelsPerDp;
     const usableDensity = typeof density === 'number' && Number.isFinite(density) && density >= 1 && density <= 8;
     const fontScale = result.systemTextScale;
-    const usableFontScale = typeof fontScale === 'number' && Number.isFinite(fontScale) && fontScale >= 0.5 && fontScale <= 3;
-    return result.available && usableReason && usableDensity && usableFontScale ? result : { ...result, available: false };
+    const usableFontScale =
+      typeof fontScale === 'number' && Number.isFinite(fontScale) && fontScale >= 0.5 && fontScale <= 3;
+    return result.available && usableReason && usableDensity && usableFontScale
+      ? result
+      : { ...result, available: false };
   };
 
   const teardownFailedLaunch = async (operation: string): Promise<boolean> => {
@@ -185,7 +189,9 @@ export function createUnityPracticeBridge(
       // cancelLaunch rejects the unresolved launch call and starts host teardown; only unload's
       // onUnityPlayerUnloaded-backed receipt may release this generation for reuse.
       await bounded(plugin.cancelLaunch({ operationId: operation }), { cancelled: false });
-      const result = await settleWithin(plugin.unload({ operationId: operation }), unloadTimeoutMs, { unloaded: false });
+      const result = await settleWithin(plugin.unload({ operationId: operation }), unloadTimeoutMs, {
+        unloaded: false,
+      });
       if (result.unloaded) {
         if (activeOperationId === operation) activeOperationId = null;
         if (pendingOperationId === operation) pendingOperationId = null;
@@ -200,7 +206,8 @@ export function createUnityPracticeBridge(
     availability,
 
     async launch(packet) {
-      if (!plugin || launchPending || pendingOperationId !== null || activeOperationId !== null || unloadPending) return false;
+      if (!plugin || launchPending || pendingOperationId !== null || activeOperationId !== null || unloadPending)
+        return false;
       // Reserve the launch slot before checksum validation or availability awaits. Two callers in one task must
       // never create competing UnityPlayer operations, and a timed-out operation remains reserved through native
       // cancellation so a retry cannot overlap teardown.
@@ -208,7 +215,8 @@ export function createUnityPracticeBridge(
       abortPendingLaunch = false;
       try {
         const message = await unpackUnityPracticePacket(packet).catch(() => null);
-        if (abortPendingLaunch || !message || message.sender !== 'host' || message.type !== 'host.initialize') return false;
+        if (abortPendingLaunch || !message || message.sender !== 'host' || message.type !== 'host.initialize')
+          return false;
         const available = await availability();
         // Recheck the mutable lifecycle gates after the asynchronous native probe. A concurrently-started
         // unload cannot currently overlap launchPending, but keeping the validation adjacent to launch makes
@@ -225,7 +233,9 @@ export function createUnityPracticeBridge(
             resolve({ accepted: false });
           }, launchTimeoutMs);
         });
-        const nativeLaunch = plugin.launch({ packet: packetString(packet), operationId: nextOperationId }).catch(() => ({ accepted: false }));
+        const nativeLaunch = plugin
+          .launch({ packet: packetString(packet), operationId: nextOperationId })
+          .catch(() => ({ accepted: false }));
         const result = await Promise.race([nativeLaunch, timeout]);
         if (timer !== undefined) clearTimeout(timer);
         if (!result.accepted || timedOut || abortPendingLaunch) {
@@ -245,23 +255,35 @@ export function createUnityPracticeBridge(
       if (!plugin || activeOperationId === null || unloadPending) return false;
       // A packet packUnityPracticeMessage made in this runtime is frozen and was validated as it was made (a 0.3 to 0.46 MB result
       // would otherwise be parsed, canonicalized and hashed again here); any other packet is unpacked.
-      const message = packedUnityPracticePacket(packet) ?? await unpackUnityPracticePacket(packet).catch(() => null);
+      const message = packedUnityPracticePacket(packet) ?? (await unpackUnityPracticePacket(packet).catch(() => null));
       if (!message || message.sender !== 'host' || message.type === 'host.initialize') return false;
-      return (await bounded(plugin.send({ packet: packetString(packet), operationId: activeOperationId }), { accepted: false })).accepted;
+      return (
+        await bounded(plugin.send({ packet: packetString(packet), operationId: activeOperationId }), {
+          accepted: false,
+        })
+      ).accepted;
     },
 
     async setVisible(visible) {
       if (!plugin || activeOperationId === null || unloadPending) return false;
-      return (await bounded(plugin.setVisible({ visible, operationId: activeOperationId }), { applied: false })).applied;
+      return (await bounded(plugin.setVisible({ visible, operationId: activeOperationId }), { applied: false }))
+        .applied;
     },
 
     async setReadyVisible(visible, hint) {
-      if (!plugin || typeof plugin.setReadyVisible !== 'function' || activeOperationId === null || unloadPending ||
-          typeof hint !== 'string' || hint.length < 1 || hint.length > 240) return false;
-      return (await bounded(
-        plugin.setReadyVisible({ visible, hint, operationId: activeOperationId }),
-        { applied: false },
-      )).applied;
+      if (
+        !plugin ||
+        typeof plugin.setReadyVisible !== 'function' ||
+        activeOperationId === null ||
+        unloadPending ||
+        typeof hint !== 'string' ||
+        hint.length < 1 ||
+        hint.length > 240
+      )
+        return false;
+      return (
+        await bounded(plugin.setReadyVisible({ visible, hint, operationId: activeOperationId }), { applied: false })
+      ).applied;
     },
 
     async unload() {
@@ -287,30 +309,52 @@ export function createUnityPracticeBridge(
 
     async onMessage(listener) {
       if (!plugin) return async () => undefined;
-      return registerBoundedListener(plugin, 'message', (event) => {
-        const eventOperationId = event.operationId;
-        if (typeof eventOperationId !== 'string' || (eventOperationId !== activeOperationId && eventOperationId !== pendingOperationId)) return;
-        // Capture arrival before queued SHA-256 work; hashing delay must not bias the clock offset/RTT estimate.
-        const receivedPerfMs = performance.now();
-        inboundTail = inboundTail.then(async () => {
-          const packet = await validatedPacket(event.packet, 'unity');
-          // Validation may have outlived cancellation/unload; never deliver a late packet into a new generation.
-          if (eventOperationId !== activeOperationId && eventOperationId !== pendingOperationId) return;
-          if (packet) listener(packet, receivedPerfMs);
-        }, async () => undefined);
-      }, timeoutMs);
+      return registerBoundedListener(
+        plugin,
+        'message',
+        (event) => {
+          const eventOperationId = event.operationId;
+          if (
+            typeof eventOperationId !== 'string' ||
+            (eventOperationId !== activeOperationId && eventOperationId !== pendingOperationId)
+          )
+            return;
+          // Capture arrival before queued SHA-256 work; hashing delay must not bias the clock offset/RTT estimate.
+          const receivedPerfMs = performance.now();
+          inboundTail = inboundTail.then(
+            async () => {
+              const packet = await validatedPacket(event.packet, 'unity');
+              // Validation may have outlived cancellation/unload; never deliver a late packet into a new generation.
+              if (eventOperationId !== activeOperationId && eventOperationId !== pendingOperationId) return;
+              if (packet) listener(packet, receivedPerfMs);
+            },
+            async () => undefined,
+          );
+        },
+        timeoutMs,
+      );
     },
 
     async onError(listener) {
       if (!plugin) return async () => undefined;
-      return registerBoundedListener(plugin, 'error', (event) => {
-        if (typeof event.operationId !== 'string' || (event.operationId !== activeOperationId && event.operationId !== pendingOperationId)) return;
-        listener({
-          code: typeof event.code === 'string' ? event.code : 'unity_runtime',
-          detail: typeof event.detail === 'string' ? event.detail : 'Unity Practice reported an unspecified native error.',
-          operationId: typeof event.operationId === 'string' ? event.operationId : null,
-        });
-      }, timeoutMs);
+      return registerBoundedListener(
+        plugin,
+        'error',
+        (event) => {
+          if (
+            typeof event.operationId !== 'string' ||
+            (event.operationId !== activeOperationId && event.operationId !== pendingOperationId)
+          )
+            return;
+          listener({
+            code: typeof event.code === 'string' ? event.code : 'unity_runtime',
+            detail:
+              typeof event.detail === 'string' ? event.detail : 'Unity Practice reported an unspecified native error.',
+            operationId: typeof event.operationId === 'string' ? event.operationId : null,
+          });
+        },
+        timeoutMs,
+      );
     },
   };
 }

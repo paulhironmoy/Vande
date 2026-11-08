@@ -61,7 +61,8 @@ export function ZonePad({ shot, value, onChange, disabled, size = 168 }: ZonePad
   };
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
     if (disabled || !needsZone) return;
-    const dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+    const dir =
+      e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
     if (!dir) return;
     e.preventDefault();
     const order = SECTOR_ORDER.filter((z) => legal.includes(z));
@@ -98,7 +99,13 @@ export function ZonePad({ shot, value, onChange, disabled, size = 168 }: ZonePad
           const d = `M${P(a0, r0)} L${P(a0, r1)} A${r1} ${r1} 0 0 1 ${P(a1, r1)} L${P(a1, r0)} A${r0} ${r0} 0 0 0 ${P(a0, r0)} Z`;
           const am = (((i + 0.5) * 45 - 90) * Math.PI) / 180;
           return (
-            <g key={z} data-zone={z} data-legal={legal.includes(z) || undefined} data-active={shown === z || undefined} className={s.sector}>
+            <g
+              key={z}
+              data-zone={z}
+              data-legal={legal.includes(z) || undefined}
+              data-active={shown === z || undefined}
+              className={s.sector}
+            >
               <path d={d} />
               <text x={Math.cos(am) * 33} y={Math.sin(am) * 33} textAnchor="middle" dominantBaseline="middle">
                 {t(`zone.${z}`)}
@@ -107,7 +114,11 @@ export function ZonePad({ shot, value, onChange, disabled, size = 168 }: ZonePad
           );
         })}
         <circle r="14" className={s.hub} />
-        <path d="M0 -9 L0 9 M-4 -5 L0 -9 L4 -5" className={s.hubGlyph} transform={shown ? `rotate(${SECTOR_ORDER.indexOf(shown) * 45 + 22.5})` : undefined} />
+        <path
+          d="M0 -9 L0 9 M-4 -5 L0 -9 L4 -5"
+          className={s.hubGlyph}
+          transform={shown ? `rotate(${SECTOR_ORDER.indexOf(shown) * 45 + 22.5})` : undefined}
+        />
       </svg>
       <span className="sr-only" aria-live="polite">
         {shown ? t('bat.aim', { zone: t(`zone.${shown}`) }) : ''}

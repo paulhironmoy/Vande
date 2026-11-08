@@ -14,7 +14,22 @@
  */
 import P from './params.json';
 import { CH, CHANNELS, SCALE } from './channels';
-import { AMP, BLINK_N, DRAW, FIDGET, FIDGET_N, FIX_N, MICRO_N, T_BALL, T_GROUND, T_OPP, T_SIDE, blinkShape, seamClash, taskWindow } from './plan';
+import {
+  AMP,
+  BLINK_N,
+  DRAW,
+  FIDGET,
+  FIDGET_N,
+  FIX_N,
+  MICRO_N,
+  T_BALL,
+  T_GROUND,
+  T_OPP,
+  T_SIDE,
+  blinkShape,
+  seamClash,
+  taskWindow,
+} from './plan';
 import { fractal, skewSin } from './noise';
 import { ballKey, mix, personKey, u01 } from './seeds';
 import type { DirectorAnchors, DirectorEvents } from './types';
@@ -125,7 +140,9 @@ export function* bakeSteps(
   const am = ev.amp;
   const win = taskWindow(a);
 
-  const kept = reuse ? Math.max(0, Math.min(n, Math.floor((reuse.untilMs - a.start) / dtT), reuse.trace.length / CHANNELS)) : 0;
+  const kept = reuse
+    ? Math.max(0, Math.min(n, Math.floor((reuse.untilMs - a.start) / dtT), reuse.trace.length / CHANNELS))
+    : 0;
   if (reuse) trace.set(reuse.trace.subarray(0, kept * CHANNELS));
   // The clip's own head, on the trace grid (the only per-frame call that may be expensive for the caller).
   const space = a.headMode === 'space';
@@ -273,7 +290,8 @@ export function* bakeSteps(
     if (a.role === 'bowler') pulses.push(a.release, L.exert.bowler, tau);
     else {
       if (a.strokeEnd !== null) pulses.push(a.strokeEnd, L.exert.stroke, tau);
-      if (a.outcomeAt !== null && a.runs > 0) pulses.push(a.outcomeAt + d[DRAW.reactionMs], Math.min(L.exert.cap, L.exert.perRun * a.runs), tau);
+      if (a.outcomeAt !== null && a.runs > 0)
+        pulses.push(a.outcomeAt + d[DRAW.reactionMs], Math.min(L.exert.cap, L.exert.perRun * a.runs), tau);
     }
   }
   // P3: a reaction breathes out (the exertion also raises the breath's depth and rate)
@@ -419,7 +437,8 @@ export function* bakeSteps(
     const cp = space ? 0 : clip[3 * k + 1];
     const cr = space ? 0 : clip[3 * k + 2];
     // head drift (own slow wobble), overlay
-    const drift = (c: number, amp: number) => (rm ? 0 : amp * fractal(hSeed + 131 * c, tS, d[DRAW.headDrift + c], H.driftS, [1, 0.5]));
+    const drift = (c: number, amp: number) =>
+      rm ? 0 : amp * fractal(hSeed + 131 * c, tS, d[DRAW.headDrift + c], H.driftS, [1, 0.5]);
     // The reaction's head (P3, from outcomeAt + 180 ms): up for a good result, down for a bad one, a shake for the worst.
     let hyR = 0;
     let hpR = 0;
@@ -432,7 +451,8 @@ export function* bakeSteps(
       if (env > 0) {
         hpR = env * rea[8];
         postureR = env * rea[1] * rea[2] * (rea[1] > 0 ? RC.postureLiftDeg : RC.postureSlumpDeg);
-        if (!rm && rea[6] !== 0 && u < RC.shakeMs) hyR = rea[6] * Math.sin((TAU * rea[7] * u) / 1000) * Math.sin((Math.PI * u) / RC.shakeMs);
+        if (!rm && rea[6] !== 0 && u < RC.shakeMs)
+          hyR = rea[6] * Math.sin((TAU * rea[7] * u) / 1000) * Math.sin((Math.PI * u) / RC.shakeMs);
       }
     }
     const hy = hsy + drift(0, H.driftDeg[0]) + hyR;
@@ -499,7 +519,8 @@ export function* bakeSteps(
       const [mx, leadMs, toMs, decMs] = a.role === 'striker' ? XC.striker : XC.bowler;
       const rise = (leadMs - toMs) * slowX;
       const full = a.release - toMs;
-      const end = (a.role === 'striker' ? (a.taskEnd ?? a.contact ?? a.release + P.blink.idleEndMs) : a.release) + XC.afterMs;
+      const end =
+        (a.role === 'striker' ? (a.taskEnd ?? a.contact ?? a.release + P.blink.idleEndMs) : a.release) + XC.afterMs;
       xCon = mx * mj((t - (full - rise)) / rise) * (1 - mj((t - end) / (decMs * slowX)));
     }
     put(CH.xConcentration, Math.min(1, xCon + rEnv * (rea.length ? rea[11] : 0)));
@@ -521,7 +542,10 @@ export function* bakeSteps(
     const q = rm ? 0 : lifeGain(a, t);
     if (q > 0) {
       const B = L.breath;
-      const phase = d[DRAW.breathPhase] + am[AMP.breathHz] * (tS + B.rateX * E) + d[DRAW.modCycles] * Math.sin(TAU * (d[DRAW.modHz] * tS + d[DRAW.modPhase])) * (1 - B.modDamp * e);
+      const phase =
+        d[DRAW.breathPhase] +
+        am[AMP.breathHz] * (tS + B.rateX * E) +
+        d[DRAW.modCycles] * Math.sin(TAU * (d[DRAW.modHz] * tS + d[DRAW.modPhase])) * (1 - B.modDamp * e);
       const depth = (1 + B.ampMod * Math.sin(TAU * (d[DRAW.ampModHz] * tS + d[DRAW.ampPhase]))) * (1 + B.depthX * e);
       put(CH.breath, q * am[AMP.breathDepthDeg] * depth * skewSin(phase, am[AMP.breathSkew]));
       const norm = L.sway.norm;
@@ -573,7 +597,12 @@ export function* bakeSteps(
 }
 
 /** Runs the bake to the end in one go (the same code `bakeSteps` runs a slice at a time). */
-export function bake(a: DirectorAnchors, ev: DirectorEvents, hz: number, reuse?: { trace: Int16Array; untilMs: number }): Int16Array {
+export function bake(
+  a: DirectorAnchors,
+  ev: DirectorEvents,
+  hz: number,
+  reuse?: { trace: Int16Array; untilMs: number },
+): Int16Array {
   const g = bakeSteps(a, ev, hz, reuse);
   for (;;) {
     const r = g.next();

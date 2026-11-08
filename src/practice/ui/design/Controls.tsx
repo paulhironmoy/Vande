@@ -23,10 +23,18 @@ export interface PSegmentedProps<T extends string | number> {
   className?: string;
 }
 
-export function PSegmented<T extends string | number>({ options, value, onChange, label, testId, className }: PSegmentedProps<T>) {
+export function PSegmented<T extends string | number>({
+  options,
+  value,
+  onChange,
+  label,
+  testId,
+  className,
+}: PSegmentedProps<T>) {
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
   const onKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
-    const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+    const step =
+      e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
     if (!step && e.key !== 'Home' && e.key !== 'End') return;
     e.preventDefault();
     const n = options.length;
@@ -85,13 +93,33 @@ export interface PSwitchProps {
 
 export function PSwitch({ checked, onChange, labelledBy, label, testId, disabled }: PSwitchProps) {
   return (
-    <button type="button" role="switch" aria-checked={checked} aria-labelledby={labelledBy} aria-label={labelledBy ? undefined : label} className={s.switch} onClick={() => onChange(!checked)} disabled={disabled} data-testid={testId}>
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-labelledby={labelledBy}
+      aria-label={labelledBy ? undefined : label}
+      className={s.switch}
+      onClick={() => onChange(!checked)}
+      disabled={disabled}
+      data-testid={testId}
+    >
       <span className={s.switchTrack} aria-hidden="true" />
     </button>
   );
 }
 
-export function PSetting({ label, hint, children, id }: { label: ReactNode; hint?: ReactNode; children: ReactNode; id?: string }) {
+export function PSetting({
+  label,
+  hint,
+  children,
+  id,
+}: {
+  label: ReactNode;
+  hint?: ReactNode;
+  children: ReactNode;
+  id?: string;
+}) {
   const auto = useId();
   const labelId = id ?? `${auto}-label`;
   return (
@@ -117,7 +145,15 @@ export interface PDisclosureProps {
   className?: string;
 }
 
-export function PDisclosure({ label, children, defaultOpen = false, open: controlled, onToggle, testId, className }: PDisclosureProps) {
+export function PDisclosure({
+  label,
+  children,
+  defaultOpen = false,
+  open: controlled,
+  onToggle,
+  testId,
+  className,
+}: PDisclosureProps) {
   const [own, setOwn] = useState(defaultOpen);
   const open = controlled ?? own;
   const id = useId();
@@ -128,7 +164,14 @@ export function PDisclosure({ label, children, defaultOpen = false, open: contro
   };
   return (
     <div className={className}>
-      <button type="button" className={s.disclosure} aria-expanded={open} aria-controls={id} onClick={toggle} data-testid={testId ? `${testId}-toggle` : undefined}>
+      <button
+        type="button"
+        className={s.disclosure}
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={toggle}
+        data-testid={testId ? `${testId}-toggle` : undefined}
+      >
         {label}
         <span className={s.disclosureIcon} aria-hidden="true">
           <Icon name="chevron-down" size={18} />

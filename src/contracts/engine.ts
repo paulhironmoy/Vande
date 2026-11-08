@@ -85,7 +85,10 @@ export interface SealedSixEngineApi {
    * Resolves the next ball of the innings: balls 0–5 (balls after the second wicket resolve as dead balls), then the
    * Super Ball. Returns `outcome.ball === state.nextBall` of the input state. Never throws on validated inputs.
    */
-  resolveNextBall(state: InningsState, args: ResolveArgs): { state: InningsState; outcome: BallOutcome; feedback: ShotFeedback };
+  resolveNextBall(
+    state: InningsState,
+    args: ResolveArgs,
+  ): { state: InningsState; outcome: BallOutcome; feedback: ShotFeedback };
   /** Summarises a finished innings. */
   summarise(state: InningsState, batter: 0 | 1): InningsSummary;
 
@@ -143,5 +146,8 @@ export interface SealedSixEngineApi {
   dailyScore(summary: InningsSummary): number;
 
   /** Per-match performance used by the Top 100 ranking (the platform adds wins, opponent strength, importance). */
-  matchPerformance(log: MatchEventLog, player: 0 | 1): Pick<Top100Components, 'tacticalEfficiency' | 'clutch' | 'execution'>;
+  matchPerformance(
+    log: MatchEventLog,
+    player: 0 | 1,
+  ): Pick<Top100Components, 'tacticalEfficiency' | 'clutch' | 'execution'>;
 }

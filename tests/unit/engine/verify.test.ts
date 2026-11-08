@@ -108,7 +108,11 @@ describe('determinism', () => {
   it('different seeds produce different matches', async () => {
     const m = randomMatch('seedless');
     const a = await logFor(m);
-    const flipped = await logFor({ ...m, seed: `${m.seed.slice(0, -1)}${m.seed.endsWith('0') ? '1' : '0'}`, states: replay(m, `${m.seed.slice(0, -1)}${m.seed.endsWith('0') ? '1' : '0'}`) });
+    const flipped = await logFor({
+      ...m,
+      seed: `${m.seed.slice(0, -1)}${m.seed.endsWith('0') ? '1' : '0'}`,
+      states: replay(m, `${m.seed.slice(0, -1)}${m.seed.endsWith('0') ? '1' : '0'}`),
+    });
     expect(canonicalJson(flipped.innings)).not.toBe(canonicalJson(a.innings));
   });
 });
@@ -117,7 +121,13 @@ function replay(m: ReturnType<typeof randomMatch>, seed: string): ReturnType<typ
   const out = [engine.startInnings(0), engine.startInnings(1)] as ReturnType<typeof randomMatch>['states'];
   for (const i of [0, 1] as const) {
     let state = out[i];
-    for (const input of m.inputs[i]) state = engine.resolveNextBall(state, { seed, conditions: m.conditions, plan: m.plans[i === 0 ? 1 : 0], input }).state;
+    for (const input of m.inputs[i])
+      state = engine.resolveNextBall(state, {
+        seed,
+        conditions: m.conditions,
+        plan: m.plans[i === 0 ? 1 : 0],
+        input,
+      }).state;
     out[i] = state;
   }
   return out;

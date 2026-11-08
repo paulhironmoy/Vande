@@ -43,7 +43,10 @@ describe('LBW (Law 36)', () => {
 
   it('impact outside leg is never out', () => {
     const f = fly({ lengthM: 4, lineM: 0 });
-    expect(lbw(f, impactAt(f, -0.3), { shotOffered: false })).toMatchObject({ out: false, reason: 'impact_outside_leg' });
+    expect(lbw(f, impactAt(f, -0.3), { shotOffered: false })).toMatchObject({
+      out: false,
+      reason: 'impact_outside_leg',
+    });
   });
 
   it('missing: going past off stump; high: over the top', () => {

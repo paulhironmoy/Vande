@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { BatSample, Footwork, NormalizedSwing } from '@/contracts/practice';
-import {
-  BAT_POSTURE_CROUCH_MAX_M,
-  batPoseAdmissibility,
-  remainingBatterPostureCrouchM,
-} from '@/physics/admissibility';
+import { BAT_POSTURE_CROUCH_MAX_M, batPoseAdmissibility, remainingBatterPostureCrouchM } from '@/physics/admissibility';
 import {
   BAT_ANGULAR_ACCEL_LIMIT_RADPS2,
   BAT_ANGULAR_SPEED_LIMIT_RADPS,
@@ -66,12 +62,19 @@ function samplePose(sample: BatSample): BatPose {
   return { grip: sample.grip, toe: sample.toe, n: sample.face };
 }
 
-function attackTrack(directionDeg: number, footwork: Footwork, lengthM: number, lineM: number, elevation = 0.1): BatTrack {
+function attackTrack(
+  directionDeg: number,
+  footwork: Footwork,
+  lengthM: number,
+  lineM: number,
+  elevation = 0.1,
+): BatTrack {
   const flight = fly({ variation: lengthM >= 9.5 ? 'bouncer' : 'stock', lengthM, lineM, speedKph: 136 });
   const swing = timedSwing(flight, 0, { kind: 'attack', directionDeg, elevation, power: 0.65 }, footwork);
   const track = buildBatTrack(flight, swing, { assist: 'real' });
   const hit = sweep(flight.samples, track, track.body, 0, flight.samples.at(-1)!.t).hit;
-  if (!hit || (hit.part !== 'blade' && hit.part !== 'handle')) throw new Error(`Representative ${track.shot.family} did not hit the bat`);
+  if (!hit || (hit.part !== 'blade' && hit.part !== 'handle'))
+    throw new Error(`Representative ${track.shot.family} did not hit the bat`);
   DECISIVE.set(track, hit.t);
   return track;
 }
@@ -140,7 +143,8 @@ function traceKinematics(samples: readonly BatSample[], impulseIndex: number | n
     const toeV = scale(sub(samples[i].toe, samples[i - 1].toe), 1 / dt);
     const gripSpeed = Math.hypot(gripV.x, gripV.y, gripV.z);
     const toeSpeed = Math.hypot(toeV.x, toeV.y, toeV.z);
-    const angularSpeed = Math.acos(Math.max(-1, Math.min(1, dot(axis(samplePose(samples[i - 1])), axis(samplePose(samples[i])))))) / dt;
+    const angularSpeed =
+      Math.acos(Math.max(-1, Math.min(1, dot(axis(samplePose(samples[i - 1])), axis(samplePose(samples[i])))))) / dt;
     const faceAngularSpeed = Math.acos(Math.max(-1, Math.min(1, dot(samples[i - 1].face, samples[i].face)))) / dt;
     maxGripSpeed = Math.max(maxGripSpeed, gripSpeed);
     maxToeSpeed = Math.max(maxToeSpeed, toeSpeed);
@@ -150,8 +154,16 @@ function traceKinematics(samples: readonly BatSample[], impulseIndex: number | n
       const centreDt = (previousDt + dt) / 2;
       maxGripAcceleration = Math.max(maxGripAcceleration, distance(gripV, previousGripV) / centreDt);
       maxToeAcceleration = Math.max(maxToeAcceleration, distance(toeV, previousToeV) / centreDt);
-      if (previousAngularSpeed !== null) maxAngularAcceleration = Math.max(maxAngularAcceleration, Math.abs(angularSpeed - previousAngularSpeed) / centreDt);
-      if (previousFaceAngularSpeed !== null) maxFaceAngularAcceleration = Math.max(maxFaceAngularAcceleration, Math.abs(faceAngularSpeed - previousFaceAngularSpeed) / centreDt);
+      if (previousAngularSpeed !== null)
+        maxAngularAcceleration = Math.max(
+          maxAngularAcceleration,
+          Math.abs(angularSpeed - previousAngularSpeed) / centreDt,
+        );
+      if (previousFaceAngularSpeed !== null)
+        maxFaceAngularAcceleration = Math.max(
+          maxFaceAngularAcceleration,
+          Math.abs(faceAngularSpeed - previousFaceAngularSpeed) / centreDt,
+        );
     }
     if (i === samples.length - 1) terminalSpeed = Math.max(gripSpeed, toeSpeed);
     previousGripV = gripV;
@@ -181,8 +193,12 @@ function runtimeSamples(
 ): BatSample[] {
   const start = samples[0].t;
   const end = samples.at(-1)!.t;
-  const anchors = [start, ...(contactT === null ? [] : [contactT]),
-    ...(velocityPeakT === null ? [] : [velocityPeakT]), end];
+  const anchors = [
+    start,
+    ...(contactT === null ? [] : [contactT]),
+    ...(velocityPeakT === null ? [] : [velocityPeakT]),
+    end,
+  ];
   const times = [...anchors];
   for (let index = 1; start + index * dt < end; index++) {
     const time = start + index * dt;
@@ -190,10 +206,12 @@ function runtimeSamples(
     // over the near-zero final interval can manufacture hundreds of rad/s² in an actually held rigid pose.
     if (anchors.every((anchor) => Math.abs(time - anchor) >= dt * 0.5)) times.push(time);
   }
-  return times.sort((a, b) => a - b).map((time) => {
-    const pose = batAt(samples, time, contactT, velocityPeakT)!;
-    return { t: time, grip: pose.grip, toe: pose.toe, face: pose.face };
-  });
+  return times
+    .sort((a, b) => a - b)
+    .map((time) => {
+      const pose = batAt(samples, time, contactT, velocityPeakT)!;
+      return { t: time, grip: pose.grip, toe: pose.toe, face: pose.face };
+    });
 }
 
 // The presented trace must stay inside the same analytic envelope every collision path is certified against (bat.ts).
@@ -252,7 +270,9 @@ describe('authored bat motion', () => {
     // on the forward stride, so the posture limits are those of the footwork actually played.
     expect(track.footwork).toBe('forward');
     const authoredCrouchM = BODY.torsoTop - batterBody(track.footwork, flight).torso.b.y;
-    expect(track.batterPosture.crouchM).toBeLessThanOrEqual(remainingBatterPostureCrouchM(batterBody(track.footwork, flight)) + 1e-12);
+    expect(track.batterPosture.crouchM).toBeLessThanOrEqual(
+      remainingBatterPostureCrouchM(batterBody(track.footwork, flight)) + 1e-12,
+    );
     expect(authoredCrouchM + track.batterPosture.crouchM).toBeLessThanOrEqual(BAT_POSTURE_CROUCH_MAX_M + 1e-12);
     const t0 = flight.samples.find((sample) => sample.p.z >= 5.5)?.t ?? flight.samples[0].t;
     const bodyOnly = sweep(flight.samples, null, track.body, t0, track.plannedContactT);
@@ -264,7 +284,12 @@ describe('authored bat motion', () => {
 
   it('preserves the canonical collision track and ignores finish throughout the contact zone', () => {
     const flight = fly({ variation: 'stock', lengthM: 6.5, lineM: 0.05, speedKph: 136 }, undefined, 'balanced', 't3');
-    const swing: NormalizedSwing = timedSwing(flight, 0, { kind: 'attack', power: 0.6, elevation: 0.1, directionDeg: 0 });
+    const swing: NormalizedSwing = timedSwing(flight, 0, {
+      kind: 'attack',
+      power: 0.6,
+      elevation: 0.1,
+      directionDeg: 0,
+    });
     const track = buildBatTrack(flight, swing, { assist: 'real' });
     expect(track.zoneIn).toBeLessThan(track.plannedContactT);
     expect(track.zoneOut).toBeGreaterThan(track.plannedContactT);
@@ -305,12 +330,7 @@ describe('authored bat motion', () => {
   });
 
   it('preserves the planned acceleration breakpoint before a later exact hit without creating another impulse', () => {
-    const flight = fly(
-      { variation: 'stock', lengthM: 6.5, lineM: 0.05, speedKph: 136 },
-      PACE,
-      'balanced',
-      't3',
-    );
+    const flight = fly({ variation: 'stock', lengthM: 6.5, lineM: 0.05, speedKph: 136 }, PACE, 'balanced', 't3');
     // 1 ms early, so the exact hit comes after the planned instant (+0.65 ms). At 0 ms the ordering was a numerical
     // tie (the hit 0.04 us before plannedContactT after the PHYS phase-2 face fixes; 36 ns after it before them).
     const swing = timedSwing(flight, -1, { directionDeg: 0, power: 0.6, elevation: 0.2 });
@@ -337,10 +357,24 @@ describe('authored bat motion', () => {
 
   it('inserts one exact immutable contact knot and stays inside every presentation envelope for all shot families', () => {
     const tracks = representativeAttacks();
-    expect(new Set(tracks.map((track) => track.shot.family))).toEqual(new Set([
-      'straight_drive', 'off_drive', 'cover_drive', 'square_drive', 'steer', 'on_drive', 'flick', 'glance',
-      'back_drive', 'back_punch', 'back_on_punch', 'cut', 'pull', 'hook',
-    ]));
+    expect(new Set(tracks.map((track) => track.shot.family))).toEqual(
+      new Set([
+        'straight_drive',
+        'off_drive',
+        'cover_drive',
+        'square_drive',
+        'steer',
+        'on_drive',
+        'flick',
+        'glance',
+        'back_drive',
+        'back_punch',
+        'back_on_punch',
+        'cut',
+        'pull',
+        'hook',
+      ]),
+    );
     let incomingGripMax = 0;
     let incomingToeMax = 0;
     for (const track of tracks) {
@@ -356,7 +390,7 @@ describe('authored bat motion', () => {
       const presented = presentationBatSamples(track, decisiveT, dt)!;
       expect(presented).toEqual(presentationBatSamples(track, decisiveT, dt));
       expect(Object.isFrozen(presented)).toBe(true);
-      const contactIndices = presented.flatMap((sample, index) => sample.t === decisiveT ? [index] : []);
+      const contactIndices = presented.flatMap((sample, index) => (sample.t === decisiveT ? [index] : []));
       expect(contactIndices).toHaveLength(1);
       const contactIndex = contactIndices[0];
       expect(presented.filter((sample) => sample.t === track.zoneIn)).toHaveLength(1);
@@ -381,8 +415,14 @@ describe('authored bat motion', () => {
       const canonical = batSamples(track, dt);
       const boundary = canonical.findIndex((sample) => sample.t >= decisiveT);
       const canonicalDt = canonical[boundary].t - canonical[boundary - 1].t;
-      incomingGripMax = Math.max(incomingGripMax, distance(canonical[boundary].grip, canonical[boundary - 1].grip) / canonicalDt);
-      incomingToeMax = Math.max(incomingToeMax, distance(canonical[boundary].toe, canonical[boundary - 1].toe) / canonicalDt);
+      incomingGripMax = Math.max(
+        incomingGripMax,
+        distance(canonical[boundary].grip, canonical[boundary - 1].grip) / canonicalDt,
+      );
+      incomingToeMax = Math.max(
+        incomingToeMax,
+        distance(canonical[boundary].toe, canonical[boundary - 1].toe) / canonicalDt,
+      );
     }
     // Sim-v3 makes the authoritative incoming collision tangent itself visible-skeleton-safe. Contact remains the
     // only permitted derivative reset, while both sides independently stay inside the biomechanical envelopes.
@@ -404,7 +444,9 @@ describe('authored bat motion', () => {
     for (const sample of presented) assertRigidSafeSample(sample, track);
     expectInsideKinematicEnvelope(traceKinematics(presented, null));
     const runtime = runtimeSamples(presented, null, track.plannedContactT);
-    expect(Math.min(...runtime.slice(1).map((sample, index) => sample.t - runtime[index].t))).toBeGreaterThanOrEqual(0.0005 - 1e-12);
+    expect(Math.min(...runtime.slice(1).map((sample, index) => sample.t - runtime[index].t))).toBeGreaterThanOrEqual(
+      0.0005 - 1e-12,
+    );
     for (const sample of runtime) assertRigidSafeSample(sample, track);
     expectInsideKinematicEnvelope(traceKinematics(runtime, null));
   });
@@ -414,17 +456,41 @@ describe('authored bat motion', () => {
       const decisiveT = decisiveTime(track);
       const trace = presentationBatSamples(track, decisiveT, 0.002)!;
       const contactIndex = trace.findIndex((sample) => sample.t === decisiveT);
-      expect(orientationAngle(samplePose(trace[0]), samplePose(trace[contactIndex])), `${track.shot.family} backlift`).toBeGreaterThan(0.005);
-      expect(orientationAngle(samplePose(trace[contactIndex]), samplePose(trace.at(-1)!)), `${track.shot.family} follow-through`).toBeGreaterThan(0.005);
+      expect(
+        orientationAngle(samplePose(trace[0]), samplePose(trace[contactIndex])),
+        `${track.shot.family} backlift`,
+      ).toBeGreaterThan(0.005);
+      expect(
+        orientationAngle(samplePose(trace[contactIndex]), samplePose(trace.at(-1)!)),
+        `${track.shot.family} follow-through`,
+      ).toBeGreaterThan(0.005);
     }
 
     const flight = fly({ lengthM: 6.5, lineM: 0.05, speedKph: 136 });
-    const attack = buildBatTrack(flight, timedSwing(flight, 0, { kind: 'attack', directionDeg: 0 }), { assist: 'real' });
-    const defend = buildBatTrack(flight, timedSwing(flight, 0, { kind: 'defend', directionDeg: 0, power: 0.15 }), { assist: 'real' });
+    const attack = buildBatTrack(flight, timedSwing(flight, 0, { kind: 'attack', directionDeg: 0 }), {
+      assist: 'real',
+    });
+    const defend = buildBatTrack(flight, timedSwing(flight, 0, { kind: 'defend', directionDeg: 0, power: 0.15 }), {
+      assist: 'real',
+    });
     const attackTrace = batSamples(attack, 0.002);
     const defendTrace = batSamples(defend, 0.002);
-    const attackBacklift = orientationAngle(samplePose(attackTrace[0]), samplePose(attackTrace.reduce((a, b) => Math.abs(b.t - attack.plannedContactT) < Math.abs(a.t - attack.plannedContactT) ? b : a)));
-    const defendBacklift = orientationAngle(samplePose(defendTrace[0]), samplePose(defendTrace.reduce((a, b) => Math.abs(b.t - defend.plannedContactT) < Math.abs(a.t - defend.plannedContactT) ? b : a)));
+    const attackBacklift = orientationAngle(
+      samplePose(attackTrace[0]),
+      samplePose(
+        attackTrace.reduce((a, b) =>
+          Math.abs(b.t - attack.plannedContactT) < Math.abs(a.t - attack.plannedContactT) ? b : a,
+        ),
+      ),
+    );
+    const defendBacklift = orientationAngle(
+      samplePose(defendTrace[0]),
+      samplePose(
+        defendTrace.reduce((a, b) =>
+          Math.abs(b.t - defend.plannedContactT) < Math.abs(a.t - defend.plannedContactT) ? b : a,
+        ),
+      ),
+    );
     expect(attackBacklift).toBeGreaterThan(defendBacklift + 0.05);
 
     const byFamily = new Map(representativeAttacks().map((track) => [track.shot.family, track]));
@@ -445,15 +511,20 @@ describe('authored bat motion', () => {
     for (const family of ['cut', 'pull'] as const) {
       const track = byFamily.get(family)!;
       const trace = batSamples(track, 0.002);
-      const anchor = trace.reduce((a, b) => Math.abs(b.t - track.plannedContactT) < Math.abs(a.t - track.plannedContactT) ? b : a);
+      const anchor = trace.reduce((a, b) =>
+        Math.abs(b.t - track.plannedContactT) < Math.abs(a.t - track.plannedContactT) ? b : a,
+      );
       expect(Math.abs(axis(samplePose(anchor)).y), `${family} cross-bat`).toBeLessThan(0.5);
     }
     const drive = byFamily.get('straight_drive')!;
     const driveTrace = batSamples(drive, 0.002);
-    const driveAnchor = driveTrace.reduce((a, b) => Math.abs(b.t - drive.plannedContactT) < Math.abs(a.t - drive.plannedContactT) ? b : a);
+    const driveAnchor = driveTrace.reduce((a, b) =>
+      Math.abs(b.t - drive.plannedContactT) < Math.abs(a.t - drive.plannedContactT) ? b : a,
+    );
     expect(Math.abs(axis(samplePose(driveAnchor)).y), 'straight-drive vertical bat').toBeGreaterThan(0.7);
     for (let i = 0; i < signatures.length; i++) {
-      for (let j = i + 1; j < signatures.length; j++) expect(distance(signatures[i], signatures[j])).toBeGreaterThan(0.005);
+      for (let j = i + 1; j < signatures.length; j++)
+        expect(distance(signatures[i], signatures[j])).toBeGreaterThan(0.005);
     }
   });
 

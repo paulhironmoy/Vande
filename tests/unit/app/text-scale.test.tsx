@@ -12,7 +12,7 @@ vi.mock('@/i18n', () => ({
 
 vi.mock('@/i18n/practice', () => ({
   usePracticeT: () => ({
-    t: (key: string, values?: Record<string, unknown>) => values?.pct ? `${String(values.pct)}%` : key,
+    t: (key: string, values?: Record<string, unknown>) => (values?.pct ? `${String(values.pct)}%` : key),
     tk: (key: string) => key,
   }),
 }));

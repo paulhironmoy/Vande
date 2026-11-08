@@ -40,18 +40,27 @@ function job(over: Partial<AdminJob> = {}): AdminJob {
 
 describe('admin API client', () => {
   it('builds admin paths and refuses anything that is not a job or report id', () => {
-    expect(adminPath('GET /v1/admin/jobs', undefined, { day: '2026-10-26', status: undefined })).toBe('/v1/admin/jobs?day=2026-10-26');
+    expect(adminPath('GET /v1/admin/jobs', undefined, { day: '2026-10-26', status: undefined })).toBe(
+      '/v1/admin/jobs?day=2026-10-26',
+    );
     expect(adminPath('POST /v1/admin/jobs/:jobId/approve', { jobId: JOB })).toBe(`/v1/admin/jobs/${JOB}/approve`);
     expect(() => adminPath('POST /v1/admin/jobs/:jobId/approve', { jobId: '../../me' })).toThrow();
-    expect(adminPath('POST /v1/admin/reports/:reportId/suspend', { reportId: '42' })).toBe('/v1/admin/reports/42/suspend');
+    expect(adminPath('POST /v1/admin/reports/:reportId/suspend', { reportId: '42' })).toBe(
+      '/v1/admin/reports/42/suspend',
+    );
     expect(() => adminPath('POST /v1/admin/reports/:reportId/suspend', { reportId: '../jobs' })).toThrow();
     // Every status, the new ones included, can be filtered on.
     expect(STATUSES).toEqual(expect.arrayContaining(['awaiting_channel', 'removal_failed']));
   });
 
   it('sends the local token only to the configured API origin, never cookies across origins, never redirects', async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ id: 'dev-token', via: 'token' }), { status: 200 }));
-    const api = createAdminApi({ base: 'http://127.0.0.1:8787', token: 't'.repeat(40) }, fetchMock as unknown as typeof fetch);
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ id: 'dev-token', via: 'token' }), { status: 200 }),
+    );
+    const api = createAdminApi(
+      { base: 'http://127.0.0.1:8787', token: 't'.repeat(40) },
+      fetchMock as unknown as typeof fetch,
+    );
     expect(await api.call('GET /v1/admin/whoami')).toEqual({ id: 'dev-token', via: 'token' });
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe('http://127.0.0.1:8787/v1/admin/whoami');
@@ -69,7 +78,11 @@ describe('admin API client', () => {
 
   it('keeps the connection settings for the tab only', () => {
     const store = new Map<string, string>();
-    const s = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v), removeItem: (k: string) => void store.delete(k) };
+    const s = {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+      removeItem: (k: string) => void store.delete(k),
+    };
     saveAuth(s, { base: 'http://127.0.0.1:8787', token: 'x'.repeat(32) });
     expect(loadAuth(s)).toEqual({ base: 'http://127.0.0.1:8787', token: 'x'.repeat(32) });
     saveAuth(s, { base: '', token: null });
@@ -80,7 +93,10 @@ describe('admin API client', () => {
 
 describe('admin console', () => {
   it('renders player-chosen text as text, never as HTML', () => {
-    const row = jobRow(job({ aliases: ['<img src=x onerror=alert(1)>', 'Calm Cobra'], title: '<script>alert(1)</script>' }), () => undefined);
+    const row = jobRow(
+      job({ aliases: ['<img src=x onerror=alert(1)>', 'Calm Cobra'], title: '<script>alert(1)</script>' }),
+      () => undefined,
+    );
     expect(row.querySelector('img')).toBeNull();
     expect(row.querySelector('script')).toBeNull();
     expect(row.textContent).toContain('<img src=x onerror=alert(1)>');
@@ -106,7 +122,9 @@ describe('admin console', () => {
     (root.querySelector('button.link') as HTMLButtonElement).click();
     await vi.waitFor(() => expect(root.querySelector('.detail h2')?.textContent).toBe(job().title));
     (root.querySelector('.detail textarea') as HTMLTextAreaElement).value = 'ok to publish';
-    const approve = [...root.querySelectorAll('.detail button')].find((b) => b.textContent === 'Approve') as HTMLButtonElement;
+    const approve = [...root.querySelectorAll('.detail button')].find(
+      (b) => b.textContent === 'Approve',
+    ) as HTMLButtonElement;
     approve.click();
     await vi.waitFor(() => expect(calls.some(([k]) => k === 'POST /v1/admin/jobs/:jobId/approve')).toBe(true));
     expect(calls.find(([k]) => k === 'POST /v1/admin/jobs/:jobId/approve')?.[1]).toEqual({ notes: 'ok to publish' });
@@ -122,14 +140,39 @@ describe('the report queue view', () => {
     createdHour: '2026-10-26T09:00:00.000Z',
     resolvedHour: null,
     resolution: null,
-    player: { playerId: `p${'c'.repeat(26)}`, alias: 'Calm Cobra', status: 'active', suspendedUntil: null, openReports: 2 },
-    post: { postId: `r${'d'.repeat(26)}.3`, present: true, kind: 'text', text: 'you are rubbish', phraseId: null, createdHour: '2026-10-26T08:00:00.000Z' },
+    player: {
+      playerId: `p${'c'.repeat(26)}`,
+      alias: 'Calm Cobra',
+      status: 'active',
+      suspendedUntil: null,
+      openReports: 2,
+    },
+    post: {
+      postId: `r${'d'.repeat(26)}.3`,
+      present: true,
+      kind: 'text',
+      text: 'you are rubbish',
+      phraseId: null,
+      createdHour: '2026-10-26T08:00:00.000Z',
+    },
     history: [],
     ...over,
   });
 
   it('shows names and post text as text only', () => {
-    const row = reportRow(report({ player: { playerId: 'p1', alias: '<img src=x onerror=alert(1)>', status: 'active', suspendedUntil: null, openReports: 1 }, post: { postId: 'r1.1', present: true, kind: 'text', text: '<b>hi</b>', phraseId: null, createdHour: null } }), () => undefined);
+    const row = reportRow(
+      report({
+        player: {
+          playerId: 'p1',
+          alias: '<img src=x onerror=alert(1)>',
+          status: 'active',
+          suspendedUntil: null,
+          openReports: 1,
+        },
+        post: { postId: 'r1.1', present: true, kind: 'text', text: '<b>hi</b>', phraseId: null, createdHour: null },
+      }),
+      () => undefined,
+    );
     expect(row.querySelector('img, b')).toBeNull();
     expect(row.textContent).toContain('<img src=x onerror=alert(1)>');
     expect(row.textContent).toContain('<b>hi</b>');
@@ -143,7 +186,8 @@ describe('the report queue view', () => {
         if (key === 'GET /v1/admin/whoami') return { id: 'ops@vande.example', via: 'access' };
         if (key === 'GET /v1/admin/jobs') return { jobs: [], counts: {} };
         if (key === 'GET /v1/admin/reports') return { reports: [report()], counts: { open: 1, closed: 0 } };
-        if (key === 'POST /v1/admin/reports/:reportId/suspend') return { status: 'actioned', until: '2026-11-02T09:00:00.000Z' };
+        if (key === 'POST /v1/admin/reports/:reportId/suspend')
+          return { status: 'actioned', until: '2026-11-02T09:00:00.000Z' };
         throw new Error(key);
       }),
     };
@@ -151,7 +195,9 @@ describe('the report queue view', () => {
     const root = document.createElement('div');
     const ui = mountAdmin(root, { api: api as never, storage: null, confirm, now: () => Date.UTC(2026, 9, 26, 20, 0) });
     await ui.refresh();
-    ([...root.querySelectorAll('nav.tabs button')].find((b) => b.textContent === 'Reports') as HTMLButtonElement).click();
+    (
+      [...root.querySelectorAll('nav.tabs button')].find((b) => b.textContent === 'Reports') as HTMLButtonElement
+    ).click();
     await vi.waitFor(() => expect(root.querySelectorAll('table.reports tbody tr')).toHaveLength(1));
     expect(root.textContent).toContain('1 open · 0 closed');
     expect(calls.find(([k]) => k === 'GET /v1/admin/reports')?.[1]).toEqual({ status: 'open', kind: undefined });
@@ -160,7 +206,9 @@ describe('the report queue view', () => {
     expect(root.querySelector('.detail q')?.textContent).toBe('you are rubbish');
     (root.querySelector('.detail textarea') as HTMLTextAreaElement).value = 'repeat abuse';
     (root.querySelector('.detail input[type=number]') as HTMLInputElement).value = '7';
-    ([...root.querySelectorAll('.detail button')].find((b) => b.textContent === 'Suspend') as HTMLButtonElement).click();
+    (
+      [...root.querySelectorAll('.detail button')].find((b) => b.textContent === 'Suspend') as HTMLButtonElement
+    ).click();
     await vi.waitFor(() => expect(calls.some(([k]) => k === 'POST /v1/admin/reports/:reportId/suspend')).toBe(true));
     expect(confirm).toHaveBeenCalledWith("Pause Calm Cobra's rooms, cups, groups and name changes for 7 days?");
     const suspend = calls.find(([k]) => k === 'POST /v1/admin/reports/:reportId/suspend');

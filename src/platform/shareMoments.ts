@@ -81,7 +81,12 @@ export const CLAIM_TIMEOUT_MS = 1_500;
  * Just before a share sheet or WhatsApp opens: the server's answer, cached in the ledger when it is no (so the button
  * hides from then on, also after this device's data was cleared), or the ledger's when the server cannot answer.
  */
-export async function claimMoment(ledger: ShareLedger, moment: ShareMoment, ctx: Pick<ShareContext, 'id'>, opts: { claim?: MomentClaimer | null; timeoutMs?: number } = {}): Promise<boolean> {
+export async function claimMoment(
+  ledger: ShareLedger,
+  moment: ShareMoment,
+  ctx: Pick<ShareContext, 'id'>,
+  opts: { claim?: MomentClaimer | null; timeoutMs?: number } = {},
+): Promise<boolean> {
   if (ledger.used(ctx.id, moment)) return false;
   const claim = opts.claim === undefined ? registered : opts.claim;
   if (!claim) return true;
@@ -104,7 +109,9 @@ export function memoryShareLedger(): ShareLedger {
   return { used: (id, m) => used.has(`${id}:${m}`), mark: (id, m) => void used.add(`${id}:${m}`) };
 }
 
-export function localShareLedger(storage: Pick<Storage, 'getItem' | 'setItem'> | null = typeof localStorage !== 'undefined' ? localStorage : null): ShareLedger {
+export function localShareLedger(
+  storage: Pick<Storage, 'getItem' | 'setItem'> | null = typeof localStorage !== 'undefined' ? localStorage : null,
+): ShareLedger {
   const read = (): string[] => {
     try {
       return JSON.parse(storage?.getItem(LEDGER_KEY) ?? '[]') as string[];
@@ -116,7 +123,10 @@ export function localShareLedger(storage: Pick<Storage, 'getItem' | 'setItem'> |
     used: (id, m) => read().includes(`${id}:${m}`),
     mark(id, m) {
       try {
-        storage?.setItem(LEDGER_KEY, JSON.stringify([...read().filter((x) => x !== `${id}:${m}`), `${id}:${m}`].slice(-LEDGER_MAX)));
+        storage?.setItem(
+          LEDGER_KEY,
+          JSON.stringify([...read().filter((x) => x !== `${id}:${m}`), `${id}:${m}`].slice(-LEDGER_MAX)),
+        );
       } catch {
         /* storage unavailable: the in-app share buttons still limit themselves for this session */
       }
@@ -132,32 +142,45 @@ const PITCH: Record<ShareLocale, Record<PitchId, string>> = {
 
 const COPY: Record<ShareLocale, Record<string, string>> = {
   en: {
-    'share.invite_duel': '{inviter} challenged you to a Sealed Six duel on a {pitch} pitch. Lock your over. Reveal the rivalry.',
+    'share.invite_duel':
+      '{inviter} challenged you to a Sealed Six duel on a {pitch} pitch. Lock your over. Reveal the rivalry.',
     'share.invite_cup': '{inviter} invited you to {cup}, a Group Cup on VANDE Cricket. Join before it starts.',
     'share.invite_cup_unnamed': '{inviter} invited you to a Group Cup on VANDE Cricket. Join before it starts.',
     'share.reminder': 'Our VANDE Cricket match is waiting. If you haven’t played your turn yet, play it by {when} IST.',
     'share.reminder_lock': 'Our VANDE Cricket match is on. If you haven’t locked your over yet, lock it by {when} IST.',
-    'share.reminder_bat': 'Our VANDE Cricket match is waiting for its reveal. If you haven’t batted yet, bat by {when} IST.',
+    'share.reminder_bat':
+      'Our VANDE Cricket match is waiting for its reveal. If you haven’t batted yet, bat by {when} IST.',
     'share.final': 'The reveal is ready: {a} vs {b}. Watch who won.',
     'share.highlight': '{a} vs {b} made the VANDE Cricket Daily Top 100. Watch the highlight, then try to beat them.',
   },
   hi: {
-    'share.invite_duel': '{inviter} ने आपको {pitch} पिच पर सील्ड सिक्स मुकाबले की चुनौती दी है। अपना ओवर लॉक करें, फिर रिवील देखें।',
+    'share.invite_duel':
+      '{inviter} ने आपको {pitch} पिच पर सील्ड सिक्स मुकाबले की चुनौती दी है। अपना ओवर लॉक करें, फिर रिवील देखें।',
     'share.invite_cup': '{inviter} ने आपको VANDE Cricket के ग्रुप कप {cup} में बुलाया है। शुरू होने से पहले जुड़ें।',
-    'share.invite_cup_unnamed': '{inviter} ने आपको VANDE Cricket के एक ग्रुप कप में बुलाया है। शुरू होने से पहले जुड़ें।',
-    'share.reminder': 'हमारा VANDE Cricket मैच इंतज़ार कर रहा है। अगर आपने अभी तक अपनी बारी नहीं खेली है, तो {when} IST तक खेल लें।',
-    'share.reminder_lock': 'हमारा VANDE Cricket मैच चल रहा है। अगर आपने अभी तक अपना ओवर लॉक नहीं किया है, तो {when} IST तक कर लें।',
-    'share.reminder_bat': 'हमारा VANDE Cricket मैच रिवील का इंतज़ार कर रहा है। अगर आपने अभी तक बल्लेबाज़ी नहीं की है, तो {when} IST तक कर लें।',
+    'share.invite_cup_unnamed':
+      '{inviter} ने आपको VANDE Cricket के एक ग्रुप कप में बुलाया है। शुरू होने से पहले जुड़ें।',
+    'share.reminder':
+      'हमारा VANDE Cricket मैच इंतज़ार कर रहा है। अगर आपने अभी तक अपनी बारी नहीं खेली है, तो {when} IST तक खेल लें।',
+    'share.reminder_lock':
+      'हमारा VANDE Cricket मैच चल रहा है। अगर आपने अभी तक अपना ओवर लॉक नहीं किया है, तो {when} IST तक कर लें।',
+    'share.reminder_bat':
+      'हमारा VANDE Cricket मैच रिवील का इंतज़ार कर रहा है। अगर आपने अभी तक बल्लेबाज़ी नहीं की है, तो {when} IST तक कर लें।',
     'share.final': 'रिवील तैयार है: {a} बनाम {b}। देखिए कौन जीता।',
-    'share.highlight': '{a} बनाम {b} ने VANDE Cricket डेली टॉप 100 में जगह बनाई। हाइलाइट देखिए, फिर उन्हें हराकर दिखाइए।',
+    'share.highlight':
+      '{a} बनाम {b} ने VANDE Cricket डेली टॉप 100 में जगह बनाई। हाइलाइट देखिए, फिर उन्हें हराकर दिखाइए।',
   },
   'hi-Latn': {
-    'share.invite_duel': '{inviter} ne tumhe {pitch} pitch pe Sealed Six duel ki challenge di hai. Apna over lock karo, phir reveal dekho.',
+    'share.invite_duel':
+      '{inviter} ne tumhe {pitch} pitch pe Sealed Six duel ki challenge di hai. Apna over lock karo, phir reveal dekho.',
     'share.invite_cup': '{inviter} ne tumhe {cup} Group Cup mein bulaya hai. Shuru hone se pehle join karo.',
-    'share.invite_cup_unnamed': '{inviter} ne tumhe VANDE Cricket ke ek Group Cup mein bulaya hai. Shuru hone se pehle join karo.',
-    'share.reminder': 'Hamara VANDE Cricket match wait kar raha hai. Agar tumne abhi tak apni baari nahi kheli, to {when} IST tak khel lo.',
-    'share.reminder_lock': 'Hamara VANDE Cricket match chal raha hai. Agar tumne abhi tak apna over lock nahi kiya, to {when} IST tak kar lo.',
-    'share.reminder_bat': 'Hamara VANDE Cricket match reveal ka wait kar raha hai. Agar tumne abhi tak batting nahi ki, to {when} IST tak kar lo.',
+    'share.invite_cup_unnamed':
+      '{inviter} ne tumhe VANDE Cricket ke ek Group Cup mein bulaya hai. Shuru hone se pehle join karo.',
+    'share.reminder':
+      'Hamara VANDE Cricket match wait kar raha hai. Agar tumne abhi tak apni baari nahi kheli, to {when} IST tak khel lo.',
+    'share.reminder_lock':
+      'Hamara VANDE Cricket match chal raha hai. Agar tumne abhi tak apna over lock nahi kiya, to {when} IST tak kar lo.',
+    'share.reminder_bat':
+      'Hamara VANDE Cricket match reveal ka wait kar raha hai. Agar tumne abhi tak batting nahi ki, to {when} IST tak kar lo.',
     'share.final': 'Reveal ready hai: {a} vs {b}. Dekho kaun jeeta.',
     'share.highlight': '{a} vs {b} VANDE Cricket Daily Top 100 mein aaye. Highlight dekho, phir unhe hara ke dikhao.',
   },
@@ -167,7 +190,14 @@ const COPY: Record<ShareLocale, Record<string, string>> = {
 export function istWhen(iso: string, locale: ShareLocale = 'en'): string {
   const at = new Date(iso);
   if (Number.isNaN(at.getTime())) return '';
-  return new Intl.DateTimeFormat(locale === 'hi' ? 'hi-IN' : 'en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(at);
+  return new Intl.DateTimeFormat(locale === 'hi' ? 'hi-IN' : 'en-IN', {
+    timeZone: 'Asia/Kolkata',
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(at);
 }
 
 /**
@@ -205,11 +235,25 @@ export function canShare(ledger: ShareLedger, moment: ShareMoment, ctx: ShareCon
   return true;
 }
 
-export function buildShareMessage(moment: ShareMoment, ctx: ShareContext, t?: Translate): { title: string; text: string; url: string } {
+export function buildShareMessage(
+  moment: ShareMoment,
+  ctx: ShareContext,
+  t?: Translate,
+): { title: string; text: string; url: string } {
   const locale = ctx.locale ?? 'en';
   const cupKey = ctx.cupName ? 'share.invite_cup' : 'share.invite_cup_unnamed';
-  const reminderKey = ctx.task === 'lock' ? 'share.reminder_lock' : ctx.task === 'bat' ? 'share.reminder_bat' : 'share.reminder';
-  const key = moment === 'invite' ? (ctx.kind === 'cup' ? cupKey : 'share.invite_duel') : moment === 'reminder' ? reminderKey : ctx.highlight ? 'share.highlight' : 'share.final';
+  const reminderKey =
+    ctx.task === 'lock' ? 'share.reminder_lock' : ctx.task === 'bat' ? 'share.reminder_bat' : 'share.reminder';
+  const key =
+    moment === 'invite'
+      ? ctx.kind === 'cup'
+        ? cupKey
+        : 'share.invite_duel'
+      : moment === 'reminder'
+        ? reminderKey
+        : ctx.highlight
+          ? 'share.highlight'
+          : 'share.final';
   const params: Record<string, string> = {
     inviter: ctx.inviterAlias ?? 'A friend',
     cup: ctx.cupName ?? '',
@@ -235,10 +279,20 @@ export async function shareMoment(
   ledger: ShareLedger,
   moment: ShareMoment,
   ctx: ShareContext,
-  opts: { via?: 'sheet' | 'whatsapp'; t?: Translate; now?: number; open?: Parameters<typeof openWhatsapp>[2]; image?: Blob; onShared?: (moment: ShareMoment, ctx: ShareContext) => void; claim?: MomentClaimer | null; claimTimeoutMs?: number } = {},
+  opts: {
+    via?: 'sheet' | 'whatsapp';
+    t?: Translate;
+    now?: number;
+    open?: Parameters<typeof openWhatsapp>[2];
+    image?: Blob;
+    onShared?: (moment: ShareMoment, ctx: ShareContext) => void;
+    claim?: MomentClaimer | null;
+    claimTimeoutMs?: number;
+  } = {},
 ): Promise<ShareMomentResult> {
   if (!canShare(ledger, moment, ctx, opts.now)) return 'not_allowed';
-  if (!(await claimMoment(ledger, moment, ctx, { claim: opts.claim, timeoutMs: opts.claimTimeoutMs }))) return 'not_allowed';
+  if (!(await claimMoment(ledger, moment, ctx, { claim: opts.claim, timeoutMs: opts.claimTimeoutMs })))
+    return 'not_allowed';
   const msg = buildShareMessage(moment, ctx, opts.t);
   const shared = () => {
     ledger.mark(ctx.id, moment);

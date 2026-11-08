@@ -113,7 +113,11 @@ export function toleranceFor(tier: PerfTier): number {
  * The rendering profile for a tier. High only when a run measured at High still passed Full (frame intervals cannot
  * show headroom under vsync, so it is measured, never guessed); a run that passed at Lite stays Lite.
  */
-export function profileFor(tier: PerfTier, _stats: FrameStats, m: Pick<PerfMeasurements, 'memoryGb' | 'shaderCompileMs' | 'profile'>): QualityProfileId {
+export function profileFor(
+  tier: PerfTier,
+  _stats: FrameStats,
+  m: Pick<PerfMeasurements, 'memoryGb' | 'shaderCompileMs' | 'profile'>,
+): QualityProfileId {
   if (tier !== 'full') return 'lite';
   // A 3 GB phone reports 2 (deviceMemory rounds down): keep textures and buffers small there.
   if (m.memoryGb !== null && m.memoryGb <= 2) return 'lite';
@@ -123,7 +127,13 @@ export function profileFor(tier: PerfTier, _stats: FrameStats, m: Pick<PerfMeasu
 
 /** Vsync-locked with no spikes, plenty of memory and quick shaders: worth measuring again at High. */
 export function hasHighHeadroom(stats: FrameStats, m: Pick<PerfMeasurements, 'memoryGb' | 'shaderCompileMs'>): boolean {
-  return stats.avgFps >= 58 && stats.p95FrameMs <= 18.5 && stats.spikes === 0 && (m.memoryGb ?? 0) >= 8 && (m.shaderCompileMs ?? Number.POSITIVE_INFINITY) <= 800;
+  return (
+    stats.avgFps >= 58 &&
+    stats.p95FrameMs <= 18.5 &&
+    stats.spikes === 0 &&
+    (m.memoryGb ?? 0) >= 8 &&
+    (m.shaderCompileMs ?? Number.POSITIVE_INFINITY) <= 800
+  );
 }
 
 export function classifyDevice(m: PerfMeasurements): DeviceAssessment {
@@ -207,7 +217,10 @@ export function allowedQualityChoices(a: DeviceAssessment | null): QualityChoice
 }
 
 /** The effective rendering for a choice: a profile for the first-person stage, or Classic (the 2D stage). */
-export function effectiveQuality(a: DeviceAssessment | null, choice: QualityChoice): { stage: '3d' | '2d'; profile: QualityProfileId } {
+export function effectiveQuality(
+  a: DeviceAssessment | null,
+  choice: QualityChoice,
+): { stage: '3d' | '2d'; profile: QualityProfileId } {
   if (!a || a.tier === 'below' || choice === 'classic') return { stage: '2d', profile: 'lite' };
   if (choice === 'auto' || !allowedQualityChoices(a).includes(choice)) return { stage: '3d', profile: a.profile };
   return { stage: '3d', profile: choice };

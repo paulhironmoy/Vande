@@ -22,7 +22,14 @@ interface Props {
   onHome: () => void;
 }
 
-export function OverSummary({ flow, state, onHome, onNextOver, onChooseOver, onHarder }: Props & { onNextOver: () => void; onChooseOver: () => void; onHarder: (() => void) | null }) {
+export function OverSummary({
+  flow,
+  state,
+  onHome,
+  onNextOver,
+  onChooseOver,
+  onHarder,
+}: Props & { onNextOver: () => void; onChooseOver: () => void; onHarder: (() => void) | null }) {
   const t = usePracticeT();
   const { engine, coach } = useKit();
   const form = useFormReport();
@@ -44,7 +51,15 @@ export function OverSummary({ flow, state, onHome, onNextOver, onChooseOver, onH
         backLabel={t.t('practice.summary.to_home')}
         wide
         footer={
-          <PButton variant="primary" size="lg" block iconEnd="forward" onClick={onNextOver} data-testid="practice-next-over" autoFocus>
+          <PButton
+            variant="primary"
+            size="lg"
+            block
+            iconEnd="forward"
+            onClick={onNextOver}
+            data-testid="practice-next-over"
+            autoFocus
+          >
             {t.t('practice.summary.another_over')}
           </PButton>
         }
@@ -54,7 +69,9 @@ export function OverSummary({ flow, state, onHome, onNextOver, onChooseOver, onH
             {t.t('practice.common.score', { runs: inn.runs, wickets: 0 })}
           </span>
           <span className={sys.caption}>
-            {t.t('practice.summary.this_over', { runs: sum.runs })} · {t.t('practice.summary.overs_left', { count: left })} · <span data-testid="practice-balls-faced">{t.t('practice.summary.balls_faced', { count: inn.balls })}</span>
+            {t.t('practice.summary.this_over', { runs: sum.runs })} ·{' '}
+            {t.t('practice.summary.overs_left', { count: left })} ·{' '}
+            <span data-testid="practice-balls-faced">{t.t('practice.summary.balls_faced', { count: inn.balls })}</span>
           </span>
         </div>
         <OverMarks deliveries={over.deliveries} />
@@ -75,7 +92,12 @@ export function OverSummary({ flow, state, onHome, onNextOver, onChooseOver, onH
             <PButton variant="quiet" onClick={onChooseOver} data-testid="practice-choose-over">
               {t.t('practice.summary.choose_over')}
             </PButton>
-            <PButton variant="quiet" icon="replay" onClick={() => flow.coachLoop.replayOver(i)} data-testid="practice-replay-over">
+            <PButton
+              variant="quiet"
+              icon="replay"
+              onClick={() => flow.coachLoop.replayOver(i)}
+              data-testid="practice-replay-over"
+            >
               {t.t('practice.summary.replay_over')}
             </PButton>
             <PButton variant="quiet" onClick={() => setConfirmEnd(true)} data-testid="practice-end-innings">
@@ -116,11 +138,22 @@ function OverMarks({ deliveries }: { deliveries: readonly DeliveryRecord[] }) {
     <ol className={s.marks} aria-label={t.t('practice.summary.balls')} data-testid="practice-over-balls">
       {deliveries.map((d) => (
         <li key={d.ballIndex} className={s.markItem}>
-          <span className={s.ballMark} data-state={d.dismissal ? 'out' : d.runs >= 4 ? 'boundary' : 'done'} aria-hidden="true">
+          <span
+            className={s.ballMark}
+            data-state={d.dismissal ? 'out' : d.runs >= 4 ? 'boundary' : 'done'}
+            aria-hidden="true"
+          >
             {markText(d)}
           </span>
           <span className={s.markName}>{variationName(t, d.plan.variation, d.bowler.spinType)}</span>
-          <span className={sys.srOnly}>{t.t('practice.summary.ball_result', { n: d.ballIndex + 1, result: d.dismissal ? t.tk(`practice.result.${d.dismissal}`) : t.t('practice.result.runs', { runs: d.runs }) })}</span>
+          <span className={sys.srOnly}>
+            {t.t('practice.summary.ball_result', {
+              n: d.ballIndex + 1,
+              result: d.dismissal
+                ? t.tk(`practice.result.${d.dismissal}`)
+                : t.t('practice.result.runs', { runs: d.runs }),
+            })}
+          </span>
         </li>
       ))}
     </ol>
@@ -163,19 +196,31 @@ export function OutSummary({ flow, state, onHome }: Props) {
             {t.number(sum.runs)}
           </span>
           <span className={sys.caption} data-testid="practice-survived">
-            {overs > 0 ? t.t('practice.summary.survived', { overs, balls }) : t.t('practice.summary.survived_balls', { balls })}
+            {overs > 0
+              ? t.t('practice.summary.survived', { overs, balls })
+              : t.t('practice.summary.survived_balls', { balls })}
           </span>
         </div>
         {coach && (
           <div>
-            <PButton variant="secondary" icon="replay" onClick={() => flow.coachLoop.practiceBall(rec)} data-testid="practice-practice-delivery">
+            <PButton
+              variant="secondary"
+              icon="replay"
+              onClick={() => flow.coachLoop.practiceBall(rec)}
+              data-testid="practice-practice-delivery"
+            >
               {t.t('practice.summary.practise_dismissal')}
             </PButton>
           </div>
         )}
         {form && <FormReport report={form} />}
         <div className={s.links}>
-          <PButton variant="quiet" icon="slowmo" onClick={() => flow.coachLoop.replayDismissal()} data-testid="practice-replay-dismissal">
+          <PButton
+            variant="quiet"
+            icon="slowmo"
+            onClick={() => flow.coachLoop.replayDismissal()}
+            data-testid="practice-replay-dismissal"
+          >
             {t.t('practice.summary.watch_dismissal')}
           </PButton>
         </div>

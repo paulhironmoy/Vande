@@ -60,7 +60,10 @@ export function useT(): Translator {
  * Loads the translations a screen needs before it renders (used by the lazy route loaders). Screens without cricket
  * vocabulary pass `{ engine: false }` and wait only for the app catalog (bundled for English).
  */
-export function preloadI18n(locale: LocaleId = useApp.getState().settings.locale, opts: { engine?: boolean } = {}): Promise<void> {
+export function preloadI18n(
+  locale: LocaleId = useApp.getState().settings.locale,
+  opts: { engine?: boolean } = {},
+): Promise<void> {
   return ensureI18n(locale, opts).then(
     () => undefined,
     () => undefined,

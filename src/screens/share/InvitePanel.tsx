@@ -27,7 +27,16 @@ export interface InvitePanelProps {
  * sheet with the card image, copy link and a QR code. One invitation message per match; the link and QR stay
  * available. Nothing is ever sent by the app and no contacts are read.
  */
-export function InvitePanel({ matchId, inviteUrl, inviter, conditions, kind = 'duel', cupName, onPlan, planLabel }: InvitePanelProps) {
+export function InvitePanel({
+  matchId,
+  inviteUrl,
+  inviter,
+  conditions,
+  kind = 'duel',
+  cupName,
+  onPlan,
+  planLabel,
+}: InvitePanelProps) {
   const tr = useT();
   const { t } = tr;
   const toast = useApp((st) => st.toast);
@@ -36,13 +45,29 @@ export function InvitePanel({ matchId, inviteUrl, inviter, conditions, kind = 'd
   const [showQr, setShowQr] = useState(false);
   const [busy, setBusy] = useState<ShareChannel | null>(null);
   const cup = kind === 'cup' ? cupName?.trim() || undefined : undefined;
-  const ctx = { kind, id: matchId, url: inviteUrl, inviterAlias: inviter.alias, cupName: cup, pitch: conditions?.pitch, locale: shareLocale(tr.locale) } as const;
+  const ctx = {
+    kind,
+    id: matchId,
+    url: inviteUrl,
+    inviterAlias: inviter.alias,
+    cupName: cup,
+    pitch: conditions?.pitch,
+    locale: shareLocale(tr.locale),
+  } as const;
   const [available, setAvailable] = useState(() => momentAvailable('invite', ctx));
 
   useEffect(() => {
     let alive = true;
     let url: string | null = null;
-    void cardBlob(inviteCardModel(tr, { inviter: playerOf(inviter), conditions, url: inviteUrl, cup: kind === 'cup' ? { name: cup ?? null } : undefined }), tr.locale).then((blob) => {
+    void cardBlob(
+      inviteCardModel(tr, {
+        inviter: playerOf(inviter),
+        conditions,
+        url: inviteUrl,
+        cup: kind === 'cup' ? { name: cup ?? null } : undefined,
+      }),
+      tr.locale,
+    ).then((blob) => {
       if (!alive || !blob) return;
       url = URL.createObjectURL(blob);
       setImage({ blob, url });
@@ -59,7 +84,11 @@ export function InvitePanel({ matchId, inviteUrl, inviter, conditions, kind = 'd
     setBusy(via);
     const channel = via === 'whatsapp' ? 'whatsapp' : 'share_sheet';
     services.analytics.track('share_initiated', { mode: kind === 'cup' ? 'cup' : 'duel', channel });
-    const r = await shareMatchMoment(services.platform.share, 'invite', ctx, { via, t: tr, image: image?.blob ?? null });
+    const r = await shareMatchMoment(services.platform.share, 'invite', ctx, {
+      via,
+      t: tr,
+      image: image?.blob ?? null,
+    });
     setBusy(null);
     if (r === 'shared' || r === 'opened' || r === 'copied') {
       services.analytics.track('share_completed', { mode: kind === 'cup' ? 'cup' : 'duel', channel });
@@ -77,7 +106,17 @@ export function InvitePanel({ matchId, inviteUrl, inviter, conditions, kind = 'd
   return (
     <Card className={s.panel} padding={4} data-testid="invite-panel">
       <div className={s.head}>
-        {image ? <img className={s.preview} src={image.url} alt={t('invite.card_alt', { name: inviter.alias })} width={108} height={135} /> : <span className={s.previewBlank} aria-hidden="true" />}
+        {image ? (
+          <img
+            className={s.preview}
+            src={image.url}
+            alt={t('invite.card_alt', { name: inviter.alias })}
+            width={108}
+            height={135}
+          />
+        ) : (
+          <span className={s.previewBlank} aria-hidden="true" />
+        )}
         <div className={s.headText}>
           <h2 className={s.title}>{kind === 'cup' ? t('invite.panel_title_cup') : t('invite.panel_title')}</h2>
           <p className={s.body}>{kind === 'cup' ? t('invite.panel_body_cup') : t('invite.panel_body')}</p>
@@ -85,10 +124,25 @@ export function InvitePanel({ matchId, inviteUrl, inviter, conditions, kind = 'd
       </div>
       {available ? (
         <div className={s.actions}>
-          <Button variant="accent" size="lg" block icon="message" onClick={() => void share('whatsapp')} loading={busy === 'whatsapp'} data-testid="invite-whatsapp">
+          <Button
+            variant="accent"
+            size="lg"
+            block
+            icon="message"
+            onClick={() => void share('whatsapp')}
+            loading={busy === 'whatsapp'}
+            data-testid="invite-whatsapp"
+          >
             {t('invite.whatsapp')}
           </Button>
-          <Button variant="secondary" block icon="share" onClick={() => void share('sheet')} loading={busy === 'sheet'} data-testid="invite-share">
+          <Button
+            variant="secondary"
+            block
+            icon="share"
+            onClick={() => void share('sheet')}
+            loading={busy === 'sheet'}
+            data-testid="invite-share"
+          >
             {t('invite.more')}
           </Button>
         </div>
@@ -101,7 +155,13 @@ export function InvitePanel({ matchId, inviteUrl, inviter, conditions, kind = 'd
         <Button variant="ghost" icon="copy" onClick={() => void copy()} data-testid="invite-copy">
           {t('invite.copy')}
         </Button>
-        <Button variant="ghost" icon="qr" aria-expanded={showQr} onClick={() => setShowQr((v) => !v)} data-testid="invite-qr">
+        <Button
+          variant="ghost"
+          icon="qr"
+          aria-expanded={showQr}
+          onClick={() => setShowQr((v) => !v)}
+          data-testid="invite-qr"
+        >
           {showQr ? t('invite.qr_hide') : t('invite.qr')}
         </Button>
       </div>

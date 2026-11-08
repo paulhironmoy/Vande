@@ -8,7 +8,13 @@
  *   const swing = gesture && normalizeGesture(gesture, { releasePerfMs, calibrationMs: 0, handedness: 'right' });
  */
 import type { Footwork, GestureInput, GestureSample, Handedness } from '@/contracts/practice';
-import { GestureTracker, type OneGestureState, type PointerKind, type SwingIntent, type TrackerScheduler } from './tracker';
+import {
+  GestureTracker,
+  type OneGestureState,
+  type PointerKind,
+  type SwingIntent,
+  type TrackerScheduler,
+} from './tracker';
 
 export interface TraceOptions {
   /** Default 'touch'. */
@@ -72,7 +78,13 @@ function simClock(start: number) {
   const runUntil = (to: number, inclusive = false) => {
     for (;;) {
       let best = -1;
-      for (let i = 0; i < timers.length; i++) if (best < 0 || timers[i].at < timers[best].at || (timers[i].at === timers[best].at && timers[i].id < timers[best].id)) best = i;
+      for (let i = 0; i < timers.length; i++)
+        if (
+          best < 0 ||
+          timers[i].at < timers[best].at ||
+          (timers[i].at === timers[best].at && timers[i].id < timers[best].id)
+        )
+          best = i;
       if (best < 0) break;
       const t = timers[best];
       if (inclusive ? t.at > to : t.at >= to) break;
@@ -98,7 +110,8 @@ export function traceGesture(o: TraceOptions): TraceResult {
   const result: TraceResult = { gesture: null, emittedAtMs: null, starts: [], intents: [], states: [] };
   const tracker = new GestureTracker(
     {
-      swingStart: (atPerfMs, p, footwork) => result.starts.push({ atPerfMs, pointer: p, footwork, reportedAtMs: clock.now() }),
+      swingStart: (atPerfMs, p, footwork) =>
+        result.starts.push({ atPerfMs, pointer: p, footwork, reportedAtMs: clock.now() }),
       gesture: (g) => {
         if (!result.gesture) {
           result.gesture = g;

@@ -61,16 +61,32 @@ export interface AdminReport {
   /** How it was closed: dismissed, renamed, suspended, unsuspended or post_removed. */
   resolution: string | null;
   /** The reported player (for a post: its author) as they are now; alias null once the account is deleted. */
-  player: { playerId: string; alias: string | null; status: 'active' | 'deleted' | 'unknown'; suspendedUntil: string | null; openReports: number } | null;
+  player: {
+    playerId: string;
+    alias: string | null;
+    status: 'active' | 'deleted' | 'unknown';
+    suspendedUntil: string | null;
+    openReports: number;
+  } | null;
   /** A reported post as it stands in its room (`present` false once removed). */
-  post: { postId: string; present: boolean; kind: string | null; text: string | null; phraseId: string | null; createdHour: string | null } | null;
+  post: {
+    postId: string;
+    present: boolean;
+    kind: string | null;
+    text: string | null;
+    phraseId: string | null;
+    createdHour: string | null;
+  } | null;
   /** Every moderator action on this report (audit_log). */
   history: Array<{ at: string; action: string; admin: string; notes: string }>;
 }
 
 export interface AdminRoutes {
   'GET /v1/admin/whoami': [void, { id: string; via: 'access' | 'token' }];
-  'GET /v1/admin/jobs': [{ day?: string; status?: HighlightStatus }, { jobs: AdminJob[]; counts: Partial<Record<HighlightStatus, number>> }];
+  'GET /v1/admin/jobs': [
+    { day?: string; status?: HighlightStatus },
+    { jobs: AdminJob[]; counts: Partial<Record<HighlightStatus, number>> },
+  ];
   'GET /v1/admin/jobs/:jobId': [void, AdminJobDetail];
   'POST /v1/admin/jobs/:jobId/approve': [{ notes?: string }, { status: HighlightStatus }];
   'POST /v1/admin/jobs/:jobId/reject': [{ notes?: string }, { status: HighlightStatus }];
@@ -84,12 +100,18 @@ export interface AdminRoutes {
   'GET /v1/admin/quota': [void, AdminQuota];
   'GET /v1/admin/dlq': [void, { jobs: AdminJob[] }];
   /** The report queue: open (default) or closed reports, newest first, optionally one kind. */
-  'GET /v1/admin/reports': [{ status?: 'open' | 'closed'; kind?: 'player' | 'post' }, { reports: AdminReport[]; counts: { open: number; closed: number } }];
+  'GET /v1/admin/reports': [
+    { status?: 'open' | 'closed'; kind?: 'player' | 'post' },
+    { reports: AdminReport[]; counts: { open: number; closed: number } },
+  ];
   'POST /v1/admin/reports/:reportId/dismiss': [{ notes?: string }, { status: AdminReportStatus }];
   /** A generated, safe name for the reported player, everywhere their name shows. */
   'POST /v1/admin/reports/:reportId/rename': [{ notes?: string }, { status: AdminReportStatus; alias: string }];
   /** Pauses the reported account's social features (rooms, cups, groups, name changes) for 1–365 days (default 30). */
-  'POST /v1/admin/reports/:reportId/suspend': [{ notes?: string; days?: number }, { status: AdminReportStatus; until: string }];
+  'POST /v1/admin/reports/:reportId/suspend': [
+    { notes?: string; days?: number },
+    { status: AdminReportStatus; until: string },
+  ];
   'POST /v1/admin/reports/:reportId/unsuspend': [{ notes?: string }, { status: AdminReportStatus }];
   'POST /v1/admin/reports/:reportId/remove-post': [{ notes?: string }, { status: AdminReportStatus; removed: boolean }];
 }

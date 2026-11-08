@@ -48,7 +48,8 @@ export const coachHiLatn: Record<string, string> = {
   'practice.lucky.mostly_out': 'Is baar runs bane, par yeh shot zyaadatar out hota hai.',
   'practice.lucky.can_be_caught': 'Is baar runs bane, par is shot pe catch ho sakta hai.',
   'practice.lucky.can_edge': 'Is baar runs bane, par is shot pe edge lag sakta hai.',
-  'practice.lucky.into_protected_region': 'Is baar runs bane, par ball wahan gayi jahan fielder use rokne ke liye khada hai.',
+  'practice.lucky.into_protected_region':
+    'Is baar runs bane, par ball wahan gayi jahan fielder use rokne ke liye khada hai.',
   'practice.lucky.can_be_bowled': 'Is baar runs bane, par yeh shot chookkar bowled ho sakta hai.',
   'practice.lucky.can_be_lbw': 'Is baar runs bane, par yeh shot chookkar LBW ho sakta hai.',
   'practice.rec.well_played': 'Shabash: yeh coach ke sujhaav jitna hi achha hai.',
@@ -115,7 +116,8 @@ export const coachHiLatn: Record<string, string> = {
   'practice.tip.fact.unwarned.can_be_lbw': 'Yeh chal gaya, par yeh shot chookkar LBW ho sakta hai',
   'practice.tip.fact.unwarned.can_be_caught': 'Yeh chal gaya, par is shot pe catch ho sakta hai',
   'practice.tip.fact.unwarned.can_edge': 'Yeh chal gaya, par is shot pe edge lag sakta hai',
-  'practice.tip.fact.unwarned.into_protected_region': 'Yeh chal gaya, par ball wahan gayi jahan fielder use rokne ke liye khada hai',
+  'practice.tip.fact.unwarned.into_protected_region':
+    'Yeh chal gaya, par ball wahan gayi jahan fielder use rokne ke liye khada hai',
   // how the bat met it, from the contact itself; AI-written, awaiting native review
   'practice.tip.fact.slow': 'Bat ball se sirf {kph} km/h pe mila, tumhare {req} km/h ke shot se bahut dheema',
   'practice.tip.fact.toe': 'Ball bat ke toe se lagi',
@@ -127,10 +129,14 @@ export const coachHiLatn: Record<string, string> = {
   'practice.tip.fact.no_reach.moved_away': 'Ball {cm} cm bahar gayi, aur bat us tak pahuncha hi nahi',
   'practice.tip.fact.no_reach.moved_in': 'Ball {cm} cm andar aayi, aur bat us tak pahuncha hi nahi',
   'practice.tip.fact.no_reach.across': 'Tumne line ke across khela, aur bat ball tak pahuncha hi nahi',
-  'practice.tip.fact.no_reach.too_short_to_drive': 'Ball tumse {m} m pehle padi, drive ke liye bahut short, aur bat us tak pahuncha hi nahi',
-  'practice.tip.fact.no_reach.at_the_toes': 'Ball tumse {m} m pehle padi, seedha tumhare pairon pe, aur bat us tak pahuncha hi nahi',
-  'practice.tip.fact.no_reach.too_short_forward': 'Ball tumse {m} m pehle padi, aage badh ke khelne ke liye bahut short, aur bat us tak pahuncha hi nahi',
-  'practice.tip.fact.no_reach.full_back': 'Ball tumse {m} m pehle padi, aage badh ke khelne laayak full, aur bat us tak pahuncha hi nahi',
+  'practice.tip.fact.no_reach.too_short_to_drive':
+    'Ball tumse {m} m pehle padi, drive ke liye bahut short, aur bat us tak pahuncha hi nahi',
+  'practice.tip.fact.no_reach.at_the_toes':
+    'Ball tumse {m} m pehle padi, seedha tumhare pairon pe, aur bat us tak pahuncha hi nahi',
+  'practice.tip.fact.no_reach.too_short_forward':
+    'Ball tumse {m} m pehle padi, aage badh ke khelne ke liye bahut short, aur bat us tak pahuncha hi nahi',
+  'practice.tip.fact.no_reach.full_back':
+    'Ball tumse {m} m pehle padi, aage badh ke khelne laayak full, aur bat us tak pahuncha hi nahi',
   'practice.tip.fact.no_reach.stroke': 'Woh shot ball tak pahuncha hi nahi',
   'practice.tip.do.repeat_it': 'ise phir se aise hi khelo',
   'practice.tip.do.well_played': 'yeh coach ke sujhaav jitna hi achha hai',
@@ -263,7 +269,8 @@ export const coachHiLatn: Record<string, string> = {
   'practice.coachmode.stage.2': 'Help 2: pitch aur contact markers',
   'practice.coachmode.stage.3': 'Help 3: sirf contact cue',
   'practice.coachmode.stage.4': 'Koi help nahi',
-  'practice.coachmode.to_advance': '{count, plural, one {Kam help ke liye lagataar ek aur clean shot} other {Kam help ke liye lagataar # clean shots}}',
+  'practice.coachmode.to_advance':
+    '{count, plural, one {Kam help ke liye lagataar ek aur clean shot} other {Kam help ke liye lagataar # clean shots}}',
   'practice.coachmode.to_master': 'Pichhle {window} mein {done} clean. Mastery ke liye ise dohraate raho.',
   'practice.coachmode.mastered': 'Mastered: bina help ke baar-baar.',
   'practice.coachmode.attempts': '{count, plural, one {# attempt} other {# attempts}} · {clean} clean',

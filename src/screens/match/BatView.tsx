@@ -14,7 +14,21 @@ import s from './BatView.module.css';
  * The live innings against the opponent's sealed over. The first ball is fetched now (it brings the field the batter
  * faces); a ball revealed before the app was closed is resumed; a shot made offline is queued and sent later.
  */
-export function BatView({ net, view, me, opponent, onDone, onExit }: { net: Net; view: MatchView; me: PlayerRef; opponent: PlayerRef; onDone: () => void; onExit: () => void }) {
+export function BatView({
+  net,
+  view,
+  me,
+  opponent,
+  onDone,
+  onExit,
+}: {
+  net: Net;
+  view: MatchView;
+  me: PlayerRef;
+  opponent: PlayerRef;
+  onDone: () => void;
+  onExit: () => void;
+}) {
   const { t } = useT();
   const online = useApp((st) => st.online);
   const [queued, setQueued] = useState(false);
@@ -46,7 +60,11 @@ export function BatView({ net, view, me, opponent, onDone, onExit }: { net: Net;
     return (
       <ScreenShell title={t('match.title')} onBack={onExit} narrow testId="match-bat-loading">
         {error ? (
-          <StateView kind={error === 'offline' ? 'offline' : 'error'} body={error === 'offline' ? t('match.bat_offline') : undefined} onAction={() => setTries((n) => n + 1)} />
+          <StateView
+            kind={error === 'offline' ? 'offline' : 'error'}
+            body={error === 'offline' ? t('match.bat_offline') : undefined}
+            onAction={() => setTries((n) => n + 1)}
+          />
         ) : (
           <StateView kind="loading" title={t('match.bat_loading')} />
         )}

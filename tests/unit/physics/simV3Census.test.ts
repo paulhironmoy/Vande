@@ -25,9 +25,10 @@ describe('simulation-v3 anatomical contact census', () => {
         power: 0.7,
         elevation: 0.2,
       });
-      const gap = result.track && result.contact.t !== null && !NON_BAT_KINDS.has(result.contact.kind)
-        ? batPoseAdmissibility(batPose(result.track, result.contact.t), result.track.body)
-        : null;
+      const gap =
+        result.track && result.contact.t !== null && !NON_BAT_KINDS.has(result.contact.kind)
+          ? batPoseAdmissibility(batPose(result.track, result.contact.t), result.track.body)
+          : null;
       return { name: entry.name, kind: result.contact.kind, t: result.contact.t, startT: result.track?.startT, gap };
     });
     // Refrozen 2026-11-03 (PHYS, anatomy repair; wedge physics REPORT). The former values predated the torso/pad margins
@@ -74,7 +75,11 @@ describe('simulation-v3 anatomical contact census', () => {
   });
 
   it('admits only safe, activated bat contacts across the frozen 7,560-case grid', () => {
-    const bowlers = [[PACE, 136], [OFFSPIN, 84], [LEGSPIN, 84]] as const;
+    const bowlers = [
+      [PACE, 136],
+      [OFFSPIN, 84],
+      [LEGSPIN, 84],
+    ] as const;
     const lengths = [1.2, 2.5, 4, 5.5, 6.5, 7.5, 9, 10.5];
     const lines = [-0.3, -0.12, 0.05, 0.25, 0.45];
     const directions = [-70, -45, -20, 0, 20, 45, 70];
@@ -183,7 +188,7 @@ describe('simulation-v3 anatomical contact census', () => {
       top_edge: 63,
     });
     expect(acceptedBat).toBe(1565);
-    expect(minimumAcceptedGap).toBe(4.666003484421477e-07);
+    expect(minimumAcceptedGap).toBe(4.666003484421477e-7);
     expect((outcomeHash >>> 0).toString(16)).toBe('5f533ecc');
     expect((acceptedGameplayHash >>> 0).toString(16)).toBe('a35f5dc5');
     // Superseded on 2026-11-03 (see above). It was frozen from the independent two-pass body-frame corpus: 7,560/7,560 in each pass, zero gate failures,

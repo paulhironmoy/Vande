@@ -18,7 +18,17 @@ import {
   type PracticeOverPlan,
   type SpinType,
 } from '@/contracts';
-import { PRACTICE_KEYS, isInt, isNum, isObj, localStore, readJson, removeKey, writeJson, type KeyStore } from './storage';
+import {
+  PRACTICE_KEYS,
+  isInt,
+  isNum,
+  isObj,
+  localStore,
+  readJson,
+  removeKey,
+  writeJson,
+  type KeyStore,
+} from './storage';
 
 const STATUSES: readonly InningsStatus[] = ['choosing_over', 'batting', 'over_complete', 'out', 'complete'];
 const SOURCES = ['random', 'built', 'guided', 'reference'];
@@ -32,11 +42,19 @@ const str = (v: unknown): v is string => typeof v === 'string' && v.length > 0 &
  * condition has none: the physics bowls those with a new white ball (src/practice/game ballOf), so it is accepted.
  */
 function isBallOrMissing(v: unknown): boolean {
-  return v === undefined || (isObj(v) && (v.colour === 'red' || v.colour === 'white') && (v.age === 'new' || v.age === 'worn'));
+  return (
+    v === undefined ||
+    (isObj(v) && (v.colour === 'red' || v.colour === 'white') && (v.age === 'new' || v.age === 'worn'))
+  );
 }
 
 function isBowler(v: unknown): boolean {
-  return isObj(v) && (v.family === 'pace' || v.family === 'spin') && (v.arm === 'right' || v.arm === 'left') && typeof v.lookSeed === 'string';
+  return (
+    isObj(v) &&
+    (v.family === 'pace' || v.family === 'spin') &&
+    (v.arm === 'right' || v.arm === 'left') &&
+    typeof v.lookSeed === 'string'
+  );
 }
 
 function isDeliveryPlan(v: unknown): v is PracticeDeliveryPlan {
@@ -58,11 +76,26 @@ function isOverPlan(v: unknown): v is PracticeOverPlan {
 }
 
 function isField(v: unknown): v is FieldLayout {
-  return isObj(v) && str(v.id) && Array.isArray(v.fielders) && v.fielders.length === 11 && v.fielders.every((f) => isObj(f) && str(f.id) && str(f.role) && isNum(f.x) && isNum(f.z));
+  return (
+    isObj(v) &&
+    str(v.id) &&
+    Array.isArray(v.fielders) &&
+    v.fielders.length === 11 &&
+    v.fielders.every((f) => isObj(f) && str(f.id) && str(f.role) && isNum(f.x) && isNum(f.z))
+  );
 }
 
 function isSwing(v: unknown): boolean {
-  return v === null || (isObj(v) && (v.kind === 'defend' || v.kind === 'attack') && isNum(v.startT) && isNum(v.directionDeg) && isNum(v.power) && isNum(v.elevation) && str(v.footwork));
+  return (
+    v === null ||
+    (isObj(v) &&
+      (v.kind === 'defend' || v.kind === 'attack') &&
+      isNum(v.startT) &&
+      isNum(v.directionDeg) &&
+      isNum(v.power) &&
+      isNum(v.elevation) &&
+      str(v.footwork))
+  );
 }
 
 export function isDeliveryRecord(v: unknown): v is DeliveryRecord {
@@ -92,16 +125,43 @@ export function isDeliveryRecord(v: unknown): v is DeliveryRecord {
 
 /** A structurally valid innings of this simulation version (the reducer owns the rules; this guards the shape). */
 export function isInningsState(v: unknown): v is PracticeInningsState {
-  if (!isObj(v) || v.version !== PRACTICE_SIM_VERSION || !str(v.id) || !STATUSES.includes(v.status as InningsStatus)) return false;
-  if (!PITCHES.includes(v.conditions as string) || !['learn', 'play', 'real'].includes(v.assist as string) || !['right', 'left'].includes(v.handedness as string)) return false;
-  if (!isInt(v.runs) || (v.runs as number) < 0 || !isInt(v.balls) || (v.balls as number) < 0 || (v.balls as number) > PRACTICE_MAX_OVERS * 6) return false;
+  if (!isObj(v) || v.version !== PRACTICE_SIM_VERSION || !str(v.id) || !STATUSES.includes(v.status as InningsStatus))
+    return false;
+  if (
+    !PITCHES.includes(v.conditions as string) ||
+    !['learn', 'play', 'real'].includes(v.assist as string) ||
+    !['right', 'left'].includes(v.handedness as string)
+  )
+    return false;
+  if (
+    !isInt(v.runs) ||
+    (v.runs as number) < 0 ||
+    !isInt(v.balls) ||
+    (v.balls as number) < 0 ||
+    (v.balls as number) > PRACTICE_MAX_OVERS * 6
+  )
+    return false;
   if (!Array.isArray(v.overs) || v.overs.length > PRACTICE_MAX_OVERS) return false;
-  if (!v.overs.every((o) => isObj(o) && isOverPlan(o.plan) && Array.isArray(o.deliveries) && o.deliveries.every(isDeliveryRecord))) return false;
+  if (
+    !v.overs.every(
+      (o) => isObj(o) && isOverPlan(o.plan) && Array.isArray(o.deliveries) && o.deliveries.every(isDeliveryRecord),
+    )
+  )
+    return false;
   if (v.current !== null) {
     const c = v.current;
-    if (!isObj(c) || !isOverPlan(c.plan) || !isField(c.field) || !Array.isArray(c.deliveries) || c.deliveries.length > 6 || !c.deliveries.every(isDeliveryRecord)) return false;
+    if (
+      !isObj(c) ||
+      !isOverPlan(c.plan) ||
+      !isField(c.field) ||
+      !Array.isArray(c.deliveries) ||
+      c.deliveries.length > 6 ||
+      !c.deliveries.every(isDeliveryRecord)
+    )
+      return false;
   }
-  if (v.inFlight !== null && !(isObj(v.inFlight) && isInt(v.inFlight.overIndex) && isInt(v.inFlight.ballIndex))) return false;
+  if (v.inFlight !== null && !(isObj(v.inFlight) && isInt(v.inFlight.overIndex) && isInt(v.inFlight.ballIndex)))
+    return false;
   if (v.dismissal !== null && !(isObj(v.dismissal) && isDeliveryRecord(v.dismissal.record))) return false;
   return true;
 }
@@ -121,11 +181,17 @@ function withBall<T extends { ball?: PracticeOverPlan['ball'] }>(x: T): T {
 
 /** Every plan and record carries its ball after loading (the physics bowls a missing one as a new white ball). */
 function normalise(s: PracticeInningsState): PracticeInningsState {
-  const over = (o: { plan: PracticeOverPlan; deliveries: DeliveryRecord[] }) => ({ ...o, plan: withBall(o.plan), deliveries: o.deliveries.map(withBall) });
+  const over = (o: { plan: PracticeOverPlan; deliveries: DeliveryRecord[] }) => ({
+    ...o,
+    plan: withBall(o.plan),
+    deliveries: o.deliveries.map(withBall),
+  });
   return {
     ...s,
     overs: s.overs.map(over),
-    current: s.current ? { ...s.current, plan: withBall(s.current.plan), deliveries: s.current.deliveries.map(withBall) } : null,
+    current: s.current
+      ? { ...s.current, plan: withBall(s.current.plan), deliveries: s.current.deliveries.map(withBall) }
+      : null,
     dismissal: s.dismissal ? { record: withBall(s.dismissal.record) } : null,
   };
 }
@@ -159,7 +225,11 @@ export function loadInnings(store: KeyStore | null = localStore()): PracticeInni
  * Saves synchronously; false when storage is unavailable or full. `notice` marks that the last ball was resolved
  * as a leave because the app went away during it (the next start says so); any later save clears it.
  */
-export function saveInnings(state: PracticeInningsState, store: KeyStore | null = localStore(), notice: 'resumed_leave' | null = null): boolean {
+export function saveInnings(
+  state: PracticeInningsState,
+  store: KeyStore | null = localStore(),
+  notice: 'resumed_leave' | null = null,
+): boolean {
   return writeJson(store, PRACTICE_KEYS.innings, notice ? { v: 1, state, notice } : { v: 1, state });
 }
 
@@ -195,13 +265,27 @@ export interface BuildDraft {
 }
 
 export function emptyDraft(family: BowlerFamily = 'pace'): BuildDraft {
-  return { v: 1, family, paceBand: 'fast', spinType: 'finger', arm: 'right', balls: [null, null, null, null, null, null], order: 'exact' };
+  return {
+    v: 1,
+    family,
+    paceBand: 'fast',
+    spinType: 'finger',
+    arm: 'right',
+    balls: [null, null, null, null, null, null],
+    order: 'exact',
+  };
 }
 
 const BANDS = ['controlled', 'fast', 'express'];
 
 function isDraftBall(v: unknown): v is DraftBall {
-  return isObj(v) && isNum(v.lineM) && isNum(v.lengthM) && str(v.variation) && (v.paceBand === undefined || BANDS.includes(v.paceBand as string));
+  return (
+    isObj(v) &&
+    isNum(v.lineM) &&
+    isNum(v.lengthM) &&
+    str(v.variation) &&
+    (v.paceBand === undefined || BANDS.includes(v.paceBand as string))
+  );
 }
 
 export function loadDraft(store: KeyStore | null = localStore()): BuildDraft | null {
@@ -209,8 +293,17 @@ export function loadDraft(store: KeyStore | null = localStore()): BuildDraft | n
   if (!isObj(v) || v.v !== 1 || (v.family !== 'pace' && v.family !== 'spin')) return null;
   if (!BANDS.includes(v.paceBand as string) || !['finger', 'wrist'].includes(v.spinType as string)) return null;
   if (v.arm !== 'right' && v.arm !== 'left') return null;
-  if (!Array.isArray(v.balls) || v.balls.length !== 6 || !v.balls.every((b) => b === null || isDraftBall(b))) return null;
-  return { v: 1, family: v.family, paceBand: v.paceBand as PaceBand, spinType: v.spinType as SpinType, arm: v.arm, balls: v.balls as Array<DraftBall | null>, order: v.order === 'shuffle' ? 'shuffle' : 'exact' };
+  if (!Array.isArray(v.balls) || v.balls.length !== 6 || !v.balls.every((b) => b === null || isDraftBall(b)))
+    return null;
+  return {
+    v: 1,
+    family: v.family,
+    paceBand: v.paceBand as PaceBand,
+    spinType: v.spinType as SpinType,
+    arm: v.arm,
+    balls: v.balls as Array<DraftBall | null>,
+    order: v.order === 'shuffle' ? 'shuffle' : 'exact',
+  };
 }
 
 export function saveDraft(d: BuildDraft, store: KeyStore | null = localStore()): void {

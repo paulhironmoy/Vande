@@ -98,7 +98,8 @@ export function inProcessWorker(o: HarnessOptions = {}): Harness {
 export function firstDifference(a: unknown, b: unknown, path = '$'): string | null {
   if (Object.is(a, b)) return null;
   if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return path;
-  if (Array.isArray(a) !== Array.isArray(b) || Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) return `${path}:type`;
+  if (Array.isArray(a) !== Array.isArray(b) || Object.getPrototypeOf(a) !== Object.getPrototypeOf(b))
+    return `${path}:type`;
   const ka = Object.keys(a);
   const kb = Object.keys(b);
   if (ka.length !== kb.length || ka.some((k, i) => k !== kb[i])) return `${path}:keys`;

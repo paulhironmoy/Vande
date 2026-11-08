@@ -52,16 +52,24 @@ export interface PlanJob {
  * plan is the same, bit for bit, however it is sliced and whether it is sliced at all (`prepare` is `startPrepare` run to
  * the end).
  */
-export function startPrepare(a: DirectorAnchors, opts: { hz?: 60 | 120 | 240; reuse?: { plan: DirectorPlan; untilMs: number } } = {}): PlanJob {
+export function startPrepare(
+  a: DirectorAnchors,
+  opts: { hz?: 60 | 120 | 240; reuse?: { plan: DirectorPlan; untilMs: number } } = {},
+): PlanJob {
   const hz = opts.hz ?? 60;
   const ev = buildEvents(a);
-  const r = opts.reuse && opts.reuse.plan.hz === hz && opts.reuse.plan.t0 === a.start ? { trace: opts.reuse.plan.trace, untilMs: opts.reuse.untilMs } : undefined;
+  const r =
+    opts.reuse && opts.reuse.plan.hz === hz && opts.reuse.plan.t0 === a.start
+      ? { trace: opts.reuse.plan.trace, untilMs: opts.reuse.untilMs }
+      : undefined;
   const n = traceFrames(a, hz);
   const sub = Math.round(240 / hz);
   const trace = new Int16Array(n * CHANNELS);
   const progress: BakeProgress = { step: 0 };
   const steps = bakeSteps(a, ev, hz, r, trace, progress);
-  const kept = r ? Math.max(0, Math.min(n, Math.floor((r.untilMs - a.start) / (1000 / hz)), r.trace.length / CHANNELS)) : 0;
+  const kept = r
+    ? Math.max(0, Math.min(n, Math.floor((r.untilMs - a.start) / (1000 / hz)), r.trace.length / CHANNELS))
+    : 0;
   const partial: DirectorPlan = {
     ...ev,
     role: a.role,
@@ -123,7 +131,10 @@ export function startPrepare(a: DirectorAnchors, opts: { hz?: 60 | 120 | 240; re
  * moment the new anchors matter: the earliest of contact + 125, outcomeAt + 180, strokeEnd and dead + 125 ms (honesty
  * tests prove the two traces are bit-equal before it). Ignored if the earlier plan has another rate or start.
  */
-export function prepare(a: DirectorAnchors, opts: { hz?: 60 | 120 | 240; reuse?: { plan: DirectorPlan; untilMs: number } } = {}): DirectorPlan {
+export function prepare(
+  a: DirectorAnchors,
+  opts: { hz?: 60 | 120 | 240; reuse?: { plan: DirectorPlan; untilMs: number } } = {},
+): DirectorPlan {
   const job = startPrepare(a, opts);
   while (!job.advance(1 << 20)) {
     /* advance runs to the end */
@@ -161,7 +172,16 @@ const smooth = (x: number): number => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 
  * `next` (P3, rolling laps): the plan of the following lap, whose pre-roll the end of this one is faded into (default: this plan's
  * own, so a scene that stands for a minute repeats; with `next` it never repeats).
  */
-export function sampleWrapped(plan: DirectorPlan, tMs: number, loopMs: number, fadeMs: number, out: Float32Array, scratch: Float32Array, detail: Detail = plan.detail, next: DirectorPlan = plan): Float32Array {
+export function sampleWrapped(
+  plan: DirectorPlan,
+  tMs: number,
+  loopMs: number,
+  fadeMs: number,
+  out: Float32Array,
+  scratch: Float32Array,
+  detail: Detail = plan.detail,
+  next: DirectorPlan = plan,
+): Float32Array {
   sample(plan, tMs, out, detail);
   if (tMs <= loopMs - fadeMs) return out;
   sample(next, tMs - loopMs, scratch, detail);

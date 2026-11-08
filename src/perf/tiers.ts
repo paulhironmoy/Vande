@@ -39,20 +39,62 @@ export type QualityTierChoice = 'auto' | QualityTier;
 export const QUALITY_TIERS: readonly QualityTier[] = ['premium', 'balanced', 'classic'];
 
 /** The rendering a tier is drawn with: which stage and which profiles. */
-export const TIER_RENDERING: Readonly<Record<QualityTier, { stage: '3d' | '2d'; profiles: readonly QualityProfileId[] }>> = {
+export const TIER_RENDERING: Readonly<
+  Record<QualityTier, { stage: '3d' | '2d'; profiles: readonly QualityProfileId[] }>
+> = {
   premium: { stage: '3d', profiles: ['high'] },
   balanced: { stage: '3d', profiles: ['standard', 'lite'] },
   classic: { stage: '2d', profiles: ['lite'] },
 };
 
 /** What no tier, profile or step down may ever reduce (checked by the stage's and the physics' own tests). */
-export const INVARIANTS = ['ball_readability', 'timing_windows', 'input_path', 'release_cues', 'feedback_timing'] as const;
+export const INVARIANTS = [
+  'ball_readability',
+  'timing_windows',
+  'input_path',
+  'release_cues',
+  'feedback_timing',
+] as const;
 
 /** The steps down, in order, and what each removes (documentation and diagnostics; monitor.ts applies them). */
-export const DEGRADATION_STEPS: ReadonlyArray<{ from: { stage: '3d' | '2d'; profile: QualityProfileId }; to: { stage: '3d' | '2d'; profile: QualityProfileId }; underFps: number; removes: readonly string[] }> = [
-  { from: { stage: '3d', profile: 'high' }, to: { stage: '3d', profile: 'standard' }, underFps: 55, removes: ['shadow_map_2048_to_1024', 'light_shafts', 'crowd_6500_to_3600', 'player_detail_40m_to_22m', 'fewer_particles', 'resolution_900_1440_to_720_900'] },
-  { from: { stage: '3d', profile: 'standard' }, to: { stage: '3d', profile: 'lite' }, underFps: 50, removes: ['shadow_map_to_blob_shadows', 'crowd_animation', 'crowd_3600_to_1400', 'player_detail_22m_to_9m', 'fewer_particles', 'resolution_720_900_to_540_720'] },
-  { from: { stage: '3d', profile: 'lite' }, to: { stage: '2d', profile: 'lite' }, underFps: 45, removes: ['3d_stadium_players_and_lighting'] },
+export const DEGRADATION_STEPS: ReadonlyArray<{
+  from: { stage: '3d' | '2d'; profile: QualityProfileId };
+  to: { stage: '3d' | '2d'; profile: QualityProfileId };
+  underFps: number;
+  removes: readonly string[];
+}> = [
+  {
+    from: { stage: '3d', profile: 'high' },
+    to: { stage: '3d', profile: 'standard' },
+    underFps: 55,
+    removes: [
+      'shadow_map_2048_to_1024',
+      'light_shafts',
+      'crowd_6500_to_3600',
+      'player_detail_40m_to_22m',
+      'fewer_particles',
+      'resolution_900_1440_to_720_900',
+    ],
+  },
+  {
+    from: { stage: '3d', profile: 'standard' },
+    to: { stage: '3d', profile: 'lite' },
+    underFps: 50,
+    removes: [
+      'shadow_map_to_blob_shadows',
+      'crowd_animation',
+      'crowd_3600_to_1400',
+      'player_detail_22m_to_9m',
+      'fewer_particles',
+      'resolution_720_900_to_540_720',
+    ],
+  },
+  {
+    from: { stage: '3d', profile: 'lite' },
+    to: { stage: '2d', profile: 'lite' },
+    underFps: 45,
+    removes: ['3d_stadium_players_and_lighting'],
+  },
 ];
 
 /** The tier a rendering is presented as: Premium = High, Balanced = Standard or Lite, Classic = the 2D stage. */
@@ -100,13 +142,21 @@ const TECHNICAL: readonly string[] = ['auto', 'lite', 'standard', 'high', 'class
  * The effective rendering for a choice (stored technical or player-facing), with the tier it is presented as. A
  * choice the device did not earn falls back to what it did earn, as effectiveQuality does.
  */
-export function effectiveTier(a: DeviceAssessment | null, choice: QualityChoice | QualityTierChoice): { stage: '3d' | '2d'; profile: QualityProfileId; tier: QualityTier } {
-  const technical: QualityChoice = TECHNICAL.includes(choice) ? (choice as QualityChoice) : qualityChoiceForTier(choice as QualityTierChoice, a);
+export function effectiveTier(
+  a: DeviceAssessment | null,
+  choice: QualityChoice | QualityTierChoice,
+): { stage: '3d' | '2d'; profile: QualityProfileId; tier: QualityTier } {
+  const technical: QualityChoice = TECHNICAL.includes(choice)
+    ? (choice as QualityChoice)
+    : qualityChoiceForTier(choice as QualityTierChoice, a);
   const q = effectiveQuality(a, technical);
   return { ...q, tier: tierForQuality(q) };
 }
 
 /** Whether a change of rendering is one the player would name differently (worth one calm notice between balls). */
-export function tierChanged(prev: { stage: '3d' | '2d'; profile: QualityProfileId }, next: { stage: '3d' | '2d'; profile: QualityProfileId }): boolean {
+export function tierChanged(
+  prev: { stage: '3d' | '2d'; profile: QualityProfileId },
+  next: { stage: '3d' | '2d'; profile: QualityProfileId },
+): boolean {
   return tierForQuality(prev) !== tierForQuality(next);
 }

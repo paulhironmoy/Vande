@@ -17,10 +17,7 @@ import type {
   UnityPracticeBridge,
   UnityPracticeNativeError,
 } from '@/platform/unityPractice';
-import {
-  UnityPracticeSessionCoordinator,
-  type UnityPracticeCoordinatorEvent,
-} from '@/practice/unity';
+import { UnityPracticeSessionCoordinator, type UnityPracticeCoordinatorEvent } from '@/practice/unity';
 import { REFERENCE_BALL, REFERENCE_OVER } from '@/practice/game';
 import { fixtureField, fixtureFlight, fixtureResult } from '../render3d/practiceFixtures';
 
@@ -63,7 +60,8 @@ class ResultTailBridge implements UnityPracticeBridge {
   unloads = 0;
   private unitySequence = 0;
   private clockIndex = 0;
-  private messageListener: ((packet: Parameters<UnityPracticeBridge['launch']>[0], receivedPerfMs: number) => void) | null = null;
+  private messageListener:
+    ((packet: Parameters<UnityPracticeBridge['launch']>[0], receivedPerfMs: number) => void) | null = null;
 
   async availability(): Promise<UnityPracticeAvailability> {
     return { available: true, reason: 'ready', unityVersion: '6000.3.test' };
@@ -156,22 +154,22 @@ async function resolution(): Promise<UnityPracticeResolution> {
   // geometry; a valid leave exercises the same result/ACK/dead lifecycle.
   const result = fixtureResult(flight, { kind: 'leave' });
   const record = {
-      version: PRACTICE_SIM_VERSION,
-      overIndex: 0,
-      ballIndex: 0,
-      bowler: REFERENCE_OVER.bowler,
-      plan: flight.plan,
-      seed: flight.seed,
-      conditions: 'balanced',
-      ball: REFERENCE_BALL,
-      field: fixtureField(),
-      handedness: 'right',
-      assist: 'play',
-      tierToleranceMs: 0,
-      swing: result.swing,
-      runs: result.outcome.runs,
-      dismissal: result.outcome.dismissal,
-    } as const;
+    version: PRACTICE_SIM_VERSION,
+    overIndex: 0,
+    ballIndex: 0,
+    bowler: REFERENCE_OVER.bowler,
+    plan: flight.plan,
+    seed: flight.seed,
+    conditions: 'balanced',
+    ball: REFERENCE_BALL,
+    field: fixtureField(),
+    handedness: 'right',
+    assist: 'play',
+    tierToleranceMs: 0,
+    swing: result.swing,
+    runs: result.outcome.runs,
+    dismissal: result.outcome.dismissal,
+  } as const;
   return {
     record,
     result,
@@ -218,38 +216,48 @@ describe('Unity Practice result-tail handling', () => {
     expect(await coordinator.launch()).toBe(true);
     expect(await coordinator.setScene(scene)).toBe(true);
     const resolved = await resolution();
-    expect(await coordinator.startDelivery(DELIVERY_ID, {
-      overIndex: 0,
-      ballIndex: 0,
-      plan: resolved.record.plan,
-      seed: resolved.record.seed,
-      flight: resolved.result.flight,
-      presentation: { learnCue: false, coach: null },
-    })).toBe(true);
+    expect(
+      await coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: resolved.record.plan,
+        seed: resolved.record.seed,
+        flight: resolved.result.flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
 
     const pendingResult = coordinator.sendResult(DELIVERY_ID, resolved);
     await spinUntil(() => bridge.sent.some((message) => message.type === 'host.result'));
     expect(coordinator.status).toBe('result_pending');
 
     const clockSampleId = `${SESSION_ID}:clock:2`;
-    await bridge.emit('unity.pointer', {
-      phase: 'down',
-      atUnityMs: 2_010,
-      clockSampleId,
-      pointer: 'touch',
-    }, DELIVERY_ID);
-    await bridge.emit('unity.gesture', {
-      retention: 'memory-until-resolution',
-      clockSampleId,
-      input: {
+    await bridge.emit(
+      'unity.pointer',
+      {
+        phase: 'down',
+        atUnityMs: 2_010,
+        clockSampleId,
         pointer: 'touch',
-        surface: { width: 400, height: 800 },
-        samples: [
-          { t: 2_010, x: 100, y: 500 },
-          { t: 2_020, x: 110, y: 430 },
-        ],
       },
-    }, DELIVERY_ID);
+      DELIVERY_ID,
+    );
+    await bridge.emit(
+      'unity.gesture',
+      {
+        retention: 'memory-until-resolution',
+        clockSampleId,
+        input: {
+          pointer: 'touch',
+          surface: { width: 400, height: 800 },
+          samples: [
+            { t: 2_010, x: 100, y: 500 },
+            { t: 2_020, x: 110, y: 430 },
+          ],
+        },
+      },
+      DELIVERY_ID,
+    );
     await coordinator.flushInbound();
 
     expect(coordinator.status).toBe('result_pending');
@@ -262,22 +270,30 @@ describe('Unity Practice result-tail handling', () => {
     expect(await pendingResult).toBe(true);
     expect(coordinator.status).toBe('resolved');
 
-    await bridge.emit('unity.gesture', {
-      retention: 'memory-until-resolution',
-      clockSampleId,
-      input: {
-        pointer: 'touch',
-        surface: { width: 400, height: 800 },
-        samples: [
-          { t: 2_030, x: 110, y: 430 },
-          { t: 2_040, x: 120, y: 350 },
-        ],
+    await bridge.emit(
+      'unity.gesture',
+      {
+        retention: 'memory-until-resolution',
+        clockSampleId,
+        input: {
+          pointer: 'touch',
+          surface: { width: 400, height: 800 },
+          samples: [
+            { t: 2_030, x: 110, y: 430 },
+            { t: 2_040, x: 120, y: 350 },
+          ],
+        },
       },
-    }, DELIVERY_ID);
-    await bridge.emit('unity.dead', {
-      deadT: resolved.result.deadT,
-      replayDigest: resolved.replayDigest,
-    }, DELIVERY_ID);
+      DELIVERY_ID,
+    );
+    await bridge.emit(
+      'unity.dead',
+      {
+        deadT: resolved.result.deadT,
+        replayDigest: resolved.replayDigest,
+      },
+      DELIVERY_ID,
+    );
     await coordinator.flushInbound();
 
     expect(events.filter((event) => event.type === 'pointer' || event.type === 'gesture')).toEqual([]);

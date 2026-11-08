@@ -8,7 +8,10 @@ import { createMemorySecureStore } from '@/platform/secureStore';
 
 const API = 'https://api.local';
 
-async function setup(): Promise<{ b: LocalBackend; fetch: FetchLike & { loseNextResponse(): void; offline: boolean } }> {
+async function setup(): Promise<{
+  b: LocalBackend;
+  fetch: FetchLike & { loseNextResponse(): void; offline: boolean };
+}> {
   const b = await createLocalBackend({ engine: fakeEngine, helpers: fakeHelpers, now: Date.UTC(2026, 9, 26, 6, 30) });
   let lose = false;
   const f = Object.assign(
@@ -26,7 +29,8 @@ async function setup(): Promise<{ b: LocalBackend; fetch: FetchLike & { loseNext
   return { b, fetch: f };
 }
 
-const accounts = (b: LocalBackend) => Number((b.db.db.prepare('SELECT count(*) AS n FROM accounts').get() as { n: number }).n);
+const accounts = (b: LocalBackend) =>
+  Number((b.db.db.prepare('SELECT count(*) AS n FROM accounts').get() as { n: number }).n);
 
 describe('session', () => {
   it('is 18+: no account and no request until the age screen confirmed it; the sign-up then says so', async () => {
@@ -39,14 +43,22 @@ describe('session', () => {
     const store = createMemorySecureStore();
     const api = createApiClient({ baseUrl: API, fetch: counting });
     let adult: boolean | undefined;
-    const s = new SessionManager({ adultConfirmed: () => adult === true, store, api, locale: () => 'en', now: b.clock.now });
+    const s = new SessionManager({
+      adultConfirmed: () => adult === true,
+      store,
+      api,
+      locale: () => 'en',
+      now: b.clock.now,
+    });
     // Unanswered, and an "under 18" answer: nothing is sent, nothing is stored.
     await expect(s.ensure('Swift Tiger')).rejects.toBeInstanceOf(AgeNotConfirmedError);
     adult = false;
     const refused = await s.ensure().catch((e: unknown) => e);
     expect(isAgeNotConfirmed(refused) && refused.code === 'forbidden' && !refused.retryable).toBe(true);
     // Without the option at all, the answer is no as well.
-    await expect(new SessionManager({ store, api, locale: () => 'en', now: b.clock.now }).ensure()).rejects.toBeInstanceOf(AgeNotConfirmedError);
+    await expect(
+      new SessionManager({ store, api, locale: () => 'en', now: b.clock.now }).ensure(),
+    ).rejects.toBeInstanceOf(AgeNotConfirmedError);
     expect(sent).toEqual([]);
     expect(store.dump()).toEqual({});
     expect(accounts(b)).toBe(0);
@@ -54,7 +66,11 @@ describe('session', () => {
     adult = true;
     const t = await s.ensure('Swift Tiger');
     expect(sent).toHaveLength(1);
-    expect(JSON.parse(sent[0].slice(sent[0].indexOf('{')))).toEqual({ locale: 'en', adultConfirmed: true, alias: 'Swift Tiger' });
+    expect(JSON.parse(sent[0].slice(sent[0].indexOf('{')))).toEqual({
+      locale: 'en',
+      adultConfirmed: true,
+      alias: 'Swift Tiger',
+    });
     expect(Number((b.db.db.prepare('SELECT adult_confirmed AS a FROM accounts').get() as { a: number }).a)).toBe(1);
     // An existing (or recovered) session never asks again.
     adult = false;
@@ -80,7 +96,13 @@ describe('session', () => {
   it('a lost sign-up response is retried with the same key: one account, not two', async () => {
     const { b, fetch } = await setup();
     const store = createMemorySecureStore();
-    const s = new SessionManager({ adultConfirmed: () => true, store, api: createApiClient({ baseUrl: API, fetch }), locale: () => 'en', now: b.clock.now });
+    const s = new SessionManager({
+      adultConfirmed: () => true,
+      store,
+      api: createApiClient({ baseUrl: API, fetch }),
+      locale: () => 'en',
+      now: b.clock.now,
+    });
     fetch.loseNextResponse();
     await expect(s.ensure()).rejects.toMatchObject({ code: 'network' });
     const t = await s.ensure();
@@ -92,7 +114,13 @@ describe('session', () => {
   it('refreshes before expiry; a lost refresh response replays instead of looking like theft', async () => {
     const { b, fetch } = await setup();
     const store = createMemorySecureStore();
-    const s = new SessionManager({ adultConfirmed: () => true, store, api: createApiClient({ baseUrl: API, fetch }), locale: () => 'en', now: b.clock.now });
+    const s = new SessionManager({
+      adultConfirmed: () => true,
+      store,
+      api: createApiClient({ baseUrl: API, fetch }),
+      locale: () => 'en',
+      now: b.clock.now,
+    });
     const t0 = await s.ensure();
     expect(await s.accessToken()).toBe(t0.accessToken);
     b.clock.advance(14.5 * 60_000);
@@ -112,8 +140,22 @@ describe('session', () => {
     const store = createMemorySecureStore();
     const locks = defaultLocks();
     const api = createApiClient({ baseUrl: API, fetch });
-    const tab1 = new SessionManager({ adultConfirmed: () => true, store, api, locale: () => 'en', now: b.clock.now, locks });
-    const tab2 = new SessionManager({ adultConfirmed: () => true, store, api, locale: () => 'en', now: b.clock.now, locks });
+    const tab1 = new SessionManager({
+      adultConfirmed: () => true,
+      store,
+      api,
+      locale: () => 'en',
+      now: b.clock.now,
+      locks,
+    });
+    const tab2 = new SessionManager({
+      adultConfirmed: () => true,
+      store,
+      api,
+      locale: () => 'en',
+      now: b.clock.now,
+      locks,
+    });
     await tab1.ensure();
     await tab2.current();
     b.clock.advance(15 * 60_000);
@@ -126,7 +168,13 @@ describe('session', () => {
   it('a revoked session is cleared and reported as lost', async () => {
     const { b, fetch } = await setup();
     const store = createMemorySecureStore();
-    const s = new SessionManager({ adultConfirmed: () => true, store, api: createApiClient({ baseUrl: API, fetch }), locale: () => 'en', now: b.clock.now });
+    const s = new SessionManager({
+      adultConfirmed: () => true,
+      store,
+      api: createApiClient({ baseUrl: API, fetch }),
+      locale: () => 'en',
+      now: b.clock.now,
+    });
     const events: string[] = [];
     s.onChange((e) => events.push(e));
     await s.ensure();

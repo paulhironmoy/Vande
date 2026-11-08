@@ -19,7 +19,15 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import P from '@/render3d/core/motion/director/params.json';
-import { UNITY_GENERATED, UNITY_PARAMS_COPY, WEB_PARAMS, expectedFiles, fnv1a32Bytes, generateDirectorParams, staleFiles } from '../../../../scripts/director-unity-params.mjs';
+import {
+  UNITY_GENERATED,
+  UNITY_PARAMS_COPY,
+  WEB_PARAMS,
+  expectedFiles,
+  fnv1a32Bytes,
+  generateDirectorParams,
+  staleFiles,
+} from '../../../../scripts/director-unity-params.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const UNITY_FIXTURES = 'unity/VandePractice/Assets/VandePractice/Tests/EditMode/Director/Fixtures';
@@ -40,7 +48,10 @@ const COPIES: Array<[string, string]> = [
 
 describe('Unity copies of the Director fixtures', () => {
   it.each(COPIES)('%s is byte-identical to its Unity copy %s', (web, copy) => {
-    expect(bytesOf(copy).equals(bytesOf(web)), `${copy} must be an exact copy of ${web}: change the web file, then copy it`).toBe(true);
+    expect(
+      bytesOf(copy).equals(bytesOf(web)),
+      `${copy} must be an exact copy of ${web}: change the web file, then copy it`,
+    ).toBe(true);
   });
 });
 
@@ -55,17 +66,19 @@ describe('Unity constants generated from params.json', () => {
     expect(generateDirectorParams(text)).toBe(expectedFiles(ROOT).generated);
   });
 
-  it('carries the file\'s hash, its length and the minified length that golden.json records', () => {
+  it("carries the file's hash, its length and the minified length that golden.json records", () => {
     const bytes = bytesOf(WEB_PARAMS);
     const cs = readFileSync(resolve(ROOT, UNITY_GENERATED), 'utf8');
     expect(cs).toContain(`SourceFnv1a32 = 0x${fnv1a32Bytes(bytes).toString(16).padStart(8, '0')}u;`);
     expect(cs).toContain(`SourceBytes = ${bytes.length};`);
     expect(cs).toContain(`MinifiedChars = ${JSON.stringify(P).length};`);
-    const golden = JSON.parse(readFileSync(resolve(ROOT, `${WEB_FIXTURES}/golden.json`), 'utf8')) as { paramsBytes: number };
+    const golden = JSON.parse(readFileSync(resolve(ROOT, `${WEB_FIXTURES}/golden.json`), 'utf8')) as {
+      paramsBytes: number;
+    };
     expect(golden.paramsBytes).toBe(JSON.stringify(P).length);
   });
 
-  it('holds every number of params.json, in the file\'s order, and nothing else', () => {
+  it("holds every number of params.json, in the file's order, and nothing else", () => {
     const want: number[] = [];
     const walk = (v: unknown): void => {
       if (typeof v === 'number') want.push(v);

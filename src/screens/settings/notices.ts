@@ -71,7 +71,10 @@ export function filterNotices(entries: readonly NoticeEntry[], query: string): N
 
 let cache: Promise<NoticeEntry[]> | null = null;
 
-export function loadNotices(fetcher: typeof fetch = fetch, base: string = String(import.meta.env.BASE_URL ?? '/')): Promise<NoticeEntry[]> {
+export function loadNotices(
+  fetcher: typeof fetch = fetch,
+  base: string = String(import.meta.env.BASE_URL ?? '/'),
+): Promise<NoticeEntry[]> {
   if (!cache) {
     const url = `${base.endsWith('/') ? base : `${base}/`}third-party-notices.txt`;
     cache = fetcher(url)

@@ -97,7 +97,14 @@ export function followCurve(g: LiveGraph, s: Readonly<EmotionState>, nowPerf: nu
   logAudio('crowd', 'bed', nowPerf + Math.max(0, at - t) * 1000, { ctx, ctxTime: at, level: s.to, bus: 'bed' });
 }
 
-function schedule(param: AudioParam, map: (level: number) => number, s: Readonly<EmotionState>, cur: number, t: number, at: number) {
+function schedule(
+  param: AudioParam,
+  map: (level: number) => number,
+  s: Readonly<EmotionState>,
+  cur: number,
+  t: number,
+  at: number,
+) {
   param.cancelScheduledValues(t);
   param.setValueAtTime(map(cur), t);
   param.setTargetAtTime(map(s.to), at, s.tau / 1000);

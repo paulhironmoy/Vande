@@ -15,7 +15,20 @@
  * deterministic: the planted-foot plan is a function of the track alone, built forward from a fixed anchor and cached.
  */
 import { type ActorState, type ActorTrack, evaluateActor } from './actors';
-import { CLIPS, type ClipDef, type ClipId, type SampledPose, addBoneRotation, blendPose, clipDuration, clipMarker, createPose, getClip, overlayLower, sampleClip } from './clips';
+import {
+  CLIPS,
+  type ClipDef,
+  type ClipId,
+  type SampledPose,
+  addBoneRotation,
+  blendPose,
+  clipDuration,
+  clipMarker,
+  createPose,
+  getClip,
+  overlayLower,
+  sampleClip,
+} from './clips';
 import { quatFromEulerDeg } from './quat';
 import { type Vec3, angleDelta, clamp, headingOf, smoothstep } from './math';
 import { BONE_INDEX, BONE_NAMES, type BoneName, SKELETON } from './skeleton';
@@ -28,7 +41,8 @@ const NB = BONE_NAMES.length;
 const PARENT: number[] = SKELETON.map((b) => (b.parent ? BONE_INDEX[b.parent] : -1));
 const OFFSET: Array<readonly [number, number, number]> = SKELETON.map((b) => b.offset);
 /** Ankle height of the rest pose standing on the ground (m, scale 1). */
-export const ANKLE_REST_Y = OFFSET[0][1] + OFFSET[BONE_INDEX.thighL][1] + OFFSET[BONE_INDEX.shinL][1] + OFFSET[BONE_INDEX.footL][1];
+export const ANKLE_REST_Y =
+  OFFSET[0][1] + OFFSET[BONE_INDEX.thighL][1] + OFFSET[BONE_INDEX.shinL][1] + OFFSET[BONE_INDEX.footL][1];
 
 /** Joint positions and world rotations of every bone, in the actor's local frame (rig scale 1, facing +z). */
 export interface Joints {
@@ -50,7 +64,15 @@ export function createJoints(): Joints {
 }
 
 /** Rotates (x, y, z) by unit quaternion q[qo..qo+3] into out[o..o+2]. */
-function rotate(q: ArrayLike<number>, qo: number, x: number, y: number, z: number, out: Float64Array | number[], o: number) {
+function rotate(
+  q: ArrayLike<number>,
+  qo: number,
+  x: number,
+  y: number,
+  z: number,
+  out: Float64Array | number[],
+  o: number,
+) {
   const qx = q[qo];
   const qy = q[qo + 1];
   const qz = q[qo + 2];
@@ -64,7 +86,14 @@ function rotate(q: ArrayLike<number>, qo: number, x: number, y: number, z: numbe
 }
 
 /** out = a · b (quaternions at offsets). */
-function qmul(a: ArrayLike<number>, ao: number, b: ArrayLike<number>, bo: number, out: Float64Array | Float32Array | number[], o: number) {
+function qmul(
+  a: ArrayLike<number>,
+  ao: number,
+  b: ArrayLike<number>,
+  bo: number,
+  out: Float64Array | Float32Array | number[],
+  o: number,
+) {
   const ax = a[ao];
   const ay = a[ao + 1];
   const az = a[ao + 2];
@@ -135,8 +164,14 @@ export function forwardKinematics(pose: SampledPose, out: Joints = createJoints(
     const k = i * 4;
     let dirty = all || (par >= 0 && DIRTY[par] === 1);
     if (!dirty) {
-      dirty = !Object.is(q[k], F[k]) || !Object.is(q[k + 1], F[k + 1]) || !Object.is(q[k + 2], F[k + 2]) || !Object.is(q[k + 3], F[k + 3]);
-      if (par < 0 && !dirty) dirty = !Object.is(root[0], F[NB * 4]) || !Object.is(root[1], F[NB * 4 + 1]) || !Object.is(root[2], F[NB * 4 + 2]);
+      dirty =
+        !Object.is(q[k], F[k]) ||
+        !Object.is(q[k + 1], F[k + 1]) ||
+        !Object.is(q[k + 2], F[k + 2]) ||
+        !Object.is(q[k + 3], F[k + 3]);
+      if (par < 0 && !dirty)
+        dirty =
+          !Object.is(root[0], F[NB * 4]) || !Object.is(root[1], F[NB * 4 + 1]) || !Object.is(root[2], F[NB * 4 + 2]);
     }
     DIRTY[i] = dirty ? 1 : 0;
     if (!dirty) continue;
@@ -246,7 +281,10 @@ const qd: number[] = [0, 0, 0, 1];
 const va: number[] = [0, 0, 0];
 
 /** The §9 hinge ranges (deg) of the lower bones: the knee bends at +X, the elbow at −X (MOTION-SPEC §9). */
-export const HINGE_RANGE: Readonly<Record<'shin' | 'forearm', readonly [number, number]>> = { shin: [-5, 155], forearm: [-150, 5] };
+export const HINGE_RANGE: Readonly<Record<'shin' | 'forearm', readonly [number, number]>> = {
+  shin: [-5, 155],
+  forearm: [-150, 5],
+};
 
 /**
  * Places the end joint of the chain upper → lower → end at `target` (actor frame, scale 1), blended by `w` from where
@@ -255,7 +293,18 @@ export const HINGE_RANGE: Readonly<Record<'shin' | 'forearm', readonly [number, 
  * pole (the joint's current offset from the line while clearly bent, else `pole`). The end bone keeps its world
  * orientation (a planted foot stays flat). Updates pose.q; `j` must be the pose's FK and is left stale.
  */
-export function twoBoneIK(pose: SampledPose, j: Joints, upper: BoneName, lower: BoneName, end: BoneName, target: readonly [number, number, number], w: number, pole: readonly [number, number, number], poleOnly = false, softFrom = 0.94): void {
+export function twoBoneIK(
+  pose: SampledPose,
+  j: Joints,
+  upper: BoneName,
+  lower: BoneName,
+  end: BoneName,
+  target: readonly [number, number, number],
+  w: number,
+  pole: readonly [number, number, number],
+  poleOnly = false,
+  softFrom = 0.94,
+): void {
   if (w <= 1e-4) return;
   const iu = BONE_INDEX[upper];
   const il = BONE_INDEX[lower];
@@ -287,7 +336,8 @@ export function twoBoneIK(pose: SampledPose, j: Joints, upper: BoneName, lower: 
   // singular there, and a target swaying across it would snap the knee or elbow).
   const Lmax = a + b - 1e-4;
   const d0 = softFrom * Lmax;
-  const d = dRaw <= d0 ? Math.max(dRaw, Math.abs(a - b) + 1e-4) : Lmax - (Lmax - d0) * Math.exp(-(dRaw - d0) / (Lmax - d0));
+  const d =
+    dRaw <= d0 ? Math.max(dRaw, Math.abs(a - b) + 1e-4) : Lmax - (Lmax - d0) * Math.exp(-(dRaw - d0) / (Lmax - d0));
   // The hinge angle that makes the chain that long, signed the way this joint bends and kept within its range.
   const knee = lower.startsWith('shin');
   const [lo, hi] = HINGE_RANGE[knee ? 'shin' : 'forearm'];
@@ -343,8 +393,7 @@ export function twoBoneIK(pose: SampledPose, j: Joints, upper: BoneName, lower: 
   const wz = [ny * mz - nz * my, nz * mx - nx * mz, nx * my - ny * mx];
   // R = W · Lᵀ (columns W, rows L).
   const R = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-  for (let r = 0; r < 3; r++)
-    for (let k = 0; k < 3; k++) R[r * 3 + k] = wx[r] * lx[k] + wy[r] * ly[k] + wz[r] * lz[k];
+  for (let r = 0; r < 3; r++) for (let k = 0; k < 3; k++) R[r * 3 + k] = wx[r] * lx[k] + wy[r] * ly[k] + wz[r] * lz[k];
   matToQuat(R, qb); // new upper world
   // The lower bone's world: the upper's, turned about X by θ.
   const hs = Math.sin(th / 2);
@@ -456,7 +505,16 @@ export function rootMotion(track: ActorTrack, t: number): { vx: number; vz: numb
  * Lean into acceleration (forward), against braking (back) and into a curve (banked), from the root path; and a slow
  * weight shift between the feet while standing. Adds to the pose in place (before the foot planting).
  */
-export function bodyLayers(track: ActorTrack, pose: SampledPose, t: number, clip: ClipId, phase: number, st: ActorState = evaluateActor(track, t), m = rootMotion(track, t), legsOnly = false): void {
+export function bodyLayers(
+  track: ActorTrack,
+  pose: SampledPose,
+  t: number,
+  clip: ClipId,
+  phase: number,
+  st: ActorState = evaluateActor(track, t),
+  m = rootMotion(track, t),
+  legsOnly = false,
+): void {
   const fx = Math.sin(st.heading);
   const fz = Math.cos(st.heading);
   const lx = Math.cos(st.heading);
@@ -465,8 +523,8 @@ export function bodyLayers(track: ActorTrack, pose: SampledPose, t: number, clip
   const aF = m.ax * fx + m.az * fz;
   const aL = m.ax * lx + m.az * lz;
   if (v > 0.4 || Math.abs(aF) > 0.5) {
-    const lean = clamp((Math.atan(aF / G) * 180) / Math.PI * 0.55, -9, 9);
-    const bank = clamp((Math.atan(aL / G) * 180) / Math.PI * 0.75, -16, 16) * smoothstep(0.8, 3, v);
+    const lean = clamp(((Math.atan(aF / G) * 180) / Math.PI) * 0.55, -9, 9);
+    const bank = clamp(((Math.atan(aL / G) * 180) / Math.PI) * 0.75, -16, 16) * smoothstep(0.8, 3, v);
     if (!legsOnly) addBoneRotation(pose, 'spine', [lean, 0, 0], 1);
     addBoneRotation(pose, 'hips', [lean * 0.4, 0, -bank], 1);
   }
@@ -506,10 +564,29 @@ export function bodyLayers(track: ActorTrack, pose: SampledPose, t: number, clip
  * measured on the physics corpus, the pack run loops under the stance pinning still pop at the drive-to-run hand-off
  * (WEB-FIELD evidence, 2026-11-04), so runs keep the smooth built-in gait while everything else draws from the packs.
  */
-export const PLAN_OPTIONS = { fieldPacks: false, packActionsOnly: true, packGaits: false, packGaitIK: true, packStartStop: true, smoothRoot: false, packHoldOwnFeet: false, stepPlan: true };
+export const PLAN_OPTIONS = {
+  fieldPacks: false,
+  packActionsOnly: true,
+  packGaits: false,
+  packGaitIK: true,
+  packStartStop: true,
+  smoothRoot: false,
+  packHoldOwnFeet: false,
+  stepPlan: true,
+};
 
 /** Plan sample rate (Hz) and the step a dragged foot takes (s, lift m), the drift that triggers it (m, rad). */
-const PLANT = { hz: 30, stepS: 0.24, liftM: 0.07, driftM: 0.2, driftYaw: 0.6, plantInS: 0.15, releaseS: 0.09, contactY: 0.135, swingVz: 0.25 } as const;
+const PLANT = {
+  hz: 30,
+  stepS: 0.24,
+  liftM: 0.07,
+  driftM: 0.2,
+  driftYaw: 0.6,
+  plantInS: 0.15,
+  releaseS: 0.09,
+  contactY: 0.135,
+  swingVz: 0.25,
+} as const;
 
 /**
  * A foot's place in its gait cycle at phase `phase` (0 = this foot's strike in the cycle's own timing) and speed v
@@ -576,14 +653,51 @@ export class FootPlan {
     readonly anchor: number,
     readonly scale: number,
     /** The base pose the stage draws before planting (so the plan sees the same ankles). */
-    private readonly base: (t: number) => { pose: SampledPose; st: ActorState; gait: { phase: number; v: number } | null; contacts?: number },
+    private readonly base: (t: number) => {
+      pose: SampledPose;
+      st: ActorState;
+      gait: { phase: number; v: number } | null;
+      contacts?: number;
+    },
   ) {
-    const free = (): FootRun => ({ state: 0, px: 0, pz: 0, yaw: 0, w: 0, fx: 0, fz: 0, tx: 0, tz: 0, t0: 0, fy: 0, dur: PLANT.stepS, ox: 0, oy: 0, oz: 0, pinK: -1, dx: 0, dy: 0, dz: 0, liftT: -Infinity, lz: 0, ly: 1 });
+    const free = (): FootRun => ({
+      state: 0,
+      px: 0,
+      pz: 0,
+      yaw: 0,
+      w: 0,
+      fx: 0,
+      fz: 0,
+      tx: 0,
+      tz: 0,
+      t0: 0,
+      fy: 0,
+      dur: PLANT.stepS,
+      ox: 0,
+      oy: 0,
+      oz: 0,
+      pinK: -1,
+      dx: 0,
+      dy: 0,
+      dz: 0,
+      liftT: -Infinity,
+      lz: 0,
+      ly: 1,
+    });
     this.feet = [free(), free()];
   }
 
   /** The clip ankles (world) and the actor state at t, with the body layers applied. */
-  private sample(t: number): { L: Vec3; R: Vec3; lL: Vec3; lR: Vec3; heading: number; gait: { phase: number; v: number } | null; contacts?: number; shoe: [Vec3[], Vec3[]] } {
+  private sample(t: number): {
+    L: Vec3;
+    R: Vec3;
+    lL: Vec3;
+    lR: Vec3;
+    heading: number;
+    gait: { phase: number; v: number } | null;
+    contacts?: number;
+    shoe: [Vec3[], Vec3[]];
+  } {
     const { pose, st, gait, contacts } = this.base(t);
     forwardKinematics(pose, this.joints);
     const root = { x: st.pos.x + (st.body?.x ?? 0), y: 0, z: st.pos.z + (st.body?.z ?? 0) };
@@ -593,7 +707,14 @@ export class FootPlan {
       const i = BONE_INDEX[b];
       return SHOE_POINTS.map((o) => {
         rotate(j.q, i * 4, o[0], o[1], o[2], va, 0);
-        return localToWorld(j.p[i * 3] + va[0], j.p[i * 3 + 1] + va[1], j.p[i * 3 + 2] + va[2], root, st.heading, this.scale);
+        return localToWorld(
+          j.p[i * 3] + va[0],
+          j.p[i * 3 + 1] + va[1],
+          j.p[i * 3 + 2] + va[2],
+          root,
+          st.heading,
+          this.scale,
+        );
       });
     }) as [Vec3[], Vec3[]];
     const li = BONE_INDEX.footL * 3;
@@ -756,7 +877,10 @@ export class FootPlan {
           foot.dur = 0.2;
           foot.yaw = sm.heading;
         }
-        const contact = sm.contacts !== undefined ? (sm.contacts & (f === 0 ? 1 : 2)) !== 0 : local.y < PLANT.contactY && vz < PLANT.swingVz;
+        const contact =
+          sm.contacts !== undefined
+            ? (sm.contacts & (f === 0 ? 1 : 2)) !== 0
+            : local.y < PLANT.contactY && vz < PLANT.swingVz;
         const rampIn = PLANT.plantInS;
         const rampOut = PLANT.releaseS;
         if (foot.state === 0) {
@@ -801,7 +925,10 @@ export class FootPlan {
           const e = u * u * (3 - 2 * u);
           tx = foot.fx + (foot.tx - foot.fx) * e;
           tz = foot.fz + (foot.tz - foot.fz) * e;
-          ty = foot.fy + (ground - foot.fy) * e + PLANT.liftM * this.scale * Math.sin(Math.PI * u) * (foot.fy > ground + 0.01 ? 0.4 : 1);
+          ty =
+            foot.fy +
+            (ground - foot.fy) * e +
+            PLANT.liftM * this.scale * Math.sin(Math.PI * u) * (foot.fy > ground + 0.01 ? 0.4 : 1);
           foot.w = 1;
           if (u >= 1) {
             foot.state = contact ? 1 : 0;
@@ -831,7 +958,10 @@ export class FootPlan {
     if (Math.abs(angleDelta(a.yaw, st.heading)) > 0.3 || Math.abs(angleDelta(b.yaw, st.heading)) > 0.3) return false;
     const p0 = rootAt(this.track, t - 200);
     const p1 = rootAt(this.track, t + 200);
-    return Math.abs(p0.x - st.pos.x) + Math.abs(p0.z - st.pos.z) + Math.abs(p1.x - st.pos.x) + Math.abs(p1.z - st.pos.z) < 1e-9;
+    return (
+      Math.abs(p0.x - st.pos.x) + Math.abs(p0.z - st.pos.z) + Math.abs(p1.x - st.pos.x) + Math.abs(p1.z - st.pos.z) <
+      1e-9
+    );
   }
 
   /** Targets at scene time t (null before the anchor): [Lx, Ly, Lz, Lw, Rx, Ry, Rz, Rw, L lift-off, R lift-off], world, scene ms. */
@@ -868,7 +998,14 @@ const ELBOW_POLE_L: readonly [number, number, number] = [0.6, -0.5, -0.4];
 const ELBOW_POLE_R: readonly [number, number, number] = [-0.6, -0.5, -0.4];
 
 /** Plants the feet of `pose` on the plan's targets (world) for an actor at root/heading/scale. */
-export function plantFeet(pose: SampledPose, j: Joints, targets: Float32Array, root: Vec3, heading: number, scale: number): void {
+export function plantFeet(
+  pose: SampledPose,
+  j: Joints,
+  targets: Float32Array,
+  root: Vec3,
+  heading: number,
+  scale: number,
+): void {
   forwardKinematics(pose, j);
   const L = -OFFSET[BONE_INDEX.shinL][1] - OFFSET[BONE_INDEX.footL][1] - 0.004;
   const local: Array<Vec3 | null> = [null, null];
@@ -921,7 +1058,11 @@ const kneePole: [number, number, number] = [0, 0, 1];
 function blendLegRotations(q: Float32Array, bones: readonly number[], w: number): void {
   for (let b = 0; b < 3; b++) {
     const o = bones[b] * 4;
-    const dot = q[o] * legKeep[b * 4] + q[o + 1] * legKeep[b * 4 + 1] + q[o + 2] * legKeep[b * 4 + 2] + q[o + 3] * legKeep[b * 4 + 3];
+    const dot =
+      q[o] * legKeep[b * 4] +
+      q[o + 1] * legKeep[b * 4 + 1] +
+      q[o + 2] * legKeep[b * 4 + 2] +
+      q[o + 3] * legKeep[b * 4 + 3];
     const sg = dot < 0 ? -1 : 1;
     let n = 0;
     for (let k = 0; k < 4; k++) {
@@ -1066,8 +1207,6 @@ interface RawSample {
   feet: [RawFoot, RawFoot];
 }
 
-
-
 /** The heel strike (rad, toe up), the heel-off (rad) and where in the stance it starts, at speed v (m/s). */
 const strikePitch = (v: number): number => -0.09 * (1 - smoothstep(2, 5, v));
 const offPitch = (v: number): number => 0.26 + 0.6 * smoothstep(1.5, 7, v);
@@ -1102,7 +1241,12 @@ export class StepPlan {
     readonly track: ActorTrack,
     readonly anchor: number,
     readonly scale: number,
-    private readonly base: (t: number) => { pose: SampledPose; st: ActorState; gait: { phase: number; v: number } | null; contacts?: number },
+    private readonly base: (t: number) => {
+      pose: SampledPose;
+      st: ActorState;
+      gait: { phase: number; v: number } | null;
+      contacts?: number;
+    },
   ) {}
 
   private tOf(i: number): number {
@@ -1154,7 +1298,14 @@ export class StepPlan {
       const H = jointWorld(j, f === 0 ? 'thighL' : 'thighR', root, st.heading, s);
       return { x: A.x, y: A.y, z: A.z, fx, fz, yaw, pitch, lift, contact, lx, lz, hx: H.x, hy: H.y, hz: H.z };
     }) as [RawFoot, RawFoot];
-    return { t, v: gait ? gait.v : Number.NaN, phase: gait ? gait.phase : Number.NaN, builtinGait: Boolean(gait) && contacts === undefined, heading: st.heading, feet };
+    return {
+      t,
+      v: gait ? gait.v : Number.NaN,
+      phase: gait ? gait.phase : Number.NaN,
+      builtinGait: Boolean(gait) && contacts === undefined,
+      heading: st.heading,
+      feet,
+    };
   }
 
   /** Linear between samples (yaw the short way): the clip foot's flat stand, yaw, pitch, lift and ankle at t. */
@@ -1170,8 +1321,24 @@ export class StepPlan {
     const p3 = this.rawAt(i + 2).feet[f];
     const u2 = u * u;
     const u3 = u2 * u;
-    const C = (m: number, q0: number, q1: number, q2: number) => 0.5 * (2 * q0 + (q1 - m) * u + (2 * m - 5 * q0 + 4 * q1 - q2) * u2 + (3 * q0 - m - 3 * q1 + q2) * u3);
-    return { x: C(p0.x, a.x, b.x, p3.x), y: L(a.y, b.y), z: C(p0.z, a.z, b.z, p3.z), fx: C(p0.fx, a.fx, b.fx, p3.fx), fz: C(p0.fz, a.fz, b.fz, p3.fz), yaw: a.yaw + angleDelta(a.yaw, b.yaw) * u, pitch: L(a.pitch, b.pitch), lift: L(a.lift, b.lift), contact: a.contact, lx: a.lx, lz: a.lz, hx: L(a.hx, b.hx), hy: L(a.hy, b.hy), hz: L(a.hz, b.hz) };
+    const C = (m: number, q0: number, q1: number, q2: number) =>
+      0.5 * (2 * q0 + (q1 - m) * u + (2 * m - 5 * q0 + 4 * q1 - q2) * u2 + (3 * q0 - m - 3 * q1 + q2) * u3);
+    return {
+      x: C(p0.x, a.x, b.x, p3.x),
+      y: L(a.y, b.y),
+      z: C(p0.z, a.z, b.z, p3.z),
+      fx: C(p0.fx, a.fx, b.fx, p3.fx),
+      fz: C(p0.fz, a.fz, b.fz, p3.fz),
+      yaw: a.yaw + angleDelta(a.yaw, b.yaw) * u,
+      pitch: L(a.pitch, b.pitch),
+      lift: L(a.lift, b.lift),
+      contact: a.contact,
+      lx: a.lx,
+      lz: a.lz,
+      hx: L(a.hx, b.hx),
+      hy: L(a.hy, b.hy),
+      hz: L(a.hz, b.hz),
+    };
   }
 
   /** Pelvis drop (actor-frame metres) needed to put this ankle within the leg's non-singular reach at t. */
@@ -1224,13 +1391,27 @@ export class StepPlan {
       const fwx = Math.sin(r.heading);
       const fwz = Math.cos(r.heading);
       const ahead = (x - hl.hx) * fwx + (z - hl.hz) * fwz;
-      const F = Math.max(STEP.landAheadM * s, 0.9 * Math.sqrt(Math.max(0, (STEP.reach * LEG * s) ** 2 - (hl.hy - SOLE_Y * s) ** 2)));
+      const F = Math.max(
+        STEP.landAheadM * s,
+        0.9 * Math.sqrt(Math.max(0, (STEP.reach * LEG * s) ** 2 - (hl.hy - SOLE_Y * s) ** 2)),
+      );
       if (ahead > F) {
         x -= (ahead - F) * fwx;
         z -= (ahead - F) * fwz;
       }
     }
-    return { k: 0, t0: tLand, t1: Infinity, x, z, yaw: p.yaw, pitch: roll ? 0 : clamp(p.pitch, -0.1, 0.6), roll, t1e, v };
+    return {
+      k: 0,
+      t0: tLand,
+      t1: Infinity,
+      x,
+      z,
+      yaw: p.yaw,
+      pitch: roll ? 0 : clamp(p.pitch, -0.1, 0.6),
+      roll,
+      t1e,
+      v,
+    };
   }
 
   /** The stance's shoe at t: rolling on its heel (pitched toe-up) or its tip (heel-up), else flat. */
@@ -1247,7 +1428,10 @@ export class StepPlan {
   private drift(f: number, i: number, cur: StepPhase | undefined): number {
     if (!cur || cur.k !== 0) return 0;
     const foot = this.rawAt(i).feet[f];
-    return Math.max(Math.hypot(foot.fx - cur.x, foot.fz - cur.z) / (STEP.driftM * this.scale), Math.abs(angleDelta(cur.yaw, foot.yaw)) / STEP.driftYaw);
+    return Math.max(
+      Math.hypot(foot.fx - cur.x, foot.fz - cur.z) / (STEP.driftM * this.scale),
+      Math.abs(angleDelta(cur.yaw, foot.yaw)) / STEP.driftYaw,
+    );
   }
 
   /** Decides every foot's phases through raw index `upto`. */
@@ -1268,7 +1452,13 @@ export class StepPlan {
       if (this.rawAt(i).feet[f].contact) list.push(this.place(f, i, t));
       else {
         const r = this.rawFootAt(f, t);
-        list.push({ k: 2, t0: t - STEP.freeRampS * 1000, t1: Infinity, a: { x: r.x, y: r.y, z: r.z, yaw: r.yaw, pitch: r.pitch }, b: null });
+        list.push({
+          k: 2,
+          t0: t - STEP.freeRampS * 1000,
+          t1: Infinity,
+          a: { x: r.x, y: r.y, z: r.z, yaw: r.yaw, pitch: r.pitch },
+          b: null,
+        });
       }
       this.next[f] = i + 1;
       return;
@@ -1294,25 +1484,61 @@ export class StepPlan {
     const foot = r.feet[f];
     // A gait's foot the hip has run away from leaves early (toe-off at the leg's reach, the heel fully up).
     let forced = false;
-    if (foot.contact && cur.roll && r.builtinGait && (cur.x - foot.hx) * Math.sin(r.heading) + (cur.z - foot.hz) * Math.cos(r.heading) < 0) {
+    if (
+      foot.contact &&
+      cur.roll &&
+      r.builtinGait &&
+      (cur.x - foot.hx) * Math.sin(r.heading) + (cur.z - foot.hz) * Math.cos(r.heading) < 0
+    ) {
       const ank = shoeOn(cur.x, cur.z, cur.yaw, cur.pitch + offPitch(cur.v), s, this.scratch2);
       forced = Math.hypot(ank.x - foot.hx, ank.y - foot.hy, ank.z - foot.hz) > STEP.reach * LEG * s;
     }
     if (foot.contact && !forced) {
       // A standing foot the body has left steps (one foot at a time, the other settled), outside the gaits.
       const other = this.ph[1 - f][this.ph[1 - f].length - 1];
-      const settled = t - cur.t0 > STEP.settleS * 1000 && other && other.k === 0 && other.t1 === Infinity && other.t0 <= t - STEP.settleS * 1000;
+      const settled =
+        t - cur.t0 > STEP.settleS * 1000 &&
+        other &&
+        other.k === 0 &&
+        other.t1 === Infinity &&
+        other.t0 <= t - STEP.settleS * 1000;
       const need = this.drift(f, i, cur);
       // Of two feet the body has left, the one left further steps first.
       const first = other?.k !== 0 || this.next[1 - f] > i + 1 || need >= this.drift(1 - f, i, other as StancePh);
       if (!r.builtinGait && need > 1 && settled && first) {
         const te = t + STEP.stepS * 1000;
         const ahead = this.rawFootAt(f, te + STEP.stepLeadS * 1000);
-        const st: StancePh = { k: 0, t0: te, t1: Infinity, x: ahead.fx, z: ahead.fz, yaw: ahead.yaw, pitch: clamp(ahead.pitch, -0.1, 0.6), roll: false, t1e: Infinity, v: 0 };
+        const st: StancePh = {
+          k: 0,
+          t0: te,
+          t1: Infinity,
+          x: ahead.fx,
+          z: ahead.fz,
+          yaw: ahead.yaw,
+          pitch: clamp(ahead.pitch, -0.1, 0.6),
+          roll: false,
+          t1e: Infinity,
+          v: 0,
+        };
         cur.t1 = t;
         const a = this.stancePose(cur, t, { x: 0, y: 0, z: 0, yaw: 0, pitch: 0 });
         const b = this.stancePose(st, te, { x: 0, y: 0, z: 0, yaw: 0, pitch: 0 });
-        list.push({ k: 1, t0: t, t1: te, a, b, clear: STEP.stepLiftM * s, gait: false, v: 0, cax: 0, caz: 0, cbx: 0, cbz: 0, dropA: this.dropNeed(f, t, a), dropB: this.dropNeed(f, te, b) });
+        list.push({
+          k: 1,
+          t0: t,
+          t1: te,
+          a,
+          b,
+          clear: STEP.stepLiftM * s,
+          gait: false,
+          v: 0,
+          cax: 0,
+          caz: 0,
+          cbx: 0,
+          cbz: 0,
+          dropA: this.dropNeed(f, t, a),
+          dropB: this.dropNeed(f, te, b),
+        });
         list.push(st);
         this.next[f] = Math.ceil((te - this.anchor) / this.dtMs) + 1;
         return;
@@ -1356,7 +1582,22 @@ export class StepPlan {
     const v = Number.isFinite(r.v) ? r.v : 0;
     const ca = this.rawFootAt(f, tl);
     const cb = this.rawFootAt(f, tLand);
-    list.push({ k: 1, t0: tl, t1: tLand, a, b, clear: (Number.isFinite(r.v) ? swingClearance(v) : STEP.stepLiftM) * s, gait: r.builtinGait, v, cax: ca.x, caz: ca.z, cbx: cb.x, cbz: cb.z, dropA: this.dropNeed(f, tl, a), dropB: this.dropNeed(f, tLand, b) });
+    list.push({
+      k: 1,
+      t0: tl,
+      t1: tLand,
+      a,
+      b,
+      clear: (Number.isFinite(r.v) ? swingClearance(v) : STEP.stepLiftM) * s,
+      gait: r.builtinGait,
+      v,
+      cax: ca.x,
+      caz: ca.z,
+      cbx: cb.x,
+      cbz: cb.z,
+      dropA: this.dropNeed(f, tl, a),
+      dropB: this.dropNeed(f, tLand, b),
+    });
     list.push(st);
     this.next[f] = jl + 1;
   }
@@ -1386,8 +1627,7 @@ export class StepPlan {
       if (ph.k === 0) {
         this.stancePose(ph, t, fp);
         dropCap = this.dropNeed(f, t, fp);
-      }
-      else if (ph.k === 1) {
+      } else if (ph.k === 1) {
         const u = clamp((t - ph.t0) / Math.max(1, ph.t1 - ph.t0), 0, 1);
         // The travel inside the lift: off the turf before it moves, still before it lands.
         // A walker's foot finishes travelling well before it lands; a runner's follows its own swing nearly to the turf.
@@ -1482,7 +1722,16 @@ const qs: number[] = [0, 0, 0, 1];
  * reach their ankles exactly (hinged knees towards the hips' front), and each shoe takes its planned world yaw and pitch,
  * each blended by its weight.
  */
-export function plantFeetLocked(pose: SampledPose, j: Joints, tg: Float32Array, root: Vec3, heading: number, scale: number, reachShare: number = STEP.reach, softFrom: number = STEP.soft): void {
+export function plantFeetLocked(
+  pose: SampledPose,
+  j: Joints,
+  tg: Float32Array,
+  root: Vec3,
+  heading: number,
+  scale: number,
+  reachShare: number = STEP.reach,
+  softFrom: number = STEP.soft,
+): void {
   forwardKinematics(pose, j);
   const reach = reachShare * LEG;
   const local: Array<Vec3 | null> = [null, null];
@@ -1490,7 +1739,12 @@ export function plantFeetLocked(pose: SampledPose, j: Joints, tg: Float32Array, 
   for (let f = 0; f < 2; f++) {
     const w = tg[f * STEP_STRIDE + 3];
     if (w <= 1e-3) continue;
-    const l = worldToLocal({ x: tg[f * STEP_STRIDE], y: tg[f * STEP_STRIDE + 1], z: tg[f * STEP_STRIDE + 2] }, root, heading, scale);
+    const l = worldToLocal(
+      { x: tg[f * STEP_STRIDE], y: tg[f * STEP_STRIDE + 1], z: tg[f * STEP_STRIDE + 2] },
+      root,
+      heading,
+      scale,
+    );
     local[f] = l;
     const hi = BONE_INDEX[f === 0 ? 'thighL' : 'thighR'] * 3;
     const h = j.p[hi + 1] - l.y;
@@ -1502,7 +1756,10 @@ export function plantFeetLocked(pose: SampledPose, j: Joints, tg: Float32Array, 
     }
   }
   if (drop > 0) {
-    const d = drop <= STEP.dropExactM ? drop : STEP.dropExactM + STEP.dropSoftM * (1 - Math.exp(-(drop - STEP.dropExactM) / STEP.dropSoftM));
+    const d =
+      drop <= STEP.dropExactM
+        ? drop
+        : STEP.dropExactM + STEP.dropSoftM * (1 - Math.exp(-(drop - STEP.dropExactM) / STEP.dropSoftM));
     pose.root[1] -= d;
     forwardKinematics(pose, j);
   }
@@ -1536,7 +1793,11 @@ export function plantFeetLocked(pose: SampledPose, j: Joints, tg: Float32Array, 
       for (let b = 0; b < 3; b++) {
         const o = bones[b] * 4;
         const q = pose.q;
-        const dot = q[o] * legKeep[b * 4] + q[o + 1] * legKeep[b * 4 + 1] + q[o + 2] * legKeep[b * 4 + 2] + q[o + 3] * legKeep[b * 4 + 3];
+        const dot =
+          q[o] * legKeep[b * 4] +
+          q[o + 1] * legKeep[b * 4 + 1] +
+          q[o + 2] * legKeep[b * 4 + 2] +
+          q[o + 3] * legKeep[b * 4 + 3];
         const sg = dot < 0 ? -1 : 1;
         let n = 0;
         for (let k = 0; k < 4; k++) {
@@ -1553,7 +1814,15 @@ export function plantFeetLocked(pose: SampledPose, j: Joints, tg: Float32Array, 
 const legKeep = new Float32Array(12);
 
 /** Turns the neck and head (within their range) towards a world point, a weight w of the way. */
-export function lookAt(pose: SampledPose, j: Joints, target: Vec3, root: Vec3, heading: number, scale: number, w: number): void {
+export function lookAt(
+  pose: SampledPose,
+  j: Joints,
+  target: Vec3,
+  root: Vec3,
+  heading: number,
+  scale: number,
+  w: number,
+): void {
   if (w <= 1e-3) return;
   const hi = BONE_INDEX.head * 3;
   const head = localToWorld(j.p[hi], j.p[hi + 1], j.p[hi + 2], root, heading, scale);
@@ -1572,7 +1841,17 @@ export function lookAt(pose: SampledPose, j: Joints, target: Vec3, root: Vec3, h
 }
 
 /** Brings the hands (both, or the right) to a world point a weight w of the way, when the shoulders can reach it. */
-export function handsTo(pose: SampledPose, j: Joints, target: Vec3, root: Vec3, heading: number, scale: number, w: number, both: boolean, centred = false): boolean {
+export function handsTo(
+  pose: SampledPose,
+  j: Joints,
+  target: Vec3,
+  root: Vec3,
+  heading: number,
+  scale: number,
+  w: number,
+  both: boolean,
+  centred = false,
+): boolean {
   if (w <= 1e-3) return false;
   forwardKinematics(pose, j);
   const l = worldToLocal(target, root, heading, scale);
@@ -1594,7 +1873,17 @@ export function handsTo(pose: SampledPose, j: Joints, target: Vec3, root: Vec3, 
     if (d > reach + 0.6) continue;
     // Elbows bend down and out (a stable pole: a nearly straight arm never flips its bend). Beyond reach the arm points
     // at the target at full extension: never stretched.
-    twoBoneIK(pose, j, `upperArm${side}`, `forearm${side}`, `hand${side}`, [tx, ty, tz], w * smoothstep(reach + 0.6, reach + 0.2, d), side === 'L' ? ELBOW_POLE_L : ELBOW_POLE_R, true);
+    twoBoneIK(
+      pose,
+      j,
+      `upperArm${side}`,
+      `forearm${side}`,
+      `hand${side}`,
+      [tx, ty, tz],
+      w * smoothstep(reach + 0.6, reach + 0.2, d),
+      side === 'L' ? ELBOW_POLE_L : ELBOW_POLE_R,
+      true,
+    );
     forwardKinematics(pose, j);
     any = true;
   }
@@ -1638,12 +1927,26 @@ export const GROUND_BALL_M = 0.3;
  * feet stay, so the knees bend) when the target is below. Returns the hip drop applied (m, scale 1) and the gap left
  * between the shoulder's reach and the target (m; 0 when reachable). `targets`: the foot plan's, to keep the feet.
  */
-export function bodyReach(pose: SampledPose, j: Joints, target: Vec3, root: Vec3, heading: number, scale: number, side: 'R' | 'mid', targets: Float32Array | null, limits: { hipsDeg: number; spineDeg: number; chestDeg: number; dropM: number } = BODY_REACH_LIMITS.normal, stepGeometry?: readonly [reachShare: number, softFrom: number], armReachShare = 0.86): { drop: number; short: number } {
+export function bodyReach(
+  pose: SampledPose,
+  j: Joints,
+  target: Vec3,
+  root: Vec3,
+  heading: number,
+  scale: number,
+  side: 'R' | 'mid',
+  targets: Float32Array | null,
+  limits: { hipsDeg: number; spineDeg: number; chestDeg: number; dropM: number } = BODY_REACH_LIMITS.normal,
+  stepGeometry?: readonly [reachShare: number, softFrom: number],
+  armReachShare = 0.86,
+): { drop: number; short: number } {
   const T = worldToLocal(target, root, heading, scale);
   const shoulder = () => {
     const r = BONE_INDEX.upperArmR * 3;
     const l = BONE_INDEX.upperArmL * 3;
-    return side === 'R' ? { x: j.p[r], y: j.p[r + 1], z: j.p[r + 2] } : { x: (j.p[r] + j.p[l]) / 2, y: (j.p[r + 1] + j.p[l + 1]) / 2, z: (j.p[r + 2] + j.p[l + 2]) / 2 };
+    return side === 'R'
+      ? { x: j.p[r], y: j.p[r + 1], z: j.p[r + 2] }
+      : { x: (j.p[r] + j.p[l]) / 2, y: (j.p[r + 1] + j.p[l + 1]) / 2, z: (j.p[r + 2] + j.p[l + 2]) / 2 };
   };
   // Inside the arm chain's own length (shoulder to the hand bone, 0.54 m), where the arm IK is exact.
   const want = ARM_CHAIN * armReachShare;
@@ -1717,8 +2020,17 @@ export function bodyReach(pose: SampledPose, j: Joints, target: Vec3, root: Vec3
 }
 
 /** Plants the feet on either plan's targets (a StepPlan's 14 values, a FootPlan's 10). */
-export function plantAny(pose: SampledPose, j: Joints, targets: Float32Array, root: Vec3, heading: number, scale: number, stepGeometry?: readonly [reachShare: number, softFrom: number]): void {
-  if (targets.length >= 2 * STEP_STRIDE) plantFeetLocked(pose, j, targets, root, heading, scale, stepGeometry?.[0], stepGeometry?.[1]);
+export function plantAny(
+  pose: SampledPose,
+  j: Joints,
+  targets: Float32Array,
+  root: Vec3,
+  heading: number,
+  scale: number,
+  stepGeometry?: readonly [reachShare: number, softFrom: number],
+): void {
+  if (targets.length >= 2 * STEP_STRIDE)
+    plantFeetLocked(pose, j, targets, root, heading, scale, stepGeometry?.[0], stepGeometry?.[1]);
   else plantFeet(pose, j, targets, root, heading, scale);
 }
 
@@ -1783,9 +2095,20 @@ const GAIT_SET = new Set<string>(['walk', 'jog', 'run', 'run_drive']);
 export const isGaitClip = (c: ClipId): c is GaitClip => GAIT_SET.has(c);
 
 let fits: Map<GaitClip, GaitFit> | null = null;
-const CLIP_KEYS = (): Record<GaitClip, ClipDef['keys']> => ({ walk: CLIPS.walk.keys, jog: CLIPS.jog.keys, run: CLIPS.run.keys, run_drive: CLIPS.run_drive.keys });
+const CLIP_KEYS = (): Record<GaitClip, ClipDef['keys']> => ({
+  walk: CLIPS.walk.keys,
+  jog: CLIPS.jog.keys,
+  run: CLIPS.run.keys,
+  run_drive: CLIPS.run_drive.keys,
+});
 
-function fitGait(speed: number, keys: ReadonlyArray<{ pose?: Partial<Record<BoneName, readonly [number, number, number]>>; root?: readonly [number, number, number] }>): GaitFit {
+function fitGait(
+  speed: number,
+  keys: ReadonlyArray<{
+    pose?: Partial<Record<BoneName, readonly [number, number, number]>>;
+    root?: readonly [number, number, number];
+  }>,
+): GaitFit {
   // Euler values at the four quarter-cycle keys (bones a key leaves out keep the previous key's value, as compiled).
   const cur: Partial<Record<BoneName, readonly [number, number, number]>> = {};
   let root: readonly [number, number, number] = [0, 0, 0];
@@ -1803,7 +2126,8 @@ function fitGait(speed: number, keys: ReadonlyArray<{ pose?: Partial<Record<Bone
     c[o + 2] = (f1 - f3) / 2;
     c[o + 3] = (f0 - f1 + f2 - f3) / 4;
   };
-  for (let b = 0; b < NB; b++) for (let x = 0; x < 3; x++) fit4((b * 3 + x) * 4, at[0].e[b][x], at[1].e[b][x], at[2].e[b][x], at[3].e[b][x]);
+  for (let b = 0; b < NB; b++)
+    for (let x = 0; x < 3; x++) fit4((b * 3 + x) * 4, at[0].e[b][x], at[1].e[b][x], at[2].e[b][x], at[3].e[b][x]);
   for (let x = 0; x < 3; x++) fit4((NB * 3 + x) * 4, at[0].r[x], at[1].r[x], at[2].r[x], at[3].r[x]);
   return { speed, c };
 }
@@ -1812,7 +2136,8 @@ function gaitFits(): Map<GaitClip, GaitFit> {
   if (!fits) {
     fits = new Map();
     const lib = CLIP_KEYS();
-    for (const [clip, speed] of [...GAIT_SPEEDS, ['run_drive', 6.0] as const]) fits.set(clip, fitGait(speed, lib[clip]));
+    for (const [clip, speed] of [...GAIT_SPEEDS, ['run_drive', 6.0] as const])
+      fits.set(clip, fitGait(speed, lib[clip]));
   }
   return fits;
 }
@@ -1826,7 +2151,9 @@ const tmpQuat: [number, number, number, number] = [0, 0, 0, 1];
  * acceleration aF (m/s²), into `out` (all bones, or with `legsOnly` the hips and legs, and the root offset; aims and
  * bat cleared).
  */
-const LEG_BONES = new Set<number>(['hips', 'thighL', 'shinL', 'footL', 'thighR', 'shinR', 'footR'].map((b) => BONE_INDEX[b as BoneName]));
+const LEG_BONES = new Set<number>(
+  ['hips', 'thighL', 'shinL', 'footL', 'thighR', 'shinR', 'footR'].map((b) => BONE_INDEX[b as BoneName]),
+);
 
 export function gaitPose(v: number, phase: number, aF: number, out: SampledPose, legsOnly = false): SampledPose {
   const F = gaitFits();
@@ -1908,7 +2235,16 @@ function qLog(x: number, y: number, z: number, w: number, out: number[], o: numb
  * the switch and one frame before it, h seconds apart) to `out` (the new clip at dt seconds after the switch): per
  * bone the offset rotation src·dst⁻¹ and its rate, x(dt) = (x0 + (v0 + ω x0) dt) e^(−ω dt); the root offset alike.
  */
-export function inertialize(src0: SampledPose, src1: SampledPose, dst0: SampledPose, dst1: SampledPose, h: number, dt: number, out: SampledPose, omega: number = INERT.omega): void {
+export function inertialize(
+  src0: SampledPose,
+  src1: SampledPose,
+  dst0: SampledPose,
+  dst1: SampledPose,
+  h: number,
+  dt: number,
+  out: SampledPose,
+  omega: number = INERT.omega,
+): void {
   const k = Math.exp(-omega * dt);
   const lin = (x0: number, x1: number) => {
     const v = (x1 - x0) / h;
@@ -1926,7 +2262,14 @@ export function inertialize(src0: SampledPose, src1: SampledPose, dst0: SampledP
     const ay = a[i + 1];
     const az = a[i + 2];
     const aw = a[i + 3];
-    qLog(aw * bx + ax * bw + ay * bz - az * by, aw * by - ax * bz + ay * bw + az * bx, aw * bz + ax * by - ay * bx + az * bw, aw * bw - ax * bx - ay * by - az * bz, into, 0);
+    qLog(
+      aw * bx + ax * bw + ay * bz - az * by,
+      aw * by - ax * bz + ay * bw + az * bx,
+      aw * bz + ax * by - ay * bx + az * bw,
+      aw * bw - ax * bx - ay * by - az * bz,
+      into,
+      0,
+    );
   };
   for (let b = 0; b < NB; b++) {
     const i = b * 4;
@@ -1980,7 +2323,8 @@ export function hermiteDeviation(track: ActorTrack, t: number): { x: number; z: 
   const T1 = m.t1 / 1000;
   const dt = T1 - T0;
   if (dt <= 1e-6) return null;
-  const linked = (a: (typeof moves)[number] | undefined, at: Vec3) => Boolean(a && a.from && a.to && !a.speed && Math.abs(a.to.x - at.x) + Math.abs(a.to.z - at.z) < 1e-9);
+  const linked = (a: (typeof moves)[number] | undefined, at: Vec3) =>
+    Boolean(a && a.from && a.to && !a.speed && Math.abs(a.to.x - at.x) + Math.abs(a.to.z - at.z) < 1e-9);
   const prev = moves[lo - 1];
   const next = moves[lo + 1];
   const cx = (m.to.x - m.from.x) / dt;
@@ -1994,7 +2338,13 @@ export function hermiteDeviation(track: ActorTrack, t: number): { x: number; z: 
     m0x = (m.to.x - prev.from!.x) / span;
     m0z = (m.to.z - prev.from!.z) / span;
   }
-  if (next && next.from && next.to && Math.abs(next.from.x - m.to.x) + Math.abs(next.from.z - m.to.z) < 1e-9 && !next.speed) {
+  if (
+    next &&
+    next.from &&
+    next.to &&
+    Math.abs(next.from.x - m.to.x) + Math.abs(next.from.z - m.to.z) < 1e-9 &&
+    !next.speed
+  ) {
     const span = next.t1 / 1000 - T0;
     m1x = (next.to.x - m.from.x) / span;
     m1z = (next.to.z - m.from.z) / span;
@@ -2021,11 +2371,23 @@ export const LEG_RELEASE_S = 0.15;
  */
 export function releaseLeg(pose: SampledPose, ik: SampledPose, clip: SampledPose, side: 'L' | 'R', dt: number): void {
   const omega = 5.5 / LEG_RELEASE_S;
-  applyBoneOffset(pose, ik, clip, [`thigh${side}`, `shin${side}`, `foot${side}`] as BoneName[], (1 + omega * dt) * Math.exp(-omega * dt));
+  applyBoneOffset(
+    pose,
+    ik,
+    clip,
+    [`thigh${side}`, `shin${side}`, `foot${side}`] as BoneName[],
+    (1 + omega * dt) * Math.exp(-omega * dt),
+  );
 }
 
 /** pose.bone ← (ik · clip⁻¹)^k · pose.bone for each bone: a fraction k of the rotation offset ik has over clip. */
-export function applyBoneOffset(pose: SampledPose, ik: SampledPose, clip: SampledPose, bones: readonly BoneName[], k: number): void {
+export function applyBoneOffset(
+  pose: SampledPose,
+  ik: SampledPose,
+  clip: SampledPose,
+  bones: readonly BoneName[],
+  k: number,
+): void {
   if (k <= 1e-3) return;
   const r: number[] = [0, 0, 0];
   for (const bone of bones) {

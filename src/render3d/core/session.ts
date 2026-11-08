@@ -47,7 +47,10 @@ export interface Clock {
 
 const defaultClock: Clock = {
   now: () => (typeof performance !== 'undefined' ? performance.now() : Date.now()),
-  raf: (cb) => (typeof requestAnimationFrame !== 'undefined' ? requestAnimationFrame(cb) : (setTimeout(() => cb(defaultClock.now()), 16) as unknown as number)),
+  raf: (cb) =>
+    typeof requestAnimationFrame !== 'undefined'
+      ? requestAnimationFrame(cb)
+      : (setTimeout(() => cb(defaultClock.now()), 16) as unknown as number),
   caf: (id) => (typeof cancelAnimationFrame !== 'undefined' ? cancelAnimationFrame(id) : clearTimeout(id)),
 };
 
@@ -78,7 +81,12 @@ export interface LiveSetup {
 }
 
 export function liveCast(batter: PlayerRef, bowler: PlayerRef): Cast {
-  const look = (p: PlayerRef, team: 0 | 1, slot: string, gear: Look['gear'], hero = false): Look => ({ seed: hero ? p.avatar.seed : `${p.id}:${slot}`, team, gear, hero });
+  const look = (p: PlayerRef, team: 0 | 1, slot: string, gear: Look['gear'], hero = false): Look => ({
+    seed: hero ? p.avatar.seed : `${p.id}:${slot}`,
+    team,
+    gear,
+    hero,
+  });
   return {
     striker: look(batter, 0, 'b0', 'batter', true),
     nonStriker: look(batter, 0, 'b1', 'batter'),
@@ -223,7 +231,14 @@ export abstract class SessionBase implements StageRenderer {
     this.conditions = setup.conditions;
     this.kits = [setup.batter.kit, setup.bowler.kit];
     this.onSetup();
-    this.ambient = buildAmbientScript(setup.field, liveCast(setup.batter, setup.bowler), 'pace', 60_000, hash32(setup.bowler.id), 'live');
+    this.ambient = buildAmbientScript(
+      setup.field,
+      liveCast(setup.batter, setup.bowler),
+      'pace',
+      60_000,
+      hash32(setup.bowler.id),
+      'live',
+    );
     this.live = null;
     this.startLoop();
   }
@@ -234,13 +249,30 @@ export abstract class SessionBase implements StageRenderer {
     const setup = this.liveSetup;
     const seed = hash32(`${setup.bowler.id}:${setup.batter.id}:${delivery.ball}`);
     const releaseAt = runUpMs(actionForFamily(delivery.family, delivery.variant, delivery.intensity));
-    const script = buildLiveScript({ delivery, field: setup.field, cast: liveCast(setup.batter, setup.bowler), seed, releaseAt, pitch: setup.conditions.pitch });
+    const script = buildLiveScript({
+      delivery,
+      field: setup.field,
+      cast: liveCast(setup.batter, setup.bowler),
+      seed,
+      releaseAt,
+      pitch: setup.conditions.pitch,
+    });
     const start = this.clock.now();
     let resolveRelease: (t: number) => void = () => undefined;
     const released = new Promise<number>((r) => {
       resolveRelease = r;
     });
-    const state: LiveState = { script, start, delivery, resolveRelease, released: false, shotDone: null, shotDoneAt: 0, timer: null, shotTimer: null };
+    const state: LiveState = {
+      script,
+      start,
+      delivery,
+      resolveRelease,
+      released: false,
+      shotDone: null,
+      shotDoneAt: 0,
+      timer: null,
+      shotTimer: null,
+    };
     // Resolve on time even if frames are throttled (background tab, slow device).
     state.timer = setTimeout(() => this.releaseLive(state), Math.max(0, script.times.release));
     this.live = state;
@@ -251,9 +283,23 @@ export abstract class SessionBase implements StageRenderer {
       released,
       showShot: (anim) => {
         const extra = anim as typeof anim & { zone?: LiveShot['zone']; tapMs?: number | null };
-        const shot: LiveShot = { shot: anim.shot, timing: anim.timing, contact: anim.contact, zone: extra.zone ?? null, tapMs: extra.tapMs ?? null };
+        const shot: LiveShot = {
+          shot: anim.shot,
+          timing: anim.timing,
+          contact: anim.contact,
+          zone: extra.zone ?? null,
+          tapMs: extra.tapMs ?? null,
+        };
         if (this.live !== state) return Promise.resolve();
-        state.script = buildLiveScript({ delivery, field: setup.field, cast: liveCast(setup.batter, setup.bowler), seed, shot, releaseAt, pitch: setup.conditions.pitch });
+        state.script = buildLiveScript({
+          delivery,
+          field: setup.field,
+          cast: liveCast(setup.batter, setup.bowler),
+          seed,
+          shot,
+          releaseAt,
+          pitch: setup.conditions.pitch,
+        });
         return new Promise<void>((resolve) => {
           // A second call (the real contact replacing a prediction) re-aims the animation; every earlier caller is
           // still waiting on its own promise, so its resolver is kept and settled together with this one.
@@ -369,7 +415,12 @@ export abstract class SessionBase implements StageRenderer {
   }
 
   stats(): RendererStats {
-    return { fps: Math.round(this.qc.fps * 10) / 10, frameMs: Math.round(this.qc.frameMs * 10) / 10, drawCalls: this.drawCalls(), quality: this.qc.quality };
+    return {
+      fps: Math.round(this.qc.fps * 10) / 10,
+      frameMs: Math.round(this.qc.frameMs * 10) / 10,
+      drawCalls: this.drawCalls(),
+      quality: this.qc.quality,
+    };
   }
 
   dispose() {
@@ -438,16 +489,33 @@ export abstract class SessionBase implements StageRenderer {
       this.lastSegIndex = at.index;
       const seg = at.seg;
       if (seg.kind === 'ball' && seg.ballOrdinal !== null && seg.innings !== null && seg.ball !== null) {
-        this.emit('ball', { ordinal: seg.ballOrdinal, eventIndex: seg.eventIndex, innings: seg.innings, ball: seg.ball, key: seg.key });
+        this.emit('ball', {
+          ordinal: seg.ballOrdinal,
+          eventIndex: seg.eventIndex,
+          innings: seg.innings,
+          ball: seg.ball,
+          key: seg.key,
+        });
       }
     }
     if (dispatch && this.sink) {
       const prev = this.cueCursor && this.cueCursor.seg === at.index ? this.cueCursor.scene : at.seg.sceneStart - 1;
-      for (const e of at.seg.script.events) if (e.t > prev && e.t <= at.scene) this.sink.cue(e.kind, e.intensity, at.slow ? this.speed * (at.seg.slow?.rate ?? 1) : this.speed);
+      for (const e of at.seg.script.events)
+        if (e.t > prev && e.t <= at.scene)
+          this.sink.cue(e.kind, e.intensity, at.slow ? this.speed * (at.seg.slow?.rate ?? 1) : this.speed);
       this.sink.crowd(this.crowdLevel(at.seg.script, at.scene));
     }
     this.cueCursor = { seg: at.index, scene: at.scene };
-    this.safeDraw({ script: at.seg.script, scene: at.scene, segment: at.seg, timelineMs: this.t, slow: at.slow, live: false, conditions: this.conditions, kits: this.kits });
+    this.safeDraw({
+      script: at.seg.script,
+      scene: at.scene,
+      segment: at.seg,
+      timelineMs: this.t,
+      slow: at.slow,
+      live: false,
+      conditions: this.conditions,
+      kits: this.kits,
+    });
     this.frameListeners.forEach((cb) => cb(this.t));
   }
 
@@ -457,19 +525,38 @@ export abstract class SessionBase implements StageRenderer {
       const scene = now - live.start;
       if (!live.released && scene >= live.script.times.release) this.releaseLive(live);
       if (this.sink) {
-        for (const e of live.script.events) if (e.t > this.liveCueCursor && e.t <= scene) this.sink.cue(e.kind, e.intensity, 1);
+        for (const e of live.script.events)
+          if (e.t > this.liveCueCursor && e.t <= scene) this.sink.cue(e.kind, e.intensity, 1);
         this.sink.crowd(this.crowdLevel(live.script, scene));
       }
       this.liveCueCursor = scene;
       if (live.shotDone && scene >= live.shotDoneAt) this.settleShot(live);
       const t = Math.min(scene, live.script.duration);
-      this.safeDraw({ script: live.script, scene: t, segment: null, timelineMs: scene, slow: false, live: true, conditions: this.conditions, kits: this.kits });
+      this.safeDraw({
+        script: live.script,
+        scene: t,
+        segment: null,
+        timelineMs: scene,
+        slow: false,
+        live: true,
+        conditions: this.conditions,
+        kits: this.kits,
+      });
       this.frameListeners.forEach((cb) => cb(scene));
       return;
     }
     if (this.ambient) {
       const t = (now % 60_000) + 0;
-      this.safeDraw({ script: this.ambient, scene: t, segment: null, timelineMs: t, slow: false, live: true, conditions: this.conditions, kits: this.kits });
+      this.safeDraw({
+        script: this.ambient,
+        scene: t,
+        segment: null,
+        timelineMs: t,
+        slow: false,
+        live: true,
+        conditions: this.conditions,
+        kits: this.kits,
+      });
     }
   }
 
@@ -487,7 +574,8 @@ export abstract class SessionBase implements StageRenderer {
       this.drawErrors = 0;
     } catch (err) {
       this.drawErrors++;
-      if (this.drawErrors === 3) this.emit('fallback', { reason: 'error', message: err instanceof Error ? err.message : String(err) });
+      if (this.drawErrors === 3)
+        this.emit('fallback', { reason: 'error', message: err instanceof Error ? err.message : String(err) });
     }
   }
 }

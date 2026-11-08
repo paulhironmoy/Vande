@@ -33,7 +33,7 @@ const HOOK = { directionDeg: -135, elevation: 0.4, power: 0.7 };
 const CUT = { directionDeg: 100, elevation: 0.05, power: 0.7 };
 const FLICK = { directionDeg: -70, elevation: 0.05, power: 0.5 };
 
-describe('shot geometry: the stroke is the player\'s, its reach is the bat\'s', () => {
+describe("shot geometry: the stroke is the player's, its reach is the bat's", () => {
   it('names the stroke from the kind, the direction and the footwork, never from the ball', () => {
     expect(shotFamily('defend', 40, 'forward')).toBe('forward_defence');
     expect(shotFamily('defend', -90, 'back')).toBe('back_defence');
@@ -170,7 +170,9 @@ describe('shot geometry at perfect timing: the right stroke for the ball, and th
     const g = fly(GOOD_OFF);
     const onTheUp = play(g, 0, COVER, 'real', 'forward');
     expect(onTheUp.track!.shot.popDeg).toBeGreaterThan(3);
-    expect(onTheUp.contact.exitElevationDeg!).toBeGreaterThan(play(fly(FULL_OFF), 0, COVER).contact.exitElevationDeg! + 3);
+    expect(onTheUp.contact.exitElevationDeg!).toBeGreaterThan(
+      play(fly(FULL_OFF), 0, COVER).contact.exitElevationDeg! + 3,
+    );
   });
 
   it('authors a 0.75 back-foot punch, then keeps independently capped high-power tracks ordered and physical', () => {
@@ -181,7 +183,10 @@ describe('shot geometry at perfect timing: the right stroke for the ball, and th
     expect(lowForward.speed).toBeCloseTo(batSpeed('attack', 0.1), 12);
     expect(lowBack.speed).toBeCloseTo(0.75 * lowForward.speed, 12);
     // A cut is a full horizontal swing even though it is played from the back foot.
-    expect(play(fly(SHORT_WIDE), 0, { ...CUT, power: 0.1 }, 'real', 'back').track!.speed).toBeCloseTo(lowForward.speed, 12);
+    expect(play(fly(SHORT_WIDE), 0, { ...CUT, power: 0.1 }, 'real', 'back').track!.speed).toBeCloseTo(
+      lowForward.speed,
+      12,
+    );
 
     const highBack = play(g, 0, { ...DRIVE, power: 0.8 }, 'real', 'back').track!;
     const highForward = play(g, 0, { ...DRIVE, power: 0.8 }, 'real', 'forward').track!;

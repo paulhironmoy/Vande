@@ -45,7 +45,15 @@ export function LicencesSheet({ open, onClose }: { open: boolean; onClose: () =>
               <label htmlFor={searchId} className={s.label}>
                 {t('settings.licences_search')}
               </label>
-              <input id={searchId} type="search" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" spellCheck={false} data-testid="licences-search" />
+              <input
+                id={searchId}
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+                data-testid="licences-search"
+              />
               <span className={s.count} aria-live="polite">
                 {query ? (count ? t('settings.licences_count', { count }) : t('settings.licences_none')) : ''}
               </span>

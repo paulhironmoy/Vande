@@ -26,7 +26,8 @@ const prelude = (t0 = 0): Step[] => [
   [t0 + R, { kind: 'release', intensity: 1 }],
   [t0 + R + 380, { kind: 'pitch', intensity: 0.6 }],
 ];
-const carries = (from: number, progress: number[]): Step[] => progress.map((p, i) => [from + i * 150, { kind: 'carry', intensity: p }]);
+const carries = (from: number, progress: number[]): Step[] =>
+  progress.map((p, i) => [from + i * 150, { kind: 'carry', intensity: p }]);
 const sixBall = (t0 = 0): Step[] => [
   ...prelude(t0),
   [t0 + 2600, { kind: 'contact', intensity: 1, contact: 'middle', timing: 'perfect' }],
@@ -103,7 +104,12 @@ describe('the rhythm of a delivery', () => {
 
   it('a block that goes nowhere gets no reaction; a dot is mild pressure, a leave restrained', () => {
     const m = machine();
-    const states = play(m, [...prelude(), [2600, { kind: 'contact', intensity: 0.8, contact: 'middle', timing: 'solid' }], [3400, { kind: 'dot', intensity: 0.3, runs: 0 }], [3400, { kind: 'dead', intensity: 0 }]]);
+    const states = play(m, [
+      ...prelude(),
+      [2600, { kind: 'contact', intensity: 0.8, contact: 'middle', timing: 'solid' }],
+      [3400, { kind: 'dot', intensity: 0.3, runs: 0 }],
+      [3400, { kind: 'dead', intensity: 0 }],
+    ]);
     expect(states.every((s) => s.reaction === null)).toBe(true);
     expect(m.sample(4800)).toMatchObject({ outcome: 'dot', mood: 'restless' });
     expect(m.sample(4800).arousal).toBeCloseTo(restLevel(m.state()) + 0.02, 1);
@@ -124,8 +130,24 @@ describe('natural decay and habituation', () => {
   });
 
   it('does not play maximum noise after every event: dot < single < four < six, and repeats come out lower', () => {
-    const single = peakOf([...prelude(), [2600, { kind: 'contact', intensity: 0.8, contact: 'middle', timing: 'solid' }], [3800, { kind: 'runs', intensity: 0.55, runs: 1 }]], 3800, 6000);
-    const four = peakOf([...prelude(), [2600, { kind: 'contact', intensity: 0.8, contact: 'middle', timing: 'solid' }], [3800, { kind: 'four', intensity: 0.82, runs: 4 }]], 3800, 6000);
+    const single = peakOf(
+      [
+        ...prelude(),
+        [2600, { kind: 'contact', intensity: 0.8, contact: 'middle', timing: 'solid' }],
+        [3800, { kind: 'runs', intensity: 0.55, runs: 1 }],
+      ],
+      3800,
+      6000,
+    );
+    const four = peakOf(
+      [
+        ...prelude(),
+        [2600, { kind: 'contact', intensity: 0.8, contact: 'middle', timing: 'solid' }],
+        [3800, { kind: 'four', intensity: 0.82, runs: 4 }],
+      ],
+      3800,
+      6000,
+    );
     const six = peakOf(sixBall(), 3800, 6000);
     expect(single).toBeLessThan(0.55);
     expect(four).toBeCloseTo(CROWD.four, 2);
@@ -134,8 +156,13 @@ describe('natural decay and habituation', () => {
     expect(six).toBeLessThan(1);
     // Three sixes in a row: each peak lower than the last; a long break restores the crowd's voice.
     const starts = [0, 12000, 24000, 400000];
-    const { out } = trace(starts.flatMap((t0) => sixBall(t0)), 406000);
-    const peaks = starts.map((t0) => Math.max(...out.filter((s) => s.t >= t0 + 3800 && s.t <= t0 + 6000).map((s) => s.arousal)));
+    const { out } = trace(
+      starts.flatMap((t0) => sixBall(t0)),
+      406000,
+    );
+    const peaks = starts.map((t0) =>
+      Math.max(...out.filter((s) => s.t >= t0 + 3800 && s.t <= t0 + 6000).map((s) => s.arousal)),
+    );
     expect(peaks[1]).toBeLessThan(peaks[0] - 0.015);
     expect(peaks[2]).toBeLessThan(peaks[1]);
     expect(peaks[3]).toBeCloseTo(peaks[0], 2);
@@ -180,18 +207,31 @@ describe('release gates (COH9, FBK3)', () => {
 
   it('the bands never overlap, whatever the fatigue and the pressure', () => {
     const balls = [0, 6000, 12000, 18000, 24000];
-    const tiredSix = peakOf(balls.flatMap((t0) => boundary(6, t0)), 27800, 30000);
+    const tiredSix = peakOf(
+      balls.flatMap((t0) => boundary(6, t0)),
+      27800,
+      30000,
+    );
     const freshFour = peakOf(boundary(4), 3800, 9000, { pressure: 1, runs: 10 });
     expect(tiredSix).toBeGreaterThan(freshFour);
-    const tiredFour = peakOf(balls.flatMap((t0) => boundary(4, t0)), 27800, 30000);
-    const freshRuns = peakOf([...prelude(), [3800, { kind: 'runs', intensity: 0.9, runs: 3 }]], 3800, 9000, { pressure: 1, runs: 10 });
+    const tiredFour = peakOf(
+      balls.flatMap((t0) => boundary(4, t0)),
+      27800,
+      30000,
+    );
+    const freshRuns = peakOf([...prelude(), [3800, { kind: 'runs', intensity: 0.9, runs: 3 }]], 3800, 9000, {
+      pressure: 1,
+      runs: 10,
+    });
     expect(tiredFour).toBeGreaterThan(freshRuns);
   });
 
   it('no look-ahead: while the ball races to the rope the crowd stays at or under 0.6, below every four', () => {
     for (const pressure of [0, 0.35, 1]) {
       const { out } = trace(sixBall(), 3790, { pressure, runs: 10 });
-      expect(Math.max(...out.filter((s) => s.t >= 2600).map((s) => s.arousal))).toBeLessThanOrEqual(CROWD.expectMax + 1e-9);
+      expect(Math.max(...out.filter((s) => s.t >= 2600).map((s) => s.arousal))).toBeLessThanOrEqual(
+        CROWD.expectMax + 1e-9,
+      );
     }
   });
 
@@ -251,15 +291,24 @@ describe('context and pressure', () => {
 
 describe('wickets, close calls and missed opportunities', () => {
   it('a damaging wicket: decisive silence within 150 ms, no spike, then the shift; subdued after', () => {
-    const steps: Step[] = [...prelude(), [2620, { kind: 'wicket', intensity: 1, dismissal: 'bowled' }], [2700, { kind: 'dead', intensity: 0 }], [4500, { kind: 'reflection', intensity: 0.3 }]];
+    const steps: Step[] = [
+      ...prelude(),
+      [2620, { kind: 'wicket', intensity: 1, dismissal: 'bowled' }],
+      [2700, { kind: 'dead', intensity: 0 }],
+      [4500, { kind: 'reflection', intensity: 0.3 }],
+    ];
     const { at, out, m } = trace(steps, 12000);
     const before = at(2620).arousal;
-    expect(Math.max(...out.filter((s) => s.t >= 2620 && s.t <= 2770).map((s) => s.arousal))).toBeLessThanOrEqual(before + 1e-9);
+    expect(Math.max(...out.filter((s) => s.t >= 2620 && s.t <= 2770).map((s) => s.arousal))).toBeLessThanOrEqual(
+      before + 1e-9,
+    );
     expect(at(2770).arousal).toBeLessThan(before * 0.5);
     expect(at(2700).mood).toBe('silence');
     // The shift: 900 ms after the wicket the crowd's murmur of dismay rises out of the silence.
     expect(at(3600).mood).toBe('dismay');
-    expect(Math.max(...out.filter((s) => s.t > 3520 && s.t < 4400).map((s) => s.arousal))).toBeGreaterThan(at(3500).arousal + 0.05);
+    expect(Math.max(...out.filter((s) => s.t > 3520 && s.t < 4400).map((s) => s.arousal))).toBeGreaterThan(
+      at(3500).arousal + 0.05,
+    );
     expect(at(12000)).toMatchObject({ mood: 'dismay', phase: 'between' });
     expect(at(12000).arousal).toBeLessThanOrEqual(CROWD.subdued + 0.005);
     expect(m.sample(12000).valence).toBeLessThan(0);
@@ -270,7 +319,12 @@ describe('wickets, close calls and missed opportunities', () => {
   });
 
   it('a catch in the deep: the rising expectation collapses into silence within 150 ms', () => {
-    const steps: Step[] = [...prelude(), [2600, { kind: 'contact', intensity: 1, contact: 'middle', timing: 'perfect' }], ...carries(2900, [0.3, 0.5, 0.7, 0.9]), [3700, { kind: 'wicket', intensity: 1, dismissal: 'caught' }]];
+    const steps: Step[] = [
+      ...prelude(),
+      [2600, { kind: 'contact', intensity: 1, contact: 'middle', timing: 'perfect' }],
+      ...carries(2900, [0.3, 0.5, 0.7, 0.9]),
+      [3700, { kind: 'wicket', intensity: 1, dismissal: 'caught' }],
+    ];
     const { at } = trace(steps, 6000);
     expect(at(3700).arousal).toBeGreaterThan(0.45);
     expect(at(3850).arousal).toBeLessThan(0.15);
@@ -292,7 +346,11 @@ describe('wickets, close calls and missed opportunities', () => {
 
   it('a ball racing to the rope and stopped is a groan (frustration)', () => {
     const m = machine();
-    play(m, [...prelude(), [2600, { kind: 'contact', intensity: 0.8, contact: 'middle', timing: 'solid' }], ...carries(2900, [0.3, 0.5, 0.7])]);
+    play(m, [
+      ...prelude(),
+      [2600, { kind: 'contact', intensity: 0.8, contact: 'middle', timing: 'solid' }],
+      ...carries(2900, [0.3, 0.5, 0.7]),
+    ]);
     const s = m.moment({ kind: 'fielded', intensity: 0.5 }, 3400);
     expect([s.reaction, s.caption]).toEqual(['groan', 'crowd_groans']);
     expect(m.sample(3600).mood).toBe('frustration');
@@ -336,7 +394,10 @@ describe('purity, determinism and allocation', () => {
   });
 
   it('is import-safe for render3d: no runtime import beyond its own pure modules', () => {
-    const sources = import.meta.glob(['/src/audio/emotion.ts', '/src/audio/emotionCore.ts', '/src/audio/emotionMachine.ts', '/src/audio/situation.ts'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+    const sources = import.meta.glob(
+      ['/src/audio/emotion.ts', '/src/audio/emotionCore.ts', '/src/audio/emotionMachine.ts', '/src/audio/situation.ts'],
+      { query: '?raw', import: 'default', eager: true },
+    ) as Record<string, string>;
     expect(Object.keys(sources)).toHaveLength(4);
     for (const src of Object.values(sources)) {
       const runtime = [...src.matchAll(/^(?:import|export)\s+(?!type\b)[^;]*?from\s+'([^']+)'/gm)].map((x) => x[1]);

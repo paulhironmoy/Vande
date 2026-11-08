@@ -13,7 +13,23 @@
  * bat is in the hands (`head.on`): the channels, the plan's Reduced Motion setting, the fade, the role and whether the
  * neck and head brake on arrival (`brake`: the striker always, the bowler from `BRAKE.bowlerAfterMs` after the release).
  */
-export const FRAME: { seq: number; id: string; t: number; heading: number; mirror: boolean; scale: number; head: { on: boolean; ch: Float32Array | null; rm: boolean; w: number; bowler: boolean; brake: boolean; seam: Seam | null } } = {
+export const FRAME: {
+  seq: number;
+  id: string;
+  t: number;
+  heading: number;
+  mirror: boolean;
+  scale: number;
+  head: {
+    on: boolean;
+    ch: Float32Array | null;
+    rm: boolean;
+    w: number;
+    bowler: boolean;
+    brake: boolean;
+    seam: Seam | null;
+  };
+} = {
   seq: 0,
   id: '',
   t: Number.NaN,
@@ -52,7 +68,10 @@ export const SEAM = { ms: 400 };
 export const smooth = (x: number): number => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 
 /** The head each role was last drawn with by the head pass (role frame, degrees): what the next script's first frames continue from. */
-export const DRAWN: { bowler: { ok: boolean; yaw: number; pitch: number; roll: number }; striker: { ok: boolean; yaw: number; pitch: number; roll: number } } = {
+export const DRAWN: {
+  bowler: { ok: boolean; yaw: number; pitch: number; roll: number };
+  striker: { ok: boolean; yaw: number; pitch: number; roll: number };
+} = {
   bowler: { ok: false, yaw: 0, pitch: 0, roll: 0 },
   striker: { ok: false, yaw: 0, pitch: 0, roll: 0 },
 };

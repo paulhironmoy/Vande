@@ -97,27 +97,33 @@ const hiLatn: Catalog = {
   'age.confirm_yes': 'Haan',
   'age.confirm_change': 'Saal badlo',
   'age.stop_title': 'VANDE Cricket 18 saal aur usse zyada umar ke players ke liye hai',
-  'age.stop_body': 'Aane ke liye thanks. Hum is device pe tumhara player nahi bana sakte, aur humne tumhare janam ka saal nahi rakha.',
+  'age.stop_body':
+    'Aane ke liye thanks. Hum is device pe tumhara player nahi bana sakte, aur humne tumhare janam ka saal nahi rakha.',
   'legal.privacy': 'Privacy',
   'legal.privacy_policy': 'Privacy policy',
   'onboarding.recover': 'Pehle khel chuke ho? Apna account wapas pao',
   'onboarding.recover_title': 'Apna account wapas pao',
-  'onboarding.recover_body': 'Usi Google account ya passkey se sign in karo jo tumne apne player se link kiya tha. Tumhare matches, rating aur badges is device pe wapas aa jayenge.',
+  'onboarding.recover_body':
+    'Usi Google account ya passkey se sign in karo jo tumne apne player se link kiya tha. Tumhare matches, rating aur badges is device pe wapas aa jayenge.',
   'onboarding.recover_google': 'Google ke saath continue karo',
   'onboarding.recover_passkey': 'Passkey use karo',
   'onboarding.recover_cancelled': 'Sign-in cancel ho gaya. Kuch nahi badla.',
   'onboarding.recover_failed': 'Yeh sign-in check nahi ho paaya. Phir try karo, ya naya player banao.',
   'onboarding.recover_offline': 'Tum offline ho. Account wapas paane ke liye net chahiye.',
-  'onboarding.recover_no_account': 'Is sign-in se koi player link nahi hai. Doosra account try karo, ya naya player banao.',
-  'onboarding.recover_guest_note': 'Jo guest player kabhi Google ya passkey se link nahi hua, use wapas nahi paaya ja sakta.',
+  'onboarding.recover_no_account':
+    'Is sign-in se koi player link nahi hai. Doosra account try karo, ya naya player banao.',
+  'onboarding.recover_guest_note':
+    'Jo guest player kabhi Google ya passkey se link nahi hua, use wapas nahi paaya ja sakta.',
   'onboarding.recover_done': 'Welcome back, {alias}.',
 
   'training.title': 'Training',
   'training.bat.title': 'Ek ball khelo',
-  'training.bat.body': 'Shot chuno, phir ball aate hi BAT pe tap karo. Aim ke liye BAT pe kisi gap ki taraf swipe karo: ungli chhodna hi tumhari timing hai.',
+  'training.bat.body':
+    'Shot chuno, phir ball aate hi BAT pe tap karo. Aim ke liye BAT pe kisi gap ki taraf swipe karo: ungli chhodna hi tumhari timing hai.',
   'training.bowl.title': 'Ek ball daalo',
   'training.bowl.body': 'Tumhara over secret mein plan hota hai. Release meter tay karta hai ki har ball kaisi nikle.',
-  'training.bowl.gesture_hint': 'Daba ke rakho, phir golden band pe chhodo. Practice: jitni baar chaho try karo. Match mein har ball ka ek hi release hota hai.',
+  'training.bowl.gesture_hint':
+    'Daba ke rakho, phir golden band pe chhodo. Practice: jitni baar chaho try karo. Match mein har ball ka ek hi release hota hai.',
   'training.bowl.result': '{grade}. Rules engine har release ko ek hi tarah jaanchta hai, online ho ya nahi.',
   'training.reveal.title': 'Reveal',
   'training.reveal.cta': 'Reveal dekho',
@@ -170,7 +176,8 @@ const hiLatn: Catalog = {
   'bat.ball_of': 'Ball {n} / 6',
   'bat.super_ball': 'Super Ball',
   'bat.shot': 'Shot',
-  'bat.zone_hint': 'Ball aate hi BAT pe tap karo. Aim ke liye us pe kisi gap ki taraf swipe karo: ungli chhodna hi timing hai.',
+  'bat.zone_hint':
+    'Ball aate hi BAT pe tap karo. Aim ke liye us pe kisi gap ki taraf swipe karo: ungli chhodna hi timing hai.',
   'bat.aim': 'Target: {zone}',
   'bat.tap': 'Bat',
   'bat.tap_hint': 'Ball aate hi BAT pe tap karo',
@@ -184,7 +191,8 @@ const hiLatn: Catalog = {
   'bat.field_label': 'Field: {field}',
   'bat.sending': 'Tumhara shot save ho raha hai…',
   'bat.queued': 'Shot save ho gaya. Net aate hi bhej denge.',
-  'bat.leave_note': 'Ball aate hi BAT pe tap karo. Bilkul tap nahi kiya toh ball chhoot jaati hai: off stump ke bahar safe, stumps pe risky.',
+  'bat.leave_note':
+    'Ball aate hi BAT pe tap karo. Bilkul tap nahi kiya toh ball chhoot jaati hai: off stump ke bahar safe, stumps pe risky.',
   'bat.coach': 'Shot chuno, phir ball aate hi BAT pe tap karo. Aim ke liye BAT pe kisi gap ki taraf swipe karo.',
   'bat.fb_aim': '{zone} ki taraf {shot}',
   'bat.fb_on_time': 'Bilkul sahi time pe',
@@ -283,7 +291,8 @@ const hiLatn: Catalog = {
   'home.matches': 'Tumhare matches',
   'home.matches_count': '{count, plural, one {# match} other {# matches}}',
   'home.matches_empty_title': 'Abhi koi match nahi',
-  'home.matches_empty_body': 'Kisi dost ko challenge karo. Ek minute lagta hai, aur dono ka ek saath online hona zaroori nahi.',
+  'home.matches_empty_body':
+    'Kisi dost ko challenge karo. Ek minute lagta hai, aur dono ka ek saath online hona zaroori nahi.',
   'home.matches_offline': 'Online aate hi tumhare matches dikhenge.',
   'home.matches_signing_in': 'Tumhara account ban raha hai…',
   'home.matches_error': 'Matches load nahi ho paaye.',
@@ -339,7 +348,8 @@ const hiLatn: Catalog = {
 
   // ---- consent and notifications --------------------------------------------------------------------------------
   'consent.title': 'VANDE Cricket ko better banane mein help karoge?',
-  'consent.body': 'Anonymous usage stats share karo: kaunsi screen theek chalti hai aur game kahan slow hai. Tumhara naam, contacts, messages ya hidden plans kabhi nahi.',
+  'consent.body':
+    'Anonymous usage stats share karo: kaunsi screen theek chalti hai aur game kahan slow hai. Tumhara naam, contacts, messages ya hidden plans kabhi nahi.',
   'consent.yes': 'Stats share karo',
   'consent.no': 'Nahi, thanks',
   'consent.later': 'Settings mein kabhi bhi badal sakte ho. Mana karne se game mein kuch nahi badalta.',
@@ -369,13 +379,15 @@ const hiLatn: Catalog = {
   'duel.error_offline': 'Tum offline ho. Duel banane ke liye net chahiye.',
   'duel.error_rate': 'Abhi bahut saare naye duels ban gaye. Thodi der baad try karo.',
   'duel.needs_online_title': 'Friend Duel ke liye net chahiye',
-  'duel.needs_online_body': 'Yeh version sirf offline chalta hai. Practice Ghosts mein bina server ke poore matches khelo.',
+  'duel.needs_online_body':
+    'Yeh version sirf offline chalta hai. Practice Ghosts mein bina server ke poore matches khelo.',
   'duel.signup_offline': 'Tum offline ho. Net aate hi tumhara account ban jayega.',
   'duel.signing_up': 'Tumhara account ban raha hai…',
   'invite.panel_title': 'Dost ko invite karo',
   'invite.panel_body': 'Woh bina install kiye browser mein khel sakte hain. Message tum khud bhejte ho.',
   'invite.panel_title_cup': 'Dosto ko cup mein bulao',
-  'invite.panel_body_cup': 'Start se pehle jo bhi join karega, woh khelega. Woh bina install kiye browser mein khel sakte hain. Message tum khud bhejte ho.',
+  'invite.panel_body_cup':
+    'Start se pehle jo bhi join karega, woh khelega. Woh bina install kiye browser mein khel sakte hain. Message tum khud bhejte ho.',
   'invite.whatsapp': 'WhatsApp pe bhejo',
   'invite.more': 'Share karne ke aur tareeke',
   'invite.copy': 'Link copy karo',
@@ -387,7 +399,8 @@ const hiLatn: Catalog = {
   'invite.qr_hint': 'Tumhara dost isse camera se scan kar sakta hai.',
   'invite.qr_label': 'Invite link ka QR code',
   'invite.sent': 'Invite share ho gaya. Zaroorat ho to link copy karo ya QR code dikhao.',
-  'invite.never_auto': 'Har invite message tum khud bhejte ho. Tumhare bina kuch nahi jata, aur koi contacts nahi padhe jaate.',
+  'invite.never_auto':
+    'Har invite message tum khud bhejte ho. Tumhare bina kuch nahi jata, aur koi contacts nahi padhe jaate.',
   'invite.plan_now': 'Abhi apna over plan karo',
   'invite.card_alt': '{name} ka invite card',
   'invite.loading': 'Invite khul raha hai…',
@@ -426,21 +439,24 @@ const hiLatn: Catalog = {
   'match.title': 'Match',
   'match.loading': 'Match load ho raha hai…',
   'match.needs_online_title': 'Matches ke liye net chahiye',
-  'match.needs_online_body': 'Yeh version sirf offline chalta hai. Practice Ghosts mein bina server ke poore matches khelo.',
+  'match.needs_online_body':
+    'Yeh version sirf offline chalta hai. Practice Ghosts mein bina server ke poore matches khelo.',
   'match.signup_offline': 'Tum offline ho. Net aate hi tumhara account ban jayega.',
   'match.offline_body': 'Tum offline ho. Net aate hi match load hoga.',
   'match.sealed': 'Sealed',
   'match.not_locked': 'Lock nahi',
   'match.friend_tbc': 'Tumhara dost',
   'match.plan_title': 'Apna over plan karo',
-  'match.plan_body': 'Chhe balls aur tie ke liye ek Super Ball. Lock karne ke baad yeh kabhi nahi badlega, aur reveal tak koi ise nahi dekhega.',
+  'match.plan_body':
+    'Chhe balls aur tie ke liye ek Super Ball. Lock karne ke baad yeh kabhi nahi badlega, aur reveal tak koi ise nahi dekhega.',
   'match.plan_cta': 'Plan karo aur lock karo',
   'match.plan_vs': 'Tumhara over vs {name}',
   'match.locks_in': 'Lock deadline {when}',
   'match.lock_deadline': 'Lock deadline {when} ({at})',
   'match.sealed_now': 'Tumhara over seal ho gaya',
   'match.sealed_title': 'Tumhara over sealed hai',
-  'match.sealed_body': 'Yeh code prove karta hai ki tumhara plan nahi badal sakta. Reveal par koi bhi ise tumhare over se match kar sakta hai.',
+  'match.sealed_body':
+    'Yeh code prove karta hai ki tumhara plan nahi badal sakta. Reveal par koi bhi ise tumhare over se match kar sakta hai.',
   'match.your_commit': 'Tumhari seal',
   'match.copy_hash': 'Seal code copy karo',
   'match.hash_copied': 'Seal code copy ho gaya',
@@ -467,7 +483,8 @@ const hiLatn: Catalog = {
   'match.opp_batted': '{name} bat kar chuke hain',
   'match.opp_not_batted': '{name} ki innings abhi tak nahi mili',
   'match.reveal_at': 'Reveal {when} khulega ({at})',
-  'match.reveal_when_done': '{name} ke bat kar lene par, ya {at} pe batting band hone par, reveal ka time tum dono ke liye set hoga.',
+  'match.reveal_when_done':
+    '{name} ke bat kar lene par, ya {at} pe batting band hone par, reveal ka time tum dono ke liye set hoga.',
   'match.both_in_title': 'Dono innings ho gayi',
   'match.both_in_body': 'Reveal tum dono ke liye ek hi pal mein khulega. Tab tak har score sealed rahega.',
   'match.reveal_slot': 'Reveal {at} par · {when}',
@@ -483,9 +500,11 @@ const hiLatn: Catalog = {
   'match.rematch_offline': 'Tum offline ho. Rematch ke liye net chahiye.',
   'match.expired_title': 'Yeh match khatam ho gaya',
   'match.expired_body': 'Deadline se pehle koi join nahi hua, isliye koi result nahi.',
-  'match.expired_unlocked_body': 'Deadline se pehle tum dono mein se kisi ne over lock nahi kiya, isliye koi result nahi.',
+  'match.expired_unlocked_body':
+    'Deadline se pehle tum dono mein se kisi ne over lock nahi kiya, isliye koi result nahi.',
   'match.private_title': 'Yeh match private hai',
-  'match.private_body': 'Match sirf uske dono players khol sakte hain. Jab unme se koi result share karta hai, uska bheja link sabke liye khulta hai.',
+  'match.private_body':
+    'Match sirf uske dono players khol sakte hain. Jab unme se koi result share karta hai, uska bheja link sabke liye khulta hai.',
   'match.private_cta': 'VANDE Cricket khelo',
   'match.rematch_offer_cta': '{name} rematch chahte hain · Accept karo',
   'match.rematch_sent_cta': 'Rematch bhej diya · phir se bhejo',
@@ -499,7 +518,8 @@ const hiLatn: Catalog = {
   'daily.title': 'Daily Six',
   'daily.loading': 'Aaj ka challenge load ho raha hai…',
   'daily.headline': 'Aaj ke sealed overs',
-  'daily.body': 'Aaj sabke saamne wahi teen sealed overs hain. Leaderboard ke liye tumhara best attempt count hota hai.',
+  'daily.body':
+    'Aaj sabke saamne wahi teen sealed overs hain. Leaderboard ke liye tumhara best attempt count hota hai.',
   'daily.attempts_label': 'Attempts',
   'daily.best_label': 'Best',
   'daily.streak_label': 'Streak',
@@ -511,9 +531,11 @@ const hiLatn: Catalog = {
   'daily.done_body': 'Naya challenge {when} shuru hoga.',
   'daily.leaderboards': 'Leaderboards',
   'daily.fair_title': 'Fairness proof',
-  'daily.fair_body': 'Yeh codes aaj ke teeno overs ko kisi ke bat karne se pehle seal kar dete hain. Har attempt ka replay uska over dikhata hai, taaki koi bhi check kar sake ki woh pehle se fixed tha.',
+  'daily.fair_body':
+    'Yeh codes aaj ke teeno overs ko kisi ke bat karne se pehle seal kar dete hain. Har attempt ka replay uska over dikhata hai, taaki koi bhi check kar sake ki woh pehle se fixed tha.',
   'daily.over_n': 'Over {n}',
-  'daily.rules': 'Din mein teen attempts, har ek mein ek sealed over. Score mostly runs se banta hai, thode bonus ke saath; raat 12 baje (IST) reset.',
+  'daily.rules':
+    'Din mein teen attempts, har ek mein ek sealed over. Score mostly runs se banta hai, thode bonus ke saath; raat 12 baje (IST) reset.',
   'daily.needs_online_title': 'Daily Six ke liye net chahiye',
   'daily.needs_online_body': 'Yeh version sirf offline chalta hai. Practice Ghosts kahin bhi chalta hai.',
   'daily.offline_body': 'Tum offline ho. Net aate hi aaj ka challenge load hoga.',
@@ -529,13 +551,16 @@ const hiLatn: Catalog = {
   'daily.result_pending_body': 'Yeh is device pe saved hai aur net aate hi chala jayega.',
   'daily.result_offline': 'Tum offline ho. Net aate hi score dikhega.',
   'daily.watch': 'Apna attempt dekho',
-  'daily.share_text': 'Maine VANDE Cricket ke aaj ke Daily Six mein {score} banaye. Sabke liye same sealed overs. Beat kar sakte ho?',
+  'daily.share_text':
+    'Maine VANDE Cricket ke aaj ke Daily Six mein {score} banaye. Sabke liye same sealed overs. Beat kar sakte ho?',
   'daily.shared': 'Share ho gaya',
   'daily.again': '{count, plural, one {Phir try karo (# attempt baaki)} other {Phir try karo (# attempts baaki)}}',
   'daily.all_used': 'Yeh aaj ka tumhara aakhri attempt tha. Kal milte hain.',
   'daily.sealed_before': 'Tumhare bat karne se pehle seal hua: {hash}',
-  'daily.not_counted': 'Yeh attempt boards pe count nahi hoga: ek se zyada balls ka jawab late gaya ya gaya hi nahi. Attempt use ho gaya, par tumhari streak safe hai.',
-  'daily.innings_line': '{wickets, plural, one {# wicket} other {# wickets}} pe {runs, plural, one {# run} other {# runs}}',
+  'daily.not_counted':
+    'Yeh attempt boards pe count nahi hoga: ek se zyada balls ka jawab late gaya ya gaya hi nahi. Attempt use ho gaya, par tumhari streak safe hai.',
+  'daily.innings_line':
+    '{wickets, plural, one {# wicket} other {# wickets}} pe {runs, plural, one {# run} other {# runs}}',
   'daily.points_label': 'Score kaise banta hai',
   'daily.points_runs': '{count, plural, one {# run} other {# runs}} × 10 = {points}',
   'daily.points_fours': '{count, plural, one {# four} other {# fours}} × 4 = {points}',
@@ -548,7 +573,8 @@ const hiLatn: Catalog = {
   // ---- practice ghosts ------------------------------------------------------------------------------------------
   'ghosts.title': 'Practice Ghosts',
   'ghosts.eyebrow': 'Offline practice',
-  'ghosts.body': 'Ghost team ke against poora match: apna over plan karo, unke over pe bat karo, phir reveal dekho. Kuch bhi is device se bahar nahi jata.',
+  'ghosts.body':
+    'Ghost team ke against poora match: apna over plan karo, unke over pe bat karo, phir reveal dekho. Kuch bhi is device se bahar nahi jata.',
   'ghosts.pick': 'Ghost chuno',
   'ghosts.difficulty': 'Difficulty {n}/3',
   'ghosts.conditions': 'Conditions',
@@ -557,7 +583,8 @@ const hiLatn: Catalog = {
   'ghosts.bat_title': 'vs {ghost}',
   'ghosts.building': 'Dono overs ki seal khul rahi hai…',
   'ghosts.offline_note': 'Bina net ke chalta hai. Practice se tumhari ranking kabhi nahi badalti.',
-  'ghosts.share_text': 'Maine VANDE Cricket practice mein {ghost} ke against {runs} runs banaye. Mera over beat karoge?',
+  'ghosts.share_text':
+    'Maine VANDE Cricket practice mein {ghost} ke against {runs} runs banaye. Mera over beat karoge?',
 
   // ---- share cards ----------------------------------------------------------------------------------------------
   'card.cta_browser': 'Browser mein khelo. Install ki zaroorat nahi.',
@@ -567,11 +594,13 @@ const hiLatn: Catalog = {
   'card.potm': 'Player of the Match: {name}',
   'card.invite.eyebrow': 'Sealed Six challenge',
   'card.invite.title': '{name} ka ek over ka challenge',
-  'card.invite.body': 'Dono ek secret six-ball over lock karte ho, ek doosre ke against bat karte ho, phir reveal dekhte ho.',
+  'card.invite.body':
+    'Dono ek secret six-ball over lock karte ho, ek doosre ke against bat karte ho, phir reveal dekhte ho.',
   'card.cup_invite.eyebrow': 'Group Cup invite',
   'card.cup_invite.title': '{name} ne tumhe {cup} mein bulaya hai',
   'card.cup_invite.title_unnamed': '{name} ne tumhe ek Group Cup mein bulaya hai',
-  'card.cup_invite.body': 'Cup join karo: sab sabse khelenge, har round mein ek sealed over, jo round ki deadline se pehle lock ho. Top do final mein bhidenge.',
+  'card.cup_invite.body':
+    'Cup join karo: sab sabse khelenge, har round mein ek sealed over, jo round ki deadline se pehle lock ho. Top do final mein bhidenge.',
   'card.cup_invite.chip_format': 'Round robin',
   'card.cup_invite.chip_final': 'Top do: final',
   'card.cup_invite.cta': 'Browser mein join karo. Install nahi chahiye.',
@@ -607,11 +636,14 @@ const hiLatn: Catalog = {
   'settings.section_data': 'Tumhara data',
   'settings.section_about': 'About',
   'settings.draft_translation': 'draft',
-  'settings.draft_note': 'Yeh translation machine draft hai jise abhi kisi native speaker ne review nahi kiya. Missing lines English mein dikhengi.',
+  'settings.draft_note':
+    'Yeh translation machine draft hai jise abhi kisi native speaker ne review nahi kiya. Missing lines English mein dikhengi.',
   'settings.analytics': 'Anonymous usage stats share karo',
-  'settings.analytics_body': 'Sirf screens, errors aur performance. Naam, contacts, messages ya hidden plans kabhi nahi.',
+  'settings.analytics_body':
+    'Sirf screens, errors aur performance. Naam, contacts, messages ya hidden plans kabhi nahi.',
   'settings.analytics_off': 'Yeh version koi analytics collect nahi karta.',
-  'settings.privacy_body': 'Na phone number, na asli naam, na contacts, na location. Tumhara alias aur avatar matches mein sabko dikhta hai.',
+  'settings.privacy_body':
+    'Na phone number, na asli naam, na contacts, na location. Tumhara alias aur avatar matches mein sabko dikhta hai.',
   'settings.push': 'Match notifications',
   'settings.push_body': 'Tumhari baari, deadlines aur reveals. Result kabhi nahi.',
   'settings.push_android_only': 'Notifications Android app pe aati hain. Web pe apne matches khud check karte raho.',
@@ -626,11 +658,14 @@ const hiLatn: Catalog = {
   'settings.export_body': 'Apni profile, matches aur settings ki copy download karo.',
   'settings.export_ready': 'Apna data download karo (link {when} expire hoga)',
   'settings.delete': 'Mera account delete karo',
-  'settings.delete_body': 'Tumhara account aur profile delete ho jayenge. Poore ho chuke matches mein tumhari jagah "Deleted player" dikhega, taaki doosre player ka replay bana rahe.',
+  'settings.delete_body':
+    'Tumhara account aur profile delete ho jayenge. Poore ho chuke matches mein tumhari jagah "Deleted player" dikhega, taaki doosre player ka replay bana rahe.',
   'settings.delete_confirm_title': 'Account delete karna hai?',
-  'settings.delete_confirm_body': 'Yeh undo nahi hoga. Tumhara sign-in, profile aur settings hamare servers aur is device se hat jayenge. Poore ho chuke matches, rooms aur highlights mein tumhari jagah "Deleted player" dikhega.',
+  'settings.delete_confirm_body':
+    'Yeh undo nahi hoga. Tumhara sign-in, profile aur settings hamare servers aur is device se hat jayenge. Poore ho chuke matches, rooms aur highlights mein tumhari jagah "Deleted player" dikhega.',
   'legal.delete_web': 'Web pe apna account delete karo',
-  'settings.delete_web_body': 'App hata diya, ya doosre device pe ho? Web pe bhi apna account delete karne ko keh sakte ho.',
+  'settings.delete_web_body':
+    'App hata diya, ya doosre device pe ho? Web pe bhi apna account delete karne ko keh sakte ho.',
   'settings.privacy_policy_body': 'VANDE Cricket tumhara data kaise sambhalta hai, poori jaankari.',
   'settings.deleted': 'Tumhara account delete ho gaya.',
   'settings.delete_local': 'Is device ka data delete karo',
@@ -639,14 +674,20 @@ const hiLatn: Catalog = {
   'settings.local_deleted': 'Is device ka data delete ho gaya.',
   'settings.section_account': 'Sign-in aur devices',
   'settings.revoke_others': 'Doosre devices se sign out karo',
-  'settings.revoke_others_body': 'Yeh account baaki har phone aur browser se sign out ho jayega, jaise koi khoya hua phone. Yeh device signed in rahega.',
-  'settings.revoked': '{count, plural, =0 {Koi doosra device signed in nahi tha.} one {# doosra device sign out hua.} other {# doosre devices sign out hue.}}',
+  'settings.revoke_others_body':
+    'Yeh account baaki har phone aur browser se sign out ho jayega, jaise koi khoya hua phone. Yeh device signed in rahega.',
+  'settings.revoked':
+    '{count, plural, =0 {Koi doosra device signed in nahi tha.} one {# doosra device sign out hua.} other {# doosre devices sign out hue.}}',
   'settings.logout': 'Is device se sign out karo',
-  'settings.logout_body': 'Tumhara sign-in aur player is device se hat jayega. Wapas aane ke liye start screen pe "Pehle khel chuke ho? Apna account wapas pao" chuno aur {method, select, google {Google} passkey {apni passkey} other {Google ya apni passkey}} use karo.',
+  'settings.logout_body':
+    'Tumhara sign-in aur player is device se hat jayega. Wapas aane ke liye start screen pe "Pehle khel chuke ho? Apna account wapas pao" chuno aur {method, select, google {Google} passkey {apni passkey} other {Google ya apni passkey}} use karo.',
   'settings.logout_confirm_title': 'Is device se sign out karna hai?',
-  'settings.logout_confirm_body': 'Tumhara account hamare servers pe safe rahega. {method, select, google {Google} passkey {apni passkey} other {Google ya apni passkey}} se yahan kabhi bhi phir sign in karo.',
-  'settings.logout_guest': 'Yeh guest account hai. Sign out ke baad guest account wapas nahi milta, isliye iske matches, rating aur badges kho jayenge.',
-  'settings.logout_guest_next': 'Ise rakhne ke liye apni profile pe Google ya passkey link karo. Ise hamesha ke liye hatane ke liye neeche "Mera account delete karo" chuno.',
+  'settings.logout_confirm_body':
+    'Tumhara account hamare servers pe safe rahega. {method, select, google {Google} passkey {apni passkey} other {Google ya apni passkey}} se yahan kabhi bhi phir sign in karo.',
+  'settings.logout_guest':
+    'Yeh guest account hai. Sign out ke baad guest account wapas nahi milta, isliye iske matches, rating aur badges kho jayenge.',
+  'settings.logout_guest_next':
+    'Ise rakhne ke liye apni profile pe Google ya passkey link karo. Ise hamesha ke liye hatane ke liye neeche "Mera account delete karo" chuno.',
   'settings.link_on_profile': 'Profile pe link karo',
   'settings.signed_out': 'Tum is device se sign out ho gaye.',
 
@@ -660,7 +701,8 @@ const hiLatn: Catalog = {
   'shared.sealed_note': 'Is device pe check kiya: dono overs apni seal se match karte hain.',
   'shared.unverified': 'Yeh replay is device pe check nahi ho paaya.',
   'shared.practice_title': 'Kya tum unka over khel paoge?',
-  'shared.practice_body': 'Unme se kisi ek ka daala hua wahi over is device pe khelo. Kuch nahi bheja jata aur unka result nahi badalta.',
+  'shared.practice_body':
+    'Unme se kisi ek ka daala hua wahi over is device pe khelo. Kuch nahi bheja jata aur unka result nahi badalta.',
   'shared.practice': '{name} ke over ke khilaaf khelo',
   'shared.practice_vs': 'Practice: {name} ka over',
   'shared.practice_result': '{name} ke over ke khilaaf tumne {runs}/{wickets} banaye.',
@@ -674,8 +716,10 @@ const hiLatn: Catalog = {
   'shared.offline_build': 'Yeh version sirf offline chalta hai, isliye shared matches yahan nahi khulte.',
   'shared.gone_title': 'Yeh link kaam nahi karta',
   'shared.gone_body': 'Ho sakta hai match hata diya gaya ho, ya link adhoora ho.',
-  'settings.independent': 'VANDE Cricket ek independent game hai. Iska kisi cricket board, league, team, player ya broadcaster se koi connection, endorsement ya affiliation nahi hai.',
-  'settings.fair_play': 'Koi bhi purchase kabhi result nahi badalta: har match sealed plans, tumhari timing aur published rules se decide hota hai, aur har replay verify ho sakta hai.',
+  'settings.independent':
+    'VANDE Cricket ek independent game hai. Iska kisi cricket board, league, team, player ya broadcaster se koi connection, endorsement ya affiliation nahi hai.',
+  'settings.fair_play':
+    'Koi bhi purchase kabhi result nahi badalta: har match sealed plans, tumhari timing aur published rules se decide hota hai, aur har replay verify ho sakta hai.',
   'settings.version': 'Version',
   'settings.engine': 'Rules engine',
   'settings.guide': 'Kaise khelna hai',
@@ -684,7 +728,8 @@ const hiLatn: Catalog = {
   'settings.licences_search': 'Naam ya licence se dhoondho',
   'settings.licences_count': '{count, plural, one {# result} other {# results}}',
   'settings.licences_none': 'Is search se kuch nahi mila.',
-  'settings.licences_assets': 'Artwork, players, stadiums aur sounds original hain, jinhe app khud banata hai. Fonts: Manrope aur Noto Sans Devanagari, SIL Open Font License 1.1 ke under (poora text neeche).',
+  'settings.licences_assets':
+    'Artwork, players, stadiums aur sounds original hain, jinhe app khud banata hai. Fonts: Manrope aur Noto Sans Devanagari, SIL Open Font License 1.1 ke under (poora text neeche).',
   'settings.licences_offline': 'Poore licence texts load nahi hue. Abhi ke liye chhoti list yeh hai.',
 
   // ---- not found ------------------------------------------------------------------------------------------------
@@ -708,7 +753,8 @@ const hiLatn: Catalog = {
   'highlight.perfect': 'PERFECT',
   'highlight.result': 'Result',
   'highlight.potm': 'Player of the Match',
-  'highlight.potm_line': '{runs, plural, one {# run} other {# runs}} · {wickets, plural, one {# wicket} other {# wickets}}',
+  'highlight.potm_line':
+    '{runs, plural, one {# run} other {# runs}} · {wickets, plural, one {# wicket} other {# wickets}}',
   'highlight.standings': 'Table mein badlaav',
   'highlight.new_entry': 'NEW',
   'highlight.cta_title': 'Inhe beat kar sakte ho?',

@@ -52,7 +52,8 @@ export interface EmotionMoment {
   runs?: number;
 }
 
-export type EmotionPhase = 'between' | 'approach' | 'stride' | 'flight' | 'contact' | 'chase' | 'outcome' | 'reflection';
+export type EmotionPhase =
+  'between' | 'approach' | 'stride' | 'flight' | 'contact' | 'chase' | 'outcome' | 'reflection';
 export type EmotionOutcome = 'four' | 'six' | 'wicket' | 'close_call' | 'runs' | 'dot' | 'leave' | null;
 
 export type CrowdMood =
@@ -75,7 +76,8 @@ export type CrowdMood =
   | 'reflection';
 
 /** A crowd reaction for the sound (src/audio/crowdVoices.ts synthesises each). */
-export type CrowdReaction = 'lift' | 'ooh' | 'groan' | 'relief' | 'applause' | 'cheer' | 'eruption' | 'ovation' | 'dismay';
+export type CrowdReaction =
+  'lift' | 'ooh' | 'groan' | 'relief' | 'applause' | 'cheer' | 'eruption' | 'ovation' | 'dismay';
 
 /** Match context of the next delivery. It never touches the simulation. */
 export interface DeliveryContext {
@@ -251,11 +253,20 @@ export function initialEmotion(): EmotionState {
   };
 }
 
-export const blankCrowdEmotion = (): CrowdEmotion => ({ phase: 'between', mood: 'murmur', arousal: CROWD.murmur, valence: 0, expectation: 0, outcome: null, pressure: 0 });
+export const blankCrowdEmotion = (): CrowdEmotion => ({
+  phase: 'between',
+  mood: 'murmur',
+  arousal: CROWD.murmur,
+  valence: 0,
+  expectation: 0,
+  outcome: null,
+  pressure: 0,
+});
 
 export const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 export const clampV = (x: number) => (x < -1 ? -1 : x > 1 ? 1 : x);
-const approach = (from: number, to: number, t0: number, tau: number, at: number) => (at <= t0 ? from : to + (from - to) * Math.exp(-(at - t0) / tau));
+const approach = (from: number, to: number, t0: number, tau: number, at: number) =>
+  at <= t0 ? from : to + (from - to) * Math.exp(-(at - t0) / tau);
 
 /** The base level at `at` (exponential approach, then the relaxation to rest after the hold). */
 export function baseLevel(s: Readonly<EmotionState>, at: number): number {
@@ -272,18 +283,23 @@ const transient = (amp: number, t0: number, attack: number, decay: number, at: n
 };
 
 /** The current reaction's transient at `at`. */
-export const reactionValue = (s: Readonly<EmotionState>, at: number) => transient(s.rAmp, s.rAt, s.rAttack, s.rDecay, at);
+export const reactionValue = (s: Readonly<EmotionState>, at: number) =>
+  transient(s.rAmp, s.rAt, s.rAttack, s.rDecay, at);
 /** The previous reaction's tail at `at`. */
 export const tailValue = (s: Readonly<EmotionState>, at: number) => transient(s.tAmp, s.tAt, s.tAttack, s.tDecay, at);
 
 export const valenceAt = (s: Readonly<EmotionState>, at: number) => clampV(approach(s.vFrom, s.vTo, s.vT0, s.vTau, at));
-export const expectationAt = (s: Readonly<EmotionState>, at: number) => clamp01(approach(s.eFrom, s.eTo, s.eT0, s.eTau, at));
+export const expectationAt = (s: Readonly<EmotionState>, at: number) =>
+  clamp01(approach(s.eFrom, s.eTo, s.eT0, s.eTau, at));
 /** The mood in effect at `at`. */
-export const moodAt = (s: Readonly<EmotionState>, at: number): CrowdMood => (at < s.switchAt ? s.moodBefore : at < s.moodUntil ? s.mood : s.nextMood);
+export const moodAt = (s: Readonly<EmotionState>, at: number): CrowdMood =>
+  at < s.switchAt ? s.moodBefore : at < s.moodUntil ? s.mood : s.nextMood;
 /** The phase in effect at `at`. */
-export const phaseAt = (s: Readonly<EmotionState>, at: number): EmotionPhase => (at < s.switchAt ? s.phaseBefore : s.phase === 'reflection' && at >= s.settleAt ? 'between' : s.phase);
+export const phaseAt = (s: Readonly<EmotionState>, at: number): EmotionPhase =>
+  at < s.switchAt ? s.phaseBefore : s.phase === 'reflection' && at >= s.settleAt ? 'between' : s.phase;
 /** The outcome in effect at `at` (null until physically confirmed). */
-export const outcomeAt = (s: Readonly<EmotionState>, at: number): EmotionOutcome => (at < s.switchAt ? s.outcomeBefore : s.outcome);
+export const outcomeAt = (s: Readonly<EmotionState>, at: number): EmotionOutcome =>
+  at < s.switchAt ? s.outcomeBefore : s.outcome;
 
 /** The resting murmur for the state's context and memory. */
 export function restLevel(s: Readonly<EmotionState>): number {
@@ -293,7 +309,11 @@ export function restLevel(s: Readonly<EmotionState>): number {
 }
 
 /** Samples the state at `at` into `out` (no allocation when `out` is given). Pure. */
-export function sampleEmotion(s: Readonly<EmotionState>, at: number, out: CrowdEmotion = blankCrowdEmotion()): CrowdEmotion {
+export function sampleEmotion(
+  s: Readonly<EmotionState>,
+  at: number,
+  out: CrowdEmotion = blankCrowdEmotion(),
+): CrowdEmotion {
   out.arousal = clamp01(baseLevel(s, at) + reactionValue(s, at) + tailValue(s, at));
   out.valence = valenceAt(s, at);
   out.expectation = expectationAt(s, at);
@@ -303,4 +323,3 @@ export function sampleEmotion(s: Readonly<EmotionState>, at: number, out: CrowdE
   out.pressure = s.pressure;
   return out;
 }
-

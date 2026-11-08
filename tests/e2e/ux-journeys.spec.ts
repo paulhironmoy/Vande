@@ -14,9 +14,20 @@ import { join } from 'node:path';
 const SHOTS = process.env.UX_SHOTS_DIR || join(process.cwd(), 'test-results', 'ux-shots');
 mkdirSync(SHOTS, { recursive: true });
 
-test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, launchOptions: { args: ['--ignore-gpu-blocklist', '--enable-unsafe-swiftshader'] } });
+test.use({
+  viewport: { width: 390, height: 844 },
+  deviceScaleFactor: 2,
+  hasTouch: true,
+  isMobile: true,
+  launchOptions: { args: ['--ignore-gpu-blocklist', '--enable-unsafe-swiftshader'] },
+});
 
-const PLAYER = { id: null, alias: 'Swing King', avatar: { seed: 'k3j2h4g5f6' }, kit: { id: 'starter', primary: '#1E2A78', secondary: '#00B8D9', pattern: 'chevron' } };
+const PLAYER = {
+  id: null,
+  alias: 'Swing King',
+  avatar: { seed: 'k3j2h4g5f6' },
+  kit: { id: 'starter', primary: '#1E2A78', secondary: '#00B8D9', pattern: 'chevron' },
+};
 
 function watchErrors(page: Page) {
   const errors: string[] = [];
@@ -42,7 +53,15 @@ async function seed(page: Page, opts: { player?: boolean; settings?: Record<stri
 
 async function axe(page: Page) {
   const r = await new AxeBuilder({ page }).exclude('canvas').analyze();
-  return r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(' | ')}`);
+  return r.violations
+    .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+    .map(
+      (v) =>
+        `${v.id}: ${v.nodes
+          .map((n) => n.target.join(' '))
+          .slice(0, 3)
+          .join(' | ')}`,
+    );
 }
 
 async function noSideScroll(page: Page) {
@@ -68,10 +87,15 @@ async function swing(page: Page) {
   await page.waitForTimeout(300);
   await page.getByTestId('bat-hit').focus();
   await page.keyboard.press('Space');
-  await page.locator('[data-testid=batting-screen][data-phase=feedback], [data-testid=batting-screen][data-phase=done]').first().waitFor({ timeout: 20_000 });
+  await page
+    .locator('[data-testid=batting-screen][data-phase=feedback], [data-testid=batting-screen][data-phase=done]')
+    .first()
+    .waitFor({ timeout: 20_000 });
 }
 
-test('first run: the age question, alias, Training (bat, bowl, reveal) in under a minute, then home', async ({ page }) => {
+test('first run: the age question, alias, Training (bat, bowl, reveal) in under a minute, then home', async ({
+  page,
+}) => {
   test.setTimeout(150_000);
   const errors = watchErrors(page);
   await legacyHome(page);
@@ -100,7 +124,8 @@ test('first run: the age question, alias, Training (bat, bowl, reveal) in under 
   const feedback = page.evaluate(
     () =>
       new Promise<{ detail: string; meter: boolean }>((resolve, reject) => {
-        const shown = (el: Element | null) => !!el && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+        const shown = (el: Element | null) =>
+          !!el && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
         const check = () => {
           const detail = document.querySelector('[data-testid=bat-feedback-detail]');
           const meter = document.querySelector('[data-testid=bat-timing-meter]');
@@ -218,14 +243,28 @@ for (const [name, settings] of layouts) {
   test(`hub and ghosts at 360 px: ${name}`, async ({ page }) => {
     const errors = watchErrors(page);
     await page.setViewportSize({ width: 360, height: 780 });
-    await seed(page, { player: true, settings: { reducedMotion: 'system', sound: true, haptics: true, quality: 'auto', textScale: 1, highContrast: false, ...settings } });
+    await seed(page, {
+      player: true,
+      settings: {
+        reducedMotion: 'system',
+        sound: true,
+        haptics: true,
+        quality: 'auto',
+        textScale: 1,
+        highContrast: false,
+        ...settings,
+      },
+    });
     for (const path of ['/', '/ghosts', '/duel', '/nope']) {
       await page.goto(path);
       await page.locator('main').first().waitFor();
       await page.waitForTimeout(600);
       expect(await noSideScroll(page), `${path} scrolls sideways`).toBe(true);
       expect(await axe(page), path).toEqual([]);
-      await page.screenshot({ path: join(SHOTS, `journey-360-${name}-${path.replace(/\W+/g, '') || 'home'}.png`), fullPage: true });
+      await page.screenshot({
+        path: join(SHOTS, `journey-360-${name}-${path.replace(/\W+/g, '') || 'home'}.png`),
+        fullPage: true,
+      });
     }
     expect(errors).toEqual([]);
   });
@@ -235,22 +274,41 @@ for (const [name, settings] of layouts) {
 async function onScreen(page: Page, testId: string) {
   const box = await page.getByTestId(testId).boundingBox();
   const vp = page.viewportSize()!;
-  return Boolean(box && box.y >= 0 && box.y + box.height <= vp.height + 1 && box.x >= 0 && box.x + box.width <= vp.width + 1);
+  return Boolean(
+    box && box.y >= 0 && box.y + box.height <= vp.height + 1 && box.x >= 0 && box.x + box.width <= vp.width + 1,
+  );
 }
 
 for (const scale of [1.3, 1.5]) {
-  test(`large text ${Math.round(scale * 100)}% at 360×780: BAT, Play and Next ball on screen; no overlap; steps in full`, async ({ page }) => {
+  test(`large text ${Math.round(scale * 100)}% at 360×780: BAT, Play and Next ball on screen; no overlap; steps in full`, async ({
+    page,
+  }) => {
     test.setTimeout(240_000);
     const errors = watchErrors(page);
     await page.setViewportSize({ width: 360, height: 780 });
-    await seed(page, { player: true, settings: { locale: 'en', reducedMotion: 'system', sound: false, haptics: false, quality: 'auto', textScale: scale, highContrast: false } });
+    await seed(page, {
+      player: true,
+      settings: {
+        locale: 'en',
+        reducedMotion: 'system',
+        sound: false,
+        haptics: false,
+        quality: 'auto',
+        textScale: scale,
+        highContrast: false,
+      },
+    });
     // Training: the shot, BAT and Play fit without scrolling, and the current step reads in full.
     await page.goto('/train');
     await expect(page.getByTestId('bat-next')).toBeVisible({ timeout: 20_000 });
     await page.waitForTimeout(500);
     expect(await onScreen(page, 'bat-hit'), 'BAT below the fold').toBe(true);
     expect(await onScreen(page, 'bat-next'), 'Play below the fold').toBe(true);
-    const clipped = await page.evaluate(() => [...document.querySelectorAll('ol li[data-state="current"] span')].some((el) => el.scrollWidth > el.clientWidth + 1));
+    const clipped = await page.evaluate(() =>
+      [...document.querySelectorAll('ol li[data-state="current"] span')].some(
+        (el) => el.scrollWidth > el.clientWidth + 1,
+      ),
+    );
     expect(clipped, 'the current Training step is cut off').toBe(false);
     await page.screenshot({ path: join(SHOTS, `large-${scale}-train-bat.png`) });
     // The bowl step: the meter, then "Watch the reveal", without scrolling.
@@ -272,7 +330,12 @@ for (const scale of [1.3, 1.5]) {
     const overlap = await page.evaluate(() => {
       const group = document.querySelector('[data-testid=planner-screen] [role=radiogroup]');
       const boxes = [...(group?.querySelectorAll('[role=radio]') ?? [])].map((b) => b.getBoundingClientRect());
-      return boxes.some((a, i) => boxes.some((b, j) => i < j && a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1));
+      return boxes.some((a, i) =>
+        boxes.some(
+          (b, j) =>
+            i < j && a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1,
+        ),
+      );
     });
     expect(overlap, 'field options overlap').toBe(false);
     await page.screenshot({ path: join(SHOTS, `large-${scale}-planner.png`) });
@@ -332,7 +395,11 @@ test('keyboard focus is visible on ghost, link and icon buttons', async ({ page 
       // Controls only (the route focuses its content container for screen readers; that is not a control).
       if (!el || !el.matches('button, a[href], input, select, textarea, [role=button]')) return null;
       const cs = getComputedStyle(el);
-      return { id: el.getAttribute('data-testid') ?? el.textContent?.trim().slice(0, 20), shadow: cs.boxShadow, outline: cs.outlineStyle !== 'none' && cs.outlineWidth !== '0px' };
+      return {
+        id: el.getAttribute('data-testid') ?? el.textContent?.trim().slice(0, 20),
+        shadow: cs.boxShadow,
+        outline: cs.outlineStyle !== 'none' && cs.outlineWidth !== '0px',
+      };
     });
   const seen: Array<{ id: string | null | undefined; shadow: string; outline: boolean }> = [];
   for (let i = 0; i < 12; i++) {
@@ -344,7 +411,11 @@ test('keyboard focus is visible on ghost, link and icon buttons', async ({ page 
   }
   const ghost = seen.find((r) => r.id === 'home-settings');
   expect(ghost, 'settings button never focused').toBeTruthy();
-  for (const r of seen) expect(r.outline || (r.shadow !== 'none' && /\d+px \d+px \d+px [1-9]/.test(r.shadow)), `no visible focus on ${r.id}: ${r.shadow}`).toBe(true);
+  for (const r of seen)
+    expect(
+      r.outline || (r.shadow !== 'none' && /\d+px \d+px \d+px [1-9]/.test(r.shadow)),
+      `no visible focus on ${r.id}: ${r.shadow}`,
+    ).toBe(true);
   await page.getByTestId('home-settings').focus();
   await page.screenshot({ path: join(SHOTS, 'focus-ghost-button.png') });
   expect(errors).toEqual([]);

@@ -21,13 +21,17 @@ export function isLegalZone(shot: ShotType, zone: FieldZone | null): boolean {
   return zone !== null && legal.includes(zone);
 }
 
-export function validateBattingInput(input: BattingInput, delivery: RevealedDelivery): { ok: true; input: BattingInput } | { ok: false; errors: string[] } {
+export function validateBattingInput(
+  input: BattingInput,
+  delivery: RevealedDelivery,
+): { ok: true; input: BattingInput } | { ok: false; errors: string[] } {
   if (!input || typeof input !== 'object') return { ok: false, errors: ['input.missing'] };
   const errors: string[] = [];
   if (input.v !== 1) errors.push('input.version');
   if (input.ball !== delivery.ball) errors.push('input.ball_mismatch');
   if (!(SHOTS as readonly string[]).includes(input.shot)) errors.push('input.shot');
-  else if (!isLegalZone(input.shot, input.zone)) errors.push(input.zone === null ? 'input.zone_required' : 'input.zone_not_allowed');
+  else if (!isLegalZone(input.shot, input.zone))
+    errors.push(input.zone === null ? 'input.zone_required' : 'input.zone_not_allowed');
 
   const tap = input.tapMs;
   if (tap !== null) {
@@ -47,7 +51,8 @@ export function validateBattingInput(input: BattingInput, delivery: RevealedDeli
   if (!traceErrors.length) {
     const samples = input.trace.samples;
     if (tap !== null && samples.length === 0) errors.push('input.trace_missing_tap');
-    if (samples.length && typeof elapsed === 'number' && samples[samples.length - 1][0] > elapsed) errors.push('input.trace_longer_than_elapsed');
+    if (samples.length && typeof elapsed === 'number' && samples[samples.length - 1][0] > elapsed)
+      errors.push('input.trace_longer_than_elapsed');
     if (input.trace.pointer !== 'keyboard' && input.zone !== null && samples.length >= 2) {
       // Squared length: exact arithmetic, identical on every engine (verification re-runs this check).
       const sw = swipeOf(input.trace);
@@ -64,7 +69,10 @@ export function validateBattingInput(input: BattingInput, delivery: RevealedDeli
     shot: input.shot,
     zone: input.zone,
     tapMs: input.tapMs,
-    trace: { pointer: input.trace.pointer, samples: input.trace.samples.map((s) => [s[0], s[1], s[2]] as [number, number, number]) },
+    trace: {
+      pointer: input.trace.pointer,
+      samples: input.trace.samples.map((s) => [s[0], s[1], s[2]] as [number, number, number]),
+    },
     clientElapsedMs: input.clientElapsedMs,
   };
   return { ok: true, input: clean };
@@ -77,7 +85,12 @@ export function validateBattingInput(input: BattingInput, delivery: RevealedDeli
  */
 const SUPERHUMAN_TAP_MS = 3;
 const SUPERHUMAN_TAPS = 5;
-export function timingAudit(pairs: ReadonlyArray<{ input: BattingInput; delivery: RevealedDelivery }>): { taps: number; bullseyes: number; meanAbsErrorMs: number; suspicious: boolean } {
+export function timingAudit(pairs: ReadonlyArray<{ input: BattingInput; delivery: RevealedDelivery }>): {
+  taps: number;
+  bullseyes: number;
+  meanAbsErrorMs: number;
+  suspicious: boolean;
+} {
   let taps = 0;
   let bullseyes = 0;
   let sum = 0;
@@ -88,5 +101,10 @@ export function timingAudit(pairs: ReadonlyArray<{ input: BattingInput; delivery
     sum += err;
     if (err <= SUPERHUMAN_TAP_MS) bullseyes++;
   }
-  return { taps, bullseyes, meanAbsErrorMs: taps ? Math.round((sum / taps) * 10) / 10 : 0, suspicious: bullseyes >= SUPERHUMAN_TAPS };
+  return {
+    taps,
+    bullseyes,
+    meanAbsErrorMs: taps ? Math.round((sum / taps) * 10) / 10 : 0,
+    suspicious: bullseyes >= SUPERHUMAN_TAPS,
+  };
 }

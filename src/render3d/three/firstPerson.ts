@@ -39,7 +39,11 @@ export interface FirstPerson {
    * Shows the bat and gloves at a pose (world), or hides them (null). The forearms lead to the two shoulders. `smear`:
    * trailing ghost bats for a swing faster than a real bat's peak (practice/bat.ts swingSmear), else none.
    */
-  update(pose: BatPose | null, shoulders: { top: Vec3; bottom: Vec3 }, smear?: { poses: BatPose[]; opacity: number[] } | null): void;
+  update(
+    pose: BatPose | null,
+    shoulders: { top: Vec3; bottom: Vec3 },
+    smear?: { poses: BatPose[]; opacity: number[] } | null,
+  ): void;
   setKit(kit: KitSpec): void;
   /** Every mesh visible (for shader pre-compilation). */
   showAll(): void;
@@ -134,9 +138,22 @@ export function createFirstPerson(scene: Scene): FirstPerson {
   batMat.emissive.set('#ffffff');
   batMat.emissiveIntensity = 0.16;
   const { leather, accent, mark } = gloveGeometry();
-  const gloveMat = new MeshStandardMaterial({ color: '#f3f4f6', roughness: 0.6, emissive: '#3a3d48', emissiveIntensity: 0.45 });
+  const gloveMat = new MeshStandardMaterial({
+    color: '#f3f4f6',
+    roughness: 0.6,
+    emissive: '#3a3d48',
+    emissiveIntensity: 0.45,
+  });
   const stripeMat = new MeshStandardMaterial({ color: '#19d3fa', roughness: 0.5 });
-  const markMat = new MeshStandardMaterial({ map: canvasArt(64, 64, paintMark, [30, 42, 120, 0]), transparent: true, depthWrite: false, roughness: 0.5, side: DoubleSide, polygonOffset: true, polygonOffsetFactor: -2 });
+  const markMat = new MeshStandardMaterial({
+    map: canvasArt(64, 64, paintMark, [30, 42, 120, 0]),
+    transparent: true,
+    depthWrite: false,
+    roughness: 0.5,
+    side: DoubleSide,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+  });
   const markGeo = new PlaneGeometry(1, 1);
   const gloves = [0, 1].map(() => {
     const g = new Group();
@@ -151,7 +168,16 @@ export function createFirstPerson(scene: Scene): FirstPerson {
   });
   // The smear's ghost bats: the same blade, translucent, never writing depth (shown only while the swing outruns a
   // real bat's peak; see practice/bat.ts SMEAR).
-  const ghostMats = [0, 1, 2].map(() => new MeshStandardMaterial({ color: '#e9dcc0', roughness: 0.8, transparent: true, depthWrite: false, opacity: 0.2 }));
+  const ghostMats = [0, 1, 2].map(
+    () =>
+      new MeshStandardMaterial({
+        color: '#e9dcc0',
+        roughness: 0.8,
+        transparent: true,
+        depthWrite: false,
+        opacity: 0.2,
+      }),
+  );
   const ghosts = ghostMats.map((m) => {
     const g = new Mesh(bat.geometry, m);
     g.renderOrder = 1;

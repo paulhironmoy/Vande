@@ -17,7 +17,14 @@ export interface FieldMapProps {
 const R = BOUNDARY_R + 4;
 
 /** Top-down field with the fielders of a setting. Same geometry as the 3D renderer. */
-export function FieldMap({ field, zone = null, orientation = 'batting', showLabels = false, size = 160, className }: FieldMapProps) {
+export function FieldMap({
+  field,
+  zone = null,
+  orientation = 'batting',
+  showLabels = false,
+  size = 160,
+  className,
+}: FieldMapProps) {
   const { t } = useT();
   const spots = fieldSpots(field);
   // World (x, z) to SVG. Batting view: striker at the bottom looking up the pitch; off side (+x) to the right.
@@ -34,7 +41,14 @@ export function FieldMap({ field, zone = null, orientation = 'batting', showLabe
     return `M${cx},${cy} L${p(a0)} L${p(a1)} Z`;
   };
   return (
-    <svg viewBox="0 0 100 100" width={size} height={size} className={[s.map, className ?? ''].join(' ')} role="img" aria-label={t('a11y.field_map', { field: t(`field.${field}`) })}>
+    <svg
+      viewBox="0 0 100 100"
+      width={size}
+      height={size}
+      className={[s.map, className ?? ''].join(' ')}
+      role="img"
+      aria-label={t('a11y.field_map', { field: t(`field.${field}`) })}
+    >
       <defs>
         <radialGradient id="fm-grass" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#2b8b4d" />
@@ -48,9 +62,23 @@ export function FieldMap({ field, zone = null, orientation = 'batting', showLabe
       <circle cx="50" cy="50" r="48" fill="url(#fm-grass)" />
       {zone && <path d={wedge(zone)} clipPath="url(#fm-clip)" className={s.wedge} />}
       <circle cx={sx(0)} cy={sy(0)} r={(RING_R / R) * 48} className={s.ring} />
-      <rect x={50 - 1.6} y={Math.min(sy(-11), sy(11))} width={3.2} height={Math.abs(sy(11) - sy(-11))} rx={0.6} className={s.pitch} />
+      <rect
+        x={50 - 1.6}
+        y={Math.min(sy(-11), sy(11))}
+        width={3.2}
+        height={Math.abs(sy(11) - sy(-11))}
+        rx={0.6}
+        className={s.pitch}
+      />
       {spots.map((sp) => (
-        <circle key={sp.role} cx={sx(sp.pos.x)} cy={sy(sp.pos.z)} r={2.6} className={s.fielder} data-deep={sp.deep || undefined} />
+        <circle
+          key={sp.role}
+          cx={sx(sp.pos.x)}
+          cy={sy(sp.pos.z)}
+          r={2.6}
+          className={s.fielder}
+          data-deep={sp.deep || undefined}
+        />
       ))}
       <circle cx={sx(0.15)} cy={sy(CONTACT_Z + 3.5)} r={2.4} className={s.fielder} />
       <circle cx={sx(-0.3)} cy={sy(CONTACT_Z)} r={2.8} className={s.batter} />
@@ -60,7 +88,15 @@ export function FieldMap({ field, zone = null, orientation = 'batting', showLabe
           const x = sx(Math.sin(a) * 46);
           const y = sy(CONTACT_Z - Math.cos(a) * 46);
           return (
-            <text key={z} x={x} y={y} className={s.label} data-active={zone === z || undefined} textAnchor="middle" dominantBaseline="middle">
+            <text
+              key={z}
+              x={x}
+              y={y}
+              className={s.label}
+              data-active={zone === z || undefined}
+              textAnchor="middle"
+              dominantBaseline="middle"
+            >
               {t(`zone.${z}`)}
             </text>
           );

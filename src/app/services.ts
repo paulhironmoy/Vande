@@ -35,7 +35,9 @@ export function routeForLink(link: AppLink | null): Route | null {
   if (!link) return null;
   switch (link.kind) {
     case 'invite':
-      return link.attribution ? { name: 'invite', token: link.token, attribution: link.attribution } : { name: 'invite', token: link.token };
+      return link.attribution
+        ? { name: 'invite', token: link.token, attribution: link.attribution }
+        : { name: 'invite', token: link.token };
     case 'match':
       return { name: 'match', matchId: link.matchId };
     case 'cup':

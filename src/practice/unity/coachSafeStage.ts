@@ -47,10 +47,7 @@ export type RetainedCoachStageRouter = (
   source: PracticeStageLike,
   control: RetainedCoachRouteControl,
 ) => Promise<PracticeStageLike | null>;
-export type RetainedCoachStageRestorer = (
-  source: PracticeStageLike,
-  retained: PracticeStageLike,
-) => Promise<boolean>;
+export type RetainedCoachStageRestorer = (source: PracticeStageLike, retained: PracticeStageLike) => Promise<boolean>;
 
 export interface CoachSafeUnityStage extends PracticeStageLike {
   readonly isCoachSafeUnityFacade: true;
@@ -200,11 +197,7 @@ class RoutedCoachStage implements CoachSafeUnityStage {
     if (this.retained) this.retained.setAssistance(stage, guide);
   }
 
-  async demonstrate(
-    result: DeliveryResult,
-    option: CoachOption,
-    context?: StageDemonstrationContext,
-  ): Promise<void> {
+  async demonstrate(result: DeliveryResult, option: CoachOption, context?: StageDemonstrationContext): Promise<void> {
     // Demonstrations are part of the live Unity Practice presentation. Keeping
     // them on the source preserves the same world, camera, characters, HUD and
     // canvas; only the ball and the recommended response change. The retained
@@ -277,9 +270,11 @@ class RoutedCoachStage implements CoachSafeUnityStage {
     // handoff. Both the phase watcher and the delivery runner may request the
     // same restore while Skip is resolving; without this outer single-flight
     // boundary they can each resume Unity and queue competing scene updates.
-    const published = Promise.resolve().then(() => this.restoreUnityRendererOnce()).finally(() => {
-      if (this.restoring === published) this.restoring = null;
-    });
+    const published = Promise.resolve()
+      .then(() => this.restoreUnityRendererOnce())
+      .finally(() => {
+        if (this.restoring === published) this.restoring = null;
+      });
     this.restoring = published;
     return published;
   }
@@ -334,14 +329,16 @@ class RoutedCoachStage implements CoachSafeUnityStage {
     const control = { cancelled: false, sourcePauseStarted: false };
     this.handoffControl = control;
     this.handoff = Promise.resolve()
-      .then(() => this.route(this.source, {
-        cancelled: () => control.cancelled,
-        tryBeginSourcePause: () => {
-          if (control.cancelled) return false;
-          control.sourcePauseStarted = true;
-          return true;
-        },
-      }))
+      .then(() =>
+        this.route(this.source, {
+          cancelled: () => control.cancelled,
+          tryBeginSourcePause: () => {
+            if (control.cancelled) return false;
+            control.sourcePauseStarted = true;
+            return true;
+          },
+        }),
+      )
       .then((retained) => {
         if (!retained || (control.cancelled && !control.sourcePauseStarted) || this.disposed) {
           if (retained && retained !== this.source) retained.dispose();

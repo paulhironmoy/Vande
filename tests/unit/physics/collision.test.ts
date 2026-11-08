@@ -18,7 +18,12 @@ function straightPath(speed: number, dt: number, x: number, y: number, z0: numbe
   return out;
 }
 
-function movingFacePath(track: BatTrack, from: number, to: number, separationAt: (time: number) => number): BallSample[] {
+function movingFacePath(
+  track: BatTrack,
+  from: number,
+  to: number,
+  separationAt: (time: number) => number,
+): BallSample[] {
   const samples: BallSample[] = [];
   const dt = 0.0002;
   for (let time = from; time < to; time += dt) {
@@ -26,7 +31,11 @@ function movingFacePath(track: BatTrack, from: number, to: number, separationAt:
     const amount = BLADE_T / 2 + BALL_R + separationAt(time);
     samples.push({
       t: time,
-      p: { x: frame.centre.x + frame.n.x * amount, y: frame.centre.y + frame.n.y * amount, z: frame.centre.z + frame.n.z * amount },
+      p: {
+        x: frame.centre.x + frame.n.x * amount,
+        y: frame.centre.y + frame.n.y * amount,
+        z: frame.centre.z + frame.n.z * amount,
+      },
       v: { x: 0, y: 0, z: 0 },
     });
   }
@@ -34,7 +43,11 @@ function movingFacePath(track: BatTrack, from: number, to: number, separationAt:
   const amount = BLADE_T / 2 + BALL_R + separationAt(to);
   samples.push({
     t: to,
-    p: { x: frame.centre.x + frame.n.x * amount, y: frame.centre.y + frame.n.y * amount, z: frame.centre.z + frame.n.z * amount },
+    p: {
+      x: frame.centre.x + frame.n.x * amount,
+      y: frame.centre.y + frame.n.y * amount,
+      z: frame.centre.z + frame.n.z * amount,
+    },
     v: { x: 0, y: 0, z: 0 },
   });
   return samples;
@@ -43,7 +56,11 @@ function movingFacePath(track: BatTrack, from: number, to: number, separationAt:
 function facePoint(track: BatTrack, time: number): BallSample['p'] {
   const frame = bladeFrame(batPose(track, time));
   const amount = BLADE_T / 2 + BALL_R - 0.001;
-  return { x: frame.centre.x + frame.n.x * amount, y: frame.centre.y + frame.n.y * amount, z: frame.centre.z + frame.n.z * amount };
+  return {
+    x: frame.centre.x + frame.n.x * amount,
+    y: frame.centre.y + frame.n.y * amount,
+    z: frame.centre.z + frame.n.z * amount,
+  };
 }
 
 function line(a: BallSample['p'], b: BallSample['p'], amount: number): BallSample['p'] {
@@ -90,7 +107,11 @@ describe('continuous collision', () => {
     const f = fly({ speedKph: 155, lengthM: 6.5, lineM: 0.05 });
     const swing = timedSwing(f, 10, { power: 1 });
     const fine = strike(f, swing, { assist: 'real' });
-    const coarse = strike({ ...f, samples: f.samples.filter((_, i) => i % 8 === 0 || i === f.samples.length - 1) }, swing, { assist: 'real' });
+    const coarse = strike(
+      { ...f, samples: f.samples.filter((_, i) => i % 8 === 0 || i === f.samples.length - 1) },
+      swing,
+      { assist: 'real' },
+    );
     expect(fine.contact.kind).toBe('middle');
     expect(coarse.contact.kind).toBe('middle');
     expect(Math.abs(coarse.contact.t! - fine.contact.t!)).toBeLessThan(2e-4);
@@ -142,7 +163,10 @@ describe('continuous collision', () => {
     const a = facePoint(track, start);
     const b = facePoint(track, end);
     const velocity = { x: (b.x - a.x) / (end - start), y: (b.y - a.y) / (end - start), z: (b.z - a.z) / (end - start) };
-    const coarse: BallSample[] = [{ t: start, p: a, v: velocity }, { t: end, p: b, v: velocity }];
+    const coarse: BallSample[] = [
+      { t: start, p: a, v: velocity },
+      { t: end, p: b, v: velocity },
+    ];
     const fine: BallSample[] = [];
     for (let time = start; time < end; time += 0.0001) {
       fine.push({ t: time, p: line(a, b, (time - start) / (end - start)), v: velocity });

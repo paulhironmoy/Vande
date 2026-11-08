@@ -63,7 +63,16 @@ export {
   type ScoringArea,
   type WeakestDelivery,
 } from './innings';
-export { makeRecord, nextFlight, playBall, replayDelivery, replayOver, repeatDelivery, resolveNext, verifyRecord } from './replay';
+export {
+  makeRecord,
+  nextFlight,
+  playBall,
+  replayDelivery,
+  replayOver,
+  repeatDelivery,
+  resolveNext,
+  verifyRecord,
+} from './replay';
 export { coachingFacts, deliveryQuality, emptyTiming, type CoachingFacts } from './coaching';
 export {
   REFERENCE_BALL,

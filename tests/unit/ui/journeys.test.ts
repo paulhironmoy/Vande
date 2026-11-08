@@ -55,12 +55,37 @@ function view(p: Partial<MatchView>): MatchView {
 
 describe('hub match cards', () => {
   it('say what is honestly known in every phase, never results or exact times', () => {
-    expect(matchCard(view({ phase: 'awaiting_opponent', players: [me, null] }), false)).toMatchObject({ status: 'invite', opponent: null, deadline: { kind: 'lock' } });
-    expect(matchCard(view({ phase: 'planning' }), false)).toMatchObject({ status: 'lock', tone: 'action', deadline: { kind: 'lock', at: '2026-10-26T12:00:00Z' } });
-    expect(matchCard(view({ phase: 'planning', locked: [true, false] }), false)).toMatchObject({ status: 'sealed_waiting', deadline: null });
-    expect(matchCard(view({ phase: 'batting', locked: [true, true] }), false)).toMatchObject({ status: 'bat', deadline: { kind: 'bat' } });
-    expect(matchCard(view({ phase: 'awaiting_reveal', battingDone: [true, false] }), false)).toMatchObject({ status: 'batted_waiting' });
-    expect(matchCard(view({ phase: 'awaiting_reveal', battingDone: [true, true], deadlines: { lockBy: 'a', batBy: 'b', revealAt: '2026-10-27T15:30:00Z' } }), false)).toMatchObject({ status: 'reveal_at', deadline: { kind: 'reveal' } });
+    expect(matchCard(view({ phase: 'awaiting_opponent', players: [me, null] }), false)).toMatchObject({
+      status: 'invite',
+      opponent: null,
+      deadline: { kind: 'lock' },
+    });
+    expect(matchCard(view({ phase: 'planning' }), false)).toMatchObject({
+      status: 'lock',
+      tone: 'action',
+      deadline: { kind: 'lock', at: '2026-10-26T12:00:00Z' },
+    });
+    expect(matchCard(view({ phase: 'planning', locked: [true, false] }), false)).toMatchObject({
+      status: 'sealed_waiting',
+      deadline: null,
+    });
+    expect(matchCard(view({ phase: 'batting', locked: [true, true] }), false)).toMatchObject({
+      status: 'bat',
+      deadline: { kind: 'bat' },
+    });
+    expect(matchCard(view({ phase: 'awaiting_reveal', battingDone: [true, false] }), false)).toMatchObject({
+      status: 'batted_waiting',
+    });
+    expect(
+      matchCard(
+        view({
+          phase: 'awaiting_reveal',
+          battingDone: [true, true],
+          deadlines: { lockBy: 'a', batBy: 'b', revealAt: '2026-10-27T15:30:00Z' },
+        }),
+        false,
+      ),
+    ).toMatchObject({ status: 'reveal_at', deadline: { kind: 'reveal' } });
     expect(matchCard(view({ phase: 'revealed' }), false).status).toBe('reveal_ready');
     expect(matchCard(view({ phase: 'revealed' }), true).status).toBe('replay');
     expect(matchCard(view({ phase: 'expired' }), false).status).toBe('expired');
@@ -78,18 +103,60 @@ describe('hub match cards', () => {
   });
 
   it('Daily Six card counts attempts left from the server view', () => {
-    const d = dailyCard({ day: '2026-10-25', conditions: { pitch: 'slow', weather: 'dew' }, attemptsUsed: 2, attemptsMax: 3, overCommits: ['a', 'b', 'c'], bestScore: 18, streak: 4, resetsAt: '2026-10-25T18:30:00Z' });
+    const d = dailyCard({
+      day: '2026-10-25',
+      conditions: { pitch: 'slow', weather: 'dew' },
+      attemptsUsed: 2,
+      attemptsMax: 3,
+      overCommits: ['a', 'b', 'c'],
+      bestScore: 18,
+      streak: 4,
+      resetsAt: '2026-10-25T18:30:00Z',
+    });
     expect(d).toMatchObject({ attemptsLeft: 1, canPlay: true, best: 18, streak: 4 });
-    expect(dailyCard({ day: 'd', conditions: { pitch: 'slow', weather: 'dew' }, attemptsUsed: 3, attemptsMax: 3, overCommits: ['a', 'b', 'c'], bestScore: null, streak: 0, resetsAt: 'x' }).canPlay).toBe(false);
+    expect(
+      dailyCard({
+        day: 'd',
+        conditions: { pitch: 'slow', weather: 'dew' },
+        attemptsUsed: 3,
+        attemptsMax: 3,
+        overCommits: ['a', 'b', 'c'],
+        bestScore: null,
+        streak: 0,
+        resetsAt: 'x',
+      }).canPlay,
+    ).toBe(false);
   });
 });
 
 function ball(n: number, ballsLeft: number): NextBallResponse {
   const plan = engine.autoOver('net-innings', { pitch: 'hard', weather: 'clear' });
-  return { delivery: engine.revealDelivery(plan, n, { pitch: 'hard', weather: 'clear' }), ballToken: `tok${n}`, field: 'sweeper', ballsLeft };
+  return {
+    delivery: engine.revealDelivery(plan, n, { pitch: 'hard', weather: 'clear' }),
+    ballToken: `tok${n}`,
+    field: 'sweeper',
+    ballsLeft,
+  };
 }
-const input = (n: number): BattingInput => ({ v: 1, ball: n, shot: 'defend', zone: null, tapMs: 600, trace: { pointer: 'touch', samples: [[0, 0.5, 0.5], [80, 0.5, 0.5]] }, clientElapsedMs: 900 });
-const shotResponse = (n: number, complete: boolean): ShotResponse => ({ feedback: { ball: n, timing: 'good', contact: 'middle' }, inningsComplete: complete });
+const input = (n: number): BattingInput => ({
+  v: 1,
+  ball: n,
+  shot: 'defend',
+  zone: null,
+  tapMs: 600,
+  trace: {
+    pointer: 'touch',
+    samples: [
+      [0, 0.5, 0.5],
+      [80, 0.5, 0.5],
+    ],
+  },
+  clientElapsedMs: 900,
+});
+const shotResponse = (n: number, complete: boolean): ShotResponse => ({
+  feedback: { ball: n, timing: 'good', contact: 'middle' },
+  inningsComplete: complete,
+});
 
 describe('network innings', () => {
   it('resumes a ball revealed before the app closed, then fetches the rest', async () => {
@@ -111,7 +178,11 @@ describe('network innings', () => {
   it('waits for a shot made offline and tells the screen while it is queued', async () => {
     let deliver!: (r: ShotResponse) => void;
     const delivered = new Promise<ShotResponse>((r) => (deliver = r));
-    const transport: BattingTransport = { outstanding: vi.fn().mockResolvedValue(null), next: vi.fn().mockResolvedValue(ball(SUPER_BALL_INDEX, 0)), shot: vi.fn().mockResolvedValue({ status: 'queued', delivered }) };
+    const transport: BattingTransport = {
+      outstanding: vi.fn().mockResolvedValue(null),
+      next: vi.fn().mockResolvedValue(ball(SUPER_BALL_INDEX, 0)),
+      shot: vi.fn().mockResolvedValue({ status: 'queued', delivered }),
+    };
     const queued = vi.fn();
     const inn = netInnings(transport, 'm1', { onQueued: queued });
     await inn.nextBall();
@@ -127,14 +198,22 @@ describe('network innings', () => {
   });
 
   it('ends cleanly when the server says the innings is already complete', async () => {
-    const transport: BattingTransport = { outstanding: vi.fn().mockResolvedValue(null), next: vi.fn().mockRejectedValue(new ApiClientError('conflict', 'your innings is complete', 409)), shot: vi.fn() };
+    const transport: BattingTransport = {
+      outstanding: vi.fn().mockResolvedValue(null),
+      next: vi.fn().mockRejectedValue(new ApiClientError('conflict', 'your innings is complete', 409)),
+      shot: vi.fn(),
+    };
     const inn = netInnings(transport, 'm1');
     expect(await inn.start()).toBeNull();
     expect(inn.complete()).toBe(true);
   });
 
   it('surfaces offline so the screen can retry', async () => {
-    const transport: BattingTransport = { outstanding: vi.fn().mockResolvedValue(null), next: vi.fn().mockRejectedValue(new ApiClientError('offline', 'answers are still waiting')), shot: vi.fn() };
+    const transport: BattingTransport = {
+      outstanding: vi.fn().mockResolvedValue(null),
+      next: vi.fn().mockRejectedValue(new ApiClientError('offline', 'answers are still waiting')),
+      shot: vi.fn(),
+    };
     await expect(netInnings(transport, 'm1').start()).rejects.toMatchObject({ code: 'offline' });
   });
 });
@@ -143,7 +222,10 @@ describe('Daily Six transport', () => {
   beforeEach(() => sessionStorage.clear());
   it('sends queued answers first, remembers the revealed ball and answers through the outbox', async () => {
     const api = { call: vi.fn().mockResolvedValue(ball(0, 6)) };
-    const outbox = { drainGroup: vi.fn().mockResolvedValue(true), submit: vi.fn().mockResolvedValue({ status: 'sent', response: shotResponse(0, false) }) };
+    const outbox = {
+      drainGroup: vi.fn().mockResolvedValue(true),
+      submit: vi.fn().mockResolvedValue({ status: 'sent', response: shotResponse(0, false) }),
+    };
     const tr = dailyTransport({ api, outbox } as never);
     const r = await tr.next('att1');
     expect(outbox.drainGroup).toHaveBeenCalledWith('daily:att1');
@@ -151,11 +233,19 @@ describe('Daily Six transport', () => {
     expect((await tr.outstanding('att1'))?.ballToken).toBe(r.ballToken);
     const out = await tr.shot('att1', r.ballToken, input(0));
     expect(out).toEqual({ status: 'resolved', response: shotResponse(0, false) });
-    expect(outbox.submit).toHaveBeenCalledWith({ route: 'POST /v1/daily/attempts/:id/shot', params: { id: 'att1' }, body: { ballToken: 'tok0', input: input(0) }, group: 'daily:att1' });
+    expect(outbox.submit).toHaveBeenCalledWith({
+      route: 'POST /v1/daily/attempts/:id/shot',
+      params: { id: 'att1' },
+      body: { ballToken: 'tok0', input: input(0) },
+      group: 'daily:att1',
+    });
     expect(await tr.outstanding('att1')).toBeNull();
   });
   it('refuses the next ball while an earlier answer is still waiting to be sent', async () => {
-    const tr = dailyTransport({ api: { call: vi.fn() }, outbox: { drainGroup: vi.fn().mockResolvedValue(false), submit: vi.fn() } } as never);
+    const tr = dailyTransport({
+      api: { call: vi.fn() },
+      outbox: { drainGroup: vi.fn().mockResolvedValue(false), submit: vi.fn() },
+    } as never);
     await expect(tr.next('att1')).rejects.toMatchObject({ code: 'offline' });
   });
 });
@@ -163,15 +253,26 @@ describe('Daily Six transport', () => {
 describe('deferred guest sign-up', () => {
   const player = { id: null, alias: 'Swing King', avatar: { seed: 'abcd1234ef' }, kit: KITS[0] };
   it('creates the account with the alias, then completes the profile', async () => {
-    const net = { session: { ensure: vi.fn().mockResolvedValue({ playerId: 'p_123' }) }, api: { call: vi.fn().mockResolvedValue({}) } };
+    const net = {
+      session: { ensure: vi.fn().mockResolvedValue({ playerId: 'p_123' }) },
+      api: { call: vi.fn().mockResolvedValue({}) },
+    };
     expect(await syncAccount(net as never, player, 'hi')).toEqual({ id: 'p_123' });
     expect(net.session.ensure).toHaveBeenCalledWith('Swing King');
-    expect(net.api.call).toHaveBeenCalledWith('PATCH /v1/me', { body: { avatar: player.avatar, kit: player.kit, locale: 'hi' } });
+    expect(net.api.call).toHaveBeenCalledWith('PATCH /v1/me', {
+      body: { avatar: player.avatar, kit: player.kit, locale: 'hi' },
+    });
   });
   it('reports a rejected alias and offline separately', async () => {
-    const rejected = { session: { ensure: vi.fn().mockRejectedValue(new ApiClientError('invalid', 'alias not allowed', 400)) }, api: { call: vi.fn() } };
+    const rejected = {
+      session: { ensure: vi.fn().mockRejectedValue(new ApiClientError('invalid', 'alias not allowed', 400)) },
+      api: { call: vi.fn() },
+    };
     expect(await syncAccount(rejected as never, player, 'en')).toEqual({ error: 'alias_rejected' });
-    const offline = { session: { ensure: vi.fn().mockRejectedValue(new ApiClientError('network', 'down')) }, api: { call: vi.fn() } };
+    const offline = {
+      session: { ensure: vi.fn().mockRejectedValue(new ApiClientError('network', 'down')) },
+      api: { call: vi.fn() },
+    };
     expect(await syncAccount(offline as never, player, 'en')).toEqual({ error: 'offline' });
   });
   it('starter kits are the server palette (PATCH /v1/me accepts them)', () => {
@@ -180,7 +281,10 @@ describe('deferred guest sign-up', () => {
 });
 
 describe('sharing within the per-match cap', () => {
-  const adapter = (): ShareAdapter & { share: ReturnType<typeof vi.fn> } => ({ share: vi.fn().mockResolvedValue('shared'), whatsappUrl: (text, url) => `https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}` });
+  const adapter = (): ShareAdapter & { share: ReturnType<typeof vi.fn> } => ({
+    share: vi.fn().mockResolvedValue('shared'),
+    whatsappUrl: (text, url) => `https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}`,
+  });
   beforeEach(() => __setShareLedger(memoryShareLedger()));
   afterEach(() => __setShareLedger(null));
 
@@ -188,14 +292,24 @@ describe('sharing within the per-match cap', () => {
     const tr = await t();
     const open = vi.spyOn(window, 'open').mockImplementation(() => null);
     const a = adapter();
-    const ctx = { kind: 'duel' as const, id: 'm1', url: 'https://vande.example/i/tok', inviterAlias: 'Swing King', pitch: 'hard' as const };
+    const ctx = {
+      kind: 'duel' as const,
+      id: 'm1',
+      url: 'https://vande.example/i/tok',
+      inviterAlias: 'Swing King',
+      pitch: 'hard' as const,
+    };
     expect(await shareMatchMoment(a, 'invite', ctx, { via: 'whatsapp', t: tr })).toBe('opened');
     expect(open.mock.calls[0][0]).toContain('https://wa.me/?text=');
     expect(open.mock.calls[0][0]).toContain(encodeURIComponent('https://vande.example/i/tok'));
-    expect(await shareMatchMoment(a, 'invite', ctx, { via: 'sheet', t: tr, image: new Blob(['x'], { type: 'image/png' }) })).toBe('not_allowed');
+    expect(
+      await shareMatchMoment(a, 'invite', ctx, { via: 'sheet', t: tr, image: new Blob(['x'], { type: 'image/png' }) }),
+    ).toBe('not_allowed');
     expect(a.share).not.toHaveBeenCalled();
     const ctx2 = { ...ctx, id: 'm2' };
-    expect(await shareMatchMoment(a, 'invite', ctx2, { via: 'sheet', t: tr, image: new Blob(['x'], { type: 'image/png' }) })).toBe('shared');
+    expect(
+      await shareMatchMoment(a, 'invite', ctx2, { via: 'sheet', t: tr, image: new Blob(['x'], { type: 'image/png' }) }),
+    ).toBe('shared');
     expect(a.share.mock.calls[0][0].image).toBeInstanceOf(Blob);
     expect(momentAvailable('invite', ctx2)).toBe(false);
   });
@@ -207,8 +321,20 @@ describe('sharing within the per-match cap', () => {
     const claim = vi.fn(async () => false);
     const off = setMomentClaimer(claim);
     try {
-      const ctx = { kind: 'duel' as const, id: 'm9', url: 'https://vande.example/i/k7m2p9x4qa', inviterAlias: 'Swing King', pitch: 'hard' as const };
-      expect(await shareMatchMoment(a, 'invite', ctx, { via: 'sheet', t: tr, image: new Blob(['x'], { type: 'image/png' }) })).toBe('not_allowed');
+      const ctx = {
+        kind: 'duel' as const,
+        id: 'm9',
+        url: 'https://vande.example/i/k7m2p9x4qa',
+        inviterAlias: 'Swing King',
+        pitch: 'hard' as const,
+      };
+      expect(
+        await shareMatchMoment(a, 'invite', ctx, {
+          via: 'sheet',
+          t: tr,
+          image: new Blob(['x'], { type: 'image/png' }),
+        }),
+      ).toBe('not_allowed');
       expect(claim).toHaveBeenCalledWith('m9', 'invite');
       expect(a.share).not.toHaveBeenCalled();
       // The server said no: this device remembers it.
@@ -223,7 +349,13 @@ describe('sharing within the per-match cap', () => {
     const a = adapter();
     const past = { kind: 'duel' as const, id: 'm3', url: 'u', deadline: '2020-01-01T00:00:00Z' };
     expect(await shareMatchMoment(a, 'reminder', past, { via: 'sheet', t: tr })).toBe('not_allowed');
-    const sealed = { kind: 'duel' as const, id: 'm3', url: 'u', players: ['A', 'B'] as [string, string], revealed: false };
+    const sealed = {
+      kind: 'duel' as const,
+      id: 'm3',
+      url: 'u',
+      players: ['A', 'B'] as [string, string],
+      revealed: false,
+    };
     expect(await shareMatchMoment(a, 'final', sealed, { via: 'sheet', t: tr })).toBe('not_allowed');
     expect(await shareMatchMoment(a, 'final', { ...sealed, revealed: true }, { via: 'sheet', t: tr })).toBe('shared');
   });
@@ -237,31 +369,68 @@ describe('share cards', () => {
     expect(sealed).toMatchObject({ kind: 'match', score: null, result: null, potm: null });
     expect(JSON.stringify(sealed)).not.toMatch(/\d+\/\d+/);
     const open = matchCardModel(tr, { log, players: [me, them], revealed: true, url: 'https://vande.example/m/x' });
-    expect(open.kind === 'match' && open.score).toEqual([`${log.innings[0].runs}/${log.innings[0].wickets}`, `${log.innings[1].runs}/${log.innings[1].wickets}`]);
+    expect(open.kind === 'match' && open.score).toEqual([
+      `${log.innings[0].runs}/${log.innings[0].wickets}`,
+      `${log.innings[1].runs}/${log.innings[1].wickets}`,
+    ]);
     expect(open.kind === 'match' && open.result).toContain(log.players[log.result.winner ?? 0].alias);
   });
   it('invite, Daily Six and practice cards carry the challenge and a browser link', async () => {
     const tr = await t();
-    const invite = inviteCardModel(tr, { inviter: me, conditions: { pitch: 'green', weather: 'humid' }, url: 'https://vande.example/i/tok' });
+    const invite = inviteCardModel(tr, {
+      inviter: me,
+      conditions: { pitch: 'green', weather: 'humid' },
+      url: 'https://vande.example/i/tok',
+    });
     expect(invite).toMatchObject({ url: 'vande.example/i/tok', title: expect.stringContaining(me.alias) });
     expect(invite.kind === 'invite' && invite.chips.length).toBe(2);
-    const daily = dailyCardModel(tr, { player: me, day: '2026-10-25', score: 23, best: 27, streak: 4, conditions: null, url: 'https://vande.example/daily' });
+    const daily = dailyCardModel(tr, {
+      player: me,
+      day: '2026-10-25',
+      score: 23,
+      best: 27,
+      streak: 4,
+      conditions: null,
+      url: 'https://vande.example/daily',
+    });
     expect(daily.kind === 'daily' && daily.big).toBe('23');
-    const practice = practiceCardModel(tr, { me, ghost: them, myScore: [14, 1], ghostScore: [11, 2], result: 'won', url: 'https://vande.example/ghosts' });
+    const practice = practiceCardModel(tr, {
+      me,
+      ghost: them,
+      myScore: [14, 1],
+      ghostScore: [11, 2],
+      result: 'won',
+      url: 'https://vande.example/ghosts',
+    });
     expect(practice.kind === 'practice' && practice.score).toEqual(['14/1', '11/2']);
   });
   it('a Group Cup invite card names the cup and says what joining means, never the duel copy', async () => {
     const tr = await t();
     const duel = inviteCardModel(tr, { inviter: me, conditions: null, url: 'https://vande.example/i/tok' });
-    const cup = inviteCardModel(tr, { inviter: me, conditions: null, url: 'https://vande.example/i/tok', cup: { name: 'Office Cup' } });
-    expect(cup).toMatchObject({ kind: 'invite', eyebrow: 'Group Cup invite', title: `${me.alias} invited you to Office Cup`, url: 'vande.example/i/tok' });
+    const cup = inviteCardModel(tr, {
+      inviter: me,
+      conditions: null,
+      url: 'https://vande.example/i/tok',
+      cup: { name: 'Office Cup' },
+    });
+    expect(cup).toMatchObject({
+      kind: 'invite',
+      eyebrow: 'Group Cup invite',
+      title: `${me.alias} invited you to Office Cup`,
+      url: 'vande.example/i/tok',
+    });
     expect(cup.body).toMatch(/Join the cup/);
     expect(cup.body).toMatch(/everyone plays everyone/);
     expect(cup.body).toMatch(/deadline/);
     expect(cup.kind === 'invite' && cup.chips).toEqual(['Round robin', 'Top two: final']);
     expect(cup.cta).toBe('Join in your browser. No install needed.');
     for (const field of ['eyebrow', 'title', 'body', 'cta'] as const) expect(cup[field]).not.toEqual(duel[field]);
-    const unnamed = inviteCardModel(tr, { inviter: me, conditions: null, url: 'https://vande.example/i/tok', cup: { name: null } });
+    const unnamed = inviteCardModel(tr, {
+      inviter: me,
+      conditions: null,
+      url: 'https://vande.example/i/tok',
+      cup: { name: null },
+    });
     expect(unnamed.title).toBe(`${me.alias} invited you to a Group Cup`);
   });
 });
@@ -333,16 +502,32 @@ describe('highlight cut', () => {
 
 describe('Training', () => {
   it('bats one ball and bowls the lesson ball into a training log the engine verifies', async () => {
-    const { buildTrainingLog, trainingCoachRef, trainingPlan, trainingSetup, TRAINING_LESSON } = await import('@/engine/training');
+    const { buildTrainingLog, trainingCoachRef, trainingPlan, trainingSetup, TRAINING_LESSON } =
+      await import('@/engine/training');
     const { localInnings } = await import('@/screens/local/localInnings');
     const setup = trainingSetup();
     const inn = localInnings({ plan: setup.coachOver, conditions: setup.conditions, seed: setup.seed, maxBalls: 1 });
     const first = await inn.nextBall();
     await inn.submitShot(engine.autoBat('training-test', first!.delivery, setup.coachOver.field));
     expect(await inn.nextBall()).toBeNull();
-    const gesture = { pointer: 'touch' as const, samples: [[0, 0.5, 0.5], [420, 0.5, 0.5], [781, 0.52, 0.5]] as Array<[number, number, number]> };
+    const gesture = {
+      pointer: 'touch' as const,
+      samples: [
+        [0, 0.5, 0.5],
+        [420, 0.5, 0.5],
+        [781, 0.52, 0.5],
+      ] as Array<[number, number, number]>,
+    };
     const plan = trainingPlan(TRAINING_LESSON.choices.yorker, gesture, setup.seed);
-    const log = await buildTrainingLog({ setup, player: me, coach: trainingCoachRef('Coach Ghost', them.kit), plan, inputs: inn.inputs(), finish: 'auto', hour: '2026-10-25T10:00Z' });
+    const log = await buildTrainingLog({
+      setup,
+      player: me,
+      coach: trainingCoachRef('Coach Ghost', them.kit),
+      plan,
+      inputs: inn.inputs(),
+      finish: 'auto',
+      hour: '2026-10-25T10:00Z',
+    });
     expect(log.kind).toBe('training');
     expect(log.inputs[0][0]).toEqual(inn.inputs()[0]);
     expect(await engine.verifyMatchLog(log)).toEqual({ ok: true });
@@ -352,7 +537,10 @@ describe('Training', () => {
 describe('wave F details', () => {
   it('a card line always fits: smaller type first, then the middle of a long link elided', async () => {
     const { fitLine } = await import('@/screens/share/cards');
-    const ctx = { font: '', measureText: (s: string) => ({ width: s.length * (parseInt(ctx.font.split(' ')[1], 10) * 0.55) }) } as unknown as CanvasRenderingContext2D;
+    const ctx = {
+      font: '',
+      measureText: (s: string) => ({ width: s.length * (parseInt(ctx.font.split(' ')[1], 10) * 0.55) }),
+    } as unknown as CanvasRenderingContext2D;
     expect(fitLine(ctx, 'vande.example/i/abc', 832, 650, 28, 22)).toBe('vande.example/i/abc');
     const long = `vande.example/i/${'A'.repeat(51)}.${'B'.repeat(22)}`;
     const fitted = fitLine(ctx, long, 832, 650, 28, 22);
@@ -365,8 +553,17 @@ describe('wave F details', () => {
   it('the Daily Six score is explained exactly: runs, fours, sixes and wickets in hand', async () => {
     const { dailyBreakdown } = await import('@/screens/daily/DailyRoute');
     const ball = (runs: number, dead = false) => ({ runs, dead }) as never;
-    const log = { innings: [{ runs: 21, wickets: 1, balls: [ball(4), ball(6), ball(1), ball(0), ball(4), ball(6, true)] }] } as unknown as Parameters<typeof dailyBreakdown>[0];
-    expect(dailyBreakdown(log)).toEqual({ runs: 21, wickets: 1, fours: 2, sixes: 1, inHand: 1, total: 21 * 10 + 2 * 4 + 1 * 8 + 1 * 12 });
+    const log = {
+      innings: [{ runs: 21, wickets: 1, balls: [ball(4), ball(6), ball(1), ball(0), ball(4), ball(6, true)] }],
+    } as unknown as Parameters<typeof dailyBreakdown>[0];
+    expect(dailyBreakdown(log)).toEqual({
+      runs: 21,
+      wickets: 1,
+      fours: 2,
+      sixes: 1,
+      inHand: 1,
+      total: 21 * 10 + 2 * 4 + 1 * 8 + 1 * 12,
+    });
   });
 
   it('Hinglish relative times stay in Hinglish', async () => {

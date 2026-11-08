@@ -8,7 +8,17 @@
  *   - Reduced Motion: the same faces, 1.5 times slower; below a 38 px head the channels are zero.
  */
 import { describe, expect, it, vi } from 'vitest';
-import { CH, CHANNELS, DRAW, createOut, deliveryTakeKey, prepare, sample, type DirectorAnchors, type DirectorPlan } from '@/render3d/core/motion/director';
+import {
+  CH,
+  CHANNELS,
+  DRAW,
+  createOut,
+  deliveryTakeKey,
+  prepare,
+  sample,
+  type DirectorAnchors,
+  type DirectorPlan,
+} from '@/render3d/core/motion/director';
 import { anchorsFor, delivery, idleAnchors, randomSpec, rng } from './world';
 import { frameOf, record, recordFile, timeOf, val } from './gates';
 
@@ -16,14 +26,18 @@ recordFile('expression');
 vi.setConfig({ testTimeout: 120_000 });
 
 const X = [CH.xConcentration, CH.xEffort, CH.xFrustration, CH.xRelief, CH.xCelebration];
-const withOutcome = (a: DirectorAnchors, outcome: string | null, outcomeAt: number | null): DirectorAnchors => ({ ...a, outcome, outcomeAt });
+const withOutcome = (a: DirectorAnchors, outcome: string | null, outcomeAt: number | null): DirectorAnchors => ({
+  ...a,
+  outcome,
+  outcomeAt,
+});
 const peak = (p: DirectorPlan, c: number, from: number, to: number) => {
   let m = 0;
   for (let i = Math.max(0, frameOf(p, from)); i < Math.min(p.n, frameOf(p, to)); i++) m = Math.max(m, val(p, i, c));
   return m;
 };
 
-describe('concentration is the task\'s', () => {
+describe("concentration is the task's", () => {
   it('rises as the ball is coming, to at most 0.5 for the batter and 0.35 for the bowler, and is gone a moment after the task; between balls there is none', () => {
     const r = rng(7);
     let strikerPeak = 0;
@@ -56,15 +70,18 @@ describe('concentration is the task\'s', () => {
       const key = deliveryTakeKey({ seed: 'conc', overIndex: 0, ballIndex: k });
       const d1 = delivery({ ...randomSpec(r), outcome: 'four' });
       const a = prepare(anchorsFor(d1, { role: 'striker', key, pre: true }), { hz: 60 });
-      const b = prepare(withOutcome(anchorsFor(d1, { role: 'striker', key }), 'six', d1.timeline.outcomeAt), { hz: 60 });
+      const b = prepare(withOutcome(anchorsFor(d1, { role: 'striker', key }), 'six', d1.timeline.outcomeAt), {
+        hz: 60,
+      });
       // the live plan and the result's agree on every expression until the first moment the result matters
       const until = frameOf(a, Math.min(d1.timeline.contact ?? d1.timeline.passAt, d1.timeline.outcomeAt) + 120);
-      for (let i = 0; i < until; i++) for (const c of X) expect(a.trace[i * CHANNELS + c], `#${k} frame ${i} ch${c}`).toBe(b.trace[i * CHANNELS + c]);
+      for (let i = 0; i < until; i++)
+        for (const c of X) expect(a.trace[i * CHANNELS + c], `#${k} frame ${i} ch${c}`).toBe(b.trace[i * CHANNELS + c]);
     }
   });
 });
 
-describe('the reaction\'s face', () => {
+describe("the reaction's face", () => {
   const OUT = ['six', 'four', 'runs', 'dot', 'leave', 'close_call', 'wicket'] as const;
 
   it('begins at outcomeAt plus the seeded 180 to 380 ms and not before (bit-equal before), sized by the result', () => {
@@ -80,10 +97,13 @@ describe('the reaction\'s face', () => {
         const p = prepare(withOutcome(base, o, at), { hz: 60 });
         // the three reaction channels are zero before the reaction and the plans agree on every channel until it starts
         const lag = p.draw[DRAW.reactionMs];
-        for (let i = 0; i < frameOf(p, at + 180); i++) for (const c of [CH.xFrustration, CH.xRelief, CH.xCelebration]) expect(p.trace[i * CHANNELS + c]).toBe(0);
+        for (let i = 0; i < frameOf(p, at + 180); i++)
+          for (const c of [CH.xFrustration, CH.xRelief, CH.xCelebration]) expect(p.trace[i * CHANNELS + c]).toBe(0);
         expect(lag).toBeGreaterThanOrEqual(180);
         expect(lag).toBeLessThanOrEqual(380);
-        for (let i = 0; i < frameOf(p, at + 180); i++) for (const c of X) expect(p.trace[i * CHANNELS + c], `${o} #${k} frame ${i} ch${c}`).toBe(ref.trace[i * CHANNELS + c]);
+        for (let i = 0; i < frameOf(p, at + 180); i++)
+          for (const c of X)
+            expect(p.trace[i * CHANNELS + c], `${o} #${k} frame ${i} ch${c}`).toBe(ref.trace[i * CHANNELS + c]);
         X.forEach((c, j) => (top[o][j] = Math.max(top[o][j], peak(p, c, at, at + 8000))));
       }
     }
@@ -115,7 +135,8 @@ describe('the reaction\'s face', () => {
       const n = prepare(withOutcome(base, 'six', at), { hz: 60 });
       const m = prepare(withOutcome({ ...base, reducedMotion: true }, 'six', at), { hz: 60 });
       const reach = (p: DirectorPlan, level: number) => {
-        for (let i = frameOf(p, at); i < p.n; i++) if (val(p, i, CH.xCelebration) >= level) return timeOf(p, i) - (at + p.draw[DRAW.reactionMs]);
+        for (let i = frameOf(p, at); i < p.n; i++)
+          if (val(p, i, CH.xCelebration) >= level) return timeOf(p, i) - (at + p.draw[DRAW.reactionMs]);
         return Infinity;
       };
       const tn = reach(n, 0.5);
@@ -131,9 +152,11 @@ describe('the reaction\'s face', () => {
 });
 
 describe('detail by head size', () => {
-  it('below the level that shows a face the expression channels are zero, and above it they are the plan\'s', () => {
+  it("below the level that shows a face the expression channels are zero, and above it they are the plan's", () => {
     const d = delivery({ speedKph: 130, lengthM: 6, lineM: 0, variation: 0, outcome: 'six' });
-    const p = prepare(withOutcome(anchorsFor(d, { role: 'striker', key: 'xd#1' }), 'six', d.timeline.outcomeAt), { hz: 60 });
+    const p = prepare(withOutcome(anchorsFor(d, { role: 'striker', key: 'xd#1' }), 'six', d.timeline.outcomeAt), {
+      hz: 60,
+    });
     const out = createOut();
     const t = d.timeline.outcomeAt + 1500;
     sample(p, t, out, 2);

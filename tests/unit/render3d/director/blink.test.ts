@@ -144,9 +144,15 @@ describe('G5: no blink while the eyes are on the ball, and a cluster just after'
       const n = 600;
       for (let k = 0; k < n; k++) {
         const d = delivery(randomSpec(r));
-        const a = anchorsFor(d, { role, key: deliveryTakeKey({ seed: 'g5', overIndex: Math.floor(k / 6), ballIndex: k % 6 }), person: `look-${k % 5}`, series: 'pace' });
+        const a = anchorsFor(d, {
+          role,
+          key: deliveryTakeKey({ seed: 'g5', overIndex: Math.floor(k / 6), ballIndex: k % 6 }),
+          person: `look-${k % 5}`,
+          series: 'pace',
+        });
         const t = d.timeline;
-        const win = role === 'bowler' ? [t.gather - 120, t.release + 150] : [t.release - 150, (t.contact ?? t.passAt) + 150];
+        const win =
+          role === 'bowler' ? [t.gather - 120, t.release + 150] : [t.release - 150, (t.contact ?? t.passAt) + 150];
         const ev = blinkEvents(prepare(a, { hz: 240 }), CH.blinkL, 0.05);
         for (const e of ev) {
           blinks++;
@@ -155,7 +161,13 @@ describe('G5: no blink while the eyes are on the ball, and a cluster just after'
         if (ev.some((e) => e.on >= win[1] + 100 && e.on <= win[1] + 620)) bunch++;
         if (ev.some((e) => e.on >= win[1] + 3100 && e.on <= win[1] + 3620)) baseline++;
       }
-      record(`${role}.window`, { deliveries: n, blinks, blinksInWindow: inWindow, afterWindowShare: bunch / n, sameSpanLaterShare: baseline / n });
+      record(`${role}.window`, {
+        deliveries: n,
+        blinks,
+        blinksInWindow: inWindow,
+        afterWindowShare: bunch / n,
+        sameSpanLaterShare: baseline / n,
+      });
       expect(inWindow).toBe(0);
       expect(bunch / n).toBeGreaterThanOrEqual(0.3);
       expect(bunch).toBeGreaterThanOrEqual(2 * baseline);

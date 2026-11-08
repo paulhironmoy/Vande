@@ -27,7 +27,11 @@ export interface PcmAudio {
   loudness: LoudnessReport & { bedGainDb: number; gainDb: number; limitedDb: number };
 }
 
-export async function renderHighlightAudio(plan: HighlightPlan, tl: Timeline, sampleRate = AUDIO_RATE): Promise<PcmAudio> {
+export async function renderHighlightAudio(
+  plan: HighlightPlan,
+  tl: Timeline,
+  sampleRate = AUDIO_RATE,
+): Promise<PcmAudio> {
   const length = Math.round((plan.durationMs / 1000) * sampleRate);
   // Channel 0: the action through its compressor. Channel 1: the crowd bed. Every voice is mono.
   const ctx = new OfflineAudioContext(2, length, sampleRate);
@@ -68,7 +72,10 @@ export async function renderHighlightAudio(plan: HighlightPlan, tl: Timeline, sa
       for (let local = 0; local < sc.t1 - sc.t0; local += 250) {
         const r = Math.min(sc.r1, sc.r0 + local);
         const s = segAt(r) ?? seg;
-        bed.gain.setValueAtTime(0.03 + crowdAt(s.script, s.sceneStart + Math.max(0, r - s.t0)) * 0.13, (sc.t0 + local) / 1000);
+        bed.gain.setValueAtTime(
+          0.03 + crowdAt(s.script, s.sceneStart + Math.max(0, r - s.t0)) * 0.13,
+          (sc.t0 + local) / 1000,
+        );
       }
       for (const e of seg.script.events) {
         if (e.t < seg.sceneStart || e.t > seg.sceneEnd) continue;
@@ -117,12 +124,24 @@ export function masterHighlight(action: Float32Array, bed: Float32Array, sampleR
     length: n,
     numberOfChannels: 2,
     getChannelData: () => out,
-    loudness: { integrated: final.integrated + 10 * Math.log10(2), truePeak: final.truePeak, samplePeak: final.samplePeak, bedGainDb, gainDb: r.gainDb, limitedDb: r.limitedDb },
+    loudness: {
+      integrated: final.integrated + 10 * Math.log10(2),
+      truePeak: final.truePeak,
+      samplePeak: final.samplePeak,
+      bedGainDb,
+      gainDb: r.gainDb,
+      limitedDb: r.limitedDb,
+    },
   };
 }
 
 /** 16-bit PCM WAV, base64 (what the render service muxes). */
-export function wavBase64(buf: { sampleRate: number; length: number; numberOfChannels: number; getChannelData(channel: number): Float32Array }): string {
+export function wavBase64(buf: {
+  sampleRate: number;
+  length: number;
+  numberOfChannels: number;
+  getChannelData(channel: number): Float32Array;
+}): string {
   const ch = Math.min(2, buf.numberOfChannels);
   const n = buf.length;
   const bytes = new Uint8Array(44 + n * ch * 2);

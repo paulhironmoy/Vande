@@ -27,8 +27,25 @@ import type { ContactFeel, PracticeSink } from '@/render3d/practice/types';
 import { playReaction, playSound, type FxId, type TakePick } from './bank';
 import { contactCaption, dismissalCaption, emitCaption, type CaptionKey } from './captions';
 import { bedBrightness, bedGain, fadeBed, followCurve, followGain, resyncBed } from './crowdBed';
-import { CROWD, createEmotionMachine, type CrowdEmotion, type CrowdReaction, type DeliveryContext, type EmotionMoment } from './emotion';
-import { audible, currentGraph, duckUnder, isQuiet, onAudioResume, setQuiet, silenceCrowd, type Bus, type LiveGraph } from './engine';
+import {
+  CROWD,
+  createEmotionMachine,
+  type CrowdEmotion,
+  type CrowdReaction,
+  type DeliveryContext,
+  type EmotionMoment,
+} from './emotion';
+import {
+  audible,
+  currentGraph,
+  duckUnder,
+  isQuiet,
+  onAudioResume,
+  setQuiet,
+  silenceCrowd,
+  type Bus,
+  type LiveGraph,
+} from './engine';
 import type { FeelPattern } from './feel';
 import { hapticsEnabled, playFeel } from './haptics';
 import { MatchAudio, installMatchAudioUnlock } from './match';
@@ -71,7 +88,12 @@ export interface PracticeSoundscape extends PracticeSink {
 const now = () => performance.now();
 const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const reducedMotion = () => typeof document !== 'undefined' && document.documentElement.dataset.motion === 'reduced';
-const BOUNCE: Readonly<Record<PitchCondition, FxId>> = { balanced: 'bounce', hard: 'bounce_hard', green: 'bounce_green', turning: 'bounce_turning' };
+const BOUNCE: Readonly<Record<PitchCondition, FxId>> = {
+  balanced: 'bounce',
+  hard: 'bounce_hard',
+  green: 'bounce_green',
+  turning: 'bounce_turning',
+};
 /** Crowd reactions sit this far under unit gain (each is normalised to its own loudness: src/audio/crowdVoices.ts). */
 const CROWD_TRIM = 0.8;
 
@@ -118,7 +140,7 @@ export function createPracticeSink(): PracticeSoundscape {
     return { delivery: takeKey, occurrence };
   };
 
-  const later = <T,>(fn: (arg: T) => void, dueMs: number, arg: T) => {
+  const later = <T>(fn: (arg: T) => void, dueMs: number, arg: T) => {
     const wait = dueMs - now();
     if (wait <= 1) fn(arg);
     else {
@@ -154,7 +176,12 @@ export function createPracticeSink(): PracticeSoundscape {
     const rate = 1 + 0.03 * (2 * takeUnit(pick.delivery, `crowd:${kind}`, pick.occurrence) - 1);
     let played = playReaction(g, kind, when, gain, rate, pick);
     if (!played && (kind === 'cheer' || kind === 'eruption' || kind === 'ovation')) {
-      voices.roar(g.target.crowd, when, (kind === 'eruption' ? 1 : 0.85) * level, kind === 'ovation' ? 4 : kind === 'eruption' ? 3.4 : 2.8);
+      voices.roar(
+        g.target.crowd,
+        when,
+        (kind === 'eruption' ? 1 : 0.85) * level,
+        kind === 'ovation' ? 4 : kind === 'eruption' ? 3.4 : 2.8,
+      );
       played = 'synth:live';
     }
     logAudio('crowd', kind, dueMs, { ctx: g.ctx, ctxTime: when, level, bus: 'crowd', detail: played ?? 'none' });
@@ -273,7 +300,10 @@ export function createPracticeSink(): PracticeSoundscape {
           const fx = edgeSound(kind, intensity);
           sound(fx, 1, due, 'effects', 'contact');
           feelAt('tick', due);
-          captionAt(kind ? contactCaption(kind, tm ?? undefined) : fx === 'edge_thick' ? 'inside_edge' : 'outside_edge', due);
+          captionAt(
+            kind ? contactCaption(kind, tm ?? undefined) : fx === 'edge_thick' ? 'inside_edge' : 'outside_edge',
+            due,
+          );
           break;
         }
         case 'pad':
@@ -288,7 +318,19 @@ export function createPracticeSink(): PracticeSoundscape {
         default:
           // Bowled, catch, four and six: their sound, haptic and caption follow the confirmed moment. Before the stage
           // sends moments, the scene cue plays them and the feel (at the same physical moment) captions them.
-          if (!moments) captionAt(feel === 'bowled' ? 'bowled' : feel === 'catch' ? 'caught' : feel === 'four' ? 'four' : feel === 'six' ? 'six' : null, due);
+          if (!moments)
+            captionAt(
+              feel === 'bowled'
+                ? 'bowled'
+                : feel === 'catch'
+                  ? 'caught'
+                  : feel === 'four'
+                    ? 'four'
+                    : feel === 'six'
+                      ? 'six'
+                      : null,
+              due,
+            );
           break;
       }
     },

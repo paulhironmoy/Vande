@@ -20,11 +20,22 @@ describe('createNet defaults', () => {
   it('works with only secureStore, setOnline, locale and the age confirmation: enqueue then flush reaches the Worker', async () => {
     const b = await createLocalBackend({ engine: fakeEngine, helpers: fakeHelpers, now: Date.now() });
     vi.stubEnv('VITE_API_LOCAL', '1');
-    vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => b.fetch(new Request(String(input), { method: init?.method, headers: init?.headers, body: init?.body })));
+    vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) =>
+      b.fetch(new Request(String(input), { method: init?.method, headers: init?.headers, body: init?.body })),
+    );
     const online: boolean[] = [];
-    const net = createNet({ secureStore: createMemorySecureStore(), setOnline: (v) => online.push(v), locale: () => 'en', adultConfirmed: () => true });
+    const net = createNet({
+      secureStore: createMemorySecureStore(),
+      setOnline: (v) => online.push(v),
+      locale: () => 'en',
+      adultConfirmed: () => true,
+    });
     expect(net).not.toBeNull();
-    const entry = await net!.outbox.enqueue({ route: 'POST /v1/duels', body: { conditions: { pitch: 'hard', weather: 'clear' } }, group: 'duels' });
+    const entry = await net!.outbox.enqueue({
+      route: 'POST /v1/duels',
+      body: { conditions: { pitch: 'hard', weather: 'clear' } },
+      group: 'duels',
+    });
     expect(entry.createdAt).toBeGreaterThan(0);
     const flushed = await net!.outbox.flush();
     expect(flushed).toMatchObject({ sent: 1, failed: 0 });
@@ -98,7 +109,14 @@ describe('createNet defaults', () => {
 
   it('an Outbox given undefined optional fields keeps its defaults', async () => {
     const sent: string[] = [];
-    const box = new Outbox({ storage: memoryOutboxStorage(), send: async (e) => void sent.push(e.route), now: undefined, random: undefined, schedule: undefined, maxAgeMs: undefined });
+    const box = new Outbox({
+      storage: memoryOutboxStorage(),
+      send: async (e) => void sent.push(e.route),
+      now: undefined,
+      random: undefined,
+      schedule: undefined,
+      maxAgeMs: undefined,
+    });
     await box.enqueue({ route: 'POST /v1/report', body: {}, group: 'g' });
     expect(await box.flush()).toMatchObject({ sent: 1 });
     expect(sent).toEqual(['POST /v1/report']);

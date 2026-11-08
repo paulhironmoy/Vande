@@ -126,16 +126,27 @@ export function buildDiagnostics(result: DeliveryResult, releaseScene: number, m
     const atC = batAt(result.bat, tc, batContactT, velocityPeakT);
     batAtContact = atC ? batToWorld(atC, mirror) : null;
   }
-  const idealP = ballAt(result.ball, result.flight.idealContactT) ?? ballAt(result.flight.samples, result.flight.idealContactT);
+  const idealP =
+    ballAt(result.ball, result.flight.idealContactT) ?? ballAt(result.flight.samples, result.flight.idealContactT);
   const contactP = c.point ? w(c.point) : null;
   const from = contactP ?? (idealP ? w(idealP) : w(result.flight.release.p));
   const ground = { x: from.x, y: 0.02, z: from.z };
   const face = c.faceBearingDeg !== null ? bearingDir(c.faceBearingDeg, mirror) : null;
-  const intended = c.intendedBearingDeg !== null ? { from: ground, dir: bearingDir(c.intendedBearingDeg, mirror), length: 12 } : null;
-  const actual = c.exitBearingDeg !== null && touched ? { from: ground, dir: bearingDir(c.exitBearingDeg, mirror), length: Math.min(22, Math.max(6, result.outcome.endDistanceM ?? 14)) } : null;
+  const intended =
+    c.intendedBearingDeg !== null ? { from: ground, dir: bearingDir(c.intendedBearingDeg, mirror), length: 12 } : null;
+  const actual =
+    c.exitBearingDeg !== null && touched
+      ? {
+          from: ground,
+          dir: bearingDir(c.exitBearingDeg, mirror),
+          length: Math.min(22, Math.max(6, result.outcome.endDistanceM ?? 14)),
+        }
+      : null;
   let lbw: Diagnostics['lbw'] = null;
   if (result.lbw) {
-    const hit = result.events.find((e) => e.kind === 'pad' || (e.kind === 'contact' && (e.contact === 'pad' || e.contact === 'body')));
+    const hit = result.events.find(
+      (e) => e.kind === 'pad' || (e.kind === 'contact' && (e.contact === 'pad' || e.contact === 'body')),
+    );
     const tHit = hit ? hit.t : (c.t ?? result.flight.idealContactT);
     const path: Vec3[] = [];
     for (let t = tHit; t <= result.flight.stumpsT + 1e-9; t += INCOMING_STEP) {
@@ -143,7 +154,14 @@ export function buildDiagnostics(result: DeliveryResult, releaseScene: number, m
       if (p) path.push(w(p));
     }
     path.push(w(result.lbw.projected));
-    lbw = { impact: w(result.lbw.impact), path, projected: w(result.lbw.projected), out: result.lbw.out, reason: result.lbw.reason, at: simToScene(tb, tHit) };
+    lbw = {
+      impact: w(result.lbw.impact),
+      path,
+      projected: w(result.lbw.projected),
+      out: result.lbw.out,
+      reason: result.lbw.reason,
+      at: simToScene(tb, tHit),
+    };
   }
   const padOrBody = c.kind === 'pad' || c.kind === 'body' || result.lbw !== null;
   const bodyOf = padOrBody
@@ -152,7 +170,13 @@ export function buildDiagnostics(result: DeliveryResult, releaseScene: number, m
         result.batterRootOffset,
       )
     : null;
-  const body = bodyOf ? [...bodyOf.pads, bodyOf.torso, { a: bodyOf.head.c, b: bodyOf.head.c, r: bodyOf.head.r }].map((k) => ({ a: w(k.a), b: w(k.b), r: k.r })) : null;
+  const body = bodyOf
+    ? [...bodyOf.pads, bodyOf.torso, { a: bodyOf.head.c, b: bodyOf.head.c, r: bodyOf.head.r }].map((k) => ({
+        a: w(k.a),
+        b: w(k.b),
+        r: k.r,
+      }))
+    : null;
   // Where it pitched: only a pitch the replayed ball makes (COH4). A ball met on the full, or bowled or taken before
   // its planned pitch, has no pitch marker.
   const pitch = result.flight.bounce && presentedBounce(result, result.flight.bounce) ? result.flight.bounce : null;

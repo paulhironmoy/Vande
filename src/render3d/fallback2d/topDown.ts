@@ -82,7 +82,7 @@ export class TopDownPainter {
     b.fill();
     const colors = ['#ffb347', '#5fe3ff', '#ff5d8f', '#ffd36e', '#e9edf5', '#7ef0c5'];
     let seed = 7;
-    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     for (let i = 0; i < 900; i++) {
       const a = rnd() * Math.PI * 2;
       const r = (BOUNDARY_R + 9 + rnd() * 16) * v.scale;
@@ -105,7 +105,8 @@ export class TopDownPainter {
     b.globalAlpha = 0.08;
     b.fillStyle = '#ffffff';
     const stripe = 7 * v.scale;
-    for (let x = ox - (BOUNDARY_R + 4) * v.scale; x < ox + (BOUNDARY_R + 4) * v.scale; x += stripe * 2) b.fillRect(x, 0, stripe, this.h);
+    for (let x = ox - (BOUNDARY_R + 4) * v.scale; x < ox + (BOUNDARY_R + 4) * v.scale; x += stripe * 2)
+      b.fillRect(x, 0, stripe, this.h);
     b.restore();
     b.globalAlpha = 1;
     // Rope, 30-yard circle, pitch and creases.
@@ -239,9 +240,15 @@ export class TopDownPainter {
     for (const e of script.events) {
       const dt = t - e.t;
       if (dt < 0 || dt > 900 || !e.at) continue;
-      if (e.kind !== 'bounce' && e.kind !== 'boundary' && e.kind !== 'six' && e.kind !== 'stumps' && e.kind !== 'catch') continue;
+      if (e.kind !== 'bounce' && e.kind !== 'boundary' && e.kind !== 'six' && e.kind !== 'stumps' && e.kind !== 'catch')
+        continue;
       const u = dt / 900;
-      g.strokeStyle = e.kind === 'six' ? `rgba(255,179,71,${1 - u})` : e.kind === 'stumps' || e.kind === 'catch' ? `rgba(255,77,106,${1 - u})` : `rgba(82,226,255,${1 - u})`;
+      g.strokeStyle =
+        e.kind === 'six'
+          ? `rgba(255,179,71,${1 - u})`
+          : e.kind === 'stumps' || e.kind === 'catch'
+            ? `rgba(255,77,106,${1 - u})`
+            : `rgba(82,226,255,${1 - u})`;
       g.lineWidth = 2;
       g.beginPath();
       g.arc(this.sx(v, e.at.x), this.sy(v, e.at.z), 4 + u * (e.kind === 'bounce' ? 14 : 40), 0, Math.PI * 2);
@@ -368,10 +375,21 @@ export function insetMoment(script: BallScript, t: number): InsetMoment {
 }
 
 const kindOf = (a: ActorTrack): InsetKind =>
-  a.id === 'striker' ? 'striker' : a.role === 'batter' ? 'batter' : a.role === 'bowler' ? 'bowler' : a.role === 'keeper' ? 'keeper' : a.role === 'umpire' ? 'umpire' : 'fielder';
+  a.id === 'striker'
+    ? 'striker'
+    : a.role === 'batter'
+      ? 'batter'
+      : a.role === 'bowler'
+        ? 'bowler'
+        : a.role === 'keeper'
+          ? 'keeper'
+          : a.role === 'umpire'
+            ? 'umpire'
+            : 'fielder';
 
 /** The physics fielder id an actor stands for ('fielder:<id>', or the keeper and bowler under their own ids). */
-const fielderIdOf = (a: ActorTrack): string | null => (a.id.startsWith('fielder:') ? a.id.slice(8) : a.role === 'keeper' || a.role === 'bowler' ? a.id : null);
+const fielderIdOf = (a: ActorTrack): string | null =>
+  a.id.startsWith('fielder:') ? a.id.slice(8) : a.role === 'keeper' || a.role === 'bowler' ? a.id : null;
 
 /** The ball's ground track after the bat, sampled once per script (scene ms, x, z triples). */
 const pathCache = new WeakMap<BallScript, number[]>();
@@ -393,7 +411,11 @@ function afterBat(script: BallScript): number[] {
 }
 
 /** The inset's content at scene time t (null when the moment hides it). Pure. */
-export function insetModel(script: BallScript, t: number, moment: InsetMoment = insetMoment(script, t)): InsetModel | null {
+export function insetModel(
+  script: BallScript,
+  t: number,
+  moment: InsetMoment = insetMoment(script, t),
+): InsetModel | null {
   const p = script.practice;
   if (!p || moment === 'hidden') return null;
   // During the run-up the field is drawn as it is set at the release (the physics positions), and never moves.
@@ -417,7 +439,15 @@ export function insetModel(script: BallScript, t: number, moment: InsetMoment = 
       vx = (s.x - b.x) / 0.15;
       vz = (s.z - b.z) / 0.15;
     }
-    players.push({ id: a.id, kind: kindOf(a), x: s.x, z: s.z, vx, vz, fielded: fielded !== null && fielderIdOf(a) === fielded });
+    players.push({
+      id: a.id,
+      kind: kindOf(a),
+      x: s.x,
+      z: s.z,
+      vx,
+      vz,
+      fielded: fielded !== null && fielderIdOf(a) === fielded,
+    });
   }
   let ball: InsetModel['ball'] = null;
   const path: number[] = [];
@@ -552,7 +582,8 @@ class FieldInsetPainter {
     // Nothing moved by a tenth of a pixel: keep the picture (the calm and the frozen run-up views cost nothing).
     let key = `${model.moment}|${ground?.key ?? ''}`;
     for (let i = 0; i < L.at.length; i++) key += `|${Math.round(L.at[i] * 10)}`;
-    if (model.ball) key += `|b${Math.round(model.ball.x * 10)},${Math.round(model.ball.z * 10)},${Math.round(model.ball.y * 4)}`;
+    if (model.ball)
+      key += `|b${Math.round(model.ball.x * 10)},${Math.round(model.ball.z * 10)},${Math.round(model.ball.y * 4)}`;
     key += `|p${model.path.length}`;
     if (key === this.lastKey) return false;
     this.lastKey = key;
@@ -579,7 +610,9 @@ class FieldInsetPainter {
     }
     // Players: umpires first, then the fielding side, then the batters on top.
     const order = (k: InsetKind) => (k === 'umpire' ? 0 : k === 'striker' ? 3 : k === 'batter' ? 2 : 1);
-    const idx = model.players.map((_, i) => i).sort((a, b) => order(model.players[a].kind) - order(model.players[b].kind));
+    const idx = model.players
+      .map((_, i) => i)
+      .sort((a, b) => order(model.players[a].kind) - order(model.players[b].kind));
     for (const i of idx) {
       const p = model.players[i];
       const x = L.at[i * 2];
@@ -649,7 +682,12 @@ class FieldInsetPainter {
       g.stroke();
       return;
     }
-    g.fillStyle = kind === 'striker' || kind === 'batter' ? INSET_LOOK.batter : kind === 'bowler' ? INSET_LOOK.bowler : INSET_LOOK.fielder;
+    g.fillStyle =
+      kind === 'striker' || kind === 'batter'
+        ? INSET_LOOK.batter
+        : kind === 'bowler'
+          ? INSET_LOOK.bowler
+          : INSET_LOOK.fielder;
     g.beginPath();
     g.arc(x, y, r, 0, Math.PI * 2);
     g.fill();
@@ -664,7 +702,10 @@ class FieldInsetPainter {
   }
 
   /** The field under the players (cached): the backing, the ground (camera picture or plain), the rope, the ring, the pitch. */
-  private background(L: { k: number; c: number }, ground: { image: CanvasImageSource; key: string } | null): HTMLCanvasElement {
+  private background(
+    L: { k: number; c: number },
+    ground: { image: CanvasImageSource; key: string } | null,
+  ): HTMLCanvasElement {
     const key = `${this.size}x${this.dpr}|${ground?.key ?? 'plain'}`;
     if (this.bg && key === this.bgKey) return this.bg;
     const c = document.createElement('canvas');
@@ -713,7 +754,8 @@ class FieldInsetPainter {
       b.fillStyle = INSET_LOOK.pitch;
       b.fillRect(L.c - w / 2, L.c - PITCH_HALF * L.k, w, 2 * PITCH_HALF * L.k);
       b.fillStyle = INSET_LOOK.crease;
-      for (const z of [PITCH_HALF - POPPING, -(PITCH_HALF - POPPING)]) b.fillRect(L.c - w / 2 - 1, L.c + z * L.k - 0.5, w + 2, 1);
+      for (const z of [PITCH_HALF - POPPING, -(PITCH_HALF - POPPING)])
+        b.fillRect(L.c - w / 2 - 1, L.c + z * L.k - 0.5, w + 2, 1);
     }
     this.bg = c;
     this.bgKey = key;
@@ -760,7 +802,12 @@ export interface InsetFrameOptions {
  * One stage frame into the inset beside `stageCanvas`: the moment, the model, the paint, and the moment reported on
  * the inset's element (`data-pip-moment`) for the screen's styling. Returns the moment shown, or null without an inset.
  */
-export function paintFieldInset(stageCanvas: HTMLCanvasElement, script: BallScript, t: number, o: InsetFrameOptions = {}): InsetMoment | null {
+export function paintFieldInset(
+  stageCanvas: HTMLCanvasElement,
+  script: BallScript,
+  t: number,
+  o: InsetFrameOptions = {},
+): InsetMoment | null {
   const target = insetTarget(stageCanvas);
   if (!target) return null;
   let painter = painters.get(target.canvas);
@@ -768,7 +815,10 @@ export function paintFieldInset(stageCanvas: HTMLCanvasElement, script: BallScri
     painter = new FieldInsetPainter(target.canvas);
     painters.set(target.canvas, painter);
   }
-  const moment = o.fieldInView || o.blocked || (o.mode !== undefined && o.mode !== 'live' && o.mode !== 'idle') ? 'hidden' : insetMoment(script, t);
+  const moment =
+    o.fieldInView || o.blocked || (o.mode !== undefined && o.mode !== 'live' && o.mode !== 'idle')
+      ? 'hidden'
+      : insetMoment(script, t);
   const shown = moment === 'full' && o.deadBall === false ? 'hidden' : moment;
   painter.paint(shown === 'hidden' ? null : insetModel(script, t, shown), o.ground ?? null);
   if (target.root.dataset.pipMoment !== shown) target.root.dataset.pipMoment = shown;

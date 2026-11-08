@@ -24,7 +24,13 @@ export function UpdateBanner() {
         <Button variant="ghost" size="sm" onClick={dismissPwaUpdate} disabled={updating} data-testid="update-later">
           {t('update.later')}
         </Button>
-        <Button variant="primary" size="sm" onClick={() => void applyPwaUpdate()} loading={updating} data-testid="update-now">
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => void applyPwaUpdate()}
+          loading={updating}
+          data-testid="update-now"
+        >
           {updating ? t('update.updating') : t('update.now')}
         </Button>
       </div>

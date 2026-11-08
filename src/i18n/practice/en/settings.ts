@@ -50,13 +50,15 @@ export const settingsEn = {
   'practice.settings.timing_run': 'Run the timing check',
   'practice.settings.clear': 'Clear Practice data',
   'practice.settings.clear_title': 'Clear Practice data?',
-  'practice.settings.clear_body': 'Deletes the innings in progress, Practice settings and sound, the timing check, mastery, your form and tester answers on this device.',
+  'practice.settings.clear_body':
+    'Deletes the innings in progress, Practice settings and sound, the timing check, mastery, your form and tester answers on this device.',
   'practice.settings.clear_confirm': 'Clear',
 
   // ---- the timing check
   'practice.cal.title': 'Timing check',
   'practice.cal.instruction': 'Tap when the moving ball crosses the line.',
-  'practice.cal.body': 'Five taps measure how long this screen and your input take to respond, so every swing is timed fairly. Touch, mouse and keyboard each keep their own result, on this device.',
+  'practice.cal.body':
+    'Five taps measure how long this screen and your input take to respond, so every swing is timed fairly. Touch, mouse and keyboard each keep their own result, on this device.',
   'practice.cal.start': 'Start',
   'practice.cal.attempt': 'Tap {n} of {total}',
   'practice.cal.tap_area': 'Tap here as the ball crosses the line, or press Space',
@@ -119,7 +121,8 @@ export const settingsEn = {
   // ---- tester mode (hidden)
   'practice.tester.title': 'Tester mode',
   'practice.tester.enable': 'Run study sessions',
-  'practice.tester.enable_hint': 'Consent first, then one-tap questions at the moments they apply. Stored on this device only.',
+  'practice.tester.enable_hint':
+    'Consent first, then one-tap questions at the moments they apply. Stored on this device only.',
   'practice.tester.count': '{count, plural, one {# record stored} other {# records stored}}',
   'practice.tester.none': 'Nothing recorded yet.',
   'practice.tester.export': 'Export as JSON',
@@ -132,7 +135,8 @@ export const settingsEn = {
   'practice.tester.step': 'Study question {n} of {total}',
   'practice.tester.skip': 'Skip',
   'practice.tester.consent_title': 'Study session',
-  'practice.tester.consent_body': 'Record only with the player’s consent. Nothing is sent; there are no names, only taps.',
+  'practice.tester.consent_body':
+    'Record only with the player’s consent. Nothing is sent; there are no names, only taps.',
   'practice.tester.consent_yes': 'Consent recorded: start',
   'practice.tester.consent_no': 'Not now',
   'practice.tester.cohort': 'Player',

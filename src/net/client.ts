@@ -4,7 +4,16 @@
  * by itself: durable retries belong to the outbox.
  */
 import { ApiClientError, codeForStatus } from './errors';
-import { ANONYMOUS_ROUTES, buildPath, methodOf, newIdempotencyKey, type RouteKey, type RouteParams, type RouteRequest, type RouteResponse } from './routes';
+import {
+  ANONYMOUS_ROUTES,
+  buildPath,
+  methodOf,
+  newIdempotencyKey,
+  type RouteKey,
+  type RouteParams,
+  type RouteRequest,
+  type RouteResponse,
+} from './routes';
 
 export type FetchLike = (input: string, init: RequestInit) => Promise<Response>;
 
@@ -51,7 +60,13 @@ export function createApiClient(o: ApiClientOptions): ApiClient {
   const doFetch: FetchLike = o.fetch ?? ((input, init) => fetch(input, init));
   const base = o.baseUrl.replace(/\/+$/, '');
 
-  async function once(route: string, url: string, init: RequestInit, timeoutMs: number, signal?: AbortSignal): Promise<Response> {
+  async function once(
+    route: string,
+    url: string,
+    init: RequestInit,
+    timeoutMs: number,
+    signal?: AbortSignal,
+  ): Promise<Response> {
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     let timedOut = false;
     const timer = setTimeout(() => {
@@ -75,13 +90,18 @@ export function createApiClient(o: ApiClientOptions): ApiClient {
     }
   }
 
-  async function call<K extends RouteKey>(route: K, args: CallArgs<K> = {}, options: CallOptions = {}): Promise<RouteResponse<K>> {
+  async function call<K extends RouteKey>(
+    route: K,
+    args: CallArgs<K> = {},
+    options: CallOptions = {},
+  ): Promise<RouteResponse<K>> {
     const method = methodOf(route);
     const anonymous = options.anonymous ?? ANONYMOUS_ROUTES.has(route);
     let path = buildPath(route, args.params as Record<string, string> | undefined);
     const query = new URLSearchParams();
     if (method === 'GET' && args.body && typeof args.body === 'object') {
-      for (const [k, v] of Object.entries(args.body as Record<string, unknown>)) if (v !== undefined && v !== null && !(args.params && k in (args.params as object))) query.set(k, String(v));
+      for (const [k, v] of Object.entries(args.body as Record<string, unknown>))
+        if (v !== undefined && v !== null && !(args.params && k in (args.params as object))) query.set(k, String(v));
     }
     for (const [k, v] of Object.entries(args.query ?? {})) if (v !== undefined) query.set(k, v);
     if ([...query.keys()].length > 0) path += `?${query.toString()}`;
@@ -101,7 +121,13 @@ export function createApiClient(o: ApiClientOptions): ApiClient {
         if (!token) throw new ApiClientError('unauthorized', 'not signed in', 401);
         headers.authorization = `Bearer ${token}`;
       }
-      const res = await once(route, `${base}${path}`, { method, headers, body }, options.timeoutMs ?? o.timeoutMs ?? 12_000, options.signal);
+      const res = await once(
+        route,
+        `${base}${path}`,
+        { method, headers, body },
+        options.timeoutMs ?? o.timeoutMs ?? 12_000,
+        options.signal,
+      );
       if (res.status === 401 && !anonymous && attempt === 0 && o.onUnauthorized && (await o.onUnauthorized())) continue;
       const text = await res.text();
       let parsed: unknown = null;
@@ -114,7 +140,13 @@ export function createApiClient(o: ApiClientOptions): ApiClient {
       const err = (parsed as { error?: { code?: string; message?: string } } | null)?.error;
       const code = (err?.code as ApiClientError['code'] | undefined) ?? codeForStatus(res.status);
       const decided = res.headers.get('x-decided-at');
-      throw new ApiClientError(code, err?.message ?? `HTTP ${res.status}`, res.status, retryAfterMs(res), decided && !Number.isNaN(Date.parse(decided)) ? decided : null);
+      throw new ApiClientError(
+        code,
+        err?.message ?? `HTTP ${res.status}`,
+        res.status,
+        retryAfterMs(res),
+        decided && !Number.isNaN(Date.parse(decided)) ? decided : null,
+      );
     }
     throw new ApiClientError('unauthorized', 'session expired', 401);
   }

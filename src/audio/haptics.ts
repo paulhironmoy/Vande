@@ -24,9 +24,7 @@ let nativeMod: typeof import('@capacitor/haptics') | null = null;
 
 function loadNative() {
   if (!hapticsModule) {
-    hapticsModule = import('@capacitor/haptics')
-      .then((mod) => (nativeMod = mod))
-      .catch(() => null);
+    hapticsModule = import('@capacitor/haptics').then((mod) => (nativeMod = mod)).catch(() => null);
   }
   return hapticsModule;
 }
@@ -39,7 +37,15 @@ function nativeStep(step: NativeStep): void {
   if (!mod || !enabled || hidden()) return;
   try {
     if (step[1] === 'vibrate') void mod.Haptics.vibrate({ duration: step[2] });
-    else void mod.Haptics.impact({ style: step[1] === 'light' ? mod.ImpactStyle.Light : step[1] === 'medium' ? mod.ImpactStyle.Medium : mod.ImpactStyle.Heavy });
+    else
+      void mod.Haptics.impact({
+        style:
+          step[1] === 'light'
+            ? mod.ImpactStyle.Light
+            : step[1] === 'medium'
+              ? mod.ImpactStyle.Medium
+              : mod.ImpactStyle.Heavy,
+      });
   } catch {
     /* ignore */
   }
@@ -82,7 +88,8 @@ export function haptic(kind: HapticKind): void {
     return;
   }
   try {
-    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') navigator.vibrate(WEB_PATTERNS[kind]);
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function')
+      navigator.vibrate(WEB_PATTERNS[kind]);
   } catch {
     /* ignore */
   }

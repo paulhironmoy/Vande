@@ -8,7 +8,16 @@
  * Measured on 240 Hz bakes. Reduced Motion is covered in reducedMotion.test.ts (it drops the micro-motion on purpose).
  */
 import { describe, expect, it, vi } from 'vitest';
-import { CH, DRAW, createOut, deliveryTakeKey, prepare, sample, type DirectorPlan, type Role } from '@/render3d/core/motion/director';
+import {
+  CH,
+  DRAW,
+  createOut,
+  deliveryTakeKey,
+  prepare,
+  sample,
+  type DirectorPlan,
+  type Role,
+} from '@/render3d/core/motion/director';
 import { anchorsFor, delivery, idleAnchors, randomSpec, rng } from './world';
 import { longestFrozenS, mean, quantile, record, recordFile, saccades, stats, timeOf, val } from './gates';
 
@@ -23,12 +32,17 @@ describe('G6: the gaze is never frozen', () => {
   for (const role of ['bowler', 'striker'] as const) {
     it(`${role}: no stretch longer than 1.5 s without 0.06 degrees of change in eyes or head (200 standing traces, 100 deliveries)`, () => {
       const frozen: number[] = [];
-      for (let s = 0; s < 200; s++) frozen.push(longestFrozenS(prepare(idleAnchors(role, `frz#${s}`, 30_000), { hz: 60 }), EYES_HEAD, 0.06));
+      for (let s = 0; s < 200; s++)
+        frozen.push(longestFrozenS(prepare(idleAnchors(role, `frz#${s}`, 30_000), { hz: 60 }), EYES_HEAD, 0.06));
       const r = rng(21);
       const live: number[] = [];
       for (let k = 0; k < 100; k++) {
         const d = delivery(randomSpec(r));
-        const a = anchorsFor(d, { role, key: deliveryTakeKey({ seed: 'frz', overIndex: 0, ballIndex: k }), series: 'pace' });
+        const a = anchorsFor(d, {
+          role,
+          key: deliveryTakeKey({ seed: 'frz', overIndex: 0, ballIndex: k }),
+          series: 'pace',
+        });
         live.push(longestFrozenS(prepare(a, { hz: 60 }), EYES_HEAD, 0.06));
       }
       record(`${role}.longestFrozenS.standing`, stats(frozen));
@@ -51,12 +65,21 @@ describe('G7: saccades follow the main sequence', () => {
     for (const role of ['bowler', 'striker'] as const) {
       for (let s = 0; s < 80; s++) {
         const p = prepare(idleAnchors(role, `ms#${s}`, 30_000, { person: `look-${s % 5}` }), { hz: 240 });
-        for (const x of saccades(p, CH.gazeYaw, CH.gazePitch, 130, 3)) if (x.v0 < 40) rows.push({ A: x.A, D: x.D, vp: x.vp, ttp: x.ttp, ref: 22 + 2.7 * x.A });
+        for (const x of saccades(p, CH.gazeYaw, CH.gazePitch, 130, 3))
+          if (x.v0 < 40) rows.push({ A: x.A, D: x.D, vp: x.vp, ttp: x.ttp, ref: 22 + 2.7 * x.A });
       }
     }
     const within = rows.filter((x) => x.D >= 0.6 * x.ref && x.D <= 1.6 * x.ref).length / rows.length;
     const ttpOk = rows.filter((x) => x.ttp >= 0.2 && x.ttp <= 0.6).length / rows.length;
-    record('saccade.fromRest', { n: rows.length, within, ttpOk, durationOverRef: stats(rows.map((x) => x.D / x.ref)), peakDegS: stats(rows.map((x) => x.vp)), amplitudeDeg: stats(rows.map((x) => x.A)), timeToPeak: stats(rows.map((x) => x.ttp)) });
+    record('saccade.fromRest', {
+      n: rows.length,
+      within,
+      ttpOk,
+      durationOverRef: stats(rows.map((x) => x.D / x.ref)),
+      peakDegS: stats(rows.map((x) => x.vp)),
+      amplitudeDeg: stats(rows.map((x) => x.A)),
+      timeToPeak: stats(rows.map((x) => x.ttp)),
+    });
     expect(rows.length).toBeGreaterThan(300);
     expect(within).toBeGreaterThanOrEqual(0.95);
     expect(ttpOk).toBeGreaterThanOrEqual(0.9);
@@ -85,10 +108,17 @@ describe('G7: saccades follow the main sequence', () => {
         },
       };
       const p = prepare(a, { hz: 240 });
-      for (const x of saccades(p, CH.gazeYaw, CH.gazePitch, 130, 3)) if (x.v0 < 40) rows.push({ A: x.A, D: x.D, vp: x.vp, ttp: x.ttp, ref: 22 + 2.7 * x.A });
+      for (const x of saccades(p, CH.gazeYaw, CH.gazePitch, 130, 3))
+        if (x.v0 < 40) rows.push({ A: x.A, D: x.D, vp: x.vp, ttp: x.ttp, ref: 22 + 2.7 * x.A });
     }
     const within = rows.filter((x) => x.D >= 0.6 * x.ref && x.D <= 1.6 * x.ref).length / rows.length;
-    record('saccade.amplitudeSweep', { n: rows.length, within, amplitudeDeg: stats(rows.map((x) => x.A)), durationOverRef: stats(rows.map((x) => x.D / x.ref)), peakDegS: stats(rows.map((x) => x.vp)) });
+    record('saccade.amplitudeSweep', {
+      n: rows.length,
+      within,
+      amplitudeDeg: stats(rows.map((x) => x.A)),
+      durationOverRef: stats(rows.map((x) => x.D / x.ref)),
+      peakDegS: stats(rows.map((x) => x.vp)),
+    });
     expect(rows.length).toBeGreaterThan(300);
     expect(Math.max(...rows.map((x) => x.A))).toBeGreaterThan(40);
     expect(Math.min(...rows.map((x) => x.A))).toBeLessThan(6);
@@ -104,19 +134,30 @@ describe('G7: saccades follow the main sequence', () => {
         release: 1500,
         visibleBall: (t: number, out: Float64Array) => {
           if (t < 1000) return false;
-          out[0] = ampDeg * Math.sin(2 * Math.PI * hzWave * (t - 1000) / 1000);
+          out[0] = ampDeg * Math.sin((2 * Math.PI * hzWave * (t - 1000)) / 1000);
           out[1] = 0;
           return true;
         },
       };
     };
     const slow = prepare(sweep(15, 0.5), { hz: 240 });
-    const peakSlow = Math.max(...Array.from({ length: slow.n - 1 }, (_, i) => Math.abs(val(slow, i + 1, CH.gazeYaw) - val(slow, i, CH.gazeYaw)) * slow.hz).filter((_, i) => timeOf(slow, i) > 2200));
+    const peakSlow = Math.max(
+      ...Array.from(
+        { length: slow.n - 1 },
+        (_, i) => Math.abs(val(slow, i + 1, CH.gazeYaw) - val(slow, i, CH.gazeYaw)) * slow.hz,
+      ).filter((_, i) => timeOf(slow, i) > 2200),
+    );
     const sacSlow = saccades(slow, CH.gazeYaw, CH.gazePitch, 130, 3).filter((x) => x.t > 1500);
     const fast = prepare(sweep(25, 1.5), { hz: 240 });
     const sacFast = saccades(fast, CH.gazeYaw, CH.gazePitch, 130, 3).filter((x) => x.t > 1500);
     const gaps = sacFast.slice(1).map((x, i) => x.tPeak - sacFast[i].tPeak);
-    record('pursuit.sweep', { slowPeakDegS: peakSlow, slowSaccades: sacSlow.length, fastSaccades: sacFast.length, fastGapMs: stats(gaps), fastPeakDegS: stats(sacFast.map((x) => x.vp)) });
+    record('pursuit.sweep', {
+      slowPeakDegS: peakSlow,
+      slowSaccades: sacSlow.length,
+      fastSaccades: sacFast.length,
+      fastGapMs: stats(gaps),
+      fastPeakDegS: stats(sacFast.map((x) => x.vp)),
+    });
     expect(sacSlow.length).toBe(0);
     expect(peakSlow).toBeLessThanOrEqual(110 + 5);
     expect(peakSlow).toBeGreaterThan(30);
@@ -151,7 +192,10 @@ describe('G8: the eyes stay in range and land on the target', () => {
     for (let k = 0; k < 60; k++) {
       for (const role of ['bowler', 'striker'] as const) {
         const d = delivery(randomSpec(r));
-        const p = prepare(anchorsFor(d, { role, key: deliveryTakeKey({ seed: 'rng', overIndex: 2, ballIndex: k }), series: 'pace' }), { hz: 60 });
+        const p = prepare(
+          anchorsFor(d, { role, key: deliveryTakeKey({ seed: 'rng', overIndex: 2, ballIndex: k }), series: 'pace' }),
+          { hz: 60 },
+        );
         for (let i = 0; i < p.n; i++) {
           maxYaw = Math.max(maxYaw, Math.abs(val(p, i, CH.eyeYawL)), Math.abs(val(p, i, CH.eyeYawR)));
           maxPitch = Math.max(maxPitch, Math.abs(val(p, i, CH.eyePitchL)), Math.abs(val(p, i, CH.eyePitchR)));
@@ -275,7 +319,11 @@ describe('microsaccades', () => {
       count += p.micro.length / 3;
       secs += 30;
     }
-    record('microsaccade', { perSecond: count / secs, amplitudeDeg: stats(amp), horizontalShare: horizontal / amp.length });
+    record('microsaccade', {
+      perSecond: count / secs,
+      amplitudeDeg: stats(amp),
+      horizontalShare: horizontal / amp.length,
+    });
     expect(count / secs).toBeGreaterThan(0.95);
     expect(count / secs).toBeLessThan(1.25);
     expect(Math.max(...amp)).toBeLessThan(1);

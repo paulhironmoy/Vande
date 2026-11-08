@@ -139,7 +139,12 @@ const CHASE_GAIN_M = 2;
  * fast running (over windows of at least 0.2 s, so the path's millimetre rounding cannot fake it) that brought him
  * nearer to it. The keeper and bowler go to their stumps, never after the ball.
  */
-export function chasedBall(path: FielderPath, fielder: Fielder, end: { x: number; z: number }, untilT: number): boolean {
+export function chasedBall(
+  path: FielderPath,
+  fielder: Fielder,
+  end: { x: number; z: number },
+  untilT: number,
+): boolean {
   if (fielder.role === 'keeper' || fielder.role === 'bowler') return false;
   const s = path.samples;
   if (s.length < 2) return false;
@@ -172,7 +177,13 @@ export function runRate(v: number, drive: boolean): number {
 export type GaitKey = 'walk' | 'jog' | 'run' | 'sprint' | 'drive';
 
 /** Rate clamps of each gait loop (of its own rate; MOTION-SPEC §6): outside them the next gait takes over. */
-const GAIT_CLAMP: Record<GaitKey, readonly [number, number]> = { walk: [0.75, 1.3], jog: [0.75, 1.3], run: [0.75, 1.3], sprint: [0.75, 1.3], drive: [0.6, 1.3] };
+const GAIT_CLAMP: Record<GaitKey, readonly [number, number]> = {
+  walk: [0.75, 1.3],
+  jog: [0.75, 1.3],
+  run: [0.75, 1.3],
+  sprint: [0.75, 1.3],
+  drive: [0.6, 1.3],
+};
 
 function gaitDef(set: FieldClipSet, k: GaitKey): GaitClipDef {
   return k === 'sprint' ? (set.sprint ?? set.run) : set[k];
@@ -182,7 +193,12 @@ function gaitDef(set: FieldClipSet, k: GaitKey): GaitClipDef {
  * The gait at ground speed v (m/s) for a rig of `scale`: the loop whose own speed is nearest in ratio (boundaries at
  * the geometric means of neighbouring loops' speeds), keeping `prev` within GAIT_HYST of its boundaries.
  */
-export function gaitAt(v: number, prev: GaitKey | null, scale = 1, set: FieldClipSet = fieldClips()): { key: GaitKey; clip: ClipId; rate: number } {
+export function gaitAt(
+  v: number,
+  prev: GaitKey | null,
+  scale = 1,
+  set: FieldClipSet = fieldClips(),
+): { key: GaitKey; clip: ClipId; rate: number } {
   const order: GaitKey[] = set.sprint ? ['walk', 'jog', 'run', 'sprint'] : ['walk', 'jog', 'run'];
   const sp = order.map((k) => gaitDef(set, k).speedMps * scale);
   const bounds = sp.slice(1).map((s, i) => Math.sqrt(s * sp[i]));
@@ -219,7 +235,8 @@ function ballTimes(ctx: FieldingContext): { playT: number; bounceT: number | nul
         if (bounceT === null && prevVy < -0.5 && v.y > 0.5) bounceT = t;
         prevVy = v.y;
         const p = pos?.(t);
-        const turned = Math.hypot(v.x, v.z) > 0.5 && Math.abs(angleDelta(h0, Math.atan2(v.x, v.z))) > (25 * Math.PI) / 180;
+        const turned =
+          Math.hypot(v.x, v.z) > 0.5 && Math.abs(angleDelta(h0, Math.atan2(v.x, v.z))) > (25 * Math.PI) / 180;
         if (turned || (p && p.z >= PITCH_HALF)) {
           playT = t;
           break;
@@ -236,7 +253,12 @@ function ballTimes(ctx: FieldingContext): { playT: number; bounceT: number | nul
  * Moves that draw one FielderPath. Positions are the path's (world, mirrored for a left-hander); every event the
  * path carries keeps its time. See the module comment for what the body adds.
  */
-export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: number, ctx: FieldingContext = {}): Move[] {
+export function fieldingMoves(
+  path: FielderPath,
+  mirror: boolean,
+  releaseScene: number,
+  ctx: FieldingContext = {},
+): Move[] {
   const tb = { releaseScene };
   const set = fieldClips();
   const scale = ctx.scale ?? 1;
@@ -269,13 +291,17 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
   };
   const ball = (t: number) => ctx.ball?.(t) ?? null;
   const ballEnd = ball(Number.POSITIVE_INFINITY);
-  const facePoint = (p: Vec3 | null): Face => (p ? (_t, at) => (Math.hypot(p.x - at.x, p.z - at.z) > 0.3 ? headingOf(p.x - at.x, p.z - at.z) : null) : null);
+  const facePoint = (p: Vec3 | null): Face =>
+    p ? (_t, at) => (Math.hypot(p.x - at.x, p.z - at.z) > 0.3 ? headingOf(p.x - at.x, p.z - at.z) : null) : null;
   const faceBall: Face = (t, at) => {
     const b = ball(t);
     if (!b || Math.hypot(b.x - at.x, b.z - at.z) < BALL_AT_HAND_M) return null;
     return headingOf(b.x - at.x, b.z - at.z);
   };
-  const fixed = (h: number): Face => () => h;
+  const fixed =
+    (h: number): Face =>
+    () =>
+      h;
   /** Where a ball arriving at time t came from (world, horizontal unit), or towards the striker. */
   const incoming = (t: number, at: Vec3): Vec3 => {
     const v = ctx.ballVelocity?.(t);
@@ -290,7 +316,7 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
 
   // Groups of consecutive samples with one action: [t0, t1) runs to the next group's first sample.
   const groups: Array<{ action: FielderAction; i0: number; i1: number; t0: number; t1: number }> = [];
-  for (let i = 0; i < s.length; ) {
+  for (let i = 0; i < s.length;) {
     let j = i;
     while (j + 1 < s.length && s[j + 1].action === s[i].action) j++;
     groups.push({ action: s[i].action, i0: i, i1: j, t0: T[i], t1: j + 1 < s.length ? T[j + 1] : T[j] });
@@ -308,7 +334,12 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
     }
     if (sp.t1 > sp.t0 + 1e-6) spans.push({ ...sp, rate, order: order++ });
   };
-  const shot = (clip: ClipId, alignT: number, marker: string, o: Partial<Omit<Span, 'order'>> & { until?: number; lead?: number; notBefore?: number } = {}) => {
+  const shot = (
+    clip: ClipId,
+    alignT: number,
+    marker: string,
+    o: Partial<Omit<Span, 'order'>> & { until?: number; lead?: number; notBefore?: number } = {},
+  ) => {
     const rate = o.rate ?? 1;
     const m = clipMarker(clip, marker, 0);
     // A drawing clip with a longer lead-in (a pack clip) starts that much earlier, at negative built-in clip time, so it
@@ -317,7 +348,19 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
     const t0 = Math.max(alignT - lead / rate, Math.min(alignT, o.notBefore ?? -Infinity));
     const start = m - (alignT - t0) * rate;
     const t1 = Math.max(t0 + (clipDuration(clip) - start) / rate, o.until ?? 0);
-    push({ t0, t1, clip, kind: 'shot', start, rate, blend: o.blend ?? 110, face: o.face ?? null, turn: o.turn ?? 8, ...(o.body ? { body: o.body } : {}), ...(o.step ? { step: o.step } : {}) });
+    push({
+      t0,
+      t1,
+      clip,
+      kind: 'shot',
+      start,
+      rate,
+      blend: o.blend ?? 110,
+      face: o.face ?? null,
+      turn: o.turn ?? 8,
+      ...(o.body ? { body: o.body } : {}),
+      ...(o.step ? { step: o.step } : {}),
+    });
     return { t0, t1 };
   };
   /** When the ball was last gathered (s), for the throw that follows. */
@@ -333,16 +376,47 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
       case 'set': {
         // Set for the delivery. Once the ball has been played (or has passed the bat) and is not coming to him, he
         // stands up out of the crouch and watches it; a take, a dive or a throw that follows keeps him set.
-        const relaxAt = times0.playT + (ctx.keeper ? KEEPER_RELAX_AFTER_S : RELAX_AFTER_S + RELAX_SPREAD_S * ((phase * 0.37) % 1));
+        const relaxAt =
+          times0.playT + (ctx.keeper ? KEEPER_RELAX_AFTER_S : RELAX_AFTER_S + RELAX_SPREAD_S * ((phase * 0.37) % 1));
         const takeFollows = groups.slice(gi + 1).some((x) => TAKES.has(x.action) && x.t0 < relaxAt + 1.2);
         const relax = !takeFollows && (!next || !TAKES.has(next.action)) && relaxAt > g.t0 && relaxAt < g.t1 - 0.15;
         const setEnd = relax ? relaxAt : g.t1;
-        push({ t0: g.t0, t1: setEnd, clip: holdClip, kind: 'hold', start: phase, blend: 220, face: ctx.keeper ? fixed(KEEPER_HEADING) : null, turn: 4 });
-        if (relax) push({ t0: relaxAt, t1: g.t1, clip: set.idle, kind: 'hold', start: phase, blend: 420, face: faceBall, turn: 2.5, step: 0.2 });
+        push({
+          t0: g.t0,
+          t1: setEnd,
+          clip: holdClip,
+          kind: 'hold',
+          start: phase,
+          blend: 220,
+          face: ctx.keeper ? fixed(KEEPER_HEADING) : null,
+          turn: 4,
+        });
+        if (relax)
+          push({
+            t0: relaxAt,
+            t1: g.t1,
+            clip: set.idle,
+            kind: 'hold',
+            start: phase,
+            blend: 420,
+            face: faceBall,
+            turn: 2.5,
+            step: 0.2,
+          });
         break;
       }
       case 'idle':
-        push({ t0: g.t0, t1: next ? g.t1 : tEnd, clip: set.idle, kind: 'hold', start: phase, blend: 300, face: faceBall, turn: 2.5, step: 0.2 });
+        push({
+          t0: g.t0,
+          t1: next ? g.t1 : tEnd,
+          clip: set.idle,
+          kind: 'hold',
+          start: phase,
+          blend: 300,
+          face: faceBall,
+          turn: 2.5,
+          step: 0.2,
+        });
         break;
       case 'run':
         sawRun = true;
@@ -351,7 +425,16 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
       case 'celebrate': {
         // After a dive he gets up first; the physics marks the celebration, not its first frame.
         const at = Math.max(g.t0, lastDiveEnd - 0.15);
-        push({ t0: at, t1: Math.max(at + clipDuration(set.celebrate), next ? g.t1 : tEnd), clip: set.celebrate, kind: 'shot', start: 0, blend: 140, face: null, turn: 4 });
+        push({
+          t0: at,
+          t1: Math.max(at + clipDuration(set.celebrate), next ? g.t1 : tEnd),
+          clip: set.celebrate,
+          kind: 'shot',
+          start: 0,
+          blend: 140,
+          face: null,
+          turn: 4,
+        });
         break;
       }
       case 'throw': {
@@ -363,7 +446,14 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
         const windUp = Math.max(clipMarker(set.throw.clip, set.throw.marker), set.throw.lead ?? 0);
         const cap = set.throw.lead ? PACK_THROW_WARP : SNAP_THROW_RATE;
         const rate = clamp(windUp / Math.max(windUp / cap, g.t0 - gatheredT - 0.05), 1, cap);
-        shot(set.throw.clip, g.t0, set.throw.marker, { face: target === null ? null : fixed(target), turn: 9, blend: 120, rate, lead: set.throw.lead, ...(set.throw.lead ? { notBefore: gatheredT + 0.05 } : {}) });
+        shot(set.throw.clip, g.t0, set.throw.marker, {
+          face: target === null ? null : fixed(target),
+          turn: 9,
+          blend: 120,
+          rate,
+          lead: set.throw.lead,
+          ...(set.throw.lead ? { notBefore: gatheredT + 0.05 } : {}),
+        });
         break;
       }
       case 'pickup': {
@@ -375,7 +465,12 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
           return facePoint(ballEnd)?.(collectT, at) ?? null;
         })();
         const face: Face = turnTo === null ? null : (t) => (t >= collectT ? turnTo : null);
-        shot(set.pickup.clip, collectT, set.pickup.marker, { face, turn: 6, until: next ? next.t0 : tEnd, lead: set.pickup.lead });
+        shot(set.pickup.clip, collectT, set.pickup.marker, {
+          face,
+          turn: 6,
+          until: next ? next.t0 : tEnd,
+          lead: set.pickup.lead,
+        });
         break;
       }
       case 'catch': {
@@ -389,15 +484,40 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
           const bounce = times0.bounceT;
           const lead = bounce !== null && bounce < g.t0 - m ? Math.min(g.t0 - bounce, m / 0.45) : m;
           if (lead > m + 1e-6) {
-            push({ t0: g.t0 - lead, t1: g.t0, clip: take.clip, kind: 'shot', start: 0, rate: m / lead, blend: 160, face: fixed(KEEPER_HEADING), turn: 8 });
-            push({ t0: g.t0, t1: Math.max(g.t0 + clipDuration(take.clip) - m, until), clip: take.clip, kind: 'shot', start: m, blend: 0, face: fixed(KEEPER_HEADING), turn: 8 });
+            push({
+              t0: g.t0 - lead,
+              t1: g.t0,
+              clip: take.clip,
+              kind: 'shot',
+              start: 0,
+              rate: m / lead,
+              blend: 160,
+              face: fixed(KEEPER_HEADING),
+              turn: 8,
+            });
+            push({
+              t0: g.t0,
+              t1: Math.max(g.t0 + clipDuration(take.clip) - m, until),
+              clip: take.clip,
+              kind: 'shot',
+              start: m,
+              blend: 0,
+              face: fixed(KEEPER_HEADING),
+              turn: 8,
+            });
           } else shot(take.clip, g.t0, take.marker, { face: fixed(KEEPER_HEADING), until, blend: 280 }); // no rise: the crouch fades into the take over its lead-in
         } else {
           const c = ctx.catchHigh || (ball(g.t0)?.y ?? 0) > 1.9 ? set.catchHigh : set.catchChest;
           const inc = incoming(g.t0, rootAt(g.t0));
           // Honest: the catch never begins before the ball is played (a close catcher has less than its lead-in): it
           // starts part-way, at the hit, with the hands still meeting the ball at the physics catch.
-          shot(c.clip, g.t0, c.marker, { face: fixed(headingOf(inc.x, inc.z)), turn: 7, until: next ? next.t0 : tEnd, lead: c.lead, notBefore: times0.playT });
+          shot(c.clip, g.t0, c.marker, {
+            face: fixed(headingOf(inc.x, inc.z)),
+            turn: 7,
+            until: next ? next.t0 : tEnd,
+            lead: c.lead,
+            notBefore: times0.playT,
+          });
         }
         break;
       }
@@ -409,7 +529,16 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
           const inc = incoming(g.t0, rootAt(g.t0));
           const c = y > 1.9 ? set.catchHigh : set.catchChest;
           shot(c.clip, g.t0, c.marker, { face: fixed(headingOf(inc.x, inc.z)), turn: 7 });
-          push({ t0: g.t0 + 0.12, t1: Math.max(g.t0 + 0.12 + clipDuration(set.spill), until), clip: set.spill, kind: 'shot', start: 0, blend: 90, face: null, turn: 4 });
+          push({
+            t0: g.t0 + 0.12,
+            t1: Math.max(g.t0 + 0.12 + clipDuration(set.spill), until),
+            clip: set.spill,
+            kind: 'shot',
+            start: 0,
+            blend: 90,
+            face: null,
+            turn: 4,
+          });
         }
         break;
       }
@@ -467,15 +596,48 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
         };
         const until = ends ? (groups[gi + 2]?.t0 ?? tEnd) : g.t1;
         if (Math.abs(lead - m) > 1e-6) {
-          push({ t0, t1: reachT, clip, kind: 'shot', start: 0, rate: m / lead, blend: 70, face: fixed(heading), turn: 14, body, step: 0.05 });
-          push({ t0: reachT, t1: Math.max(clipEnd, until), clip, kind: 'shot', start: m, blend: 70, face: fixed(heading), turn: 14, body, step: 0.05 });
+          push({
+            t0,
+            t1: reachT,
+            clip,
+            kind: 'shot',
+            start: 0,
+            rate: m / lead,
+            blend: 70,
+            face: fixed(heading),
+            turn: 14,
+            body,
+            step: 0.05,
+          });
+          push({
+            t0: reachT,
+            t1: Math.max(clipEnd, until),
+            clip,
+            kind: 'shot',
+            start: m,
+            blend: 70,
+            face: fixed(heading),
+            turn: 14,
+            body,
+            step: 0.05,
+          });
         } else shot(clip, reachT, dv.marker, { face: fixed(heading), turn: 14, blend: 70, body, step: 0.05, until });
         lastDiveEnd = clipEnd;
         if (ends) {
           if (ends.action === 'drop') {
             // Up from the dive, then the scramble for the loose ball (the fumble's lunge) until the pickup.
             const pick = groups[gi + 2];
-            if (pick && pick.t0 > lastDiveEnd) push({ t0: lastDiveEnd - 0.05, t1: pick.t0, clip: set.fumble.clip, kind: 'shot', start: clipMarker(set.fumble.clip, set.fumble.marker) + 0.3, blend: 160, face: null, turn: 4 });
+            if (pick && pick.t0 > lastDiveEnd)
+              push({
+                t0: lastDiveEnd - 0.05,
+                t1: pick.t0,
+                clip: set.fumble.clip,
+                kind: 'shot',
+                start: clipMarker(set.fumble.clip, set.fumble.marker) + 0.3,
+                blend: 160,
+                face: null,
+                turn: 4,
+              });
           }
           gi++;
         }
@@ -486,10 +648,25 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
   let reactionEnd = -Infinity;
   if (ctx.reaction) {
     // On the spot, once nothing else is happening: never over a run, a throw, a dive or a pickup.
-    const busy = spans.filter((sp) => sp.kind !== 'hold').reduce((e, sp) => Math.max(e, sp.kind === 'run' ? sp.t1 : Math.min(sp.t1, sp.t0 + clipDuration(sp.clip))), -Infinity);
+    const busy = spans
+      .filter((sp) => sp.kind !== 'hold')
+      .reduce(
+        (e, sp) => Math.max(e, sp.kind === 'run' ? sp.t1 : Math.min(sp.t1, sp.t0 + clipDuration(sp.clip))),
+        -Infinity,
+      );
     const at = Math.max(ctx.reaction.t, busy + 0.1);
     if (at < tEnd) {
-      push({ t0: at, t1: tEnd, clip: ctx.reaction.clip, kind: 'shot', start: 0, blend: 260, face: faceBall, turn: 3, step: 0.2 });
+      push({
+        t0: at,
+        t1: tEnd,
+        clip: ctx.reaction.clip,
+        kind: 'shot',
+        start: 0,
+        blend: 260,
+        face: faceBall,
+        turn: 3,
+        step: 0.2,
+      });
       reactionEnd = at + Math.max(clipDuration(ctx.reaction.clip), 1.8);
     }
   }
@@ -500,7 +677,9 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
   const homeM = Math.hypot(home.x - last.x, home.z - last.z);
   let tMain = tEnd;
   if (ctx.endScene !== undefined && homeM > RETURN.minM) {
-    const busy = spans.filter((sp) => sp.kind === 'shot' && sp.clip !== ctx.reaction?.clip).reduce((e, sp) => Math.max(e, Math.min(sp.t1, sp.t0 + clipDuration(sp.clip) / sp.rate)), -Infinity);
+    const busy = spans
+      .filter((sp) => sp.kind === 'shot' && sp.clip !== ctx.reaction?.clip)
+      .reduce((e, sp) => Math.max(e, Math.min(sp.t1, sp.t0 + clipDuration(sp.clip) / sp.rate)), -Infinity);
     const start = Math.max(tPath + RETURN.settleS + RETURN.spreadS * ((phase * 0.61) % 1), busy + 0.25, reactionEnd);
     if (start + 1.5 < tEnd) tMain = start;
   }
@@ -554,8 +733,18 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
     const rs = runStart(a);
     const accel = (speedAt(b + 0.05) - speedAt(a - 0.05)) / Math.max(0.05, b - a + 0.1);
     const drive = set.drive.speedMps * scale;
-    if (rs !== null && v >= DRIVE_MIN_SHARE * drive && v <= 1.05 * drive && (a - rs < DRIVE_PHASE_S || accel > DRIVE_ACCEL) && accel > 0.5) {
-      return { key: 'drive' as GaitKey, clip: set.drive.clip, rate: matchedRate(set.drive, v, scale, GAIT_CLAMP.drive[0], GAIT_CLAMP.drive[1]) };
+    if (
+      rs !== null &&
+      v >= DRIVE_MIN_SHARE * drive &&
+      v <= 1.05 * drive &&
+      (a - rs < DRIVE_PHASE_S || accel > DRIVE_ACCEL) &&
+      accel > 0.5
+    ) {
+      return {
+        key: 'drive' as GaitKey,
+        clip: set.drive.clip,
+        rate: matchedRate(set.drive, v, scale, GAIT_CLAMP.drive[0], GAIT_CLAMP.drive[1]),
+      };
     }
     return gaitAt(v, gaitPrev, scale, set);
   };
@@ -635,7 +824,9 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
 
     // Continuous clip time (same clip, no jump) needs no crossfade.
     const key = `${clip}|${lower ?? ''}`;
-    const loopClip = clip === set.keeper.shuffle.clip || [set.walk, set.jog, set.run, set.drive, set.sprint].some((g) => g?.clip === clip);
+    const loopClip =
+      clip === set.keeper.shuffle.clip ||
+      [set.walk, set.jog, set.run, set.drive, set.sprint].some((g) => g?.clip === clip);
     const continuous = key === prevKey && (loopClip || Math.abs(clipStart - prevEndTime) < 1e-6);
     if (continuous) blend = 0;
     prevKey = key;
@@ -653,7 +844,18 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
     // constant), so a cross-fade into a hold gets its whole length (a fade longer than its move would be cut off by the
     // next move, StageScene blending from the move just before: the pose would jump).
     const last = moves[moves.length - 1];
-    if (continuous && last && moved < 1e-9 && !bodyFrom && !bodyTo && !last.bodyFrom && last.to && Math.hypot(last.to.x - last.from!.x, last.to.z - last.from!.z) < 1e-9 && Math.abs(last.to.x - from.x) + Math.abs(last.to.z - from.z) < 1e-12 && (last.rate ?? 1) === rate) {
+    if (
+      continuous &&
+      last &&
+      moved < 1e-9 &&
+      !bodyFrom &&
+      !bodyTo &&
+      !last.bodyFrom &&
+      last.to &&
+      Math.hypot(last.to.x - last.from!.x, last.to.z - last.from!.z) < 1e-9 &&
+      Math.abs(last.to.x - from.x) + Math.abs(last.to.z - from.z) < 1e-12 &&
+      (last.rate ?? 1) === rate
+    ) {
       last.t1 = Math.max(last.t0 + 1, simToScene(tb, b));
       last.headingTo = heading;
       last.blend = Math.min(lastBlend, Math.floor(last.t1 - last.t0));
@@ -679,7 +881,21 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
     });
   }
 
-  if (tMain < tEnd) moves.push(...returnMoves({ tb, from: last, home, t0: tMain, tEnd, heading, endHeading: ctx.heading ?? null, phase, scale, set }));
+  if (tMain < tEnd)
+    moves.push(
+      ...returnMoves({
+        tb,
+        from: last,
+        home,
+        t0: tMain,
+        tEnd,
+        heading,
+        endHeading: ctx.heading ?? null,
+        phase,
+        scale,
+        set,
+      }),
+    );
   return moves;
 }
 
@@ -688,7 +904,18 @@ export function fieldingMoves(path: FielderPath, mirror: boolean, releaseScene: 
  * there at an unhurried pace (speed-matched walk, accelerating and slowing over RETURN.accelS), turn to face the
  * striker and stand. Moves every 0.1 s, headings continuous from `heading`.
  */
-function returnMoves(o: { tb: { releaseScene: number }; from: Vec3; home: Vec3; t0: number; tEnd: number; heading: number; endHeading: number | null; phase: number; scale: number; set: FieldClipSet }): Move[] {
+function returnMoves(o: {
+  tb: { releaseScene: number };
+  from: Vec3;
+  home: Vec3;
+  t0: number;
+  tEnd: number;
+  heading: number;
+  endHeading: number | null;
+  phase: number;
+  scale: number;
+  set: FieldClipSet;
+}): Move[] {
   const { tb, from, home, set } = o;
   const out: Move[] = [];
   const dx = home.x - from.x;
@@ -697,13 +924,35 @@ function returnMoves(o: { tb: { releaseScene: number }; from: Vec3; home: Vec3; 
   const dir = headingOf(dx, dz);
   let heading = o.heading;
   let t = o.t0;
-  const add = (t1: number, clip: ClipId, a: Vec3, b: Vec3, want: number | null, rate: number, clipStart: number, turn: number, blend: number) => {
+  const add = (
+    t1: number,
+    clip: ClipId,
+    a: Vec3,
+    b: Vec3,
+    want: number | null,
+    rate: number,
+    clipStart: number,
+    turn: number,
+    blend: number,
+  ) => {
     const h0 = heading;
     const lim = (turn / HEADING_EASE_COMP) * (t1 - t);
     if (want !== null) heading = h0 + clamp(angleDelta(h0, want), -lim, lim);
     const s0 = simToScene(tb, t);
     // Every cross-fade completes inside its own move (see fieldingMoves).
-    out.push({ t0: s0, t1: Math.max(s0 + 1, simToScene(tb, t1)), clip, from: a, to: b, ...(rate !== 1 ? { rate } : {}), clipStart, blend: Math.min(blend, Math.floor((t1 - t) * 1000)), heading: h0, headingTo: heading, headingEase: 'linear' });
+    out.push({
+      t0: s0,
+      t1: Math.max(s0 + 1, simToScene(tb, t1)),
+      clip,
+      from: a,
+      to: b,
+      ...(rate !== 1 ? { rate } : {}),
+      clipStart,
+      blend: Math.min(blend, Math.floor((t1 - t) * 1000)),
+      heading: h0,
+      headingTo: heading,
+      headingEase: 'linear',
+    });
     t = t1;
   };
   // Turn towards the mark on the spot first when it is behind him (a plant-and-turn), otherwise turn while walking.
@@ -751,7 +1000,10 @@ function returnMoves(o: { tb: { releaseScene: number }; from: Vec3; home: Vec3; 
     first = false;
   }
   // Arrived: face the striker and stand.
-  const at = t >= w0 + total - 1e-6 ? home : v3(from.x + (dx / (D || 1)) * sAt(t - w0), 0, from.z + (dz / (D || 1)) * sAt(t - w0));
+  const at =
+    t >= w0 + total - 1e-6
+      ? home
+      : v3(from.x + (dx / (D || 1)) * sAt(t - w0), 0, from.z + (dz / (D || 1)) * sAt(t - w0));
   let n = 0;
   while (t < o.tEnd - 1e-6 && n < 400) {
     const t1 = Math.min(o.tEnd, t + (n === 0 ? 0.45 : n < 8 ? 0.2 : 1));

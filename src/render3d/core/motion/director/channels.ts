@@ -47,13 +47,30 @@ export const CHANNELS = 24;
 
 /** Units per Int16 step for each channel (range = 32767 steps). */
 export const SCALE: Float64Array = Float64Array.from([
-  1 / 512, 1 / 512, 1 / 512, // head overlay: +-64 deg
-  1 / 512, 1 / 512, 1 / 512, 1 / 512, // eyes: +-64 deg
-  1 / 16384, 1 / 16384, 1 / 16384, // lids: +-2
-  1 / 128, 1 / 128, // gaze: +-256 deg
-  1 / 4096, 1 / 1024, 1 / 1024, 1 / 4096, 1 / 8192, // breath deg, sway mm, sway mm, roll deg, exertion
-  1 / 16384, 1 / 16384, 1 / 16384, 1 / 16384, 1 / 16384, // expressions
-  1 / 4096, 1 / 4096, // posture deg, twist deg
+  1 / 512,
+  1 / 512,
+  1 / 512, // head overlay: +-64 deg
+  1 / 512,
+  1 / 512,
+  1 / 512,
+  1 / 512, // eyes: +-64 deg
+  1 / 16384,
+  1 / 16384,
+  1 / 16384, // lids: +-2
+  1 / 128,
+  1 / 128, // gaze: +-256 deg
+  1 / 4096,
+  1 / 1024,
+  1 / 1024,
+  1 / 4096,
+  1 / 8192, // breath deg, sway mm, sway mm, roll deg, exertion
+  1 / 16384,
+  1 / 16384,
+  1 / 16384,
+  1 / 16384,
+  1 / 16384, // expressions
+  1 / 4096,
+  1 / 4096, // posture deg, twist deg
 ]);
 
 export const createOut = (): Float32Array => new Float32Array(CHANNELS);

@@ -1,17 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import {
-  COACH_RESULT_CACHE_SIZE,
-  memoCoachResult,
-  type CoachResult,
-} from '@/practice/coach/simulate';
+import { COACH_RESULT_CACHE_SIZE, memoCoachResult, type CoachResult } from '@/practice/coach/simulate';
 
 describe('Coach exact-result LRU', () => {
   it('reuses exact hits, refreshes recency and honestly re-simulates an evicted swing', () => {
     const results = new Map<string, CoachResult>();
     let simulations = 0;
-    const resolve = (key: string) => memoCoachResult(results, key, () => ({
-      token: `${key}:${++simulations}`,
-    } as unknown as CoachResult));
+    const resolve = (key: string) =>
+      memoCoachResult(
+        results,
+        key,
+        () =>
+          ({
+            token: `${key}:${++simulations}`,
+          }) as unknown as CoachResult,
+      );
 
     const originals = Array.from({ length: COACH_RESULT_CACHE_SIZE }, (_, index) => resolve(String(index)));
     expect(results.size).toBe(COACH_RESULT_CACHE_SIZE);

@@ -18,8 +18,16 @@ export interface Target {
   lengthM: number;
 }
 
-export function targetWords(t: ReturnType<typeof usePracticeT>, build: BuildKit, family: BowlerFamily, target: Target): string {
-  return t.t('practice.map.target', { length: t.tk(`practice.length.${build.lengthBand(target.lengthM, family)}`), line: t.tk(`practice.lineband.${build.lineBand(target.lineM)}`) });
+export function targetWords(
+  t: ReturnType<typeof usePracticeT>,
+  build: BuildKit,
+  family: BowlerFamily,
+  target: Target,
+): string {
+  return t.t('practice.map.target', {
+    length: t.tk(`practice.length.${build.lengthBand(target.lengthM, family)}`),
+    line: t.tk(`practice.lineband.${build.lineBand(target.lineM)}`),
+  });
 }
 
 /** Where the length bands change along v (0 = the striker's stumps … 1 = the far end of the map). */
@@ -106,8 +114,20 @@ export function PitchMap({ build, family, handedness, target, ballNumber, onChan
       {/* Outside the legal area (shaded). */}
       <rect className={s.mapIllegal} x={0} y={0} width={W} height={vy(hi.v)} />
       <rect className={s.mapIllegal} x={0} y={vy(lo.v)} width={W} height={H - vy(lo.v)} />
-      <rect className={s.mapIllegal} x={Math.min(ux(0), ux(lo.u))} y={0} width={Math.abs(ux(lo.u) - ux(0))} height={H} />
-      <rect className={s.mapIllegal} x={Math.min(ux(hi.u), ux(1))} y={0} width={Math.abs(ux(1) - ux(hi.u))} height={H} />
+      <rect
+        className={s.mapIllegal}
+        x={Math.min(ux(0), ux(lo.u))}
+        y={0}
+        width={Math.abs(ux(lo.u) - ux(0))}
+        height={H}
+      />
+      <rect
+        className={s.mapIllegal}
+        x={Math.min(ux(hi.u), ux(1))}
+        y={0}
+        width={Math.abs(ux(1) - ux(hi.u))}
+        height={H}
+      />
       {edges.map((e, i) => {
         const next = edges[i + 1]?.v ?? 1;
         const mid = (e.v + next) / 2;
@@ -120,7 +140,13 @@ export function PitchMap({ build, family, handedness, target, ballNumber, onChan
           </g>
         );
       })}
-      <line className={s.mapCrease} x1={W * 0.08} x2={W * 0.92} y1={vy(build.tapFromTarget({ lineM: 0, lengthM: 1.22 }).v)} y2={vy(build.tapFromTarget({ lineM: 0, lengthM: 1.22 }).v)} />
+      <line
+        className={s.mapCrease}
+        x1={W * 0.08}
+        x2={W * 0.92}
+        y1={vy(build.tapFromTarget({ lineM: 0, lengthM: 1.22 }).v)}
+        y2={vy(build.tapFromTarget({ lineM: 0, lengthM: 1.22 }).v)}
+      />
       <rect className={s.mapStumps} x={ux(stumpU) - 1.6} y={H - 3} width={3.2} height={2.4} rx={0.4} />
       <text className={s.mapLabel} x={offLabelX} y={H - 6} textAnchor={mirror ? 'start' : 'end'} aria-hidden="true">
         {t.t('practice.line.off_side')}

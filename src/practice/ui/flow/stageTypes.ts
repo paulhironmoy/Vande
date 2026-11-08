@@ -164,11 +164,7 @@ export interface PracticeStageLike {
   /** Coach Mode assistance for the next bowl() (null: an innings ball). */
   setAssistance(stage: AssistanceStage | null, guide?: StageGuide | null): void;
   /** The exact delivery with a ghost batter playing the option; settles quietly when interrupted. */
-  demonstrate(
-    result: DeliveryResult,
-    option: CoachOption,
-    context?: StageDemonstrationContext,
-  ): Promise<void>;
+  demonstrate(result: DeliveryResult, option: CoachOption, context?: StageDemonstrationContext): Promise<void>;
   /** The ball close-up at release (seam, shine, roughness), between deliveries only. */
   closeUp(flight: BallFlight, options?: { durationMs?: number }): Promise<void>;
   /** True from the start of the approach to dead ball. */

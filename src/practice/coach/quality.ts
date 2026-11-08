@@ -17,21 +17,31 @@ export const PRAISE_MIN_SPEED_SHARE = 0.5;
  * foot is a checked punch, BACK_FOOT_PUNCH). The pull and hook are taken as full horizontal swings. Null for a block or
  * a leave.
  */
-export function requestedKph(a: Pick<CoachAnalysis['attempted'], 'decision' | 'power' | 'directionDeg' | 'footwork'>): number | null {
+export function requestedKph(
+  a: Pick<CoachAnalysis['attempted'], 'decision' | 'power' | 'directionDeg' | 'footwork'>,
+): number | null {
   if (a.decision !== 'attack' || a.power === null || a.directionDeg === null) return null;
   const family = shotFamily('attack', a.directionDeg, a.footwork);
-  const punch = (a.footwork === 'back' || a.footwork === 'across') && (family === 'back_drive' || family === 'back_punch' || family === 'back_on_punch') ? BACK_FOOT_PUNCH : 1;
+  const punch =
+    (a.footwork === 'back' || a.footwork === 'across') &&
+    (family === 'back_drive' || family === 'back_punch' || family === 'back_on_punch')
+      ? BACK_FOOT_PUNCH
+      : 1;
   return batSpeed('attack', a.power) * punch * 3.6;
 }
 
 /** A measured number, or null (unmeasured: null, undefined or not finite). */
-export const measured = (v: number | null | undefined): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+export const measured = (v: number | null | undefined): number | null =>
+  typeof v === 'number' && Number.isFinite(v) ? v : null;
 
 /**
  * The stroke met the ball below PRAISE_MIN_SPEED_SHARE of the speed it asked for: a fend. False for a block or a leave
  * (a block is meant to be slow) and when either speed is unmeasured.
  */
-export function slowFend(a: Pick<CoachAnalysis['attempted'], 'decision' | 'power' | 'directionDeg' | 'footwork'>, contact: Pick<ContactReport, 'batSpeedKph'>): boolean {
+export function slowFend(
+  a: Pick<CoachAnalysis['attempted'], 'decision' | 'power' | 'directionDeg' | 'footwork'>,
+  contact: Pick<ContactReport, 'batSpeedKph'>,
+): boolean {
   const req = requestedKph(a);
   const kph = measured(contact.batSpeedKph);
   return req !== null && kph !== null && kph < PRAISE_MIN_SPEED_SHARE * req;

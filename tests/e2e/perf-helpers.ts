@@ -15,7 +15,22 @@ export async function record(page: Page) {
 }
 
 /** Buttons that move Practice on towards a bowled ball (the current UI and the one being built). */
-const FORWARD = ['launch-practice', 'practice-resume', 'practice-continue', 'practice-quick', 'practice-random', 'practice-play-start', 'practice-radar-go', 'practice-tap-go', 'practice-next-ball', 'practice-next-over', 'practice-new-innings', 'practice-start-over', 'practice-classic', 'practice-turn-continue'];
+const FORWARD = [
+  'launch-practice',
+  'practice-resume',
+  'practice-continue',
+  'practice-quick',
+  'practice-random',
+  'practice-play-start',
+  'practice-radar-go',
+  'practice-tap-go',
+  'practice-next-ball',
+  'practice-next-over',
+  'practice-new-innings',
+  'practice-start-over',
+  'practice-classic',
+  'practice-turn-continue',
+];
 
 type Phase = [number, string, string, string, string];
 
@@ -32,7 +47,10 @@ export interface DeliveryCheckpoint {
 /** Release count and persisted records are different facts: the former advances before the latter is committed. */
 export async function deliveryCheckpoint(page: Page): Promise<DeliveryCheckpoint> {
   return page.evaluate(() => {
-    const w = window as unknown as { __perf: { phases: Phase[] }; __vandePractice?: { delivered(): { innings: number }; pending(): number; state(): HookState | null } };
+    const w = window as unknown as {
+      __perf: { phases: Phase[] };
+      __vandePractice?: { delivered(): { innings: number }; pending(): number; state(): HookState | null };
+    };
     const saved = JSON.parse(localStorage.getItem('vc:practice:innings') ?? 'null')?.state;
     return {
       atMs: performance.now(),
@@ -40,7 +58,10 @@ export async function deliveryCheckpoint(page: Page): Promise<DeliveryCheckpoint
       released: w.__vandePractice?.delivered().innings ?? 0,
       pending: w.__vandePractice?.pending() ?? 0,
       inningsId: saved?.id ?? null,
-      records: [...(saved?.overs ?? []).flatMap((o: { deliveries: DeliveryRecord[] }) => o.deliveries), ...(saved?.current?.deliveries ?? [])],
+      records: [
+        ...(saved?.overs ?? []).flatMap((o: { deliveries: DeliveryRecord[] }) => o.deliveries),
+        ...(saved?.current?.deliveries ?? []),
+      ],
       state: w.__vandePractice?.state() ?? null,
     };
   });
@@ -52,15 +73,20 @@ export async function deliveryCheckpoint(page: Page): Promise<DeliveryCheckpoint
  */
 export async function toDelivery(page: Page, timeoutMs = 120_000, checkpoint?: DeliveryCheckpoint): Promise<string[]> {
   const pressed: string[] = [];
-  const before = checkpoint ?? await deliveryCheckpoint(page);
+  const before = checkpoint ?? (await deliveryCheckpoint(page));
   const until = Date.now() + timeoutMs;
   while (Date.now() < until) {
     const begun = await page.evaluate(({ released, phaseCount }) => {
-      const w = window as unknown as { __perf: { phases: Phase[] }; __vandePractice?: { delivered(): { innings: number }; state(): HookState | null } };
+      const w = window as unknown as {
+        __perf: { phases: Phase[] };
+        __vandePractice?: { delivered(): { innings: number }; state(): HookState | null };
+      };
       const phase = w.__vandePractice?.state()?.phase;
-      return (w.__vandePractice?.delivered().innings ?? 0) > released
-        || ['runup', 'live', 'playing'].includes(phase ?? '')
-        || w.__perf.phases.slice(phaseCount).some((p) => ['runup', 'live', 'playing'].includes(p[2]));
+      return (
+        (w.__vandePractice?.delivered().innings ?? 0) > released ||
+        ['runup', 'live', 'playing'].includes(phase ?? '') ||
+        w.__perf.phases.slice(phaseCount).some((p) => ['runup', 'live', 'playing'].includes(p[2]))
+      );
     }, before);
     if (begun) return pressed;
     const id = await page
@@ -88,28 +114,51 @@ export async function toDelivery(page: Page, timeoutMs = 120_000, checkpoint?: D
  * Wait for the one requested queued input to be committed AND its presentation to finish. Capture its record now,
  * before a legitimate wicket restart replaces localStorage. Never use final-innings ball count as a session count.
  */
-export async function completedDelivery(page: Page, before: DeliveryCheckpoint, pressed: string[], timeoutMs = 120_000) {
+export async function completedDelivery(
+  page: Page,
+  before: DeliveryCheckpoint,
+  pressed: string[],
+  timeoutMs = 120_000,
+) {
   if (before.pending < 1) throw new Error('a recorded delivery requires an explicitly queued input');
-  await page.waitForFunction(({ released }) => {
-    const api = (window as unknown as { __vandePractice?: { delivered(): { innings: number }; state(): HookState | null } }).__vandePractice;
-    const count = api?.delivered().innings ?? 0;
-    if (count > released + 1) throw new Error(`helper advanced more than one delivery (${released} → ${count})`);
-    const st = api?.state();
-    return count === released + 1 && st?.phase === 'dead' && st.last?.kind === 'innings' && st.inFlight === null;
-  }, before, { timeout: timeoutMs, polling: 20 });
+  await page.waitForFunction(
+    ({ released }) => {
+      const api = (
+        window as unknown as { __vandePractice?: { delivered(): { innings: number }; state(): HookState | null } }
+      ).__vandePractice;
+      const count = api?.delivered().innings ?? 0;
+      if (count > released + 1) throw new Error(`helper advanced more than one delivery (${released} → ${count})`);
+      const st = api?.state();
+      return count === released + 1 && st?.phase === 'dead' && st.last?.kind === 'innings' && st.inFlight === null;
+    },
+    before,
+    { timeout: timeoutMs, polling: 20 },
+  );
   const after = await deliveryCheckpoint(page);
   if (after.released !== before.released + 1) throw new Error('expected exactly one released delivery');
-  if (after.pending !== before.pending - 1) throw new Error(`expected one queued input consumed (${before.pending} → ${after.pending})`);
+  if (after.pending !== before.pending - 1)
+    throw new Error(`expected one queued input consumed (${before.pending} → ${after.pending})`);
   if (before.inningsId !== null && after.inningsId !== before.inningsId) {
     const ended = before.state?.status === 'out' || before.state?.status === 'complete';
     const restarted = pressed.some((id) => id === 'practice-new-innings' || id === 'practice-start-over');
-    if (!ended || !restarted) throw new Error('innings identity changed without an explicit restart of a completed innings');
+    if (!ended || !restarted)
+      throw new Error('innings identity changed without an explicit restart of a completed innings');
   }
   const expected = after.inningsId === before.inningsId ? before.records.length + 1 : 1;
-  if (after.records.length !== expected) throw new Error(`expected ${expected} persisted records, got ${after.records.length}`);
+  if (after.records.length !== expected)
+    throw new Error(`expected ${expected} persisted records, got ${after.records.length}`);
   const delivery = after.records.at(-1)!;
-  if (after.inningsId === before.inningsId && JSON.stringify(after.records.slice(0, -1)) !== JSON.stringify(before.records)) throw new Error('a prior delivery record changed');
-  return { ...after, delivery, pressed, key: `${after.inningsId}:${delivery.overIndex}:${delivery.ballIndex}:${delivery.seed}` };
+  if (
+    after.inningsId === before.inningsId &&
+    JSON.stringify(after.records.slice(0, -1)) !== JSON.stringify(before.records)
+  )
+    throw new Error('a prior delivery record changed');
+  return {
+    ...after,
+    delivery,
+    pressed,
+    key: `${after.inningsId}:${delivery.overIndex}:${delivery.ballIndex}:${delivery.seed}`,
+  };
 }
 
 /** Resolves once the phase is one of `want` (now, if it already is). */
@@ -148,9 +197,19 @@ export interface DeliveryWindow {
 }
 
 /** Each delivery's window (run-up to dead ball) with the program links, shader compiles and long tasks inside it. */
-export async function deliveryWindows(page: Page): Promise<{ windows: DeliveryWindow[]; linksBefore: number; linksTotal: number }> {
+export async function deliveryWindows(
+  page: Page,
+): Promise<{ windows: DeliveryWindow[]; linksBefore: number; linksTotal: number }> {
   return page.evaluate(() => {
-    const P = (window as unknown as { __perf: { phases: Phase[]; gl: { links: Array<[number, number]>; compiles: Array<[number, number]> }; longTasks: Array<[number, number]> } }).__perf;
+    const P = (
+      window as unknown as {
+        __perf: {
+          phases: Phase[];
+          gl: { links: Array<[number, number]>; compiles: Array<[number, number]> };
+          longTasks: Array<[number, number]>;
+        };
+      }
+    ).__perf;
     const out: DeliveryWindow[] = [];
     let cur: DeliveryWindow | null = null;
     for (const [t, , phase, stage, tier] of P.phases) {
@@ -167,7 +226,11 @@ export async function deliveryWindows(page: Page): Promise<{ windows: DeliveryWi
       w.compiles = P.gl.compiles.filter(([t]) => inside(t, w)).length;
       w.longTasks = P.longTasks.filter(([t]) => inside(t, w)).length;
     }
-    return { windows: out, linksBefore: P.gl.links.filter(([t]) => !out.length || t < out[0].runup).length, linksTotal: P.gl.links.length };
+    return {
+      windows: out,
+      linksBefore: P.gl.links.filter(([t]) => !out.length || t < out[0].runup).length,
+      linksTotal: P.gl.links.length,
+    };
   });
 }
 
@@ -178,15 +241,29 @@ export async function memory(page: Page) {
   await cdp.send('Performance.enable');
   const { metrics } = await cdp.send('Performance.getMetrics');
   const m = Object.fromEntries(metrics.map((x) => [x.name, x.value]));
-  const gl = await page.evaluate(() => (window as unknown as { __perf: { glSnapshot(): { tex: number; buf: number; rb: number; programs: number } } }).__perf.glSnapshot());
+  const gl = await page.evaluate(() =>
+    (
+      window as unknown as { __perf: { glSnapshot(): { tex: number; buf: number; rb: number; programs: number } } }
+    ).__perf.glSnapshot(),
+  );
   await cdp.detach();
-  return { heapMb: m.JSHeapUsedSize / 2 ** 20, nodes: m.Nodes, listeners: m.JSEventListeners, glMb: (gl.tex + gl.buf + gl.rb) / 2 ** 20, programs: gl.programs };
+  return {
+    heapMb: m.JSHeapUsedSize / 2 ** 20,
+    nodes: m.Nodes,
+    listeners: m.JSEventListeners,
+    glMb: (gl.tex + gl.buf + gl.rb) / 2 ** 20,
+    programs: gl.programs,
+  };
 }
 
 /** Loses (and optionally restores) the WebGL context of the stage's live canvas, as a GPU reset would. */
 export async function loseContext(page: Page, restoreAfterMs: number | null): Promise<boolean> {
   return page.evaluate((ms) => {
-    const P = (window as unknown as { __perf: { gl: { contexts: Array<{ ref: WeakRef<HTMLCanvasElement>; type: string; lost: boolean }> } } }).__perf;
+    const P = (
+      window as unknown as {
+        __perf: { gl: { contexts: Array<{ ref: WeakRef<HTMLCanvasElement>; type: string; lost: boolean }> } };
+      }
+    ).__perf;
     const c = P.gl.contexts.filter((x) => !x.lost && x.ref.deref()?.isConnected).at(-1);
     const gl = c ? (c.ref.deref()?.getContext(c.type as 'webgl2') as WebGL2RenderingContext | null) : null;
     const ext = gl?.getExtension('WEBGL_lose_context');

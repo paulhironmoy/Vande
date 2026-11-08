@@ -50,13 +50,15 @@ export const settingsHiLatn: Record<string, string> = {
   'practice.settings.timing_run': 'Timing check karo',
   'practice.settings.clear': 'Practice data hatao',
   'practice.settings.clear_title': 'Practice data hatayein?',
-  'practice.settings.clear_body': 'Is device se chal rahi innings, Practice settings aur sound, timing check, mastery, tumhari form aur tester ke jawab hat jayenge.',
+  'practice.settings.clear_body':
+    'Is device se chal rahi innings, Practice settings aur sound, timing check, mastery, tumhari form aur tester ke jawab hat jayenge.',
   'practice.settings.clear_confirm': 'Hatao',
 
   // ---- the timing check
   'practice.cal.title': 'Timing check',
   'practice.cal.instruction': 'Jab chalti ball line paar kare, tab tap karo.',
-  'practice.cal.body': 'Paanch taps maapte hain ki yeh screen aur tumhara input kitni der mein jawaab dete hain, taaki har shot ki timing fair rahe. Touch, mouse aur keyboard apna-apna result rakhte hain, isi device pe.',
+  'practice.cal.body':
+    'Paanch taps maapte hain ki yeh screen aur tumhara input kitni der mein jawaab dete hain, taaki har shot ki timing fair rahe. Touch, mouse aur keyboard apna-apna result rakhte hain, isi device pe.',
   'practice.cal.start': 'Shuru karo',
   'practice.cal.attempt': 'Tap {n} / {total}',
   'practice.cal.tap_area': 'Jab ball line paar kare tab yahan tap karo, ya Space dabao',

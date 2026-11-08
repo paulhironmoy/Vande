@@ -17,7 +17,12 @@ import { resolveDelivery } from '@/physics/resolve';
 import { batTravelMs } from '@/physics/bat';
 import { autoField } from '@/physics/field';
 
-const setupOf = (eb: EvalBall, hand: Handedness): PracticeSceneSetup => ({ field: hand === 'right' ? eb.field : autoField(eb.over.bowler, eb.conditions, 'left', eb.over.ball), bowler: eb.over.bowler, conditions: eb.conditions, handedness: hand });
+const setupOf = (eb: EvalBall, hand: Handedness): PracticeSceneSetup => ({
+  field: hand === 'right' ? eb.field : autoField(eb.over.bowler, eb.conditions, 'left', eb.over.ball),
+  bowler: eb.over.bowler,
+  conditions: eb.conditions,
+  handedness: hand,
+});
 
 interface Case {
   label: string;
@@ -33,10 +38,39 @@ function cases(): Case[] {
   const out: Case[] = [];
   for (const eb of overBalls(REFERENCE_OVER, 'balanced')) {
     const setup = setupOf(eb, 'right');
-    for (const [tag, kind, e] of [['drive', 'attack', 40], ['drive early', 'attack', -40], ['leave', null, 0]] as const) {
-      const swing: NormalizedSwing | null = kind ? { kind, startT: eb.flight.idealContactT - batTravelMs(kind, 0.7) / 1000 + e / 1000, directionDeg: 55, power: 0.7, elevation: 0, footwork: 'forward' } : null;
-      const result = resolveDelivery({ flight: eb.flight, swing, field: eb.field, bowler: eb.over.bowler, conditions: eb.conditions, handedness: 'right', assist: 'play', tierToleranceMs: 0 });
-      out.push({ label: `ref-${eb.ballIndex + 1} ${tag}`, setup, eb, result, afterRelease: swing ? swing.startT * 1000 + 40 : eb.flight.stumpsT * 1000 + 300, swung: swing !== null });
+    for (const [tag, kind, e] of [
+      ['drive', 'attack', 40],
+      ['drive early', 'attack', -40],
+      ['leave', null, 0],
+    ] as const) {
+      const swing: NormalizedSwing | null = kind
+        ? {
+            kind,
+            startT: eb.flight.idealContactT - batTravelMs(kind, 0.7) / 1000 + e / 1000,
+            directionDeg: 55,
+            power: 0.7,
+            elevation: 0,
+            footwork: 'forward',
+          }
+        : null;
+      const result = resolveDelivery({
+        flight: eb.flight,
+        swing,
+        field: eb.field,
+        bowler: eb.over.bowler,
+        conditions: eb.conditions,
+        handedness: 'right',
+        assist: 'play',
+        tierToleranceMs: 0,
+      });
+      out.push({
+        label: `ref-${eb.ballIndex + 1} ${tag}`,
+        setup,
+        eb,
+        result,
+        afterRelease: swing ? swing.startT * 1000 + 40 : eb.flight.stumpsT * 1000 + 300,
+        swung: swing !== null,
+      });
     }
   }
   return out;
@@ -46,10 +80,16 @@ const CASES = cases();
 function handover(c: Case): BallScript {
   const live = buildPracticeScript({ setup: c.setup, flight: c.eb.flight });
   const at = live.practice!.releaseScene + c.afterRelease;
-  return buildPracticeScript({ setup: c.setup, flight: c.eb.flight, result: c.result, handover: { script: live, atScene: at } });
+  return buildPracticeScript({
+    setup: c.setup,
+    flight: c.eb.flight,
+    result: c.result,
+    handover: { script: live, atScene: at },
+  });
 }
 
-const same = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) => Object.is(a.x, b.x) && Object.is(a.y, b.y) && Object.is(a.z, b.z);
+const same = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) =>
+  Object.is(a.x, b.x) && Object.is(a.y, b.y) && Object.is(a.z, b.z);
 
 describe("a live result's gaze scan", () => {
   it('is left for spare time after a swing (the windows to the ideal contact are measured), and done at once for a leave', () => {
@@ -63,7 +103,8 @@ describe("a live result's gaze scan", () => {
       if (c.swung) {
         swings++;
         if (left) waiting++;
-      } else expect(left, `${c.label}: a leave's hand-over is past the ideal contact: all of it is measured`).toBe(false);
+      } else
+        expect(left, `${c.label}: a leave's hand-over is past the ideal contact: all of it is measured`).toBe(false);
     }
     expect(swings).toBe(12);
     expect(waiting, 'swings whose scan waits').toBeGreaterThanOrEqual(9);

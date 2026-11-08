@@ -5,7 +5,8 @@ import { COMMENTARY_KEYS, engine, EXPLAIN_KEYS } from '@/engine';
 import { decideResult, potmPoints, turningPoint } from '@/engine/v1/match';
 import { logFor, randomMatch } from './helpers';
 
-const ball = (runs: BallOutcome['runs'], wicket = false): BallOutcome => ({ runs, wicket: wicket ? 'bowled' : null }) as BallOutcome;
+const ball = (runs: BallOutcome['runs'], wicket = false): BallOutcome =>
+  ({ runs, wicket: wicket ? 'bowled' : null }) as BallOutcome;
 const inn = (batter: 0 | 1, balls: BallOutcome[]): InningsSummary => ({
   batter,
   bowler: batter === 0 ? 1 : 0,
@@ -17,16 +18,40 @@ const inn = (batter: 0 | 1, balls: BallOutcome[]): InningsSummary => ({
 
 describe('result ladder', () => {
   it('runs decide first', () => {
-    expect(decideResult([inn(0, [ball(4), ball(1)]), inn(1, [ball(2)])], [ball(0), ball(6)])).toEqual({ winner: 0, tie: false, decidedBy: 'runs', marginRuns: 3 });
+    expect(decideResult([inn(0, [ball(4), ball(1)]), inn(1, [ball(2)])], [ball(0), ball(6)])).toEqual({
+      winner: 0,
+      tie: false,
+      decidedBy: 'runs',
+      marginRuns: 3,
+    });
   });
   it('then the Super Ball, counted only on a tie', () => {
-    expect(decideResult([inn(0, [ball(4)]), inn(1, [ball(2), ball(2)])], [ball(1), ball(4)])).toEqual({ winner: 1, tie: false, decidedBy: 'super_ball', marginRuns: 3 });
+    expect(decideResult([inn(0, [ball(4)]), inn(1, [ball(2), ball(2)])], [ball(1), ball(4)])).toEqual({
+      winner: 1,
+      tie: false,
+      decidedBy: 'super_ball',
+      marginRuns: 3,
+    });
   });
   it('then fewer wickets lost, then more boundaries, then a tie', () => {
-    expect(decideResult([inn(0, [ball(4), ball(0, true)]), inn(1, [ball(2), ball(2)])], [ball(1), ball(1)]).decidedBy).toBe('wickets_lost');
-    expect(decideResult([inn(0, [ball(4), ball(0, true)]), inn(1, [ball(2), ball(2)])], [ball(1), ball(1)]).winner).toBe(1);
-    expect(decideResult([inn(0, [ball(4)]), inn(1, [ball(2), ball(2)])], [ball(0), ball(0)])).toEqual({ winner: 0, tie: false, decidedBy: 'boundaries', marginRuns: 0 });
-    expect(decideResult([inn(0, [ball(2), ball(2)]), inn(1, [ball(1), ball(3)])], [ball(6), ball(6)])).toEqual({ winner: null, tie: true, decidedBy: 'tie', marginRuns: 0 });
+    expect(
+      decideResult([inn(0, [ball(4), ball(0, true)]), inn(1, [ball(2), ball(2)])], [ball(1), ball(1)]).decidedBy,
+    ).toBe('wickets_lost');
+    expect(
+      decideResult([inn(0, [ball(4), ball(0, true)]), inn(1, [ball(2), ball(2)])], [ball(1), ball(1)]).winner,
+    ).toBe(1);
+    expect(decideResult([inn(0, [ball(4)]), inn(1, [ball(2), ball(2)])], [ball(0), ball(0)])).toEqual({
+      winner: 0,
+      tie: false,
+      decidedBy: 'boundaries',
+      marginRuns: 0,
+    });
+    expect(decideResult([inn(0, [ball(2), ball(2)]), inn(1, [ball(1), ball(3)])], [ball(6), ball(6)])).toEqual({
+      winner: null,
+      tie: true,
+      decidedBy: 'tie',
+      marginRuns: 0,
+    });
   });
 });
 
@@ -41,7 +66,12 @@ describe('Player of the Match and turning point', () => {
   });
 
   it('points at the ball that swung the match towards the winner', () => {
-    const tp = turningPoint([inn(0, [ball(1), ball(1), ball(6), ball(1), ball(0), ball(1)]), inn(1, [ball(1), ball(0, true), ball(0, true)])], [ball(0), ball(0)], false, 0);
+    const tp = turningPoint(
+      [inn(0, [ball(1), ball(1), ball(6), ball(1), ball(0), ball(1)]), inn(1, [ball(1), ball(0, true), ball(0, true)])],
+      [ball(0), ball(0)],
+      false,
+      0,
+    );
     expect(tp.innings).toBe(1);
     expect([1, 2]).toContain(tp.index);
   });

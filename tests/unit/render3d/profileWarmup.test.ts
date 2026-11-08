@@ -1,6 +1,29 @@
 /** Orchestration tests, not GPU speed evidence. Browser launch/PERF4 gates measure the real renderer separately. */
 import { describe, expect, it, vi } from 'vitest';
-import { BoxGeometry, BufferGeometry, Group, InstancedBufferAttribute, InstancedBufferGeometry, InstancedMesh, LineSegments, LOD, Matrix4, Mesh, MeshBasicMaterial, MeshDepthMaterial, PerspectiveCamera, Plane, Points, Scene, SkinnedMesh, Sphere, Vector3, Vector4, type Object3D, type Texture } from 'three';
+import {
+  BoxGeometry,
+  BufferGeometry,
+  Group,
+  InstancedBufferAttribute,
+  InstancedBufferGeometry,
+  InstancedMesh,
+  LineSegments,
+  LOD,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  MeshDepthMaterial,
+  PerspectiveCamera,
+  Plane,
+  Points,
+  Scene,
+  SkinnedMesh,
+  Sphere,
+  Vector3,
+  Vector4,
+  type Object3D,
+  type Texture,
+} from 'three';
 import type { QualityProfileId } from '@/contracts/practice';
 import { PRACTICE_PROFILES, type QualityPreset } from '@/render3d/core/quality';
 import { StageScene } from '@/render3d/three/stageScene';
@@ -15,7 +38,8 @@ function warmScene(id: QualityProfileId, throwAt?: 'compile' | 'render') {
   const hidden = new Group();
   hidden.visible = false;
   const lod = new LOD();
-  const near = new Group(), far = new Group();
+  const near = new Group(),
+    far = new Group();
   lod.addLevel(near, 0);
   lod.addLevel(far, 10);
   far.visible = false;
@@ -25,7 +49,8 @@ function warmScene(id: QualityProfileId, throwAt?: 'compile' | 'render') {
   const viewport = new Vector4(3, 4, 915, 412);
   const scissor = new Vector4(6, 8, 900, 400);
   let scissorTest = false;
-  const currentViewport = viewport.clone(), currentScissor = scissor.clone();
+  const currentViewport = viewport.clone(),
+    currentScissor = scissor.clone();
   const uniforms = vi.fn();
   // prewarm deliberately catches renderer errors. Record first and assert OUTSIDE it so a failed test assertion
   // cannot be swallowed by that production recovery boundary.
@@ -50,13 +75,25 @@ function warmScene(id: QualityProfileId, throwAt?: 'compile' | 'render') {
     getViewport: (out: Vector4) => out.copy(currentViewport),
     getScissor: (out: Vector4) => out.copy(currentScissor),
     getScissorTest: () => scissorTest,
-    setViewport: (v: Vector4 | number, y?: number, w?: number, h?: number) => typeof v === 'number' ? currentViewport.set(v, y!, w!, h!) : currentViewport.copy(v),
-    setScissor: (v: Vector4 | number, y?: number, w?: number, h?: number) => typeof v === 'number' ? currentScissor.set(v, y!, w!, h!) : currentScissor.copy(v),
-    setScissorTest: (on: boolean) => { scissorTest = on; },
+    setViewport: (v: Vector4 | number, y?: number, w?: number, h?: number) =>
+      typeof v === 'number' ? currentViewport.set(v, y!, w!, h!) : currentViewport.copy(v),
+    setScissor: (v: Vector4 | number, y?: number, w?: number, h?: number) =>
+      typeof v === 'number' ? currentScissor.set(v, y!, w!, h!) : currentScissor.copy(v),
+    setScissorTest: (on: boolean) => {
+      scissorTest = on;
+    },
   };
   const stage = Object.create(StageScene.prototype) as StageScene;
-  const applyPreset = vi.fn((preset: QualityPreset) => { stage.preset = preset; });
-  Object.assign(stage, { scene, camera: new PerspectiveCamera(), renderer, preset: PRACTICE_PROFILES[id].preset, applyPreset });
+  const applyPreset = vi.fn((preset: QualityPreset) => {
+    stage.preset = preset;
+  });
+  Object.assign(stage, {
+    scene,
+    camera: new PerspectiveCamera(),
+    renderer,
+    preset: PRACTICE_PROFILES[id].preset,
+    applyPreset,
+  });
   const restored = () => {
     expect(observations.length).toBe(throwAt === 'compile' ? 1 : 2);
     for (const observed of observations) {
@@ -64,7 +101,8 @@ function warmScene(id: QualityProfileId, throwAt?: 'compile' | 'render') {
       expect(observed.autoUpdate).toBe(false);
       expect(observed.culled.every((value) => !value)).toBe(true);
     }
-    for (const draw of draws) expect(draw).toEqual({ viewport: [0, 0, 1, 1], scissor: [0, 0, 1, 1], scissorTest: true });
+    for (const draw of draws)
+      expect(draw).toEqual({ viewport: [0, 0, 1, 1], scissor: [0, 0, 1, 1], scissorTest: true });
     expect(hidden.visible).toBe(false);
     expect(near.visible).toBe(true);
     expect(far.visible).toBe(false);
@@ -137,24 +175,52 @@ describe('active-profile shader warm-up', () => {
       const ranges = [geometry.drawRange, emptyGeometry.drawRange, instancedGeometry.drawRange];
       const groupsBefore = groups.map((group) => ({ ...group }));
       const rangesBefore = ranges.map((range) => ({ ...range }));
-      const matrix = crowd.instanceMatrix, colour = crowd.instanceColor, depth = crowd.customDepthMaterial;
+      const matrix = crowd.instanceMatrix,
+        colour = crowd.instanceColor,
+        depth = crowd.customDepthMaterial;
       const observations: Array<{
-        phase: string; counts: number[]; objects: typeof objects; groups: typeof groupsBefore;
-        ranges: typeof rangesBefore; materialGroups: number[]; castShadow: boolean; skin: boolean;
-        geometryInstances: number; sameMatrix: boolean; sameColour: boolean; sameDepth: boolean; sameClipping: boolean;
+        phase: string;
+        counts: number[];
+        objects: typeof objects;
+        groups: typeof groupsBefore;
+        ranges: typeof rangesBefore;
+        materialGroups: number[];
+        castShadow: boolean;
+        skin: boolean;
+        geometryInstances: number;
+        sameMatrix: boolean;
+        sameColour: boolean;
+        sameDepth: boolean;
+        sameClipping: boolean;
       }> = [];
-      const capture = (phase: string) => observations.push({
-        phase, counts: meshes.map((mesh) => mesh.count), objects: objects.filter((object) => object.parent === c.stage.scene),
-        groups: geometry.groups.map((group) => ({ ...group })), ranges: ranges.map((range) => ({ ...range })),
-        materialGroups: geometry.groups.filter((group) => group.count > 0).map((group) => materials.indexOf((crowd.material as typeof materials)[group.materialIndex ?? 0])),
-        castShadow: crowd.castShadow, skin: skinned.isSkinnedMesh, geometryInstances: instancedGeometry.instanceCount,
-        sameMatrix: crowd.instanceMatrix === matrix, sameColour: crowd.instanceColor === colour,
-        sameDepth: crowd.customDepthMaterial === depth, sameClipping: materials[0].clippingPlanes === planes,
-      });
+      const capture = (phase: string) =>
+        observations.push({
+          phase,
+          counts: meshes.map((mesh) => mesh.count),
+          objects: objects.filter((object) => object.parent === c.stage.scene),
+          groups: geometry.groups.map((group) => ({ ...group })),
+          ranges: ranges.map((range) => ({ ...range })),
+          materialGroups: geometry.groups
+            .filter((group) => group.count > 0)
+            .map((group) => materials.indexOf((crowd.material as typeof materials)[group.materialIndex ?? 0])),
+          castShadow: crowd.castShadow,
+          skin: skinned.isSkinnedMesh,
+          geometryInstances: instancedGeometry.instanceCount,
+          sameMatrix: crowd.instanceMatrix === matrix,
+          sameColour: crowd.instanceColor === colour,
+          sameDepth: crowd.customDepthMaterial === depth,
+          sameClipping: materials[0].clippingPlanes === planes,
+        });
       const compile = c.renderer.compile.getMockImplementation()!;
-      c.renderer.compile.mockImplementation(() => { capture('compile'); compile(); });
+      c.renderer.compile.mockImplementation(() => {
+        capture('compile');
+        compile();
+      });
       const render = c.renderer.render.getMockImplementation()!;
-      c.renderer.render.mockImplementation(() => { capture('render'); render(); });
+      c.renderer.render.mockImplementation(() => {
+        capture('render');
+        render();
+      });
 
       c.stage.prewarm([PRACTICE_PROFILES.standard.preset]);
 
@@ -184,7 +250,9 @@ describe('active-profile shader warm-up', () => {
       for (const object of objects) if (object instanceof InstancedMesh) object.dispose();
       for (const material of materials) material.dispose();
       depth.dispose();
-      geometry.dispose(); emptyGeometry.dispose(); instancedGeometry.dispose();
+      geometry.dispose();
+      emptyGeometry.dispose();
+      instancedGeometry.dispose();
     });
   }
 
@@ -209,7 +277,10 @@ describe('active-profile shader warm-up', () => {
       c.renderer.render.mockImplementation(() => {
         // Model Three's real lazy sort-bound path, including its count-sensitive compute implementation.
         for (const mesh of [missing, existing]) if (mesh.boundingSphere === null) mesh.computeBoundingSphere();
-        observed.push({ counts: [missing.count, existing.count], bounds: [missing.boundingSphere!.clone(), existing.boundingSphere!.clone()] });
+        observed.push({
+          counts: [missing.count, existing.count],
+          bounds: [missing.boundingSphere!.clone(), existing.boundingSphere!.clone()],
+        });
         render();
       });
 
@@ -227,7 +298,10 @@ describe('active-profile shader warm-up', () => {
       expect(existing.boundingSphere).toEqual(expectedExisting);
       expect([missing.count, existing.count]).toEqual([3, 2]);
       c.restored();
-      missing.dispose(); existing.dispose(); geometry.dispose(); material.dispose();
+      missing.dispose();
+      existing.dispose();
+      geometry.dispose();
+      material.dispose();
     });
   }
 
@@ -236,7 +310,9 @@ describe('active-profile shader warm-up', () => {
       it(`${id}: excludes only unreachable Practice objects from compile and draw, restoring the exact scene (${failure ?? 'success'})`, () => {
         const c = warmScene(id, failure);
         const texture = flatTexture([255, 255, 255, 255]) as unknown as Texture;
-        const ball = createBall(texture), events = createEventFx(texture), stumps = createStumps();
+        const ball = createBall(texture),
+          events = createEventFx(texture),
+          stumps = createStumps();
         const rig = createRig('batter', PRACTICE_PROFILES[id].preset.lodDistance);
         const ghost = rig.root.children.find((object) => object.name === 'ghost-warmup')!;
         const coachBat = new Mesh(new BoxGeometry(), new MeshBasicMaterial({ transparent: true }));
@@ -249,8 +325,24 @@ describe('active-profile shader warm-up', () => {
         Object.assign(ball, { matchOnlyMeshes: [...ball.matchOnlyMeshes, nested, nested] });
         Object.assign(c.stage, { ballFx: ball, eventFx: events, stumpsFx: stumps, rigs: new Map([['batter', rig]]) });
         c.stage.scene.add(ball.group, events.group, stumps.group, rig.root, coachBat, unrelatedName);
-        const before: Array<{ object: Object3D; parent: Object3D | null; children: Object3D[]; childrenRef: Object3D[]; visible: boolean; culled: boolean }> = [];
-        c.stage.scene.traverse((object) => before.push({ object, parent: object.parent, children: [...object.children], childrenRef: object.children, visible: object.visible, culled: object.frustumCulled }));
+        const before: Array<{
+          object: Object3D;
+          parent: Object3D | null;
+          children: Object3D[];
+          childrenRef: Object3D[];
+          visible: boolean;
+          culled: boolean;
+        }> = [];
+        c.stage.scene.traverse((object) =>
+          before.push({
+            object,
+            parent: object.parent,
+            children: [...object.children],
+            childrenRef: object.children,
+            visible: object.visible,
+            culled: object.frustumCulled,
+          }),
+        );
         const omitted = new Set<Object3D>([...ball.matchOnlyMeshes, ...events.matchOnlyMeshes, ...stumps.ledMeshes]);
         const required = before.map(({ object }) => object).filter((object) => !omitted.has(object));
         const observations: Array<{ phase: string; objects: Object3D[] }> = [];
@@ -260,9 +352,15 @@ describe('active-profile shader warm-up', () => {
           observations.push({ phase, objects });
         };
         const compile = c.renderer.compile.getMockImplementation()!;
-        c.renderer.compile.mockImplementation(() => { capture('compile'); compile(); });
+        c.renderer.compile.mockImplementation(() => {
+          capture('compile');
+          compile();
+        });
         const render = c.renderer.render.getMockImplementation()!;
-        c.renderer.render.mockImplementation(() => { capture('render'); render(); });
+        c.renderer.render.mockImplementation(() => {
+          capture('render');
+          render();
+        });
 
         c.stage.prewarmPractice(PRACTICE_PROFILES[id].preset);
 
@@ -273,7 +371,8 @@ describe('active-profile shader warm-up', () => {
           expect(objects).toContain(ghost); // Coach demonstration is reachable: its material must be warm at mount.
           expect(objects).toContain(unrelatedName);
           for (const mesh of rig.meshes) expect(objects).toContain(mesh); // both actual player LODs
-          for (const mesh of stumps.group.children.filter((o) => !stumps.ledMeshes.includes(o as InstancedMesh))) expect(objects).toContain(mesh);
+          for (const mesh of stumps.group.children.filter((o) => !stumps.ledMeshes.includes(o as InstancedMesh)))
+            expect(objects).toContain(mesh);
           expect(objects.some((object) => object.name === 'practice-ball-surround')).toBe(true);
           for (const object of omitted) expect(objects).not.toContain(object);
         }
@@ -289,8 +388,12 @@ describe('active-profile shader warm-up', () => {
         observations.length = 0;
         c.stage.prewarm([PRACTICE_PROFILES[id].preset]);
         for (const observed of observations) expect(observed.objects).toEqual(before.map(({ object }) => object));
-        ball.dispose(); events.dispose(); stumps.dispose(); texture.dispose();
-        coachBat.geometry.dispose(); (coachBat.material as MeshBasicMaterial).dispose();
+        ball.dispose();
+        events.dispose();
+        stumps.dispose();
+        texture.dispose();
+        coachBat.geometry.dispose();
+        (coachBat.material as MeshBasicMaterial).dispose();
       });
     }
   }
@@ -298,9 +401,14 @@ describe('active-profile shader warm-up', () => {
   it('fully warms a newly selected profile before returning, and rewarms after context restoration', () => {
     const stage = new ThreePracticeStage();
     const order: string[] = [];
-    const prewarm = vi.fn((_preset: QualityPreset) => { order.push('warm'); return 12; });
+    const prewarm = vi.fn((_preset: QualityPreset) => {
+      order.push('warm');
+      return 12;
+    });
     const renderer = {
-      applyPreset: vi.fn(), prewarmPractice: prewarm, setSize: vi.fn(),
+      applyPreset: vi.fn(),
+      prewarmPractice: prewarm,
+      setSize: vi.fn(),
       ballFx: { setStyle: vi.fn() },
       rigOf: vi.fn(() => undefined),
     };
@@ -315,7 +423,9 @@ describe('active-profile shader warm-up', () => {
     stage.setProfile('lite');
     expect(prewarm.mock.calls[1]).toEqual([PRACTICE_PROFILES.lite.preset]);
     // Restored GPU programs cannot inherit an application-level "already warm" bit from the lost context.
-    stage.on('contextrestored', () => { order.push('restored'); });
+    stage.on('contextrestored', () => {
+      order.push('restored');
+    });
     Object.assign(stage, { contextLost: true });
     order.length = 0;
     (stage as unknown as { onRestored(): void }).onRestored();

@@ -47,7 +47,16 @@ export const ZONE_BEARING: Record<FieldZone, number> = {
   midwicket: -62,
   mid_on: -22,
 };
-export const ZONES: readonly FieldZone[] = ['third_man', 'point', 'cover', 'mid_off', 'mid_on', 'midwicket', 'square_leg', 'fine_leg'];
+export const ZONES: readonly FieldZone[] = [
+  'third_man',
+  'point',
+  'cover',
+  'mid_off',
+  'mid_on',
+  'midwicket',
+  'square_leg',
+  'fine_leg',
+];
 
 export const STRIKER_POS: Vec3 = v3(-0.34, 0, PITCH_HALF - 1.05);
 
@@ -158,4 +167,3 @@ export function runUpLength(action: 'pace_long' | 'pace_short' | 'swing_side_on'
       return 6.5;
   }
 }
-

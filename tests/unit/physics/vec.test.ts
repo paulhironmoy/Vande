@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { bearingDeg, dacos, datan2, dcos, dexp, dirFromBearing, dsin, dtanh, elevationDeg, rotate } from '@/physics/vec';
+import {
+  bearingDeg,
+  dacos,
+  datan2,
+  dcos,
+  dexp,
+  dirFromBearing,
+  dsin,
+  dtanh,
+  elevationDeg,
+  rotate,
+} from '@/physics/vec';
 
 describe('deterministic elementary functions', () => {
   it('match Math to within a few ulps over the ranges physics uses', () => {

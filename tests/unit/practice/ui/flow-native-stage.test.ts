@@ -1,10 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type {
-  BallFlight,
-  DeliveryResult,
-  NormalizedSwing,
-  UnityPracticeResolution,
-} from '@/contracts';
+import type { BallFlight, DeliveryResult, NormalizedSwing, UnityPracticeResolution } from '@/contracts';
 import { hasValidUnityPracticeResolutionIdentity, unityPracticeReplayDigest } from '@/contracts';
 import type { BenchmarkOptions } from '@/perf';
 import { updatePracticeSettings } from '@/practice/store';
@@ -378,9 +373,9 @@ describe('native Practice-stage integration', () => {
   it('routes native low-memory admission straight to Classic without Unity, Three or fabricated evidence', async () => {
     const store = nativeStore();
     const classic = new FakeStage('2d', store);
-    const createStage = vi.fn<StageFactory>(async ({ force2d }) => force2d
-      ? classic
-      : { kind: 'route', target: 'classic', reason: 'low_memory_device' });
+    const createStage = vi.fn<StageFactory>(async ({ force2d }) =>
+      force2d ? classic : { kind: 'route', target: 'classic', reason: 'low_memory_device' },
+    );
     const benchmark = vi.fn(async () => qualifiedNativeAssessment());
     const { flow } = setup({ store, deps: { createStage, benchmark } });
 
@@ -534,10 +529,13 @@ describe('native Practice-stage integration', () => {
     const store = nativeStore();
     const nativeSwing = attack(0.64, 18);
     const stage = new NativeInputStage(store, nativeSwing, 'same-task');
-    const { flow, engine } = setup({ store, deps: {
-      createStage: async () => stage,
-      benchmark: async () => qualifiedNativeAssessment(),
-    } });
+    const { flow, engine } = setup({
+      store,
+      deps: {
+        createStage: async () => stage,
+        benchmark: async () => qualifiedNativeAssessment(),
+      },
+    });
     const resolve = vi.spyOn(engine, 'resolveDelivery');
 
     flow.init();
@@ -593,9 +591,10 @@ describe('native Practice-stage integration', () => {
       store,
       deps: {
         createStage,
-        benchmark: async (candidate) => candidate?.ownsInput === true
-          ? qualifiedNativeAssessment()
-          : assessment(candidate?.kind === '2d' ? 'below' : 'full'),
+        benchmark: async (candidate) =>
+          candidate?.ownsInput === true
+            ? qualifiedNativeAssessment()
+            : assessment(candidate?.kind === '2d' ? 'below' : 'full'),
       },
     });
 
@@ -662,9 +661,10 @@ describe('native Practice-stage integration', () => {
       teach: true,
       deps: {
         createStage,
-        benchmark: async (candidate) => candidate?.ownsInput === true
-          ? qualifiedNativeAssessment()
-          : assessment(candidate?.kind === '2d' ? 'below' : 'full'),
+        benchmark: async (candidate) =>
+          candidate?.ownsInput === true
+            ? qualifiedNativeAssessment()
+            : assessment(candidate?.kind === '2d' ? 'below' : 'full'),
       },
     });
 
@@ -715,15 +715,19 @@ describe('native Practice-stage integration', () => {
             reject(error);
             return;
           }
-          context.signal.addEventListener('abort', () => {
-            this.demoCancelRequested++;
-            this.finishDemoCancellation = () => {
-              this.demoCancelled++;
-              const error = new Error('demonstration cancelled');
-              error.name = 'AbortError';
-              reject(error);
-            };
-          }, { once: true });
+          context.signal.addEventListener(
+            'abort',
+            () => {
+              this.demoCancelRequested++;
+              this.finishDemoCancellation = () => {
+                this.demoCancelled++;
+                const error = new Error('demonstration cancelled');
+                error.name = 'AbortError';
+                reject(error);
+              };
+            },
+            { once: true },
+          );
         });
       }
     }
@@ -740,9 +744,8 @@ describe('native Practice-stage integration', () => {
       teach: true,
       deps: {
         createStage,
-        benchmark: async (candidate) => candidate?.ownsInput === true
-          ? qualifiedNativeAssessment()
-          : assessment('full'),
+        benchmark: async (candidate) =>
+          candidate?.ownsInput === true ? qualifiedNativeAssessment() : assessment('full'),
       },
     });
 
@@ -803,9 +806,8 @@ describe('native Practice-stage integration', () => {
       teach: true,
       deps: {
         createStage,
-        benchmark: async (candidate) => candidate?.ownsInput === true
-          ? qualifiedNativeAssessment()
-          : assessment('below'),
+        benchmark: async (candidate) =>
+          candidate?.ownsInput === true ? qualifiedNativeAssessment() : assessment('below'),
       },
     });
 
@@ -840,15 +842,13 @@ describe('native Practice-stage integration', () => {
     const resume = vi.fn(async () => true);
     const nativeWithLifecycle = Object.assign(native, { pause, resume });
     const retained = new RetainedCoachStage('3d', store);
-    const createStage = vi.fn<StageFactory>(async ({ skipUnity }) =>
-      skipUnity ? retained : nativeWithLifecycle);
+    const createStage = vi.fn<StageFactory>(async ({ skipUnity }) => (skipUnity ? retained : nativeWithLifecycle));
     const { flow } = setup({
       store,
       deps: {
         createStage,
-        benchmark: async (candidate) => candidate?.ownsInput === true
-          ? qualifiedNativeAssessment()
-          : assessment('full'),
+        benchmark: async (candidate) =>
+          candidate?.ownsInput === true ? qualifiedNativeAssessment() : assessment('full'),
       },
     });
 
@@ -967,14 +967,16 @@ describe('native Practice-stage integration', () => {
     const retained = new RetainedCoachStage('3d', store);
     const classic = new RetainedCoachStage('2d', store);
     const createStage = vi.fn<StageFactory>(async ({ force2d, skipUnity }) =>
-      force2d ? classic : skipUnity ? retained : native);
+      force2d ? classic : skipUnity ? retained : native,
+    );
     const { flow, swings } = setup({
       store,
       deps: {
         createStage,
-        benchmark: async (candidate) => candidate?.ownsInput === true
-          ? qualifiedNativeAssessment()
-          : assessment(candidate?.kind === '2d' ? 'below' : 'full'),
+        benchmark: async (candidate) =>
+          candidate?.ownsInput === true
+            ? qualifiedNativeAssessment()
+            : assessment(candidate?.kind === '2d' ? 'below' : 'full'),
       },
     });
 
@@ -987,9 +989,12 @@ describe('native Practice-stage integration', () => {
 
     swings.push(attack(0.2));
     flow.coachLoop.practiceThisBall();
-    await until(() => flow.getState().screen === 'coach' &&
-      flow.getState().phase === 'idle' &&
-      flow.getState().coach?.latest !== null);
+    await until(
+      () =>
+        flow.getState().screen === 'coach' &&
+        flow.getState().phase === 'idle' &&
+        flow.getState().coach?.latest !== null,
+    );
 
     const liveCanvas = native.mountedCanvas;
     const liveCanvasKey = flow.getState().canvasKey;
@@ -1024,14 +1029,16 @@ describe('native Practice-stage integration', () => {
     const retained = new RetainedCoachStage('3d', store, { failMount: true });
     const classic = new RetainedCoachStage('2d', store);
     const createStage = vi.fn<StageFactory>(async ({ force2d, skipUnity }) =>
-      force2d ? classic : skipUnity ? retained : native);
+      force2d ? classic : skipUnity ? retained : native,
+    );
     const { flow } = setup({
       store,
       deps: {
         createStage,
-        benchmark: async (candidate) => candidate?.ownsInput === true
-          ? qualifiedNativeAssessment()
-          : assessment(candidate?.kind === '2d' ? 'below' : 'full'),
+        benchmark: async (candidate) =>
+          candidate?.ownsInput === true
+            ? qualifiedNativeAssessment()
+            : assessment(candidate?.kind === '2d' ? 'below' : 'full'),
       },
     });
 
@@ -1073,14 +1080,16 @@ describe('native Practice-stage integration', () => {
     const retained = new FallbackDuringMountStage('3d', store);
     const classic = new RetainedCoachStage('2d', store);
     const createStage = vi.fn<StageFactory>(async ({ force2d, skipUnity }) =>
-      force2d ? classic : skipUnity ? retained : native);
+      force2d ? classic : skipUnity ? retained : native,
+    );
     const { flow } = setup({
       store,
       deps: {
         createStage,
-        benchmark: async (candidate) => candidate?.ownsInput === true
-          ? qualifiedNativeAssessment()
-          : assessment(candidate?.kind === '2d' ? 'below' : 'full'),
+        benchmark: async (candidate) =>
+          candidate?.ownsInput === true
+            ? qualifiedNativeAssessment()
+            : assessment(candidate?.kind === '2d' ? 'below' : 'full'),
       },
     });
 
@@ -1118,14 +1127,16 @@ describe('native Practice-stage integration', () => {
     const retained = new RetainedCoachStage('3d', store, { failMount: true });
     const classic = new RetainedCoachStage('2d', store, { failMount: true });
     const createStage = vi.fn<StageFactory>(async ({ force2d, skipUnity }) =>
-      force2d ? classic : skipUnity ? retained : native);
+      force2d ? classic : skipUnity ? retained : native,
+    );
     const { flow } = setup({
       store,
       deps: {
         createStage,
-        benchmark: async (candidate) => candidate?.ownsInput === true
-          ? qualifiedNativeAssessment()
-          : assessment(candidate?.kind === '2d' ? 'below' : 'full'),
+        benchmark: async (candidate) =>
+          candidate?.ownsInput === true
+            ? qualifiedNativeAssessment()
+            : assessment(candidate?.kind === '2d' ? 'below' : 'full'),
       },
     });
 
@@ -1189,8 +1200,9 @@ describe('native Practice-stage integration', () => {
       expect(native.disposed).toBe(false);
       expect(flow.stageOwnsInput()).toBe(true);
       expect(flow.getState().assessment).toBeNull();
-      expect(document.getElementById(UNITY_PRACTICE_ENGINEERING_PREVIEW_MARKER_ID)?.dataset.reason)
-        .toBe('benchmark_unavailable');
+      expect(document.getElementById(UNITY_PRACTICE_ENGINEERING_PREVIEW_MARKER_ID)?.dataset.reason).toBe(
+        'benchmark_unavailable',
+      );
     } else {
       expect(native.disposed).toBe(true);
       expect(flow.host.stage).not.toBe(native);
@@ -1211,10 +1223,12 @@ describe('native Practice-stage integration', () => {
     const store = nativeStore();
     const native = new NativeInputStage(store, attack());
     const retained = new FakeStage('3d', store);
-    const createStage: StageFactory = async ({ skipUnity }) => skipUnity ? retained : native;
-    const benchmark = vi.fn(async (candidate: PracticeStageLike | null) => candidate?.ownsInput === true
-      ? { ...assessment('full'), backend: 'unity' as const, webgl2: false, inputToFrameMs: null }
-      : { ...assessment('full'), backend: 'webgl2' as const });
+    const createStage: StageFactory = async ({ skipUnity }) => (skipUnity ? retained : native);
+    const benchmark = vi.fn(async (candidate: PracticeStageLike | null) =>
+      candidate?.ownsInput === true
+        ? { ...assessment('full'), backend: 'unity' as const, webgl2: false, inputToFrameMs: null }
+        : { ...assessment('full'), backend: 'webgl2' as const },
+    );
     const { flow } = setup({ store, deps: { createStage, benchmark } });
 
     flow.init();
@@ -1225,8 +1239,9 @@ describe('native Practice-stage integration', () => {
       expect(native.disposed).toBe(false);
       expect(flow.stageOwnsInput()).toBe(true);
       expect(flow.getState().assessment).toMatchObject({ backend: 'unity', tier: 'full', inputToFrameMs: null });
-      expect(document.getElementById(UNITY_PRACTICE_ENGINEERING_PREVIEW_MARKER_ID)?.dataset.reason)
-        .toBe('qualification_incomplete');
+      expect(document.getElementById(UNITY_PRACTICE_ENGINEERING_PREVIEW_MARKER_ID)?.dataset.reason).toBe(
+        'qualification_incomplete',
+      );
     } else if (__UNITY_PRACTICE_ENABLED__) {
       expect(native.disposed).toBe(true);
       expect(flow.host.stage).toBe(retained);

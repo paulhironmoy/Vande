@@ -21,7 +21,8 @@ export const H = 1920;
  */
 export function displayNames(input: Pick<HighlightRenderInput, 'aliases'>): [string, string] {
   const a: unknown = input.aliases;
-  if (!Array.isArray(a) || a.length !== 2 || a.some((x) => typeof x !== 'string' || x.trim() === '')) throw new Error('highlight input has no moderated aliases');
+  if (!Array.isArray(a) || a.length !== 2 || a.some((x) => typeof x !== 'string' || x.trim() === ''))
+    throw new Error('highlight input has no moderated aliases');
   return [a[0] as string, a[1] as string];
 }
 
@@ -89,7 +90,15 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, max
   return lines;
 }
 
-function glassPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, edge = 'rgba(143,135,232,0.35)') {
+function glassPanel(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+  edge = 'rgba(143,135,232,0.35)',
+) {
   roundRect(ctx, x, y, w, h, r);
   const g = ctx.createLinearGradient(0, y, 0, y + h);
   g.addColorStop(0, 'rgba(29,24,88,0.86)');
@@ -101,12 +110,25 @@ function glassPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: numb
   ctx.stroke();
 }
 
-function pill(ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, tone: 'amber' | 'cyan' | 'violet' | 'clay', px = 30, align: 'center' | 'left' | 'right' = 'center'): number {
+function pill(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  cx: number,
+  y: number,
+  tone: 'amber' | 'cyan' | 'violet' | 'clay',
+  px = 30,
+  align: 'center' | 'left' | 'right' = 'center',
+): number {
   ctx.font = font(750, px);
   const w = ctx.measureText(text).width + px * 1.5;
   const h = px * 1.9;
   const x = align === 'center' ? cx - w / 2 : align === 'left' ? cx : cx - w;
-  const c = { amber: ['rgba(255,170,51,0.2)', '#ffdba3'], cyan: ['rgba(25,211,250,0.18)', '#93eeff'], violet: ['rgba(195,140,255,0.2)', '#e2c9ff'], clay: ['rgba(210,170,114,0.22)', '#f1d7ad'] }[tone];
+  const c = {
+    amber: ['rgba(255,170,51,0.2)', '#ffdba3'],
+    cyan: ['rgba(25,211,250,0.18)', '#93eeff'],
+    violet: ['rgba(195,140,255,0.2)', '#e2c9ff'],
+    clay: ['rgba(210,170,114,0.22)', '#f1d7ad'],
+  }[tone];
   roundRect(ctx, x, y, w, h, h / 2);
   ctx.fillStyle = c[0];
   ctx.fill();
@@ -124,7 +146,14 @@ function pill(ctx: CanvasRenderingContext2D, text: string, cx: number, y: number
   return w;
 }
 
-function portrait(ctx: CanvasRenderingContext2D, img: CanvasImageSource | null, cx: number, cy: number, size: number, ring: string) {
+function portrait(
+  ctx: CanvasRenderingContext2D,
+  img: CanvasImageSource | null,
+  cx: number,
+  cy: number,
+  size: number,
+  ring: string,
+) {
   ctx.save();
   ctx.shadowColor = 'rgba(2,1,16,0.7)';
   ctx.shadowBlur = 40;
@@ -234,11 +263,18 @@ function ballCaption(ctx: CanvasRenderingContext2D, a: OverlayAssets, seg: Segme
   glassPanel(ctx, 56, y, W - 112, 188, 30, 'rgba(255,170,51,0.45)');
   ctx.fillStyle = '#ffc266';
   ctx.font = font(750, 26);
-  const eyebrow = seg.innings === 'super' ? t.t('highlight.super_ball') : t.t('highlight.ball_of', { innings: Number(seg.innings) + 1, n: (seg.ball ?? 0) + 1 });
+  const eyebrow =
+    seg.innings === 'super'
+      ? t.t('highlight.super_ball')
+      : t.t('highlight.ball_of', { innings: Number(seg.innings) + 1, n: (seg.ball ?? 0) + 1 });
   ctx.fillText(eyebrow.toUpperCase(), 92, y + 52);
   ctx.fillStyle = '#ffffff';
   ctx.font = font(820, 46);
-  ctx.fillText(fit(ctx, t.t('highlight.matchup', { batter: nameOf(a, seg.batting), bowler: nameOf(a, seg.bowling) }), W - 184), 92, y + 110);
+  ctx.fillText(
+    fit(ctx, t.t('highlight.matchup', { batter: nameOf(a, seg.batting), bowler: nameOf(a, seg.bowling) }), W - 184),
+    92,
+    y + 110,
+  );
   ctx.fillStyle = '#cac7ee';
   ctx.font = font(560, 30);
   const delivery = `${t.t(`variant.${o.delivery.variant}` as MessageKey)} · ${t.t(`line.${o.delivery.line}` as MessageKey)}`;
@@ -264,7 +300,10 @@ function eventBadge(ctx: CanvasRenderingContext2D, a: OverlayAssets, seg: Segmen
     glow = 'rgba(255,77,106,0.55)';
   } else if (o.runs === 6) {
     big = t.t('highlight.six');
-    sub = fate.kind === 'six' ? t.t('highlight.six_sub', { m: Math.round(fate.distanceM), zone: t.t(`zone.${fate.zone}` as MessageKey) }) : '';
+    sub =
+      fate.kind === 'six'
+        ? t.t('highlight.six_sub', { m: Math.round(fate.distanceM), zone: t.t(`zone.${fate.zone}` as MessageKey) })
+        : '';
     color = '#ffc266';
     glow = 'rgba(255,170,51,0.6)';
   } else if (o.runs === 4) {
@@ -425,7 +464,14 @@ function drawResult(ctx: CanvasRenderingContext2D, a: OverlayAssets, local: numb
   ([0, 1] as const).forEach((p) => {
     const inn = log.innings.find((x) => x.batter === p);
     const cx = p === 0 ? W / 2 - 230 : W / 2 + 230;
-    portrait(ctx, a.avatars[p], cx, y + 90, 170, log.result.winner === p ? 'rgba(255,170,51,0.9)' : 'rgba(143,135,232,0.6)');
+    portrait(
+      ctx,
+      a.avatars[p],
+      cx,
+      y + 90,
+      170,
+      log.result.winner === p ? 'rgba(255,170,51,0.9)' : 'rgba(143,135,232,0.6)',
+    );
     ctx.fillStyle = '#ffffff';
     ctx.font = font(750, 38);
     ctx.fillText(fit(ctx, nameOf(a, p), 380), cx, y + 230);
@@ -517,7 +563,9 @@ function drawCta(ctx: CanvasRenderingContext2D, a: OverlayAssets, local: number)
   lines.forEach((l, i) => ctx.fillText(l, W / 2, 470 + i * 116));
   ctx.fillStyle = '#cac7ee';
   ctx.font = font(560, 38);
-  wrap(ctx, t.t('highlight.cta_body'), W - 200, 2).forEach((l, i) => ctx.fillText(l, W / 2, 470 + lines.length * 116 + 10 + i * 52));
+  wrap(ctx, t.t('highlight.cta_body'), W - 200, 2).forEach((l, i) =>
+    ctx.fillText(l, W / 2, 470 + lines.length * 116 + 10 + i * 52),
+  );
   if (a.qr) {
     const size = 400;
     const x = W / 2 - size / 2;
@@ -547,7 +595,14 @@ function drawCta(ctx: CanvasRenderingContext2D, a: OverlayAssets, local: number)
 }
 
 /** Draws the overlay for one frame. `local` is the time inside the scene, `replay` what the 3D picture shows. */
-export function drawOverlay(ctx: CanvasRenderingContext2D, a: OverlayAssets, scene: Scene, index: number, local: number, replay: number): void {
+export function drawOverlay(
+  ctx: CanvasRenderingContext2D,
+  a: OverlayAssets,
+  scene: Scene,
+  index: number,
+  local: number,
+  replay: number,
+): void {
   ctx.save();
   switch (scene.kind) {
     case 'hook':

@@ -6,7 +6,16 @@
  * must show the frames the live delivery showed; a wall clock or hidden state in the old blink made them differ.
  */
 import { describe, expect, it, vi } from 'vitest';
-import { CHANNELS, SCALE, createOut, deliveryTakeKey, prepare, sample, type DirectorPlan, type Role } from '@/render3d/core/motion/director';
+import {
+  CHANNELS,
+  SCALE,
+  createOut,
+  deliveryTakeKey,
+  prepare,
+  sample,
+  type DirectorPlan,
+  type Role,
+} from '@/render3d/core/motion/director';
 import { anchorsFor, delivery, idleAnchors, OUTCOMES, STOCK, type BallSpec } from './world';
 import { maxDiff, record, recordFile, traceHash } from './gates';
 
@@ -15,9 +24,17 @@ recordFile('replay');
 // Heavy measurement runs: a slow CI runner gets a generous timeout (the config default is 30 s).
 vi.setConfig({ testTimeout: 120_000 });
 
-const same = (a: Float32Array | Int16Array, b: Float32Array | Int16Array) => a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
+const same = (a: Float32Array | Int16Array, b: Float32Array | Int16Array) =>
+  a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
 const samePlan = (a: DirectorPlan, b: DirectorPlan) =>
-  a.key === b.key && a.n === b.n && same(a.trace, b.trace) && same(a.fix, b.fix) && same(a.blink, b.blink) && same(a.micro, b.micro) && same(a.draw, b.draw) && same(a.amp, b.amp);
+  a.key === b.key &&
+  a.n === b.n &&
+  same(a.trace, b.trace) &&
+  same(a.fix, b.fix) &&
+  same(a.blink, b.blink) &&
+  same(a.micro, b.micro) &&
+  same(a.draw, b.draw) &&
+  same(a.amp, b.amp);
 
 const build = (role: Role, k: number, outcome: BallSpec['outcome'], extra: { reducedMotion?: boolean } = {}) => {
   const d = delivery({ ...STOCK, outcome, lengthM: 3 + (k % 7), speedKph: 100 + 5 * (k % 9) });
@@ -54,11 +71,14 @@ describe('G-replay: identity', () => {
 
   it('reads the same value at the same time whatever order the frames are read in (scrubbing equals playing)', () => {
     const plan = build('bowler', 2, 'six');
-    const times = Array.from({ length: 2000 }, (_, i) => -50 + (i * 9137) % 9000 + (i % 7) * 0.1371);
+    const times = Array.from({ length: 2000 }, (_, i) => -50 + ((i * 9137) % 9000) + (i % 7) * 0.1371);
     const outA = createOut();
     const outB = createOut();
     const forward = times.map((t) => Array.from(sample(plan, t, outA)));
-    const backward = [...times].reverse().map((t) => Array.from(sample(plan, t, outB))).reverse();
+    const backward = [...times]
+      .reverse()
+      .map((t) => Array.from(sample(plan, t, outB)))
+      .reverse();
     expect(backward).toEqual(forward);
   });
 
@@ -66,10 +86,24 @@ describe('G-replay: identity', () => {
     const base = build('striker', 1, 'four');
     expect(traceHash(build('striker', 2, 'four'))).not.toBe(traceHash(base));
     const d = delivery(STOCK);
-    const other = prepare(anchorsFor(d, { role: 'striker', key: deliveryTakeKey({ seed: 'replay', overIndex: 0, ballIndex: 1 }), person: 'look-2' }));
-    const same1 = prepare(anchorsFor(d, { role: 'striker', key: deliveryTakeKey({ seed: 'replay', overIndex: 0, ballIndex: 1 }), person: 'look-1' }));
+    const other = prepare(
+      anchorsFor(d, {
+        role: 'striker',
+        key: deliveryTakeKey({ seed: 'replay', overIndex: 0, ballIndex: 1 }),
+        person: 'look-2',
+      }),
+    );
+    const same1 = prepare(
+      anchorsFor(d, {
+        role: 'striker',
+        key: deliveryTakeKey({ seed: 'replay', overIndex: 0, ballIndex: 1 }),
+        person: 'look-1',
+      }),
+    );
     expect(traceHash(other)).not.toBe(traceHash(same1));
-    expect(traceHash(prepare(anchorsFor(d, { role: 'bowler', key: 'replay#0.1' })))).not.toBe(traceHash(prepare(anchorsFor(d, { role: 'striker', key: 'replay#0.1' }))));
+    expect(traceHash(prepare(anchorsFor(d, { role: 'bowler', key: 'replay#0.1' })))).not.toBe(
+      traceHash(prepare(anchorsFor(d, { role: 'striker', key: 'replay#0.1' }))),
+    );
   });
 });
 
@@ -82,7 +116,8 @@ describe('G-replay: the trace is the same at any rate it is baked at', () => {
       const hi = prepare(a, { hz: 240 });
       let worst = 0;
       for (let i = 0; i < lo.n; i++) {
-        for (let c = 0; c < CHANNELS; c++) worst = Math.max(worst, Math.abs(lo.trace[i * CHANNELS + c] - hi.trace[4 * i * CHANNELS + c]));
+        for (let c = 0; c < CHANNELS; c++)
+          worst = Math.max(worst, Math.abs(lo.trace[i * CHANNELS + c] - hi.trace[4 * i * CHANNELS + c]));
       }
       record(`replay.decimation.${role}`, worst);
       expect(worst).toBe(0);

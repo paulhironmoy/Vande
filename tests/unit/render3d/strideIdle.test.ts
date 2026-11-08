@@ -39,9 +39,30 @@ type Inner = {
 function ball(startBefore: number, kind: 'attack' | 'defend' = 'attack') {
   // `startBefore` seconds before the ideal contact (negative: after it).
   const eb = overBalls(REFERENCE_OVER, 'balanced')[1];
-  const setup: PracticeSceneSetup = { field: eb.field, bowler: eb.over.bowler, conditions: eb.conditions, handedness: 'right' };
-  const swing: NormalizedSwing = { kind, startT: Math.max(0, eb.flight.idealContactT - startBefore), directionDeg: 20, power: kind === 'attack' ? 0.6 : 0.2, elevation: 0, footwork: 'auto' };
-  const result: DeliveryResult = resolveDelivery({ flight: eb.flight, swing, field: eb.field, bowler: eb.over.bowler, conditions: eb.conditions, handedness: 'right', assist: 'play', tierToleranceMs: 0 });
+  const setup: PracticeSceneSetup = {
+    field: eb.field,
+    bowler: eb.over.bowler,
+    conditions: eb.conditions,
+    handedness: 'right',
+  };
+  const swing: NormalizedSwing = {
+    kind,
+    startT: Math.max(0, eb.flight.idealContactT - startBefore),
+    directionDeg: 20,
+    power: kind === 'attack' ? 0.6 : 0.2,
+    elevation: 0,
+    footwork: 'auto',
+  };
+  const result: DeliveryResult = resolveDelivery({
+    flight: eb.flight,
+    swing,
+    field: eb.field,
+    bowler: eb.over.bowler,
+    conditions: eb.conditions,
+    handedness: 'right',
+    assist: 'play',
+    tierToleranceMs: 0,
+  });
   return { setup, flight: eb.flight as BallFlight, result };
 }
 
@@ -52,7 +73,18 @@ function stage() {
   return inner;
 }
 
-const liveFrame = (script: StageFrame['script']): StageFrame => ({ mode: 'live', script, scene: script.practice!.releaseScene + 900, plan: [], clockMs: 0, slow: false, diagnostics: null, bands: null, coachOption: null, closeUpFlight: null });
+const liveFrame = (script: StageFrame['script']): StageFrame => ({
+  mode: 'live',
+  script,
+  scene: script.practice!.releaseScene + 900,
+  plan: [],
+  clockMs: 0,
+  slow: false,
+  diagnostics: null,
+  bands: null,
+  coachOption: null,
+  closeUpFlight: null,
+});
 
 describe('the stride decision in a result’s spare time', () => {
   it('is made in slices before the reach plan starts, and is the build’s', () => {
@@ -114,6 +146,8 @@ describe('the stride decision in a result’s spare time', () => {
     expect(cutCalls).toBeGreaterThan(decided + 5);
     expect(calls).toBeLessThanOrEqual(decided + 2);
     const eager = buildPracticeScript({ setup, flight, result, sliced: true });
-    expect(JSON.stringify(script.actors.find((a) => a.id === 'striker')!.moves)).toBe(JSON.stringify(eager.actors.find((a) => a.id === 'striker')!.moves));
+    expect(JSON.stringify(script.actors.find((a) => a.id === 'striker')!.moves)).toBe(
+      JSON.stringify(eager.actors.find((a) => a.id === 'striker')!.moves),
+    );
   });
 });

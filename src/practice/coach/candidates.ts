@@ -87,7 +87,8 @@ const DOWN_THE_TRACK_OFFERED = false;
 function attackFootworks(f: BallFacts): Footwork[] {
   if (f.lengthBand === 'yorker') return yorkerFeet(f);
   const out: Footwork[] = ['auto'];
-  if (f.lengthBand === 'good' && (f.autoFootwork === 'forward' || f.autoFootwork === 'back')) out.push(f.autoFootwork === 'forward' ? 'back' : 'forward');
+  if (f.lengthBand === 'good' && (f.autoFootwork === 'forward' || f.autoFootwork === 'back'))
+    out.push(f.autoFootwork === 'forward' ? 'back' : 'forward');
   if (DOWN_THE_TRACK_OFFERED && f.family === 'spin' && f.lengthBand !== 'short') out.push('down_track');
   return out;
 }
@@ -120,11 +121,21 @@ export function candidatesFor(f: BallFacts, field: CoachField): Candidate[] {
   const out: Candidate[] = [];
   const push = (c: Omit<Candidate, 'index'>) => out.push({ ...c, index: out.length });
   push({ id: 'leave', decision: 'leave', kind: null, footwork: 'auto', directionDeg: 0, elevation: 0, power: 0 });
-  for (const fw of defenceFootworks(f)) push({ id: `defend:${fw}`, decision: 'defend', kind: 'defend', footwork: fw, directionDeg: 0, elevation: 0, power: GRID.defendPower });
+  for (const fw of defenceFootworks(f))
+    push({
+      id: `defend:${fw}`,
+      decision: 'defend',
+      kind: 'defend',
+      footwork: fw,
+      directionDeg: 0,
+      elevation: 0,
+      power: GRID.defendPower,
+    });
   const dirs = directionsFor(f, field);
   // Only strokes a player can input (src/input canPlay): the coach never recommends a swing nobody can play.
   const attack = (fw: Footwork, d: number, elevation: number, power: number, id: string) => {
-    if (canPlay({ kind: 'attack', power, elevation })) push({ id, decision: 'attack', kind: 'attack', footwork: fw, directionDeg: d, elevation, power });
+    if (canPlay({ kind: 'attack', power, elevation }))
+      push({ id, decision: 'attack', kind: 'attack', footwork: fw, directionDeg: d, elevation, power });
   };
   for (const fw of attackFootworks(f)) {
     for (const d of dirs) {

@@ -53,6 +53,8 @@ export function youtubeUrl(videoId: string): string {
  * aliases, which may since have changed or failed moderation.
  */
 export function withDisplayNames(log: MatchEventLog, names: ReadonlyArray<string | null | undefined>): MatchEventLog {
-  const players = log.players.map((p, i) => (names[i] ? { ...p, alias: names[i] as string } : p)) as MatchEventLog['players'];
+  const players = log.players.map((p, i) =>
+    names[i] ? { ...p, alias: names[i] as string } : p,
+  ) as MatchEventLog['players'];
   return { ...log, players };
 }

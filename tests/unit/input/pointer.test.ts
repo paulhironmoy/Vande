@@ -2,10 +2,19 @@ import { describe, expect, it } from 'vitest';
 import { PointerTrace, eventTime } from '@/input';
 
 /** A PointerEvent with a chosen timestamp (jsdom stamps epoch time; the trace must use the event's own). */
-function ev(type: string, x: number, y: number, t: number, coalesced: Array<[number, number, number]> = []): PointerEvent {
+function ev(
+  type: string,
+  x: number,
+  y: number,
+  t: number,
+  coalesced: Array<[number, number, number]> = [],
+): PointerEvent {
   const e = new PointerEvent(type, { clientX: x, clientY: y, pointerType: 'touch', pointerId: 1 });
   Object.defineProperty(e, 'timeStamp', { value: t });
-  if (coalesced.length) Object.defineProperty(e, 'getCoalescedEvents', { value: () => coalesced.map(([cx, cy, ct]) => ev('pointermove', cx, cy, ct)) });
+  if (coalesced.length)
+    Object.defineProperty(e, 'getCoalescedEvents', {
+      value: () => coalesced.map(([cx, cy, ct]) => ev('pointermove', cx, cy, ct)),
+    });
   return e;
 }
 const rect = { left: 10, top: 20, width: 200, height: 100 };
@@ -26,7 +35,13 @@ describe('PointerTrace', () => {
 
   it('keeps every coalesced sample, in order, and never goes back in time', () => {
     const tr = new PointerTrace(ev('pointerdown', 10, 20, 500), rect);
-    tr.move(ev('pointermove', 30, 20, 512, [[14, 20, 504], [22, 20, 508], [30, 20, 512]]));
+    tr.move(
+      ev('pointermove', 30, 20, 512, [
+        [14, 20, 504],
+        [22, 20, 508],
+        [30, 20, 512],
+      ]),
+    );
     tr.move(ev('pointermove', 40, 20, 510));
     expect(tr.samples.map((s) => s[0])).toEqual([0, 4, 8, 12]);
   });

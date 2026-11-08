@@ -24,7 +24,12 @@ import { stubShot, stubThrough } from '../practice/game/stubTrajectory';
 /** These tests check the Test (red-ball) templates; the white-ball ones are checked separately. */
 const RED_BALL = { colour: 'red', age: 'new' } as const;
 
-const FIELD = autoField({ family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'f' }, 'balanced', 'right', RED_BALL);
+const FIELD = autoField(
+  { family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'f' },
+  'balanced',
+  'right',
+  RED_BALL,
+);
 const byId = (f: FieldLayout, id: string) => f.fielders.find((x) => x.id === id)!;
 const COVER = byId(FIELD, 'cover');
 const BAT = { x: 0, z: 8.3 };
@@ -120,7 +125,17 @@ describe('ground fielding and interception', () => {
       fielders: [
         byId(FIELD, 'keeper'),
         byId(FIELD, 'bowler'),
-        ...[[30, 25], [60, 22], [90, 22], [120, 15], [150, 14], [45, 50], [75, 55], [105, 52], [135, 45]].map(([b, d], i) => ({ id: `o${i}`, role: 'cover' as const, ...pointFromStriker(b, d) })),
+        ...[
+          [30, 25],
+          [60, 22],
+          [90, 22],
+          [120, 15],
+          [150, 14],
+          [45, 50],
+          [75, 55],
+          [105, 52],
+          [135, 45],
+        ].map(([b, d], i) => ({ id: `o${i}`, role: 'cover' as const, ...pointFromStriker(b, d) })),
       ],
     };
     const r = simulateFielding(off, stubShot({ bearingDeg: -45, speedKph: 55, elevationDeg: 1, rollDecel: 1.5 }));
@@ -172,7 +187,10 @@ describe('catches', () => {
     const c = besideCover(0);
     const hot = simulateFielding(FIELD, stubThrough(c.x, c.z, 1.3, c.L / 38)).play;
     expect(hot.kind === 'fielded' && hot.drop?.reason).toBe('too_fast');
-    expect(simulateFielding(FIELD, stubThrough(c.x, c.z, 1.3, c.L / 30)).play).toMatchObject({ kind: 'caught', fielderId: 'cover' });
+    expect(simulateFielding(FIELD, stubThrough(c.x, c.z, 1.3, c.L / 30)).play).toMatchObject({
+      kind: 'caught',
+      fielderId: 'cover',
+    });
   });
 
   it('a fast return catch the bowler has no time to see is put down', () => {
@@ -209,7 +227,10 @@ describe('boundaries', () => {
     expect(six.boundary?.onFull).toBe(true);
     expect(r6.play).toMatchObject({ kind: 'boundary', runs: 6 });
     // Over third man's head: too high to catch, lands beyond the rope.
-    expect(simulateFielding(FIELD, stubShot({ bearingDeg: 132, speedKph: 120, elevationDeg: 30 })).play).toMatchObject({ kind: 'boundary', runs: 6 });
+    expect(simulateFielding(FIELD, stubShot({ bearingDeg: 132, speedKph: 120, elevationDeg: 30 })).play).toMatchObject({
+      kind: 'boundary',
+      runs: 6,
+    });
     // A flat hit that bounces just inside the rope and carries over it: four.
     const four = stubShot({ bearingDeg: 42, speedKph: 125, elevationDeg: 14 });
     expect(four.boundary?.onFull).toBe(false);
@@ -222,16 +243,33 @@ describe('edge cases at ground level and by the rope', () => {
     const dir = pointFromStriker(42, 1);
     const ux = dir.x - pointFromStriker(42, 0).x;
     const uz = dir.z - pointFromStriker(42, 0).z;
-    const samples = Array.from({ length: 2000 }, (_, i) => ({ t: 0.6 + i / 200, p: { x: ux * (i * 0.15), y: BALL_R, z: 8.4 + uz * (i * 0.15) }, v: { x: ux * 30, y: 0, z: uz * 30 } })).filter((s) => Math.hypot(s.p.x, s.p.z) < BOUNDARY_R);
+    const samples = Array.from({ length: 2000 }, (_, i) => ({
+      t: 0.6 + i / 200,
+      p: { x: ux * (i * 0.15), y: BALL_R, z: 8.4 + uz * (i * 0.15) },
+      v: { x: ux * 30, y: 0, z: uz * 30 },
+    })).filter((s) => Math.hypot(s.p.x, s.p.z) < BOUNDARY_R);
     const last = samples.at(-1)!;
-    const r = simulateFielding(FIELD, { t0: 0.6, samples, bounces: [], boundary: { t: last.t + 0.005, p: last.p, onFull: true } });
+    const r = simulateFielding(FIELD, {
+      t0: 0.6,
+      samples,
+      bounces: [],
+      boundary: { t: last.t + 0.005, p: last.p, onFull: true },
+    });
     expect(firstGroundT({ t0: 0.6, samples, bounces: [], boundary: null })).toBe(0.6);
     expect(r.play).toMatchObject({ kind: 'boundary', runs: 4 });
   });
 
   it('a ball that stops just inside the rope is collected, not a boundary', () => {
     const spot = pointFromStriker(42, ropeDistance(42) - 0.15);
-    const ball = { t0: 0.6, samples: [{ t: 0.6, p: { x: 0, y: 0.5, z: 8.4 }, v: { x: 10, y: 0, z: -10 } }, { t: 6, p: { x: spot.x, y: BALL_R, z: spot.z }, v: { x: 0, y: 0, z: 0 } }], bounces: [{ t: 1, p: { x: 5, y: BALL_R, z: 3 } }], boundary: null };
+    const ball = {
+      t0: 0.6,
+      samples: [
+        { t: 0.6, p: { x: 0, y: 0.5, z: 8.4 }, v: { x: 10, y: 0, z: -10 } },
+        { t: 6, p: { x: spot.x, y: BALL_R, z: spot.z }, v: { x: 0, y: 0, z: 0 } },
+      ],
+      bounces: [{ t: 1, p: { x: 5, y: BALL_R, z: 3 } }],
+      boundary: null,
+    };
     const r = simulateFielding(FIELD, ball);
     expect(r.play).toMatchObject({ kind: 'fielded', how: 'collect' });
   });
@@ -240,7 +278,11 @@ describe('edge cases at ground level and by the rope', () => {
 describe('the keeper', () => {
   it('takes a ball that passes the bat, moving across (or diving) to it', () => {
     const keeper = byId(FIELD, 'keeper');
-    const pass = Array.from({ length: 200 }, (_, i) => ({ t: 0.55 + i / 240, p: { x: 0.2 + i * 0.002, y: 0.9, z: PITCH_HALF + i * 0.15 }, v: { x: 0.48, y: 0, z: 36 } }));
+    const pass = Array.from({ length: 200 }, (_, i) => ({
+      t: 0.55 + i / 240,
+      p: { x: 0.2 + i * 0.002, y: 0.9, z: PITCH_HALF + i * 0.15 },
+      v: { x: 0.48, y: 0, z: 36 },
+    }));
     const take = keeperTake(FIELD, pass, 0)!;
     expect(take.p.z).toBeGreaterThanOrEqual(keeper.z - 0.4);
     expect(take.dive).toBe(false);
@@ -257,8 +299,16 @@ describe('the keeper', () => {
     // ball 2.19 m up (above his 1.8 m full-stretch glove height) read as a clean take. Now the vertical excess over
     // catchMaxH standing or catchDiveMaxH diving joins the lateral shortfall; nothing else about the take changes.
     const keeper = byId(FIELD, 'keeper');
-    const at = (dx: number, y: number) => Array.from({ length: 200 }, (_, i) => ({ t: 0.55 + i / 240, p: { x: keeper.x + dx, y, z: PITCH_HALF + i * 0.15 }, v: { x: 0, y: 0, z: 36 } }));
-    for (const [dx, watch, cap, dives] of [[0.4, 0, ATHLETICS.keeper.catchMaxH, false], [2.2, 0.7, ATHLETICS.keeper.catchDiveMaxH, true]] as const) {
+    const at = (dx: number, y: number) =>
+      Array.from({ length: 200 }, (_, i) => ({
+        t: 0.55 + i / 240,
+        p: { x: keeper.x + dx, y, z: PITCH_HALF + i * 0.15 },
+        v: { x: 0, y: 0, z: 36 },
+      }));
+    for (const [dx, watch, cap, dives] of [
+      [0.4, 0, ATHLETICS.keeper.catchMaxH, false],
+      [2.2, 0.7, ATHLETICS.keeper.catchDiveMaxH, true],
+    ] as const) {
       const low = keeperTake(FIELD, at(dx, 1.0), watch)!;
       const high = keeperTake(FIELD, at(dx, cap + 0.39), watch)!;
       expect(low.dive).toBe(dives);
@@ -279,7 +329,11 @@ describe('the keeper', () => {
 
 describe('determinism and the drop rule', () => {
   it('the same trajectory and field give the same play, paths and ball', () => {
-    for (const s of [{ bearingDeg: 42, speedKph: 110, elevationDeg: 3 }, { bearingDeg: 63, speedKph: 70, elevationDeg: 55 }, { bearingDeg: -80, speedKph: 120, elevationDeg: 12 }]) {
+    for (const s of [
+      { bearingDeg: 42, speedKph: 110, elevationDeg: 3 },
+      { bearingDeg: 63, speedKph: 70, elevationDeg: 55 },
+      { bearingDeg: -80, speedKph: 120, elevationDeg: 12 },
+    ]) {
       expect(simulateFielding(FIELD, stubShot(s))).toEqual(simulateFielding(FIELD, stubShot(s)));
     }
   });
@@ -289,7 +343,9 @@ describe('determinism and the drop rule', () => {
     const base = { dive: false, speed: 20, stretch: 0, sightS: 0.5, p: { x: 0, y: 1.2, z: 0 } };
     expect(dropReason('ring', ring, base)).toBeNull();
     expect(dropReason('ring', ring, { ...base, speed: ring.holdSpeed + 1 })).toBe('too_fast');
-    expect(dropReason('ring', ring, { ...base, dive: true, stretch: ring.holdDiveStretch + 0.05 })).toBe('full_stretch');
+    expect(dropReason('ring', ring, { ...base, dive: true, stretch: ring.holdDiveStretch + 0.05 })).toBe(
+      'full_stretch',
+    );
     expect(dropReason('ring', ring, { ...base, sightS: 0.05 })).toBe('no_time');
     expect(dropReason('close', ATHLETICS.close, { ...base, sightS: 0.05 })).toBeNull();
     expect(dropReason('ring', ring, { ...base, speed: 25, p: { x: 0, y: 0.2, z: 0 } })).toBe('low_and_fast');

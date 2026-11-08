@@ -15,7 +15,10 @@ recordFile('reducedMotion');
 vi.setConfig({ testTimeout: 120_000 });
 
 const LIFE = [CH.breath, CH.swayX, CH.swayZ, CH.swayRoll];
-const both = (a: DirectorAnchors) => ({ rm: prepare({ ...a, reducedMotion: true }, { hz: 240 }), normal: prepare({ ...a, reducedMotion: false }, { hz: 240 }) });
+const both = (a: DirectorAnchors) => ({
+  rm: prepare({ ...a, reducedMotion: true }, { hz: 240 }),
+  normal: prepare({ ...a, reducedMotion: false }, { hz: 240 }),
+});
 
 describe('H5: Reduced Motion', () => {
   it('life displacement is exactly zero in every frame, for both actors, in standing and delivery scripts (and it is not zero in normal motion)', () => {
@@ -24,7 +27,11 @@ describe('H5: Reduced Motion', () => {
     for (let k = 0; k < 30; k++) {
       for (const role of ['bowler', 'striker'] as const) {
         const d = delivery(randomSpec(r));
-        const a = anchorsFor(d, { role, key: deliveryTakeKey({ seed: 'rm', overIndex: 0, ballIndex: k }), series: 'pace' });
+        const a = anchorsFor(d, {
+          role,
+          key: deliveryTakeKey({ seed: 'rm', overIndex: 0, ballIndex: k }),
+          series: 'pace',
+        });
         const { rm, normal } = both(a);
         let alive = false;
         for (let i = 0; i < rm.n; i++) {
@@ -51,7 +58,9 @@ describe('H5: Reduced Motion', () => {
     for (let k = 0; k < 30; k++) {
       for (const role of ['bowler', 'striker'] as const) {
         const d = delivery(randomSpec(r));
-        const { rm, normal } = both(anchorsFor(d, { role, key: deliveryTakeKey({ seed: 'rmb', overIndex: 0, ballIndex: k }), series: 'pace' }));
+        const { rm, normal } = both(
+          anchorsFor(d, { role, key: deliveryTakeKey({ seed: 'rmb', overIndex: 0, ballIndex: k }), series: 'pace' }),
+        );
         worst = Math.max(worst, maxDiff(rm, normal, 0, rm.n, [CH.blinkL, CH.blinkR]));
         for (let i = 0; i < rm.n; i++) if (rm.trace[i * 24 + CH.blinkL] !== 0) blinkFrames++;
       }
@@ -122,7 +131,13 @@ describe('H5: Reduced Motion', () => {
       for (let i = 1; i < p.n; i++) {
         a.clipHead(timeOf(p, i - 1), c0);
         a.clipHead(timeOf(p, i), c1);
-        best = Math.max(best, Math.hypot(c1[0] + val(p, i, CH.headYaw) - c0[0] - val(p, i - 1, CH.headYaw), c1[1] + val(p, i, CH.headPitch) - c0[1] - val(p, i - 1, CH.headPitch)) * p.hz);
+        best = Math.max(
+          best,
+          Math.hypot(
+            c1[0] + val(p, i, CH.headYaw) - c0[0] - val(p, i - 1, CH.headYaw),
+            c1[1] + val(p, i, CH.headPitch) - c0[1] - val(p, i - 1, CH.headPitch),
+          ) * p.hz,
+        );
       }
       return best;
     };
@@ -137,7 +152,12 @@ describe('H5: Reduced Motion', () => {
       peakRm = Math.max(peakRm, speed(rm, a));
       peakNormal = Math.max(peakNormal, speed(normal, a));
     }
-    record('reducedMotion.eyeAndHead', { maxEyeDegRm: eyeRm, maxEyeDegNormal: eyeNormal, peakHeadDegSRm: peakRm, peakHeadDegSNormal: peakNormal });
+    record('reducedMotion.eyeAndHead', {
+      maxEyeDegRm: eyeRm,
+      maxEyeDegNormal: eyeNormal,
+      peakHeadDegSRm: peakRm,
+      peakHeadDegSNormal: peakNormal,
+    });
     expect(eyeRm).toBeLessThanOrEqual(10.2);
     expect(eyeNormal).toBeGreaterThan(15);
     expect(peakRm).toBeLessThanOrEqual(0.6 * 360 + 5);
@@ -152,7 +172,13 @@ describe('H5: Reduced Motion', () => {
   });
 
   it('is reported, not gated: how long the gaze stays still in Reduced Motion (blinks and fixation changes only)', () => {
-    const frozen = [0, 1, 2, 3, 4, 5].map((s) => longestFrozenS(prepare({ ...idleAnchors('striker', `rmf#${s}`, 30_000), reducedMotion: true }, { hz: 60 }), [CH.eyeYawL, CH.eyePitchL, CH.headYaw, CH.headPitch], 0.06));
+    const frozen = [0, 1, 2, 3, 4, 5].map((s) =>
+      longestFrozenS(
+        prepare({ ...idleAnchors('striker', `rmf#${s}`, 30_000), reducedMotion: true }, { hz: 60 }),
+        [CH.eyeYawL, CH.eyePitchL, CH.headYaw, CH.headPitch],
+        0.06,
+      ),
+    );
     record('reducedMotion.longestFrozenS', stats(frozen));
     expect(Math.max(...frozen)).toBeLessThanOrEqual(30);
   });

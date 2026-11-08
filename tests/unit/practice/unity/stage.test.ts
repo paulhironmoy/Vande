@@ -13,10 +13,7 @@ import {
   type UnityPracticeSenderFor,
   type UnityPracticeUnityMessageType,
 } from '@/contracts';
-import type {
-  StageDeliveryContext,
-  StageGuide,
-} from '@/practice/ui/flow/types';
+import type { StageDeliveryContext, StageGuide } from '@/practice/ui/flow/types';
 import type {
   UnityPracticeAvailability,
   UnityPracticeBridge,
@@ -81,12 +78,14 @@ class StageBridge implements UnityPracticeBridge {
   contextLosses: number | null = 0;
   private unitySequence = 0;
   private clockIndex = 0;
-  private messageListener: ((packet: Parameters<UnityPracticeBridge['send']>[0], receivedPerfMs: number) => void) | null = null;
+  private messageListener:
+    ((packet: Parameters<UnityPracticeBridge['send']>[0], receivedPerfMs: number) => void) | null = null;
 
   constructor(canvasBacked = true) {
-    if (canvasBacked) this.attachCanvas = (canvas) => {
-      this.canvas = canvas;
-    };
+    if (canvasBacked)
+      this.attachCanvas = (canvas) => {
+        this.canvas = canvas;
+      };
   }
 
   async availability(): Promise<UnityPracticeAvailability> {
@@ -184,7 +183,12 @@ class StageBridge implements UnityPracticeBridge {
         benchmarkId: message.payload.benchmarkId,
         quality: message.payload.quality,
         frameIntervalsMs: [16.7, 16.6, 16.8],
-        warmup: { frames: message.payload.warmupFrames, durationMs: 460, shaderWarmupMs: 31, shaderWarmupCompleted: true },
+        warmup: {
+          frames: message.payload.warmupFrames,
+          durationMs: 460,
+          shaderWarmupMs: 31,
+          shaderWarmupCompleted: true,
+        },
         graphics: { api: 'Vulkan', device: 'Adreno 619', contextGeneration: null, contextLosses: this.contextLosses },
         memoryMb: 225,
         thermalState: 'nominal',
@@ -344,7 +348,9 @@ async function bowlAndRelease(
   bowl.catch((error: unknown) => {
     refused = { error };
   });
-  await spinUntil(() => refused !== null || bridge.sent.filter((message) => message.type === 'host.delivery').length > deliveryCount);
+  await spinUntil(
+    () => refused !== null || bridge.sent.filter((message) => message.type === 'host.delivery').length > deliveryCount,
+  );
   if (refused !== null) throw (refused as { error: unknown }).error;
   const delivery = bridge.sent.findLast((message) => message.type === 'host.delivery');
   if (!delivery?.deliveryId || !bridge.selectedClockId) throw new Error('delivery was not sent');
@@ -362,9 +368,7 @@ describe('Unity Practice stage adapter', () => {
     await mountAndScene(stage);
 
     expect(await stage.presentReady(true)).toBe(true);
-    expect(bridge.readyVisibility).toEqual([
-      { visible: true, hint: 'Localized one-gesture cue' },
-    ]);
+    expect(bridge.readyVisibility).toEqual([{ visible: true, hint: 'Localized one-gesture cue' }]);
     expect(bridge.sent.filter((message) => message.type === 'host.scene')).toHaveLength(1);
     expect(bridge.sent.filter((message) => message.type === 'host.delivery')).toHaveLength(0);
     expect(stage.snapshot()).toMatchObject({ visible: true, quiet: false, activeDeliveryId: null });
@@ -414,10 +418,14 @@ describe('Unity Practice stage adapter', () => {
     expect(bridge.sent.some((message) => message.type === 'host.result')).toBe(false);
 
     if (!packet?.deliveryId) throw new Error('demonstration id missing');
-    await bridge.emit('unity.dead', {
-      deadT: resolved.result.deadT,
-      replayDigest: packet.payload.resolution.replayDigest,
-    }, packet.deliveryId);
+    await bridge.emit(
+      'unity.dead',
+      {
+        deadT: resolved.result.deadT,
+        replayDigest: packet.payload.resolution.replayDigest,
+      },
+      packet.deliveryId,
+    );
     await shown;
 
     expect(bridge.canvas).toBe(canvas);
@@ -446,7 +454,8 @@ describe('Unity Practice stage adapter', () => {
         point: resolved.result.contact.point ?? { x: 0.15, y: 0.62, z: 8.4 },
       },
       events: resolved.result.events.map((event) =>
-        event.kind === 'contact' ? { ...event, contact: 'body' as const } : event),
+        event.kind === 'contact' ? { ...event, contact: 'body' as const } : event,
+      ),
     };
     const option: CoachOption = {
       ...coachOptionOf(resolved),
@@ -547,12 +556,12 @@ describe('Unity Practice stage adapter', () => {
     expect(bridge.visibility).toEqual([false, true]);
     await bridge.emit(
       'unity.pointer',
-      { phase: 'down', atUnityMs: 2_010, clockSampleId: bridge.selectedClockId! , pointer: 'touch' },
+      { phase: 'down', atUnityMs: 2_010, clockSampleId: bridge.selectedClockId!, pointer: 'touch' },
       released.deliveryId,
     );
     await bridge.emit(
       'unity.pointer',
-      { phase: 'cancel', atUnityMs: 2_011, clockSampleId: bridge.selectedClockId! , pointer: 'touch' },
+      { phase: 'cancel', atUnityMs: 2_011, clockSampleId: bridge.selectedClockId!, pointer: 'touch' },
       released.deliveryId,
     );
     await bridge.emit(
@@ -574,7 +583,14 @@ describe('Unity Practice stage adapter', () => {
     await spinUntil(() => swings.length === 1);
     expect(starts).toEqual([{ atPerfMs: 2_060, pointer: 'touch' }]);
     expect(cancels).toBe(1);
-    expect(swings[0]).toEqual({ kind: 'defend', startT: 0.01, directionDeg: 0, power: 0.2, elevation: 0, footwork: 'auto' });
+    expect(swings[0]).toEqual({
+      kind: 'defend',
+      startT: 0.01,
+      directionDeg: 0,
+      power: 0.2,
+      elevation: 0,
+      footwork: 'auto',
+    });
     await bridge.emit('unity.pause_request', { reason: 'player' });
     // The bridge delivers packets into the coordinator's ordered async inbound queue. Under a loaded shared runner,
     // give that queue a real bounded deadline rather than assuming 100 zero-delay timer turns are enough.
@@ -689,11 +705,13 @@ describe('Unity Practice stage adapter', () => {
       secondaryLabel: 'Next ball',
     };
     expect(await stage.presentDeadBallUi(initial)).toBe(true);
-    expect(await stage.presentDeadBallUi({
-      ...initial,
-      reason: 'You played too early',
-      recommendation: 'Wait for the ball',
-    })).toBe(true);
+    expect(
+      await stage.presentDeadBallUi({
+        ...initial,
+        reason: 'You played too early',
+        recommendation: 'Wait for the ball',
+      }),
+    ).toBe(true);
     const guidance = bridge.sent.filter((message) => message.type === 'host.dead_ball_ui');
     expect(guidance).toHaveLength(2);
     expect(guidance[0]).toMatchObject({
@@ -701,18 +719,26 @@ describe('Unity Practice stage adapter', () => {
       payload: { replayDigest: resolution.replayDigest, recommendation: '' },
     });
 
-    await bridge.emit('unity.dead_ball_action', {
-      action: 'practice_ball',
-      replayDigest: resolution.replayDigest,
-    }, `${SESSION_ID}:delivery:1`);
+    await bridge.emit(
+      'unity.dead_ball_action',
+      {
+        action: 'practice_ball',
+        replayDigest: resolution.replayDigest,
+      },
+      `${SESSION_ID}:delivery:1`,
+    );
     await spinUntil(() => onDeadBallAction.mock.calls.length === 1);
     expect(onDeadBallAction).toHaveBeenCalledWith('practice_ball');
     expect(await stage.presentDeadBallUi(initial)).toBe(false);
 
-    await bridge.emit('unity.dead_ball_action', {
-      action: 'next_ball',
-      replayDigest: resolution.replayDigest,
-    }, `${SESSION_ID}:delivery:1`);
+    await bridge.emit(
+      'unity.dead_ball_action',
+      {
+        action: 'next_ball',
+        replayDigest: resolution.replayDigest,
+      },
+      `${SESSION_ID}:delivery:1`,
+    );
     await new Promise<void>((resolve) => globalThis.setTimeout(resolve, 0));
     expect(onDeadBallAction).toHaveBeenCalledTimes(1);
     expect(stage.snapshot()).toMatchObject({ visible: true, retainingFinalPose: true, inputActive: false });
@@ -739,14 +765,16 @@ describe('Unity Practice stage adapter', () => {
     const resolution = await makeResolution(flight);
     stage.supplyResolution(resolution);
     await stage.play(resolution.result);
-    expect(await stage.presentDeadBallUi({
-      reason: 'Wait for the ball',
-      recommendation: 'Play later',
-      primaryAction: 'next_ball',
-      primaryLabel: 'Next ball',
-      secondaryAction: null,
-      secondaryLabel: null,
-    })).toBe(true);
+    expect(
+      await stage.presentDeadBallUi({
+        reason: 'Wait for the ball',
+        recommendation: 'Play later',
+        primaryAction: 'next_ball',
+        primaryLabel: 'Next ball',
+        secondaryAction: null,
+        secondaryLabel: null,
+      }),
+    ).toBe(true);
     expect(bridge.sent.filter((message) => message.type === 'host.dead_ball_ui')).toHaveLength(1);
 
     bridge.autoDead = false;
@@ -755,10 +783,14 @@ describe('Unity Practice stage adapter', () => {
     await bridge.emit('unity.pause_request', { reason: 'player' });
     await new Promise<void>((resolve) => globalThis.setTimeout(resolve, 0));
     expect(onPauseRequest).not.toHaveBeenCalled();
-    await bridge.emit('unity.dead', {
-      deadT: resolution.result.deadT,
-      replayDigest: resolution.replayDigest,
-    }, `${SESSION_ID}:delivery:1`);
+    await bridge.emit(
+      'unity.dead',
+      {
+        deadT: resolution.result.deadT,
+        replayDigest: resolution.replayDigest,
+      },
+      `${SESSION_ID}:delivery:1`,
+    );
     await replay;
     await spinUntil(() => bridge.sent.filter((message) => message.type === 'host.dead_ball_ui').length === 2);
     const guidance = bridge.sent.filter((message) => message.type === 'host.dead_ball_ui');
@@ -1020,15 +1052,24 @@ describe('Unity Practice stage adapter', () => {
     stage.setAssistance(1, {
       result,
       option: {
-        kind: 'recommended', decision: 'attack', swing: result.swing, footwork: result.footwork,
-        outcome: result.outcome, contact: result.contact.kind, contactPoint: result.contact.point,
-        contactT: result.contact.t, dismissalRisk: 0, expectedRuns: result.outcome.runs,
-        region: result.outcome.region, risks: [],
+        kind: 'recommended',
+        decision: 'attack',
+        swing: result.swing,
+        footwork: result.footwork,
+        outcome: result.outcome,
+        contact: result.contact.kind,
+        contactPoint: result.contact.point,
+        contactT: result.contact.t,
+        dismissalRisk: 0,
+        expectedRuns: result.outcome.runs,
+        region: result.outcome.region,
+        risks: [],
       },
     });
 
-    await expect(stage.bowl(flight, { overIndex: 0, ballIndex: 0, seed: flight.seed } as StageDeliveryContext))
-      .rejects.toThrow(/guide delivery mismatch/);
+    await expect(
+      stage.bowl(flight, { overIndex: 0, ballIndex: 0, seed: flight.seed } as StageDeliveryContext),
+    ).rejects.toThrow(/guide delivery mismatch/);
     expect(bridge.sent.filter((message) => message.type === 'host.delivery')).toHaveLength(0);
     stage.dispose();
     await stage.whenDisposed();
@@ -1054,7 +1095,8 @@ describe('Unity Practice stage with a resolution made once', () => {
   }
 
   // A full canonicalization of the result is one JSON.stringify call at least this long.
-  const fullResultLength = (resolution: UnityPracticeResolution) => Math.floor(canonicalUnityPracticeJson(resolution.result).length * 0.9);
+  const fullResultLength = (resolution: UnityPracticeResolution) =>
+    Math.floor(canonicalUnityPracticeJson(resolution.result).length * 0.9);
 
   async function stageAtRelease(seed: string) {
     const bridge = new StageBridge(false);
@@ -1092,7 +1134,7 @@ describe('Unity Practice stage with a resolution made once', () => {
     await stage.whenDisposed();
   });
 
-  it('refuses a result that is not the made resolution\'s result, by content, as before', async () => {
+  it("refuses a result that is not the made resolution's result, by content, as before", async () => {
     const { bridge, stage, flight } = await stageAtRelease('stage-other-result');
     const resolution = await madeResolution(flight);
     stage.supplyResolution(resolution);

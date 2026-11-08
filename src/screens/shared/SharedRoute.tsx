@@ -18,7 +18,13 @@ const GUEST_KIT = { id: 'starter', primary: '#1E2A78', secondary: '#00B8D9', pat
 
 /** The log as the public sees it: the moderated display names, never the match-time aliases inside the log. */
 function withSharedNames(log: MatchEventLog, aliases: [string, string]): MatchEventLog {
-  return { ...log, players: [{ ...log.players[0], alias: aliases[0] }, { ...log.players[1], alias: aliases[1] }] };
+  return {
+    ...log,
+    players: [
+      { ...log.players[0], alias: aliases[0] },
+      { ...log.players[1], alias: aliases[1] },
+    ],
+  };
 }
 
 function randomSeed(): string {
@@ -39,7 +45,10 @@ export default function SharedRoute({ route }: { route: RouteOf<'shared'> }) {
   const navigate = useRouter((st) => st.navigate);
   const player = useApp((st) => st.player);
   const { net, booting } = useNet();
-  const shared = useLoad<SharedMatch>(net ? () => net.api.call('GET /v1/s/:code', { params: { code: route.code } }, { anonymous: true }) : null, [net, route.code]);
+  const shared = useLoad<SharedMatch>(
+    net ? () => net.api.call('GET /v1/s/:code', { params: { code: route.code } }, { anonymous: true }) : null,
+    [net, route.code],
+  );
   const [mode, setMode] = useState<'landing' | 'reveal' | { practice: 0 | 1 }>('landing');
   const [verified, setVerified] = useState<boolean | null>(null);
   const [practiced, setPracticed] = useState<{ bowler: string; runs: number; wickets: number } | null>(null);
@@ -66,11 +75,30 @@ export default function SharedRoute({ route }: { route: RouteOf<'shared'> }) {
   );
 
   if (booting) return shell(<StateView kind="loading" />);
-  if (!net) return shell(<StateView kind="offline" title={t('match.needs_online_title')} body={t('shared.offline_build')} actionLabel={t('shared.play')} onAction={() => navigate({ name: 'home' })} />);
+  if (!net)
+    return shell(
+      <StateView
+        kind="offline"
+        title={t('match.needs_online_title')}
+        body={t('shared.offline_build')}
+        actionLabel={t('shared.play')}
+        onAction={() => navigate({ name: 'home' })}
+      />,
+    );
   if (!data || !log) {
     const k = shared.error ? failureKind(shared.error) : null;
-    if (k === 'offline') return shell(<StateView kind="offline" body={t('shared.offline_body')} onAction={shared.reload} />);
-    if (k === 'not_found' || k === 'forbidden' || k === 'invalid') return shell(<StateView kind="error" title={t('shared.gone_title')} body={t('shared.gone_body')} actionLabel={t('shared.play')} onAction={() => navigate({ name: 'home' })} />);
+    if (k === 'offline')
+      return shell(<StateView kind="offline" body={t('shared.offline_body')} onAction={shared.reload} />);
+    if (k === 'not_found' || k === 'forbidden' || k === 'invalid')
+      return shell(
+        <StateView
+          kind="error"
+          title={t('shared.gone_title')}
+          body={t('shared.gone_body')}
+          actionLabel={t('shared.play')}
+          onAction={() => navigate({ name: 'home' })}
+        />,
+      );
     if (k) return shell(<StateView kind="error" onAction={shared.reload} />);
     return shell(<StateView kind="loading" title={t('shared.loading')} />);
   }
@@ -81,11 +109,21 @@ export default function SharedRoute({ route }: { route: RouteOf<'shared'> }) {
     // practiceAgainst(log, x) is the over of the player who is not x: here, the chosen bowler's.
     const bowler = mode.practice;
     const target = practiceAgainst(log, bowler === 0 ? 1 : 0);
-    const me: PlayerRef = player ? localPlayerRef(player) : { id: 'local', alias: t('shared.you'), avatar: { seed: 'guest0001' }, kit: { ...GUEST_KIT }, kind: 'human' };
-    return <SharedPractice key={`${bowler}-${practiced ? 'again' : 'first'}`} target={target} me={me} onDone={(runs, wickets) => {
-      setPracticed({ bowler: target.opponent.alias, runs, wickets });
-      setMode('landing');
-    }} onExit={() => setMode('landing')} />;
+    const me: PlayerRef = player
+      ? localPlayerRef(player)
+      : { id: 'local', alias: t('shared.you'), avatar: { seed: 'guest0001' }, kit: { ...GUEST_KIT }, kind: 'human' };
+    return (
+      <SharedPractice
+        key={`${bowler}-${practiced ? 'again' : 'first'}`}
+        target={target}
+        me={me}
+        onDone={(runs, wickets) => {
+          setPracticed({ bowler: target.opponent.alias, runs, wickets });
+          setMode('landing');
+        }}
+        onExit={() => setMode('landing')}
+      />
+    );
   }
 
   const [a, b] = log.players;
@@ -111,7 +149,14 @@ export default function SharedRoute({ route }: { route: RouteOf<'shared'> }) {
             {t(`weather.${data.conditions.weather}` as MessageKey)}
           </Chip>
         </div>
-        <Button variant="accent" size="xl" block icon="play" onClick={() => setMode('reveal')} data-testid="shared-watch">
+        <Button
+          variant="accent"
+          size="xl"
+          block
+          icon="play"
+          onClick={() => setMode('reveal')}
+          data-testid="shared-watch"
+        >
           {t('shared.watch')}
         </Button>
         <p className={s.small}>
@@ -126,12 +171,19 @@ export default function SharedRoute({ route }: { route: RouteOf<'shared'> }) {
         <p className={s.body}>{t('shared.practice_body')}</p>
         {practiced && (
           <p className={s.result} role="status" data-testid="shared-practice-result">
-            <Icon name="bat" size={16} /> {t('shared.practice_result', { name: practiced.bowler, runs: practiced.runs, wickets: practiced.wickets })}
+            <Icon name="bat" size={16} />{' '}
+            {t('shared.practice_result', { name: practiced.bowler, runs: practiced.runs, wickets: practiced.wickets })}
           </p>
         )}
         <div className={s.actions}>
           {([0, 1] as const).map((seat) => (
-            <Button key={seat} variant="secondary" icon="bat" onClick={() => setMode({ practice: seat })} data-testid={`shared-practice-${seat}`}>
+            <Button
+              key={seat}
+              variant="secondary"
+              icon="bat"
+              onClick={() => setMode({ practice: seat })}
+              data-testid={`shared-practice-${seat}`}
+            >
               {t('shared.practice', { name: log.players[seat].alias })}
             </Button>
           ))}
@@ -142,7 +194,14 @@ export default function SharedRoute({ route }: { route: RouteOf<'shared'> }) {
       <Card className={s.play} padding={4}>
         <h2 className={s.h2}>{t('shared.play_title')}</h2>
         <p className={s.body}>{t('shared.play_body')}</p>
-        <Button variant="primary" size="lg" block iconEnd="forward" onClick={() => navigate({ name: 'home' })} data-testid="shared-play">
+        <Button
+          variant="primary"
+          size="lg"
+          block
+          iconEnd="forward"
+          onClick={() => navigate({ name: 'home' })}
+          data-testid="shared-play"
+        >
           {t('shared.play')}
         </Button>
       </Card>
@@ -160,9 +219,22 @@ function Side({ p }: { p: PlayerRef }) {
 }
 
 /** Bats the over one of the players bowled, on this device with the shared engine (nothing is sent). */
-function SharedPractice({ target, me, onDone, onExit }: { target: ReturnType<typeof practiceAgainst>; me: PlayerRef; onDone: (runs: number, wickets: number) => void; onExit: () => void }) {
+function SharedPractice({
+  target,
+  me,
+  onDone,
+  onExit,
+}: {
+  target: ReturnType<typeof practiceAgainst>;
+  me: PlayerRef;
+  onDone: (runs: number, wickets: number) => void;
+  onExit: () => void;
+}) {
   const { t } = useT();
-  const innings = useMemo(() => localInnings({ plan: target.plan, conditions: target.conditions, seed: randomSeed() }), [target]);
+  const innings = useMemo(
+    () => localInnings({ plan: target.plan, conditions: target.conditions, seed: randomSeed() }),
+    [target],
+  );
   return (
     <BattingScreen
       setup={{ conditions: target.conditions, field: target.plan.field, batter: me, bowler: target.opponent }}

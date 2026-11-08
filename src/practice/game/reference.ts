@@ -39,7 +39,8 @@ export const REFERENCE_BALL: BallCondition = Object.freeze({ colour: 'white', ag
 
 export type ReferenceBallId = 'ref-1' | 'ref-2' | 'ref-3' | 'ref-4' | 'ref-5' | 'ref-6';
 /** The closed training objective of each reference ball (the UI words it). */
-export type ReferenceObjective = 'leave_or_drive_late' | 'play_straight' | 'get_behind_it' | 'soft_hands' | 'sway_or_hook' | 'dig_it_out';
+export type ReferenceObjective =
+  'leave_or_drive_late' | 'play_straight' | 'get_behind_it' | 'soft_hands' | 'sway_or_hook' | 'dig_it_out';
 
 export interface ReferenceBall {
   id: ReferenceBallId;
@@ -91,19 +92,24 @@ export const REFERENCE_OVER: PracticeOverPlan = deepFreeze({
   source: 'reference',
 });
 
-const OBJECTIVES: readonly ReferenceObjective[] = ['leave_or_drive_late', 'play_straight', 'get_behind_it', 'soft_hands', 'sway_or_hook', 'dig_it_out'];
+const OBJECTIVES: readonly ReferenceObjective[] = [
+  'leave_or_drive_late',
+  'play_straight',
+  'get_behind_it',
+  'soft_hands',
+  'sway_or_hook',
+  'dig_it_out',
+];
 
 /** The six reference balls in bowling order, with their ids, objectives and seeds. */
 export const REFERENCE_BALLS: readonly ReferenceBall[] = deepFreeze(
-  REFERENCE_OVER.balls.map(
-    (p, index): ReferenceBall => ({
-      id: `ref-${index + 1}` as ReferenceBallId,
-      index,
-      variation: p.variation as PaceVariation,
-      objective: OBJECTIVES[index],
-      seed: ballSeed(REFERENCE_OVER, index),
-    }),
-  ),
+  REFERENCE_OVER.balls.map((p, index): ReferenceBall => ({
+    id: `ref-${index + 1}` as ReferenceBallId,
+    index,
+    variation: p.variation as PaceVariation,
+    objective: OBJECTIVES[index],
+    seed: ballSeed(REFERENCE_OVER, index),
+  })),
 );
 
 /** One reference ball by id. */

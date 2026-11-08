@@ -10,7 +10,11 @@ import type { NextBall } from '../batting/BattingScreen';
 export interface BattingTransport {
   next(id: string): Promise<NextBallResponse>;
   outstanding(id: string): Promise<NextBallResponse | null>;
-  shot(id: string, ballToken: string, input: BattingInput): Promise<{ status: 'resolved'; response: ShotResponse } | { status: 'queued'; delivered: Promise<ShotResponse> }>;
+  shot(
+    id: string,
+    ballToken: string,
+    input: BattingInput,
+  ): Promise<{ status: 'resolved'; response: ShotResponse } | { status: 'queued'; delivered: Promise<ShotResponse> }>;
 }
 
 export interface NetInnings {
@@ -26,7 +30,11 @@ function inningsOver(e: unknown): boolean {
   return isApiClientError(e) && e.code === 'conflict' && !e.retryable;
 }
 
-export function netInnings(transport: BattingTransport, matchId: string, hooks: { onQueued?: (queued: boolean) => void } = {}): NetInnings {
+export function netInnings(
+  transport: BattingTransport,
+  matchId: string,
+  hooks: { onQueued?: (queued: boolean) => void } = {},
+): NetInnings {
   let pending: NextBallResponse | null = null;
   let token: string | null = null;
   let done = false;

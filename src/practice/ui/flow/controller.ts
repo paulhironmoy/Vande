@@ -7,16 +7,50 @@
  * chosen, an over is fixed before its first ball, the score changes only after the stage has shown the ball. Nothing
  * advances by itself after a dead ball: the player reads the result and chooses. Quality changes only between balls.
  */
-import type { AssistLevel, CoachOption, DeliveryRecord, DeliveryResult, PracticeInningsState, PracticeOverPlan, UnityPracticeDeadBallAction } from '@/contracts';
+import type {
+  AssistLevel,
+  CoachOption,
+  DeliveryRecord,
+  DeliveryResult,
+  PracticeInningsState,
+  PracticeOverPlan,
+  UnityPracticeDeadBallAction,
+} from '@/contracts';
 import { PRACTICE_MAX_OVERS } from '@/contracts';
-import { bump, clearInnings, droppedInnings, durationBucket, intentMatch, isResumable, latencyBucket, loadPracticeSettings, loadSavedInnings, outcomeProp, overNumberProp, timingProp, updatePracticeSettings } from '@/practice/store';
+import {
+  bump,
+  clearInnings,
+  droppedInnings,
+  durationBucket,
+  intentMatch,
+  isResumable,
+  latencyBucket,
+  loadPracticeSettings,
+  loadSavedInnings,
+  outcomeProp,
+  overNumberProp,
+  timingProp,
+  updatePracticeSettings,
+} from '@/practice/store';
 import { FlowCore, type FlowDeps } from './core';
 import { CoachLoop } from './coachLoop';
 import { DeliveryRunner, type BallSpec } from './delivery';
 import { StageHost } from './stageHost';
 import type { InputModality, StageDeadBallUi } from './types';
 import type { OneGestureState } from '@/input';
-import { AUTO_NEXT_MS, EMPTY_BOARD, HINT_BALLS, READY_MS, isQuiet, type Board, type FlowState, type LivePhase, type OverKind, type PendingOver, type RandomChoice } from './state';
+import {
+  AUTO_NEXT_MS,
+  EMPTY_BOARD,
+  HINT_BALLS,
+  READY_MS,
+  isQuiet,
+  type Board,
+  type FlowState,
+  type LivePhase,
+  type OverKind,
+  type PendingOver,
+  type RandomChoice,
+} from './state';
 
 export * from './state';
 export type { FlowDeps, FlowHooks, FlowWords } from './core';
@@ -85,7 +119,12 @@ export class PracticeFlow extends FlowCore {
     this.coachLoop = new CoachLoop(this);
     this.openedAt = deps.openedAt ?? this.clock.now();
     const assessment = this.host.initialAssessment();
-    this.state = { ...this.state, assessment, quality: this.host.qualityFor(assessment), storageOk: this.probeStorage() };
+    this.state = {
+      ...this.state,
+      assessment,
+      quality: this.host.qualityFor(assessment),
+      storageOk: this.probeStorage(),
+    };
   }
 
   private probeStorage(): boolean {
@@ -119,7 +158,14 @@ export class PracticeFlow extends FlowCore {
     const saved = loaded.state;
     const wasInFlight = Boolean(saved.inFlight);
     const resumed = wasInFlight ? this.engine.resumeInnings(saved) : saved;
-    this.set({ innings: resumed, board: this.boardOf(resumed), conditions: resumed.conditions, handedness: resumed.handedness, notice: wasInFlight || loaded.notice ? 'resumed_leave' : null, overKind: kindOf(resumed) });
+    this.set({
+      innings: resumed,
+      board: this.boardOf(resumed),
+      conditions: resumed.conditions,
+      handedness: resumed.handedness,
+      notice: wasInFlight || loaded.notice ? 'resumed_leave' : null,
+      overKind: kindOf(resumed),
+    });
     if (wasInFlight) this.persist();
     if (resumed.status === 'out' || resumed.status === 'complete') {
       this.set({ screen: resumed.status === 'out' ? 'out' : 'complete' });
@@ -240,8 +286,18 @@ export class PracticeFlow extends FlowCore {
     return s && (s.status === 'over_complete' || s.status === 'choosing_over') ? s : null;
   }
 
-  private randomPlan(choice: RandomChoice, conditions: PracticeInningsState['conditions'], assist: AssistLevel): PracticeOverPlan {
-    return this.engine.randomOver({ seed: this.seed(), conditions, assist, difficulty: choice.difficulty, ...(choice.bowling === 'any' ? {} : { family: choice.bowling }) });
+  private randomPlan(
+    choice: RandomChoice,
+    conditions: PracticeInningsState['conditions'],
+    assist: AssistLevel,
+  ): PracticeOverPlan {
+    return this.engine.randomOver({
+      seed: this.seed(),
+      conditions,
+      assist,
+      difficulty: choice.difficulty,
+      ...(choice.bowling === 'any' ? {} : { family: choice.bowling }),
+    });
   }
 
   /**
@@ -252,10 +308,30 @@ export class PracticeFlow extends FlowCore {
     const inn = this.continuing();
     const assist = inn?.assist ?? this.settings.assist;
     const handedness = inn?.handedness ?? this.settings.handedness;
-    const random = opts.kind === 'random' ? (opts.random ?? { difficulty: this.settings.difficulty, conditions: this.settings.conditions, bowling: this.settings.bowling }) : null;
+    const random =
+      opts.kind === 'random'
+        ? (opts.random ?? {
+            difficulty: this.settings.difficulty,
+            conditions: this.settings.conditions,
+            bowling: this.settings.bowling,
+          })
+        : null;
     const conditions = inn?.conditions ?? (random ? random.conditions : 'balanced');
-    const plan = opts.kind === 'reference' ? this.engine.referenceOver() : opts.plan ?? this.randomPlan(random ?? DEFAULT_RANDOM, conditions, assist);
-    this.setPending({ kind: opts.kind, plan, random, conditions, assist, handedness, continuing: Boolean(inn), overNumber: (inn?.overs.length ?? 0) + 1, bowled: 0 });
+    const plan =
+      opts.kind === 'reference'
+        ? this.engine.referenceOver()
+        : (opts.plan ?? this.randomPlan(random ?? DEFAULT_RANDOM, conditions, assist));
+    this.setPending({
+      kind: opts.kind,
+      plan,
+      random,
+      conditions,
+      assist,
+      handedness,
+      continuing: Boolean(inn),
+      overNumber: (inn?.overs.length ?? 0) + 1,
+      bowled: 0,
+    });
     this.startWork();
     void this.host.prepare(assist, handedness).then((stage) => stage && this.warmPhysics());
   }
@@ -287,18 +363,61 @@ export class PracticeFlow extends FlowCore {
     const run = () => {
       try {
         const plan = p.plan.balls[0];
-        const flight = this.engine.flight({ plan, bowler: p.plan.bowler, conditions: p.conditions, seed: `warm:${p.plan.seed}`, handedness: p.handedness, ball: p.plan.ball });
-        const swing = { kind: 'attack' as const, startT: Math.max(0, flight.idealContactT - 0.14), directionDeg: 20, power: 0.6, elevation: 0, footwork: 'auto' as const };
+        const flight = this.engine.flight({
+          plan,
+          bowler: p.plan.bowler,
+          conditions: p.conditions,
+          seed: `warm:${p.plan.seed}`,
+          handedness: p.handedness,
+          ball: p.plan.ball,
+        });
+        const swing = {
+          kind: 'attack' as const,
+          startT: Math.max(0, flight.idealContactT - 0.14),
+          directionDeg: 20,
+          power: 0.6,
+          elevation: 0,
+          footwork: 'auto' as const,
+        };
         // The work thread starts and warms on the same throwaway ball (it resolves the live balls when it is there).
-        this.work?.warm({ kind: 'resolve', args: { flight, field: p.field, bowler: p.plan.bowler, conditions: p.conditions, handedness: p.handedness, assist: p.assist, tierToleranceMs: 0 } });
-        const result = this.engine.resolveDelivery({ flight, swing, field: p.field, bowler: p.plan.bowler, conditions: p.conditions, handedness: p.handedness, assist: p.assist, tierToleranceMs: 0 });
+        this.work?.warm({
+          kind: 'resolve',
+          args: {
+            flight,
+            field: p.field,
+            bowler: p.plan.bowler,
+            conditions: p.conditions,
+            handedness: p.handedness,
+            assist: p.assist,
+            tierToleranceMs: 0,
+          },
+        });
+        const result = this.engine.resolveDelivery({
+          flight,
+          swing,
+          field: p.field,
+          bowler: p.plan.bowler,
+          conditions: p.conditions,
+          handedness: p.handedness,
+          assist: p.assist,
+          tierToleranceMs: 0,
+        });
         // The stage runs its result path once on it too (in spare slices of frames), then it is dropped.
-        this.host.stage?.warmResult?.(result, flight, { field: p.field, bowler: p.plan.bowler, conditions: p.conditions, handedness: p.handedness, ball: p.plan.ball });
+        this.host.stage?.warmResult?.(result, flight, {
+          field: p.field,
+          bowler: p.plan.bowler,
+          conditions: p.conditions,
+          handedness: p.handedness,
+          ball: p.plan.ball,
+        });
       } catch {
         /* warming is best effort */
       }
     };
-    const w = typeof window !== 'undefined' ? (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }) : null;
+    const w =
+      typeof window !== 'undefined'
+        ? (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number })
+        : null;
     if (w?.requestIdleCallback) w.requestIdleCallback(run, { timeout: 1500 });
     else this.after(0, run);
   }
@@ -312,7 +431,18 @@ export class PracticeFlow extends FlowCore {
     } catch {
       intent = null;
     }
-    this.set({ pending: { ...p, field, intent }, screen: 'setup', phase: 'idle', field, intent, conditions: p.conditions, handedness: p.handedness, error: null, last: null, insight: null });
+    this.set({
+      pending: { ...p, field, intent },
+      screen: 'setup',
+      phase: 'idle',
+      field,
+      intent,
+      conditions: p.conditions,
+      handedness: p.handedness,
+      error: null,
+      last: null,
+      insight: null,
+    });
   }
 
   /** The Random Over's choices changed on the setup screen: a new over, still unknown until release. */
@@ -320,7 +450,13 @@ export class PracticeFlow extends FlowCore {
     const p = this.state.pending;
     if (!p || p.kind !== 'random' || p.bowled > 0) return;
     const conditions = p.continuing ? p.conditions : choice.conditions;
-    this.setPending({ ...p, kind: 'random', random: choice, conditions, plan: this.randomPlan(choice, conditions, p.assist) });
+    this.setPending({
+      ...p,
+      kind: 'random',
+      random: choice,
+      conditions,
+      plan: this.randomPlan(choice, conditions, p.assist),
+    });
   }
 
   /** Assistance for a new innings (fixed once the innings has begun). */
@@ -341,7 +477,12 @@ export class PracticeFlow extends FlowCore {
     if (!p) return;
     const gen = ++this.gen;
     this.startedAt = this.startedAt || this.clock.now();
-    this.set({ screen: 'live', phase: 'loading', board: this.state.innings && p.continuing ? this.boardOf(this.state.innings) : this.state.board, notice: this.state.notice });
+    this.set({
+      screen: 'live',
+      phase: 'loading',
+      board: this.state.innings && p.continuing ? this.boardOf(this.state.innings) : this.state.board,
+      notice: this.state.notice,
+    });
     const stage = await this.host.prepare(p.assist, p.handedness);
     if (gen !== this.gen) return;
     if (!stage) {
@@ -352,18 +493,31 @@ export class PracticeFlow extends FlowCore {
     if (!p.continuing && p.bowled === 0) {
       // Starting a new innings while one is saved ends that one (the home screen asked first): its score is final.
       if (isResumable(s)) this.finishInnings(this.engine.inningsReducer(s, { type: 'abandon' }), 'abandon');
-      s = this.engine.newInnings({ id: this.newId(), conditions: p.conditions, assist: p.assist, handedness: p.handedness });
+      s = this.engine.newInnings({
+        id: this.newId(),
+        conditions: p.conditions,
+        assist: p.assist,
+        handedness: p.handedness,
+      });
       this.coachLoop.forgetResults();
       this.startedAt = this.clock.now();
     }
     if (!s) return;
     if (s.status === 'over_complete') s = this.toNextOver(s);
-    if (s.status === 'choosing_over') s = this.engine.inningsReducer(s, { type: 'chooseOver', plan: p.plan, field: p.field });
+    if (s.status === 'choosing_over')
+      s = this.engine.inningsReducer(s, { type: 'chooseOver', plan: p.plan, field: p.field });
     if (s.status !== 'batting' || !s.current) {
       this.set({ screen: 'error', phase: 'idle', error: 'over' });
       return;
     }
-    this.set({ innings: s, pending: null, overKind: p.kind, overDifficulty: p.random?.difficulty ?? (p.continuing && p.bowled > 0 ? this.state.overDifficulty : null), field: s.current.field, board: { ...this.boardOf(s) } });
+    this.set({
+      innings: s,
+      pending: null,
+      overKind: p.kind,
+      overDifficulty: p.random?.difficulty ?? (p.continuing && p.bowled > 0 ? this.state.overDifficulty : null),
+      field: s.current.field,
+      board: { ...this.boardOf(s) },
+    });
     this.persist();
     stage.setScene({
       field: s.current.field,
@@ -384,7 +538,8 @@ export class PracticeFlow extends FlowCore {
     }
     this.openingNotice = quality === 'balanced' || quality === 'classic' ? quality : null;
     if (quality) this.set({ notice: quality });
-    if (this.settings.teach && !this.settings.demoSeen && this.coach && !this.demoFailed) await this.firstRunDemo(gen, p);
+    if (this.settings.teach && !this.settings.demoSeen && this.coach && !this.demoFailed)
+      await this.firstRunDemo(gen, p);
     if (gen !== this.gen) return;
     void this.bowlNext();
   }
@@ -424,10 +579,47 @@ export class PracticeFlow extends FlowCore {
       abort.abort();
     };
     try {
-      const plan = { variation: 'stock' as const, lengthM: 5.8, lineM: 0.15, speedKph: p.plan.balls.find((b) => b.variation === 'stock')?.speedKph ?? p.plan.balls[0].speedKph };
-      const record = { version: p.plan.version, overIndex: 0, ballIndex: 0, bowler: p.plan.bowler, plan, seed: `demo:${p.plan.seed}`, conditions: p.conditions, ball: p.plan.ball, field: p.field, handedness: p.handedness, assist: p.assist, tierToleranceMs: 0, swing: null, runs: 0 as const, dismissal: null };
-      const flight = this.engine.flight({ plan, bowler: p.plan.bowler, conditions: p.conditions, seed: record.seed, handedness: p.handedness, ball: p.plan.ball });
-      const left = this.engine.resolveDelivery({ flight, swing: null, field: p.field, bowler: p.plan.bowler, conditions: p.conditions, handedness: p.handedness, assist: p.assist, tierToleranceMs: 0 });
+      const plan = {
+        variation: 'stock' as const,
+        lengthM: 5.8,
+        lineM: 0.15,
+        speedKph: p.plan.balls.find((b) => b.variation === 'stock')?.speedKph ?? p.plan.balls[0].speedKph,
+      };
+      const record = {
+        version: p.plan.version,
+        overIndex: 0,
+        ballIndex: 0,
+        bowler: p.plan.bowler,
+        plan,
+        seed: `demo:${p.plan.seed}`,
+        conditions: p.conditions,
+        ball: p.plan.ball,
+        field: p.field,
+        handedness: p.handedness,
+        assist: p.assist,
+        tierToleranceMs: 0,
+        swing: null,
+        runs: 0 as const,
+        dismissal: null,
+      };
+      const flight = this.engine.flight({
+        plan,
+        bowler: p.plan.bowler,
+        conditions: p.conditions,
+        seed: record.seed,
+        handedness: p.handedness,
+        ball: p.plan.ball,
+      });
+      const left = this.engine.resolveDelivery({
+        flight,
+        swing: null,
+        field: p.field,
+        bowler: p.plan.bowler,
+        conditions: p.conditions,
+        handedness: p.handedness,
+        assist: p.assist,
+        tierToleranceMs: 0,
+      });
       // The coach's whole reading of this ball is seconds of simulation: on the work thread when there is one (Skip
       // stays live meanwhile), else here as before. The same recommended response either way.
       let guide: { option: CoachOption; result: DeliveryResult } | null = null;
@@ -494,11 +686,24 @@ export class PracticeFlow extends FlowCore {
       } catch {
         intent = null;
       }
-      const pending: PendingOver = { kind, plan: s.current.plan, field, intent, overNumber: s.overs.length + 1, conditions: s.conditions, assist: s.assist, handedness: s.handedness, random: null, continuing: true, bowled: s.current.deliveries.length };
+      const pending: PendingOver = {
+        kind,
+        plan: s.current.plan,
+        field,
+        intent,
+        overNumber: s.overs.length + 1,
+        conditions: s.conditions,
+        assist: s.assist,
+        handedness: s.handedness,
+        random: null,
+        continuing: true,
+        bowled: s.current.deliveries.length,
+      };
       this.set({ pending, screen: 'setup', phase: 'idle', field, intent, board: this.boardOf(s) });
       this.startWork();
       void this.host.prepare(s.assist, s.handedness);
-    } else if (s.status === 'over_complete' || s.status === 'choosing_over') this.set({ screen: 'over_summary', phase: 'idle', board: this.boardOf(s) });
+    } else if (s.status === 'over_complete' || s.status === 'choosing_over')
+      this.set({ screen: 'over_summary', phase: 'idle', board: this.boardOf(s) });
   }
 
   /** "Try again" on the calm error: the stage is prepared afresh and the innings carries on (it was saved). */
@@ -612,8 +817,22 @@ export class PracticeFlow extends FlowCore {
     this.set({ notice: help.notice ?? notice ?? keep, last: null, insight: null, replay: null });
     this.hiddenPause = false;
     this.pauseNativeAtDeadBall = false;
-    const spec: BallSpec = { kind: 'innings', ...next, overNumber: next.overIndex + 1, ballNumber: next.ballIndex + 1, next, context: this.deps.deliveryContext?.({ runs: now.runs, wicketsInHand: 1, ballsLeft: PRACTICE_MAX_OVERS * 6 - now.balls }), toleranceMs: help.ms };
-    this.set({ ball: { kind: 'innings', overNumber: spec.overNumber, ballNumber: spec.ballNumber, bowler: next.bowler } });
+    const spec: BallSpec = {
+      kind: 'innings',
+      ...next,
+      overNumber: next.overIndex + 1,
+      ballNumber: next.ballIndex + 1,
+      next,
+      context: this.deps.deliveryContext?.({
+        runs: now.runs,
+        wicketsInHand: 1,
+        ballsLeft: PRACTICE_MAX_OVERS * 6 - now.balls,
+      }),
+      toleranceMs: help.ms,
+    };
+    this.set({
+      ball: { kind: 'innings', overNumber: spec.overNumber, ballNumber: spec.ballNumber, bowler: next.bowler },
+    });
     if (this.holdWhileHidden()) return;
     if (!(await this.ready(gen))) return;
     if (this.holdWhileHidden()) return;
@@ -631,7 +850,7 @@ export class PracticeFlow extends FlowCore {
     if (!out || gen !== this.gen) return;
     const inn = this.state.innings!;
     this.coachLoop.remember(out.record, out.result);
-    const latency = out.result.swing ? this.host.stage?.stats().lastInputToBatMs ?? null : null;
+    const latency = out.result.swing ? (this.host.stage?.stats().lastInputToBatMs ?? null) : null;
     this.track('practice_delivery', {
       assist: next.assist,
       tier: this.state.quality.tier,
@@ -645,7 +864,14 @@ export class PracticeFlow extends FlowCore {
       this.coachLoop.saveHints(this.settings.hintsShown);
     }
     const board = this.boardOf(inn);
-    const last = { kind: 'innings' as const, result: out.result, record: out.record, overNumber: spec.overNumber, ballNumber: spec.ballNumber, interrupted: out.interrupted };
+    const last = {
+      kind: 'innings' as const,
+      result: out.result,
+      record: out.record,
+      overNumber: spec.overNumber,
+      ballNumber: spec.ballNumber,
+      interrupted: out.interrupted,
+    };
     this.set({
       phase: this.hiddenPause ? 'paused' : 'dead',
       last,
@@ -794,7 +1020,10 @@ export class PracticeFlow extends FlowCore {
       void this.bowlNext();
       return;
     }
-    const back = this.pausedFrom === 'demo' || this.pausedFrom === 'closeup' || this.pausedFrom === 'replay' ? 'dead' : this.pausedFrom;
+    const back =
+      this.pausedFrom === 'demo' || this.pausedFrom === 'closeup' || this.pausedFrom === 'replay'
+        ? 'dead'
+        : this.pausedFrom;
     this.set({ phase: back });
     if (back === 'dead' && this.deps.hooks?.autoNext) this.after(AUTO_NEXT_MS, () => this.nextBall());
   }
@@ -853,7 +1082,16 @@ export class PracticeFlow extends FlowCore {
     this.settleInFlight();
     this.host.stage?.setAssistance(null, null);
     const s = this.state.innings;
-    this.set({ screen: 'idle', phase: 'idle', replay: null, coach: null, pending: null, gesture: { enabled: false, key: this.state.gesture.key }, needLandscape: false, board: s ? this.boardOf(s) : EMPTY_BOARD });
+    this.set({
+      screen: 'idle',
+      phase: 'idle',
+      replay: null,
+      coach: null,
+      pending: null,
+      gesture: { enabled: false, key: this.state.gesture.key },
+      needLandscape: false,
+      board: s ? this.boardOf(s) : EMPTY_BOARD,
+    });
   }
 
   /** "End innings" from the over summary (confirmed): the score is final. */
@@ -869,7 +1107,15 @@ export class PracticeFlow extends FlowCore {
   closeFinished(): void {
     const s = this.state.innings;
     if (s && (s.status === 'out' || s.status === 'complete')) clearInnings(this.store);
-    this.set({ innings: null, board: EMPTY_BOARD, last: null, insight: null, screen: 'idle', phase: 'idle', overKind: null });
+    this.set({
+      innings: null,
+      board: EMPTY_BOARD,
+      last: null,
+      insight: null,
+      screen: 'idle',
+      phase: 'idle',
+      overKind: null,
+    });
   }
 
   // ------------------------------------------------------------------------------------------------------------
@@ -879,7 +1125,12 @@ export class PracticeFlow extends FlowCore {
   boardOf(s: PracticeInningsState): Board {
     const lastOver = s.overs[s.overs.length - 1]?.deliveries ?? [];
     const balls = s.current ? s.current.deliveries : s.status === 'batting' ? [] : lastOver;
-    return { runs: s.runs, wickets: s.status === 'out' ? 1 : 0, balls: s.balls, over: balls.map((r) => ({ runs: r.runs, dismissal: r.dismissal })) };
+    return {
+      runs: s.runs,
+      wickets: s.status === 'out' ? 1 : 0,
+      balls: s.balls,
+      over: balls.map((r) => ({ runs: r.runs, dismissal: r.dismissal })),
+    };
   }
 
   /** Every result of an over (index into innings.overs, or the over in progress). */

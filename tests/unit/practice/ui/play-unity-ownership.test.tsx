@@ -24,9 +24,7 @@ const tester: TesterApi = {
   abandon: vi.fn(),
 };
 
-const GestureProbe: ComponentType<GestureSurfaceProps> = () => (
-  <div data-testid="host-gesture-probe" />
-);
+const GestureProbe: ComponentType<GestureSurfaceProps> = () => <div data-testid="host-gesture-probe" />;
 
 beforeEach(() => useFakeTimers());
 afterEach(() => {
@@ -192,7 +190,10 @@ describe('Unity-owned Play surface', () => {
       <PracticeKitContext.Provider value={kit}>
         <Play
           flow={flow}
-          state={{ ...state, insight: { key: state.insight!.key, status: 'working', analysis: null, primary: null, tip: null } }}
+          state={{
+            ...state,
+            insight: { key: state.insight!.key, status: 'working', analysis: null, primary: null, tip: null },
+          }}
           onHome={vi.fn()}
           onSettings={vi.fn()}
           appVersion="test"
@@ -248,13 +249,9 @@ describe('Unity-owned Play surface', () => {
     fireEvent.click(semanticBrief);
     expect(screen.getByTestId('practice-brief')).toBeTruthy();
 
-    const css = readFileSync(
-      'src/practice/ui/screens/Play.module.css',
-      'utf8',
-    );
+    const css = readFileSync('src/practice/ui/screens/Play.module.css', 'utf8');
     expect(css).toMatch(/\.unitySemanticHud button\s*\{[^}]*min-width:\s*48px;[^}]*min-height:\s*48px;/su);
     expect(css).toMatch(/\.unityKeyboardTarget:focus-visible\s*\{[^}]*outline:\s*3px solid #fff;/su);
     flow.dispose();
   });
 });
-

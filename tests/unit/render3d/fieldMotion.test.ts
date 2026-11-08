@@ -13,8 +13,27 @@
 import { describe, expect, it } from 'vitest';
 import { evaluateActor, lookScale } from '@/render3d/core/actors';
 import { type ClipId, clipDuration, clipMarker, createPose, sampleClip } from '@/render3d/core/clips';
-import { BUILTIN_FIELD_CLIPS, composeHooks, fieldClips, fieldPoseHook, fieldPoseHookFor, keeperStateAt, matchedRate, packTime, registerFieldMotion, setFieldPacks } from '@/render3d/core/fieldClips';
-import { createJoints, createPoseScratch, forwardKinematics, localToWorld, palmLocal, trackPoseAt, turnRateCap } from '@/render3d/core/locomotion';
+import {
+  BUILTIN_FIELD_CLIPS,
+  composeHooks,
+  fieldClips,
+  fieldPoseHook,
+  fieldPoseHookFor,
+  keeperStateAt,
+  matchedRate,
+  packTime,
+  registerFieldMotion,
+  setFieldPacks,
+} from '@/render3d/core/fieldClips';
+import {
+  createJoints,
+  createPoseScratch,
+  forwardKinematics,
+  localToWorld,
+  palmLocal,
+  trackPoseAt,
+  turnRateCap,
+} from '@/render3d/core/locomotion';
 import { BONE_INDEX } from '@/render3d/core/skeleton';
 import { angleDelta } from '@/render3d/core/math';
 import { RETURN, gaitAt } from '@/render3d/practice/fielding';
@@ -22,7 +41,8 @@ import { ballAt, simToScene, toWorld } from '@/render3d/practice/frame';
 import { corpus, measureTrack, scriptOf, summarize, type CorpusBall } from './fieldNaturalness';
 
 const BALLS: CorpusBall[] = corpus(2, 1);
-const fieldTracks = (s: ReturnType<typeof scriptOf>) => s.actors.filter((a) => a.id === 'keeper' || a.id.startsWith('fielder:'));
+const fieldTracks = (s: ReturnType<typeof scriptOf>) =>
+  s.actors.filter((a) => a.id === 'keeper' || a.id.startsWith('fielder:'));
 const GAITS = new Set<ClipId>(['walk', 'jog', 'run', 'run_drive']);
 
 describe('gaits by speed, speed-matched', () => {
@@ -35,16 +55,26 @@ describe('gaits by speed, speed-matched', () => {
     expect(gaitAt(2.4, null).key).toBe('jog');
     for (const v of [0.5, 1, 1.4, 2, 3, 4, 5, 6, 7, 8]) {
       const g = gaitAt(v, null);
-      const def = g.key === 'walk' ? BUILTIN_FIELD_CLIPS.walk : g.key === 'jog' ? BUILTIN_FIELD_CLIPS.jog : BUILTIN_FIELD_CLIPS.run;
+      const def =
+        g.key === 'walk'
+          ? BUILTIN_FIELD_CLIPS.walk
+          : g.key === 'jog'
+            ? BUILTIN_FIELD_CLIPS.jog
+            : BUILTIN_FIELD_CLIPS.run;
       // MOTION-SPEC §6: speed-matched within [0.75, 1.3] of the loop's own rate.
       expect(g.rate).toBeCloseTo(matchedRate(def, v, 1, 0.75, 1.3), 9);
     }
   });
 
-  it('the gait table speeds are the loops\' own: the planted ankle moves back at about that speed at rate 1', () => {
+  it("the gait table speeds are the loops' own: the planted ankle moves back at about that speed at rate 1", () => {
     const pose = createPose();
     const j = createJoints();
-    for (const g of [BUILTIN_FIELD_CLIPS.walk, BUILTIN_FIELD_CLIPS.jog, BUILTIN_FIELD_CLIPS.run, BUILTIN_FIELD_CLIPS.drive]) {
+    for (const g of [
+      BUILTIN_FIELD_CLIPS.walk,
+      BUILTIN_FIELD_CLIPS.jog,
+      BUILTIN_FIELD_CLIPS.run,
+      BUILTIN_FIELD_CLIPS.drive,
+    ]) {
       const D = clipDuration(g.clip);
       const N = 400;
       const ys: number[] = [];
@@ -78,7 +108,14 @@ describe('gaits by speed, speed-matched', () => {
           if (m.t0 < rel || !GAITS.has(m.clip) || !m.from || !m.to) continue;
           const v = Math.hypot(m.to.x - m.from.x, m.to.z - m.from.z) / ((m.t1 - m.t0) / 1000);
           expect(v, `${b.key} ${tr.id} ${m.clip}`).toBeGreaterThan(0.3);
-          const def = m.clip === 'walk' ? BUILTIN_FIELD_CLIPS.walk : m.clip === 'jog' ? BUILTIN_FIELD_CLIPS.jog : m.clip === 'run' ? BUILTIN_FIELD_CLIPS.run : BUILTIN_FIELD_CLIPS.drive;
+          const def =
+            m.clip === 'walk'
+              ? BUILTIN_FIELD_CLIPS.walk
+              : m.clip === 'jog'
+                ? BUILTIN_FIELD_CLIPS.jog
+                : m.clip === 'run'
+                  ? BUILTIN_FIELD_CLIPS.run
+                  : BUILTIN_FIELD_CLIPS.drive;
           const cadence = (2 * (m.rate ?? 1)) / clipDuration(m.clip);
           expect(cadence).toBeGreaterThanOrEqual(1.0);
           expect(cadence).toBeLessThanOrEqual(4.7);
@@ -110,7 +147,9 @@ describe('headings, the set stance, the keeper and the walk back', () => {
           const dt = (m.t1 - m.t0) / 1000;
           const v = m.from && m.to ? Math.hypot(m.to.x - m.from.x, m.to.z - m.from.z) / dt : 0;
           const rate = Math.abs(angleDelta(m.heading, m.headingTo)) / dt;
-          expect(rate, `${b.key} ${tr.id} ${m.clip}`).toBeLessThanOrEqual((/dive/.test(m.clip) ? 14 : Math.max(9, turnRateCap(v))) + 1e-6);
+          expect(rate, `${b.key} ${tr.id} ${m.clip}`).toBeLessThanOrEqual(
+            (/dive/.test(m.clip) ? 14 : Math.max(9, turnRateCap(v))) + 1e-6,
+          );
         }
     }
   });
@@ -130,7 +169,9 @@ describe('headings, the set stance, the keeper and the walk back', () => {
         if (!tr) continue;
         expect(evaluateActor(tr, rel + 20).current.clip).toBe('ready');
         // Never before the ball has been played (honest: no anticipation of where it goes).
-        for (const m of tr.moves) if (m.clip === 'idle' && m.t0 >= rel && m.t0 < simToScene({ releaseScene: rel }, contact)) throw new Error(`${tr.id} stood up before the ball was played`);
+        for (const m of tr.moves)
+          if (m.clip === 'idle' && m.t0 >= rel && m.t0 < simToScene({ releaseScene: rel }, contact))
+            throw new Error(`${tr.id} stood up before the ball was played`);
         if (evaluateActor(tr, simToScene({ releaseScene: rel }, contact + 1.2)).current.clip === 'idle') relaxed++;
       }
     }
@@ -168,14 +209,22 @@ describe('headings, the set stance, the keeper and the walk back', () => {
     for (const b of BALLS) {
       const script = scriptOf(b);
       for (const tr of fieldTracks(script)) {
-        const path = b.result.fielders.find((p) => `fielder:${p.fielderId}` === tr.id || (tr.id === 'keeper' && p.fielderId === 'keeper'));
+        const path = b.result.fielders.find(
+          (p) => `fielder:${p.fielderId}` === tr.id || (tr.id === 'keeper' && p.fielderId === 'keeper'),
+        );
         if (!path) continue;
-        const end = simToScene({ releaseScene: script.practice!.releaseScene }, path.samples[path.samples.length - 1].t);
+        const end = simToScene(
+          { releaseScene: script.practice!.releaseScene },
+          path.samples[path.samples.length - 1].t,
+        );
         const after = tr.moves.filter((m) => m.t0 >= end && m.clip === 'walk' && m.from && m.to);
         if (!after.length) continue;
         walkers++;
         expect(after[0].t0).toBeGreaterThanOrEqual(end + RETURN.settleS * 1000 - 1);
-        for (const m of after) expect(Math.hypot(m.to!.x - m.from!.x, m.to!.z - m.from!.z) / ((m.t1 - m.t0) / 1000)).toBeLessThanOrEqual(RETURN.mps + 1e-6);
+        for (const m of after)
+          expect(Math.hypot(m.to!.x - m.from!.x, m.to!.z - m.from!.z) / ((m.t1 - m.t0) / 1000)).toBeLessThanOrEqual(
+            RETURN.mps + 1e-6,
+          );
       }
     }
     expect(walkers).toBeGreaterThan(5);
@@ -220,13 +269,17 @@ describe('the field pose hook', () => {
       expect([...p.q]).toEqual([...before]);
     }
     const order: string[] = [];
-    const h = composeHooks(() => order.push('a'), undefined, () => order.push('b'));
+    const h = composeHooks(
+      () => order.push('a'),
+      undefined,
+      () => order.push('b'),
+    );
     h!(script.actors[0], createPose(), 0);
     expect(order).toEqual(['a', 'b']);
     expect(composeHooks(undefined, null)).toBeUndefined();
   });
 
-  it('the keeper\'s gloves meet the physics ball at the take', () => {
+  it("the keeper's gloves meet the physics ball at the take", () => {
     let met = 0;
     for (const b of BALLS) {
       const take = b.result.events.find((e) => e.kind === 'keeper_take');
@@ -298,15 +351,21 @@ describe('the field pose hook', () => {
     const r = trackPoseAt(tr, rel + 2500, sc);
     fieldPoseHook(script, { reducedMotion: true })(tr, r, rel + 2500);
     let diff = 0;
-    for (const bone of ['neck', 'head', 'spine'] as const) for (let k = 0; k < 4; k++) diff += Math.abs(qa[BONE_INDEX[bone] * 4 + k] - r.q[BONE_INDEX[bone] * 4 + k]);
+    for (const bone of ['neck', 'head', 'spine'] as const)
+      for (let k = 0; k < 4; k++) diff += Math.abs(qa[BONE_INDEX[bone] * 4 + k] - r.q[BONE_INDEX[bone] * 4 + k]);
     expect(diff).toBeGreaterThan(1e-3);
   });
 });
 
-
 describe("MOTION's packs, when registered", () => {
   /** A synthetic pack clip: the sampler writes the clip time into the hips' rotation (x component), contacts both feet. */
-  const clip = (name: string, loop: boolean, duration: number, markers: Record<string, number> = {}, speedMps = 0) => ({ name, loop, duration, speedMps, markers });
+  const clip = (name: string, loop: boolean, duration: number, markers: Record<string, number> = {}, speedMps = 0) => ({
+    name,
+    loop,
+    duration,
+    speedMps,
+    markers,
+  });
   const sample = (c: { name: string }, t: number, out: ReturnType<typeof createPose>) => {
     out.q.fill(0);
     for (let i = 0; i < out.q.length; i += 4) out.q[i + 3] = 1;
@@ -332,7 +391,9 @@ describe("MOTION's packs, when registered", () => {
     const b = BALLS.find((x) => x.key.endsWith('/leave'))!;
     const script = scriptOf(b);
     const rel = script.practice!.releaseScene;
-    const tr = fieldTracks(script).find((a) => a.id !== 'keeper' && evaluateActor(a, rel + 40).current.clip === 'ready')!;
+    const tr = fieldTracks(script).find(
+      (a) => a.id !== 'keeper' && evaluateActor(a, rel + 40).current.clip === 'ready',
+    )!;
     const before = fieldPoseHook(script);
     try {
       setFieldPacks(true);
@@ -359,7 +420,10 @@ describe("MOTION's packs, when registered", () => {
 
 describe('the default draws the built-in path until the packs measure no worse', () => {
   it('registered packs are not drawn while PLAN_OPTIONS.fieldPacks is off', () => {
-    registerFieldMotion({ clips: new Map([['fld_ready', { name: 'fld_ready', loop: true, duration: 1.4, speedMps: 0, markers: {} }]]), sample: () => 3 });
+    registerFieldMotion({
+      clips: new Map([['fld_ready', { name: 'fld_ready', loop: true, duration: 1.4, speedMps: 0, markers: {} }]]),
+      sample: () => 3,
+    });
     try {
       expect(fieldClips()).toBe(BUILTIN_FIELD_CLIPS);
     } finally {

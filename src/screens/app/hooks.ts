@@ -86,7 +86,11 @@ export type SyncState = 'idle' | 'syncing' | 'ok' | 'offline' | 'alias_rejected'
  * Guest sign-up, later and automatically: a player created offline (or before the API answered) gets their server
  * account as soon as the app is online, with the alias, avatar, kit and language they chose.
  */
-export async function syncAccount(net: Net, player: LocalPlayer, locale: string): Promise<{ id: string } | { error: SyncState }> {
+export async function syncAccount(
+  net: Net,
+  player: LocalPlayer,
+  locale: string,
+): Promise<{ id: string } | { error: SyncState }> {
   try {
     const tokens = await net.session.ensure(player.alias);
     try {
@@ -147,7 +151,11 @@ export interface Loaded<T> {
  * Runs `fn` now, again when `deps` change, when the app comes back online after an error, and every `pollMs` while
  * the page is visible (when given). Keeps the last good data while reloading.
  */
-export function useLoad<T>(fn: (() => Promise<T>) | null, deps: unknown[], opts: { pollMs?: number | null } = {}): Loaded<T> {
+export function useLoad<T>(
+  fn: (() => Promise<T>) | null,
+  deps: unknown[],
+  opts: { pollMs?: number | null } = {},
+): Loaded<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(Boolean(fn));

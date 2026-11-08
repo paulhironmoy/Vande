@@ -23,7 +23,17 @@ export interface PConfirmProps {
   testId?: string;
 }
 
-export function PConfirm({ open, title, body, confirmLabel, cancelLabel, danger, onConfirm, onCancel, testId }: PConfirmProps) {
+export function PConfirm({
+  open,
+  title,
+  body,
+  confirmLabel,
+  cancelLabel,
+  danger,
+  onConfirm,
+  onCancel,
+  testId,
+}: PConfirmProps) {
   const ref = useRef<HTMLDivElement>(null);
   const cancel = useRef<HTMLButtonElement>(null);
   const titleId = useStableId('pconfirm-title');
@@ -33,7 +43,17 @@ export function PConfirm({ open, title, body, confirmLabel, cancelLabel, danger,
   if (!open || typeof document === 'undefined') return null;
   return createPortal(
     <div className={`${sys.root} ${s.backdrop}`} onClick={onCancel}>
-      <div ref={ref} role="alertdialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={body ? bodyId : undefined} tabIndex={-1} className={s.dialog} onClick={(e) => e.stopPropagation()} data-testid={testId}>
+      <div
+        ref={ref}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={body ? bodyId : undefined}
+        tabIndex={-1}
+        className={s.dialog}
+        onClick={(e) => e.stopPropagation()}
+        data-testid={testId}
+      >
         <h2 id={titleId} className={sys.section}>
           {title}
         </h2>
@@ -43,10 +63,19 @@ export function PConfirm({ open, title, body, confirmLabel, cancelLabel, danger,
           </p>
         )}
         <div className={s.actions}>
-          <PButton ref={cancel} variant="secondary" onClick={onCancel} data-testid={testId ? `${testId}-cancel` : undefined}>
+          <PButton
+            ref={cancel}
+            variant="secondary"
+            onClick={onCancel}
+            data-testid={testId ? `${testId}-cancel` : undefined}
+          >
             {cancelLabel}
           </PButton>
-          <PButton variant={danger ? 'danger' : 'primary'} onClick={onConfirm} data-testid={testId ? `${testId}-confirm` : undefined}>
+          <PButton
+            variant={danger ? 'danger' : 'primary'}
+            onClick={onConfirm}
+            data-testid={testId ? `${testId}-confirm` : undefined}
+          >
             {confirmLabel}
           </PButton>
         </div>

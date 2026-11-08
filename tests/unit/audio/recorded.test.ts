@@ -51,7 +51,10 @@ describe('take selection (pure)', () => {
 
   it('spreads over every take (no take starves across balls)', () => {
     const counts = [0, 0, 0, 0, 0];
-    for (let ball = 0; ball < 600; ball++) counts[takeIndex(deliveryTakeKey({ seed: `s${ball >> 3}`, overIndex: ball >> 3, ballIndex: ball & 7 }), 'middle', 0, 5)]++;
+    for (let ball = 0; ball < 600; ball++)
+      counts[
+        takeIndex(deliveryTakeKey({ seed: `s${ball >> 3}`, overIndex: ball >> 3, ballIndex: ball & 7 }), 'middle', 0, 5)
+      ]++;
     for (const c of counts) expect(c).toBeGreaterThan(80);
   });
 
@@ -101,13 +104,55 @@ function decoded(sampleRate: number, marker: number, onset = ONSET): FakeBuffer 
   return b;
 }
 
-const take = (id: string, register = `T-${id}`) => ({ id, file: `${id}.mp3`, bytes: 100 + id.length, sha256: createHash('sha256').update(id).digest('hex'), register, lufs: null, peakDbfs: -1, durationMs: 250 });
+const take = (id: string, register = `T-${id}`) => ({
+  id,
+  file: `${id}.mp3`,
+  bytes: 100 + id.length,
+  sha256: createHash('sha256').update(id).digest('hex'),
+  register,
+  lufs: null,
+  peakDbfs: -1,
+  durationMs: 250,
+});
 
 const TEST_KINDS: RecordedKind[] = [
-  { key: 'middle', inventory: 1, label: 'test', honest: 'test', align: 'onset', prerollMs: 3, takes: ['mid-a', 'mid-b', 'mid-c', 'mid-d'].map((i) => take(i)) },
-  { key: 'edge_thin', inventory: 3, label: 'test', honest: 'test', align: 'onset', prerollMs: 3, takes: ['thin-a', 'thin-b', 'thin-c'].map((i) => take(i)) },
-  { key: 'gloves', inventory: 8, label: 'test', honest: 'test', align: 'onset', prerollMs: 3, takes: ['glv-a', 'glv-b', 'glv-c'].map((i) => take(i)) },
-  { key: 'crowd:applause', inventory: 12, label: 'test', honest: 'test', align: 'start', prerollMs: 0, maxRate: 24000, takes: ['clap-a', 'clap-b', 'clap-c'].map((i) => take(i)) },
+  {
+    key: 'middle',
+    inventory: 1,
+    label: 'test',
+    honest: 'test',
+    align: 'onset',
+    prerollMs: 3,
+    takes: ['mid-a', 'mid-b', 'mid-c', 'mid-d'].map((i) => take(i)),
+  },
+  {
+    key: 'edge_thin',
+    inventory: 3,
+    label: 'test',
+    honest: 'test',
+    align: 'onset',
+    prerollMs: 3,
+    takes: ['thin-a', 'thin-b', 'thin-c'].map((i) => take(i)),
+  },
+  {
+    key: 'gloves',
+    inventory: 8,
+    label: 'test',
+    honest: 'test',
+    align: 'onset',
+    prerollMs: 3,
+    takes: ['glv-a', 'glv-b', 'glv-c'].map((i) => take(i)),
+  },
+  {
+    key: 'crowd:applause',
+    inventory: 12,
+    label: 'test',
+    honest: 'test',
+    align: 'start',
+    prerollMs: 0,
+    maxRate: 24000,
+    takes: ['clap-a', 'clap-b', 'clap-c'].map((i) => take(i)),
+  },
 ];
 
 interface IOOptions {
@@ -169,7 +214,18 @@ async function boot(kinds: RecordedKind[] | null, o: IOOptions = {}) {
   }
   const entries = () => window.__vandeAudio!.log();
   const sounds = () => entries().filter((e) => e.type === 'sound');
-  return { audio, engine, recorded, sink, g, ctx, entries, sounds, fetched: fio.fetched, clear: () => window.__vandeAudio!.clear() };
+  return {
+    audio,
+    engine,
+    recorded,
+    sink,
+    g,
+    ctx,
+    entries,
+    sounds,
+    fetched: fio.fetched,
+    clear: () => window.__vandeAudio!.clear(),
+  };
 }
 
 type Booted = Awaited<ReturnType<typeof boot>>;
@@ -183,7 +239,11 @@ function deliver(a: Booted, rec: { seed: string; overIndex: number; ballIndex: n
 }
 
 /** What played: `rec:<take>`, or `synth` (the sprite, or live synthesis before the sprite is ready). */
-const detailOf = (a: Booted, name: string) => a.sounds().filter((e) => e.name === name).map((e) => (e.detail?.startsWith('synth') ? 'synth' : e.detail));
+const detailOf = (a: Booted, name: string) =>
+  a
+    .sounds()
+    .filter((e) => e.name === name)
+    .map((e) => (e.detail?.startsWith('synth') ? 'synth' : e.detail));
 
 beforeEach(() => {
   clock = 1000;
@@ -208,12 +268,20 @@ describe('recorded contact takes on the sink', () => {
     expect(crack.detail).toMatch(/^rec:mid-[a-d]$/);
     expect(Math.abs(crack.audioPerfMs! - contactAt)).toBeLessThan(1);
     // The buffer starts early by its pre-roll, so the transient sample (7 ms in) is the one heard at the contact.
-    const src = a.ctx.sources().slice(before).find((s: FakeSource) => s.buffer?.length === TAKE_LEN)!;
+    const src = a.ctx
+      .sources()
+      .slice(before)
+      .find((s: FakeSource) => s.buffer?.length === TAKE_LEN)!;
     const { when, offset } = src.starts[0];
     expect(when + (ONSET / SR - offset!)).toBeCloseTo(crack.ctxTime!, 9);
     expect(offset!).toBeCloseTo(ONSET / SR - 0.003, 9);
     await advance(60);
-    expect(a.entries().filter((e) => e.type === 'haptic').map((e) => e.name)).toEqual(['pulse']);
+    expect(
+      a
+        .entries()
+        .filter((e) => e.type === 'haptic')
+        .map((e) => e.name),
+    ).toEqual(['pulse']);
   });
 
   it('called at the moment itself, the transient is late by only the output latency the device reports', async () => {
@@ -246,7 +314,8 @@ describe('recorded contact takes on the sink', () => {
     expect(await run(rec, a)).toEqual(first);
     // Across balls every take gets used.
     const seen = new Set<string>();
-    for (let ball = 0; ball < 24; ball++) for (const d of await run({ seed: 'over-b', overIndex: ball >> 2, ballIndex: ball & 3 }, a)) seen.add(d!);
+    for (let ball = 0; ball < 24; ball++)
+      for (const d of await run({ seed: 'over-b', overIndex: ball >> 2, ballIndex: ball & 3 }, a)) seen.add(d!);
     expect([...seen].filter((d) => d.startsWith('rec:mid-')).length).toBe(4);
     expect([...seen].filter((d) => d.startsWith('rec:glv-')).length).toBe(3);
     // A fresh session (new modules, new context, loaded again): still identical. Last, as it rebinds the timing log.
@@ -280,7 +349,15 @@ describe('recorded contact takes on the sink', () => {
       a.sink.feel(...f);
       await advance(200);
       const s = a.sounds()[0];
-      return [s.name, s.detail?.startsWith('synth') ? 'synth' : s.detail?.replace(/-[a-d]$/, ''), a.entries().filter((e) => e.type === 'haptic').map((e) => e.name).join()];
+      return [
+        s.name,
+        s.detail?.startsWith('synth') ? 'synth' : s.detail?.replace(/-[a-d]$/, ''),
+        a
+          .entries()
+          .filter((e) => e.type === 'haptic')
+          .map((e) => e.name)
+          .join(),
+      ];
     };
     expect(await play('middle', 0.85, 'middle', 'solid')).toEqual(['middle', 'rec:mid', 'pulse']);
     expect(await play('edge', 0.55, 'outside_edge')).toEqual(['edge_thin', 'rec:thin', 'tick']);
@@ -388,7 +465,10 @@ describe('loading in Practice’s setup (play never fetches)', () => {
     vi.resetModules();
     installFakeAudio();
     const prepareRecorded = vi.fn();
-    vi.doMock('@/audio/recorded', async (orig) => ({ ...(await orig<typeof import('@/audio/recorded')>()), prepareRecorded }));
+    vi.doMock('@/audio/recorded', async (orig) => ({
+      ...(await orig<typeof import('@/audio/recorded')>()),
+      prepareRecorded,
+    }));
     const match = await import('@/audio/match');
     new match.MatchAudio();
     expect(prepareRecorded).not.toHaveBeenCalled();
@@ -422,7 +502,10 @@ describe('recorded crowd layers', () => {
       a.sink.moment({ kind: 'runs', intensity: 0.55, runs: 1 });
       await advance(400);
       const crowd = a.entries().find((e) => e.type === 'crowd' && e.name === 'applause')!;
-      const src = a.ctx.sources().slice(before).find((s) => s.buffer?.sampleRate === 24000);
+      const src = a.ctx
+        .sources()
+        .slice(before)
+        .find((s) => s.buffer?.sampleRate === 24000);
       expect(src?.playbackRate.value).toBe(1);
       a.sink.moment({ kind: 'reflection', intensity: 0 });
       await advance(5000);
@@ -479,7 +562,7 @@ describe('the shipped manifest', () => {
       expect(b[0]).toBe(0xff);
       expect(b[1] & 0xfe).toBe(0xfa); // MPEG-1, Layer III
       const rate = [44100, 48000, 32000][(b[2] >> 2) & 3];
-      const mono = (b[3] >> 6) === 3;
+      const mono = b[3] >> 6 === 3;
       const tag = b.subarray(21, 25).toString('latin1'); // after a mono frame's 17-byte side information
       const encoder = b.subarray(21 + 8 + 4 + 4 + 100 + 4, 21 + 8 + 4 + 4 + 100 + 4 + 9).toString('latin1');
       return { rate, mono, tag, encoder };
@@ -518,17 +601,40 @@ describe('the shipped manifest', () => {
     // The record is a committed copy of the file that `node scripts/audio/placeholders.mjs --write` leaves in the ignored
     // release/ folder (release/product-sequence/stage-1-practice/wedge/sound/placeholders/processed.json). After the
     // placeholders are regenerated, copy it over this fixture; a stale copy fails the size and hash checks below.
-    const record = JSON.parse(readFileSync(resolve(process.cwd(), 'tests/fixtures/audio/placeholders-processed.json'), 'utf8')) as {
+    const record = JSON.parse(
+      readFileSync(resolve(process.cwd(), 'tests/fixtures/audio/placeholders-processed.json'), 'utf8'),
+    ) as {
       rules: { preroll_ms: number; peak_cap: number };
-      takes: Array<{ key: string; file: string; bytes: number; sha256: string; register: string; hitLufs: number; targetLufs: number; limitedByPeak: boolean; peakDbfs: number; onsetMs: number; durationMs: number }>;
+      takes: Array<{
+        key: string;
+        file: string;
+        bytes: number;
+        sha256: string;
+        register: string;
+        hitLufs: number;
+        targetLufs: number;
+        limitedByPeak: boolean;
+        peakDbfs: number;
+        onsetMs: number;
+        durationMs: number;
+      }>;
     };
     expect(record.rules).toMatchObject({ preroll_ms: 3, peak_cap: 0.95 });
-    const placeholders = RECORDED_KINDS.filter((k) => k.placeholder).flatMap((k) => k.takes.map((t) => ({ key: k.key, t })));
+    const placeholders = RECORDED_KINDS.filter((k) => k.placeholder).flatMap((k) =>
+      k.takes.map((t) => ({ key: k.key, t })),
+    );
     expect(placeholders.length).toBeGreaterThan(0);
     for (const { key, t } of placeholders) {
       const r = record.takes.find((x) => x.file === t.file)!;
       expect(r, t.file).toBeDefined();
-      expect([r.key, r.bytes, r.sha256, r.register, r.peakDbfs, r.durationMs]).toEqual([key, t.bytes, t.sha256, t.register, t.peakDbfs, t.durationMs]);
+      expect([r.key, r.bytes, r.sha256, r.register, r.peakDbfs, r.durationMs]).toEqual([
+        key,
+        t.bytes,
+        t.sha256,
+        t.register,
+        t.peakDbfs,
+        t.durationMs,
+      ]);
       expect(10 ** (t.peakDbfs / 20)).toBeLessThanOrEqual(0.95);
       expect(Math.abs(r.onsetMs - 3)).toBeLessThanOrEqual(0.5);
       if (!r.limitedByPeak) expect(Math.abs(r.hitLufs - r.targetLufs)).toBeLessThanOrEqual(0.5);

@@ -4,7 +4,17 @@
  * press dwelt and lasted, how far it travelled), never its raw samples.
  */
 import type { GestureInput, NormalizedSwing } from '@/contracts';
-import { recordTesterAnswer, recordTesterEvent, setTesterSessionField, startTesterSession, type GestureClass, type TesterAnswer, type TesterCohort, type TesterEvent, type TesterSession } from '@/practice/store';
+import {
+  recordTesterAnswer,
+  recordTesterEvent,
+  setTesterSessionField,
+  startTesterSession,
+  type GestureClass,
+  type TesterAnswer,
+  type TesterCohort,
+  type TesterEvent,
+  type TesterSession,
+} from '@/practice/store';
 import { shotElevationRead } from '../coaching';
 import { randomHex } from '../flow/core';
 

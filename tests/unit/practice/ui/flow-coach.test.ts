@@ -45,7 +45,12 @@ describe('MASTER: exact-ball Coach Mode', () => {
     const before = store.getItem(PRACTICE_KEYS.innings);
     swings.push(defend());
     flow.coachLoop.practiceThisBall();
-    await until(() => flow.getState().screen === 'coach' && flow.getState().coach?.latest !== null && flow.getState().phase === 'idle');
+    await until(
+      () =>
+        flow.getState().screen === 'coach' &&
+        flow.getState().coach?.latest !== null &&
+        flow.getState().phase === 'idle',
+    );
     expect(engine.calls).toContain('repeat');
     expect(createStage.stages[0].assistance).toContain(1);
     expect(store.getItem(PRACTICE_KEYS.innings)).toBe(before);
@@ -67,13 +72,25 @@ describe('MASTER: exact-ball Coach Mode', () => {
     await until(() => flow.getState().insight?.status === 'ready');
     flow.coachLoop.practiceThisBall();
     await until(() => (flow.getState().coach?.attempts.length ?? 0) === 1 && flow.getState().phase === 'idle');
-    const seen = [{ verdict: flow.getState().coach!.comparison?.verdict, stage: flow.getState().coach!.mastery.stage, mastered: false, event: flow.getState().coach!.event }];
+    const seen = [
+      {
+        verdict: flow.getState().coach!.comparison?.verdict,
+        stage: flow.getState().coach!.mastery.stage,
+        mastered: false,
+        event: flow.getState().coach!.event,
+      },
+    ];
     for (let i = 0; i < 9; i++) {
       swings.push(defend());
       void flow.coachLoop.replayExactBall();
       await until(() => (flow.getState().coach?.attempts.length ?? 0) === i + 2 && flow.getState().phase === 'idle');
       const c = flow.getState().coach!;
-      seen.push({ verdict: c.comparison?.verdict, stage: c.mastery.stage, mastered: c.mastery.mastered, event: c.event });
+      seen.push({
+        verdict: c.comparison?.verdict,
+        stage: c.mastery.stage,
+        mastered: c.mastery.mastered,
+        event: c.event,
+      });
     }
     const c = flow.getState().coach!;
     // The mastery rule follows the recorded attempts whatever the verdict (WA7: never one lucky result, no XP) ...
@@ -82,8 +99,21 @@ describe('MASTER: exact-ball Coach Mode', () => {
     expect(allMastery(store)).toHaveLength(1);
     // ... and the first try was a leave, so the first clean block was 'better'; every later one repeated the one before
     // exactly ('same'). Every stage change and the mastery itself came on a 'same' attempt, so nothing chimed (WA6).
-    expect(seen.map((x) => x.verdict)).toEqual(['same', 'better', 'same', 'same', 'same', 'same', 'same', 'same', 'same', 'same']);
-    const changed = seen.filter((x, i) => i > 0 && (x.stage !== seen[i - 1].stage || x.mastered !== seen[i - 1].mastered));
+    expect(seen.map((x) => x.verdict)).toEqual([
+      'same',
+      'better',
+      'same',
+      'same',
+      'same',
+      'same',
+      'same',
+      'same',
+      'same',
+      'same',
+    ]);
+    const changed = seen.filter(
+      (x, i) => i > 0 && (x.stage !== seen[i - 1].stage || x.mastered !== seen[i - 1].mastered),
+    );
     expect(changed.length).toBe(4);
     expect(changed.every((x) => x.verdict === 'same')).toBe(true);
     expect(seen.every((x) => x.event === null)).toBe(true);
@@ -92,10 +122,25 @@ describe('MASTER: exact-ball Coach Mode', () => {
 
   it('the mastery confirmation plays only on a "better" verdict, whatever the stage does (WA6, COACH5)', async () => {
     // A coach whose comparison follows a script, so a stage completed on 'worse' and on 'better' can both be seen.
-    const script: Array<'better' | 'worse' | 'same'> = ['worse', 'better', 'same', 'worse', 'better', 'better', 'same', 'worse', 'better'];
+    const script: Array<'better' | 'worse' | 'same'> = [
+      'worse',
+      'better',
+      'same',
+      'worse',
+      'better',
+      'better',
+      'same',
+      'worse',
+      'better',
+    ];
     const coach = fakeCoach();
     let n = 0;
-    coach.compareAttempts = (prev, next) => ({ changes: ['same_again'], verdict: script[n++] ?? 'same', timingMs: null, runsDelta: next.attempted.runs - prev.attempted.runs });
+    coach.compareAttempts = (prev, next) => ({
+      changes: ['same_again'],
+      verdict: script[n++] ?? 'same',
+      timingMs: null,
+      runsDelta: next.attempted.runs - prev.attempted.runs,
+    });
     const { flow, swings, feels } = setup({ deps: { coach } });
     flow.init();
     swings.push(defend());
@@ -107,7 +152,12 @@ describe('MASTER: exact-ball Coach Mode', () => {
     await until(() => (flow.getState().coach?.attempts.length ?? 0) === 1 && flow.getState().phase === 'idle');
     const record = () => {
       const c = flow.getState().coach!;
-      seen.push({ verdict: c.comparison?.verdict, stage: c.mastery.stage, mastered: c.mastery.mastered, event: c.event });
+      seen.push({
+        verdict: c.comparison?.verdict,
+        stage: c.mastery.stage,
+        mastered: c.mastery.mastered,
+        event: c.event,
+      });
     };
     record();
     for (let i = 1; i < script.length; i++) {
@@ -128,11 +178,17 @@ describe('MASTER: exact-ball Coach Mode', () => {
   });
 
   it('masteryConfirmation: the event passes only with a better verdict', () => {
-    const cmp = (verdict: 'better' | 'worse' | 'same'): AttemptComparison => ({ changes: [], verdict, timingMs: null, runsDelta: 0 });
+    const cmp = (verdict: 'better' | 'worse' | 'same'): AttemptComparison => ({
+      changes: [],
+      verdict,
+      timingMs: null,
+      runsDelta: 0,
+    });
     expect(masteryConfirmation(cmp('better'), 'stage_up')).toBe('stage_up');
     expect(masteryConfirmation(cmp('better'), 'mastered')).toBe('mastered');
     expect(masteryConfirmation(cmp('better'), null)).toBeNull();
-    for (const v of ['worse', 'same'] as const) for (const e of ['stage_up', 'mastered', null] as const) expect(masteryConfirmation(cmp(v), e)).toBeNull();
+    for (const v of ['worse', 'same'] as const)
+      for (const e of ['stage_up', 'mastered', null] as const) expect(masteryConfirmation(cmp(v), e)).toBeNull();
     expect(masteryConfirmation(null, 'mastered')).toBeNull();
   });
 
@@ -144,7 +200,12 @@ describe('MASTER: exact-ball Coach Mode', () => {
     await until(() => flow.getState().insight?.status === 'ready');
     swings.push(defend());
     flow.acceptDeadBallAction('practice_ball');
-    await until(() => flow.getState().screen === 'coach' && (flow.getState().coach?.attempts.length ?? 0) === 1 && flow.getState().phase === 'idle');
+    await until(
+      () =>
+        flow.getState().screen === 'coach' &&
+        (flow.getState().coach?.attempts.length ?? 0) === 1 &&
+        flow.getState().phase === 'idle',
+    );
     flow.coachLoop.leaveCoach();
     expect(flow.getState()).toMatchObject({ screen: 'live', phase: 'dead' });
     swings.push(defend());
@@ -152,7 +213,9 @@ describe('MASTER: exact-ball Coach Mode', () => {
     flow.acceptDeadBallAction('next_ball');
     flow.acceptDeadBallAction('next_ball');
     expect(next).toHaveBeenCalledTimes(1);
-    await until(() => (flow.getState().innings?.current?.deliveries.length ?? 0) === 2 && flow.getState().phase === 'dead');
+    await until(
+      () => (flow.getState().innings?.current?.deliveries.length ?? 0) === 2 && flow.getState().phase === 'dead',
+    );
   });
 
   it('a ball from the summary opens Coach Mode for that exact ball', async () => {
@@ -224,7 +287,10 @@ describe('device tiers and fair timing', () => {
   });
 
   it('a WebGL failure falls back to Classic without a dead end', async () => {
-    const { flow, events, createStage } = setup({ fail3d: true, deps: { benchmark: async () => (await import('./fakes')).assessment('below') } });
+    const { flow, events, createStage } = setup({
+      fail3d: true,
+      deps: { benchmark: async () => (await import('./fakes')).assessment('below') },
+    });
     flow.init();
     flow.prepareOver({ kind: 'random' });
     await until(() => flow.getState().stageReady);
@@ -235,7 +301,13 @@ describe('device tiers and fair timing', () => {
   it('the timing forgiveness is latched for a whole over; a change shows from the next over, with a notice', async () => {
     const { flow, swings, createStage } = setup({
       autoNext: true,
-      deps: { frameSampler: (on) => ({ start: () => Array.from({ length: 60 }, () => on(40)).length && undefined, stop() {}, running: false }) },
+      deps: {
+        frameSampler: (on) => ({
+          start: () => Array.from({ length: 60 }, () => on(40)).length && undefined,
+          stop() {},
+          running: false,
+        }),
+      },
     });
     flow.init();
     swings.push(...Array.from({ length: 6 }, () => defend()));

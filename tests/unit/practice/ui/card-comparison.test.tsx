@@ -23,23 +23,64 @@ const GestureProbe: ComponentType<GestureSurfaceProps> = () => <div />;
 const en = createPracticeT('en', null);
 
 function kitOf(value: { engine: unknown; coach: CoachKit | null; createStage: unknown }): PracticeKit {
-  return { engine: value.engine, coach: value.coach, createStage: value.createStage, input: { GestureSurface: GestureProbe }, ground: { boundaryR: 70, ringR: 27.4, pitchHalf: 10.06, bladeM: 0.96, striker: { x: 0, z: 10.06 } }, fielderClass: () => 'ring', build: { lengthBand: () => 'good', lineBand: () => 'outside_off', stockRange: () => [125, 135], variationsFor: () => ['stock'] } } as unknown as PracticeKit;
+  return {
+    engine: value.engine,
+    coach: value.coach,
+    createStage: value.createStage,
+    input: { GestureSurface: GestureProbe },
+    ground: { boundaryR: 70, ringR: 27.4, pitchHalf: 10.06, bladeM: 0.96, striker: { x: 0, z: 10.06 } },
+    fielderClass: () => 'ring',
+    build: {
+      lengthBand: () => 'good',
+      lineBand: () => 'outside_off',
+      stockRange: () => [125, 135],
+      variationsFor: () => ['stock'],
+    },
+  } as unknown as PracticeKit;
 }
 
-const REPEAT: CoachRecommendation = { kind: 'repeat_it', decision: 'attack', footwork: 'forward', shiftMs: null, directionDeg: 0, region: 'straight', lofted: false };
+const REPEAT: CoachRecommendation = {
+  kind: 'repeat_it',
+  decision: 'attack',
+  footwork: 'forward',
+  shiftMs: null,
+  directionDeg: 0,
+  region: 'straight',
+  lofted: false,
+};
 
 /** The recommended straight drive, off the middle, not out, at this timing error and for these runs. */
 function attempt(base: CoachAnalysis, timingErrorMs: number, runs: 0 | 6): CoachAnalysis {
   return {
     ...base,
     read: { ...base.read, length: 'right' },
-    attempted: { ...base.attempted, decision: 'attack', footwork: 'forward', directionDeg: 0, elevation: 0, power: 0.7, contact: 'middle', timing: 'solid', timingErrorMs, runs, dismissal: null, spread: null },
-    options: base.options.map((o, i) => (i === 0 ? { ...o, decision: 'attack' as const, footwork: 'forward' as const, risks: [] } : o)),
+    attempted: {
+      ...base.attempted,
+      decision: 'attack',
+      footwork: 'forward',
+      directionDeg: 0,
+      elevation: 0,
+      power: 0.7,
+      contact: 'middle',
+      timing: 'solid',
+      timingErrorMs,
+      runs,
+      dismissal: null,
+      spread: null,
+    },
+    options: base.options.map((o, i) =>
+      i === 0 ? { ...o, decision: 'attack' as const, footwork: 'forward' as const, risks: [] } : o,
+    ),
   };
 }
 
 /** The coach's tip for the newer attempt: hit straight to the bowler, play it the same way again (clean contact). */
-const TIP: CoachTip = { mistake: null, fact: { kind: 'reason', reason: 'hit_to_fielder', zone: null, fielder: 'bowler' }, action: REPEAT, cleanContact: true };
+const TIP: CoachTip = {
+  mistake: null,
+  fact: { kind: 'reason', reason: 'hit_to_fielder', zone: null, fielder: 'bowler' },
+  action: REPEAT,
+  cleanContact: true,
+};
 
 beforeEach(() => useFakeTimers());
 afterEach(() => {
@@ -59,8 +100,25 @@ async function card(verdictFrom: (prev: CoachAnalysis, next: CoachAnalysis) => A
   const previous = attempt(base, 0, 6);
   const next = attempt(base, 10, 0);
   const comparison = verdictFrom(previous, next);
-  const coach = { ...value.coach!, primaryInsight: () => ({ reason: 'hit_to_fielder', timingMs: 10, recommendation: REPEAT }) as PrimaryInsight };
-  const session: CoachSession = { key: 'k', source: last.record, sourceResult: last.result, overNumber: 1, ballNumber: 1, base: previous, baseTip: TIP, latest: { result: last.result, analysis: next, tip: TIP }, comparison, mastery: coach.startMastery('k'), event: null, attempts: [true, true], back: { screen: 'live', phase: 'dead' } };
+  const coach = {
+    ...value.coach!,
+    primaryInsight: () => ({ reason: 'hit_to_fielder', timingMs: 10, recommendation: REPEAT }) as PrimaryInsight,
+  };
+  const session: CoachSession = {
+    key: 'k',
+    source: last.record,
+    sourceResult: last.result,
+    overNumber: 1,
+    ballNumber: 1,
+    base: previous,
+    baseTip: TIP,
+    latest: { result: last.result, analysis: next, tip: TIP },
+    comparison,
+    mastery: coach.startMastery('k'),
+    event: null,
+    attempts: [true, true],
+    back: { screen: 'live', phase: 'dead' },
+  };
   render(
     <PracticeKitContext.Provider value={kitOf({ ...value, coach })}>
       <Coach session={session} busy={false} onReplay={vi.fn()} onDemo={vi.fn()} onBack={vi.fn()} />
@@ -99,7 +157,9 @@ describe('O-4: the Coach card agrees with the measured comparison', () => {
     expect(cardTip(TIP, an, better)).toEqual({ tip: TIP, withheld: false });
     expect(cardTip(TIP, an, null)).toEqual({ tip: TIP, withheld: false });
     expect(cardTip(TIP, an, worse).tip.action.kind).toBe('aim_for_the_gap');
-    expect(cardTip({ ...TIP, action: { ...REPEAT, decision: 'defend', footwork: 'back' } }, an, worse).tip.action.kind).toBe('defend_back');
+    expect(
+      cardTip({ ...TIP, action: { ...REPEAT, decision: 'defend', footwork: 'back' } }, an, worse).tip.action.kind,
+    ).toBe('defend_back');
     const correction: CoachTip = { ...TIP, action: { ...REPEAT, kind: 'play_earlier', shiftMs: 20 } };
     expect(cardTip(correction, an, worse)).toEqual({ tip: correction, withheld: false });
   });

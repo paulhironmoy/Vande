@@ -71,7 +71,8 @@ export class MatchAudio implements PresentationSink {
   cue(kind: SceneEventKind, intensity: number, rate: number) {
     if (this.opts.liveContact && (kind === 'bat' || kind === 'edge')) return;
     // Live, the batter's own patterns are the only contact haptics (a pad buzz would blur into them).
-    if (this.opts.haptics !== false && hapticsOn && !(this.opts.liveContact && kind === 'pad')) this.haptic(kind, intensity);
+    if (this.opts.haptics !== false && hapticsOn && !(this.opts.liveContact && kind === 'pad'))
+      this.haptic(kind, intensity);
     const g = audible();
     if (!g) return;
     const when = g.ctx.currentTime + 0.005;
@@ -166,7 +167,8 @@ export function playCue(v: VoiceTarget, kind: SceneEventKind, intensity: number,
 /** What the tap is predicted to hit, before the sealed answer arrives (see predictContact). */
 type SwingGuess = 'middle' | 'edge' | 'miss' | 'none';
 
-const guessOf = (c: Contact): SwingGuess => (c === 'middle' ? 'middle' : c === 'thick_edge' || c === 'thin_edge' ? 'edge' : c === 'none' ? 'none' : 'miss');
+const guessOf = (c: Contact): SwingGuess =>
+  c === 'middle' ? 'middle' : c === 'thick_edge' || c === 'thin_edge' ? 'edge' : c === 'none' ? 'none' : 'miss';
 
 function liveVoice(): { v: VoiceTarget; when: number } | null {
   const g = audible();
@@ -195,7 +197,12 @@ export function playSwingFeel(predicted: Contact, timing: TimingGrade = 'good'):
  * first; the same outcome plays nothing more), and the middle of the bat rings (brighter for perfect timing) while an
  * edge the tap did not predict ticks. Nothing about runs or wickets.
  */
-export function playContactFeel(contact: Contact, timing: TimingGrade, predicted: Contact, predictedTiming: TimingGrade = 'good'): void {
+export function playContactFeel(
+  contact: Contact,
+  timing: TimingGrade,
+  predicted: Contact,
+  predictedTiming: TimingGrade = 'good',
+): void {
   const guess = guessOf(predicted);
   const pattern = feelFor(contact, timing);
   if (pattern && pattern !== feelFor(predicted, predictedTiming) && hapticsOn) playFeel(pattern);

@@ -7,7 +7,12 @@ import { ensureAccount, socialFailure, useAccount, useAction, usePlayerGate, use
 import { createSocialT, loadSocialCatalog, useSocialT } from '@/social/i18n';
 import { socialEn } from '@/i18n/social/en';
 
-const player = { id: null, alias: 'Swift Tiger', avatar: { seed: 'abc12345' }, kit: { id: 'starter' as const, primary: '#1E2A78', secondary: '#00B8D9', pattern: 'chevron' as const } };
+const player = {
+  id: null,
+  alias: 'Swift Tiger',
+  avatar: { seed: 'abc12345' },
+  kit: { id: 'starter' as const, primary: '#1E2A78', secondary: '#00B8D9', pattern: 'chevron' as const },
+};
 
 function fakeNet(over: Record<string, unknown> = {}) {
   return {
@@ -82,15 +87,24 @@ describe('the account behind the local player', () => {
     const net = fakeNet();
     const { result } = renderHook(() => useAccount(net, useApp.getState().player));
     await waitFor(() => expect(result.current.state).toBe('ok'));
-    expect((net as unknown as { session: { ensure: ReturnType<typeof vi.fn> } }).session.ensure).toHaveBeenCalledWith('Swift Tiger');
-    expect((net as unknown as { api: { call: ReturnType<typeof vi.fn> } }).api.call).toHaveBeenCalledWith('PATCH /v1/me', { body: { avatar: player.avatar, kit: player.kit, locale: 'en' } });
+    expect((net as unknown as { session: { ensure: ReturnType<typeof vi.fn> } }).session.ensure).toHaveBeenCalledWith(
+      'Swift Tiger',
+    );
+    expect((net as unknown as { api: { call: ReturnType<typeof vi.fn> } }).api.call).toHaveBeenCalledWith(
+      'PATCH /v1/me',
+      { body: { avatar: player.avatar, kit: player.kit, locale: 'en' } },
+    );
     expect(useApp.getState().player?.id).toBe('pnew');
   });
 
   it('says so when the alias is refused or the network is down', async () => {
-    const refused = fakeNet({ session: { ensure: vi.fn(async () => Promise.reject(new ApiClientError('invalid', 'alias', 400))) } });
+    const refused = fakeNet({
+      session: { ensure: vi.fn(async () => Promise.reject(new ApiClientError('invalid', 'alias', 400))) },
+    });
     expect(await ensureAccount(refused, player, 'en')).toEqual({ error: 'alias_rejected' });
-    const down = fakeNet({ session: { ensure: vi.fn(async () => Promise.reject(new ApiClientError('network', 'x'))) } });
+    const down = fakeNet({
+      session: { ensure: vi.fn(async () => Promise.reject(new ApiClientError('network', 'x'))) },
+    });
     expect(await ensureAccount(down, player, 'en')).toEqual({ error: 'offline' });
   });
 

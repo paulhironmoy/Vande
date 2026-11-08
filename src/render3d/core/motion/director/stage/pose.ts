@@ -79,8 +79,14 @@ function add(pose: SampledPose, bone: Parameters<typeof addBoneRotation>[1], x: 
 
 /** out = a * b (out may not alias a or b). */
 function mul(a: ArrayLike<number>, ao: number, b: ArrayLike<number>, bo: number, out: Float64Array, oo: number): void {
-  const ax = a[ao], ay = a[ao + 1], az = a[ao + 2], aw = a[ao + 3];
-  const bx = b[bo], by = b[bo + 1], bz = b[bo + 2], bw = b[bo + 3];
+  const ax = a[ao],
+    ay = a[ao + 1],
+    az = a[ao + 2],
+    aw = a[ao + 3];
+  const bx = b[bo],
+    by = b[bo + 1],
+    bz = b[bo + 2],
+    bw = b[bo + 3];
   out[oo] = aw * bx + ax * bw + ay * bz - az * by;
   out[oo + 1] = aw * by - ax * bz + ay * bw + az * bx;
   out[oo + 2] = aw * bz + ax * by - ay * bx + az * bw;
@@ -98,7 +104,10 @@ const U = new Float64Array(3);
 
 /** Rotates (x, y, z) by the conjugate of q (q[qo..]) into V. */
 function invRot(q: ArrayLike<number>, qo: number, x: number, y: number, z: number): void {
-  const qx = -q[qo], qy = -q[qo + 1], qz = -q[qo + 2], qw = q[qo + 3];
+  const qx = -q[qo],
+    qy = -q[qo + 1],
+    qz = -q[qo + 2],
+    qw = q[qo + 3];
   const tx = 2 * (qy * z - qz * y);
   const ty = 2 * (qz * x - qx * z);
   const tz = 2 * (qx * y - qy * x);
@@ -137,7 +146,18 @@ export interface HeadFrame {
  * the neck's range kept the head short of the plan's head in space; `limited` is set by the stage when its rate limit
  * held a bone back.
  */
-export const HEAD = { yaw: 0, pitch: 0, roll: 0, dYaw: 0, dPitch: 0, dRoll: 0, eyeYaw: 0, eyePitch: 0, clamped: false, limited: false };
+export const HEAD = {
+  yaw: 0,
+  pitch: 0,
+  roll: 0,
+  dYaw: 0,
+  dPitch: 0,
+  dRoll: 0,
+  eyeYaw: 0,
+  eyePitch: 0,
+  clamped: false,
+  limited: false,
+};
 
 const QY = new Float64Array(4);
 const QP = new Float64Array(4);
@@ -147,7 +167,10 @@ const QS = new Float64Array(4);
 
 /** Rotates (x, y, z) by q (q[qo..]) into V. */
 function rot(q: ArrayLike<number>, qo: number, x: number, y: number, z: number): void {
-  const qx = q[qo], qy = q[qo + 1], qz = q[qo + 2], qw = q[qo + 3];
+  const qx = q[qo],
+    qy = q[qo + 1],
+    qz = q[qo + 2],
+    qw = q[qo + 3];
   const tx = 2 * (qy * z - qz * y);
   const ty = 2 * (qz * x - qx * z);
   const tz = 2 * (qx * y - qy * x);
@@ -158,16 +181,25 @@ function rot(q: ArrayLike<number>, qo: number, x: number, y: number, z: number):
 
 /** The accumulated rotations hips, spine, chest, neck, head into `Q` (parent before child). */
 function chain(q: { [i: number]: number }): void {
-  Q[0] = q[0]; Q[1] = q[1]; Q[2] = q[2]; Q[3] = q[3];
+  Q[0] = q[0];
+  Q[1] = q[1];
+  Q[2] = q[2];
+  Q[3] = q[3];
   for (let i = 1; i < 5; i++) {
     mul(Q, (i - 1) * 4, q as ArrayLike<number>, i * 4, QT, 0);
-    Q[i * 4] = QT[0]; Q[i * 4 + 1] = QT[1]; Q[i * 4 + 2] = QT[2]; Q[i * 4 + 3] = QT[3];
+    Q[i * 4] = QT[0];
+    Q[i * 4 + 1] = QT[1];
+    Q[i * 4 + 2] = QT[2];
+    Q[i * 4 + 3] = QT[3];
   }
 }
 
 /** The head's line of sight and up (the head's +z and +y) from `Q`, into D and U. */
 function headAxes(): void {
-  const hx = Q[16], hy = Q[17], hz = Q[18], hw = Q[19];
+  const hx = Q[16],
+    hy = Q[17],
+    hz = Q[18],
+    hw = Q[19];
   D[0] = 2 * (hx * hz + hw * hy);
   D[1] = 2 * (hy * hz - hw * hx);
   D[2] = 1 - 2 * (hx * hx + hy * hy);
@@ -196,7 +228,9 @@ function rollOf(): number {
   const lz0 = -D[1] * D[2];
   const ll = Math.hypot(lx0, ly0, lz0);
   if (ll <= 1e-4) return 0;
-  const lx = lx0 / ll, ly = ly0 / ll, lz = lz0 / ll;
+  const lx = lx0 / ll,
+    ly = ly0 / ll,
+    lz = lz0 / ll;
   const sinr = (ly * U[2] - lz * U[1]) * D[0] + (lz * U[0] - lx * U[2]) * D[1] + (lx * U[1] - ly * U[0]) * D[2];
   return Math.atan2(sinr, lx * U[0] + ly * U[1] + lz * U[2]) * DEG;
 }
@@ -257,7 +291,10 @@ function yawReach(x: number): number {
  */
 function reachable(f: HeadFrame, yaw: number, pitch: number): [number, number] {
   // role -> world -> actor-local direction
-  const cy = Math.cos(yaw * RAD), sy = Math.sin(yaw * RAD), cp = Math.cos(pitch * RAD), sp = Math.sin(pitch * RAD);
+  const cy = Math.cos(yaw * RAD),
+    sy = Math.sin(yaw * RAD),
+    cp = Math.cos(pitch * RAD),
+    sp = Math.sin(pitch * RAD);
   const wx = (f.bowler ? 1 : -1) * sy * cp;
   const wz = (f.bowler ? 1 : -1) * cy * cp;
   const c = Math.cos(f.heading);
@@ -266,7 +303,9 @@ function reachable(f: HeadFrame, yaw: number, pitch: number): [number, number] {
   const lz = s * wx + c * wz;
   // into the chest's frame (Q index 2 is the accumulated chest rotation)
   invRot(Q, 8, lx, -sp, lz);
-  const vx = V[0], vy = V[1], vz = V[2];
+  const vx = V[0],
+    vy = V[1],
+    vz = V[2];
   const yc = Math.atan2(vx, vz) * DEG;
   const pc = Math.atan2(-vy, Math.hypot(vx, vz)) * DEG;
   const mid = (NECK.down - NECK.up) / 2;
@@ -279,9 +318,12 @@ function reachable(f: HeadFrame, yaw: number, pitch: number): [number, number] {
   // horizontal that is left, which flips by 180 degrees (the 106 degrees a frame of the head, 61 of the neck). The share of the pull
   // rises with it, 0 at the edge of the free range and 1 where the head is back at the front, so nothing jumps.
   // (the sine of the chest front's pitch along the pulled yaw is its height in the world, V[1])
-  const cy2 = Math.cos(y2 * RAD), sy2 = Math.sin(y2 * RAD);
+  const cy2 = Math.cos(y2 * RAD),
+    sy2 = Math.sin(y2 * RAD);
   rot(Q, 8, sy2, 0, cy2);
-  const pk = pc + (pitch + Math.asin(clamp(V[1], -1, 1)) * DEG - pc) * smooth((Math.abs(yc) - NECK.yaw0) / (NECK.yaw1 - NECK.yaw0));
+  const pk =
+    pc +
+    (pitch + Math.asin(clamp(V[1], -1, 1)) * DEG - pc) * smooth((Math.abs(yc) - NECK.yaw0) / (NECK.yaw1 - NECK.yaw0));
   const p2 = knee(pk - mid, half) + mid;
   if (Math.abs(y2 - yc) < 1e-9 && Math.abs(p2 - pc) < 1e-9) {
     HEAD.clamped = false;
@@ -291,9 +333,12 @@ function reachable(f: HeadFrame, yaw: number, pitch: number): [number, number] {
   }
   HEAD.clamped = true;
   // back out: chest frame -> actor-local -> world -> role
-  const cp2 = Math.cos(p2 * RAD), sp2 = Math.sin(p2 * RAD);
+  const cp2 = Math.cos(p2 * RAD),
+    sp2 = Math.sin(p2 * RAD);
   rot(Q, 8, sy2 * cp2, -sp2, cy2 * cp2);
-  const ax = V[0], ay = V[1], az = V[2];
+  const ax = V[0],
+    ay = V[1],
+    az = V[2];
   const wx2 = c * ax + s * az;
   const wz2 = -s * ax + c * az;
   ROLE[0] = (f.bowler ? Math.atan2(wx2, wz2) : Math.atan2(-wx2, -wz2)) * DEG;
@@ -307,7 +352,14 @@ function reachable(f: HeadFrame, yaw: number, pitch: number): [number, number] {
  * the neck can turn, and the neck and head turned the rest of the way (halved in Reduced Motion, scaled by the fade
  * `w`). Rewrites bones 3 and 4 of `q`.
  */
-export function turnHead(q: { [i: number]: number }, ch: Float32Array | null, f: HeadFrame, rm: boolean, w: number, seam: Seam | null = null): void {
+export function turnHead(
+  q: { [i: number]: number },
+  ch: Float32Array | null,
+  f: HeadFrame,
+  rm: boolean,
+  w: number,
+  seam: Seam | null = null,
+): void {
   const H = P.head;
   chain(q);
   headAxes();
@@ -339,14 +391,22 @@ export function turnHead(q: { [i: number]: number }, ch: Float32Array | null, f:
     dP += seam.op * seam.k;
     dR += seam.or * seam.k;
   }
-  HEAD.yaw = yawA; HEAD.pitch = pitchA; HEAD.roll = rollA; HEAD.dYaw = dY; HEAD.dPitch = dP; HEAD.dRoll = dR;
+  HEAD.yaw = yawA;
+  HEAD.pitch = pitchA;
+  HEAD.roll = rollA;
+  HEAD.dYaw = dY;
+  HEAD.dPitch = dP;
+  HEAD.dRoll = dR;
   if (dY === 0 && dP === 0 && dR === 0) return;
   // One rotation in the local frame: yaw about the vertical, then pitch about the new left axis, then roll about the
   // new line of sight (the order that keeps the head level, which is how a head turns).
   const phi = dY * RAD;
   const cp = Math.cos(phi);
   const sp = Math.sin(phi);
-  QY[0] = 0; QY[1] = Math.sin(phi * 0.5); QY[2] = 0; QY[3] = Math.cos(phi * 0.5);
+  QY[0] = 0;
+  QY[1] = Math.sin(phi * 0.5);
+  QY[2] = 0;
+  QY[3] = Math.cos(phi * 0.5);
   const d1x = cp * D[0] + sp * D[2];
   const d1y = D[1];
   const d1z = -sp * D[0] + cp * D[2];
@@ -355,7 +415,10 @@ export function turnHead(q: { [i: number]: number }, ch: Float32Array | null, f:
   const az = hl > 1e-6 ? -d1x / hl : 0;
   const th = dP * RAD;
   const st = Math.sin(th * 0.5);
-  QP[0] = ax * st; QP[1] = 0; QP[2] = az * st; QP[3] = Math.cos(th * 0.5);
+  QP[0] = ax * st;
+  QP[1] = 0;
+  QP[2] = az * st;
+  QP[3] = Math.cos(th * 0.5);
   // the line of sight after the pitch (Rodrigues about the left axis)
   const ct = Math.cos(th);
   const sn = Math.sin(th);
@@ -367,16 +430,28 @@ export function turnHead(q: { [i: number]: number }, ch: Float32Array | null, f:
   let ey = d1y * ct + cyr * sn;
   let ez = d1z * ct + czr * sn + az * dot * (1 - ct);
   const el = Math.hypot(ex, ey, ez) || 1;
-  ex /= el; ey /= el; ez /= el;
+  ex /= el;
+  ey /= el;
+  ez /= el;
   const rh = dR * RAD * 0.5;
   const sr = Math.sin(rh);
-  QR[0] = ex * sr; QR[1] = ey * sr; QR[2] = ez * sr; QR[3] = Math.cos(rh);
+  QR[0] = ex * sr;
+  QR[1] = ey * sr;
+  QR[2] = ez * sr;
+  QR[3] = Math.cos(rh);
   // R = roll * pitch * yaw
   mul(QP, 0, QY, 0, QT, 0);
   mul(QR, 0, QT, 0, QS, 0);
   let rw = QS[3];
-  let rxx = QS[0], ryy = QS[1], rzz = QS[2];
-  if (rw < 0) { rw = -rw; rxx = -rxx; ryy = -ryy; rzz = -rzz; }
+  let rxx = QS[0],
+    ryy = QS[1],
+    rzz = QS[2];
+  if (rw < 0) {
+    rw = -rw;
+    rxx = -rxx;
+    ryy = -ryy;
+    rzz = -rzz;
+  }
   const sh = Math.hypot(rxx, ryy, rzz);
   if (sh <= 1e-9) return;
   // The turn is shared between the neck and the head as one rotation about an axis, and at exactly 180 degrees that axis has two answers,
@@ -385,7 +460,9 @@ export function turnHead(q: { [i: number]: number }, ch: Float32Array | null, f:
   // within 29 degrees of it is eased to nothing as it nears it; every smaller turn (all of those in play) is untouched.
   let angle = 2 * Math.atan2(sh, rw);
   angle *= smooth((Math.PI - angle) * 2);
-  const kx = rxx / sh, ky = ryy / sh, kz = rzz / sh;
+  const kx = rxx / sh,
+    ky = ryy / sh,
+    kz = rzz / sh;
   // The neck takes its share about the axis seen from the chest's frame, the head the rest about the axis seen from
   // the neck's (as it was): new local = (parent^-1 * turn * parent) * local.
   const share = H.neckShare;
@@ -431,7 +508,16 @@ const WX = new Float64Array(5);
 /** One of the shader's four expression numbers from the five weights in `WX`, times the gain, kept inside the shader's range. */
 function mixAt(k: number): number {
   const M = P.expr.mix;
-  return clamp(P.expr.gain * (M.concentration[k] * WX[0] + M.effort[k] * WX[1] + M.frustration[k] * WX[2] + M.relief[k] * WX[3] + M.celebration[k] * WX[4]), -1, 1);
+  return clamp(
+    P.expr.gain *
+      (M.concentration[k] * WX[0] +
+        M.effort[k] * WX[1] +
+        M.frustration[k] * WX[2] +
+        M.relief[k] * WX[3] +
+        M.celebration[k] * WX[4]),
+    -1,
+    1,
+  );
 }
 
 /**

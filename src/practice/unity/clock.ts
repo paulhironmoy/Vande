@@ -95,7 +95,8 @@ export class UnityPracticeClock {
     // clamp only the bounded quantization band and still reject impossible data.
     const roundTripMs = Math.max(0, measuredRoundTripMs);
     const hostMinusUnityMs =
-      ((observation.hostSendPerfMs - observation.unityReceiveMs) +
+      (observation.hostSendPerfMs -
+        observation.unityReceiveMs +
         (observation.hostReceivePerfMs - observation.unitySendMs)) /
       2;
     const estimate = { ...observation, roundTripMs, hostMinusUnityMs };

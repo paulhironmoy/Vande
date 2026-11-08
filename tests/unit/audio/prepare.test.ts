@@ -3,7 +3,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 /** A fake AudioContext that counts constructions and resumes. */
 function fakeAudio() {
   const made: string[] = [];
-  const node = () => ({ connect: (n: unknown) => n, gain: { value: 1, setTargetAtTime: () => undefined }, threshold: { value: 0 }, knee: { value: 0 }, ratio: { value: 1 }, attack: { value: 0 }, release: { value: 0 } });
+  const node = () => ({
+    connect: (n: unknown) => n,
+    gain: { value: 1, setTargetAtTime: () => undefined },
+    threshold: { value: 0 },
+    knee: { value: 0 },
+    ratio: { value: 1 },
+    attack: { value: 0 },
+    release: { value: 0 },
+  });
   class Ctx {
     state = 'suspended';
     sampleRate = 48000;

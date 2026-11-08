@@ -17,7 +17,15 @@ export function Logo({ size = 32, wordmark, title, className }: LogoProps) {
   const id = useId().replace(/:/g, '');
   const c = BRAND_COLORS;
   const mark = (
-    <svg viewBox="0 0 120 120" width={size} height={size} role={title && !wordmark ? 'img' : undefined} aria-label={!wordmark ? title : undefined} aria-hidden={wordmark || !title ? true : undefined} focusable="false">
+    <svg
+      viewBox="0 0 120 120"
+      width={size}
+      height={size}
+      role={title && !wordmark ? 'img' : undefined}
+      aria-label={!wordmark ? title : undefined}
+      aria-hidden={wordmark || !title ? true : undefined}
+      focusable="false"
+    >
       <defs>
         <radialGradient id={`${id}b`} cx="50%" cy="30%" r="75%">
           <stop offset="0" stopColor={c.indigo} />

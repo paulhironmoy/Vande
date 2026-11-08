@@ -1,12 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import type { GestureInput, GestureSample } from '@/contracts/practice';
-import { GestureTracker, normalizeGesture, readOneContact, traceGesture, type OneGestureState, type TrackerScheduler } from '@/input';
+import {
+  GestureTracker,
+  normalizeGesture,
+  readOneContact,
+  traceGesture,
+  type OneGestureState,
+  type TrackerScheduler,
+} from '@/input';
 
 const SURFACE = { width: 915, height: 190 };
 const RELEASE = 900;
 const OPTIONS = { releasePerfMs: RELEASE, calibrationMs: 0, handedness: 'right' as const };
 
-function contact(args: { holdMs?: number; pullbackPx?: number; lateralPx?: number; forwardPx?: number; forwardMs?: number; upAtMs?: number } = {}): GestureSample[] {
+function contact(
+  args: {
+    holdMs?: number;
+    pullbackPx?: number;
+    lateralPx?: number;
+    forwardPx?: number;
+    forwardMs?: number;
+    upAtMs?: number;
+  } = {},
+): GestureSample[] {
   const hold = args.holdMs ?? 80;
   const pullback = args.pullbackPx ?? 90;
   const lateral = args.lateralPx ?? 0;
@@ -29,7 +45,8 @@ function contact(args: { holdMs?: number; pullbackPx?: number; lateralPx?: numbe
     out.push({ t: loadEnd + hold / 2, x: x0 + lateral / 2, y: loadedY });
     out.push({ t: commitBase, x: loadedX, y: loadedY });
   }
-  for (const u of [0.25, 0.5, 0.75, 1]) out.push({ t: commitBase + forwardMs * u, x: loadedX + 36 * u, y: loadedY - forward * u });
+  for (const u of [0.25, 0.5, 0.75, 1])
+    out.push({ t: commitBase + forwardMs * u, x: loadedX + 36 * u, y: loadedY - forward * u });
   out.push({ t: args.upAtMs ?? commitBase + Math.max(90, forwardMs + 30), x: loadedX + 36, y: loadedY - forward });
   return out;
 }
@@ -48,7 +65,9 @@ describe('canonical one-continuous-contact batting control', () => {
     expect(phases).toContain('tracking');
     expect(phases).toContain('committing');
     expect(phases.at(-1)).toBe('released');
-    expect(result.states.filter((s) => s.phase === 'loading' || s.phase === 'tracking').every((s) => s.pathPower === 0)).toBe(true);
+    expect(
+      result.states.filter((s) => s.phase === 'loading' || s.phase === 'tracking').every((s) => s.pathPower === 0),
+    ).toBe(true);
     expect(result.gesture).not.toBeNull();
     expect(result.emittedAtMs).not.toBeNull();
     expect(result.emittedAtMs!).toBeLessThan(samples.at(-1)!.t);
@@ -82,7 +101,10 @@ describe('canonical one-continuous-contact batting control', () => {
     const swings = [120, 60, 30].map((hz) => {
       const result = traceGesture({ surface: SURFACE, samples, frameMs: 1000 / hz, coalesced: true });
       expect(result.gesture, `${hz} Hz`).not.toBeNull();
-      expect(result.states.filter((s) => s.phase === 'released'), `${hz} Hz release`).toHaveLength(1);
+      expect(
+        result.states.filter((s) => s.phase === 'released'),
+        `${hz} Hz release`,
+      ).toHaveLength(1);
       return normal(result.gesture!);
     });
     expect(swings[1]).toEqual(swings[0]);
@@ -129,7 +151,12 @@ describe('canonical one-continuous-contact batting control', () => {
       const states: OneGestureState[] = [];
       let cancellations = 0;
       const tracker = new GestureTracker(
-        { swingStart: () => undefined, gesture: (g) => gestures.push(g), cancel: () => cancellations++, state: (s) => states.push(s) },
+        {
+          swingStart: () => undefined,
+          gesture: (g) => gestures.push(g),
+          cancel: () => cancellations++,
+          state: (s) => states.push(s),
+        },
         sched,
       );
       tracker.setSurface(SURFACE.width, SURFACE.height);
@@ -219,7 +246,13 @@ describe('canonical one-continuous-contact batting control', () => {
   });
 
   it('preserves quick-release defence, keyboard equivalence and established one-way flick compatibility', () => {
-    const tap = traceGesture({ surface: SURFACE, samples: [{ t: 1000, x: 400, y: 80 }, { t: 1060, x: 401, y: 80 }] });
+    const tap = traceGesture({
+      surface: SURFACE,
+      samples: [
+        { t: 1000, x: 400, y: 80 },
+        { t: 1060, x: 401, y: 80 },
+      ],
+    });
     expect(normal(tap.gesture!)).toMatchObject({ kind: 'defend', startT: 0.1 });
     expect(tap.states.map((s) => s.phase)).toEqual(['ready', 'committing', 'released']);
 

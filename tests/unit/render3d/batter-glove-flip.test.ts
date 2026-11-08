@@ -29,10 +29,24 @@ import { describe, expect, it } from 'vitest';
 import type { Quaternion } from 'three';
 import { blendPose, createPose } from '@/render3d/core/clips';
 import { externalBatPose } from '@/render3d/practice/bat';
-import { FRAME_MS, KITS_BOTH, armPops, overJobs, reelJobs, stageHook, stubStage, turnBetween, walkStriker, withPacks, type Frame, type Walk } from './batterArmsCorpus';
+import {
+  FRAME_MS,
+  KITS_BOTH,
+  armPops,
+  overJobs,
+  reelJobs,
+  stageHook,
+  stubStage,
+  turnBetween,
+  walkStriker,
+  withPacks,
+  type Frame,
+  type Walk,
+} from './batterArmsCorpus';
 
 /** The angle between two unit vectors (deg). */
-const between = (a: { dot(b: never): number }, b: unknown) => (Math.acos(Math.max(-1, Math.min(1, a.dot(b as never)))) * 180) / Math.PI;
+const between = (a: { dot(b: never): number }, b: unknown) =>
+  (Math.acos(Math.max(-1, Math.min(1, a.dot(b as never)))) * 180) / Math.PI;
 const dirOf = (f: Frame) => f.toe.clone().sub(f.cap).normalize();
 
 /** The top glove's largest one-frame turn of its world rotation while he holds the bat (before the input, after the stroke). */
@@ -49,8 +63,8 @@ function holdingGloveTurns(w: Walk, fromRel: number, deg: number): Array<[number
   return out;
 }
 
-describe('F4: the bat keeps its face through every switch of the body\'s clips', () => {
-  it('the leave\'s bat turns about its blade no faster than the blade itself turns (it jumped 73° at the input, again at the end of the inertial window)', async () => {
+describe("F4: the bat keeps its face through every switch of the body's clips", () => {
+  it("the leave's bat turns about its blade no faster than the blade itself turns (it jumped 73° at the input, again at the end of the inertial window)", async () => {
     await withPacks(() => {
       for (const job of reelJobs().filter((j) => j.intent === 'D3-leave')) {
         const w = walkStriker(job, 300, 1800);
@@ -64,7 +78,10 @@ describe('F4: the bat keeps its face through every switch of the body\'s clips',
             at = w.frames[k].rel;
           }
         }
-        expect(worst, `${job.key}: face turn beyond the blade's, worst at release+${at.toFixed(0)} ms (deg)`).toBeLessThan(20);
+        expect(
+          worst,
+          `${job.key}: face turn beyond the blade's, worst at release+${at.toFixed(0)} ms (deg)`,
+        ).toBeLessThan(20);
       }
     });
   });
@@ -83,30 +100,39 @@ describe('F4: the bat keeps its face through every switch of the body\'s clips',
       blendPose(a, key(), k / 20);
       const f = a.bat!.face;
       expect(f, `a face at w = ${k / 20}`).toBeDefined();
-      if (previous) worst = Math.max(worst, (Math.acos(Math.max(-1, Math.min(1, previous[0] * f![0] + previous[1] * f![1] + previous[2] * f![2]))) * 180) / Math.PI);
+      if (previous)
+        worst = Math.max(
+          worst,
+          (Math.acos(Math.max(-1, Math.min(1, previous[0] * f![0] + previous[1] * f![1] + previous[2] * f![2]))) *
+            180) /
+            Math.PI,
+        );
       previous = f as [number, number, number];
     }
-    expect(worst, 'the face\'s largest turn between two steps of 0.05 of the weight (deg)').toBeLessThan(10);
+    expect(worst, "the face's largest turn between two steps of 0.05 of the weight (deg)").toBeLessThan(10);
   });
 
-  it('draws the clip\'s own face once the external bat has handed over to the clip\'s key (it drew the hint, 73° off, since holdBat ignored the face)', async () => {
+  it("draws the clip's own face once the external bat has handed over to the clip's key (it drew the hint, 73° off, since holdBat ignored the face)", async () => {
     await withPacks(() => {
       let frames = 0;
       for (const job of reelJobs().filter((j) => j.intent === 'D3-leave' || j.intent === 'D4-bowled-late')) {
         const w = walkStriker(job, 300, 2600);
         for (const f of w.frames) {
           if (f.external || !f.keyFace) continue;
-          expect(between(f.face, f.keyFace), `${job.key} at release+${f.rel.toFixed(0)} ms: the drawn face against the clip's (deg)`).toBeLessThan(3);
+          expect(
+            between(f.face, f.keyFace),
+            `${job.key} at release+${f.rel.toFixed(0)} ms: the drawn face against the clip's (deg)`,
+          ).toBeLessThan(3);
           frames++;
         }
       }
-      expect(frames, 'frames drawn from the clip\'s own key').toBeGreaterThan(100);
+      expect(frames, "frames drawn from the clip's own key").toBeGreaterThan(100);
     });
   });
 });
 
 describe('F4: a frame posed twice', () => {
-  it('draws the same arms the second time (the motion reel\'s camera poses every frame twice: the trunk\'s lean was then not held to its speed in the second pass, and the next frame started from the unheld lean)', async () => {
+  it("draws the same arms the second time (the motion reel's camera poses every frame twice: the trunk's lean was then not held to its speed in the second pass, and the next frame started from the unheld lean)", async () => {
     await withPacks(() => {
       for (const job of reelJobs(['right']).filter((j) => j.intent === 'D2-forward-defence')) {
         const p = job.script.practice!;
@@ -127,19 +153,25 @@ describe('F4: a frame posed twice', () => {
           frames++;
         }
         expect(frames, 'frames posed twice').toBeGreaterThan(20);
-        expect(worst, `${job.key}: the largest turn of any bone between the first and the second pass of one frame (deg)`).toBeLessThan(0.25);
+        expect(
+          worst,
+          `${job.key}: the largest turn of any bone between the first and the second pass of one frame (deg)`,
+        ).toBeLessThan(0.25);
       }
     });
   });
 });
 
-describe('F4: the motion reel\'s four balls, both hands', () => {
+describe("F4: the motion reel's four balls, both hands", () => {
   it('the leave and the bowled ball have no forearm or hand turn of more than 60° in a frame, and the top glove never turns more than 65° while he holds the bat (it flipped 173° and 163° at 8.05 s, 139°, 152°, 148°, 121° at 11.48–11.57 s)', async () => {
     await withPacks(() => {
       for (const job of reelJobs().filter((j) => j.intent === 'D3-leave' || j.intent === 'D4-bowled-late')) {
         const w = walkStriker(job, 600, 3000);
         const pops = armPops(w, 60);
-        expect(pops.map(([rel, bone, t]) => `${bone} ${t.toFixed(0)}° at release+${rel.toFixed(0)}`), `${job.key}: forearm or hand turns over 60° in a frame`).toEqual([]);
+        expect(
+          pops.map(([rel, bone, t]) => `${bone} ${t.toFixed(0)}° at release+${rel.toFixed(0)}`),
+          `${job.key}: forearm or hand turns over 60° in a frame`,
+        ).toEqual([]);
         const glove = holdingGloveTurns(w, 0, 65);
         expect(glove, `${job.key}: top glove world turns over 65° in a frame while holding`).toEqual([]);
       }
@@ -154,7 +186,9 @@ describe('F4: the motion reel\'s four balls, both hands', () => {
       let palm = 0;
       for (const job of reelJobs()) {
         const w = walkStriker(job, 600, 3000);
-        for (const f of w.frames) if (f.external && f.rel >= w.input - w.release - 200 && f.rel <= w.input - w.release + 1000) palm = Math.max(palm, f.palm[0], f.palm[1]);
+        for (const f of w.frames)
+          if (f.external && f.rel >= w.input - w.release - 200 && f.rel <= w.input - w.release + 1000)
+            palm = Math.max(palm, f.palm[0], f.palm[1]);
         const n = armPops(w, 60).length;
         if (job.hand === 'right') right += n;
         else left += n;
@@ -162,14 +196,20 @@ describe('F4: the motion reel\'s four balls, both hands', () => {
       }
       expect(right, 'right-handers: forearm or hand turns over 60° in a frame').toBeLessThanOrEqual(7);
       expect(left, 'left-handers: forearm or hand turns over 60° in a frame').toBeLessThanOrEqual(7);
-      expect(glove, 'frames where the top glove turns over 25° while he holds the bat (26 before, 18 after)').toBeLessThanOrEqual(22);
-      expect(palm * 1000, 'palm to handle, largest, in the swing\'s window (mm; the checkpoint 5, a drifting roll without the reach-aware turn 61 at the forward defence\'s first move, 2 after)').toBeLessThan(8);
+      expect(
+        glove,
+        'frames where the top glove turns over 25° while he holds the bat (26 before, 18 after)',
+      ).toBeLessThanOrEqual(22);
+      expect(
+        palm * 1000,
+        "palm to handle, largest, in the swing's window (mm; the checkpoint 5, a drifting roll without the reach-aware turn 61 at the forward defence's first move, 2 after)",
+      ).toBeLessThan(8);
     });
   });
 });
 
 describe('F4: the 96-delivery corpus (two overs, three balls, both hands, eight intents)', () => {
-  it('keeps the arms\' one-frame turns, the top glove while he holds the bat, the §9 ranges and the hands on the handle inside the builder-measured ceilings', async () => {
+  it("keeps the arms' one-frame turns, the top glove while he holds the bat, the §9 ranges and the hands on the handle inside the builder-measured ceilings", async () => {
     await withPacks(() => {
       let pops = 0;
       let glove = 0;
@@ -184,17 +224,26 @@ describe('F4: the 96-delivery corpus (two overs, three balls, both hands, eight 
         glove += holdingGloveTurns(w, 0, 25).length;
         for (const f of w.frames) {
           if (f.twist.some((t) => t > 110) || f.wrist.some((x) => x > 85)) over++;
-          if (f.external && f.rel >= w.input - w.release - 200 && f.rel <= w.input - w.release + 1000) palmMax = Math.max(palmMax, f.palm[0], f.palm[1]);
+          if (f.external && f.rel >= w.input - w.release - 200 && f.rel <= w.input - w.release + 1000)
+            palmMax = Math.max(palmMax, f.palm[0], f.palm[1]);
           if (f.rel > w.input - w.release + 1000 && !f.external) allStill++;
         }
       }
       expect(frames, 'frames walked').toBeGreaterThan(30000);
-      expect(allStill, 'frames drawn from the clip\'s own key').toBeGreaterThan(5000);
+      expect(allStill, "frames drawn from the clip's own key").toBeGreaterThan(5000);
       expect(pops, 'forearm or hand turns over 60° in a frame (298 before, 47 after)').toBeLessThanOrEqual(60);
-      expect(glove, 'frames where the top glove turns over 25° while he holds the bat (272 before, 111 after)').toBeLessThanOrEqual(130);
-      expect(over, 'frames over MOTION-SPEC §9\'s upper-arm twist (110°) or wrist swing (85°) (64 before, 2 after)').toBeLessThanOrEqual(8);
-      expect(palmMax * 1000, 'palm to handle, largest, while the external bat is swung (mm; 48 before, 20 after)').toBeLessThan(25);
+      expect(
+        glove,
+        'frames where the top glove turns over 25° while he holds the bat (272 before, 111 after)',
+      ).toBeLessThanOrEqual(130);
+      expect(
+        over,
+        "frames over MOTION-SPEC §9's upper-arm twist (110°) or wrist swing (85°) (64 before, 2 after)",
+      ).toBeLessThanOrEqual(8);
+      expect(
+        palmMax * 1000,
+        'palm to handle, largest, while the external bat is swung (mm; 48 before, 20 after)',
+      ).toBeLessThan(25);
     });
   }, 120_000);
 });
-

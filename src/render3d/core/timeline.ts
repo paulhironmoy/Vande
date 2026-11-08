@@ -78,7 +78,8 @@ function teamLook(log: MatchEventLog, team: 0 | 1, slot: string, gear: Look['gea
 }
 
 function castFor(log: MatchEventLog, batting: 0 | 1, bowling: 0 | 1, striker: number, nonStriker: number): Cast {
-  const batterLook = (n: number): Look => (n === 0 ? teamLook(log, batting, 'b0', 'batter', true) : teamLook(log, batting, `b${n}`, 'batter'));
+  const batterLook = (n: number): Look =>
+    n === 0 ? teamLook(log, batting, 'b0', 'batter', true) : teamLook(log, batting, `b${n}`, 'batter');
   return {
     bowler: teamLook(log, bowling, 'bowler', 'bowler', true),
     striker: batterLook(striker),
@@ -251,7 +252,11 @@ function scheduleIdle(tl: Timeline, pr: Progress): void {
     while (pr.queue.length && deadline && deadline.timeRemaining() > IDLE_SLACK_MS);
     scheduleIdle(tl, pr);
   };
-  const ric = (globalThis as { requestIdleCallback?: (cb: (d: { timeRemaining(): number }) => void, o?: { timeout: number }) => number }).requestIdleCallback;
+  const ric = (
+    globalThis as {
+      requestIdleCallback?: (cb: (d: { timeRemaining(): number }) => void, o?: { timeout: number }) => number;
+    }
+  ).requestIdleCallback;
   if (typeof ric === 'function') ric(run, { timeout: IDLE_TIMEOUT_MS });
   else setTimeout(() => run(), 16);
 }
@@ -307,7 +312,12 @@ const AFTER_CONTACT_EST_MS: Record<string, number> = {
 /** The slow-motion window (780 ms at 0.3×) adds this much. */
 const SLOW_EXTRA_EST_MS = 780 * (1 / 0.3 - 1);
 
-function estimateBall(o: BallOutcome, conditions: Conditions, trimRunUp: boolean, tail: number): Pick<Segment, 'sceneStart' | 'sceneEnd' | 'dur'> {
+function estimateBall(
+  o: BallOutcome,
+  conditions: Conditions,
+  trimRunUp: boolean,
+  tail: number,
+): Pick<Segment, 'sceneStart' | 'sceneEnd' | 'dur'> {
   const et = engineBallTimeline(o, conditions);
   const release = et?.releaseAtMs ?? 3000;
   const contact = et?.contactAtMs ?? release + 600;
@@ -325,11 +335,21 @@ export function buildTimeline(log: MatchEventLog, mode: ReplayMode, opts: Timeli
   const segments: Segment[] = [];
   let t = 0;
   const firstBatting: 0 | 1 = log.innings[0]?.batter ?? 0;
-  const famOf = (o: BallOutcome | undefined): DeliveryFamily => (o ? familyOf(o.cues.path, o.delivery.variant) : 'pace');
+  const famOf = (o: BallOutcome | undefined): DeliveryFamily =>
+    o ? familyOf(o.cues.path, o.delivery.variant) : 'pace';
   const tl: Timeline = { mode, duration: 0, segments, balls: [], pending: 0, version: 0 };
   const pr: Progress = { queue: [], listeners: new Set(), scheduled: false };
 
-  const ambient = (kind: SegmentKind, baseDur: number, batting: 0 | 1, field: FieldSetting, eventIndex: number, innings: Segment['innings'], fam: DeliveryFamily, extra: Partial<Segment> = {}) => {
+  const ambient = (
+    kind: SegmentKind,
+    baseDur: number,
+    batting: 0 | 1,
+    field: FieldSetting,
+    eventIndex: number,
+    innings: Segment['innings'],
+    fam: DeliveryFamily,
+    extra: Partial<Segment> = {},
+  ) => {
     if (baseDur <= 0) return;
     const bowling: 0 | 1 = batting === 0 ? 1 : 0;
     const mood = kind === 'result' ? 'result' : kind === 'intro' ? 'intro' : 'innings';
@@ -338,7 +358,16 @@ export function buildTimeline(log: MatchEventLog, mode: ReplayMode, opts: Timeli
     // The result opens with the held breath; the celebrations keep their full length after it.
     const beat = kind === 'result' ? RESULT_BEAT_MS : 0;
     const dur = baseDur + beat;
-    const script = buildAmbientScript(field, castFor(log, batting, bowling, 0, 1), fam, dur, hash32(`${seed}:${kind}:${eventIndex}`), mood, winners, beat);
+    const script = buildAmbientScript(
+      field,
+      castFor(log, batting, bowling, 0, 1),
+      fam,
+      dur,
+      hash32(`${seed}:${kind}:${eventIndex}`),
+      mood,
+      winners,
+      beat,
+    );
     segments.push({
       kind,
       t0: t,
@@ -427,7 +456,15 @@ export function buildTimeline(log: MatchEventLog, mode: ReplayMode, opts: Timeli
 
   if (mode === 'result_only') {
     const last = balls[balls.length - 1];
-    ambient('result', d.result, last?.batting ?? firstBatting, last?.field ?? firstField, lastEventIndex, null, famOf(last?.outcome));
+    ambient(
+      'result',
+      d.result,
+      last?.batting ?? firstBatting,
+      last?.field ?? firstField,
+      lastEventIndex,
+      null,
+      famOf(last?.outcome),
+    );
   } else {
     const include = opts.include ?? (mode === 'key_moments' ? cuts.get(log) : undefined);
     let chosen = include ? balls.filter((b) => include(b)) : balls;
@@ -443,15 +480,42 @@ export function buildTimeline(log: MatchEventLog, mode: ReplayMode, opts: Timeli
     let lastInnings: BallInfo['innings'] | null = null;
     for (const info of chosen) {
       if (info.innings !== lastInnings) {
-        if (lastInnings !== null && lastInnings !== 'super') ambient('innings_end', d.inningsEnd, balls.find((b) => b.innings === lastInnings)!.batting, info.field, info.eventIndex, lastInnings, famOf(info.outcome));
-        if (info.innings === 'super') ambient('super_start', d.super, info.batting, info.field, info.eventIndex, 'super', famOf(info.outcome));
-        else ambient('innings_start', d.innings, info.batting, info.field, info.eventIndex, info.innings, famOf(info.outcome));
+        if (lastInnings !== null && lastInnings !== 'super')
+          ambient(
+            'innings_end',
+            d.inningsEnd,
+            balls.find((b) => b.innings === lastInnings)!.batting,
+            info.field,
+            info.eventIndex,
+            lastInnings,
+            famOf(info.outcome),
+          );
+        if (info.innings === 'super')
+          ambient('super_start', d.super, info.batting, info.field, info.eventIndex, 'super', famOf(info.outcome));
+        else
+          ambient(
+            'innings_start',
+            d.innings,
+            info.batting,
+            info.field,
+            info.eventIndex,
+            info.innings,
+            famOf(info.outcome),
+          );
         lastInnings = info.innings;
       }
       ballSeg(info, ordinal++, mode === 'key_moments');
     }
     const last = balls[balls.length - 1];
-    ambient('result', d.result, last?.batting ?? firstBatting, last?.field ?? firstField, lastEventIndex, null, famOf(last?.outcome));
+    ambient(
+      'result',
+      d.result,
+      last?.batting ?? firstBatting,
+      last?.field ?? firstField,
+      lastEventIndex,
+      null,
+      famOf(last?.outcome),
+    );
   }
 
   tl.duration = t;
@@ -521,13 +585,25 @@ export function resultTime(tl: Timeline): number {
 }
 
 /** Score to display at a timeline time (switches to the new score at the ball's decisive moment). */
-export function scoreAt(tl: Timeline, ms: number): { innings: Segment['innings']; batting: 0 | 1; score: Score | null } {
+export function scoreAt(
+  tl: Timeline,
+  ms: number,
+): { innings: Segment['innings']; batting: 0 | 1; score: Score | null } {
   const at = locate(tl, ms);
   const seg = at.seg;
   if (seg.kind !== 'ball') {
     const prevBall = [...tl.segments.slice(0, at.index)].reverse().find((s) => s.kind === 'ball');
-    if (seg.kind === 'innings_start' || seg.kind === 'super_start') return { innings: seg.innings, batting: seg.batting, score: { runs: 0, wickets: 0, ballsLeft: seg.innings === 'super' ? 1 : 6 } };
-    return { innings: prevBall?.innings ?? null, batting: prevBall?.batting ?? seg.batting, score: prevBall?.score ?? null };
+    if (seg.kind === 'innings_start' || seg.kind === 'super_start')
+      return {
+        innings: seg.innings,
+        batting: seg.batting,
+        score: { runs: 0, wickets: 0, ballsLeft: seg.innings === 'super' ? 1 : 6 },
+      };
+    return {
+      innings: prevBall?.innings ?? null,
+      batting: prevBall?.batting ?? seg.batting,
+      score: prevBall?.score ?? null,
+    };
   }
   const decided = at.scene >= seg.script.times.decisive;
   return { innings: seg.innings, batting: seg.batting, score: decided ? seg.score : seg.scoreBefore };

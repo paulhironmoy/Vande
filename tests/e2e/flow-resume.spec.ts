@@ -18,7 +18,10 @@ test('killing the app mid-innings resumes the same ball and the attempt complete
   await expect(screen).toHaveAttribute('data-phase', /ready|live/, { timeout: 30_000 });
   if ((await screen.getAttribute('data-phase')) === 'ready') await page.getByTestId('bat-next').click();
   await expect(screen).toHaveAttribute('data-phase', 'live', { timeout: 30_000 });
-  await page.getByTestId('bat-hit').click({ timeout: 3_000 }).catch(() => undefined);
+  await page
+    .getByTestId('bat-hit')
+    .click({ timeout: 3_000 })
+    .catch(() => undefined);
   await expect(screen).toHaveAttribute('data-phase', /feedback|done/, { timeout: 30_000 });
 
   // The second ball is bowled, and the app dies before the batter answers.

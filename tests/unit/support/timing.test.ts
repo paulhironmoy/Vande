@@ -4,7 +4,11 @@ import { LOAD_CEILING, bestOf, cpuMicros, cpuMsPerCall, skipOverBudgetWhenLoaded
 
 /** A stand-in for vitest's test context: `skip` throws, as the real one does. */
 class Skipped extends Error {}
-const ctx = { skip: (note?: string): never => { throw new Skipped(note); } };
+const ctx = {
+  skip: (note?: string): never => {
+    throw new Skipped(note);
+  },
+};
 
 describe('bestOf', () => {
   it('is the least of the rounds', () => {
@@ -68,7 +72,9 @@ describe('skipOverBudgetWhenLoaded', () => {
       expect(e).toBeInstanceOf(Skipped);
       note = (e as Error).message;
     }
-    expect(note).toBe('prepare, a minute of standing: 25.04 ms against a budget of 15.00 ms cannot be judged, the machine load is 31.3 (above 20)');
+    expect(note).toBe(
+      'prepare, a minute of standing: 25.04 ms against a budget of 15.00 ms cannot be judged, the machine load is 31.3 (above 20)',
+    );
     expect(warn).toHaveBeenCalledTimes(1);
     expect(String(warn.mock.calls[0][0])).toContain('SKIPPED');
     expect(String(warn.mock.calls[0][0])).toContain(note);

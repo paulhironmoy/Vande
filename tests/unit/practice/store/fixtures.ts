@@ -38,10 +38,22 @@ export function plan(i = 0): PracticeDeliveryPlan {
 }
 
 export function overPlan(seed = 'over-1'): PracticeOverPlan {
-  return { version: PRACTICE_SIM_VERSION, bowler, ball: { ...ball }, balls: [plan(0), plan(1), plan(2), plan(3), plan(4), plan(5)], seed, source: 'random' };
+  return {
+    version: PRACTICE_SIM_VERSION,
+    bowler,
+    ball: { ...ball },
+    balls: [plan(0), plan(1), plan(2), plan(3), plan(4), plan(5)],
+    seed,
+    source: 'random',
+  };
 }
 
-export function record(overIndex: number, ballIndex: number, runs: DeliveryRecord['runs'] = 1, dismissal: DeliveryRecord['dismissal'] = null): DeliveryRecord {
+export function record(
+  overIndex: number,
+  ballIndex: number,
+  runs: DeliveryRecord['runs'] = 1,
+  dismissal: DeliveryRecord['dismissal'] = null,
+): DeliveryRecord {
   return {
     version: PRACTICE_SIM_VERSION,
     overIndex,
@@ -80,7 +92,19 @@ export function innings(over: Partial<PracticeInningsState> = {}): PracticeInnin
 }
 
 /** A DeliveryResult with only the fields the metrics read filled meaningfully. */
-export function result(over: { timing?: DeliveryResult['contact']['timing']; errorMs?: number | null; kind?: DeliveryResult['contact']['kind']; intended?: number | null; exit?: number | null; swing?: 'attack' | 'defend' | null; runs?: DeliveryResult['outcome']['runs']; boundary?: 4 | 6 | null; dismissal?: DeliveryResult['outcome']['dismissal'] } = {}): DeliveryResult {
+export function result(
+  over: {
+    timing?: DeliveryResult['contact']['timing'];
+    errorMs?: number | null;
+    kind?: DeliveryResult['contact']['kind'];
+    intended?: number | null;
+    exit?: number | null;
+    swing?: 'attack' | 'defend' | null;
+    runs?: DeliveryResult['outcome']['runs'];
+    boundary?: 4 | 6 | null;
+    dismissal?: DeliveryResult['outcome']['dismissal'];
+  } = {},
+): DeliveryResult {
   const swingKind = over.swing === undefined ? 'attack' : over.swing;
   return {
     version: PRACTICE_SIM_VERSION,
@@ -95,7 +119,9 @@ export function result(over: { timing?: DeliveryResult['contact']['timing']; err
     batterMotion: null,
     footwork: 'forward',
     lbw: null,
-    swing: swingKind ? { kind: swingKind, startT: 0.4, directionDeg: over.intended ?? 30, power: 0.7, elevation: 0, footwork: 'auto' } : null,
+    swing: swingKind
+      ? { kind: swingKind, startT: 0.4, directionDeg: over.intended ?? 30, power: 0.7, elevation: 0, footwork: 'auto' }
+      : null,
     contact: {
       kind: over.kind ?? 'middle',
       t: 0.5,
@@ -114,7 +140,15 @@ export function result(over: { timing?: DeliveryResult['contact']['timing']; err
     ball: [],
     fielders: [],
     events: [],
-    outcome: { runs: over.runs ?? 4, boundary: over.boundary === undefined ? 4 : over.boundary, dismissal: over.dismissal ?? null, fielderId: null, endBearingDeg: 34, endDistanceM: 70, region: 'cover' },
+    outcome: {
+      runs: over.runs ?? 4,
+      boundary: over.boundary === undefined ? 4 : over.boundary,
+      dismissal: over.dismissal ?? null,
+      fielderId: null,
+      endBearingDeg: 34,
+      endDistanceM: 70,
+      region: 'cover',
+    },
     coaching: { reason: 'found_the_gap', timing: 'on_time', zone: 'cover', fielderRole: null, lbw: null },
     deadT: 4,
   };

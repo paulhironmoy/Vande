@@ -4,7 +4,20 @@
  * mid-delivery (Android's pause) does the same, then waits for the player.
  */
 import { expect, test } from '@playwright/test';
-import { GPU_ARGS, block, buildBall, configure, delivered, openPractice, playFromSetup, queue, startRandom, state, waitFor, whileInFlight } from './practice-helpers';
+import {
+  GPU_ARGS,
+  block,
+  buildBall,
+  configure,
+  delivered,
+  openPractice,
+  playFromSetup,
+  queue,
+  startRandom,
+  state,
+  waitFor,
+  whileInFlight,
+} from './practice-helpers';
 
 test.use({ viewport: { width: 1366, height: 768 }, ...GPU_ARGS });
 
@@ -32,7 +45,9 @@ test('a reload mid-delivery gives the leave result, never a fresh ball', async (
     return;
   }
   await expect(page.getByTestId('practice-resume-card')).toBeVisible();
-  await expect(page.getByTestId('practice-resumed-leave')).toHaveText('The ball in play when Practice closed counted as a leave.');
+  await expect(page.getByTestId('practice-resumed-leave')).toHaveText(
+    'The ball in play when Practice closed counted as a leave.',
+  );
   // Continue: the setup of the same over, then ball 2 of it; the resumed ball is never bowled again.
   await queue(page, ...Array.from({ length: 5 }, () => block()));
   await page.getByTestId('practice-continue').click();
@@ -45,36 +60,47 @@ test('a reload mid-delivery gives the leave result, never a fresh ball', async (
 });
 
 for (const exercise of ['original random wicket', 'wide-stock survivor'] as const) {
-test(`going to the background mid-delivery resolves it as a leave and pauses (${exercise})`, async ({ page }) => {
-  test.setTimeout(180_000);
-  // Seed for the random wicket: was 'e2e-replay'. Now 'e2e-replay-v3-1' (lead-approved reseed, 2026-11-03, for the
-  // frozen sim v3 5d physics): under 5d the first ball of 'e2e-replay', left, misses the stumps. 'e2e-replay-v3-1' is the
-  // first seed of the ordered search 'e2e-replay-v3-<k>' (release/.../wedge/worker/seeds/) whose first ball, left as the
-  // interruption leaves it, hits the stumps. The wide-stock survivor keeps 'e2e-replay'. Every assertion is unchanged.
-  await openPractice(page, { tier: 'below', timeScale: 0.5, seed: exercise === 'original random wicket' ? 'e2e-replay-v3-1' : 'e2e-replay' });
-  if (exercise === 'wide-stock survivor') {
-    await page.getByTestId('practice-predefined').click();
-    await page.getByTestId('practice-build-mode-own').click();
-    for (let i = 0; i < 6; i++) await buildBall(page, 0.45, 5.5, 'stock');
-    await page.getByTestId('practice-build-start').click();
-    await playFromSetup(page);
-  } else await startRandom(page);
-  const before = await state(page);
-  await whileInFlight(page, 'background');
-  await waitFor(page, ['paused'], 60_000);
-  await expect(page.getByTestId('practice-paused')).toBeVisible();
-  await expect(page.getByTestId('practice-panel-notice')).toHaveText('Practice was interrupted during that ball, so it counted as a leave.');
-  const st = await state(page);
-  expect(st.last?.swing).toBeNull();
-  expect(st).toMatchObject({ balls: 1, status: exercise === 'wide-stock survivor' ? 'batting' : 'out', notice: 'interrupted', inFlight: null });
-  expect(st.last?.dismissal).toBe(exercise === 'wide-stock survivor' ? null : 'bowled');
-  expect(st.over?.variations).toEqual(before.over?.variations);
-  await page.getByTestId('practice-resume').click();
-  await waitFor(page, ['dead']);
-  await expect(page.getByTestId('practice-result')).toBeVisible();
-  expect((await state(page)).balls).toBe(1);
-  expect((await delivered(page)).innings).toBe(1);
-});
+  test(`going to the background mid-delivery resolves it as a leave and pauses (${exercise})`, async ({ page }) => {
+    test.setTimeout(180_000);
+    // Seed for the random wicket: was 'e2e-replay'. Now 'e2e-replay-v3-1' (lead-approved reseed, 2026-11-03, for the
+    // frozen sim v3 5d physics): under 5d the first ball of 'e2e-replay', left, misses the stumps. 'e2e-replay-v3-1' is the
+    // first seed of the ordered search 'e2e-replay-v3-<k>' (release/.../wedge/worker/seeds/) whose first ball, left as the
+    // interruption leaves it, hits the stumps. The wide-stock survivor keeps 'e2e-replay'. Every assertion is unchanged.
+    await openPractice(page, {
+      tier: 'below',
+      timeScale: 0.5,
+      seed: exercise === 'original random wicket' ? 'e2e-replay-v3-1' : 'e2e-replay',
+    });
+    if (exercise === 'wide-stock survivor') {
+      await page.getByTestId('practice-predefined').click();
+      await page.getByTestId('practice-build-mode-own').click();
+      for (let i = 0; i < 6; i++) await buildBall(page, 0.45, 5.5, 'stock');
+      await page.getByTestId('practice-build-start').click();
+      await playFromSetup(page);
+    } else await startRandom(page);
+    const before = await state(page);
+    await whileInFlight(page, 'background');
+    await waitFor(page, ['paused'], 60_000);
+    await expect(page.getByTestId('practice-paused')).toBeVisible();
+    await expect(page.getByTestId('practice-panel-notice')).toHaveText(
+      'Practice was interrupted during that ball, so it counted as a leave.',
+    );
+    const st = await state(page);
+    expect(st.last?.swing).toBeNull();
+    expect(st).toMatchObject({
+      balls: 1,
+      status: exercise === 'wide-stock survivor' ? 'batting' : 'out',
+      notice: 'interrupted',
+      inFlight: null,
+    });
+    expect(st.last?.dismissal).toBe(exercise === 'wide-stock survivor' ? null : 'bowled');
+    expect(st.over?.variations).toEqual(before.over?.variations);
+    await page.getByTestId('practice-resume').click();
+    await waitFor(page, ['dead']);
+    await expect(page.getByTestId('practice-result')).toBeVisible();
+    expect((await state(page)).balls).toBe(1);
+    expect((await delivered(page)).innings).toBe(1);
+  });
 }
 
 test('leaving mid-over asks first, and the unfinished over is kept', async ({ page }) => {

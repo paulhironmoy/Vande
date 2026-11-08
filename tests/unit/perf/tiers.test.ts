@@ -40,8 +40,11 @@ describe('the player-facing tiers', () => {
     expect(tierForQuality({ stage: '3d', profile: 'high' })).toBe('premium');
     expect(tierForQuality({ stage: '3d', profile: 'standard' })).toBe('balanced');
     expect(tierForQuality({ stage: '3d', profile: 'lite' })).toBe('balanced');
-    for (const p of ['lite', 'standard', 'high'] as const) expect(tierForQuality({ stage: '2d', profile: p })).toBe('classic');
-    for (const t of QUALITY_TIERS) for (const p of TIER_RENDERING[t].profiles) expect(tierForQuality({ stage: TIER_RENDERING[t].stage, profile: p })).toBe(t);
+    for (const p of ['lite', 'standard', 'high'] as const)
+      expect(tierForQuality({ stage: '2d', profile: p })).toBe('classic');
+    for (const t of QUALITY_TIERS)
+      for (const p of TIER_RENDERING[t].profiles)
+        expect(tierForQuality({ stage: TIER_RENDERING[t].stage, profile: p })).toBe(t);
   });
 
   it('the device check earns one tier (none before a check)', () => {
@@ -112,7 +115,8 @@ describe('the player-facing tiers', () => {
 
 describe('degradation removes visual expense first', () => {
   it('the documented steps go strictly down and end at Classic', () => {
-    const rank = (q: { stage: '3d' | '2d'; profile: string }) => (q.stage === '2d' ? 0 : { lite: 1, standard: 2, high: 3 }[q.profile]!);
+    const rank = (q: { stage: '3d' | '2d'; profile: string }) =>
+      q.stage === '2d' ? 0 : { lite: 1, standard: 2, high: 3 }[q.profile]!;
     for (const s of DEGRADATION_STEPS) {
       expect(rank(s.to)).toBeLessThan(rank(s.from));
       expect(s.removes.length).toBeGreaterThan(0);

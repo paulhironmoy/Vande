@@ -79,7 +79,11 @@ function ballWindow(seg: Segment, timelineTimeOf: (seg: Segment, scene: number) 
   return { r0, r1: Math.min(end, r0 + MAX_BALL_MS) };
 }
 
-export function planHighlight(log: MatchEventLog, tl: Timeline, opts: { standings: boolean; timelineTimeOf: (seg: Segment, scene: number) => number }): HighlightPlan {
+export function planHighlight(
+  log: MatchEventLog,
+  tl: Timeline,
+  opts: { standings: boolean; timelineTimeOf: (seg: Segment, scene: number) => number },
+): HighlightPlan {
   const turningEvent = log.result.turningPointEvent;
   const candidates = tl.segments
     .map((seg, index) => ({ seg, index }))
@@ -93,7 +97,13 @@ export function planHighlight(log: MatchEventLog, tl: Timeline, opts: { standing
   // The hook teases the most telling ball (the same ranking as the cut).
   const top = [...candidates].sort((a, b) => b.value - a.value || a.index - b.index)[0] ?? null;
   const hook = top ? hookWindow(top.seg, opts.timelineTimeOf) : null;
-  const cards = (hook ? HOOK_MS : 0) + CARD.intro + CARD.result + (log.kind === 'daily' ? 0 : CARD.potm) + (opts.standings ? CARD.standings : 0) + CARD.cta;
+  const cards =
+    (hook ? HOOK_MS : 0) +
+    CARD.intro +
+    CARD.result +
+    (log.kind === 'daily' ? 0 : CARD.potm) +
+    (opts.standings ? CARD.standings : 0) +
+    CARD.cta;
   const budget = MAX_MS - cards;
   // Highest value first (ties: earlier ball), then shown in match order.
   const ranked = [...candidates].sort((a, b) => b.value - a.value || a.index - b.index);
@@ -132,7 +142,8 @@ export function planHighlight(log: MatchEventLog, tl: Timeline, opts: { standing
   add('intro', Math.round(CARD.intro * stretch), intro ? intro.t0 : 0, intro ? intro.t0 + intro.dur : 3000);
   for (const c of chosen) add('ball', Math.round(c.r1 - c.r0), c.r0, c.r1, { seg: c.index, tags: c.tags });
   add('result', Math.round(CARD.result * stretch), resultStart, Math.min(resultEnd, resultStart + CARD.result));
-  if (log.kind !== 'daily') add('potm', Math.round(CARD.potm * stretch), Math.min(resultEnd, resultStart + CARD.result), resultEnd);
+  if (log.kind !== 'daily')
+    add('potm', Math.round(CARD.potm * stretch), Math.min(resultEnd, resultStart + CARD.result), resultEnd);
   if (opts.standings) add('standings', Math.round(CARD.standings * stretch), resultEnd - 1, resultEnd - 1);
   add('cta', Math.round(CARD.cta * stretch), intro ? intro.t0 : 0, intro ? intro.t0 + intro.dur : 3000);
   // A whole number of milliseconds that is also a whole number of frames (multiples of 100 ms at 30 fps).
@@ -150,7 +161,10 @@ function hookWindow(seg: Segment, timelineTimeOf: (seg: Segment, scene: number) 
 }
 
 /** The scene at highlight time t (clamped), and the replay time the 3D picture shows. */
-export function sceneAt(plan: HighlightPlan, t: number): { scene: Scene; index: number; local: number; replay: number } {
+export function sceneAt(
+  plan: HighlightPlan,
+  t: number,
+): { scene: Scene; index: number; local: number; replay: number } {
   const ms = Math.max(0, Math.min(plan.durationMs - 0.001, t));
   let index = plan.scenes.findIndex((s) => ms >= s.t0 && ms < s.t1);
   if (index < 0) index = plan.scenes.length - 1;

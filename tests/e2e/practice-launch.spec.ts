@@ -10,7 +10,9 @@ import { GPU_ARGS, configure, openPractice, play, playFromSetup, seen, state, wa
 
 test.use({ viewport: { width: 915, height: 412 }, hasTouch: true, ...GPU_ARGS });
 
-test('a start at the root is Practice: two choices, Random Over first, then the setup and the first ball', async ({ page }) => {
+test('a start at the root is Practice: two choices, Random Over first, then the setup and the first ball', async ({
+  page,
+}) => {
   // Seeded at the longest run-up (owner decision 2026-11-04), so the budget is met in the worst case, not by luck: the
   // first Random Over's bowler sets the run-up, and over 600 seeds it is one of 1.72, 1.74, 2.30, 2.40 or 2.42 s of
   // scene time to release; this seed's pace bowler takes the longest, 2.42 s (practiceReleaseScene; found with
@@ -30,17 +32,32 @@ test('a start at the root is Practice: two choices, Random Over first, then the 
   await expect(page.getByTestId('practice-random-choices-toggle')).toContainText('Club');
   await playFromSetup(page);
   await expect(play(page)).toHaveAttribute('data-screen', 'live');
-  await page.waitForFunction(() => (window as unknown as { __vandePractice: { state(): { ttfdMs: number | null } } }).__vandePractice.state().ttfdMs !== null);
+  await page.waitForFunction(
+    () =>
+      (window as unknown as { __vandePractice: { state(): { ttfdMs: number | null } } }).__vandePractice.state()
+        .ttfdMs !== null,
+  );
   // Practice opening → the first ball released, on the performance clock (a software-rendered headless browser on a
   // laptop: phones are measured separately, docs/PRACTICE.md).
   const st = await state(page);
-  test.info().annotations.push({ type: 'launch', description: JSON.stringify({ ttfdMs: st.ttfdMs, stage: st.stage, profile: st.profile, unreadyBowls: st.unreadyBowls, family: st.over?.family }) });
+  test.info().annotations.push({
+    type: 'launch',
+    description: JSON.stringify({
+      ttfdMs: st.ttfdMs,
+      stage: st.stage,
+      profile: st.profile,
+      unreadyBowls: st.unreadyBowls,
+      family: st.over?.family,
+    }),
+  });
   expect(st.over?.family, 'the seeded over is bowled by the longest run-up (pace)').toBe('pace');
   expect(st.ttfdMs).not.toBeNull();
   expect(st.ttfdMs!).toBeLessThan(10_000);
 });
 
-test('a first run gets one short demonstration before the first ball; one tap skips all teaching for good', async ({ page }) => {
+test('a first run gets one short demonstration before the first ball; one tap skips all teaching for good', async ({
+  page,
+}) => {
   await configure(page, { tier: 'below', timeScale: 1 }, { teach: true });
   await page.goto('/');
   await page.getByTestId('practice-random').click();

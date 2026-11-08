@@ -40,13 +40,32 @@
  */
 import { afterAll, describe, expect, it } from 'vitest';
 import { readFileSync, writeFileSync } from 'node:fs';
-import type { AssistLevel, CoachAnalysis, DeliveryRecord, DeliveryResult, GestureInput, NormalizedSwing } from '@/contracts/practice';
+import type {
+  AssistLevel,
+  CoachAnalysis,
+  DeliveryRecord,
+  DeliveryResult,
+  GestureInput,
+  NormalizedSwing,
+} from '@/contracts/practice';
 import { GestureTracker, type TrackerScheduler } from '@/input/tracker';
 import { normalizeGesture } from '@/input/normalize';
 import { activeBands, batTravelMs, bearingDelta, idealTimeFor, practiceFlight } from '@/physics';
 import { shotFamily } from '@/physics/shot';
 import { REFERENCE_BALLS, repeatDelivery } from '@/practice/game';
-import { analyzeBall, coachTip, metStandard, praiseEarned, primaryInsight, spokenAction, tipActionWords, tipFactWords, tipSentence, type CoachTip, type TipTranslator } from '@/practice/coach';
+import {
+  analyzeBall,
+  coachTip,
+  metStandard,
+  praiseEarned,
+  primaryInsight,
+  spokenAction,
+  tipActionWords,
+  tipFactWords,
+  tipSentence,
+  type CoachTip,
+  type TipTranslator,
+} from '@/practice/coach';
 import { ballFacts } from '@/practice/coach/facts';
 import { isOrthodox } from '@/practice/coach/cricket';
 import { idealTimes, swingOf, type Candidate } from '@/practice/coach/candidates';
@@ -152,13 +171,30 @@ interface SpreadRun {
 }
 
 /** A swing played at every point of the coach's execution spread (offsets from the swing as given). */
-function overSpread(record: DeliveryRecord, swing: NormalizedSwing | null, decision: 'leave' | 'defend' | 'attack'): SpreadRun {
+function overSpread(
+  record: DeliveryRecord,
+  swing: NormalizedSwing | null,
+  decision: 'leave' | 'defend' | 'attack',
+): SpreadRun {
   if (!swing) {
     const r = repeatDelivery(record, null);
     const good = succeeds(r, true);
-    return { ok: good ? 1 : 0, n: 1, failures: good ? [] : [`leave: ${r.contact.kind}${r.outcome.dismissal ? ` out ${r.outcome.dismissal}` : ''}`] };
+    return {
+      ok: good ? 1 : 0,
+      n: 1,
+      failures: good ? [] : [`leave: ${r.contact.kind}${r.outcome.dismissal ? ` out ${r.outcome.dismissal}` : ''}`],
+    };
   }
-  const c: Candidate = { id: 'rec', index: 0, decision: decision === 'defend' ? 'defend' : 'attack', kind: swing.kind, footwork: swing.footwork, directionDeg: swing.directionDeg, elevation: swing.elevation, power: swing.power };
+  const c: Candidate = {
+    id: 'rec',
+    index: 0,
+    decision: decision === 'defend' ? 'defend' : 'attack',
+    kind: swing.kind,
+    footwork: swing.footwork,
+    directionDeg: swing.directionDeg,
+    elevation: swing.elevation,
+    power: swing.power,
+  };
   const ideal = idealTimes(practiceFlight(record));
   const centre = swingOf(c, ideal)!;
   const ownMs = Math.round((swing.startT - centre.startT) * 1e5) / 100;
@@ -168,7 +204,10 @@ function overSpread(record: DeliveryRecord, swing: NormalizedSwing | null, decis
     const r = repeatDelivery(record, s);
     out.n++;
     if (succeeds(r, false)) out.ok++;
-    else out.failures.push(`${p.dtMs > 0 ? '+' : ''}${p.dtMs} ms/${p.aimDeg > 0 ? '+' : ''}${p.aimDeg}°: ${r.contact.kind}${r.outcome.dismissal ? ` out ${r.outcome.dismissal}` : ''}`);
+    else
+      out.failures.push(
+        `${p.dtMs > 0 ? '+' : ''}${p.dtMs} ms/${p.aimDeg > 0 ? '+' : ''}${p.aimDeg}°: ${r.contact.kind}${r.outcome.dismissal ? ` out ${r.outcome.dismissal}` : ''}`,
+      );
   }
   return out;
 }
@@ -216,7 +255,9 @@ const ROWS: Row[] = [];
 const fmtSwing = (an: CoachAnalysis) => {
   const r = an.options[0];
   if (!r.swing) return `leave (${r.footwork})`;
-  return r.decision === 'defend' ? `block, ${r.footwork} foot` : `${r.footwork} foot ${r.swing.directionDeg}°, power ${r.swing.power}, elevation ${r.swing.elevation}`;
+  return r.decision === 'defend'
+    ? `block, ${r.footwork} foot`
+    : `${r.footwork} foot ${r.swing.directionDeg}°, power ${r.swing.power}, elevation ${r.swing.elevation}`;
 };
 
 /** The mistakes that apply to a ball, from the coach's own description of it (decided before any outcome). */
@@ -228,10 +269,14 @@ function mistakesFor(record: DeliveryRecord): Array<{ mistake: Mistake; errorMs:
     { mistake: 'too_early', errorMs: -mid, arrow: COVER_KEY },
     { mistake: 'too_late', errorMs: mid, arrow: COVER_KEY },
   ];
-  const driveIsCricket = isOrthodox({ decision: 'attack', footwork: 'forward', played: 'forward', directionDeg: 45, elevation: 0 }, f);
+  const driveIsCricket = isOrthodox(
+    { decision: 'attack', footwork: 'forward', played: 'forward', directionDeg: 45, elevation: 0 },
+    f,
+  );
   if (!driveIsCricket) out.push({ mistake: 'wrong_ball', errorMs: 0, arrow: COVER_KEY });
   // Beaten by late movement: the drive down the line the ball started on (straight for one moving away), on time.
-  else if (f.mover !== null) out.push({ mistake: 'late_movement', errorMs: 0, arrow: f.playedMoveM > 0 ? STRAIGHT_KEY : COVER_KEY });
+  else if (f.mover !== null)
+    out.push({ mistake: 'late_movement', errorMs: 0, arrow: f.playedMoveM > 0 ? STRAIGHT_KEY : COVER_KEY });
   return out;
 }
 
@@ -242,7 +287,10 @@ const TIP_MISTAKE: Record<Mistake, ReadonlyArray<CoachTip['fact']['kind']>> = {
   late_movement: ['moved'],
 };
 /** Which mistake each tip fact shows, as seen on the reference over (for the four-sentences check). */
-const SEEN = new Map<string, { fact: CoachTip['fact']; tip: CoachTip; en: string; hi: string; hiLatn: string; where: string }>();
+const SEEN = new Map<
+  string,
+  { fact: CoachTip['fact']; tip: CoachTip; en: string; hi: string; hiLatn: string; where: string }
+>();
 
 for (const { assist, tier } of CONFIGS) {
   describe(`COACH2 cover drive (${assist}, tier tolerance ${tier} ms): the recommendation works across the spread`, () => {
@@ -255,15 +303,28 @@ for (const { assist, tier } of CONFIGS) {
           // 1. The mistake, through the input layer and the exact-ball path.
           const swing = keyboardDrive(base, errorMs, arrow);
           const result = repeatDelivery(base, swing);
-          expect(shotFamily(swing.kind, swing.directionDeg, result.footwork), `${rb.id} ${mistake}: a ${DRIVE[arrow].family}`).toBe(DRIVE[arrow].family);
-          expect(Math.abs((result.contact.timingErrorMs ?? NaN) - errorMs), `${rb.id} ${mistake}: timing as pressed`).toBeLessThan(0.2);
-          if (mistake === 'too_early' || mistake === 'too_late') expect(['mistimed', 'missed']).toContain(result.contact.timing);
-          const record: DeliveryRecord = { ...base, swing, runs: result.outcome.runs, dismissal: result.outcome.dismissal };
+          expect(
+            shotFamily(swing.kind, swing.directionDeg, result.footwork),
+            `${rb.id} ${mistake}: a ${DRIVE[arrow].family}`,
+          ).toBe(DRIVE[arrow].family);
+          expect(
+            Math.abs((result.contact.timingErrorMs ?? NaN) - errorMs),
+            `${rb.id} ${mistake}: timing as pressed`,
+          ).toBeLessThan(0.2);
+          if (mistake === 'too_early' || mistake === 'too_late')
+            expect(['mistimed', 'missed']).toContain(result.contact.timing);
+          const record: DeliveryRecord = {
+            ...base,
+            swing,
+            runs: result.outcome.runs,
+            dismissal: result.outcome.dismissal,
+          };
           const an = analyzeBall(record, result);
           const insight = primaryInsight(an);
           const tip = coachTip(record, an);
           const rec = an.options[0];
-          const punished = result.outcome.dismissal !== null || result.contact.kind !== 'middle' || result.outcome.runs === 0;
+          const punished =
+            result.outcome.dismissal !== null || result.contact.kind !== 'middle' || result.outcome.runs === 0;
 
           // 2. The tip: one sentence from the recommendation kind and the measured facts, in every launch locale.
           expect(tip.action).toEqual(insight.recommendation);
@@ -279,26 +340,53 @@ for (const { assist, tier } of CONFIGS) {
           // decision 2026-11-03; anti-fake rule 7; FLOW REPORT item 20).
           expect(en.endsWith(`${tipActionWords(EN(), spokenAction(tip))}.`), en).toBe(true);
           if (!praiseEarned(an, tip.action, tip)) {
-            for (const [t, said] of [[EN(), en], [HI(), hi], [HI_LATN(), hiLatn]] as const) {
-              for (const praise of [tipActionWords(t, { ...tip.action, kind: 'repeat_it' }), tipActionWords(t, { ...tip.action, kind: 'well_played' })])
-                expect(said.toLocaleLowerCase().includes(praise.toLocaleLowerCase()), `${said} praises (${praise})`).toBe(false);
+            for (const [t, said] of [
+              [EN(), en],
+              [HI(), hi],
+              [HI_LATN(), hiLatn],
+            ] as const) {
+              for (const praise of [
+                tipActionWords(t, { ...tip.action, kind: 'repeat_it' }),
+                tipActionWords(t, { ...tip.action, kind: 'well_played' }),
+              ])
+                expect(
+                  said.toLocaleLowerCase().includes(praise.toLocaleLowerCase()),
+                  `${said} praises (${praise})`,
+                ).toBe(false);
             }
           }
           // The numbers are the recorded ones.
           const fact = tip.fact;
-          if (fact.kind === 'early' || fact.kind === 'late' || fact.kind === 'late_where') expect(fact.ms).toBe(Math.round(Math.abs(result.contact.timingErrorMs!)));
-          if (fact.kind === 'late') expect(fact.faceDeg).toBe(Math.round(Math.abs(bearingDelta(result.contact.faceBearingDeg!, result.contact.intendedBearingDeg!))));
-          if (fact.kind === 'moved' || fact.kind === 'across_movement') expect(fact.cm).toBe(Math.round(Math.abs(ballFacts(practiceFlight(base), 'pace').playedMoveM) * 100));
-          if (fact.kind === 'too_short_to_drive' || fact.kind === 'at_the_toes' || fact.kind === 'too_short_forward' || fact.kind === 'full_back') expect(fact.lengthM).toBe(Math.round(an.ball.lengthM! * 10) / 10);
+          if (fact.kind === 'early' || fact.kind === 'late' || fact.kind === 'late_where')
+            expect(fact.ms).toBe(Math.round(Math.abs(result.contact.timingErrorMs!)));
+          if (fact.kind === 'late')
+            expect(fact.faceDeg).toBe(
+              Math.round(Math.abs(bearingDelta(result.contact.faceBearingDeg!, result.contact.intendedBearingDeg!))),
+            );
+          if (fact.kind === 'moved' || fact.kind === 'across_movement')
+            expect(fact.cm).toBe(Math.round(Math.abs(ballFacts(practiceFlight(base), 'pace').playedMoveM) * 100));
+          if (
+            fact.kind === 'too_short_to_drive' ||
+            fact.kind === 'at_the_toes' ||
+            fact.kind === 'too_short_forward' ||
+            fact.kind === 'full_back'
+          )
+            expect(fact.lengthM).toBe(Math.round(an.ball.lengthM! * 10) / 10);
           // A mistake is never confirmed as the right stroke.
-          if (mistake === 'too_early' || mistake === 'too_late') expect(['repeat_it', 'well_played']).not.toContain(insight.recommendation.kind);
-          for (const k of TIP_MISTAKE[mistake]) if (fact.kind === k && !SEEN.has(mistake)) SEEN.set(mistake, { fact, tip, en, hi, hiLatn, where: `${assist}/${tier} ${rb.id}` });
+          if (mistake === 'too_early' || mistake === 'too_late')
+            expect(['repeat_it', 'well_played']).not.toContain(insight.recommendation.kind);
+          for (const k of TIP_MISTAKE[mistake])
+            if (fact.kind === k && !SEEN.has(mistake))
+              SEEN.set(mistake, { fact, tip, en, hi, hiLatn, where: `${assist}/${tier} ${rb.id}` });
 
           // 3. The recommendation, through the same path, at every point of the coach's execution spread.
           const spread = overSpread(base, rec.swing, rec.decision);
           const centre = repeatDelivery(base, rec.swing);
           expect(centre.outcome).toEqual(rec.outcome);
-          const done = analyzeBall({ ...base, swing: rec.swing, runs: centre.outcome.runs, dismissal: centre.outcome.dismissal }, centre);
+          const done = analyzeBall(
+            { ...base, swing: rec.swing, runs: centre.outcome.runs, dismissal: centre.outcome.dismissal },
+            centre,
+          );
           const centreOk = metStandard(done) && primaryInsight(done).recommendation.kind === 'repeat_it';
 
           // 4. A timing tip applied literally to the player's own stroke.
@@ -315,7 +403,10 @@ for (const { assist, tier } of CONFIGS) {
           }
 
           const pass = centreOk && spread.ok === spread.n && literalOk;
-          if (!pass) failures.push(`${mistake}: recommended ${fmtSwing(an)} ${spread.ok}/${spread.n} [${spread.failures.join('; ')}]${centreOk ? '' : ' (ideal point not clean)'}${literalOk ? '' : ` literal tip: ${literal}`}`);
+          if (!pass)
+            failures.push(
+              `${mistake}: recommended ${fmtSwing(an)} ${spread.ok}/${spread.n} [${spread.failures.join('; ')}]${centreOk ? '' : ' (ideal point not clean)'}${literalOk ? '' : ` literal tip: ${literal}`}`,
+            );
           ROWS.push({
             config: `${assist}/${tier}`,
             ball: `${rb.id} ${rb.variation}`,
@@ -370,8 +461,13 @@ afterAll(() => {
   const lines = [
     '| # | Level/tier | Ball | Mistake | Input (through GestureTracker + normalizeGesture) | Physics of the mistake | Punished | Tip (kind: fact) | Sentence (en) | Recommended response | Spread (ok/points) | Timing tip applied literally | Result |',
     '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
-    ...ROWS.map((r, i) => `| ${i + 1} | ${r.config} | ${r.ball} | ${r.mistake} | ${esc(r.input)} | ${esc(r.physics)} | ${r.punished ? 'yes' : 'no'} | ${esc(r.tip)} | ${esc(r.sentence)} | ${esc(r.recommended)} | ${esc(r.spread)} | ${esc(r.literal)} | ${r.pass ? 'PASS' : 'FAIL'} |`),
+    ...ROWS.map(
+      (r, i) =>
+        `| ${i + 1} | ${r.config} | ${r.ball} | ${r.mistake} | ${esc(r.input)} | ${esc(r.physics)} | ${r.punished ? 'yes' : 'no'} | ${esc(r.tip)} | ${esc(r.sentence)} | ${esc(r.recommended)} | ${esc(r.spread)} | ${esc(r.literal)} | ${r.pass ? 'PASS' : 'FAIL'} |`,
+    ),
   ];
-  const seen = [...SEEN.entries()].map(([m, s]) => `- ${m} (${s.where}): en "${s.en}" · hi "${s.hi}" · hi-Latn "${s.hiLatn}"`);
+  const seen = [...SEEN.entries()].map(
+    ([m, s]) => `- ${m} (${s.where}): en "${s.en}" · hi "${s.hi}" · hi-Latn "${s.hiLatn}"`,
+  );
   writeFileSync(path, `${lines.join('\n')}\n\nSentences seen per mistake on the reference over:\n${seen.join('\n')}\n`);
 });

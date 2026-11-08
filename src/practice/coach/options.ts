@@ -22,7 +22,14 @@
  *
  * options[0] is always the recommended response; the other two appear only when they are a different response.
  */
-import type { CoachAnalysis, CoachOption, CoachOptionKind, CoachRisk, ContactKind, ContactReport } from '@/contracts/practice';
+import type {
+  CoachAnalysis,
+  CoachOption,
+  CoachOptionKind,
+  CoachRisk,
+  ContactKind,
+  ContactReport,
+} from '@/contracts/practice';
 import { bearingDelta } from '@/physics';
 import { slowFend } from './quality';
 import type { AttemptJudgement, Evaluated, Tally } from './simulate';
@@ -40,7 +47,13 @@ export const PICK = {
   orthodoxyBonusRuns: 0.25,
 } as const;
 
-const BAT: ReadonlySet<ContactKind> = new Set<ContactKind>(['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge']);
+const BAT: ReadonlySet<ContactKind> = new Set<ContactKind>([
+  'middle',
+  'inside_edge',
+  'outside_edge',
+  'top_edge',
+  'leading_edge',
+]);
 const RANK = { leave: 0, defend: 1, attack: 2 } as const;
 
 const risk = (e: Evaluated) => (e.tally ? e.tally.out / e.tally.w : 1);
@@ -48,7 +61,10 @@ const meanRuns = (e: Evaluated) => (e.tally ? e.tally.runs / e.tally.w : 0);
 const cleanShare = (e: Evaluated) => (e.tally ? e.tally.clean / e.tally.w : 0);
 /** The value of a response over the execution spread; correct cricket earns a small bonus that only breaks near-ties. */
 const value = (e: Evaluated) =>
-  meanRuns(e) - PICK.wicketCostRuns * risk(e) - PICK.mishitCostRuns * (1 - cleanShare(e)) + (e.orthodox ? PICK.orthodoxyBonusRuns : 0);
+  meanRuns(e) -
+  PICK.wicketCostRuns * risk(e) -
+  PICK.mishitCostRuns * (1 - cleanShare(e)) +
+  (e.orthodox ? PICK.orthodoxyBonusRuns : 0);
 
 /**
  * A stroke's ball leaves its ideal point within this of the bearing it was aimed along (deg). Further than this it went
@@ -75,7 +91,13 @@ export function soundAtCentre(e: Evaluated): boolean {
   if (e.c.kind === null) return e.centre.contact.kind === 'leave';
   if (e.centre.contact.kind !== 'middle') return false;
   if (e.c.decision !== 'attack') return true;
-  return wentWhereAimed(e.centre.contact) && !slowFend({ decision: 'attack', power: e.c.power, directionDeg: e.c.directionDeg, footwork: e.played }, e.centre.contact);
+  return (
+    wentWhereAimed(e.centre.contact) &&
+    !slowFend(
+      { decision: 'attack', power: e.c.power, directionDeg: e.c.directionDeg, footwork: e.played },
+      e.centre.contact,
+    )
+  );
 }
 
 /**
@@ -96,7 +118,8 @@ function best(list: Evaluated[], cmp: (a: Evaluated, b: Evaluated) => number): E
 /** Ascending order of two measured values; equal within 1e-9. */
 const asc = (x: number, y: number) => (Math.abs(x - y) <= 1e-9 ? 0 : x - y);
 
-const byValue = (a: Evaluated, b: Evaluated) => asc(value(b), value(a)) || asc(risk(a), risk(b)) || RANK[a.c.decision] - RANK[b.c.decision] || a.c.index - b.c.index;
+const byValue = (a: Evaluated, b: Evaluated) =>
+  asc(value(b), value(a)) || asc(risk(a), risk(b)) || RANK[a.c.decision] - RANK[b.c.decision] || a.c.index - b.c.index;
 const bySafety = (a: Evaluated, b: Evaluated) =>
   Number(!soundAtCentre(a)) - Number(!soundAtCentre(b)) ||
   asc(risk(a), risk(b)) ||
@@ -104,7 +127,8 @@ const bySafety = (a: Evaluated, b: Evaluated) =>
   asc(cleanShare(b), cleanShare(a)) ||
   asc(meanRuns(b), meanRuns(a)) ||
   a.c.index - b.c.index;
-const byRuns = (a: Evaluated, b: Evaluated) => asc(meanRuns(b), meanRuns(a)) || asc(risk(a), risk(b)) || a.c.index - b.c.index;
+const byRuns = (a: Evaluated, b: Evaluated) =>
+  asc(meanRuns(b), meanRuns(a)) || asc(risk(a), risk(b)) || a.c.index - b.c.index;
 
 export interface Picks {
   recommended: Evaluated;
@@ -145,7 +169,13 @@ export function pick(all: Evaluated[]): Picks {
   const hs = best(
     // Sound at its ideal point like the recommended (survives, off the middle and along its aim; lead decision
     // 2026-11-03): the alternative shown is never a deflection off the toe the physics still calls a face contact.
-    scored.filter((e) => e.readOk && soundAtCentre(e) && risk(e) <= PICK.higherScoringMaxRisk && meanRuns(e) > meanRuns(recommended) + 1e-9),
+    scored.filter(
+      (e) =>
+        e.readOk &&
+        soundAtCentre(e) &&
+        risk(e) <= PICK.higherScoringMaxRisk &&
+        meanRuns(e) > meanRuns(recommended) + 1e-9,
+    ),
     byRuns,
   );
   const higherScoring = hs && hs !== recommended && hs !== safest ? hs : null;
@@ -169,7 +199,11 @@ function risksOf(t: Tally, protectedAim: boolean): CoachRisk[] {
 /** The player's own stroke over the spread, as the contract's attempted.spread (null for a leave). */
 export function toSpread(j: AttemptJudgement | null): CoachAnalysis['attempted']['spread'] {
   if (!j) return null;
-  return { dismissalRisk: round(j.tally.out / j.tally.w, 1000), expectedRuns: round(j.tally.runs / j.tally.w, 100), risks: risksOf(j.tally, j.protectedAim) };
+  return {
+    dismissalRisk: round(j.tally.out / j.tally.w, 1000),
+    expectedRuns: round(j.tally.runs / j.tally.w, 100),
+    risks: risksOf(j.tally, j.protectedAim),
+  };
 }
 
 /** A pick as the contract's CoachOption (its ideal point is what it shows and demonstrates). */

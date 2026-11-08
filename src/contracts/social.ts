@@ -35,7 +35,15 @@ export interface GroupMembership {
   name: string;
 }
 
-export type BadgeId = 'youtube_top100' | 'first_win' | 'cup_winner' | 'daily_streak_7' | 'upset' | 'clean_bowled' | 'training_complete' | string;
+export type BadgeId =
+  | 'youtube_top100'
+  | 'first_win'
+  | 'cup_winner'
+  | 'daily_streak_7'
+  | 'upset'
+  | 'clean_bowled'
+  | 'training_complete'
+  | string;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Matches as seen by a participant (never the opponent's plan, never a sealed result)

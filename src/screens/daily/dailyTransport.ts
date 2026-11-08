@@ -39,7 +39,10 @@ export function saveAttempt(a: SavedAttempt | null): void {
 
 let sharedKv: KeyValue | null = null;
 
-export function dailyTransport(net: Pick<Net, 'api' | 'outbox'>, kv: KeyValue = sharedKv ?? (sharedKv = idbKeyValue())): BattingTransport {
+export function dailyTransport(
+  net: Pick<Net, 'api' | 'outbox'>,
+  kv: KeyValue = sharedKv ?? (sharedKv = idbKeyValue()),
+): BattingTransport {
   const lane = (id: string) => `daily:${id}`;
   return {
     async next(id) {
@@ -55,8 +58,15 @@ export function dailyTransport(net: Pick<Net, 'api' | 'outbox'>, kv: KeyValue = 
     },
     async shot(id: string, ballToken: string, input: BattingInput) {
       await kv.remove(ball(id));
-      const r = await net.outbox.submit<ShotResponse>({ route: 'POST /v1/daily/attempts/:id/shot', params: { id }, body: { ballToken, input }, group: lane(id) });
-      return r.status === 'sent' ? { status: 'resolved' as const, response: r.response } : { status: 'queued' as const, delivered: r.delivered };
+      const r = await net.outbox.submit<ShotResponse>({
+        route: 'POST /v1/daily/attempts/:id/shot',
+        params: { id },
+        body: { ballToken, input },
+        group: lane(id),
+      });
+      return r.status === 'sent'
+        ? { status: 'resolved' as const, response: r.response }
+        : { status: 'queued' as const, delivered: r.delivered };
     },
   };
 }

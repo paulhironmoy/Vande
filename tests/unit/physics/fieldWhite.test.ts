@@ -7,9 +7,27 @@ import { fielderClass } from '@/physics/fielding';
 
 const CONDITIONS: PitchCondition[] = ['balanced', 'green', 'hard', 'turning'];
 const HANDS: Handedness[] = ['right', 'left'];
-const pace = (paceBand: 'controlled' | 'fast' | 'express', arm: 'right' | 'left' = 'right'): BowlerProfile => ({ family: 'pace', paceBand, arm, lookSeed: 'w' });
-const spin = (spinType: 'finger' | 'wrist', arm: 'right' | 'left' = 'right'): BowlerProfile => ({ family: 'spin', spinType, arm, lookSeed: 'w' });
-const BOWLERS = [pace('controlled'), pace('fast'), pace('express', 'left'), spin('finger'), spin('wrist'), spin('finger', 'left'), spin('wrist', 'left')];
+const pace = (paceBand: 'controlled' | 'fast' | 'express', arm: 'right' | 'left' = 'right'): BowlerProfile => ({
+  family: 'pace',
+  paceBand,
+  arm,
+  lookSeed: 'w',
+});
+const spin = (spinType: 'finger' | 'wrist', arm: 'right' | 'left' = 'right'): BowlerProfile => ({
+  family: 'spin',
+  spinType,
+  arm,
+  lookSeed: 'w',
+});
+const BOWLERS = [
+  pace('controlled'),
+  pace('fast'),
+  pace('express', 'left'),
+  spin('finger'),
+  spin('wrist'),
+  spin('finger', 'left'),
+  spin('wrist', 'left'),
+];
 const WHITE = { colour: 'white', age: 'new' } as const;
 const RED = { colour: 'red', age: 'new' } as const;
 
@@ -59,8 +77,17 @@ describe('white-ball (limited-overs) fields', () => {
       for (const c of CONDITIONS)
         for (const h of HANDS) {
           const i = fieldIntent(autoField(b, c, h), b, c, h).intention;
-          const turnsIn = b.family === 'spin' && (b.spinType === 'finger') === ((h === 'left' ? (b.arm === 'right' ? 'left' : 'right') : b.arm) === 'right');
-          const want = b.family === 'pace' ? (c === 'hard' ? 'short_ball_trap' : 'protect_boundaries') : c === 'turning' && turnsIn ? 'spin_close_catchers' : 'protect_boundaries';
+          const turnsIn =
+            b.family === 'spin' &&
+            (b.spinType === 'finger') === ((h === 'left' ? (b.arm === 'right' ? 'left' : 'right') : b.arm) === 'right');
+          const want =
+            b.family === 'pace'
+              ? c === 'hard'
+                ? 'short_ball_trap'
+                : 'protect_boundaries'
+              : c === 'turning' && turnsIn
+                ? 'spin_close_catchers'
+                : 'protect_boundaries';
           expect(i, `${b.family} ${b.paceBand ?? b.spinType} ${b.arm} ${c} ${h}`).toBe(want);
         }
   });

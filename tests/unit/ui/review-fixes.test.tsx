@@ -45,7 +45,12 @@ function release(meter: HTMLElement, ms: number) {
 
 describe('planner: one release per delivery (GAME_RULES 3.2)', () => {
   it('locks the meter once a ball has its release, and keeps it locked after leaving and coming back', () => {
-    const props = { conditions: { pitch: 'hard' as const, weather: 'clear' as const }, unlocked: engine.STARTER_VARIANTS, onLock: vi.fn(), draftKey: 'match-abc' };
+    const props = {
+      conditions: { pitch: 'hard' as const, weather: 'clear' as const },
+      unlocked: engine.STARTER_VARIANTS,
+      onLock: vi.fn(),
+      draftKey: 'match-abc',
+    };
     renderUi(<BowlingPlannerScreen {...props} />);
     const meter = screen.getByTestId('execution-meter');
     release(meter, 520);
@@ -111,12 +116,40 @@ describe('Daily Six ball survives a restart', () => {
   it('keeps the revealed ball in durable storage until it is answered', async () => {
     const kv = memoryKeyValue();
     const plan: OverPlan = engine.autoOver('kv', { pitch: 'hard', weather: 'clear' });
-    const ball = { delivery: engine.revealDelivery(plan, 1, { pitch: 'hard', weather: 'clear' }), ballToken: 'tok1', field: 'balanced' as const, ballsLeft: 5 };
-    const net = { api: { call: vi.fn().mockResolvedValue(ball) }, outbox: { drainGroup: vi.fn().mockResolvedValue(true), submit: vi.fn().mockResolvedValue({ status: 'sent', response: { feedback: { ball: 1, timing: 'good', contact: 'middle' }, inningsComplete: false } }) } };
+    const ball = {
+      delivery: engine.revealDelivery(plan, 1, { pitch: 'hard', weather: 'clear' }),
+      ballToken: 'tok1',
+      field: 'balanced' as const,
+      ballsLeft: 5,
+    };
+    const net = {
+      api: { call: vi.fn().mockResolvedValue(ball) },
+      outbox: {
+        drainGroup: vi.fn().mockResolvedValue(true),
+        submit: vi.fn().mockResolvedValue({
+          status: 'sent',
+          response: { feedback: { ball: 1, timing: 'good', contact: 'middle' }, inningsComplete: false },
+        }),
+      },
+    };
     await dailyTransport(net as never, kv).next('att9');
     // A new transport (the app restarted) still finds the same ball.
     expect((await dailyTransport(net as never, kv).outstanding('att9'))?.ballToken).toBe('tok1');
-    await dailyTransport(net as never, kv).shot('att9', 'tok1', { v: 1, ball: 1, shot: 'defend', zone: null, tapMs: 500, trace: { pointer: 'touch', samples: [[0, 0.5, 0.5], [60, 0.5, 0.5]] }, clientElapsedMs: 800 });
+    await dailyTransport(net as never, kv).shot('att9', 'tok1', {
+      v: 1,
+      ball: 1,
+      shot: 'defend',
+      zone: null,
+      tapMs: 500,
+      trace: {
+        pointer: 'touch',
+        samples: [
+          [0, 0.5, 0.5],
+          [60, 0.5, 0.5],
+        ],
+      },
+      clientElapsedMs: 800,
+    });
     expect(await dailyTransport(net as never, kv).outstanding('att9')).toBeNull();
   });
 });
@@ -144,13 +177,33 @@ describe('Daily Six result card', () => {
     const services = { analytics: { track: vi.fn() }, platform: { share: { share: vi.fn() } } };
     const log = dailyLog();
     const commits = dailyCommits('2026-10-25', 'test-salt');
-    const view = { day: '2026-10-25', conditions: log.conditions, attemptsUsed: 1, attemptsMax: 3 as const, overCommits: commits.map((c) => c.hash) as [string, string, string], bestScore: null, streak: 2, resetsAt: '2026-10-25T18:30:00Z' };
+    const view = {
+      day: '2026-10-25',
+      conditions: log.conditions,
+      attemptsUsed: 1,
+      attemptsMax: 3 as const,
+      overCommits: commits.map((c) => c.hash) as [string, string, string],
+      bestScore: null,
+      streak: 2,
+      resetsAt: '2026-10-25T18:30:00Z',
+    };
     const call = vi.fn().mockResolvedValue({ score: 7, counted: false, bestScore: null, log });
-    vi.doMock('@/app/services', () => ({ useServices: () => ({ ...services, net: { api: { call } } }), getServices: async () => null }));
+    vi.doMock('@/app/services', () => ({
+      useServices: () => ({ ...services, net: { api: { call } } }),
+      getServices: async () => null,
+    }));
     vi.resetModules();
     const { DailyResult } = await import('@/screens/daily/DailyRoute');
     useApp.setState({ player: null });
-    renderUi(<DailyResult attempt={{ day: '2026-10-25', attemptId: 'att1', attempt: 1 }} me={FIXTURE_PLAYERS[0]} view={view} onWatch={vi.fn()} onAgain={vi.fn()} />);
+    renderUi(
+      <DailyResult
+        attempt={{ day: '2026-10-25', attemptId: 'att1', attempt: 1 }}
+        me={FIXTURE_PLAYERS[0]}
+        view={view}
+        onWatch={vi.fn()}
+        onAgain={vi.fn()}
+      />,
+    );
     expect((await screen.findByTestId('daily-counted')).getAttribute('data-counted')).toBe('false');
     expect(screen.getByText(/does not count on the boards/)).toBeTruthy();
     expect(screen.getByText('No counted score yet today')).toBeTruthy();

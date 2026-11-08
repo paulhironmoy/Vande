@@ -28,11 +28,20 @@ describe('Classic landing ring', () => {
   });
 
   it('goes at the contact when the ball is met on the full and never pitches where the flight would have', () => {
-    expect(landingUntil({ flight, result: result(0.42, { x: 1, y: 1.2, z: 1 }), contactScene: 1420, releaseScene: 1000 })).toBe(1420);
+    expect(
+      landingUntil({ flight, result: result(0.42, { x: 1, y: 1.2, z: 1 }), contactScene: 1420, releaseScene: 1000 }),
+    ).toBe(1420);
   });
 
   it('is never drawn for a flight that does not pitch', () => {
-    expect(landingUntil({ flight: { bounce: null } as unknown as BallFlight, result: null, contactScene: null, releaseScene: 1000 })).toBe(0);
+    expect(
+      landingUntil({
+        flight: { bounce: null } as unknown as BallFlight,
+        result: null,
+        contactScene: null,
+        releaseScene: 1000,
+      }),
+    ).toBe(0);
     expect(landingUntil({ flight: null, result: null, contactScene: null, releaseScene: 1000 })).toBe(0);
   });
 });

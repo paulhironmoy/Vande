@@ -9,7 +9,8 @@ const catalog: SocialCatalog = {
   'social.time.at_in': '{clock} ({until})',
   'social.state.offline_body': 'Tum offline ho. Net aate hi yeh khud refresh ho jayega.',
   'social.state.needs_online_title': 'Iske liye net chahiye',
-  'social.state.needs_online_body': 'Cups, rooms aur leaderboards VANDE Cricket service pe chalte hain. Training aur Practice Ghosts offline bhi chalte hain.',
+  'social.state.needs_online_body':
+    'Cups, rooms aur leaderboards VANDE Cricket service pe chalte hain. Training aur Practice Ghosts offline bhi chalte hain.',
   'social.state.not_found_title': 'Nahi mila',
   'social.state.not_found_body': 'Shayad link purana hai, ya kisi aur ke liye tha.',
   'social.state.forbidden_title': 'Sirf members ke liye',
@@ -20,11 +21,13 @@ const catalog: SocialCatalog = {
   'social.state.busy_body': 'Service thodi der ke liye busy hai. Thodi der baad phir try karo.',
   'social.state.alias_rejected': 'Tumhara naam accept nahi hua. Profile mein badlo, phir try karo.',
   'social.state.age_title': '18 saal ya usse zyada umar ke players ke liye',
-  'social.state.age_body': 'Doston ke saath online khelne ke liye pehle apni umar confirm karo. Training aur Practice Ghosts is device pe ab bhi chalte hain.',
+  'social.state.age_body':
+    'Doston ke saath online khelne ke liye pehle apni umar confirm karo. Training aur Practice Ghosts is device pe ab bhi chalte hain.',
   'social.share.copied': 'Link copy ho gaya',
   'social.cup_new.title': 'Naya Group Cup',
   'social.cup_new.eyebrow': 'Group Cup',
-  'social.cup_new.intro': '3 se 10 doston ka round-robin cup, fixed deadlines ke saath. Fixtures, table aur final apne aap chalte hain.',
+  'social.cup_new.intro':
+    '3 se 10 doston ka round-robin cup, fixed deadlines ke saath. Fixtures, table aur final apne aap chalte hain.',
   'social.cup_new.name_label': 'Cup ka naam',
   'social.cup_new.name_hint': '3 se 40 letters. Cup mein sab ise dekhte hain.',
   'social.cup_new.name_placeholder': 'Office Cup 2026',
@@ -36,15 +39,19 @@ const catalog: SocialCatalog = {
   'social.cup_new.size_label': 'Players',
   'social.cup_new.size_less': 'Ek player kam',
   'social.cup_new.size_more': 'Ek player zyada',
-  'social.cup_new.size_hint': '{min} se {max} tak ki jagah. Cup unhi ke saath shuru hota hai jo join kar chuke hain, bas kam se kam {min} hon.',
+  'social.cup_new.size_hint':
+    '{min} se {max} tak ki jagah. Cup unhi ke saath shuru hota hai jo join kar chuke hain, bas kam se kam {min} hon.',
   'social.cup_new.pace_label': 'Pace',
   'social.cup_new.pace_sprint': 'Sprint',
   'social.cup_new.pace_daily': 'Daily',
   'social.cup_new.pace_weekend': 'Weekend',
-  'social.cup_new.pace_rules': 'Join karne ke liye {gather, plural, one {# ghanta} other {# ghante}}, phir har round mein over lock karne ke liye {lock, plural, one {# ghanta} other {# ghante}} aur batting ke liye {bat, plural, one {# ghanta} other {# ghante}}.',
+  'social.cup_new.pace_rules':
+    'Join karne ke liye {gather, plural, one {# ghanta} other {# ghante}}, phir har round mein over lock karne ke liye {lock, plural, one {# ghanta} other {# ghante}} aur batting ke liye {bat, plural, one {# ghanta} other {# ghante}}.',
   'social.cup_new.how_title': 'Kaise chalta hai',
-  'social.cup_new.how_start': 'Time pe un sab ke saath shuru hota hai jo join kar chuke hain (kam se kam {min}). Jo invited dost join nahi karte, woh kuch nahi rokte.',
-  'social.cup_new.how_auto': 'Deadline miss hui toh Auto Over ya Auto XI tumhari side khelta hai, taaki koi round wait na kare.',
+  'social.cup_new.how_start':
+    'Time pe un sab ke saath shuru hota hai jo join kar chuke hain (kam se kam {min}). Jo invited dost join nahi karte, woh kuch nahi rokte.',
+  'social.cup_new.how_auto':
+    'Deadline miss hui toh Auto Over ya Auto XI tumhari side khelta hai, taaki koi round wait na kare.',
   'social.cup_new.how_final': 'Top do players final mein bhidte hain.',
   'social.cup_new.create': 'Cup banao',
   'social.cup_new.failed': 'Cup nahi bana. Phir try karo.',
@@ -66,7 +73,8 @@ const catalog: SocialCatalog = {
   'social.cup.gathering_eyebrow': 'Abhi join ho rahe hain',
   'social.cup.gathering_title': '{size} mein se {joined} players join kar chuke hain',
   'social.cup.gathering_short_title': 'Abhi tak {joined, plural, one {# player} other {# players}}, {min} chahiye',
-  'social.cup.gathering_body': 'Yeh {when} shuru hoga, tab tak join kiye sab players ke saath, bas kam se kam {min} hon.',
+  'social.cup.gathering_body':
+    'Yeh {when} shuru hoga, tab tak join kiye sab players ke saath, bas kam se kam {min} hon.',
   'social.cup.non_joiners': 'Jinhe bulaya par join nahi kiya, woh kuch bhi nahi rokte.',
   'social.cup.members': '{count, plural, one {# player} other {# players}}',
   'social.cup.creator': 'Cup banaya',
@@ -129,14 +137,18 @@ const catalog: SocialCatalog = {
   'social.cup.fixture_revealed': 'Reveal ho gaya',
   'social.cup.fixture_void': 'Void',
   'social.cup.auto_side': '{name} ki taraf se Auto khela',
-  'social.cup.practice_note': 'Yeh match Auto XI ne tumhari taraf se khela. Practice ke liye ab bhi unke over pe bat kar sakte ho; result nahi badlega.',
+  'social.cup.practice_note':
+    'Yeh match Auto XI ne tumhari taraf se khela. Practice ke liye ab bhi unke over pe bat kar sakte ho; result nahi badlega.',
   'social.cup.practice_cta': 'Unke over pe practice karo',
   'social.cup.watch': 'Dekho',
   'social.cup.open_match': 'Kholo',
   'social.cup.rules_title': 'Cup ke rules',
-  'social.cup.rules_auto': 'Lock deadline miss hui? Auto Over tumhare liye balanced over daalta hai. Batting miss hui? Auto XI tumhare liye sambhal ke khelta hai.',
-  'social.cup.rules_nobody_waits': 'Har step ghadi ke hisaab se chalta hai, toh kisi ko, cup banane wale ko bhi, kuch start nahi karna padta.',
-  'social.cup.rules_practice': 'Deadline ke baad khelna unofficial practice hai: isse results ya table kabhi nahi badalte.',
+  'social.cup.rules_auto':
+    'Lock deadline miss hui? Auto Over tumhare liye balanced over daalta hai. Batting miss hui? Auto XI tumhare liye sambhal ke khelta hai.',
+  'social.cup.rules_nobody_waits':
+    'Har step ghadi ke hisaab se chalta hai, toh kisi ko, cup banane wale ko bhi, kuch start nahi karna padta.',
+  'social.cup.rules_practice':
+    'Deadline ke baad khelna unofficial practice hai: isse results ya table kabhi nahi badalte.',
   'social.cup.rules_final': 'Top do final khelte hain, aur uska reveal full replay ke saath hota hai.',
   'social.room.title': 'Cricket Room',
   'social.room.eyebrow': 'Cricket Room',
@@ -183,7 +195,8 @@ const catalog: SocialCatalog = {
   'social.room.score_winner': '{name} jeete',
   'social.room.score_tie': 'Tie ho gaya',
   'social.room.open_match': 'Match kholo',
-  'social.room.standings_leader': '{name} {points, plural, one {# point} other {# points}} ke saath aage. {moves, plural, =0 {Koi place nahi badla.} one {# place badla.} other {# places badle.}}',
+  'social.room.standings_leader':
+    '{name} {points, plural, one {# point} other {# points}} ke saath aage. {moves, plural, =0 {Koi place nahi badla.} one {# place badla.} other {# places badle.}}',
   'social.room.standings_updated': 'Table update ho gaya.',
   'social.room.standings_cancelled': 'Cup cancel ho gaya: kaafi players join nahi hue.',
   'social.room.achievement': '{name} ne {badge} jeeta',
@@ -199,7 +212,8 @@ const catalog: SocialCatalog = {
   'social.room.open_rematch': 'Rematch dekho',
   'social.room.unknown': 'Yeh update is version mein nahi dikh sakta.',
   'social.room.reactions': 'Reactions',
-  'social.room.reaction_label': '{reaction}, {count, plural, =0 {koi reaction nahi} one {# reaction} other {# reactions}}',
+  'social.room.reaction_label':
+    '{reaction}, {count, plural, =0 {koi reaction nahi} one {# reaction} other {# reactions}}',
   'social.room.reaction_clap': 'Taali',
   'social.room.reaction_fire': 'Aag',
   'social.room.reaction_shock': 'Shock',
@@ -236,7 +250,8 @@ const catalog: SocialCatalog = {
   'social.room.settings_failed': 'Tumhari settings save nahi huin.',
   'social.room.report': 'Is post ko report karo',
   'social.room.report_title': 'Is post ko report karo',
-  'social.room.report_body': 'Reports VANDE Cricket team ke paas jaate hain. Player ko nahi bataya jaata ki report kisne kiya.',
+  'social.room.report_body':
+    'Reports VANDE Cricket team ke paas jaate hain. Player ko nahi bataya jaata ki report kisne kiya.',
   'social.room.report_reason': 'Report kyun kar rahe ho?',
   'social.room.reason_abusive': 'Gaali ya nafrat wala',
   'social.room.reason_spam': 'Spam',
@@ -246,7 +261,8 @@ const catalog: SocialCatalog = {
   'social.room.reported': 'Thanks. Hum ise check karenge.',
   'social.report.player': '{name} ko report karo',
   'social.report.title': '{name} ko report karo',
-  'social.report.body': 'Report VANDE Cricket team ke paas jaati hai, jo naam aur khel check karti hai. {name} ko nahi bataya jaata ki report kisne ki.',
+  'social.report.body':
+    'Report VANDE Cricket team ke paas jaati hai, jo naam aur khel check karti hai. {name} ko nahi bataya jaata ki report kisne ki.',
   'social.report.reason': 'Is player ko report kyon kar rahe ho?',
   'social.room.block': 'Is player ko block karo',
   'social.room.block_title': '{name} ko block karna hai?',
@@ -284,7 +300,8 @@ const catalog: SocialCatalog = {
   'social.board.group_private': '{name}: yeh board sirf members dekhte hain.',
   'social.board.group_college_title': 'Tumhara college board',
   'social.board.group_company_title': 'Tumhara company board',
-  'social.board.group_body': 'Kisi classmate ya colleague ke code se join karo, ya group bana ke uska code share karo. Ise sirf members dekhte hain.',
+  'social.board.group_body':
+    'Kisi classmate ya colleague ke code se join karo, ya group bana ke uska code share karo. Ise sirf members dekhte hain.',
   'social.board.code_label': 'Group code',
   'social.board.join': 'Join karo',
   'social.board.joined': 'Tum group mein aa gaye',
@@ -309,7 +326,8 @@ const catalog: SocialCatalog = {
   'social.top100.sealed_title': 'Decide ho raha hai',
   'social.top100.sealed_body': 'Is din ka Top 100 aadhi raat IST ko decide hoga, {until}. Tab dekhna.',
   'social.top100.late_title': 'Thodi der ho rahi hai',
-  'social.top100.late_body': 'Is din ka Top 100 aadhi raat IST ko aana tha, {ago}. Abhi us par kaam chal raha hai, thodi der mein phir dekhna.',
+  'social.top100.late_body':
+    'Is din ka Top 100 aadhi raat IST ko aana tha, {ago}. Abhi us par kaam chal raha hai, thodi der mein phir dekhna.',
   'social.top100.none_title': 'Is din ka koi Top 100 nahi',
   'social.top100.none_body': 'Is din ki ranking kabhi nahi bani. Koi aur din chuno.',
   'social.top100.no_day_title': 'Is din ka Top 100 nahi hai',
@@ -317,22 +335,29 @@ const catalog: SocialCatalog = {
   'social.top100.empty_title': 'Koi qualify nahi hua',
   'social.top100.empty_body': 'Is din koi eligible duel ya cup match nahi khela gaya.',
   'social.top100.list': 'Top 100',
-  'social.top100.matches_counted': '{count, plural, one {# match count hua} other {# matches count hue}} · {wins, plural, one {# jeet} other {# jeet}}',
+  'social.top100.matches_counted':
+    '{count, plural, one {# match count hua} other {# matches count hue}} · {wins, plural, one {# jeet} other {# jeet}}',
   'social.top100.score_note': 'Score 300 mein se hai: din ke tumhare best teen matches, har match max 100 points.',
   'social.top100.your_highlight': 'Apna highlight dekho',
   'social.top100.watch_highlight': 'Highlight dekho',
   'social.top100.review': 'Apna highlight dekho aur decide karo',
   'social.top100.badge_title': 'Yeh badge hamesha tumhara hai',
-  'social.top100.badge_body': 'Daily Top 100 mein aane wale har player ko permanent YouTube Top 100 badge milta hai, video bane ya na bane.',
+  'social.top100.badge_body':
+    'Daily Top 100 mein aane wale har player ko permanent YouTube Top 100 badge milta hai, video bane ya na bane.',
   'social.top100.how_title': 'Ranking kaise hoti hai',
-  'social.top100.how_best': 'Din ke tumhare pehle paanch eligible duel ya cup matches mein se sirf best teen count hote hain, toh grinding se kuch nahi milta.',
-  'social.top100.how_components': 'Jeet, opponents ki strength, tactics, match ki importance, clutch moments aur execution, sab count hote hain.',
-  'social.top100.how_fair': 'Daily Six kabhi count nahi hota. Auto sides wale, ek se zyada late answer wale ya machine jaisi perfect timing wale matches eligible nahi. Kuch khareedne se kabhi faayda nahi.',
+  'social.top100.how_best':
+    'Din ke tumhare pehle paanch eligible duel ya cup matches mein se sirf best teen count hote hain, toh grinding se kuch nahi milta.',
+  'social.top100.how_components':
+    'Jeet, opponents ki strength, tactics, match ki importance, clutch moments aur execution, sab count hote hain.',
+  'social.top100.how_fair':
+    'Daily Six kabhi count nahi hota. Auto sides wale, ek se zyada late answer wale ya machine jaisi perfect timing wale matches eligible nahi. Kuch khareedne se kabhi faayda nahi.',
   'social.hl.title': 'Tumhare highlights',
   'social.hl.eyebrow': 'Daily Top 100',
-  'social.hl.intro': 'Official VANDE Cricket YouTube channel ke liye highlight Short tabhi banta hai jab dono players haan bolein.',
+  'social.hl.intro':
+    'Official VANDE Cricket YouTube channel ke liye highlight Short tabhi banta hai jab dono players haan bolein.',
   'social.hl.empty_title': 'Abhi koi highlight nahi',
-  'social.hl.empty_body': 'Daily Top 100 mein aao, aur tumhari permission se tumhara best match YouTube Short ban sakta hai.',
+  'social.hl.empty_body':
+    'Daily Top 100 mein aao, aur tumhari permission se tumhara best match YouTube Short ban sakta hai.',
   'social.hl.see_top100': 'Top 100 dekho',
   'social.hl.group_decide': 'Tumhara decision chahiye',
   'social.hl.group_queued': 'Upload queue mein',
@@ -354,7 +379,8 @@ const catalog: SocialCatalog = {
   'social.hl.aliases_only': 'Sirf cricket names aur generated avatars dikhte hain. Asli naam kabhi nahi.',
   'social.hl.description': 'YouTube pe title aur description',
   'social.hl.decide_title': 'Tumhara decision',
-  'social.hl.decide_body': 'Dono players ka haan zaroori hai. Agar koi mana kare, ya {when} tak koi jawab na de, toh video nahi banega.',
+  'social.hl.decide_body':
+    'Dono players ka haan zaroori hai. Agar koi mana kare, ya {when} tak koi jawab na de, toh video nahi banega.',
   'social.hl.visibility': 'Visibility',
   'social.hl.public': 'Public',
   'social.hl.public_hint': 'YouTube pe koi bhi dhoondh sakta hai',
@@ -376,24 +402,30 @@ const catalog: SocialCatalog = {
   'social.hl.queued_rendering': 'Tum dono ne haan bola. Replay se video ban raha hai.',
   'social.hl.queued_review': 'Video ban gaya hai, hamari team ka final check baaki hai.',
   'social.hl.queued_upload': 'Approved. YouTube upload slot milte hi upload hoga.',
-  'social.hl.queued_channel': 'Official channel ka intezaar hai. YouTube pe abhi kuch nahi hai, live hote hi hum batayenge.',
+  'social.hl.queued_channel':
+    'Official channel ka intezaar hai. YouTube pe abhi kuch nahi hai, live hote hi hum batayenge.',
   'social.hl.failed_title': 'Upload fail hua',
-  'social.hl.failed_body': 'Video banane ya upload karne mein dikkat aayi. Hum phir try karenge; tumhe kuch nahi karna.',
+  'social.hl.failed_body':
+    'Video banane ya upload karne mein dikkat aayi. Hum phir try karenge; tumhe kuch nahi karna.',
   'social.hl.declined_title': 'Is match ka video nahi',
-  'social.hl.declined_body': 'Kisi ne mana kiya, time pe jawab nahi aaya, ya consent wapas liya gaya. Tumhara Top 100 badge bana rahega.',
+  'social.hl.declined_body':
+    'Kisi ne mana kiya, time pe jawab nahi aaya, ya consent wapas liya gaya. Tumhara Top 100 badge bana rahega.',
   'social.hl.rejected_title': 'Publish nahi hua',
-  'social.hl.rejected_body': 'Yeh highlight hamare checks pass nahi kar paya, toh publish nahi hoga. Tumhara badge bana rahega.',
+  'social.hl.rejected_body':
+    'Yeh highlight hamare checks pass nahi kar paya, toh publish nahi hoga. Tumhara badge bana rahega.',
   'social.hl.removed_title': 'YouTube se hata diya',
   'social.hl.removed_body': 'Video hata diya gaya hai. Tumhara badge bana rahega.',
   'social.hl.removing_title': 'Hataya ja raha hai',
-  'social.hl.removing_body': 'Video YouTube se hataya ja raha hai. Jab tak hat nahi jata, hum try karte rahenge. Tumhara badge bana rahega.',
+  'social.hl.removing_body':
+    'Video YouTube se hataya ja raha hai. Jab tak hat nahi jata, hum try karte rahenge. Tumhara badge bana rahega.',
   'social.hl.live_public': 'YouTube pe live',
   'social.hl.live_unlisted': 'YouTube pe live (unlisted)',
   'social.hl.open_landing': 'Highlight page kholo',
   'social.hl.withdraw': 'Apna consent wapas lo',
   'social.hl.withdraw_title': 'Consent wapas lena hai?',
   'social.hl.withdraw_cancel': 'Abhi kuch upload nahi hua, toh video cancel ho jayega aur kabhi publish nahi hoga.',
-  'social.hl.withdraw_remove': 'Video YouTube se delete ho jayega, aksar kuch minute mein aur zyada se zyada 24 ghante mein.',
+  'social.hl.withdraw_remove':
+    'Video YouTube se delete ho jayega, aksar kuch minute mein aur zyada se zyada 24 ghante mein.',
   'social.hl.withdraw_confirm': 'Wapas lo',
   'social.hl.withdrawn_toast': 'Consent wapas le liya.',
   'social.landing.title': 'VANDE Cricket highlight',
@@ -406,7 +438,8 @@ const catalog: SocialCatalog = {
   'social.landing.video_soon': 'YouTube video abhi aaya nahi. Replay abhi ready hai.',
   'social.landing.replay_failed': 'Replay load nahi hua.',
   'social.landing.beat_title': 'Inhe hara sakte ho?',
-  'social.landing.beat_body': 'Yahin usi over pe batting karo jo inhone daala tha, ya kisi dost ko duel ka challenge do.',
+  'social.landing.beat_body':
+    'Yahin usi over pe batting karo jo inhone daala tha, ya kisi dost ko duel ka challenge do.',
   'social.landing.practice': '{name} ke over pe batting karo',
   'social.landing.practice_note': 'Practice tumhare phone pe chalti hai. Kuch nahi jaata, koi ranking nahi badalti.',
   'social.landing.challenge': 'Dost ko challenge karo',
@@ -463,7 +496,8 @@ const catalog: SocialCatalog = {
   'social.profile.adult_confirmed': '18 saal ya usse zyada confirm ho chuka hai',
   'social.profile.google_link': 'Google account link karo',
   'social.profile.google_on': 'Google account se linked hai. Naye phone pe apna player wapas pa sakte ho.',
-  'social.profile.google_hint': 'Link karne se bas account wapas paane mein madad milti hai. Hum tumhara email ya naam kabhi nahi dekhte.',
+  'social.profile.google_hint':
+    'Link karne se bas account wapas paane mein madad milti hai. Hum tumhara email ya naam kabhi nahi dekhte.',
   'social.profile.google_linked': 'Google account link ho gaya',
   'social.profile.google_taken': 'Yeh Google account pehle se kisi aur player se linked hai.',
   'social.profile.google_failed': 'Link nahi hua. Phir try karo.',

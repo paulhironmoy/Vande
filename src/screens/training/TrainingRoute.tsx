@@ -50,7 +50,11 @@ export default function TrainingRoute({ route }: { route: RouteOf<'training'> })
       }}
       onSkip={() => (after ? goAfter() : navigate({ name: 'home' }, { replace: true }))}
       continueTo={after ? { label: t('training.done.back_to_match'), onContinue: goAfter } : undefined}
-      onDone={(next) => navigate(next === 'duel' ? { name: 'duel_new' } : next === 'daily' ? { name: 'daily' } : { name: 'home' }, { replace: true })}
+      onDone={(next) =>
+        navigate(next === 'duel' ? { name: 'duel_new' } : next === 'daily' ? { name: 'daily' } : { name: 'home' }, {
+          replace: true,
+        })
+      }
       doneExtra={analytics ? <ConsentPrompt analytics={analytics} configured={configured} /> : null}
     />
   );

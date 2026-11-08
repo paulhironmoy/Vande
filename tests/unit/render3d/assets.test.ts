@@ -6,7 +6,18 @@
  * uniforms are checked directly (the painters fall back to flat textures).
  */
 import { describe, expect, it } from 'vitest';
-import { Box3, Color, InstancedMesh, Matrix4, Mesh, Quaternion, Scene, ShaderMaterial, Vector3, type Texture } from 'three';
+import {
+  Box3,
+  Color,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  Quaternion,
+  Scene,
+  ShaderMaterial,
+  Vector3,
+  type Texture,
+} from 'three';
 import {
   BAIL_RISE,
   BLADE_L,
@@ -62,7 +73,14 @@ import {
   pitchLook,
   pitchParams,
 } from '@/render3d/three/stadium';
-import { createRig, dressRig, setRigGhost, setRigHeadgear, setRigExpression, setRigShadowPolicy } from '@/render3d/three/players';
+import {
+  createRig,
+  dressRig,
+  setRigGhost,
+  setRigHeadgear,
+  setRigExpression,
+  setRigShadowPolicy,
+} from '@/render3d/three/players';
 import { FP_GLOVE, createFirstPerson } from '@/render3d/three/firstPerson';
 import { GLOVE_R } from '@/physics/constants';
 import { Group } from 'three';
@@ -168,10 +186,15 @@ describe('the wickets are Law 8 wickets', () => {
       near(Math.abs(p.z), PITCH_HALF);
     }
     expect(xs.slice(0, 3)).toEqual([-STUMP_SPACING, 0, STUMP_SPACING].map((x) => Math.round(x * 1e4) / 1e4));
-    const script = { stumps: { striker: { t: 1000, dir: { x: 0, y: 0, z: 1 }, strength: 1 }, nonStriker: null }, events: [{ t: 1000, kind: 'stumps', intensity: 1, at: { x: 0, y: 0.3, z: PITCH_HALF } }] } as unknown as BallScript;
+    const script = {
+      stumps: { striker: { t: 1000, dir: { x: 0, y: 0, z: 1 }, strength: 1 }, nonStriker: null },
+      events: [{ t: 1000, kind: 'stumps', intensity: 1, at: { x: 0, y: 0.3, z: PITCH_HALF } }],
+    } as unknown as BallScript;
     const snapshot = (t: number) => {
       fx.update(script, t);
-      return meshes.map((mesh) => Array.from(mesh.instanceMatrix.array as Float32Array).map((v) => Math.round(v * 1e6))).join('|');
+      return meshes
+        .map((mesh) => Array.from(mesh.instanceMatrix.array as Float32Array).map((v) => Math.round(v * 1e6)))
+        .join('|');
     };
     const before = snapshot(999);
     const at500 = snapshot(1500);
@@ -291,7 +314,9 @@ describe('pitch surfaces follow the physics', () => {
   it('gives every condition a distinct look', () => {
     const sig = (k: string) => {
       const l = looks[k];
-      return [l.soilLight, l.grassCover.toFixed(3), l.crack.toFixed(3), l.sheen.toFixed(3), l.dust.toFixed(3)].join('|');
+      return [l.soilLight, l.grassCover.toFixed(3), l.crack.toFixed(3), l.sheen.toFixed(3), l.dust.toFixed(3)].join(
+        '|',
+      );
     };
     expect(new Set(KEYS.map(sig)).size).toBe(KEYS.length);
     expect(looks.turning.label).toBe('Dusty');
@@ -304,7 +329,10 @@ describe('pitch surfaces follow the physics', () => {
     for (const k of KEYS) {
       const p = pitchParams(k);
       const l = looks[k];
-      near(l.grassCover, 0.1 + 0.9 * Math.min(1, 0.62 * n(p.swingFactor, 0.8, 1.45) + 0.38 * n(p.seamGrip, 0.012, 0.026)));
+      near(
+        l.grassCover,
+        0.1 + 0.9 * Math.min(1, 0.62 * n(p.swingFactor, 0.8, 1.45) + 0.38 * n(p.seamGrip, 0.012, 0.026)),
+      );
       near(l.crack, Math.pow(n(p.turnGrip, 0.45, 0.95), 0.8));
       near(l.dust, n(p.friction, 0.3, 0.4));
       near(l.sheen, n(p.restitution, 0.55, 0.67) * (1 - n(p.friction, 0.25, 0.4)));
@@ -399,7 +427,9 @@ describe('Delivery Quiet Mode and the environment', () => {
         if (ENVIRONMENTS[light][sky].sun) {
           // The key light is the sun, and the blob shadow points away from it.
           const sun = st.shadowSources()[0];
-          expect(st.keyLight.position.clone().sub(st.keyLight.target.position).normalize().dot(sun.clone().normalize())).toBeGreaterThan(0.99);
+          expect(
+            st.keyLight.position.clone().sub(st.keyLight.target.position).normalize().dot(sun.clone().normalize()),
+          ).toBeGreaterThan(0.99);
         }
       }
     }
@@ -420,13 +450,20 @@ describe('Practice effects never put particles near the ball', () => {
     fx.setPractice(true);
     const flight = fixtureFlight({ lengthM: 6 });
     const result = fixtureResult(flight, { kind: 'drive', timingMs: 0, bearing: 20 });
-    const setup = { field: fixtureField(), bowler: { family: 'pace' as const, paceBand: 'fast' as const, arm: 'right' as const, lookSeed: 'b1' }, conditions: 'balanced' as const, handedness: 'right' as const };
+    const setup = {
+      field: fixtureField(),
+      bowler: { family: 'pace' as const, paceBand: 'fast' as const, arm: 'right' as const, lookSeed: 'b1' },
+      conditions: 'balanced' as const,
+      handedness: 'right' as const,
+    };
     const script = buildPracticeScript({ setup, flight, result });
     const bounce = script.events.find((e) => e.kind === 'bounce')!;
     const bat = script.events.find((e) => e.kind === 'bat' || e.kind === 'edge')!;
     expect(bounce).toBeDefined();
     const parts = fx.group.children.find((c) => c instanceof InstancedMesh) as InstancedMesh;
-    const scuff = fx.group.children.find((c) => c instanceof Mesh && !(c instanceof InstancedMesh) && Math.abs((c as Mesh).scale.z - 1) > 1e-6) as Mesh | undefined;
+    const scuff = fx.group.children.find(
+      (c) => c instanceof Mesh && !(c instanceof InstancedMesh) && Math.abs((c as Mesh).scale.z - 1) > 1e-6,
+    ) as Mesh | undefined;
     const cam = new Vector3(0, 1.7, 9);
     fx.update(script, bounce.t - 5, cam, 1.2, false);
     expect(parts.count).toBe(0);
@@ -436,7 +473,9 @@ describe('Practice effects never put particles near the ball', () => {
     }
     // The scuff: at the bounce, about the size of the skid, lying on the pitch, there from the bounce on.
     fx.update(script, bounce.t + 300, cam, 1.2, false);
-    const marks = fx.group.children.filter((c) => c.visible && c instanceof Mesh && !(c instanceof InstancedMesh)) as Mesh[];
+    const marks = fx.group.children.filter(
+      (c) => c.visible && c instanceof Mesh && !(c instanceof InstancedMesh),
+    ) as Mesh[];
     expect(marks).toHaveLength(1);
     const mark = scuff ?? marks[0];
     near(mark.position.x, bounce.at!.x, 1e-9);
@@ -445,7 +484,9 @@ describe('Practice effects never put particles near the ball', () => {
     near(mark.scale.x, SCUFF_SIZE.width, 1e-9);
     near(mark.scale.z, SCUFF_SIZE.length, 1e-9);
     fx.update(script, bounce.t - 1, cam, 1.2, false);
-    expect(fx.group.children.filter((c) => c.visible && c instanceof Mesh && !(c instanceof InstancedMesh))).toHaveLength(0);
+    expect(
+      fx.group.children.filter((c) => c.visible && c instanceof Mesh && !(c instanceof InstancedMesh)),
+    ).toHaveLength(0);
     fx.dispose();
   });
 });
@@ -455,7 +496,8 @@ describe('players', () => {
     const rig = createRig('umpire', 20);
     expect(rig.meshes).toHaveLength(2);
     const geo = rig.meshes[0].geometry;
-    for (const a of ['position', 'normal', 'skinIndex', 'skinWeight', 'region', 'bindPos', 'aVar', 'aBase']) expect(geo.attributes[a]).toBeDefined();
+    for (const a of ['position', 'normal', 'skinIndex', 'skinWeight', 'region', 'bindPos', 'aVar', 'aBase'])
+      expect(geo.attributes[a]).toBeDefined();
     expect(rig.meshes[1].geometry.attributes.position.count).toBeLessThan(geo.attributes.position.count / 2);
     dressRig(rig, { seed: 'ump-a', team: 0, gear: 'umpire' }, KITS[0]);
     const shirt = rig.uniforms.uPrimary.value;
@@ -491,7 +533,11 @@ describe('players', () => {
     const striker = createRig('batter', 20);
     const stage = { rigOf: (id: string) => (id === 'striker' ? striker : undefined) };
     expect(setCoachDemonstrationGhost(stage, true)).toBe(true);
-    expect(striker.meshes.every((mesh) => mesh.material === striker.ghostMaterial && mesh.renderOrder === 6 && !mesh.castShadow)).toBe(true);
+    expect(
+      striker.meshes.every(
+        (mesh) => mesh.material === striker.ghostMaterial && mesh.renderOrder === 6 && !mesh.castShadow,
+      ),
+    ).toBe(true);
     expect(setCoachDemonstrationGhost(stage, false)).toBe(true);
     expect(striker.meshes.every((mesh) => mesh.material === striker.material && mesh.renderOrder === 0)).toBe(true);
     expect(striker.meshes[0].castShadow).toBe(true);

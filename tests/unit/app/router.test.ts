@@ -55,7 +55,11 @@ describe('router', () => {
   });
 
   it('keeps a valid invite attribution code and drops a malformed one', () => {
-    expect(parseRoute('https://example.com/i/abcDEF12345?a=k3x9q2')).toEqual({ name: 'invite', token: 'abcDEF12345', attribution: 'k3x9q2' });
+    expect(parseRoute('https://example.com/i/abcDEF12345?a=k3x9q2')).toEqual({
+      name: 'invite',
+      token: 'abcDEF12345',
+      attribution: 'k3x9q2',
+    });
     expect(parseRoute('/i/abcDEF12345?a=<x>')).toEqual({ name: 'invite', token: 'abcDEF12345' });
   });
 });

@@ -49,8 +49,10 @@ export const startHi: Record<string, string> = {
   'practice.setup.six_balls': 'छह गेंदें',
   'practice.setup.assist': 'सहायता',
   'practice.setup.how': 'दबाएँ · पीछे खींचें · गेंद पढ़ें · आगे फ़्लिक करें',
-  'practice.setup.how_more': 'ऊँचे शॉट की गुंजाइश के लिए और पीछे खींचें। गैप की ओर आगे फ़्लिक करें; आगे की फ़्लिक की रफ़्तार ताक़त तय करती है। बिना पीछे खींचे जल्दी छोड़ना बचाव है।',
-  'practice.setup.how_keys': 'कीज़: बचाव के लिए Space। मारने के लिए तीर, तिरछे के लिए दो एक साथ। हवा में उठाने के लिए Shift दबाए रखें। W आगे, S पीछे।',
+  'practice.setup.how_more':
+    'ऊँचे शॉट की गुंजाइश के लिए और पीछे खींचें। गैप की ओर आगे फ़्लिक करें; आगे की फ़्लिक की रफ़्तार ताक़त तय करती है। बिना पीछे खींचे जल्दी छोड़ना बचाव है।',
+  'practice.setup.how_keys':
+    'कीज़: बचाव के लिए Space। मारने के लिए तीर, तिरछे के लिए दो एक साथ। हवा में उठाने के लिए Shift दबाए रखें। W आगे, S पीछे।',
   'practice.setup.play': 'खेलें',
   'practice.setup.resume_ball': 'अगली गेंद {n} है।',
 
@@ -84,7 +86,8 @@ export const startHi: Record<string, string> = {
 
   // ---- objectives
   'practice.objective.random': 'हर गेंद हाथ से पढ़ें: उसकी लेंथ, लाइन और मूवमेंट।',
-  'practice.objective.first': 'गेंद को गेंदबाज़ के हाथ से निकलते देखें। बैकलिफ़्ट रोकें, फिर आगे फ़्लिक करें या छोड़ दें।',
+  'practice.objective.first':
+    'गेंद को गेंदबाज़ के हाथ से निकलते देखें। बैकलिफ़्ट रोकें, फिर आगे फ़्लिक करें या छोड़ दें।',
   'practice.setup.full_setup': 'पूरा सेटअप',
   'practice.gloss.result': 'लेंथ वह जगह है जहाँ गेंद टप्पा खाई; लाइन यह है कि वह आपके स्टंप से कितनी बाएँ या दाएँ आई।',
   'practice.objective.reference': 'छहों गेंदों को उनके हिसाब से खेलें।',
@@ -126,7 +129,8 @@ export const startHi: Record<string, string> = {
   'practice.ball.short.red_worn': 'पुरानी लाल गेंद',
 
   // ---- bowlers and their known pattern
-  'practice.bowler.label': '{arm, select, left {बाएँ हाथ का} other {दाएँ हाथ का}} {style, select, controlled {मध्यम गति गेंदबाज़} fast {तेज़ गेंदबाज़} express {बेहद तेज़ गेंदबाज़} finger {फ़िंगर स्पिनर} wrist {रिस्ट स्पिनर} other {गेंदबाज़}}',
+  'practice.bowler.label':
+    '{arm, select, left {बाएँ हाथ का} other {दाएँ हाथ का}} {style, select, controlled {मध्यम गति गेंदबाज़} fast {तेज़ गेंदबाज़} express {बेहद तेज़ गेंदबाज़} finger {फ़िंगर स्पिनर} wrist {रिस्ट स्पिनर} other {गेंदबाज़}}',
   'practice.bowler.range': 'लगभग {lo}–{hi} किमी/घंटा',
   'practice.bowler.pace': 'तेज़',
   'practice.bowler.spin': 'स्पिन',

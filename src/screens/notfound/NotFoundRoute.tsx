@@ -15,7 +15,13 @@ export default function NotFoundRoute(_props: { route: RouteOf<'not_found'> }) {
       </span>
       <h1 className={s.h1}>{t('notfound.title')}</h1>
       <p className={s.body}>{t('notfound.body')}</p>
-      <Button variant="primary" size="lg" icon="home" onClick={() => navigate({ name: 'home' }, { replace: true })} data-testid="not-found-home">
+      <Button
+        variant="primary"
+        size="lg"
+        icon="home"
+        onClick={() => navigate({ name: 'home' }, { replace: true })}
+        data-testid="not-found-home"
+      >
         {t('common.home')}
       </Button>
     </main>

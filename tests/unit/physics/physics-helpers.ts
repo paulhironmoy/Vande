@@ -1,4 +1,12 @@
-import type { AssistLevel, BallFlight, BowlerProfile, Footwork, NormalizedSwing, PitchCondition, PracticeDeliveryPlan } from '@/contracts/practice';
+import type {
+  AssistLevel,
+  BallFlight,
+  BowlerProfile,
+  Footwork,
+  NormalizedSwing,
+  PitchCondition,
+  PracticeDeliveryPlan,
+} from '@/contracts/practice';
 import { batTravelMs, idealTimeFor } from '@/physics/bat';
 import { strike } from '@/physics/contact';
 import { flight } from '@/physics/delivery';
@@ -12,16 +20,30 @@ export function plan(p: Partial<PracticeDeliveryPlan> = {}): PracticeDeliveryPla
 }
 
 /** Who bowled each flight made by fly(), so play() reads the ball as resolveDelivery does (playing for the stock ball). */
-const BOWLED = new WeakMap<BallFlight, { bowler: BowlerProfile; conditions: PitchCondition; handedness: 'right' | 'left' }>();
+const BOWLED = new WeakMap<
+  BallFlight,
+  { bowler: BowlerProfile; conditions: PitchCondition; handedness: 'right' | 'left' }
+>();
 
-export function fly(p: Partial<PracticeDeliveryPlan> = {}, bowler: BowlerProfile = PACE, conditions: PitchCondition = 'balanced', seed = 't1', handedness: 'right' | 'left' = 'right'): BallFlight {
+export function fly(
+  p: Partial<PracticeDeliveryPlan> = {},
+  bowler: BowlerProfile = PACE,
+  conditions: PitchCondition = 'balanced',
+  seed = 't1',
+  handedness: 'right' | 'left' = 'right',
+): BallFlight {
   const f = flight({ plan: plan(p), bowler, conditions, seed, handedness });
   BOWLED.set(f, { bowler, conditions, handedness });
   return f;
 }
 
 /** A swing timed `errorMs` late (− early) against the ideal contact for its footwork. */
-export function timedSwing(f: BallFlight, errorMs: number, s: Partial<NormalizedSwing> = {}, footwork: Footwork = 'auto'): NormalizedSwing {
+export function timedSwing(
+  f: BallFlight,
+  errorMs: number,
+  s: Partial<NormalizedSwing> = {},
+  footwork: Footwork = 'auto',
+): NormalizedSwing {
   const kind = s.kind ?? 'attack';
   const power = s.power ?? 0.6;
   const base = { kind, power, directionDeg: s.directionDeg ?? 0, elevation: s.elevation ?? 0.1, footwork, startT: 0 };
@@ -29,7 +51,13 @@ export function timedSwing(f: BallFlight, errorMs: number, s: Partial<Normalized
   return { ...base, startT: ideal - batTravelMs(kind, power) / 1000 + errorMs / 1000 };
 }
 
-export function play(f: BallFlight, errorMs: number, s: Partial<NormalizedSwing> = {}, assist: AssistLevel = 'real', footwork: Footwork = 'auto') {
+export function play(
+  f: BallFlight,
+  errorMs: number,
+  s: Partial<NormalizedSwing> = {},
+  assist: AssistLevel = 'real',
+  footwork: Footwork = 'auto',
+) {
   const by = BOWLED.get(f);
   return strike(f, timedSwing(f, errorMs, s, footwork), { assist, ...(by ? { expect: by } : {}) });
 }

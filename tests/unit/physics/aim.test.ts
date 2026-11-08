@@ -7,7 +7,12 @@ const speedKph = (v: { x: number; y: number; z: number }) => Math.hypot(v.x, v.y
 
 describe('aimShot: outcome-first post-contact flights through the ball integrator', () => {
   it('carry: reaches a catch at hand height in the air, before the first bounce', () => {
-    for (const p of [{ x: 18, y: 1.4, z: -2 }, { x: -38, y: 2, z: -35 }, { x: 1.6, y: 1, z: 22 }, { x: 4, y: 0.3, z: 0 }]) {
+    for (const p of [
+      { x: 18, y: 1.4, z: -2 },
+      { x: -38, y: 2, z: -35 },
+      { x: 1.6, y: 1, z: 22 },
+      { x: 4, y: 0.3, z: 0 },
+    ]) {
       const r = aimShot(from, { p, mode: 'carry' });
       expect(r.feasible).toBe(true);
       expect(r.errorM).toBeLessThan(0.02);
@@ -41,7 +46,10 @@ describe('aimShot: outcome-first post-contact flights through the ball integrato
   });
 
   it('over_rope: crosses the rope on the full at the target height (a six)', () => {
-    for (const p of [{ x: -15, y: 9, z: -60 }, { x: 40, y: 15, z: -46 }]) {
+    for (const p of [
+      { x: -15, y: 9, z: -60 },
+      { x: 40, y: 15, z: -46 },
+    ]) {
       const r = aimShot(from, { p, mode: 'over_rope' });
       expect(r.feasible).toBe(true);
       expect(r.errorM).toBeLessThan(0.05);

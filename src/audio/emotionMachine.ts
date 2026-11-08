@@ -45,7 +45,8 @@ import {
   type EmotionState,
 } from './emotionCore';
 
-export type EmotionInput = { type: 'context'; context: DeliveryContext; at: number } | { type: 'moment'; moment: EmotionMoment; at: number };
+export type EmotionInput =
+  { type: 'context'; context: DeliveryContext; at: number } | { type: 'moment'; moment: EmotionMoment; at: number };
 
 // The state's values at the input's time, read before anything is written (module scratch: no allocation).
 let nowBase = 0;
@@ -82,7 +83,14 @@ function begin(s: Readonly<EmotionState>, at: number, out: EmotionState): number
 }
 
 /** The base heads for `to` (time constant tau); after `hold` it relaxes to the resting murmur. */
-function base(o: EmotionState, t: number, to: number, tau: number, hold = Number.POSITIVE_INFINITY, relax: number = CROWD.relaxMs) {
+function base(
+  o: EmotionState,
+  t: number,
+  to: number,
+  tau: number,
+  hold = Number.POSITIVE_INFINITY,
+  relax: number = CROWD.relaxMs,
+) {
   o.from = nowBase;
   o.to = clamp01(to);
   o.t0 = t;
@@ -117,7 +125,15 @@ function mood(o: EmotionState, t: number, m: CrowdMood, holdMs = Number.POSITIVE
  * A crowd reaction whose total (base + tail + transient) peaks at `peak`. The previous reaction becomes the tail and
  * keeps decaying on its own; an older tail still sounding (small by then) joins the base.
  */
-function react(o: EmotionState, t: number, kind: CrowdReaction, peak: number, attack: number, decay: number, delay = 0) {
+function react(
+  o: EmotionState,
+  t: number,
+  kind: CrowdReaction,
+  peak: number,
+  attack: number,
+  decay: number,
+  delay = 0,
+) {
   if (nowTail > 0) {
     if (!anchored) {
       o.from = nowBase;
@@ -141,7 +157,8 @@ function react(o: EmotionState, t: number, kind: CrowdReaction, peak: number, at
     let best = 0;
     for (let i = 1; i <= 64; i++) {
       const x = (i / 64) * span;
-      const v = baseLevel(o, t1 + x) + tailValue(o, t1 + x) + (amp / m) * (1 - Math.exp(-x / attack)) * Math.exp(-x / decay);
+      const v =
+        baseLevel(o, t1 + x) + tailValue(o, t1 + x) + (amp / m) * (1 - Math.exp(-x / attack)) * Math.exp(-x / decay);
       if (v > best) best = v;
     }
     amp = Math.max(0.02, amp - (best - target));
@@ -168,7 +185,12 @@ function milestone(o: EmotionState, runs: number): 'fifty' | 'hundred' | null {
 const milestoneCaption = (ms: 'fifty' | 'hundred') => (ms === 'fifty' ? 'milestone_fifty' : 'milestone_hundred');
 
 /** The match context for the coming delivery. */
-function applyEmotionContext(s: Readonly<EmotionState>, ctx: DeliveryContext, at: number, out?: EmotionState): EmotionState {
+function applyEmotionContext(
+  s: Readonly<EmotionState>,
+  ctx: DeliveryContext,
+  at: number,
+  out?: EmotionState,
+): EmotionState {
   const o = out ?? { ...s };
   const t = begin(s, at, o);
   o.pressure = clamp01(Number.isFinite(ctx.pressure) ? (ctx.pressure as number) : 0);
@@ -278,7 +300,14 @@ function applyEmotionMoment(s: Readonly<EmotionState>, m: EmotionMoment, at: num
       base(o, t, Math.max(0.1, Math.min(room, (0.3 + 0.3 * q * q) * k)), 260);
       if (!o.lifted && (!o.edged || q >= 0.45)) {
         o.lifted = true;
-        react(o, t, 'lift', Math.min(CROWD.expectMax, (0.3 + 0.25 * o.quality + 0.15 * q) * k * (1 - 0.2 * o.fatigue)), 70, 700);
+        react(
+          o,
+          t,
+          'lift',
+          Math.min(CROWD.expectMax, (0.3 + 0.25 * o.quality + 0.15 * q) * k * (1 - 0.2 * o.fatigue)),
+          70,
+          700,
+        );
       }
       valence(o, t, 0.15 + 0.45 * q, 260);
       expect(o, t, 0.35 + 0.6 * q, 260);
@@ -309,14 +338,23 @@ function applyEmotionMoment(s: Readonly<EmotionState>, m: EmotionMoment, at: num
       const ms = milestone(o, six ? 6 : 4);
       // Non-overlapping bands (constitution: proportional feedback): a six 0.84–1.0, a four 0.66–0.83.
       const f = o.fatigue;
-      const peak = six ? CROWD.six + 0.08 * p - 0.08 * f + (ms ? 0.05 : 0) : Math.min(0.83, CROWD.four + 0.08 * p - 0.08 * f + (ms ? 0.05 : 0));
+      const peak = six
+        ? CROWD.six + 0.08 * p - 0.08 * f + (ms ? 0.05 : 0)
+        : Math.min(0.83, CROWD.four + 0.08 * p - 0.08 * f + (ms ? 0.05 : 0));
       o.phase = 'outcome';
       o.outcome = six ? 'six' : 'four';
       o.momentum = Math.min(1, o.momentum + (six ? 0.5 : 0.35));
       o.dots = 0;
       if (six) base(o, t, 0.62, 300, ms ? 4800 : 3800, 3800);
       else base(o, t, 0.48, 300, ms ? 4800 : 3400, 3400);
-      react(o, t, ms ? 'ovation' : six ? 'eruption' : 'cheer', Math.min(1, peak), six ? 160 : 140, ms ? 3800 : six ? 3800 : 3200);
+      react(
+        o,
+        t,
+        ms ? 'ovation' : six ? 'eruption' : 'cheer',
+        Math.min(1, peak),
+        six ? 160 : 140,
+        ms ? 3800 : six ? 3800 : 3200,
+      );
       valence(o, t, six ? 1 : 0.8, 200);
       expect(o, t, 0, 400);
       mood(o, t, ms ? 'ovation' : six ? 'eruption' : 'celebration', ms ? 6000 : six ? 4800 : 3500, 'murmur');
@@ -424,7 +462,9 @@ function applyEmotionMoment(s: Readonly<EmotionState>, m: EmotionMoment, at: num
 
 /** Pure reducer over both inputs (a new state unless `out` is given). */
 export function reduceEmotion(s: Readonly<EmotionState>, input: EmotionInput, out?: EmotionState): EmotionState {
-  return input.type === 'context' ? applyEmotionContext(s, input.context, input.at, out) : applyEmotionMoment(s, input.moment, input.at, out);
+  return input.type === 'context'
+    ? applyEmotionContext(s, input.context, input.at, out)
+    : applyEmotionMoment(s, input.moment, input.at, out);
 }
 
 /** One machine per session: the Practice sink owns it and the 3D crowd reads it through the sink's emotionNow(). */

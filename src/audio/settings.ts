@@ -57,7 +57,8 @@ function localStore(): AudioKeyStore | null {
   }
 }
 
-const level = (v: unknown, fallback: number) => (typeof v === 'number' && Number.isFinite(v) ? Math.round(Math.min(1, Math.max(0, v)) * 100) / 100 : fallback);
+const level = (v: unknown, fallback: number) =>
+  typeof v === 'number' && Number.isFinite(v) ? Math.round(Math.min(1, Math.max(0, v)) * 100) / 100 : fallback;
 const flag = (v: unknown, fallback: boolean) => (typeof v === 'boolean' ? v : fallback);
 
 /** Any value → valid settings (missing or invalid fields take their defaults). */

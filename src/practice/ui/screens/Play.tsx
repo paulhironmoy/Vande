@@ -95,7 +95,13 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
   const pressFootwork = !flow.settings.teach;
   const notice = state.notice ? t.tk(`practice.notice.${state.notice}`) : null;
   // A change of timing help or of graphics, said calmly at the dead ball it arrived with (never during a delivery).
-  const liveNotice = state.notice === 'help_changed' || state.notice === 'help_less' || state.notice === 'balanced' || state.notice === 'classic' ? notice : null;
+  const liveNotice =
+    state.notice === 'help_changed' ||
+    state.notice === 'help_less' ||
+    state.notice === 'balanced' ||
+    state.notice === 'classic'
+      ? notice
+      : null;
   const plan = inn?.current?.plan ?? state.pending?.plan ?? null;
   const ballLabel = plan ? t.tk(`practice.ball.short.${plan.ball.colour}_${plan.ball.age}`) : null;
   const inCoach = screen === 'coach' && state.coach;
@@ -137,8 +143,12 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
       if (!stops.length) return;
       const activeIndex = stops.indexOf(document.activeElement as HTMLElement);
       const nextIndex = event.shiftKey
-        ? (activeIndex <= 0 ? stops.length - 1 : activeIndex - 1)
-        : (activeIndex < 0 || activeIndex === stops.length - 1 ? 0 : activeIndex + 1);
+        ? activeIndex <= 0
+          ? stops.length - 1
+          : activeIndex - 1
+        : activeIndex < 0 || activeIndex === stops.length - 1
+          ? 0
+          : activeIndex + 1;
       event.preventDefault();
       // Unity WebGL captures every keyboard event at window scope. Reserve Tab
       // for the semantic DOM focus order; batting keys continue to Unity.
@@ -149,14 +159,23 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
     return () => window.removeEventListener('keydown', onTab, true);
   }, [showRail, unityGameplayInput]);
   const deadInnings = screen === 'live' && phase === 'dead' && last;
-  const pipPhase = fieldPipPhase(screen, phase, { unity: unityStageOwnsInput, replay: Boolean(state.replay), field: Boolean(state.field), stage: state.quality.stage });
+  const pipPhase = fieldPipPhase(screen, phase, {
+    unity: unityStageOwnsInput,
+    replay: Boolean(state.replay),
+    field: Boolean(state.field),
+    stage: state.quality.stage,
+  });
   // With no room for the inset below the rail (a large text size), or in a run-up where the rail and the inset would
   // exceed the run-up's screen budget, the conditions control's radar keeps the players.
   const [pipRoom, setPipRoom] = useState(true);
   const [pipQuietOver, setPipQuietOver] = useState(false);
   const pipShown = pipPhase !== null && pipRoom && !(pipPhase === 'quiet' && pipQuietOver);
   const ended = inn && inn.status !== 'batting';
-  const nextLabel = ended ? (inn.status === 'over_complete' ? t.t('practice.result.over_summary') : t.t('practice.result.see_summary')) : t.t('practice.live.next_ball');
+  const nextLabel = ended
+    ? inn.status === 'over_complete'
+      ? t.t('practice.result.over_summary')
+      : t.t('practice.result.see_summary')
+    : t.t('practice.live.next_ball');
   useEffect(() => {
     if (!unityStageOwnsInput || screen !== 'live' || phase !== 'dead' || !last) return;
     const primary = state.insight?.status === 'ready' ? state.insight.primary : null;
@@ -169,8 +188,15 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
         : t.t('practice.result.reading');
     // Without a tip, a confirmation is said only when earned (anti-fake rule 7); otherwise the reason stands alone.
     const analysis = state.insight?.status === 'ready' ? state.insight.analysis : null;
-    const earned = primary && analysis && coach ? coach.praiseEarned(analysis, primary.recommendation, state.insight?.tip ?? null) : true;
-    const recommendation = tip ? tip.recommendation : primary && earned ? recommendationLine(t, primary.recommendation) : '';
+    const earned =
+      primary && analysis && coach
+        ? coach.praiseEarned(analysis, primary.recommendation, state.insight?.tip ?? null)
+        : true;
+    const recommendation = tip
+      ? tip.recommendation
+      : primary && earned
+        ? recommendationLine(t, primary.recommendation)
+        : '';
     const practiceLabel = t.t('practice.result.practice');
     void flow.presentDeadBallUi(
       coach
@@ -195,19 +221,41 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
   const detail = (() => {
     if (last && (phase === 'dead' || phase === 'paused')) {
       const b = last.result.flight.plan;
-      return t.t('practice.status.last', { length: t.tk(`practice.length.${build.lengthBand(b.lengthM, last.record.bowler.family)}`), line: t.tk(`practice.lineband.${build.lineBand(b.lineM)}`) });
+      return t.t('practice.status.last', {
+        length: t.tk(`practice.length.${build.lengthBand(b.lengthM, last.record.bowler.family)}`),
+        line: t.tk(`practice.lineband.${build.lineBand(b.lineM)}`),
+      });
     }
     // A predefined over in its own order may show what comes next; a Random Over never does.
     const cur = inn?.current;
-    if (cur && (cur.plan.source === 'reference' || cur.plan.source === 'built') && !cur.plan.shuffled && cur.deliveries.length < 6) {
+    if (
+      cur &&
+      (cur.plan.source === 'reference' || cur.plan.source === 'built') &&
+      !cur.plan.shuffled &&
+      cur.deliveries.length < 6
+    ) {
       const b = cur.plan.balls[cur.deliveries.length];
-      return t.t('practice.status.next', { variation: variationName(t, b.variation, cur.plan.bowler.spinType), length: t.tk(`practice.length.${build.lengthBand(b.lengthM, cur.plan.bowler.family)}`) });
+      return t.t('practice.status.next', {
+        variation: variationName(t, b.variation, cur.plan.bowler.spinType),
+        length: t.tk(`practice.length.${build.lengthBand(b.lengthM, cur.plan.bowler.family)}`),
+      });
     }
     return null;
   })();
 
   return (
-    <div ref={playRootRef} className={s.play} data-play-root="" data-testid="practice-play" data-screen={screen} data-phase={phase} data-quiet={quiet ? 'true' : 'false'} data-stage={state.quality.stage} data-tier={state.quality.tier} data-unity-input={unityGameplayInput ? 'active' : 'blocked'}>
+    <div
+      ref={playRootRef}
+      className={s.play}
+      data-play-root=""
+      data-testid="practice-play"
+      data-screen={screen}
+      data-phase={phase}
+      data-quiet={quiet ? 'true' : 'false'}
+      data-stage={state.quality.stage}
+      data-tier={state.quality.tier}
+      data-unity-input={unityGameplayInput ? 'active' : 'blocked'}
+    >
       <div className={s.stage} aria-hidden="true" data-testid="practice-world-stage">
         <canvas
           id="vande-unity-practice-canvas"
@@ -251,28 +299,41 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
         />
       )}
 
-      {pipPhase && state.field && <FieldPip field={state.field} handedness={state.handedness} phase={pipPhase} side="right" onRoom={setPipRoom} onQuietOver={setPipQuietOver} />}
+      {pipPhase && state.field && (
+        <FieldPip
+          field={state.field}
+          handedness={state.handedness}
+          phase={pipPhase}
+          side="right"
+          onRoom={setPipRoom}
+          onQuietOver={setPipQuietOver}
+        />
+      )}
 
       {showRail && !unityStageOwnsInput && (
         <FieldPipShown.Provider value={pipShown}>
-        <StatusStrip
-          board={state.board}
-          status={inCoach ? { kind: 'coach', stage: state.coach!.mastery.stage } : { kind: 'practice' }}
-          ballNumber={state.ball?.ballNumber ?? state.board.over.length + 1}
-          field={state.field}
-          intent={state.intent}
-          bowler={plan?.bowler ?? state.ball?.bowler ?? null}
-          conditions={state.conditions}
-          ballLabel={ballLabel}
-          assist={inn?.assist ?? flow.settings.assist}
-          difficulty={plan && (plan.source === 'reference' || plan.source === 'built') ? undefined : (state.overDifficulty ?? null)}
-          handedness={state.handedness}
-          quiet={quiet || phase === 'ready'}
-          live={phase === 'live' || phase === 'playing'}
-          detail={deadInnings ? null : detail}
-          onBrief={!busy && plan && state.field && screen === 'live' ? () => setBrief(true) : null}
-          onPause={!busy && screen === 'live' && phase !== 'paused' ? () => flow.pause() : null}
-        />
+          <StatusStrip
+            board={state.board}
+            status={inCoach ? { kind: 'coach', stage: state.coach!.mastery.stage } : { kind: 'practice' }}
+            ballNumber={state.ball?.ballNumber ?? state.board.over.length + 1}
+            field={state.field}
+            intent={state.intent}
+            bowler={plan?.bowler ?? state.ball?.bowler ?? null}
+            conditions={state.conditions}
+            ballLabel={ballLabel}
+            assist={inn?.assist ?? flow.settings.assist}
+            difficulty={
+              plan && (plan.source === 'reference' || plan.source === 'built')
+                ? undefined
+                : (state.overDifficulty ?? null)
+            }
+            handedness={state.handedness}
+            quiet={quiet || phase === 'ready'}
+            live={phase === 'live' || phase === 'playing'}
+            detail={deadInnings ? null : detail}
+            onBrief={!busy && plan && state.field && screen === 'live' ? () => setBrief(true) : null}
+            onPause={!busy && screen === 'live' && phase !== 'paused' ? () => flow.pause() : null}
+          />
         </FieldPipShown.Provider>
       )}
 
@@ -296,11 +357,7 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
             {ballLabel ? ` · ${ballLabel}` : ''}
           </span>
           {unityGameplayInput && (
-            <button
-              type="button"
-              onClick={() => flow.requestUnityPause()}
-              data-testid="practice-unity-semantic-pause"
-            >
+            <button type="button" onClick={() => flow.requestUnityPause()} data-testid="practice-unity-semantic-pause">
               {t.t('practice.live.pause')}
             </button>
           )}
@@ -309,7 +366,9 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
               <span data-testid="practice-unity-semantic-setup-facts">
                 {bowlerStyle(t, plan.bowler)}
                 {' · '}
-                {state.intent ? t.tk(`practice.intent.short.${state.intent.intention}`) : t.t('practice.status.practice')}
+                {state.intent
+                  ? t.tk(`practice.intent.short.${state.intent.intention}`)
+                  : t.t('practice.status.practice')}
                 {' · '}
                 {t.tk(`practice.settings.assist.${inn?.assist ?? flow.settings.assist}`)}
               </span>
@@ -346,7 +405,9 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
       )}
 
       {phase === 'ready' && <Hint text={t.t('practice.live.hint')} accessibilityHidden={unityStageOwnsInput} />}
-      {phase === 'intro' && <IntroPanel onSkip={() => flow.skipTeaching(false)} onSkipAll={() => flow.skipTeaching(true)} />}
+      {phase === 'intro' && (
+        <IntroPanel onSkip={() => flow.skipTeaching(false)} onSkipAll={() => flow.skipTeaching(true)} />
+      )}
       {screen === 'live' && phase === 'loading' && <Loading notice={notice} />}
 
       {deadInnings &&
@@ -357,7 +418,9 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
             key={`${last.record.seed}:${last.overNumber}.${last.ballNumber}`}
             last={last}
             insight={state.insight}
-            score={t.t('practice.result.score', { score: t.t('practice.common.score', { runs: state.board.runs, wickets: state.board.wickets }) })}
+            score={t.t('practice.result.score', {
+              score: t.t('practice.common.score', { runs: state.board.runs, wickets: state.board.wickets }),
+            })}
             nextLabel={nextLabel}
             canPractice={Boolean(coach)}
             onPractice={() => flow.acceptDeadBallAction('practice_ball')}
@@ -377,13 +440,25 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
         (tester.current ? (
           <TesterPrompt tester={tester} />
         ) : (
-          <Coach session={state.coach!} busy={busy} onReplay={() => void flow.coachLoop.replayExactBall()} onDemo={() => void flow.coachLoop.coachDemonstrate()} onBack={() => flow.coachLoop.leaveCoach()} />
+          <Coach
+            session={state.coach!}
+            busy={busy}
+            onReplay={() => void flow.coachLoop.replayExactBall()}
+            onDemo={() => void flow.coachLoop.coachDemonstrate()}
+            onBack={() => flow.coachLoop.leaveCoach()}
+          />
         ))}
-      {screen !== 'coach' && !(screen === 'live' && phase === 'dead') && tester.current && !busy && <TesterPrompt tester={tester} />}
+      {screen !== 'coach' && !(screen === 'live' && phase === 'dead') && tester.current && !busy && (
+        <TesterPrompt tester={tester} />
+      )}
 
       {state.replay && (
         <ReplayBar
-          title={state.replay.items.length > 1 ? t.t('practice.replay.over', { n: state.replay.items[0].overNumber }) : t.t('practice.replay.ball', { n: state.replay.items[0].ballNumber })}
+          title={
+            state.replay.items.length > 1
+              ? t.t('practice.replay.over', { n: state.replay.items[0].overNumber })
+              : t.t('practice.replay.ball', { n: state.replay.items[0].ballNumber })
+          }
           index={state.replay.index}
           playing={state.replay.playing}
           onAgain={() => flow.coachLoop.replayAgain()}
@@ -393,17 +468,39 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
 
       {brief && plan && state.field && (
         <BriefSheet onClose={() => setBrief(false)}>
-          <SessionBrief kind={state.overKind ?? 'random'} plan={plan} field={state.field} intent={state.intent} conditions={state.conditions} assist={inn?.assist ?? flow.settings.assist} handedness={state.handedness} difficulty={state.overDifficulty} map />
+          <SessionBrief
+            kind={state.overKind ?? 'random'}
+            plan={plan}
+            field={state.field}
+            intent={state.intent}
+            conditions={state.conditions}
+            assist={inn?.assist ?? flow.settings.assist}
+            handedness={state.handedness}
+            difficulty={state.overDifficulty}
+            map
+          />
         </BriefSheet>
       )}
 
       {screen === 'live' && phase === 'paused' && (
-        <PausePanel notice={notice} canRestart={midOver} onResume={() => flow.resume()} onRestart={() => setConfirm('restart')} onLeave={leave} onSettings={onSettings} />
+        <PausePanel
+          notice={notice}
+          canRestart={midOver}
+          onResume={() => flow.resume()}
+          onRestart={() => setConfirm('restart')}
+          onLeave={leave}
+          onSettings={onSettings}
+        />
       )}
 
       {screen === 'error' && (
         <Center>
-          <section className={`${sys.card} ${s.error}`} role="alertdialog" aria-labelledby="practice-error-title" data-testid="practice-error">
+          <section
+            className={`${sys.card} ${s.error}`}
+            role="alertdialog"
+            aria-labelledby="practice-error-title"
+            data-testid="practice-error"
+          >
             <h2 id="practice-error-title" className={sys.section}>
               {t.t('practice.error.title')}
             </h2>
@@ -420,7 +517,16 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
 
       {state.needLandscape && <TurnPhone onContinue={() => flow.allowPortrait()} />}
 
-      {screen === 'over_summary' && <OverSummary flow={flow} state={state} onHome={onHome} onNextOver={onNextOver} onChooseOver={onChooseOver} onHarder={onHarder} />}
+      {screen === 'over_summary' && (
+        <OverSummary
+          flow={flow}
+          state={state}
+          onHome={onHome}
+          onNextOver={onNextOver}
+          onChooseOver={onChooseOver}
+          onHarder={onHarder}
+        />
+      )}
       {screen === 'out' && <OutSummary flow={flow} state={state} onHome={onHome} />}
       {screen === 'complete' && <InningsSummary flow={flow} state={state} onHome={onHome} />}
 
@@ -464,7 +570,11 @@ export function Play({ flow, state, onHome, onSettings, onNextOver, onChooseOver
  * main view is then the field from above (or, after a leave, the batter's view with no clear corner), so there it
  * steps out at the dead ball.
  */
-export function fieldPipPhase(screen: FlowState['screen'], phase: FlowState['phase'], o: { unity: boolean; replay: boolean; field: boolean; stage: '3d' | '2d' }): FieldPipPhase | null {
+export function fieldPipPhase(
+  screen: FlowState['screen'],
+  phase: FlowState['phase'],
+  o: { unity: boolean; replay: boolean; field: boolean; stage: '3d' | '2d' },
+): FieldPipPhase | null {
   if (screen !== 'live' || o.unity || o.replay || !o.field) return null;
   if (phase === 'ready') return 'calm';
   if (phase === 'runup') return 'quiet';

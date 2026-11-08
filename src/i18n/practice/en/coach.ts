@@ -128,10 +128,13 @@ export const coachEn = {
   'practice.tip.fact.no_reach.moved_away': 'It moved {cm} cm away, and the bat never reached it',
   'practice.tip.fact.no_reach.moved_in': 'It moved {cm} cm in, and the bat never reached it',
   'practice.tip.fact.no_reach.across': 'You played across the line, and the bat never reached it',
-  'practice.tip.fact.no_reach.too_short_to_drive': 'Pitched {m} m from you, too short to drive, and the bat never reached it',
+  'practice.tip.fact.no_reach.too_short_to_drive':
+    'Pitched {m} m from you, too short to drive, and the bat never reached it',
   'practice.tip.fact.no_reach.at_the_toes': 'Pitched {m} m from you, right at your toes, and the bat never reached it',
-  'practice.tip.fact.no_reach.too_short_forward': 'Pitched {m} m from you, too short to play forward, and the bat never reached it',
-  'practice.tip.fact.no_reach.full_back': 'Pitched {m} m from you, full enough to play forward, and the bat never reached it',
+  'practice.tip.fact.no_reach.too_short_forward':
+    'Pitched {m} m from you, too short to play forward, and the bat never reached it',
+  'practice.tip.fact.no_reach.full_back':
+    'Pitched {m} m from you, full enough to play forward, and the bat never reached it',
   'practice.tip.fact.no_reach.stroke': 'That stroke never reached the ball',
   'practice.tip.do.repeat_it': 'play it the same way again',
   'practice.tip.do.well_played': 'that works as well as the coach’s choice',
@@ -264,7 +267,8 @@ export const coachEn = {
   'practice.coachmode.stage.2': 'Help 2: pitch and contact markers',
   'practice.coachmode.stage.3': 'Help 3: a contact cue only',
   'practice.coachmode.stage.4': 'No help',
-  'practice.coachmode.to_advance': '{count, plural, one {One more clean in a row for less help} other {# clean in a row for less help}}',
+  'practice.coachmode.to_advance':
+    '{count, plural, one {One more clean in a row for less help} other {# clean in a row for less help}}',
   'practice.coachmode.to_master': '{done} of the last {window} clean. Keep it repeatable to master it.',
   'practice.coachmode.mastered': 'Mastered: repeatable with no help.',
   'practice.coachmode.attempts': '{count, plural, one {# attempt} other {# attempts}} · {clean} clean',

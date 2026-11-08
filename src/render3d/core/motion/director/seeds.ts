@@ -26,7 +26,8 @@ export const u01 = (seed: number, k: number): number => mix(seed, k) / 429496729
 export const range = (seed: number, k: number, lo: number, hi: number): number => lo + (hi - lo) * u01(seed, k);
 
 /** An approximately normal draw (Irwin-Hall of three, unit variance, bounded to +-3): uses draws 3k .. 3k + 2. */
-export const gauss = (seed: number, k: number): number => (u01(seed, 3 * k) + u01(seed, 3 * k + 1) + u01(seed, 3 * k + 2) - 1.5) * 2;
+export const gauss = (seed: number, k: number): number =>
+  (u01(seed, 3 * k) + u01(seed, 3 * k + 1) + u01(seed, 3 * k + 2) - 1.5) * 2;
 
 /** A log-normal draw with the given mean and coefficient of variation (z is a unit-normal draw). */
 export function lognorm(mean: number, cv: number, z: number): number {

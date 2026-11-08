@@ -16,7 +16,19 @@
  * (never during a delivery) whenever the inset's size, the tier or the stadium's look changes. The camera never
  * moves, so Reduced Motion needs nothing more.
  */
-import { Box3, Color, OrthographicCamera, Vector2, Vector3, Vector4, type Mesh, type Object3D, type PerspectiveCamera, type Scene, type WebGLRenderer } from 'three';
+import {
+  Box3,
+  Color,
+  OrthographicCamera,
+  Vector2,
+  Vector3,
+  Vector4,
+  type Mesh,
+  type Object3D,
+  type PerspectiveCamera,
+  type Scene,
+  type WebGLRenderer,
+} from 'three';
 import type { Vec3 } from '@/contracts/practice';
 import { BLADE_HALF_W, GLOVE_R } from '@/physics/constants';
 import { BALL_R, PITCH_HALF, PITCH_WIDTH } from '../core/ground';
@@ -24,7 +36,13 @@ import { INSET_FIELD_R } from '../fallback2d/topDown';
 import { ballAt, toWorld } from '../practice/frame';
 import type { PracticeInfo } from '../practice/script';
 import type { ProtectedRegion } from '../practice/types';
-import { projectBallPathRegions, projectEnvelopeRegion, projectPolygonRegion, projectVisibleMeshRegions, type ProjectionViewport } from './protectedRegions';
+import {
+  projectBallPathRegions,
+  projectEnvelopeRegion,
+  projectPolygonRegion,
+  projectVisibleMeshRegions,
+  type ProjectionViewport,
+} from './protectedRegions';
 
 /** The largest picture kept (device px a side): enough for a 160 CSS px inset at 2×. */
 export const INSET_GROUND_MAX_PX = 320;
@@ -167,8 +185,20 @@ function protectedPath(p: PracticeInfo): Vec3[] {
  * replaced by an envelope round his drawn root, and each first-person mesh measured exactly only when its oriented
  * bounding box reaches the inset, so it is cheap enough for every frame. The first hit answers.
  */
-export function insetBlocked(p: PracticeInfo, camera: PerspectiveCamera, size: ProjectionViewport, rect: { x: number; y: number; width: number; height: number }, bowler: Vec3 | null, firstPerson: Object3D | null = null): boolean {
-  const hit = (r: ProtectedRegion | null) => r !== null && r.x < rect.x + rect.width && rect.x < r.x + r.width && r.y < rect.y + rect.height && rect.y < r.y + r.height;
+export function insetBlocked(
+  p: PracticeInfo,
+  camera: PerspectiveCamera,
+  size: ProjectionViewport,
+  rect: { x: number; y: number; width: number; height: number },
+  bowler: Vec3 | null,
+  firstPerson: Object3D | null = null,
+): boolean {
+  const hit = (r: ProtectedRegion | null) =>
+    r !== null &&
+    r.x < rect.x + rect.width &&
+    rect.x < r.x + r.width &&
+    r.y < rect.y + rect.height &&
+    rect.y < r.y + r.height;
   // The batter's own bat, gloves and forearms (the stage's 'bat' regions), whatever shape they are drawn in: each
   // mesh's oriented box first (cheap); only a mesh whose box reaches the inset is measured exactly, vertex by vertex,
   // as the stage measures it, so a forearm's box corner never hides the inset where the arm itself is not.
@@ -178,7 +208,19 @@ export function insetBlocked(p: PracticeInfo, camera: PerspectiveCamera, size: P
     }
   }
   if (hit(projectEnvelopeRegion(p.releaseWorld, BALL_R + GLOVE_R, 'release', camera, size))) return true;
-  if (bowler && hit(projectEnvelopeRegion({ x: bowler.x, y: bowler.y + BOWLER_ENVELOPE.aboveRoot, z: bowler.z }, BOWLER_ENVELOPE.radius, 'bowler', camera, size))) return true;
+  if (
+    bowler &&
+    hit(
+      projectEnvelopeRegion(
+        { x: bowler.x, y: bowler.y + BOWLER_ENVELOPE.aboveRoot, z: bowler.z },
+        BOWLER_ENVELOPE.radius,
+        'bowler',
+        camera,
+        size,
+      ),
+    )
+  )
+    return true;
   const strips = Math.ceil((PITCH_HALF * 2) / 0.5);
   for (let i = 0; i < strips; i++) {
     const z0 = -PITCH_HALF + (i * 2 * PITCH_HALF) / strips;
@@ -195,7 +237,8 @@ export function insetBlocked(p: PracticeInfo, camera: PerspectiveCamera, size: P
     for (const r of projectBallPathRegions(protectedPath(p), camera, size)) if (hit(r)) return true;
     const contact = p.result?.contact;
     const meet = contact?.point ?? ballAt(p.flight.samples, p.flight.idealContactT);
-    if (meet && hit(projectEnvelopeRegion(toWorld(meet, p.mirror), BALL_R + BLADE_HALF_W, 'contact', camera, size))) return true;
+    if (meet && hit(projectEnvelopeRegion(toWorld(meet, p.mirror), BALL_R + BLADE_HALF_W, 'contact', camera, size)))
+      return true;
   }
   return false;
 }
@@ -221,7 +264,11 @@ export function meshBoxRegions(root: Object3D, camera: PerspectiveCamera, size: 
   return meshBoxes(root, camera, size).map((b) => b.region);
 }
 
-function meshBoxes(root: Object3D, camera: PerspectiveCamera, size: ProjectionViewport): Array<{ mesh: Mesh; region: ProtectedRegion }> {
+function meshBoxes(
+  root: Object3D,
+  camera: PerspectiveCamera,
+  size: ProjectionViewport,
+): Array<{ mesh: Mesh; region: ProtectedRegion }> {
   for (let o: Object3D | null = root; o; o = o.parent) if (!o.visible) return [];
   root.updateWorldMatrix(true, true);
   const out: Array<{ mesh: Mesh; region: ProtectedRegion }> = [];
@@ -231,10 +278,18 @@ function meshBoxes(root: Object3D, camera: PerspectiveCamera, size: ProjectionVi
     if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
     box.copy(mesh.geometry.boundingBox!);
     if (box.isEmpty()) return;
-    for (let i = 0; i < 8; i++) corner[i].set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).applyMatrix4(mesh.matrixWorld);
+    for (let i = 0; i < 8; i++)
+      corner[i]
+        .set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z)
+        .applyMatrix4(mesh.matrixWorld);
     let r: ProtectedRegion | null = null;
     for (const face of FACES) {
-      const f = projectPolygonRegion(face.map((i) => corner[i]), 'bat', camera, size);
+      const f = projectPolygonRegion(
+        face.map((i) => corner[i]),
+        'bat',
+        camera,
+        size,
+      );
       if (!f) continue;
       if (!r) r = { ...f };
       else {

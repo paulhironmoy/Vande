@@ -20,11 +20,26 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { Quaternion } from 'three';
-import { FOREARM_HAND, armPops, boneTurn, deadBallJobs, overJobs, reelJobs, turnBetween, walkStriker, withPacks, type Walk } from './batterArmsCorpus';
+import {
+  FOREARM_HAND,
+  armPops,
+  boneTurn,
+  deadBallJobs,
+  overJobs,
+  reelJobs,
+  turnBetween,
+  walkStriker,
+  withPacks,
+  type Walk,
+} from './batterArmsCorpus';
 
 /** The hand-over: from the physics bat's last sample (else the dead ball) on. */
 const handOverFrom = (w: Walk) => w.lastBat ?? w.dead;
-const endsEarly = (w: Walk) => w.job.result.outcome.dismissal === 'bowled' || w.job.result.outcome.dismissal === 'lbw' || w.job.result.contact.kind === 'pad' || w.job.result.contact.kind === 'body';
+const endsEarly = (w: Walk) =>
+  w.job.result.outcome.dismissal === 'bowled' ||
+  w.job.result.outcome.dismissal === 'lbw' ||
+  w.job.result.contact.kind === 'pad' ||
+  w.job.result.contact.kind === 'body';
 
 /** The top glove's one-frame turns of its world rotation over `deg` while he holds the bat (before the input, after the stroke). */
 function holdingGloveTurns(w: Walk, deg: number): number {
@@ -68,14 +83,14 @@ describe('A2: the arms through the longer hand-over', () => {
       }
       expect(balls, 'balls that end early').toBeGreaterThan(60);
       expect(frames, 'frames of their hand-overs').toBeGreaterThan(10000);
-      expect(batStepMax * 100, 'the bat\'s largest step in a frame (cm; 9.5 before, 6.6 after)').toBeLessThan(8);
+      expect(batStepMax * 100, "the bat's largest step in a frame (cm; 9.5 before, 6.6 after)").toBeLessThan(8);
       expect(pops, 'forearm or hand turns over 60° in a frame (36 before, 6 after)').toBeLessThanOrEqual(12);
       expect(turned25, 'arm-bone turns over 25° in a frame (794 before, 205 after)').toBeLessThanOrEqual(260);
       expect(palmMax * 1000, 'palm to handle, largest (mm; 103.5 before, 42.2 after)').toBeLessThan(60);
     });
   }, 120_000);
 
-  it('the reel\'s four balls, both hands: 3 or fewer forearm or hand turns over 60° a hand, and 10 or fewer top-glove turns over 25° while he holds the bat', async () => {
+  it("the reel's four balls, both hands: 3 or fewer forearm or hand turns over 60° a hand, and 10 or fewer top-glove turns over 25° while he holds the bat", async () => {
     await withPacks(() => {
       let right = 0;
       let left = 0;
@@ -83,20 +98,29 @@ describe('A2: the arms through the longer hand-over', () => {
       let palm = 0;
       for (const job of reelJobs()) {
         const w = walkStriker(job, 600, 3000);
-        for (const f of w.frames) if (f.external && f.rel >= w.input - w.release - 200 && f.rel <= w.input - w.release + 1000) palm = Math.max(palm, f.palm[0], f.palm[1]);
+        for (const f of w.frames)
+          if (f.external && f.rel >= w.input - w.release - 200 && f.rel <= w.input - w.release + 1000)
+            palm = Math.max(palm, f.palm[0], f.palm[1]);
         const n = armPops(w, 60).length;
         if (job.hand === 'right') right += n;
         else left += n;
         glove += holdingGloveTurns(w, 25);
       }
-      expect(right, 'right-handers: forearm or hand turns over 60° in a frame (4 before, 2 after)').toBeLessThanOrEqual(3);
-      expect(left, 'left-handers: forearm or hand turns over 60° in a frame (2 before, 1 after)').toBeLessThanOrEqual(3);
-      expect(glove, 'frames where the top glove turns over 25° while he holds the bat (18 before, 6 after)').toBeLessThanOrEqual(10);
-      expect(palm * 1000, 'palm to handle, largest, in the swing\'s window (mm)').toBeLessThan(8);
+      expect(right, 'right-handers: forearm or hand turns over 60° in a frame (4 before, 2 after)').toBeLessThanOrEqual(
+        3,
+      );
+      expect(left, 'left-handers: forearm or hand turns over 60° in a frame (2 before, 1 after)').toBeLessThanOrEqual(
+        3,
+      );
+      expect(
+        glove,
+        'frames where the top glove turns over 25° while he holds the bat (18 before, 6 after)',
+      ).toBeLessThanOrEqual(10);
+      expect(palm * 1000, "palm to handle, largest, in the swing's window (mm)").toBeLessThan(8);
     });
   }, 120_000);
 
-  it('the 96-delivery corpus (two overs, three balls, both hands, eight intents): 22 or fewer forearm or hand turns over 60°, 60 or fewer top-glove turns over 25°, none over §9\'s twist or wrist swing, the palm within 25 mm in the swing', async () => {
+  it("the 96-delivery corpus (two overs, three balls, both hands, eight intents): 22 or fewer forearm or hand turns over 60°, 60 or fewer top-glove turns over 25°, none over §9's twist or wrist swing, the palm within 25 mm in the swing", async () => {
     await withPacks(() => {
       let pops = 0;
       let glove = 0;
@@ -110,13 +134,19 @@ describe('A2: the arms through the longer hand-over', () => {
         glove += holdingGloveTurns(w, 25);
         for (const f of w.frames) {
           if (f.twist.some((t) => t > 110) || f.wrist.some((x) => x > 85)) over++;
-          if (f.external && f.rel >= w.input - w.release - 200 && f.rel <= w.input - w.release + 1000) palmMax = Math.max(palmMax, f.palm[0], f.palm[1]);
+          if (f.external && f.rel >= w.input - w.release - 200 && f.rel <= w.input - w.release + 1000)
+            palmMax = Math.max(palmMax, f.palm[0], f.palm[1]);
         }
       }
       expect(frames, 'frames walked').toBeGreaterThan(30000);
       expect(pops, 'forearm or hand turns over 60° in a frame (47 before, 15 after)').toBeLessThanOrEqual(22);
-      expect(glove, 'frames where the top glove turns over 25° while he holds the bat (111 before, 48 after)').toBeLessThanOrEqual(60);
-      expect(over, 'frames over MOTION-SPEC §9\'s upper-arm twist (110°) or wrist swing (85°) (2 before, 0 after)').toBe(0);
+      expect(
+        glove,
+        'frames where the top glove turns over 25° while he holds the bat (111 before, 48 after)',
+      ).toBeLessThanOrEqual(60);
+      expect(over, "frames over MOTION-SPEC §9's upper-arm twist (110°) or wrist swing (85°) (2 before, 0 after)").toBe(
+        0,
+      );
       expect(palmMax * 1000, 'palm to handle, largest, while the external bat is swung (mm)').toBeLessThan(25);
     });
   }, 120_000);

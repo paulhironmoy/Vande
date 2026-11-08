@@ -18,7 +18,10 @@ interface Seen {
 function read(storage: Pick<Storage, 'getItem'> | null): Seen {
   try {
     const v = JSON.parse(storage?.getItem(KEY) ?? 'null') as Partial<Seen> | null;
-    return { joined: Array.isArray(v?.joined) ? v.joined : [], completed: Array.isArray(v?.completed) ? v.completed : [] };
+    return {
+      joined: Array.isArray(v?.joined) ? v.joined : [],
+      completed: Array.isArray(v?.completed) ? v.completed : [],
+    };
   } catch {
     return { joined: [], completed: [] };
   }
@@ -41,7 +44,11 @@ function defaultStorage(): Storage | null {
 }
 
 /** The milestones of this view not yet sent from this device (and marks them as sent). */
-export function cupMilestones(view: CupView | null, myId: string | null, storage: (Pick<Storage, 'getItem' | 'setItem'>) | null = defaultStorage()): Array<{ event: AnalyticsEventName; props: AnalyticsProps }> {
+export function cupMilestones(
+  view: CupView | null,
+  myId: string | null,
+  storage: Pick<Storage, 'getItem' | 'setItem'> | null = defaultStorage(),
+): Array<{ event: AnalyticsEventName; props: AnalyticsProps }> {
   if (!view || !myId || !view.members.some((m) => m.id === myId)) return [];
   const seen = read(storage);
   const out: Array<{ event: AnalyticsEventName; props: AnalyticsProps }> = [];
@@ -58,7 +65,11 @@ export function cupMilestones(view: CupView | null, myId: string | null, storage
   return out;
 }
 
-export function useCupMilestones(view: CupView | null, myId: string | null, analytics: { track(event: AnalyticsEventName, props?: AnalyticsProps): void; active?: () => boolean } | null): void {
+export function useCupMilestones(
+  view: CupView | null,
+  myId: string | null,
+  analytics: { track(event: AnalyticsEventName, props?: AnalyticsProps): void; active?: () => boolean } | null,
+): void {
   const cupId = view?.cupId;
   const status = view?.status;
   useEffect(() => {

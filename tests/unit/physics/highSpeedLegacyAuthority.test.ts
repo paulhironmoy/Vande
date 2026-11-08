@@ -21,12 +21,17 @@ const REQUESTED_BACK = batSpeed('attack', 0.65) * 0.75;
 describe('high-speed stroke authority', () => {
   it('preserves the intended blade-edge glance for a full leg-side ball', () => {
     const ball = fly({ variation: 'stock', lengthM: 4, lineM: -0.08, speedKph: 136 });
-    const swing = timedSwing(ball, 0, {
-      kind: 'attack',
-      directionDeg: -150,
-      elevation: 0.1,
-      power: 0.65,
-    }, 'forward');
+    const swing = timedSwing(
+      ball,
+      0,
+      {
+        kind: 'attack',
+        directionDeg: -150,
+        elevation: 0.1,
+        power: 0.65,
+      },
+      'forward',
+    );
 
     const track = buildBatTrack(ball, swing, { assist: 'real' });
     const replay = buildBatTrack(ball, swing, { assist: 'real' });
@@ -43,12 +48,17 @@ describe('high-speed stroke authority', () => {
 
   it('preserves the established full-ball flick face contact after a projected-path rejection', () => {
     const ball = fly({ variation: 'stock', lengthM: 4, lineM: -0.08, speedKph: 136 });
-    const swing = timedSwing(ball, 0, {
-      kind: 'attack',
-      directionDeg: -80,
-      elevation: 0.1,
-      power: 0.65,
-    }, 'forward');
+    const swing = timedSwing(
+      ball,
+      0,
+      {
+        kind: 'attack',
+        directionDeg: -80,
+        elevation: 0.1,
+        power: 0.65,
+      },
+      'forward',
+    );
 
     const track = buildBatTrack(ball, swing, { assist: 'real' });
     const hit = sweep(ball.samples, track, track.body, 0, ball.samples.at(-1)!.t).hit;
@@ -66,12 +76,17 @@ describe('high-speed stroke authority', () => {
 
   it('preserves the first generalized high-speed on-drive authority before legacy recovery', () => {
     const ball = fly({ variation: 'stock', lengthM: 4, lineM: -0.08, speedKph: 136 });
-    const swing = timedSwing(ball, 0, {
-      kind: 'attack',
-      directionDeg: -20,
-      elevation: 0.1,
-      power: 0.65,
-    }, 'forward');
+    const swing = timedSwing(
+      ball,
+      0,
+      {
+        kind: 'attack',
+        directionDeg: -20,
+        elevation: 0.1,
+        power: 0.65,
+      },
+      'forward',
+    );
 
     const track = buildBatTrack(ball, swing, { assist: 'real' });
     const hit = sweep(ball.samples, track, track.body, 0, ball.samples.at(-1)!.t).hit;
@@ -87,9 +102,17 @@ describe('high-speed stroke authority', () => {
 
   it('preserves the expected-delivery flick exact-body authority after projected rejection', () => {
     const ball = fly({ variation: 'stock', lengthM: 4, lineM: -0.08, speedKph: 136 });
-    const swing = timedSwing(ball, 0, {
-      kind: 'attack', directionDeg: -80, elevation: 0.1, power: 0.65,
-    }, 'forward');
+    const swing = timedSwing(
+      ball,
+      0,
+      {
+        kind: 'attack',
+        directionDeg: -80,
+        elevation: 0.1,
+        power: 0.65,
+      },
+      'forward',
+    );
 
     const track = buildBatTrack(ball, swing, { assist: 'real', expect: EXPECTED_STOCK });
     const hit = sweep(ball.samples, track, track.body, 0, ball.samples.at(-1)!.t).hit;
@@ -106,9 +129,17 @@ describe('high-speed stroke authority', () => {
 
   it('keeps a longitudinal expected-delivery on-drive outside the projected family', () => {
     const ball = fly({ variation: 'stock', lengthM: 4, lineM: -0.08, speedKph: 136 });
-    const swing = timedSwing(ball, 0, {
-      kind: 'attack', directionDeg: -20, elevation: 0.1, power: 0.65,
-    }, 'forward');
+    const swing = timedSwing(
+      ball,
+      0,
+      {
+        kind: 'attack',
+        directionDeg: -20,
+        elevation: 0.1,
+        power: 0.65,
+      },
+      'forward',
+    );
 
     const track = buildBatTrack(ball, swing, { assist: 'real', expect: EXPECTED_STOCK });
     const hit = sweep(ball.samples, track, track.body, 0, ball.samples.at(-1)!.t).hit;
@@ -130,37 +161,90 @@ describe('high-speed stroke authority', () => {
   // -0.000180300667 / 0; back punch 6.568359375 / 0.225 / 0.007527508975, -0.004049505951 / 0.
   it.each([
     {
-      label: 'off drive', directionDeg: 25, footwork: 'forward' as const, lengthM: 4, lineM: 0.18,
-      speed: REQUESTED_FRONT, contactU: 0.225, rootX: -0.128155936427, rootZ: -0.125111414181, crouch: 0.18,
+      label: 'off drive',
+      directionDeg: 25,
+      footwork: 'forward' as const,
+      lengthM: 4,
+      lineM: 0.18,
+      speed: REQUESTED_FRONT,
+      contactU: 0.225,
+      rootX: -0.128155936427,
+      rootZ: -0.125111414181,
+      crouch: 0.18,
     },
     {
-      label: 'cover drive', directionDeg: 55, footwork: 'forward' as const, lengthM: 4, lineM: 0.18,
-      speed: REQUESTED_FRONT, contactU: 0.225, rootX: -0.137843419088, rootZ: -0.114350346804, crouch: 0.18,
+      label: 'cover drive',
+      directionDeg: 55,
+      footwork: 'forward' as const,
+      lengthM: 4,
+      lineM: 0.18,
+      speed: REQUESTED_FRONT,
+      contactU: 0.225,
+      rootX: -0.137843419088,
+      rootZ: -0.114350346804,
+      crouch: 0.18,
     },
     {
-      label: 'square drive', directionDeg: 100, footwork: 'forward' as const, lengthM: 4, lineM: 0.18,
-      speed: REQUESTED_FRONT, contactU: 0.225, rootX: -0.141314260595, rootZ: -0.110032221429, crouch: 0.18,
+      label: 'square drive',
+      directionDeg: 100,
+      footwork: 'forward' as const,
+      lengthM: 4,
+      lineM: 0.18,
+      speed: REQUESTED_FRONT,
+      contactU: 0.225,
+      rootX: -0.141314260595,
+      rootZ: -0.110032221429,
+      crouch: 0.18,
     },
     {
-      label: 'steer', directionDeg: 150, footwork: 'forward' as const, lengthM: 4, lineM: 0.18,
-      speed: REQUESTED_FRONT, contactU: 0.225, rootX: -0.169668109314, rootZ: -0.057354534973, crouch: 0.18,
+      label: 'steer',
+      directionDeg: 150,
+      footwork: 'forward' as const,
+      lengthM: 4,
+      lineM: 0.18,
+      speed: REQUESTED_FRONT,
+      contactU: 0.225,
+      rootX: -0.169668109314,
+      rootZ: -0.057354534973,
+      crouch: 0.18,
     },
     {
-      label: 'back drive', directionDeg: 0, footwork: 'back' as const, lengthM: 7, lineM: 0.05,
-      speed: REQUESTED_BACK, contactU: 0.225, rootX: -0.067444524374, rootZ: -0.123139742293, crouch: 0.09,
+      label: 'back drive',
+      directionDeg: 0,
+      footwork: 'back' as const,
+      lengthM: 7,
+      lineM: 0.05,
+      speed: REQUESTED_BACK,
+      contactU: 0.225,
+      rootX: -0.067444524374,
+      rootZ: -0.123139742293,
+      crouch: 0.09,
     },
     {
-      label: 'back punch', directionDeg: 40, footwork: 'back' as const, lengthM: 7, lineM: 0.18,
-      speed: REQUESTED_BACK, contactU: 0.225, rootX: -0.071899706952, rootZ: -0.120592670342, crouch: 0.09,
+      label: 'back punch',
+      directionDeg: 40,
+      footwork: 'back' as const,
+      lengthM: 7,
+      lineM: 0.18,
+      speed: REQUESTED_BACK,
+      contactU: 0.225,
+      rootX: -0.071899706952,
+      rootZ: -0.120592670342,
+      crouch: 0.09,
     },
   ])('preserves the established $label fallback identity', (expected) => {
     const ball = fly({ variation: 'stock', lengthM: expected.lengthM, lineM: expected.lineM, speedKph: 136 });
-    const swing = timedSwing(ball, 0, {
-      kind: 'attack',
-      directionDeg: expected.directionDeg,
-      elevation: 0.1,
-      power: 0.65,
-    }, expected.footwork);
+    const swing = timedSwing(
+      ball,
+      0,
+      {
+        kind: 'attack',
+        directionDeg: expected.directionDeg,
+        elevation: 0.1,
+        power: 0.65,
+      },
+      expected.footwork,
+    );
 
     const track = buildBatTrack(ball, swing, { assist: 'real' });
     const hit = sweep(ball.samples, track, track.body, 0, ball.samples.at(-1)!.t).hit;

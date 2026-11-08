@@ -73,6 +73,7 @@ export function memoryStore(): KeyStore & { map: Map<string, string> } {
   };
 }
 
-export const isObj = (v: unknown): v is Record<string, unknown> => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
+export const isObj = (v: unknown): v is Record<string, unknown> =>
+  Boolean(v) && typeof v === 'object' && !Array.isArray(v);
 export const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 export const isInt = (v: unknown): v is number => Number.isInteger(v);

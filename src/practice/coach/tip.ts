@@ -137,7 +137,11 @@ export interface CoachTip {
 /** The attempt's result fields a tip reads (the coach's own re-simulation of the record's swing). */
 export type TipAttempt = Pick<DeliveryResult, 'contact' | 'outcome' | 'coaching'>;
 
-const BEATEN_BY_MOVEMENT: ReadonlySet<CoachingReason> = new Set<CoachingReason>(['beaten_by_swing', 'beaten_by_seam', 'beaten_by_turn']);
+const BEATEN_BY_MOVEMENT: ReadonlySet<CoachingReason> = new Set<CoachingReason>([
+  'beaten_by_swing',
+  'beaten_by_seam',
+  'beaten_by_turn',
+]);
 /**
  * The physics' "what beat the bat" diagnoses (scoring.ts diagnoseBeaten) that a contact off the middle of the bat
  * contradicts: the bat met the ball, so nothing beat it. The physics also runs that diagnosis for a ball played on
@@ -153,7 +157,13 @@ const BEATEN_BAT: ReadonlySet<CoachingReason> = new Set<CoachingReason>([
 ]);
 const LATE_REASONS: ReadonlySet<CoachingReason> = new Set<CoachingReason>(['too_late', 'beaten_by_pace']);
 /** Contacts on the bat: bowled after one of these is played on. */
-const ON_THE_BAT: ReadonlySet<ContactReport['kind']> = new Set<ContactReport['kind']>(['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge']);
+const ON_THE_BAT: ReadonlySet<ContactReport['kind']> = new Set<ContactReport['kind']>([
+  'middle',
+  'inside_edge',
+  'outside_edge',
+  'top_edge',
+  'leading_edge',
+]);
 const CONFIRM: ReadonlySet<CoachRecommendationKind> = new Set<CoachRecommendationKind>(['repeat_it', 'well_played']);
 const TIMING: ReadonlySet<CoachRecommendationKind> = new Set<CoachRecommendationKind>(['play_earlier', 'play_later']);
 const LENGTH: ReadonlySet<CoachRecommendationKind> = new Set<CoachRecommendationKind>(['get_back', 'get_forward']);
@@ -171,7 +181,13 @@ const rnd = (v: number) => Math.round(v) || 0;
 const r1 = (v: number) => Math.round(v * 10) / 10 || 0;
 
 /** Risks in order of how they end an innings: a miss on the stumps or the pad, a catch, an edge, a set fielder. */
-const RISK_ORDER: readonly CoachRisk[] = ['can_be_bowled', 'can_be_lbw', 'can_be_caught', 'can_edge', 'into_protected_region'];
+const RISK_ORDER: readonly CoachRisk[] = [
+  'can_be_bowled',
+  'can_be_lbw',
+  'can_be_caught',
+  'can_edge',
+  'into_protected_region',
+];
 
 /**
  * The risks the attempt's own stroke carries over its execution spread (attempted.spread, recorded) that the
@@ -187,7 +203,11 @@ export function unwarnedRisks(an: Pick<CoachAnalysis, 'attempted' | 'options'>):
  * Praise is earned (anti-fake rule 7, COACH5's spirit): a confirmation (repeat_it, well_played) only for a stroke that
  * carried no risk the recommended response does not. The recommendation itself never changes; only its words do.
  */
-export function praiseEarned(an: Pick<CoachAnalysis, 'attempted' | 'options'>, rec: Pick<CoachRecommendation, 'kind'>, tip?: Pick<CoachTip, 'fact'> | null): boolean {
+export function praiseEarned(
+  an: Pick<CoachAnalysis, 'attempted' | 'options'>,
+  rec: Pick<CoachRecommendation, 'kind'>,
+  tip?: Pick<CoachTip, 'fact'> | null,
+): boolean {
   if (!CONFIRM.has(rec.kind)) return true;
   // With the tip (tipOf), the contact itself decides too: a slow fend, the toe or off the sweet zone earn no praise.
   return unwarnedRisks(an).length === 0 && !(tip && NO_PRAISE.has(tip.fact.kind));
@@ -205,7 +225,8 @@ function contactFact(an: CoachAnalysis, at: TipAttempt, instead: CoachRecommenda
   const a = an.attempted;
   const c = at.contact;
   if (a.decision === 'leave' || c.kind !== 'middle') return null;
-  if (slowFend(a, c)) return { kind: 'slow', kph: rnd(c.batSpeedKph as number), requestedKph: rnd(requestedKph(a) as number), instead };
+  if (slowFend(a, c))
+    return { kind: 'slow', kph: rnd(c.batSpeedKph as number), requestedKph: rnd(requestedKph(a) as number), instead };
   if (offTheToe(c)) return { kind: 'toe', instead };
   if (a.decision === 'attack' && !inSweetZone(c)) {
     const d = offSweetAlongM(c) as number;
@@ -227,7 +248,8 @@ function cleanContactOf(an: CoachAnalysis, at: TipAttempt): boolean | null {
  */
 function insteadOf(an: CoachAnalysis, rec: CoachRecommendation): CoachRecommendationKind {
   if (rec.decision === 'attack') return 'aim_for_the_gap';
-  if (rec.decision === 'defend') return rec.footwork === 'back' || rec.footwork === 'across' ? 'defend_back' : 'defend_forward';
+  if (rec.decision === 'defend')
+    return rec.footwork === 'back' || rec.footwork === 'across' ? 'defend_back' : 'defend_forward';
   return leaveKind(an);
 }
 
@@ -238,7 +260,10 @@ export function spokenAction(tip: Pick<CoachTip, 'fact' | 'action'>): CoachRecom
 }
 
 /** Where the ball went: a dismissal, then the contact, then the region it was hit to. */
-export function whereOf(contact: Pick<ContactReport, 'kind'> & { bladeU?: number | null }, outcome: Pick<DeliveryOutcome, 'dismissal' | 'region'>): { where: TipWhere; zone: Zone | null } {
+export function whereOf(
+  contact: Pick<ContactReport, 'kind'> & { bladeU?: number | null },
+  outcome: Pick<DeliveryOutcome, 'dismissal' | 'region'>,
+): { where: TipWhere; zone: Zone | null } {
   const d = outcome.dismissal;
   if (d === 'bowled') return { where: ON_THE_BAT.has(contact.kind) ? 'played_on' : 'bowled', zone: null };
   if (d === 'caught' || d === 'caught_behind') return { where: 'caught', zone: null };
@@ -277,7 +302,13 @@ function timingFact(an: CoachAnalysis, at: TipAttempt): TipFact | null {
 
 function movedFact(f: BallFacts, at: TipAttempt): TipFact | null {
   if (!f.mover) return null;
-  return { kind: 'moved', mover: f.mover, towards: f.playedMoveM > 0 ? 'away' : 'in', cm: rnd(Math.abs(f.playedMoveM) * 100), ...whereOf(at.contact, at.outcome) };
+  return {
+    kind: 'moved',
+    mover: f.mover,
+    towards: f.playedMoveM > 0 ? 'away' : 'in',
+    cm: rnd(Math.abs(f.playedMoveM) * 100),
+    ...whereOf(at.contact, at.outcome),
+  };
 }
 
 const lengthOf = (f: BallFacts) => r1(f.lengthM ?? 0);
@@ -291,7 +322,8 @@ function lengthFact(an: CoachAnalysis, f: BallFacts): TipFact | null {
   if (a.decision === 'leave' || f.lengthM === null) return null;
   const front = a.footwork === 'forward' || a.footwork === 'down_track';
   const fought = an.read.length === 'wrong' || an.read.bounce === 'wrong';
-  if (front && a.decision === 'attack' && f.lengthBand === 'yorker') return { kind: 'at_the_toes', lengthM: lengthOf(f) };
+  if (front && a.decision === 'attack' && f.lengthBand === 'yorker')
+    return { kind: 'at_the_toes', lengthM: lengthOf(f) };
   if (front && a.decision === 'attack' && !f.full) return { kind: 'too_short_to_drive', lengthM: lengthOf(f) };
   if (!fought) return null;
   if (front) return { kind: 'too_short_forward', lengthM: lengthOf(f) };
@@ -304,7 +336,11 @@ function acrossFact(an: CoachAnalysis, f: BallFacts): TipFact | null {
   const a = an.attempted;
   if (a.decision !== 'attack' || a.directionDeg === null) return null;
   if (an.read.movement === 'wrong' && acrossTheMovement(a.directionDeg, f)) {
-    return { kind: 'across_movement', towards: f.playedMoveM > 0 ? 'away' : 'in', cm: rnd(Math.abs(f.playedMoveM) * 100) };
+    return {
+      kind: 'across_movement',
+      towards: f.playedMoveM > 0 ? 'away' : 'in',
+      cm: rnd(Math.abs(f.playedMoveM) * 100),
+    };
   }
   if (an.read.line === 'wrong' && acrossTheLine(a.directionDeg, f)) {
     const side = f.wideOfStumpsM <= 0 ? 'stumps' : f.lineAtStumpsM > 0 ? 'off' : 'leg';
@@ -328,7 +364,12 @@ function reasonFact(an: CoachAnalysis, at: TipAttempt): TipFact {
     const t = timingFact(an, at);
     if (t) return t;
   }
-  return { kind: 'reason', reason: an.why[0], zone: at.coaching.zone ?? at.outcome.region ?? null, fielder: at.coaching.fielderRole ?? null };
+  return {
+    kind: 'reason',
+    reason: an.why[0],
+    zone: at.coaching.zone ?? at.outcome.region ?? null,
+    fielder: at.coaching.fielderRole ?? null,
+  };
 }
 
 /**
@@ -356,7 +397,14 @@ function riskFact(an: CoachAnalysis, instead: CoachRecommendationKind): TipFact 
  */
 function failureFact(an: CoachAnalysis, f: BallFacts, at: TipAttempt, k: CoachRecommendationKind): TipFact {
   if (an.attempted.decision === 'leave') return reasonFact(an, at);
-  return namedFact(an, f, at) ?? lengthFact(an, f) ?? acrossFact(an, f) ?? riskFact(an, k) ?? contactFact(an, at, k) ?? reasonFact(an, at);
+  return (
+    namedFact(an, f, at) ??
+    lengthFact(an, f) ??
+    acrossFact(an, f) ??
+    riskFact(an, k) ??
+    contactFact(an, at, k) ??
+    reasonFact(an, at)
+  );
 }
 
 /**
@@ -437,7 +485,11 @@ function reachedFact(an: CoachAnalysis, f: BallFacts, fact: TipFact): TipFact {
   if (fact.kind === 'reason' && SAYS_UNMET.has(fact.reason)) return fact;
   const across: TipFact = { kind: 'no_reach', why: 'across', cm: null, lengthM: null };
   if (fact.kind === 'reason' && fact.reason === 'played_across_the_line') return noReachOf(acrossFact(an, f)) ?? across;
-  return noReachOf(fact) ?? noReachOf(acrossFact(an, f)) ?? noReachOf(lengthFact(an, f)) ?? { kind: 'no_reach', why: 'stroke', cm: null, lengthM: null };
+  return (
+    noReachOf(fact) ??
+    noReachOf(acrossFact(an, f)) ??
+    noReachOf(lengthFact(an, f)) ?? { kind: 'no_reach', why: 'stroke', cm: null, lengthM: null }
+  );
 }
 
 function mistakeOf(fact: TipFact): TipMistake {
@@ -476,7 +528,9 @@ export function tipOf(an: CoachAnalysis, f: BallFacts, attempt: TipAttempt): Coa
     // ... and so is a contact the measurement does not support (a slow fend, the toe, off the sweet zone).
     const risk = unwarnedRisks(an)[0];
     const instead = insteadOf(an, action);
-    const fact: TipFact = risk ? { kind: 'unwarned', risk, instead } : (contactFact(an, attempt, instead) ?? reasonFact(an, attempt));
+    const fact: TipFact = risk
+      ? { kind: 'unwarned', risk, instead }
+      : (contactFact(an, attempt, instead) ?? reasonFact(an, attempt));
     return { mistake: null, fact, action, cleanContact: cleanContactOf(an, attempt) };
   }
   let fact: TipFact;
@@ -509,9 +563,16 @@ export interface TipTranslator {
  * `gap` for the gap itself ("the cover gap", "the gap behind the wicket", "the gap"). One closed phrase per region and
  * role, so no line ever reads "the the gap gap" or "the behind the wicket gap", in any language.
  */
-export function zonePhrases(t: TipTranslator, region: Zone | null | undefined): { to: string; towards: string; gap: string } {
+export function zonePhrases(
+  t: TipTranslator,
+  region: Zone | null | undefined,
+): { to: string; towards: string; gap: string } {
   const r = region ?? 'any';
-  return { to: t.tk(`practice.zone.to.${r}`), towards: t.tk(`practice.zone.towards.${r}`), gap: t.tk(`practice.zone.gap.${r}`) };
+  return {
+    to: t.tk(`practice.zone.to.${r}`),
+    towards: t.tk(`practice.zone.towards.${r}`),
+    gap: t.tk(`practice.zone.gap.${r}`),
+  };
 }
 
 function whereWords(t: TipTranslator, where: TipWhere, zone: Zone | null): string {
@@ -531,7 +592,10 @@ export function tipFactWords(t: TipTranslator, fact: TipFact): string {
     case 'late_where':
       return t.tk('practice.tip.fact.late_where', { ms: fact.ms, where: whereWords(t, fact.where, fact.zone) });
     case 'moved':
-      return t.tk(`practice.tip.fact.${MOVER_KEY[fact.mover]}_${fact.towards}`, { cm: fact.cm, where: whereWords(t, fact.where, fact.zone) });
+      return t.tk(`practice.tip.fact.${MOVER_KEY[fact.mover]}_${fact.towards}`, {
+        cm: fact.cm,
+        where: whereWords(t, fact.where, fact.zone),
+      });
     case 'too_short_to_drive':
     case 'at_the_toes':
     case 'too_short_forward':
@@ -557,7 +621,9 @@ export function tipFactWords(t: TipTranslator, fact: TipFact): string {
         return fact.zone ? t.tk(`practice.coach.${r}`, zonePhrases(t, fact.zone)) : t.tk(`practice.coach.${r}_any`);
       }
       if (r === 'hit_to_fielder' || r === 'caught_in_the_deep' || r === 'caught_in_the_ring') {
-        return fact.fielder ? t.tk(`practice.coach.${r}`, { fielder: t.tk(`practice.fielder.${fact.fielder}`) }) : t.tk(`practice.coach.${r}_any`);
+        return fact.fielder
+          ? t.tk(`practice.coach.${r}`, { fielder: t.tk(`practice.fielder.${fact.fielder}`) })
+          : t.tk(`practice.coach.${r}_any`);
       }
       return t.tk(`practice.coach.${r}`);
     }
@@ -580,10 +646,17 @@ export function tipActionWords(t: TipTranslator, rec: CoachRecommendation): stri
 
 /** The whole tip: one sentence, "<measured fact>: <one action>." */
 export function tipSentence(t: TipTranslator, tip: CoachTip): string {
-  return t.tk('practice.tip.sentence', { fact: tipFactWords(t, tip.fact), action: tipActionWords(t, spokenAction(tip)) });
+  return t.tk('practice.tip.sentence', {
+    fact: tipFactWords(t, tip.fact),
+    action: tipActionWords(t, spokenAction(tip)),
+  });
 }
 
 /** The tip in words: the sentence, and its fact and action clauses exactly as they appear in it. */
 export function tipWords(t: TipTranslator, tip: CoachTip): { sentence: string; fact: string; action: string } {
-  return { sentence: tipSentence(t, tip), fact: tipFactWords(t, tip.fact), action: tipActionWords(t, spokenAction(tip)) };
+  return {
+    sentence: tipSentence(t, tip),
+    fact: tipFactWords(t, tip.fact),
+    action: tipActionWords(t, spokenAction(tip)),
+  };
 }

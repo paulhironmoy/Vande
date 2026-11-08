@@ -9,7 +9,8 @@ export const playHiLatn: Record<string, string> = {
   'practice.live.turn_body': 'Batting landscape mein hoti hai, taaki bowler ke haath se poori ball dikhe.',
   'practice.live.turn_continue': 'Phir bhi continue karo',
   'practice.live.score_label': '{overs} over ke baad score {runs}/{wickets}',
-  'practice.live.gesture_label': 'Batting area. Dabakar peeche kheecho, ball padhte hue roko, phir gap ki taraf aage flick karo. Leave ke liye kuch mat karo.',
+  'practice.live.gesture_label':
+    'Batting area. Dabakar peeche kheecho, ball padhte hue roko, phir gap ki taraf aage flick karo. Leave ke liye kuch mat karo.',
   'practice.live.announce_runup': 'Ball {n} / 6. Bowler daud ke aa raha hai.',
   'practice.live.announce': '{result}. {reason}. Score {runs} for {wickets}.',
   'practice.status.practice': 'Practice',
@@ -19,7 +20,8 @@ export const playHiLatn: Record<string, string> = {
   'practice.status.conditions_does': 'Poora setup kholta hai.',
   'practice.loading.title': 'Ground ready ho raha hai…',
   'practice.intro.title': 'Pehle dekho',
-  'practice.intro.body': 'Yahi batter tumhe milne wali balls jaisi ball khelta hai. Phir tumhari baari: dabao, peeche kheecho, ball dekho aur aage flick karo. Leave ke liye kuch mat karo.',
+  'practice.intro.body':
+    'Yahi batter tumhe milne wali balls jaisi ball khelta hai. Phir tumhari baari: dabao, peeche kheecho, ball dekho aur aage flick karo. Leave ke liye kuch mat karo.',
   'practice.intro.skip': 'Skip',
   'practice.intro.skip_all': 'Saari teaching skip karo',
   'practice.brief.title': 'Yeh over',
@@ -65,11 +67,13 @@ export const playHiLatn: Record<string, string> = {
   // ---- calm notices (between balls, never during a delivery)
   'practice.notice.classic': 'Smooth batting ke liye yeh device Classic graphics pe ja raha hai.',
   'practice.notice.balanced': 'Smooth batting ke liye yeh device Balanced graphics pe ja raha hai.',
-  'practice.notice.help_changed': 'Is over se yeh device fair batting ke liye thodi zyada timing help dega. Real mode mein koi help nahi.',
+  'practice.notice.help_changed':
+    'Is over se yeh device fair batting ke liye thodi zyada timing help dega. Real mode mein koi help nahi.',
   'practice.notice.help_less': 'Is over se yeh device kam timing help dega. Real mode mein koi help nahi.',
   'practice.notice.interrupted': 'Us ball ke dauraan Practice ruk gayi, isliye use leave mana gaya.',
   'practice.notice.resumed_leave': 'Practice band hote waqt jo ball khel mein thi, use leave mana gaya.',
-  'practice.notice.updated': 'Tumhari pichhli innings Practice ke purane version ki thi, isliye nayi innings shuru hogi.',
+  'practice.notice.updated':
+    'Tumhari pichhli innings Practice ke purane version ki thi, isliye nayi innings shuru hogi.',
   'practice.notice.unreadable': 'Tumhari pichhli innings is device pe padhi nahi ja saki, isliye use hata diya gaya.',
   'practice.error.title': 'Practice ruki hai',
   'practice.error.body': 'Tumhari innings safe hai. Game dobara shuru hone pe Practice continue hogi.',
@@ -134,7 +138,8 @@ export const playHiLatn: Record<string, string> = {
   'practice.summary.end_title': 'Yeh innings khatam karein?',
   'practice.summary.end_body': 'Tumhara {runs} ka score final hai.',
   'practice.summary.out_title': 'Out · {how}',
-  'practice.summary.survived': '{overs, plural, one {# over} other {# overs}} aur {balls, plural, one {# ball} other {# balls}} tike',
+  'practice.summary.survived':
+    '{overs, plural, one {# over} other {# overs}} aur {balls, plural, one {# ball} other {# balls}} tike',
   'practice.summary.survived_balls': '{balls, plural, one {# ball} other {# balls}} tike',
   'practice.summary.practise_dismissal': 'Out wali ball practice karo',
   'practice.summary.watch_dismissal': 'Dismissal dekho',

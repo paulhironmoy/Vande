@@ -6,7 +6,16 @@
 import type { FieldZone, ShotType } from '@/contracts';
 
 /** Sector order clockwise from straight up in the batter's view (x right, y down): mirrors the engine table. */
-export const SECTOR_ORDER: readonly FieldZone[] = ['mid_off', 'cover', 'point', 'third_man', 'fine_leg', 'square_leg', 'midwicket', 'mid_on'];
+export const SECTOR_ORDER: readonly FieldZone[] = [
+  'mid_off',
+  'cover',
+  'point',
+  'third_man',
+  'fine_leg',
+  'square_leg',
+  'midwicket',
+  'mid_on',
+];
 
 export const LOCAL_LEGAL_ZONES: Record<ShotType, readonly FieldZone[]> = {
   defend: [],

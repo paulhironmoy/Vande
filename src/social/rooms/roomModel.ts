@@ -7,22 +7,65 @@ import type { PlayerRef, ReactionId, RoomPost } from '@/contracts';
 import { BANTER_IDS } from '@/contracts';
 
 export const REACTIONS: readonly ReactionId[] = ['clap', 'fire', 'shock', 'laugh', 'cricket_bat', 'trophy'];
-export const REACTION_EMOJI: Record<ReactionId, string> = { clap: '👏', fire: '🔥', shock: '😮', laugh: '😂', cricket_bat: '🏏', trophy: '🏆' };
+export const REACTION_EMOJI: Record<ReactionId, string> = {
+  clap: '👏',
+  fire: '🔥',
+  shock: '😮',
+  laugh: '😂',
+  cricket_bat: '🏏',
+  trophy: '🏆',
+};
 export const BANTER = BANTER_IDS;
 
 type P = RoomPost['payload'];
 const DEADLINE_PHASES = ['lock', 'bat', 'auto_over', 'auto_xi'] as const;
-const str = (p: P, k: string): string | null => (typeof p[k] === 'string' && (p[k] as string).length > 0 ? (p[k] as string) : null);
-const num = (p: P, k: string): number | null => (typeof p[k] === 'number' && Number.isFinite(p[k] as number) ? (p[k] as number) : null);
+const str = (p: P, k: string): string | null =>
+  typeof p[k] === 'string' && (p[k] as string).length > 0 ? (p[k] as string) : null;
+const num = (p: P, k: string): number | null =>
+  typeof p[k] === 'number' && Number.isFinite(p[k] as number) ? (p[k] as number) : null;
 
 export type CardModel =
   | { kind: 'invite'; inviterAlias: string; cupName: string | null; cup: boolean }
-  | { kind: 'fixture'; round: string | null; final: boolean; fixtures: number | null; home: string | null; away: string | null; lockBy: string | null }
+  | {
+      kind: 'fixture';
+      round: string | null;
+      final: boolean;
+      fixtures: number | null;
+      home: string | null;
+      away: string | null;
+      lockBy: string | null;
+    }
   | { kind: 'lock_status'; round: string | null; locked: number; total: number }
-  | { kind: 'deadline'; round: string | null; phase: 'lock' | 'bat' | 'auto_over' | 'auto_xi'; by: string | null; alias: string | null }
+  | {
+      kind: 'deadline';
+      round: string | null;
+      phase: 'lock' | 'bat' | 'auto_over' | 'auto_xi';
+      by: string | null;
+      alias: string | null;
+    }
   | { kind: 'reveal_ready'; round: string | null; matchId: string | null; final: boolean }
-  | { kind: 'scorecard'; matchId: string | null; final: boolean; home: string; away: string; homeRuns: number; homeWickets: number; awayRuns: number; awayWickets: number; winner: string | null; tie: boolean }
-  | { kind: 'standings'; round: string | null; leader: string | null; points: number | null; moves: number | null; status: string | null; reason: string | null }
+  | {
+      kind: 'scorecard';
+      matchId: string | null;
+      final: boolean;
+      home: string;
+      away: string;
+      homeRuns: number;
+      homeWickets: number;
+      awayRuns: number;
+      awayWickets: number;
+      winner: string | null;
+      tie: boolean;
+    }
+  | {
+      kind: 'standings';
+      round: string | null;
+      leader: string | null;
+      points: number | null;
+      moves: number | null;
+      status: string | null;
+      reason: string | null;
+    }
   | { kind: 'achievement'; badge: string; alias: string }
   | { kind: 'highlight'; url: string | null; code: string | null; title: string | null }
   | { kind: 'rematch'; matchId: string | null; fromAlias: string; fromId: string | null; rematchOf: string | null }
@@ -32,18 +75,47 @@ export type CardModel =
 
 export function cardOf(post: RoomPost, members: readonly PlayerRef[]): CardModel {
   const p = post.payload;
-  const author = post.authorId ? members.find((m) => m.id === post.authorId) ?? null : null;
+  const author = post.authorId ? (members.find((m) => m.id === post.authorId) ?? null) : null;
   switch (post.kind) {
     case 'invite':
-      return { kind: 'invite', inviterAlias: str(p, 'inviterAlias') ?? '', cupName: str(p, 'cupName'), cup: str(p, 'kind') === 'cup' };
+      return {
+        kind: 'invite',
+        inviterAlias: str(p, 'inviterAlias') ?? '',
+        cupName: str(p, 'cupName'),
+        cup: str(p, 'kind') === 'cup',
+      };
     case 'fixture':
-      return { kind: 'fixture', round: str(p, 'round'), final: str(p, 'stage') === 'final', fixtures: num(p, 'fixtures'), home: str(p, 'homeAlias'), away: str(p, 'awayAlias'), lockBy: str(p, 'lockBy') };
+      return {
+        kind: 'fixture',
+        round: str(p, 'round'),
+        final: str(p, 'stage') === 'final',
+        fixtures: num(p, 'fixtures'),
+        home: str(p, 'homeAlias'),
+        away: str(p, 'awayAlias'),
+        lockBy: str(p, 'lockBy'),
+      };
     case 'lock_status':
-      return { kind: 'lock_status', round: str(p, 'round'), locked: num(p, 'locked') ?? 0, total: num(p, 'total') ?? 0 };
+      return {
+        kind: 'lock_status',
+        round: str(p, 'round'),
+        locked: num(p, 'locked') ?? 0,
+        total: num(p, 'total') ?? 0,
+      };
     case 'deadline':
-      return { kind: 'deadline', round: str(p, 'round'), phase: DEADLINE_PHASES.find((x) => x === str(p, 'phase')) ?? 'lock', by: str(p, 'by'), alias: str(p, 'alias') };
+      return {
+        kind: 'deadline',
+        round: str(p, 'round'),
+        phase: DEADLINE_PHASES.find((x) => x === str(p, 'phase')) ?? 'lock',
+        by: str(p, 'by'),
+        alias: str(p, 'alias'),
+      };
     case 'reveal_ready':
-      return { kind: 'reveal_ready', round: str(p, 'round'), matchId: str(p, 'matchId'), final: str(p, 'stage') === 'final' };
+      return {
+        kind: 'reveal_ready',
+        round: str(p, 'round'),
+        matchId: str(p, 'matchId'),
+        final: str(p, 'stage') === 'final',
+      };
     case 'scorecard':
       return {
         kind: 'scorecard',
@@ -59,13 +131,32 @@ export function cardOf(post: RoomPost, members: readonly PlayerRef[]): CardModel
         tie: p.tie === true,
       };
     case 'standings':
-      return { kind: 'standings', round: str(p, 'round'), leader: str(p, 'leaderAlias'), points: num(p, 'leaderPoints'), moves: num(p, 'moves'), status: str(p, 'status'), reason: str(p, 'reason') };
+      return {
+        kind: 'standings',
+        round: str(p, 'round'),
+        leader: str(p, 'leaderAlias'),
+        points: num(p, 'leaderPoints'),
+        moves: num(p, 'moves'),
+        status: str(p, 'status'),
+        reason: str(p, 'reason'),
+      };
     case 'achievement':
       return { kind: 'achievement', badge: str(p, 'badge') ?? '', alias: str(p, 'alias') ?? '' };
     case 'highlight':
-      return { kind: 'highlight', url: str(p, 'url'), code: codeFromUrl(str(p, 'url')) ?? str(p, 'code'), title: str(p, 'title') };
+      return {
+        kind: 'highlight',
+        url: str(p, 'url'),
+        code: codeFromUrl(str(p, 'url')) ?? str(p, 'code'),
+        title: str(p, 'title'),
+      };
     case 'rematch':
-      return { kind: 'rematch', matchId: str(p, 'matchId'), fromAlias: str(p, 'fromAlias') ?? '', fromId: str(p, 'fromId'), rematchOf: str(p, 'rematchOf') };
+      return {
+        kind: 'rematch',
+        matchId: str(p, 'matchId'),
+        fromAlias: str(p, 'fromAlias') ?? '',
+        fromId: str(p, 'fromId'),
+        rematchOf: str(p, 'rematchOf'),
+      };
     case 'banter':
       return { kind: 'banter', phraseId: str(p, 'phraseId') ?? '', author };
     case 'text':

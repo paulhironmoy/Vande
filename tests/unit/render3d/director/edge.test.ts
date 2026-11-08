@@ -5,7 +5,15 @@
  * visible glitch on every device.
  */
 import { describe, expect, it, vi } from 'vitest';
-import { CHANNELS, SCALE, createOut, prepare, sample, type DirectorAnchors, type DirectorPlan } from '@/render3d/core/motion/director';
+import {
+  CHANNELS,
+  SCALE,
+  createOut,
+  prepare,
+  sample,
+  type DirectorAnchors,
+  type DirectorPlan,
+} from '@/render3d/core/motion/director';
 import { anchorsFor, delivery, idleAnchors, STOCK } from './world';
 import { recordFile } from './gates';
 
@@ -37,7 +45,19 @@ describe('edge cases', () => {
   });
 
   it('targets that return NaN or infinity are ignored, not followed', () => {
-    const p = prepare({ ...base, aim: (_t, _ms, out) => { out[0] = NaN; out[1] = Infinity; return true; }, clipHead: (_ms, out) => { out[0] = NaN; out[1] = -Infinity; out[2] = NaN; } });
+    const p = prepare({
+      ...base,
+      aim: (_t, _ms, out) => {
+        out[0] = NaN;
+        out[1] = Infinity;
+        return true;
+      },
+      clipHead: (_ms, out) => {
+        out[0] = NaN;
+        out[1] = -Infinity;
+        out[2] = NaN;
+      },
+    });
     finite(p);
   });
 
@@ -55,7 +75,18 @@ describe('edge cases', () => {
   it('a delivery whose anchors are all missing except the release, and one with the release before the start', () => {
     const d = delivery(STOCK);
     const a = anchorsFor(d, { role: 'striker', key: 'edge#1' });
-    finite(prepare({ ...a, gather: null, swing: null, contact: null, taskEnd: null, outcomeAt: null, dead: null, strokeEnd: null }));
+    finite(
+      prepare({
+        ...a,
+        gather: null,
+        swing: null,
+        contact: null,
+        taskEnd: null,
+        outcomeAt: null,
+        dead: null,
+        strokeEnd: null,
+      }),
+    );
     finite(prepare({ ...a, start: 3000, release: 2000 }));
     finite(prepare({ ...anchorsFor(d, { role: 'bowler', key: 'edge#2', series: 'pace' }), gather: null }));
   });

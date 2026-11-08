@@ -80,7 +80,8 @@ export const STANCE: BatPose = {
 
 const v = (x: number, y: number, z: number): Vec3 => ({ x, y, z });
 const add = (a: Vec3, b: Vec3): Vec3 => v(a.x + b.x, a.y + b.y, a.z + b.z);
-const lerp = (a: Vec3, b: Vec3, u: number): Vec3 => v(a.x + (b.x - a.x) * u, a.y + (b.y - a.y) * u, a.z + (b.z - a.z) * u);
+const lerp = (a: Vec3, b: Vec3, u: number): Vec3 =>
+  v(a.x + (b.x - a.x) * u, a.y + (b.y - a.y) * u, a.z + (b.z - a.z) * u);
 const smooth = (u: number) => {
   const x = u < 0 ? 0 : u > 1 ? 1 : u;
   return x * x * (3 - 2 * x);
@@ -93,9 +94,12 @@ const norm = (a: Vec3): Vec3 => {
 
 /** Bounded ready-grip motion. It never aims at the ball or progresses into a downswing. */
 function readyPose(ms: number): BatPose {
-  const lift = ms <= 0 || ms >= READY_CUE.endMs ? 0
-    : Math.sin(Math.min(1, ms / READY_CUE.riseMs) * Math.PI / 2)
-      * (1 - smooth((ms - READY_CUE.holdUntilMs) / (READY_CUE.endMs - READY_CUE.holdUntilMs))) * READY_CUE.liftM;
+  const lift =
+    ms <= 0 || ms >= READY_CUE.endMs
+      ? 0
+      : Math.sin((Math.min(1, ms / READY_CUE.riseMs) * Math.PI) / 2) *
+        (1 - smooth((ms - READY_CUE.holdUntilMs) / (READY_CUE.endMs - READY_CUE.holdUntilMs))) *
+        READY_CUE.liftM;
   return { grip: add(STANCE.grip, v(0, lift, 0)), toe: add(STANCE.toe, v(0, lift, 0)), face: { ...STANCE.face } };
 }
 
@@ -127,9 +131,19 @@ export function provisionalPose(ms: number, aim: Vec3, state: OneGestureState | 
   const power = clamp(state?.pathPower ?? 0, 0, 1);
   const elevation = clamp(state?.elevationIntent ?? 0, 0, 1);
   const dirAtContact = norm(v(0.05, -0.97, -0.25));
-  const contactGrip = add(aim, v(-dirAtContact.x * SWEET_FROM_GRIP, -dirAtContact.y * SWEET_FROM_GRIP, -dirAtContact.z * SWEET_FROM_GRIP));
-  const contactToe = add(contactGrip, v(dirAtContact.x * BAT_LENGTH, dirAtContact.y * BAT_LENGTH, dirAtContact.z * BAT_LENGTH));
-  const contact: BatPose = { grip: contactGrip, toe: contactToe, face: norm(v(Math.sin(bearing) * 0.16, 0.12 + elevation * 0.06, -1)) };
+  const contactGrip = add(
+    aim,
+    v(-dirAtContact.x * SWEET_FROM_GRIP, -dirAtContact.y * SWEET_FROM_GRIP, -dirAtContact.z * SWEET_FROM_GRIP),
+  );
+  const contactToe = add(
+    contactGrip,
+    v(dirAtContact.x * BAT_LENGTH, dirAtContact.y * BAT_LENGTH, dirAtContact.z * BAT_LENGTH),
+  );
+  const contact: BatPose = {
+    grip: contactGrip,
+    toe: contactToe,
+    face: norm(v(Math.sin(bearing) * 0.16, 0.12 + elevation * 0.06, -1)),
+  };
   if (ms <= 0) return { grip: { ...origin.grip }, toe: { ...origin.toe }, face: { ...origin.face } };
   if (ms < PROVISIONAL_TRAVEL_MS) {
     // A quick start (ease-out): the bat answers the press visibly in the very next frame.
@@ -144,7 +158,11 @@ export function provisionalPose(ms: number, aim: Vec3, state: OneGestureState | 
   const lateral = Math.sin(bearing) * (0.24 + power * 0.34);
   const followGrip = add(aim, v(0.12 + lateral, 1.02 + elevation * 0.24, -0.3));
   const followToe = add(followGrip, v(0.25 + lateral * 0.42, 0.5 + elevation * 0.5, 0.55 + power * 0.18));
-  return { grip: lerp(contact.grip, followGrip, f), toe: lerp(contact.toe, followToe, f), face: norm(lerp(contact.face, v(0.3, 0.7, -0.6), f)) };
+  return {
+    grip: lerp(contact.grip, followGrip, f),
+    toe: lerp(contact.toe, followToe, f),
+    face: norm(lerp(contact.face, v(0.3, 0.7, -0.6), f)),
+  };
 }
 
 /** Everything that decides the drawn bat at a scene time. Pure data: the stage replaces it when something changes. */
@@ -182,7 +200,8 @@ export interface BatTrack {
 /** The drawn bat (world frame) at scene time `scene`. */
 export function batPoseAt(track: BatTrack, scene: number): BatPose {
   const contact = track.contactState ?? null;
-  const prov = track.provisionalStart !== null ? provisionalPose(scene - track.provisionalStart, track.aim, contact) : null;
+  const prov =
+    track.provisionalStart !== null ? provisionalPose(scene - track.provisionalStart, track.aim, contact) : null;
   let pose: BatPose;
   if (track.samples) {
     const contactT = track.contactImpulseScene == null ? null : sceneToSim(track, track.contactImpulseScene);
@@ -194,8 +213,16 @@ export function batPoseAt(track: BatTrack, scene: number): BatPose {
       const back = track.resultAt !== null ? smooth((scene - track.resultAt) / RETURN_MS) : 1;
       pose = blendBat(prov, STANCE, back);
     } else pose = STANCE;
-    const blendEnd = track.resultAt === null ? null : Math.min(track.resultAt + BLEND_MS, track.contactScene ?? Infinity);
-    if (prov && track.resultAt !== null && blendEnd !== null && blendEnd > track.resultAt && scene < blendEnd && track.samples.length > 0) {
+    const blendEnd =
+      track.resultAt === null ? null : Math.min(track.resultAt + BLEND_MS, track.contactScene ?? Infinity);
+    if (
+      prov &&
+      track.resultAt !== null &&
+      blendEnd !== null &&
+      blendEnd > track.resultAt &&
+      scene < blendEnd &&
+      track.samples.length > 0
+    ) {
       pose = blendBat(prov, pose, smooth((scene - track.resultAt) / (blendEnd - track.resultAt)));
     }
   } else if (prov) pose = prov;
@@ -237,7 +264,19 @@ export function batMoved(track: BatTrack, scene: number): boolean {
 
 /** The same track with no input at all: what the bat would do if the player never touched the screen. */
 function inputFree(track: BatTrack): BatTrack {
-  return { ...track, touch: null, readyAt: null, contactState: null, provisionalStart: null, inputScene: null, samples: null, resultAt: null, contactScene: null, contactImpulseScene: null, velocityPeakScene: null };
+  return {
+    ...track,
+    touch: null,
+    readyAt: null,
+    contactState: null,
+    provisionalStart: null,
+    inputScene: null,
+    samples: null,
+    resultAt: null,
+    contactScene: null,
+    contactImpulseScene: null,
+    velocityPeakScene: null,
+  };
 }
 
 /** The track as it stood before the commitment: the touch-down stroke's waiting bat, without the committed swing. */
@@ -267,7 +306,13 @@ function strokePose(before: BatTrack, scene: number, pose: PoseFn, travel: numbe
 }
 
 /** The uncommitted drawing at `scene` with the stroke `travel` ms along (null: no stroke, the waiting bat). */
-function uncommittedPose(before: BatTrack, touch: TouchStroke, scene: number, pose: PoseFn, travel: number | null): BatPose {
+function uncommittedPose(
+  before: BatTrack,
+  touch: TouchStroke,
+  scene: number,
+  pose: PoseFn,
+  travel: number | null,
+): BatPose {
   const wait = pose(before, scene);
   if (scene <= touch.start || travel === null) return wait;
   const stroke = strokePose(before, scene, pose, travel);
@@ -286,7 +331,11 @@ function uncommittedLift(before: BatTrack, touch: TouchStroke, scene: number, tr
 function lifted(pose: BatPose, w: number, mirror: boolean): BatPose {
   if (w <= 0) return pose;
   const l = toWorld(FIRST_PERSON_LIFT, mirror);
-  return { grip: v(pose.grip.x + l.x * w, pose.grip.y + l.y * w, pose.grip.z + l.z * w), toe: v(pose.toe.x + l.x * w, pose.toe.y + l.y * w, pose.toe.z + l.z * w), face: { ...pose.face } };
+  return {
+    grip: v(pose.grip.x + l.x * w, pose.grip.y + l.y * w, pose.grip.z + l.z * w),
+    toe: v(pose.toe.x + l.x * w, pose.toe.y + l.y * w, pose.toe.z + l.z * w),
+    face: { ...pose.face },
+  };
 }
 
 /** Distance (m) from a point to the bat's axis, cap to toe. */
@@ -302,11 +351,26 @@ function batClearance(p: Vec3, bat: BatPose): number {
  * reduced to keep TOUCHDOWN's clearance from the ball in both drawings (presented and first person), or null when
  * even the stroke's start would not keep it (the waiting bat is drawn). The same value for every drawing of a frame.
  */
-let travelMemo: { touch: TouchStroke; scene: number; mirror: boolean; aim: Vec3; state: OneGestureState | null | undefined; travel: number | null } | null = null;
+let travelMemo: {
+  touch: TouchStroke;
+  scene: number;
+  mirror: boolean;
+  aim: Vec3;
+  state: OneGestureState | null | undefined;
+  travel: number | null;
+} | null = null;
 
 function touchTravel(track: BatTrack, touch: TouchStroke, scene: number): number | null {
   const m = travelMemo;
-  if (m && m.touch === touch && m.scene === scene && m.mirror === track.mirror && m.aim === track.aim && m.state === track.contactState) return m.travel;
+  if (
+    m &&
+    m.touch === touch &&
+    m.scene === scene &&
+    m.mirror === track.mirror &&
+    m.aim === track.aim &&
+    m.state === track.contactState
+  )
+    return m.travel;
   const travel = guardedTravel(track, touch, scene);
   travelMemo = { touch, scene, mirror: track.mirror, aim: track.aim, state: track.contactState, travel };
   return travel;
@@ -329,7 +393,11 @@ interface GuardRig {
 
 function guardRig(track: BatTrack, touch: TouchStroke): GuardRig {
   const before = uncommitted(track, touch);
-  return { before, hit: batToWorld(provisionalPose(PROVISIONAL_TRAVEL_MS, before.aim, null), before.mirror), liftTrack: strokeTrack(before, touch) };
+  return {
+    before,
+    hit: batToWorld(provisionalPose(PROVISIONAL_TRAVEL_MS, before.aim, null), before.mirror),
+    liftTrack: strokeTrack(before, touch),
+  };
 }
 
 /**
@@ -346,9 +414,11 @@ function guardDrawing(rig: GuardRig, touch: TouchStroke, scene: number, mirror: 
   const strokeF = started ? new RigidBlend(waitF, rig.hit) : null;
   const back = scene > touch.end ? smooth((scene - touch.end) / TOUCHDOWN.checkMs) : 0;
   const reach = (travel: number) => (TOUCHDOWN.reach * clamp(travel, 0, TOUCHDOWN.capMs)) / TOUCHDOWN.capMs;
-  const settle = (stroke: BatPose, wait: BatPose) => (back >= 1 ? wait : back > 0 ? rigidBatBlend(stroke, wait, back) : stroke);
+  const settle = (stroke: BatPose, wait: BatPose) =>
+    back >= 1 ? wait : back > 0 ? rigidBatBlend(stroke, wait, back) : stroke;
   return {
-    presented: (travel: number | null): BatPose => (!started || travel === null ? waitP : settle(strokeP!.at(reach(travel)), waitP)),
+    presented: (travel: number | null): BatPose =>
+      !started || travel === null ? waitP : settle(strokeP!.at(reach(travel)), waitP),
     firstPerson: (travel: number | null): BatPose => {
       if (!started || travel === null) return lifted(waitF, 1, mirror);
       const stroke = firstPersonLiftWeight(rig.liftTrack, touch.start + travel);
@@ -361,7 +431,13 @@ function guardDrawing(rig: GuardRig, touch: TouchStroke, scene: number, mirror: 
  * The most travel (0..capMs) whose uncommitted drawing at `scene` keeps the clearance from the ball at that moment in
  * both drawings, or null when even the stroke's start does not (the waiting bat is drawn).
  */
-function allowedTravel(rig: GuardRig, track: BatTrack, touch: TouchStroke, scene: number, requested: number): number | null {
+function allowedTravel(
+  rig: GuardRig,
+  track: BatTrack,
+  touch: TouchStroke,
+  scene: number,
+  requested: number,
+): number | null {
   const b = touch.ball ? ballAt(touch.ball, sceneToSim(track, scene)) : null;
   if (!b) return requested;
   const ball = toWorld(b, track.mirror);
@@ -370,7 +446,10 @@ function allowedTravel(rig: GuardRig, track: BatTrack, touch: TouchStroke, scene
   const idleF = batClearance(ball, drawing.firstPerson(null));
   const needP = Math.min(idleP, TOUCHDOWN.clearM);
   const needF = Math.min(idleF, TOUCHDOWN.clearM);
-  const distances = (travel: number) => ({ p: batClearance(ball, drawing.presented(travel)), f: batClearance(ball, drawing.firstPerson(travel)) });
+  const distances = (travel: number) => ({
+    p: batClearance(ball, drawing.presented(travel)),
+    f: batClearance(ball, drawing.firstPerson(travel)),
+  });
   const isClear = (d: { p: number; f: number }) => d.p >= needP && d.f >= needF;
   const clear = (travel: number) => isClear(distances(travel));
   let want = requested;
@@ -420,8 +499,14 @@ function guardedTravel(track: BatTrack, touch: TouchStroke, scene: number): numb
   const hitGrip = toWorld(provisionalPose(PROVISIONAL_TRAVEL_MS, track.aim, null).grip, track.mirror);
   const rig = guardRig(track, touch);
   const pre = rig.before;
-  const far = BAT_LENGTH + Math.hypot(FIRST_PERSON_LIFT.x, FIRST_PERSON_LIFT.y, FIRST_PERSON_LIFT.z) + TOUCHDOWN.clearM + 0.05;
-  const grips = [presentedBatPose(pre, touch.start).grip, presentedBatPose(pre, scene).grip, presentedBatPose(pre, touch.start, undefined, FIRST_PERSON_BACKLIFT).grip, presentedBatPose(pre, scene, undefined, FIRST_PERSON_BACKLIFT).grip];
+  const far =
+    BAT_LENGTH + Math.hypot(FIRST_PERSON_LIFT.x, FIRST_PERSON_LIFT.y, FIRST_PERSON_LIFT.z) + TOUCHDOWN.clearM + 0.05;
+  const grips = [
+    presentedBatPose(pre, touch.start).grip,
+    presentedBatPose(pre, scene).grip,
+    presentedBatPose(pre, touch.start, undefined, FIRST_PERSON_BACKLIFT).grip,
+    presentedBatPose(pre, scene, undefined, FIRST_PERSON_BACKLIFT).grip,
+  ];
   let near = false;
   for (let ahead = 0; ahead <= GUARD.aheadMs && !near; ahead += GUARD.stepMs) {
     const b = ballAt(touch.ball, sceneToSim(track, scene + ahead));
@@ -498,7 +583,11 @@ export const BACKLIFT_TOP: BatPose = (() => {
   const grip = v(hands.x - d.x * 0.075, hands.y - d.y * 0.075, hands.z - d.z * 0.075);
   const f0 = v(0.3, -0.95, 0);
   const k = f0.x * d.x + f0.y * d.y + f0.z * d.z;
-  return { grip, toe: v(grip.x + d.x * BAT_LENGTH, grip.y + d.y * BAT_LENGTH, grip.z + d.z * BAT_LENGTH), face: norm(v(f0.x - d.x * k, f0.y - d.y * k, f0.z - d.z * k)) };
+  return {
+    grip,
+    toe: v(grip.x + d.x * BAT_LENGTH, grip.y + d.y * BAT_LENGTH, grip.z + d.z * BAT_LENGTH),
+    face: norm(v(f0.x - d.x * k, f0.y - d.y * k, f0.z - d.z * k)),
+  };
 })();
 /** While the batter waits: a small tap of the bat every `periodMs`, never in the `quietMs` before the backlift. */
 const BAT_TAP = { periodMs: 2300, ms: 320, liftM: 0.03, quietMs: 1100 } as const;
@@ -518,7 +607,15 @@ function batQuat(p: BatPose): Quat {
   const b = norm(v(f0.x - a.x * dot(f0, a), f0.y - a.y * dot(f0, a), f0.z - a.z * dot(f0, a)));
   const c = cross(a, b);
   // Columns a, b, c.
-  const m00 = a.x, m01 = b.x, m02 = c.x, m10 = a.y, m11 = b.y, m12 = c.y, m20 = a.z, m21 = b.z, m22 = c.z;
+  const m00 = a.x,
+    m01 = b.x,
+    m02 = c.x,
+    m10 = a.y,
+    m11 = b.y,
+    m12 = c.y,
+    m20 = a.z,
+    m21 = b.z,
+    m22 = c.z;
   const tr = m00 + m11 + m22;
   if (tr > 0) {
     const s = 0.5 / Math.sqrt(tr + 1);
@@ -542,7 +639,11 @@ function rotateQ(q: Quat, p: Vec3): Vec3 {
   const iy = w * p.y + z * p.x - x * p.z;
   const iz = w * p.z + x * p.y - y * p.x;
   const iw = -x * p.x - y * p.y - z * p.z;
-  return v(ix * w + iw * -x + iy * -z - iz * -y, iy * w + iw * -y + iz * -x - ix * -z, iz * w + iw * -z + ix * -y - iy * -x);
+  return v(
+    ix * w + iw * -x + iy * -z - iz * -y,
+    iy * w + iw * -y + iz * -x - ix * -z,
+    iz * w + iw * -z + ix * -y - iy * -x,
+  );
 }
 
 function slerpQ(a: Quat, b0: Quat, u: number): Quat {
@@ -550,7 +651,12 @@ function slerpQ(a: Quat, b0: Quat, u: number): Quat {
   const b: Quat = d < 0 ? [-b0[0], -b0[1], -b0[2], -b0[3]] : b0;
   d = Math.abs(d);
   if (d > 0.9995) {
-    const r: Quat = [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u, a[3] + (b[3] - a[3]) * u];
+    const r: Quat = [
+      a[0] + (b[0] - a[0]) * u,
+      a[1] + (b[1] - a[1]) * u,
+      a[2] + (b[2] - a[2]) * u,
+      a[3] + (b[3] - a[3]) * u,
+    ];
     const l = Math.hypot(...r) || 1;
     return [r[0] / l, r[1] / l, r[2] / l, r[3] / l];
   }
@@ -606,8 +712,16 @@ class RigidBlend {
     const dir = rotateQ(q, v(1, 0, 0));
     const face = rotateQ(q, v(0, 1, 0));
     const hands = lerp(this.ha, this.hb, u);
-    const grip = v(hands.x - dir.x * HANDS_FROM_CAP, hands.y - dir.y * HANDS_FROM_CAP, hands.z - dir.z * HANDS_FROM_CAP);
-    return { grip, toe: v(grip.x + dir.x * BAT_LENGTH, grip.y + dir.y * BAT_LENGTH, grip.z + dir.z * BAT_LENGTH), face };
+    const grip = v(
+      hands.x - dir.x * HANDS_FROM_CAP,
+      hands.y - dir.y * HANDS_FROM_CAP,
+      hands.z - dir.z * HANDS_FROM_CAP,
+    );
+    return {
+      grip,
+      toe: v(grip.x + dir.x * BAT_LENGTH, grip.y + dir.y * BAT_LENGTH, grip.z + dir.z * BAT_LENGTH),
+      face,
+    };
   }
 }
 
@@ -634,7 +748,9 @@ export function preSwingPose(track: BatTrack, scene: number, liftScale = 1): Bat
   if (dg.x === 0 && dg.y === 0 && dg.z === 0 && dt.x === 0 && dt.y === 0 && dt.z === 0) return base;
   const grip = add(base.grip, dg);
   const d = norm(v(base.toe.x + dt.x - grip.x, base.toe.y + dt.y - grip.y, base.toe.z + dt.z - grip.z));
-  const face = norm(add(base.face, v(cue.face.x - STANCE.face.x, cue.face.y - STANCE.face.y, cue.face.z - STANCE.face.z)));
+  const face = norm(
+    add(base.face, v(cue.face.x - STANCE.face.x, cue.face.y - STANCE.face.y, cue.face.z - STANCE.face.z)),
+  );
   return { grip, toe: v(grip.x + d.x * BAT_LENGTH, grip.y + d.y * BAT_LENGTH, grip.z + d.z * BAT_LENGTH), face };
 }
 
@@ -657,7 +773,10 @@ function swingTarget(track: BatTrack, scene: number): BatPose {
   if (first && scene < track.releaseScene + first.t * 1000) {
     const hold = batToWorld({ grip: first.grip, toe: first.toe, face: first.face }, track.mirror);
     if (track.provisionalStart !== null && track.resultAt !== null && scene < track.resultAt + BLEND_MS) {
-      const prov = batToWorld(provisionalPose(scene - track.provisionalStart, track.aim, track.contactState ?? null), track.mirror);
+      const prov = batToWorld(
+        provisionalPose(scene - track.provisionalStart, track.aim, track.contactState ?? null),
+        track.mirror,
+      );
       return blendBat(prov, hold, smooth((scene - track.resultAt) / BLEND_MS));
     }
     return hold;
@@ -671,7 +790,10 @@ function batGap(a: BatPose, b: BatPose): { metres: number; degrees: number } {
   const hb = lerp(b.grip, b.toe, HANDS_FROM_CAP / BAT_LENGTH);
   const da = norm(v(a.toe.x - a.grip.x, a.toe.y - a.grip.y, a.toe.z - a.grip.z));
   const db = norm(v(b.toe.x - b.grip.x, b.toe.y - b.grip.y, b.toe.z - b.grip.z));
-  return { metres: Math.hypot(ha.x - hb.x, ha.y - hb.y, ha.z - hb.z), degrees: (Math.acos(Math.max(-1, Math.min(1, dot(da, db)))) * 180) / Math.PI };
+  return {
+    metres: Math.hypot(ha.x - hb.x, ha.y - hb.y, ha.z - hb.z),
+    degrees: (Math.acos(Math.max(-1, Math.min(1, dot(da, db)))) * 180) / Math.PI,
+  };
 }
 
 /**
@@ -683,7 +805,8 @@ function batGap(a: BatPose, b: BatPose): { metres: number; degrees: number } {
 export function presentedBatPose(track: BatTrack, scene: number, waitedIn?: BatPose, liftScale = 1): BatPose {
   if (track.touch) return withTouch(track, track.touch, scene, (t, s) => presentedBatPose(t, s, waitedIn, liftScale));
   const start = visibleSwingStart(track);
-  if (start === null || scene < start) return waitedIn ?? batToWorld(preSwingPose(track, scene, liftScale), track.mirror);
+  if (start === null || scene < start)
+    return waitedIn ?? batToWorld(preSwingPose(track, scene, liftScale), track.mirror);
   const end = track.contactScene ?? track.velocityPeakScene ?? null;
   if (end !== null && scene >= end) return batPoseAt(track, scene);
   const from = waitedIn ?? batToWorld(preSwingPose(track, start, liftScale), track.mirror);
@@ -822,19 +945,30 @@ export function clipBatPose(track: ActorTrack, scene: number, scale: number): Ba
   const pose = samplePresented(st, clipA, clipB, clipL);
   if (track.mirror) mirrorSampledPose(pose);
   const m = track.mirror ? -1 : 1;
-  const key = pose.bat ?? { grip: [CARRY_BAT_KEY.grip[0] * m, CARRY_BAT_KEY.grip[1], CARRY_BAT_KEY.grip[2]], dir: [CARRY_BAT_KEY.dir[0] * m, CARRY_BAT_KEY.dir[1], CARRY_BAT_KEY.dir[2]] };
+  const key = pose.bat ?? {
+    grip: [CARRY_BAT_KEY.grip[0] * m, CARRY_BAT_KEY.grip[1], CARRY_BAT_KEY.grip[2]],
+    dir: [CARRY_BAT_KEY.dir[0] * m, CARRY_BAT_KEY.dir[1], CARRY_BAT_KEY.dir[2]],
+  };
   const c = Math.cos(st.heading);
   const sn = Math.sin(st.heading);
   const rot = (x: number, y: number, z: number): Vec3 => v(x * c + z * sn, y, -x * sn + z * c);
   const g = rot(key.grip[0] * scale, key.grip[1] * scale, key.grip[2] * scale);
   const lower = v(st.pos.x + (st.body?.x ?? 0) + g.x, g.y, st.pos.z + (st.body?.z ?? 0) + g.z);
   const d = norm(rot(key.dir[0], key.dir[1], key.dir[2]));
-  const grip = v(lower.x - d.x * LOWER_HAND_FROM_CAP, lower.y - d.y * LOWER_HAND_FROM_CAP, lower.z - d.z * LOWER_HAND_FROM_CAP);
+  const grip = v(
+    lower.x - d.x * LOWER_HAND_FROM_CAP,
+    lower.y - d.y * LOWER_HAND_FROM_CAP,
+    lower.z - d.z * LOWER_HAND_FROM_CAP,
+  );
   // The clip's own face when its pack carries one (MOTION-SPEC v1.2 bat.face), else towards the bowler.
   const kf = (key as { face?: readonly number[] }).face;
   const hint = kf ? rot(kf[0], kf[1], kf[2]) : rot(track.mirror ? -1 : 1, 0, 0);
   const k = dot(hint, d);
-  return { grip, toe: v(grip.x + d.x * BAT_LENGTH, grip.y + d.y * BAT_LENGTH, grip.z + d.z * BAT_LENGTH), face: norm(v(hint.x - d.x * k, hint.y - d.y * k, hint.z - d.z * k)) };
+  return {
+    grip,
+    toe: v(grip.x + d.x * BAT_LENGTH, grip.y + d.y * BAT_LENGTH, grip.z + d.z * BAT_LENGTH),
+    face: norm(v(hint.x - d.x * k, hint.y - d.y * k, hint.z - d.z * k)),
+  };
 }
 
 /**
@@ -866,7 +1000,13 @@ function packBatBeforeInput(striker: ActorTrack, at: number, scale: number): Bat
   const m = packMemo;
   if (!m || m.striker !== striker || m.scale !== scale || m.at !== at) {
     packMemo = { striker, scale, at, pose: packBatAt(striker, at, scale) };
-    return packMemo.pose && { grip: { ...packMemo.pose.grip }, toe: { ...packMemo.pose.toe }, face: { ...packMemo.pose.face } };
+    return (
+      packMemo.pose && {
+        grip: { ...packMemo.pose.grip },
+        toe: { ...packMemo.pose.toe },
+        face: { ...packMemo.pose.face },
+      }
+    );
   }
   return m.pose && { grip: { ...m.pose.grip }, toe: { ...m.pose.toe }, face: { ...m.pose.face } };
 }
@@ -955,7 +1095,9 @@ export function externalBatPose(bat: BatTrack, striker: ActorTrack, scene: numbe
   const u = smooth((scene - handOver) / release);
   if (u >= 1) return null;
   const clip = clipBatPose(striker, scene, scale);
-  return clip ? handOverBlend(presentedBatPose(bat, handOver), clip, u, clipQuatAt(striker, scale, handOver + release / 2)) : null;
+  return clip
+    ? handOverBlend(presentedBatPose(bat, handOver), clip, u, clipQuatAt(striker, scale, handOver + release / 2))
+    : null;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -978,7 +1120,10 @@ export function bladeRateDegS(a: BatPose, b: BatPose, dtMs: number): number {
  * frame history): when the blade turned faster than SMEAR.rateDegS over the last 60 Hz frame, SMEAR.ghosts poses
  * spaced back along that frame's sweep with fading opacity; else null. Presentation only.
  */
-export function swingSmear(poseAt: (scene: number) => BatPose | null, scene: number): { poses: BatPose[]; opacity: number[] } | null {
+export function swingSmear(
+  poseAt: (scene: number) => BatPose | null,
+  scene: number,
+): { poses: BatPose[]; opacity: number[] } | null {
   const now = poseAt(scene);
   const before = poseAt(scene - SMEAR.frameMs);
   if (!now || !before) return null;

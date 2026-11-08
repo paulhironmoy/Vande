@@ -37,7 +37,11 @@ export function useReportPlayer(): { button: (target: ReportTarget, testId?: str
     const playerId = target.playerId;
     const r = await action.run(() => net.api.call('POST /v1/report', { body: { playerId, reason } }));
     setTarget(null);
-    toast(r.ok ? { kind: 'success', text: t('social.room.reported') } : { kind: 'warning', text: t('social.room.send_failed') });
+    toast(
+      r.ok
+        ? { kind: 'success', text: t('social.room.reported') }
+        : { kind: 'warning', text: t('social.room.send_failed') },
+    );
   };
 
   const button = (tg: ReportTarget, testId?: string) => (
@@ -68,7 +72,13 @@ export function useReportPlayer(): { button: (target: ReportTarget, testId?: str
         <legend className={s.h3}>{t('social.report.reason')}</legend>
         {REASONS.map((r) => (
           <label key={r} className={s.check}>
-            <input type="radio" name="report-player-reason" value={r} checked={reason === r} onChange={() => setReason(r)} />
+            <input
+              type="radio"
+              name="report-player-reason"
+              value={r}
+              checked={reason === r}
+              onChange={() => setReason(r)}
+            />
             <span>{t(`social.room.reason_${r}` as 'social.room.reason_abusive')}</span>
           </label>
         ))}

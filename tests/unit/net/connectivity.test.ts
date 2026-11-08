@@ -18,7 +18,14 @@ describe('connectivity', () => {
     const states: boolean[] = [];
     let flushes = 0;
     let resumes = 0;
-    const c = startConnectivity({ setOnline: (v) => states.push(v), onOnline: () => flushes++, onResume: () => resumes++, target, nav: { onLine: true }, doc });
+    const c = startConnectivity({
+      setOnline: (v) => states.push(v),
+      onOnline: () => flushes++,
+      onResume: () => resumes++,
+      target,
+      nav: { onLine: true },
+      doc,
+    });
     expect(states).toEqual([true]);
     target.fire('offline');
     expect(c.online()).toBe(false);
@@ -40,7 +47,12 @@ describe('connectivity', () => {
 
   it('starts offline when the browser says so', () => {
     const states: boolean[] = [];
-    startConnectivity({ setOnline: (v) => states.push(v), target: fakeTarget(), nav: { onLine: false }, doc: Object.assign(fakeTarget(), { visibilityState: 'hidden' as DocumentVisibilityState }) }).stop();
+    startConnectivity({
+      setOnline: (v) => states.push(v),
+      target: fakeTarget(),
+      nav: { onLine: false },
+      doc: Object.assign(fakeTarget(), { visibilityState: 'hidden' as DocumentVisibilityState }),
+    }).stop();
     expect(states).toEqual([false]);
   });
 });

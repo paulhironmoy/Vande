@@ -49,8 +49,10 @@ export const startHiLatn: Record<string, string> = {
   'practice.setup.six_balls': 'Chheh balls',
   'practice.setup.assist': 'Assistance',
   'practice.setup.how': 'Dabao · peeche kheecho · ball padho · aage flick karo',
-  'practice.setup.how_more': 'Unche shot ki gunjaish ke liye aur peeche kheecho. Gap ki taraf aage flick karo; aage ki flick ki speed power tay karti hai. Bina peeche kheenche jaldi chhodna defence hai.',
-  'practice.setup.how_keys': 'Keys: defend ke liye Space. Hit ke liye arrows, tircha ke liye do ek saath. Hawa mein uthaane ke liye Shift dabaaye rakho. W aage, S peeche.',
+  'practice.setup.how_more':
+    'Unche shot ki gunjaish ke liye aur peeche kheecho. Gap ki taraf aage flick karo; aage ki flick ki speed power tay karti hai. Bina peeche kheenche jaldi chhodna defence hai.',
+  'practice.setup.how_keys':
+    'Keys: defend ke liye Space. Hit ke liye arrows, tircha ke liye do ek saath. Hawa mein uthaane ke liye Shift dabaaye rakho. W aage, S peeche.',
   'practice.setup.play': 'Khelo',
   'practice.setup.resume_ball': 'Agli ball {n} hai.',
 
@@ -73,7 +75,7 @@ export const startHiLatn: Record<string, string> = {
 
   // ---- difficulty and bowling type (Random Over)
   'practice.difficulty.beginner': 'Beginner',
-  'practice.difficulty.beginner_hint': 'Slow, score karne layak zyada balls, koi bouncer ya wrong\'un nahi',
+  'practice.difficulty.beginner_hint': "Slow, score karne layak zyada balls, koi bouncer ya wrong'un nahi",
   'practice.difficulty.club': 'Club',
   'practice.difficulty.club_hint': 'Achhi aur kharab balls ka asli mix',
   'practice.difficulty.expert': 'Expert',
@@ -84,9 +86,11 @@ export const startHiLatn: Record<string, string> = {
 
   // ---- objectives
   'practice.objective.random': 'Har ball haath se padho: uski length, line aur movement.',
-  'practice.objective.first': 'Ball ko bowler ke haath se nikalte dekho. Backlift rokho, phir aage flick karo ya chhod do.',
+  'practice.objective.first':
+    'Ball ko bowler ke haath se nikalte dekho. Backlift rokho, phir aage flick karo ya chhod do.',
   'practice.setup.full_setup': 'Poora setup',
-  'practice.gloss.result': 'Length woh jagah hai jahan ball tappa khaayi; line yeh hai ki woh tumhare stumps se kitni left ya right aayi.',
+  'practice.gloss.result':
+    'Length woh jagah hai jahan ball tappa khaayi; line yeh hai ki woh tumhare stumps se kitni left ya right aayi.',
   'practice.objective.reference': 'Chhehon balls ko unke hisaab se khelo.',
   'practice.objective.built': 'Apni chuni chheh balls pe mastery pao.',
   'practice.objective.built_shuffled': 'Shuffled order mein, release tak chhupa.',
@@ -126,7 +130,8 @@ export const startHiLatn: Record<string, string> = {
   'practice.ball.short.red_worn': 'Purani red ball',
 
   // ---- bowlers and their known pattern
-  'practice.bowler.label': '{arm, select, left {Left-arm} other {Right-arm}} {style, select, controlled {medium pacer} fast {fast bowler} express {express bowler} finger {finger spinner} wrist {wrist spinner} other {bowler}}',
+  'practice.bowler.label':
+    '{arm, select, left {Left-arm} other {Right-arm}} {style, select, controlled {medium pacer} fast {fast bowler} express {express bowler} finger {finger spinner} wrist {wrist spinner} other {bowler}}',
   'practice.bowler.range': 'lagbhag {lo}–{hi} km/h',
   'practice.bowler.pace': 'Pace',
   'practice.bowler.spin': 'Spin',

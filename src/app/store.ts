@@ -13,7 +13,11 @@ const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
 
 function systemPrefersReducedMotion(): boolean {
   try {
-    return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(REDUCED_QUERY).matches;
+    return (
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia(REDUCED_QUERY).matches
+    );
   } catch {
     return false;
   }
@@ -29,17 +33,24 @@ function resolveReducedMotion(settings: Settings, systemReduced = systemPrefersR
  * First-run language from the device: a production-quality locale the device prefers (Hindi phones start in Hindi);
  * machine-drafted locales are offered in the picker but never chosen automatically.
  */
-export function deviceLocale(preferred: readonly string[] | undefined = typeof navigator === 'undefined' ? undefined : navigator.languages): LocaleId {
-  const list = preferred && preferred.length ? preferred : typeof navigator !== 'undefined' && navigator.language ? [navigator.language] : [];
+export function deviceLocale(
+  preferred: readonly string[] | undefined = typeof navigator === 'undefined' ? undefined : navigator.languages,
+): LocaleId {
+  const list =
+    preferred && preferred.length
+      ? preferred
+      : typeof navigator !== 'undefined' && navigator.language
+        ? [navigator.language]
+        : [];
   const match = matchLocale(list);
   return localeInfo(match).status === 'machine_draft' ? 'en' : match;
 }
 
 /** Keeps supported persisted settings while migrating unknown/legacy text-size values to the safe default. */
 export function normalizeSettings(value: unknown): Settings {
-  const saved = typeof value === 'object' && value !== null ? value as Partial<Settings> : {};
+  const saved = typeof value === 'object' && value !== null ? (value as Partial<Settings>) : {};
   const textScale = TEXT_SCALES.some((choice) => choice === saved.textScale)
-    ? saved.textScale as Settings['textScale']
+    ? (saved.textScale as Settings['textScale'])
     : DEFAULT_SETTINGS.textScale;
   return { ...DEFAULT_SETTINGS, ...saved, textScale };
 }

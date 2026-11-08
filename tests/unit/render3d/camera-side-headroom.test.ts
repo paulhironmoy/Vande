@@ -54,8 +54,18 @@ const BOWLERS: Array<[string, BowlerProfile]> = [
   ['spin-left', { family: 'spin', spinType: 'finger', arm: 'left', lookSeed: 'f6-spinl' }],
 ];
 /** [length m, line m, pace km/h]: a full ball at the stumps, a good-length ball outside off, a short ball on the leg side. */
-const BALLS: Array<[number, number, number]> = [[2.6, 0.05, 138], [4.5, 0.45, 132], [6.4, -0.3, 140]];
-type Intent = { kind: 'attack' | 'defend'; directionDeg: number; elevation: number; power: number; footwork: Footwork } | null;
+const BALLS: Array<[number, number, number]> = [
+  [2.6, 0.05, 138],
+  [4.5, 0.45, 132],
+  [6.4, -0.3, 140],
+];
+type Intent = {
+  kind: 'attack' | 'defend';
+  directionDeg: number;
+  elevation: number;
+  power: number;
+  footwork: Footwork;
+} | null;
 const INTENTS: Array<[string, Intent, number]> = [
   ['drive', { kind: 'attack', directionDeg: 10, elevation: 0, power: 0.8, footwork: 'forward' }, 0],
   ['lofted', { kind: 'attack', directionDeg: 12, elevation: 1, power: 0.95, footwork: 'forward' }, 0],
@@ -90,14 +100,40 @@ function buildCorpus(hand: Handedness): Delivery[] {
   const out: Delivery[] = [];
   for (const [bname, bowler] of BOWLERS) {
     for (const [bi, [lengthM, lineM, kph]] of BALLS.entries()) {
-      const plan: PracticeDeliveryPlan = { variation: 'stock', lengthM, lineM, speedKph: bowler.family === 'spin' ? Math.round(kph * 0.62) : kph };
+      const plan: PracticeDeliveryPlan = {
+        variation: 'stock',
+        lengthM,
+        lineM,
+        speedKph: bowler.family === 'spin' ? Math.round(kph * 0.62) : kph,
+      };
       const fl = flight({ plan, bowler, conditions: 'balanced', seed: `f6:${hand}:${bname}:${bi}`, handedness: hand });
       const field = autoField(bowler, 'balanced', hand);
       for (const [iname, intent, errMs] of INTENTS) {
-        const swing: NormalizedSwing | null = intent ? { ...intent, startT: idealTimeFor(fl, intent.footwork) - batTravelMs(intent.kind, intent.power) / 1000 + errMs / 1000 } : null;
-        const result = resolveDelivery({ flight: fl, swing, field, bowler, conditions: 'balanced', handedness: hand, assist: 'play', tierToleranceMs: 0 });
-        const script = buildPracticeScript({ setup: { field, bowler, conditions: 'balanced', handedness: hand }, flight: fl, result });
-        const kind = result.outcome.dismissal === 'bowled' || result.outcome.dismissal === 'lbw' ? result.outcome.dismissal : result.contact.kind;
+        const swing: NormalizedSwing | null = intent
+          ? {
+              ...intent,
+              startT: idealTimeFor(fl, intent.footwork) - batTravelMs(intent.kind, intent.power) / 1000 + errMs / 1000,
+            }
+          : null;
+        const result = resolveDelivery({
+          flight: fl,
+          swing,
+          field,
+          bowler,
+          conditions: 'balanced',
+          handedness: hand,
+          assist: 'play',
+          tierToleranceMs: 0,
+        });
+        const script = buildPracticeScript({
+          setup: { field, bowler, conditions: 'balanced', handedness: hand },
+          flight: fl,
+          result,
+        });
+        const kind =
+          result.outcome.dismissal === 'bowled' || result.outcome.dismissal === 'lbw'
+            ? result.outcome.dismissal
+            : result.contact.kind;
         out.push({ id: `${hand}/${bname}/${lengthM}m/${iname}`, hand, intent: iname, kind, script });
       }
     }
@@ -118,7 +154,13 @@ function stubStage(): StageScene {
     stumpsFx: { update: () => undefined },
     eventFx: { update: () => undefined },
     blobs: { begin: () => undefined, end: () => undefined, add: () => undefined },
-    stadium: { group: new Group(), setTime: () => undefined, setExcitement: () => undefined, setCrowdMood: () => undefined, setBoardFlash: () => undefined },
+    stadium: {
+      group: new Group(),
+      setTime: () => undefined,
+      setExcitement: () => undefined,
+      setCrowdMood: () => undefined,
+      setBoardFlash: () => undefined,
+    },
     preset: PRACTICE_PROFILES.standard.preset,
     cssHeight: 400,
     rigs: new Map(),
@@ -155,8 +197,16 @@ async function withPacks<T>(fn: () => Promise<T>): Promise<T> {
 
 /** The pose hook the stage draws a script's batters with (ThreePracticeStage.poseHooks, as drawScript is given it). */
 function stageHook(script: BallScript): never {
-  const self = { hookCache: new WeakMap(), reducedMotion: false, cueHook: (ThreePracticeStage.prototype as unknown as { cueHook: unknown }).cueHook };
-  return (ThreePracticeStage.prototype as unknown as { poseHooks(s: unknown, p: unknown): never }).poseHooks.call(self, script, script.practice!);
+  const self = {
+    hookCache: new WeakMap(),
+    reducedMotion: false,
+    cueHook: (ThreePracticeStage.prototype as unknown as { cueHook: unknown }).cueHook,
+  };
+  return (ThreePracticeStage.prototype as unknown as { poseHooks(s: unknown, p: unknown): never }).poseHooks.call(
+    self,
+    script,
+    script.practice!,
+  );
 }
 
 const KITS_BOTH: [(typeof KITS)[number], (typeof KITS)[number]] = [KITS[0], KITS[1]];
@@ -165,7 +215,7 @@ const FRAME_MS = 1000 / 60;
 /** The head bone's bind-pose position, and the helmet shell's crown over it (players.ts helmetParts: centre HEAD.c + (0, 0.012, −0.004), half-height 0.134). */
 const HEAD_REST = (() => {
   const p = new Vector3();
-  for (let name: string | null = 'head'; name; ) {
+  for (let name: string | null = 'head'; name;) {
     const b = SKELETON.find((s) => s.name === name)!;
     p.add(new Vector3(...(b.offset as [number, number, number])));
     name = b.parent;
@@ -192,7 +242,13 @@ interface Frame {
 /** The striker through the window the stage plays a replay of this script (replayWarp), every 60 Hz frame of scene time. */
 function walk(original: BallScript, scale?: number): Frame[] {
   // Another height is another look on a copy of the striker's track (the corpus is shared).
-  const script: BallScript = scale === undefined ? original : { ...original, actors: original.actors.map((a) => (a.id === 'striker' ? { ...a, look: { ...a.look, scale } } : a)) };
+  const script: BallScript =
+    scale === undefined
+      ? original
+      : {
+          ...original,
+          actors: original.actors.map((a) => (a.id === 'striker' ? { ...a, look: { ...a.look, scale } } : a)),
+        };
   const p = script.practice!;
   const striker = script.actors.find((a) => a.id === 'striker')!;
   const hook = stageHook(script);
@@ -203,7 +259,13 @@ function walk(original: BallScript, scale?: number): Frame[] {
   const frames: Frame[] = [];
   let at: [number, number] | null = null;
   for (let t = start; t <= end + 1e-6; t += FRAME_MS) {
-    stage.poseActor(striker, t, KITS_BOTH, externalBatPose(p.bat, striker, t, stage.rigOf('striker')?.scale ?? 1), hook);
+    stage.poseActor(
+      striker,
+      t,
+      KITS_BOTH,
+      externalBatPose(p.bat, striker, t, stage.rigOf('striker')?.scale ?? 1),
+      hook,
+    );
     const rig = stage.rigOf('striker')!;
     rig.root.updateMatrixWorld(true);
     const headBone = rig.boneMap.head;
@@ -251,8 +313,17 @@ function onPicture(cam: PerspectiveCamera, p: Vector3): { x: number; y: number; 
   return { x: (tmp.x + 1) / 2, y: (1 - tmp.y) / 2, front };
 }
 
-const PORTRAITS = [{ name: '412x915', w: 412, h: 915 }, { name: '390x844', w: 390, h: 844 }, { name: '360x640', w: 360, h: 640 }] as const;
-const PICTURES = [...VIEWPORTS, { name: '1024x768', w: 1024, h: 768 }, { name: '800x800', w: 800, h: 800 }, ...PORTRAITS];
+const PORTRAITS = [
+  { name: '412x915', w: 412, h: 915 },
+  { name: '390x844', w: 390, h: 844 },
+  { name: '360x640', w: 360, h: 640 },
+] as const;
+const PICTURES = [
+  ...VIEWPORTS,
+  { name: '1024x768', w: 1024, h: 768 },
+  { name: '800x800', w: 800, h: 800 },
+  ...PORTRAITS,
+];
 
 interface Worst {
   value: number;
@@ -279,8 +350,20 @@ interface Measured {
   kinds: Map<string, number>;
 }
 
-function measure(deliveries: Delivery[], pictures: ReadonlyArray<{ name: string; w: number; h: number }>, scale?: number): Measured {
-  const m: Measured = { deliveries: deliveries.length, frames: 0, inView: 0, head: worstOf(), crown: worstOf(), bottom: worstOf(), kinds: new Map() };
+function measure(
+  deliveries: Delivery[],
+  pictures: ReadonlyArray<{ name: string; w: number; h: number }>,
+  scale?: number,
+): Measured {
+  const m: Measured = {
+    deliveries: deliveries.length,
+    frames: 0,
+    inView: 0,
+    head: worstOf(),
+    crown: worstOf(),
+    bottom: worstOf(),
+    kinds: new Map(),
+  };
   for (const d of deliveries) {
     m.kinds.set(`${d.hand} ${d.kind}`, (m.kinds.get(`${d.hand} ${d.kind}`) ?? 0) + 1);
     const frames = walk(d.script, scale);
@@ -312,12 +395,15 @@ function measure(deliveries: Delivery[], pictures: ReadonlyArray<{ name: string;
 let walked: Promise<Measured> | null = null;
 const nominal = () => (walked ??= withPacks(async () => measure(corpus(), PICTURES)));
 
-describe('the side replay keeps the whole batter in the picture (F6: the aim followed the contact\'s height and cut the helmet off)', () => {
+describe("the side replay keeps the whole batter in the picture (F6: the aim followed the contact's height and cut the helmet off)", () => {
   it('covers every kind of replay, for both hands: bat contacts, edges, misses, a leave, pad and body, lbw and bowled', async () => {
     const m = await nominal();
     for (const hand of ['right', 'left']) {
       for (const kind of ['middle', 'miss', 'leave', 'pad', 'body', 'bowled', 'lbw']) {
-        expect(m.kinds.get(`${hand} ${kind}`) ?? 0, `${hand}-handed ${kind} replays in the corpus (the physics changed? choose balls that still make them)`).toBeGreaterThan(0);
+        expect(
+          m.kinds.get(`${hand} ${kind}`) ?? 0,
+          `${hand}-handed ${kind} replays in the corpus (the physics changed? choose balls that still make them)`,
+        ).toBeGreaterThan(0);
       }
     }
     expect(m.deliveries).toBeGreaterThanOrEqual(190);
@@ -325,34 +411,56 @@ describe('the side replay keeps the whole batter in the picture (F6: the aim fol
     expect(m.inView / m.frames, 'share of frames with the head in the picture').toBeGreaterThan(0.7);
   }, 180_000);
 
-  it('puts the head point at least 12% of the picture\'s height below its top edge in every frame, in landscape and in portrait (F6 gate: 50 px of 412)', async () => {
+  it("puts the head point at least 12% of the picture's height below its top edge in every frame, in landscape and in portrait (F6 gate: 50 px of 412)", async () => {
     const m = await nominal();
-    expect(m.head.value, `least head-point distance from the top edge (fraction of the height), worst: ${m.head.where}`).toBeGreaterThanOrEqual(0.12);
+    expect(
+      m.head.value,
+      `least head-point distance from the top edge (fraction of the height), worst: ${m.head.where}`,
+    ).toBeGreaterThanOrEqual(0.12);
   }, 180_000);
 
-  it('keeps the helmet\'s crown inside the picture, with headroom, in every frame (the top of the helmet used to be cut off)', async () => {
+  it("keeps the helmet's crown inside the picture, with headroom, in every frame (the top of the helmet used to be cut off)", async () => {
     const m = await nominal();
-    expect(m.crown.value, `least crown distance from the top edge (fraction of the height), worst: ${m.crown.where}`).toBeGreaterThanOrEqual(0.05);
+    expect(
+      m.crown.value,
+      `least crown distance from the top edge (fraction of the height), worst: ${m.crown.where}`,
+    ).toBeGreaterThanOrEqual(0.05);
   }, 180_000);
 
-  it('keeps his feet and the bat\'s toe above the bottom edge while he plays from his stance (the fix must not trade the helmet for his boots)', async () => {
+  it("keeps his feet and the bat's toe above the bottom edge while he plays from his stance (the fix must not trade the helmet for his boots)", async () => {
     const m = await nominal();
-    expect(m.bottom.value, `least distance of a sole point or the bat's toe from the bottom edge, worst: ${m.bottom.where}`).toBeGreaterThanOrEqual(0.05);
+    expect(
+      m.bottom.value,
+      `least distance of a sole point or the bat's toe from the bottom edge, worst: ${m.bottom.where}`,
+    ).toBeGreaterThanOrEqual(0.05);
   }, 180_000);
 
   it('holds for taller and shorter strikers too (the avatar height scale runs 0.95 to 1.05)', async () => {
     await withPacks(async () => {
       for (const scale of [0.95, 1.05]) {
         const some = corpus().filter((_, i) => i % 9 === 0);
-        const m = measure(some, PICTURES.filter((p) => ['915x412', '844x390', '412x915'].includes(p.name)), scale);
-        expect(m.head.value, `scale ${scale}: head point from the top edge, worst: ${m.head.where}`).toBeGreaterThanOrEqual(0.12);
-        expect(m.crown.value, `scale ${scale}: crown from the top edge, worst: ${m.crown.where}`).toBeGreaterThanOrEqual(0.02);
-        expect(m.bottom.value, `scale ${scale}: soles and bat toe from the bottom edge, worst: ${m.bottom.where}`).toBeGreaterThanOrEqual(0.05);
+        const m = measure(
+          some,
+          PICTURES.filter((p) => ['915x412', '844x390', '412x915'].includes(p.name)),
+          scale,
+        );
+        expect(
+          m.head.value,
+          `scale ${scale}: head point from the top edge, worst: ${m.head.where}`,
+        ).toBeGreaterThanOrEqual(0.12);
+        expect(
+          m.crown.value,
+          `scale ${scale}: crown from the top edge, worst: ${m.crown.where}`,
+        ).toBeGreaterThanOrEqual(0.02);
+        expect(
+          m.bottom.value,
+          `scale ${scale}: soles and bat toe from the bottom edge, worst: ${m.bottom.where}`,
+        ).toBeGreaterThanOrEqual(0.05);
       }
     });
   }, 180_000);
 
-  it('still faces the contact and keeps it, and the ball arriving at it, in the picture (the camera\'s job: the incoming path, the bat path and the contact)', async () => {
+  it("still faces the contact and keeps it, and the ball arriving at it, in the picture (the camera's job: the incoming path, the bat path and the contact)", async () => {
     await withPacks(async () => {
       let withContact = 0;
       let ideal = 0;
@@ -376,11 +484,17 @@ describe('the side replay keeps the whole batter in the picture (F6: the aim fol
           expect(c.y, `${at}: the contact is 5% or more above the bottom edge`).toBeLessThan(0.95);
           // The ball at the contact, and on a phone held sideways (2:1 or wider) 40 ms before it (a ball arrives at 30 to
           // 40 m/s: 1.2 to 1.6 m; narrower pictures see it later, as they always did).
-          for (const [ms, phoneLandscapeOnly] of [[0, false], [-40, true]] as const) {
+          for (const [ms, phoneLandscapeOnly] of [
+            [0, false],
+            [-40, true],
+          ] as const) {
             if (phoneLandscapeOnly && pic.w / pic.h < 2) continue;
             const b = sampleBall(d.script, sceneT + ms);
             const s = onPicture(cam, new Vector3(b.pos.x, b.pos.y, b.pos.z));
-            expect(b.visible && s.front && s.x > 0 && s.x < 1 && s.y > 0 && s.y < 1, `${at}: the ball ${ms} ms from the contact is in the picture`).toBe(true);
+            expect(
+              b.visible && s.front && s.x > 0 && s.x < 1 && s.y > 0 && s.y < 1,
+              `${at}: the ball ${ms} ms from the contact is in the picture`,
+            ).toBe(true);
           }
         }
       }
@@ -390,8 +504,8 @@ describe('the side replay keeps the whole batter in the picture (F6: the aim fol
   }, 180_000);
 });
 
-describe('the side replay\'s aim (F6 root cause: it was the contact\'s height; and nothing else moved)', () => {
-  it('looks at the same height from the same place whatever the contact\'s height, the stroke or the hand in landscape (36°); portrait (56°) keeps looking at the contact', async () => {
+describe("the side replay's aim (F6 root cause: it was the contact's height; and nothing else moved)", () => {
+  it("looks at the same height from the same place whatever the contact's height, the stroke or the hand in landscape (36°); portrait (56°) keeps looking at the contact", async () => {
     await withPacks(async () => {
       const low = corpus(['right']).find((d) => d.intent === 'drive' && d.id.includes('/2.6m/'))!;
       const high = corpus(['right']).find((d) => d.intent === 'pull' && d.id.includes('/6.4m/'))!;
@@ -403,13 +517,22 @@ describe('the side replay\'s aim (F6 root cause: it was the contact\'s height; a
       for (const d of [low, high, left]) {
         const m = d.script.practice!.mirror ? -1 : 1;
         const contact = d.script.practice!.result!.contact.point!;
-        for (const [w, h, fov] of [[915, 412, 36], [412, 915, 56]] as const) {
+        for (const [w, h, fov] of [
+          [915, 412, 36],
+          [412, 915, 56],
+        ] as const) {
           const a = lens(d.script, w, h, 0).pose;
           const b = lens(d.script, w, h, 2500).pose;
           expect(b, `${d.id}: a fixed camera is the same at every scene time`).toEqual(a);
-          expect(a.pos, `${d.id}: the camera stays where it was, off side and in front of the batter`).toEqual({ x: 3.4 * m, y: 1.3, z: crease - 2.7 });
+          expect(a.pos, `${d.id}: the camera stays where it was, off side and in front of the batter`).toEqual({
+            x: 3.4 * m,
+            y: 1.3,
+            z: crease - 2.7,
+          });
           // Landscape: a fixed height. Portrait: the contact's own, 0.2 to 1.4 m, as it always was.
-          expect(a.target.y, `${d.id} at ${w}x${h}: the aim`).toBe(w > h ? REPLAY_SIDE_AIM_Y : Math.min(1.4, Math.max(0.2, contact.y)));
+          expect(a.target.y, `${d.id} at ${w}x${h}: the aim`).toBe(
+            w > h ? REPLAY_SIDE_AIM_Y : Math.min(1.4, Math.max(0.2, contact.y)),
+          );
           expect(a.fov).toBe(fov);
         }
       }
@@ -421,16 +544,21 @@ describe('the side replay\'s aim (F6 root cause: it was the contact\'s height; a
     });
   }, 180_000);
 
-  it('leaves the other external cameras where they were (they take only the contact\'s side from the shared focus)', async () => {
+  it("leaves the other external cameras where they were (they take only the contact's side from the shared focus)", async () => {
     await withPacks(async () => {
-      for (const d of corpus(['right', 'left']).filter((x) => x.intent === 'drive' && x.id.includes('/4.5m/')).slice(0, 4)) {
+      for (const d of corpus(['right', 'left'])
+        .filter((x) => x.intent === 'drive' && x.id.includes('/4.5m/'))
+        .slice(0, 4)) {
         const p = d.script.practice!;
         const m = p.mirror ? -1 : 1;
         const contact = p.result!.contact.point ?? { x: 0, y: 0.5, z: PITCH_HALF - POPPING - 0.6 };
         const fx = contact.x * m;
         const crease = PITCH_HALF - POPPING;
         const at = (shot: 'replay_behind' | 'replay_top' | 'demo_side' | 'practice_stumps') =>
-          cameraAt(d.script, 0, [{ shot, atMs: 0, durationMs: d.script.duration }], { aspect: 915 / 412, reducedMotion: false });
+          cameraAt(d.script, 0, [{ shot, atMs: 0, durationMs: d.script.duration }], {
+            aspect: 915 / 412,
+            reducedMotion: false,
+          });
         const behind = at('replay_behind');
         expect(behind.pos).toEqual({ x: 0.5 * m, y: 2.5, z: -17.5 });
         expect(behind.target).toEqual({ x: fx * 0.6, y: 0.75, z: crease - 0.6 });

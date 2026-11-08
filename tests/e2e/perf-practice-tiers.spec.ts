@@ -10,7 +10,8 @@ import { record, toDelivery } from './perf-helpers';
 test.use({ viewport: { width: 915, height: 412 }, hasTouch: true, ...GPU_ARGS });
 
 /** Words a player must never meet unless the device genuinely fails (and then only behind a disclosure). */
-const TECHNICAL = /\b(fps|frames per second|frame rate|gpu|webgl|opengl|shaders?|benchmark|renderer|swiftshader|rasteri[sz]er|tier)\b|full batter view|assisted performance|below (the )?cutoff/i;
+const TECHNICAL =
+  /\b(fps|frames per second|frame rate|gpu|webgl|opengl|shaders?|benchmark|renderer|swiftshader|rasteri[sz]er|tier)\b|full batter view|assisted performance|below (the )?cutoff/i;
 
 /** The text a player can actually see now (visible elements only, closed disclosures excluded). */
 async function visibleText(page: Page): Promise<string> {
@@ -19,13 +20,24 @@ async function visibleText(page: Page): Promise<string> {
     const walk = (el: Element) => {
       if (el instanceof HTMLElement) {
         const cs = getComputedStyle(el);
-        if (cs.display === 'none' || cs.visibility === 'hidden' || el.hidden || el.getAttribute('aria-hidden') === 'true') return;
+        if (
+          cs.display === 'none' ||
+          cs.visibility === 'hidden' ||
+          el.hidden ||
+          el.getAttribute('aria-hidden') === 'true'
+        )
+          return;
         if (el.tagName === 'DETAILS' && !(el as HTMLDetailsElement).open) {
           const summary = el.querySelector('summary');
           if (summary) out.push(summary.textContent ?? '');
           return;
         }
-        if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE' || el.getAttribute('data-testid') === 'practice-diagnostics') return;
+        if (
+          el.tagName === 'SCRIPT' ||
+          el.tagName === 'STYLE' ||
+          el.getAttribute('data-testid') === 'practice-diagnostics'
+        )
+          return;
       }
       for (const n of Array.from(el.childNodes)) {
         if (n.nodeType === Node.TEXT_NODE) out.push(n.textContent ?? '');
@@ -37,7 +49,9 @@ async function visibleText(page: Page): Promise<string> {
   });
 }
 
-test('[TIER U6] the device check is discreet, and a device below the cutoff is told in product language with one action', async ({ page }) => {
+test('[TIER U6] the device check is discreet, and a device below the cutoff is told in product language with one action', async ({
+  page,
+}) => {
   test.setTimeout(300_000);
   await record(page);
   // No tier hook: the real check runs (on SwiftShader, a software renderer: genuinely below the cutoff).

@@ -69,13 +69,21 @@ export function bowlerStyle(t: PracticeT, b: Pick<BowlerProfile, 'family' | 'arm
 }
 
 /** "About 131–141 km/h": the honest stock range of this bowler (at the Random Over's difficulty, when there is one). */
-export function paceRangeText(t: PracticeT, build: BuildKit, b: Pick<BowlerProfile, 'family' | 'paceBand' | 'spinType'>, difficulty?: Parameters<BuildKit['stockRange']>[1]): string {
+export function paceRangeText(
+  t: PracticeT,
+  build: BuildKit,
+  b: Pick<BowlerProfile, 'family' | 'paceBand' | 'spinType'>,
+  difficulty?: Parameters<BuildKit['stockRange']>[1],
+): string {
   const [lo, hi] = build.stockRange(b, difficulty);
   return t.t('practice.bowler.range', { lo: Math.round(lo), hi: Math.round(hi) });
 }
 
 /** The outcome as a short word: FOUR, SIX and OUT are the only words shown in capitals (the caller styles them). */
-export function outcomeWord(t: PracticeT, o: Pick<DeliveryOutcome, 'runs' | 'boundary' | 'dismissal'>): { word: string; caps: boolean; tone: 'boundary' | 'runs' | 'dot' | 'out' } {
+export function outcomeWord(
+  t: PracticeT,
+  o: Pick<DeliveryOutcome, 'runs' | 'boundary' | 'dismissal'>,
+): { word: string; caps: boolean; tone: 'boundary' | 'runs' | 'dot' | 'out' } {
   if (o.dismissal) return { word: t.t('practice.result.out'), caps: true, tone: 'out' };
   if (o.boundary === 6) return { word: t.t('practice.result.six'), caps: true, tone: 'boundary' };
   if (o.boundary === 4) return { word: t.t('practice.result.four'), caps: true, tone: 'boundary' };
@@ -104,7 +112,11 @@ export function lbwNotOut(t: PracticeT, lbw: LbwReason | null | undefined): stri
 }
 
 /** A coaching reason in words, with the gap or fielder the physics named. */
-export function reasonWords(t: PracticeT, reason: CoachingReason, r: Pick<DeliveryResult, 'coaching' | 'outcome'>): string {
+export function reasonWords(
+  t: PracticeT,
+  reason: CoachingReason,
+  r: Pick<DeliveryResult, 'coaching' | 'outcome'>,
+): string {
   return lineStart(reasonPhrase(t, reason, r), t.intl);
 }
 
@@ -126,7 +138,11 @@ function reasonPhrase(t: PracticeT, reason: CoachingReason, r: Pick<DeliveryResu
 }
 
 /** The dead ball's PRIMARY REASON line: the reason, then the measured timing ("Too late on the ball · 42 ms late"). */
-export function primaryReasonLine(t: PracticeT, insight: PrimaryInsight, r: Pick<DeliveryResult, 'coaching' | 'outcome' | 'contact' | 'swing'>): string {
+export function primaryReasonLine(
+  t: PracticeT,
+  insight: PrimaryInsight,
+  r: Pick<DeliveryResult, 'coaching' | 'outcome' | 'contact' | 'swing'>,
+): string {
   const reason = reasonWords(t, insight.reason, r);
   const timing = r.swing ? timingWords(t, insight.timingMs, r.contact.timing) : null;
   const lbw = lbwNotOut(t, r.coaching.lbw);
@@ -137,13 +153,20 @@ export function primaryReasonLine(t: PracticeT, insight: PrimaryInsight, r: Pick
  * When a stroke scored but the coach still recommends a change: why it was lucky, from the coach's own evidence (the
  * same stroke, well timed, over the execution spread). Null when there is nothing to say.
  */
-export function luckyLine(t: PracticeT, a: Pick<CoachAnalysis, 'attempted'>, rec: Pick<CoachRecommendation, 'kind'>): string | null {
+export function luckyLine(
+  t: PracticeT,
+  a: Pick<CoachAnalysis, 'attempted'>,
+  rec: Pick<CoachRecommendation, 'kind'>,
+): string | null {
   const at = a.attempted;
   const spread = at.spread;
   if (!spread || at.dismissal || at.runs <= 0 || isConfirmation(rec)) return null;
   if (spread.dismissalRisk > 0.5) return t.t('practice.lucky.mostly_out');
-  if (spread.dismissalRisk >= 0.1) return t.t('practice.lucky.out_rate', { n: Math.max(2, Math.round(1 / spread.dismissalRisk)) });
-  const risk = (['can_be_caught', 'can_edge', 'into_protected_region', 'can_be_bowled', 'can_be_lbw'] as const).find((r) => spread.risks.includes(r));
+  if (spread.dismissalRisk >= 0.1)
+    return t.t('practice.lucky.out_rate', { n: Math.max(2, Math.round(1 / spread.dismissalRisk)) });
+  const risk = (['can_be_caught', 'can_edge', 'into_protected_region', 'can_be_bowled', 'can_be_lbw'] as const).find(
+    (r) => spread.risks.includes(r),
+  );
   return risk ? t.tk(`practice.lucky.${risk}`) : null;
 }
 
@@ -160,7 +183,10 @@ export function recommendationLine(t: PracticeT, rec: CoachRecommendation): stri
       return t.tk(`practice.rec.${rec.kind}`, { ms: rec.shiftMs ?? 0 });
     case 'attack_the_gap':
     case 'aim_for_the_gap':
-      return lineStart(t.tk(`practice.rec.${rec.kind}${rec.lofted ? '_lofted' : ''}`, zonePhrases(t, rec.region)), t.intl);
+      return lineStart(
+        t.tk(`practice.rec.${rec.kind}${rec.lofted ? '_lofted' : ''}`, zonePhrases(t, rec.region)),
+        t.intl,
+      );
     default:
       return t.tk(`practice.rec.${rec.kind}`);
   }
@@ -219,7 +245,11 @@ export function tipLines(t: PracticeT, words: TipWordsLike): { reason: string; r
  * withheld (src/practice/coach/tip.ts insteadOf and spokenAction: its aim for a stroke, its block, or why to leave).
  * Any other verdict, or a tip that is not a confirmation, is shown as the coach formed it.
  */
-export function cardTip(tip: CoachTipLike, analysis: CoachAnalysis, comparison: AttemptComparison | null): { tip: CoachTipLike; withheld: boolean } {
+export function cardTip(
+  tip: CoachTipLike,
+  analysis: CoachAnalysis,
+  comparison: AttemptComparison | null,
+): { tip: CoachTipLike; withheld: boolean } {
   if (!isConfirmation(tip.action) || comparison?.verdict !== 'worse') return { tip, withheld: false };
   // A fact that already withholds praise carries the coach's own `instead`, and spokenAction says it.
   if ('instead' in tip.fact) return { tip, withheld: true };
@@ -229,12 +259,17 @@ export function cardTip(tip: CoachTipLike, analysis: CoachAnalysis, comparison: 
 /** The recommended response itself as an action (the coach's rule in tip.ts insteadOf, which it does not export). */
 function insteadKind(analysis: CoachAnalysis, rec: CoachRecommendation): CoachRecommendationKind {
   if (rec.decision === 'attack') return 'aim_for_the_gap';
-  if (rec.decision === 'defend') return rec.footwork === 'back' || rec.footwork === 'across' ? 'defend_back' : 'defend_forward';
+  if (rec.decision === 'defend')
+    return rec.footwork === 'back' || rec.footwork === 'across' ? 'defend_back' : 'defend_forward';
   return leaveKind(analysis);
 }
 
 export function comparisonLines(t: PracticeT, c: AttemptComparison): string[] {
-  return c.changes.slice(0, 2).map((k: AttemptChangeKind) => t.tk(`practice.compare.${k}`, { ms: Math.abs(c.timingMs ?? 0), runs: Math.abs(c.runsDelta) }));
+  return c.changes
+    .slice(0, 2)
+    .map((k: AttemptChangeKind) =>
+      t.tk(`practice.compare.${k}`, { ms: Math.abs(c.timingMs ?? 0), runs: Math.abs(c.runsDelta) }),
+    );
 }
 
 export function riskWord(t: PracticeT, r: CoachRisk): string {
@@ -250,11 +285,21 @@ export function intentionLine(t: PracticeT, i: FieldIntention): string {
 }
 
 /** "Cutter · 127 km/h · Good length, off stump". */
-export function deliveryLine(t: PracticeT, build: BuildKit, r: DeliveryResult, bowler: Pick<BowlerProfile, 'family' | 'spinType'>): string {
+export function deliveryLine(
+  t: PracticeT,
+  build: BuildKit,
+  r: DeliveryResult,
+  bowler: Pick<BowlerProfile, 'family' | 'spinType'>,
+): string {
   const p = r.flight.plan;
   const length = t.tk(`practice.length.${build.lengthBand(p.lengthM, bowler.family)}`);
   const line = t.tk(`practice.lineband.${build.lineBand(p.lineM)}`);
-  return t.t('practice.delivery.line', { variation: variationName(t, p.variation, bowler.spinType), kph: Math.round(r.flight.release.speedKph), length, line });
+  return t.t('practice.delivery.line', {
+    variation: variationName(t, p.variation, bowler.spinType),
+    kph: Math.round(r.flight.release.speedKph),
+    length,
+    line,
+  });
 }
 
 export type ShotElevationRead = 'grounded' | 'uppish' | 'lofted';
@@ -279,19 +324,30 @@ export function shotPowerRead(power: number): ShotPowerRead {
 type IntentRead = Pick<NonNullable<DeliveryResult['swing']>, 'kind' | 'directionDeg' | 'power' | 'elevation'>;
 
 /** What the game read from an exact recorded intent, in the same words used on the dead-ball result. */
-export function intentReadLine(t: PracticeT, intent: IntentRead | null, regionOf: (bearingDeg: number) => Region): string {
+export function intentReadLine(
+  t: PracticeT,
+  intent: IntentRead | null,
+  regionOf: (bearingDeg: number) => Region,
+): string {
   if (!intent) return t.t('practice.read_as.leave');
   if (intent.kind === 'defend') return t.t('practice.read_as.block');
   const elevation = shotElevationRead(intent.elevation);
   const power = shotPowerRead(intent.power);
-  return t.tk(`practice.read_as.${elevation}`, { ...zonePhrases(t, regionOf(intent.directionDeg)), power: t.tk(`practice.read_as.power.${power}`) });
+  return t.tk(`practice.read_as.${elevation}`, {
+    ...zonePhrases(t, regionOf(intent.directionDeg)),
+    power: t.tk(`practice.read_as.power.${power}`),
+  });
 }
 
 /**
  * What the game read from the player's input, in plain words ("Grounded shot to cover, firm"), so the cause of every
  * outcome is visible: the recorded swing's kind, elevation, power and direction, exactly as the physics used them.
  */
-export function readLine(t: PracticeT, swing: DeliveryResult['swing'], regionOf: (bearingDeg: number) => Region): string {
+export function readLine(
+  t: PracticeT,
+  swing: DeliveryResult['swing'],
+  regionOf: (bearingDeg: number) => Region,
+): string {
   return intentReadLine(t, swing, regionOf);
 }
 
@@ -301,15 +357,15 @@ export function batEvidenceLines(t: PracticeT, facts: Pick<CoachingFactsLike, 'b
   const lines: string[] = [];
   if (bat.faceToIntentDeg !== null)
     lines.push(t.t('practice.why.bat_face', { deg: Math.round(Math.abs(bat.faceToIntentDeg)) }));
-  if (bat.speedKph !== null)
-    lines.push(t.t('practice.why.bat_speed', { kph: Math.round(bat.speedKph) }));
-  if (bat.withinSweetSpotAlongBand === true)
-    lines.push(t.t('practice.why.bat_along_band'));
+  if (bat.speedKph !== null) lines.push(t.t('practice.why.bat_speed', { kph: Math.round(bat.speedKph) }));
+  if (bat.withinSweetSpotAlongBand === true) lines.push(t.t('practice.why.bat_along_band'));
   else if (bat.sweetSpotAlongOffsetM !== null)
-    lines.push(t.t('practice.why.bat_along_offset', {
-      cm: Math.round(Math.abs(bat.sweetSpotAlongOffsetM) * 100),
-      end: t.t(bat.sweetSpotAlongOffsetM < 0 ? 'practice.why.bat_toe' : 'practice.why.bat_shoulder'),
-    }));
+    lines.push(
+      t.t('practice.why.bat_along_offset', {
+        cm: Math.round(Math.abs(bat.sweetSpotAlongOffsetM) * 100),
+        end: t.t(bat.sweetSpotAlongOffsetM < 0 ? 'practice.why.bat_toe' : 'practice.why.bat_shoulder'),
+      }),
+    );
   return lines;
 }
 

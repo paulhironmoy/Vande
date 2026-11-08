@@ -47,7 +47,10 @@ export function isDeviceAssessment(x: unknown): x is DeviceAssessment {
   );
 }
 
-export function loadCachedAssessment(appVersion: string, store: KeyStore | null = localStore()): DeviceAssessment | null {
+export function loadCachedAssessment(
+  appVersion: string,
+  store: KeyStore | null = localStore(),
+): DeviceAssessment | null {
   try {
     const raw = store?.getItem(PERF_CACHE_KEY);
     if (!raw) return null;
@@ -59,7 +62,11 @@ export function loadCachedAssessment(appVersion: string, store: KeyStore | null 
   }
 }
 
-export function saveCachedAssessment(appVersion: string, assessment: DeviceAssessment, store: KeyStore | null = localStore()): void {
+export function saveCachedAssessment(
+  appVersion: string,
+  assessment: DeviceAssessment,
+  store: KeyStore | null = localStore(),
+): void {
   try {
     store?.setItem(PERF_CACHE_KEY, JSON.stringify({ v: 1, appVersion, assessment }));
   } catch {

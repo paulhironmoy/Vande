@@ -17,7 +17,17 @@
  */
 import { useLayoutEffect, useRef, type RefObject } from 'react';
 import type { StageRegion } from '../flow/stageTypes';
-import { bandAt, cardPlacement, isOwnPlace, type BandPlacement, type Box, type CardEdge, type CardPlacement, type CardPlacementInput, type CardSpot } from './cardPlacement';
+import {
+  bandAt,
+  cardPlacement,
+  isOwnPlace,
+  type BandPlacement,
+  type Box,
+  type CardEdge,
+  type CardPlacement,
+  type CardPlacementInput,
+  type CardSpot,
+} from './cardPlacement';
 
 /** The camera has settled this long after the ball goes dead (measured: the transient is over within about 100 ms). */
 const CARD_SETTLE_MS = 120;
@@ -38,7 +48,9 @@ const px = (value: string, fallback: number) => {
 function insetOf(root: HTMLElement, view: DOMRect): Box[] {
   const pip = root.querySelector<HTMLElement>('[data-pip]');
   const r = pip?.getBoundingClientRect();
-  return r && r.width > 0 && r.height > 0 ? [{ x: r.left - view.left, y: r.top - view.top, width: r.width, height: r.height }] : [];
+  return r && r.width > 0 && r.height > 0
+    ? [{ x: r.left - view.left, y: r.top - view.top, width: r.width, height: r.height }]
+    : [];
 }
 
 interface Parts {
@@ -54,7 +66,15 @@ function partsOf(card: HTMLElement): Parts | null {
   return { body, actions, words: card.querySelector<HTMLElement>('[data-testid="practice-result-words"]') };
 }
 
-function inputOf(card: HTMLElement, root: HTMLElement, p: Parts, edge: CardEdge, regions: readonly StageRegion[], inset: number, rem: number): CardPlacementInput | null {
+function inputOf(
+  card: HTMLElement,
+  root: HTMLElement,
+  p: Parts,
+  edge: CardEdge,
+  regions: readonly StageRegion[],
+  inset: number,
+  rem: number,
+): CardPlacementInput | null {
   const view = root.getBoundingClientRect();
   if (view.width <= view.height) return null;
   const style = getComputedStyle(card);
@@ -66,7 +86,10 @@ function inputOf(card: HTMLElement, root: HTMLElement, p: Parts, edge: CardEdge,
     edge,
     width: card.offsetWidth,
     naturalHeight: chrome + words + p.actions.offsetHeight,
-    railBottom: { left: px(style.getPropertyValue('--p-rail-left-bottom'), 6.5 * rem), right: px(style.getPropertyValue('--p-rail-bottom'), 4.75 * rem) },
+    railBottom: {
+      left: px(style.getPropertyValue('--p-rail-left-bottom'), 6.5 * rem),
+      right: px(style.getPropertyValue('--p-rail-bottom'), 4.75 * rem),
+    },
     inset,
     railGap: 0.5 * rem,
     regionGap: 0.25 * rem,
@@ -94,7 +117,12 @@ function bandContentFits(card: HTMLElement, p: Parts): boolean {
   const outer = card.getBoundingClientRect();
   const inside = (element: HTMLElement) => {
     const box = element.getBoundingClientRect();
-    return box.left >= outer.left - 0.5 && box.top >= outer.top - 0.5 && box.right <= outer.right + 0.5 && box.bottom <= outer.bottom + 0.5;
+    return (
+      box.left >= outer.left - 0.5 &&
+      box.top >= outer.top - 0.5 &&
+      box.right <= outer.right + 0.5 &&
+      box.bottom <= outer.bottom + 0.5
+    );
   };
   if (!inside(p.body) || !inside(p.actions)) return false;
   return Array.from(p.actions.children).every((element) => {
@@ -146,7 +174,11 @@ function apply(card: HTMLElement, d: Decision, clear: boolean): void {
  * layout pass that measured it (a timer, a ResizeObserver callback), so a moved card is never painted in a stale
  * place; React renders none of these properties.
  */
-export function useCardPlacement(ref: RefObject<HTMLElement | null>, edge: CardEdge, regions: (() => readonly StageRegion[]) | null | undefined): void {
+export function useCardPlacement(
+  ref: RefObject<HTMLElement | null>,
+  edge: CardEdge,
+  regions: (() => readonly StageRegion[]) | null | undefined,
+): void {
   const read = useRef(regions);
   const enabled = Boolean(regions);
   useLayoutEffect(() => {

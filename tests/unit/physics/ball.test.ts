@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { integrateBall, simulate } from '@/physics/ball';
 import { BALL_R, BOUNDARY_R, OUTFIELD, PITCHES, PITCH_HALF, SIM_DT } from '@/physics/constants';
 
-const start = (vx: number, vy: number, vz: number, y = 0.8, z = 8.5) => ({ t: 0, p: { x: 0, y, z }, v: { x: vx, y: vy, z: vz } });
+const start = (vx: number, vy: number, vz: number, y = 0.8, z = 8.5) => ({
+  t: 0,
+  p: { x: 0, y, z },
+  v: { x: vx, y: vy, z: vz },
+});
 
 describe('ball integrator', () => {
   it('is deterministic: same start, deep-equal result', () => {
@@ -18,7 +22,10 @@ describe('ball integrator', () => {
   });
 
   it('bounces with the surface restitution and keeps a vertical velocity ratio of e', () => {
-    const r = integrateBall({ t: 0, p: { x: 0, y: 1.5, z: 0 }, v: { x: 0, y: -2, z: 20 }, spin: { x: 0, y: 0, z: 0 } }, { pitch: PITCHES.hard, untilT: 0.8, stopAtBoundary: false });
+    const r = integrateBall(
+      { t: 0, p: { x: 0, y: 1.5, z: 0 }, v: { x: 0, y: -2, z: 20 }, spin: { x: 0, y: 0, z: 0 } },
+      { pitch: PITCHES.hard, untilT: 0.8, stopAtBoundary: false },
+    );
     const b = r.bounces[0];
     expect(b.surface).toBe('pitch');
     expect(b.p.y).toBeCloseTo(BALL_R, 9);
@@ -57,13 +64,19 @@ describe('ball integrator', () => {
   });
 
   it('detects the striker’s stumps (played on) without passing through them', () => {
-    const r = simulate({ t: 0, p: { x: 0.02, y: 0.3, z: PITCH_HALF - 1.2 }, v: { x: 0, y: -0.5, z: 25 } }, { detectStumps: true, sampleEvery: 1 });
+    const r = simulate(
+      { t: 0, p: { x: 0.02, y: 0.3, z: PITCH_HALF - 1.2 }, v: { x: 0, y: -0.5, z: 25 } },
+      { detectStumps: true, sampleEvery: 1 },
+    );
     expect(r.stumps).not.toBeNull();
     expect(r.stumps!.p.z).toBeLessThan(PITCH_HALF);
   });
 
   it('records the first crossing of the stumps plane', () => {
-    const r = simulate({ t: 0, p: { x: 0, y: 0.5, z: 8 }, v: { x: 0, y: 0, z: 30 } }, { untilZ: PITCH_HALF + 0.3, sampleEvery: 1 });
+    const r = simulate(
+      { t: 0, p: { x: 0, y: 0.5, z: 8 }, v: { x: 0, y: 0, z: 30 } },
+      { untilZ: PITCH_HALF + 0.3, sampleEvery: 1 },
+    );
     expect(r.plane!.p.z).toBeCloseTo(PITCH_HALF, 9);
     expect(r.plane!.t).toBeGreaterThan(0.06);
     expect(r.plane!.t).toBeLessThan(0.075);

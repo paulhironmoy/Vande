@@ -2,7 +2,17 @@
  * Timing calibration, kept per modality (CTL9, finding F-028): each kind of input is corrected only by its own offset.
  */
 import { describe, expect, it } from 'vitest';
-import { MODALITIES, calibrationError, calibrationFor, calibrationFromTaps, calibrationsFromTaps, eventModality, normalizeGesture, resolveCalibrations, withCalibration } from '@/input';
+import {
+  MODALITIES,
+  calibrationError,
+  calibrationFor,
+  calibrationFromTaps,
+  calibrationsFromTaps,
+  eventModality,
+  normalizeGesture,
+  resolveCalibrations,
+  withCalibration,
+} from '@/input';
 import { CALIBRATION } from '@/input/constants';
 import { OPTS, RELEASE, SURFACES, tapSamples } from './fixtures';
 
@@ -56,9 +66,16 @@ describe('per modality', () => {
     const calibrations = resolveCalibrations({ touch: { offsetMs: 65, attempts: 5 } });
     const o = { ...OPTS, calibrationMs: 0, calibrations };
     const press = RELEASE + 500;
-    expect(normalizeGesture({ pointer: 'touch', samples: tapSamples(press, 60), surface: SURFACES.phone }, o)!.startT).toBeCloseTo(0.435, 6);
-    expect(normalizeGesture({ pointer: 'mouse', samples: tapSamples(press, 60), surface: SURFACES.desktop }, o)!.startT).toBeCloseTo(0.5, 6);
-    expect(normalizeGesture({ pointer: 'keyboard', samples: [{ t: press, x: 0, y: 0 }], surface: SURFACES.desktop }, o)!.startT).toBeCloseTo(0.5, 6);
+    expect(
+      normalizeGesture({ pointer: 'touch', samples: tapSamples(press, 60), surface: SURFACES.phone }, o)!.startT,
+    ).toBeCloseTo(0.435, 6);
+    expect(
+      normalizeGesture({ pointer: 'mouse', samples: tapSamples(press, 60), surface: SURFACES.desktop }, o)!.startT,
+    ).toBeCloseTo(0.5, 6);
+    expect(
+      normalizeGesture({ pointer: 'keyboard', samples: [{ t: press, x: 0, y: 0 }], surface: SURFACES.desktop }, o)!
+        .startT,
+    ).toBeCloseTo(0.5, 6);
   });
 
   it('tells the modality from the event', () => {

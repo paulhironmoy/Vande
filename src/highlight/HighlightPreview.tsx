@@ -121,7 +121,13 @@ export function HighlightPreview({ input, autoplay = true, className }: Highligh
       </div>
       {state === 'ready' && (
         <figcaption className={s.controls}>
-          <IconButton icon={playing ? 'pause' : 'play'} label={playing ? t('common.pause') : t('common.play')} variant="primary" onClick={toggle} data-testid="highlight-play" />
+          <IconButton
+            icon={playing ? 'pause' : 'play'}
+            label={playing ? t('common.pause') : t('common.play')}
+            variant="primary"
+            onClick={toggle}
+            data-testid="highlight-play"
+          />
           <input
             className={s.range}
             type="range"

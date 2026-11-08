@@ -10,7 +10,17 @@ import { COMMENTARY_KEYS, engine, EXPLAIN_KEYS } from '@/engine';
 import { pitchHints, unlockHint } from '@/engine/advice';
 import { hexSeed, playMatch, type SimPlayer } from '@/engine/sim/harness';
 import { rngFromKey } from '@/engine/prng';
-import { FIELD_SETTINGS, INTENTS, LENGTHS, LINES, PITCHES, SECTOR_ZONES, SHOTS, VARIANTS, WEATHERS } from '@/engine/v1/tables';
+import {
+  FIELD_SETTINGS,
+  INTENTS,
+  LENGTHS,
+  LINES,
+  PITCHES,
+  SECTOR_ZONES,
+  SHOTS,
+  VARIANTS,
+  WEATHERS,
+} from '@/engine/v1/tables';
 import { formatMessage, parseMessage } from '@/i18n/format';
 import { LOCALES, localeInfo } from '@/i18n/locales';
 import golden from './fixtures/golden-v1.json';
@@ -18,8 +28,13 @@ import adviceSource from '../../../src/engine/advice.ts?raw';
 import plannerSource from '../../../src/screens/planner/BowlingPlannerScreen.tsx?raw';
 import settingsSource from '../../../src/screens/settings/SettingsRoute.tsx?raw';
 
-const files = import.meta.glob('../../../src/i18n/engine/*.json', { eager: true, import: 'default' }) as Record<string, Record<string, string>>;
-const CATALOGS = Object.fromEntries(Object.entries(files).map(([path, cat]) => [path.replace(/^.*\/|\.json$/g, ''), cat])) as Record<LocaleId, Record<string, string>>;
+const files = import.meta.glob('../../../src/i18n/engine/*.json', { eager: true, import: 'default' }) as Record<
+  string,
+  Record<string, string>
+>;
+const CATALOGS = Object.fromEntries(
+  Object.entries(files).map(([path, cat]) => [path.replace(/^.*\/|\.json$/g, ''), cat]),
+) as Record<LocaleId, Record<string, string>>;
 const en = CATALOGS.en;
 const LOCALE_IDS = LOCALES.map((l) => l.id);
 
@@ -36,7 +51,16 @@ function args(nodes: Node[], out = new Set<string>()): Set<string> {
 }
 const argsOf = (pattern: string) => [...args(parseMessage(pattern))].sort();
 
-const TIMINGS: TimingGrade[] = ['perfect', 'good', 'early', 'late', 'very_early', 'very_late', 'no_shot', 'interrupted'];
+const TIMINGS: TimingGrade[] = [
+  'perfect',
+  'good',
+  'early',
+  'late',
+  'very_early',
+  'very_late',
+  'no_shot',
+  'interrupted',
+];
 const CONTACTS: Contact[] = ['middle', 'thick_edge', 'thin_edge', 'pad', 'miss', 'none'];
 const EXECUTIONS: ExecutionGrade[] = ['perfect', 'good', 'loose'];
 const WICKETS: WicketKind[] = ['bowled', 'caught', 'lbw', 'stumped', 'run_out'];
@@ -61,11 +85,21 @@ const NAMES = [
   ...keysOf('wicket', WICKETS),
 ];
 /** The one-line hints the screens show: delivery cards (planner, Training), the shot picker, pitches, intents and fields. */
-const HINTS = [...keysOf('variant_hint', VARIANTS), ...keysOf('shot_hint', SHOTS), ...keysOf('pitch_hint', PITCHES), ...keysOf('intent_hint', INTENTS), ...keysOf('field_hint', FIELD_SETTINGS)];
+const HINTS = [
+  ...keysOf('variant_hint', VARIANTS),
+  ...keysOf('shot_hint', SHOTS),
+  ...keysOf('pitch_hint', PITCHES),
+  ...keysOf('intent_hint', INTENTS),
+  ...keysOf('field_hint', FIELD_SETTINGS),
+];
 /** The Auto label the reveal and its scorecard put on balls a stand-in played. */
 const AUTO_LABELS = ['auto.tag', 'auto.batted', 'auto.bowled'];
 /** Keys a source file names as plain string literals ('guide.title', 'advice.read.attack', ...). */
-const quoted = (source: string, prefix: string) => [...new Set([...source.matchAll(/'([a-z_]+(?:\.[a-z0-9_]+)+)'/g)].map((m) => m[1]).filter((k) => k.startsWith(prefix)))];
+const quoted = (source: string, prefix: string) => [
+  ...new Set(
+    [...source.matchAll(/'([a-z_]+(?:\.[a-z0-9_]+)+)'/g)].map((m) => m[1]).filter((k) => k.startsWith(prefix)),
+  ),
+];
 /** The tactics guide exactly as the Settings sheet shows it: its title, its intro and every key of SettingsRoute's GUIDE table. */
 const GUIDE_TOPICS = quoted(settingsSource, 'guide.');
 /**
@@ -76,7 +110,10 @@ const ADVICE = [
   ...VARIANTS.flatMap((v) => unlockHint(v)?.key ?? []),
   ...PITCHES.flatMap((pitch) => WEATHERS.flatMap((weather) => pitchHints({ pitch, weather }).map((h) => h.key))),
   ...quoted(adviceSource, 'advice.'),
-  ...keysOf('advice.read', FIELD_SETTINGS.map((f) => `field_${f}`)),
+  ...keysOf(
+    'advice.read',
+    FIELD_SETTINGS.map((f) => `field_${f}`),
+  ),
   ...quoted(plannerSource, 'advice.'),
   ...keysOf('advice.summary', [...FAMILIES, ...FIELD_SETTINGS.map((f) => `field_${f}`)]),
 ];
@@ -125,8 +162,16 @@ function replays(): MatchEventLog[] {
   const logs = (golden as unknown as { logs: MatchEventLog[] }).logs.slice();
   const rng = rngFromKey('i18n-engine-replays');
   const bats = ['random', 'heuristic', 'oracle', 'fixed:defend', 'fixed:loft', 'fixed:sweep', 'auto'] as const;
-  const player = (): SimPlayer => ({ bat: { strategy: rng.pick(bats), skill: rng.pick(['unskilled', 'average', 'skilled'] as const) }, bowl: { strategy: rng.pick(['random', 'starter_mix'] as const), skill: 'average' } });
-  for (let i = 0; i < 160; i++) logs.push(playMatch([player(), player()], { pitch: rng.pick(PITCHES), weather: rng.pick(WEATHERS) }, hexSeed(rng), { buildLog: true }).log!);
+  const player = (): SimPlayer => ({
+    bat: { strategy: rng.pick(bats), skill: rng.pick(['unskilled', 'average', 'skilled'] as const) },
+    bowl: { strategy: rng.pick(['random', 'starter_mix'] as const), skill: 'average' },
+  });
+  for (let i = 0; i < 160; i++)
+    logs.push(
+      playMatch([player(), player()], { pitch: rng.pick(PITCHES), weather: rng.pick(WEATHERS) }, hexSeed(rng), {
+        buildLog: true,
+      }).log!,
+    );
   const { conditions, overs } = engine.dailyChallenge('2026-10-25', 'i18n-salt');
   let state = engine.startInnings(0);
   const inputs = [];
@@ -137,16 +182,34 @@ function replays(): MatchEventLog[] {
     state = engine.resolveNextBall(state, { seed: 'daily-seed', conditions, plan: overs[0], input }).state;
   }
   const people = logs[0].players;
-  logs.push(engine.buildDailyLog({ attemptId: 'a', day: '2026-10-25', attempt: 1, seed: 'daily-seed', serverSalt: 'i18n-salt', player: people[0], setter: { ...people[1], kind: 'daily' }, inputs, innings: state, meta: { createdHour: 'h', revealedHour: 'h' } }));
+  logs.push(
+    engine.buildDailyLog({
+      attemptId: 'a',
+      day: '2026-10-25',
+      attempt: 1,
+      seed: 'daily-seed',
+      serverSalt: 'i18n-salt',
+      player: people[0],
+      setter: { ...people[1], kind: 'daily' },
+      inputs,
+      innings: state,
+      meta: { createdHour: 'h', revealedHour: 'h' },
+    }),
+  );
   return logs;
 }
 
 /** The same id → name resolution the reveal screen does (src/screens/reveal/text.ts), using this catalog's names. */
-function resolve(params: Record<string, string | number>, log: MatchEventLog, cat: Record<string, string>): Record<string, string | number> {
+function resolve(
+  params: Record<string, string | number>,
+  log: MatchEventLog,
+  cat: Record<string, string>,
+): Record<string, string | number> {
   const name = (key: string) => cat[key] ?? en[key];
   const out: Record<string, string | number> = {};
   for (const [k, v] of Object.entries(params)) {
-    if ((k === 'batter' || k === 'bowler' || k === 'winner' || k === 'player') && (v === 0 || v === 1)) out[k] = log.players[v].alias;
+    if ((k === 'batter' || k === 'bowler' || k === 'winner' || k === 'player') && (v === 0 || v === 1))
+      out[k] = log.players[v].alias;
     else if (k === 'shot') out[k] = name(`shot.${v}`);
     else if (k === 'variant') out[k] = name(`variant.${v}`);
     else if (k === 'zone' || k === 'fielder') out[k] = name(`zone.${v}`);
@@ -171,7 +234,16 @@ describe('engine copy catalogs', () => {
     expect(GUIDE_TOPICS.length).toBeGreaterThan(2);
     expect(quoted(adviceSource, 'advice.read.').length).toBeGreaterThan(0);
     expect(quoted(plannerSource, 'advice.summary.').length).toBeGreaterThan(0);
-    const required = [...EXPLAIN_KEYS, ...COMMENTARY_KEYS, ...engine.GHOSTS.flatMap((g) => [g.nameKey, g.styleKey]), ...NAMES, ...HINTS, ...AUTO_LABELS, ...ADVICE, ...GUIDE_TOPICS];
+    const required = [
+      ...EXPLAIN_KEYS,
+      ...COMMENTARY_KEYS,
+      ...engine.GHOSTS.flatMap((g) => [g.nameKey, g.styleKey]),
+      ...NAMES,
+      ...HINTS,
+      ...AUTO_LABELS,
+      ...ADVICE,
+      ...GUIDE_TOPICS,
+    ];
     expect(required.filter((k) => !en[k])).toEqual([]);
     for (const [k, v] of Object.entries(en)) {
       expect(typeof v, k).toBe('string');
@@ -183,7 +255,8 @@ describe('engine copy catalogs', () => {
     const cat = CATALOGS[locale];
     expect(Object.keys(en).filter((k) => !(k in cat))).toEqual([]);
     expect(Object.keys(cat).filter((k) => !(k in en))).toEqual([]);
-    for (const [k, v] of Object.entries(cat)) expect(typeof v === 'string' && v.trim().length > 0, `${locale} ${k}`).toBe(true);
+    for (const [k, v] of Object.entries(cat))
+      expect(typeof v === 'string' && v.trim().length > 0, `${locale} ${k}`).toBe(true);
   });
 
   it.each(LOCALE_IDS)('%s parses as ICU-lite with the same placeholders as English', (locale) => {
@@ -191,7 +264,8 @@ describe('engine copy catalogs', () => {
     const mismatches: string[] = [];
     for (const [k, v] of Object.entries(cat)) {
       expect(() => parseMessage(v), `${locale} ${k}`).not.toThrow();
-      if (en[k] !== undefined && argsOf(v).join() !== argsOf(en[k]).join()) mismatches.push(`${k}: ${argsOf(v).join()} vs ${argsOf(en[k]).join()}`);
+      if (en[k] !== undefined && argsOf(v).join() !== argsOf(en[k]).join())
+        mismatches.push(`${k}: ${argsOf(v).join()} vs ${argsOf(en[k]).join()}`);
     }
     expect(mismatches).toEqual([]);
   });
@@ -232,8 +306,14 @@ describe('engine copy catalogs', () => {
   it('renders numbers and plurals per locale', () => {
     const p = { runs: 1, balls: 1 };
     expect(formatMessage(en['commentary.chase_needs'], p, 'en-IN')).toBe('The equation: 1 run from 1 ball.');
-    expect(formatMessage(en['commentary.chase_needs'], { runs: 7, balls: 3 }, 'en-IN')).toBe('The equation: 7 runs from 3 balls.');
-    expect(formatMessage(en['commentary.chase_won'], { batter: 'Asha', ballsLeft: 0 }, 'en-IN')).toBe('Asha gets there off the very last ball!');
-    expect(formatMessage(en['commentary.loose_punished'], { bowler: 'Ravi', zone: 'Cover', runs: 4 }, 'en-IN')).toContain('FOUR');
+    expect(formatMessage(en['commentary.chase_needs'], { runs: 7, balls: 3 }, 'en-IN')).toBe(
+      'The equation: 7 runs from 3 balls.',
+    );
+    expect(formatMessage(en['commentary.chase_won'], { batter: 'Asha', ballsLeft: 0 }, 'en-IN')).toBe(
+      'Asha gets there off the very last ball!',
+    );
+    expect(
+      formatMessage(en['commentary.loose_punished'], { bowler: 'Ravi', zone: 'Cover', runs: 4 }, 'en-IN'),
+    ).toContain('FOUR');
   });
 });

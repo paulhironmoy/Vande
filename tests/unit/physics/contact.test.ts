@@ -72,45 +72,85 @@ describe('forgiveness moves the whole swing (SYS1)', () => {
   // arrival move together: a Learn or Play swing is exactly the Real swing at the band-mapped error, and only the
   // report keeps the raw error.
   const shifted = (f: ReturnType<typeof fly>, s: NormalizedSwing, assist: AssistLevel, tol: number) => {
-    const e = (s.startT + batTravelMs(s.kind, s.power) / 1000 - idealTimeFor(f, s.footwork === 'auto' ? 'auto' : s.footwork)) * 1000;
+    const e =
+      (s.startT + batTravelMs(s.kind, s.power) / 1000 - idealTimeFor(f, s.footwork === 'auto' ? 'auto' : s.footwork)) *
+      1000;
     const eff = forgive(e, activeBands(assist, tol));
     return { e, eff, real: { ...s, startT: s.startT + (eff - e) / 1000 } };
   };
 
-  it('plays the Real swing at the mapped error with the stroke\'s own travel, and reports the raw error', () => {
-    const flights = [fly({ lengthM: 4.04, lineM: 0.07, speedKph: 76.8 }, OFFSPIN, 'green', 'sys1'), fly({ lengthM: 6.5, lineM: 0.05, speedKph: 136 }, PACE, 'balanced', 't3')];
-    for (const f of flights) for (const kind of ['attack', 'defend'] as const) for (const err of [-90, 0, 75.4, 120]) for (const [assist, tol] of [['learn', 0], ['learn', 20], ['play', 0]] as const) {
-      const s = timedSwing(f, err, { kind, power: kind === 'defend' ? 0.2 : 0.7, directionDeg: kind === 'defend' ? 0 : 30, elevation: kind === 'defend' ? 0 : 0.2 });
-      const { e, eff, real } = shifted(f, s, assist, tol);
-      const a = strike(f, s, { assist, tierToleranceMs: tol });
-      // PHYS2 5f: the swing is the Real swing at the declared effective error: the mapped error forgive(e), unless the
-      // causal cap had to reduce it so that nothing is touched before the player's raw input.
-      const fz = a.forgiveness!;
-      expect(fz.rawMs).toBeCloseTo(e, 9);
-      expect(fz.mappedMs).toBe(eff);
-      expect(fz.effectiveMs).toBeGreaterThanOrEqual(Math.min(eff, e));
-      expect(fz.effectiveMs).toBeLessThanOrEqual(Math.max(eff, e));
-      const atEffective = { ...s, startT: s.startT + (fz.effectiveMs - fz.rawMs) / 1000 };
-      const r = strike(f, atEffective, { assist: 'real', tierToleranceMs: 0 });
-      expect(a.bat).toEqual(r.bat);
-      expect(a.exit).toEqual(r.exit);
-      expect({ ...a.contact, timing: null, timingErrorMs: null }).toEqual({ ...r.contact, timing: null, timingErrorMs: null });
-      const touch = a.exit?.t ?? a.impact?.t ?? null;
-      if (touch !== null) expect(touch).toBeGreaterThanOrEqual(s.startT);
-      if (fz.effectiveMs !== fz.mappedMs) continue;
-      expect(a.track!.startT).toBeCloseTo(real.startT, 12);
-      expect((a.track!.arriveT - a.track!.startT) * 1000).toBeCloseTo(batTravelMs(kind, s.power), 9);
-      expect(a.track!.errorMs).toBeCloseTo(e, 9);
-      expect(a.contact.timingErrorMs).toBeCloseTo(e, 9);
-      expect(a.track!.physErrorMs).toBeCloseTo(eff, 9);
-    }
+  it("plays the Real swing at the mapped error with the stroke's own travel, and reports the raw error", () => {
+    const flights = [
+      fly({ lengthM: 4.04, lineM: 0.07, speedKph: 76.8 }, OFFSPIN, 'green', 'sys1'),
+      fly({ lengthM: 6.5, lineM: 0.05, speedKph: 136 }, PACE, 'balanced', 't3'),
+    ];
+    for (const f of flights)
+      for (const kind of ['attack', 'defend'] as const)
+        for (const err of [-90, 0, 75.4, 120])
+          for (const [assist, tol] of [
+            ['learn', 0],
+            ['learn', 20],
+            ['play', 0],
+          ] as const) {
+            const s = timedSwing(f, err, {
+              kind,
+              power: kind === 'defend' ? 0.2 : 0.7,
+              directionDeg: kind === 'defend' ? 0 : 30,
+              elevation: kind === 'defend' ? 0 : 0.2,
+            });
+            const { e, eff, real } = shifted(f, s, assist, tol);
+            const a = strike(f, s, { assist, tierToleranceMs: tol });
+            // PHYS2 5f: the swing is the Real swing at the declared effective error: the mapped error forgive(e), unless the
+            // causal cap had to reduce it so that nothing is touched before the player's raw input.
+            const fz = a.forgiveness!;
+            expect(fz.rawMs).toBeCloseTo(e, 9);
+            expect(fz.mappedMs).toBe(eff);
+            expect(fz.effectiveMs).toBeGreaterThanOrEqual(Math.min(eff, e));
+            expect(fz.effectiveMs).toBeLessThanOrEqual(Math.max(eff, e));
+            const atEffective = { ...s, startT: s.startT + (fz.effectiveMs - fz.rawMs) / 1000 };
+            const r = strike(f, atEffective, { assist: 'real', tierToleranceMs: 0 });
+            expect(a.bat).toEqual(r.bat);
+            expect(a.exit).toEqual(r.exit);
+            expect({ ...a.contact, timing: null, timingErrorMs: null }).toEqual({
+              ...r.contact,
+              timing: null,
+              timingErrorMs: null,
+            });
+            const touch = a.exit?.t ?? a.impact?.t ?? null;
+            if (touch !== null) expect(touch).toBeGreaterThanOrEqual(s.startT);
+            if (fz.effectiveMs !== fz.mappedMs) continue;
+            expect(a.track!.startT).toBeCloseTo(real.startT, 12);
+            expect((a.track!.arriveT - a.track!.startT) * 1000).toBeCloseTo(batTravelMs(kind, s.power), 9);
+            expect(a.track!.errorMs).toBeCloseTo(e, 9);
+            expect(a.contact.timingErrorMs).toBeCloseTo(e, 9);
+            expect(a.track!.physErrorMs).toBeCloseTo(eff, 9);
+          }
   });
 
-  it('the evaluator\'s reproduction: Learn 20 ms, a defence 75 ms late is the Real defence at +27.5 ms (middle, not out)', () => {
-    const over = randomOver({ seed: 'eval-phys-det|over|170|spin', conditions: 'green', assist: 'real', difficulty: 'beginner', family: 'spin' });
+  it("the evaluator's reproduction: Learn 20 ms, a defence 75 ms late is the Real defence at +27.5 ms (middle, not out)", () => {
+    const over = randomOver({
+      seed: 'eval-phys-det|over|170|spin',
+      conditions: 'green',
+      assist: 'real',
+      difficulty: 'beginner',
+      family: 'spin',
+    });
     const f = practiceFlightOf(over, 1);
-    const swing: NormalizedSwing = { kind: 'defend', startT: 0.8349, directionDeg: 0, power: 0.2, elevation: 0, footwork: 'across' };
-    const args = { flight: f, field: autoField(over.bowler, 'green', 'right', over.ball), bowler: over.bowler, conditions: 'green' as const, handedness: 'right' as const };
+    const swing: NormalizedSwing = {
+      kind: 'defend',
+      startT: 0.8349,
+      directionDeg: 0,
+      power: 0.2,
+      elevation: 0,
+      footwork: 'across',
+    };
+    const args = {
+      flight: f,
+      field: autoField(over.bowler, 'green', 'right', over.ball),
+      bowler: over.bowler,
+      conditions: 'green' as const,
+      handedness: 'right' as const,
+    };
     const { e, eff, real } = shifted(f, swing, 'learn', 20);
     expect(e).toBeCloseTo(75.38, 2);
     expect(eff).toBeCloseTo(27.54, 2);
@@ -120,7 +160,11 @@ describe('forgiveness moves the whole swing (SYS1)', () => {
     expect(learn.contact.kind).toBe('middle');
     expect(learn.outcome.dismissal).toBeNull();
     expect(learn.contact.timing).toBe('solid');
-    expect({ ...learn.contact, timing: null, timingErrorMs: null }).toEqual({ ...atEff.contact, timing: null, timingErrorMs: null });
+    expect({ ...learn.contact, timing: null, timingErrorMs: null }).toEqual({
+      ...atEff.contact,
+      timing: null,
+      timingErrorMs: null,
+    });
     expect(learn.outcome).toEqual(atEff.outcome);
     expect(learn.bat).toEqual(atEff.bat);
   });
@@ -131,10 +175,38 @@ describe('no input changes anything before it (5f causality)', () => {
   // bowled leave (stock, 5.09 m, 104.2 km/h, left-handed); a defence begun 1 ms after the ball hit the stumps. Before:
   // at Learn 20 ms the forgiven bat started 82 ms early and met the ball 76 ms before the input (middle, not out);
   // in every level the footwork body could stand in the ball's path before the input (pad, LBW).
-  const over = randomOver({ seed: 'eval-phys-5e|stumps|0', conditions: 'balanced', assist: 'real', difficulty: 'beginner', family: 'pace' });
-  const f = flightOf({ plan: over.balls[0], bowler: over.bowler, conditions: 'balanced', seed: ballSeed(over, 0), handedness: 'left', ball: over.ball });
-  const args = { flight: f, field: autoField(over.bowler, 'balanced', 'left', over.ball), bowler: over.bowler, conditions: 'balanced' as const, handedness: 'left' as const };
-  const drawn = (r: ReturnType<typeof resolveDelivery>) => ({ outcome: r.outcome, ball: r.ball, events: r.events, deadT: r.deadT, fielders: r.fielders, lbw: r.lbw, frame: r.batterBodyFrame, root: r.batterRootOffset });
+  const over = randomOver({
+    seed: 'eval-phys-5e|stumps|0',
+    conditions: 'balanced',
+    assist: 'real',
+    difficulty: 'beginner',
+    family: 'pace',
+  });
+  const f = flightOf({
+    plan: over.balls[0],
+    bowler: over.bowler,
+    conditions: 'balanced',
+    seed: ballSeed(over, 0),
+    handedness: 'left',
+    ball: over.ball,
+  });
+  const args = {
+    flight: f,
+    field: autoField(over.bowler, 'balanced', 'left', over.ball),
+    bowler: over.bowler,
+    conditions: 'balanced' as const,
+    handedness: 'left' as const,
+  };
+  const drawn = (r: ReturnType<typeof resolveDelivery>) => ({
+    outcome: r.outcome,
+    ball: r.ball,
+    events: r.events,
+    deadT: r.deadT,
+    fielders: r.fielders,
+    lbw: r.lbw,
+    frame: r.batterBodyFrame,
+    root: r.batterRootOffset,
+  });
   const strokes: Omit<NormalizedSwing, 'startT'>[] = [
     { kind: 'defend', directionDeg: 0, power: 0.2, elevation: 0, footwork: 'auto' },
     { kind: 'attack', directionDeg: 0, power: 0.7, elevation: 0.1, footwork: 'forward' },
@@ -144,23 +216,44 @@ describe('no input changes anything before it (5f causality)', () => {
   it('a bowled leave plus any swing begun after the stumps resolves exactly as the leave, at every level', () => {
     const leave = resolveDelivery({ ...args, swing: null, assist: 'real', tierToleranceMs: 0 });
     expect(leave.outcome.dismissal).toBe('bowled');
-    for (const d of [1, 10, 50, 150]) for (const st of strokes) for (const [assist, tol] of [['real', 0], ['play', 0], ['learn', 0], ['learn', 20]] as const) {
-      const swing = { ...st, startT: f.stumpsT + d / 1000 };
-      const r = resolveDelivery({ ...args, swing, assist, tierToleranceMs: tol });
-      expect(drawn(r)).toEqual(drawn(leave));
-      expect(r.contact.kind).toBe('miss');
-      expect(r.swing).toEqual(swing);
-      // The late swing is still drawn, from the input on, touching nothing.
-      expect(r.bat.length).toBeGreaterThan(0);
-      expect(r.bat[0].t).toBeGreaterThanOrEqual(swing.startT - 1e-12);
-    }
+    for (const d of [1, 10, 50, 150])
+      for (const st of strokes)
+        for (const [assist, tol] of [
+          ['real', 0],
+          ['play', 0],
+          ['learn', 0],
+          ['learn', 20],
+        ] as const) {
+          const swing = { ...st, startT: f.stumpsT + d / 1000 };
+          const r = resolveDelivery({ ...args, swing, assist, tierToleranceMs: tol });
+          expect(drawn(r)).toEqual(drawn(leave));
+          expect(r.contact.kind).toBe('miss');
+          expect(r.swing).toEqual(swing);
+          // The late swing is still drawn, from the input on, touching nothing.
+          expect(r.bat.length).toBeGreaterThan(0);
+          expect(r.bat[0].t).toBeGreaterThanOrEqual(swing.startT - 1e-12);
+        }
   });
 
   it('the causal cap: a block 130 ms late at Learn is Real at the least-reduced error whose touch follows the input', () => {
     // Evaluator eval-phys-5e contact-before-input: ref-1, right-handed, back-foot block 130 ms late, Learn 0. Before
     // (5e), the forgiven bat started at 0.4424 s and met the ball at 0.4969 s, 7.5 ms before the input at 0.5044 s.
-    const f1 = flightOf({ plan: REFERENCE_OVER.balls[0], bowler: REFERENCE_OVER.bowler, conditions: REFERENCE_CONDITIONS, seed: ballSeed(REFERENCE_OVER, 0), handedness: 'right', ball: REFERENCE_OVER.ball });
-    const block: NormalizedSwing = { kind: 'defend', directionDeg: 0, power: 0.2, elevation: 0, footwork: 'back', startT: idealTimeFor(f1, 'back') - batTravelMs('defend', 0.2) / 1000 + 0.13 };
+    const f1 = flightOf({
+      plan: REFERENCE_OVER.balls[0],
+      bowler: REFERENCE_OVER.bowler,
+      conditions: REFERENCE_CONDITIONS,
+      seed: ballSeed(REFERENCE_OVER, 0),
+      handedness: 'right',
+      ball: REFERENCE_OVER.ball,
+    });
+    const block: NormalizedSwing = {
+      kind: 'defend',
+      directionDeg: 0,
+      power: 0.2,
+      elevation: 0,
+      footwork: 'back',
+      startT: idealTimeFor(f1, 'back') - batTravelMs('defend', 0.2) / 1000 + 0.13,
+    };
     const expect1 = { bowler: REFERENCE_OVER.bowler, conditions: REFERENCE_CONDITIONS, handedness: 'right' as const };
     const a = strike(f1, block, { assist: 'learn', tierToleranceMs: 0, expect: expect1 });
     const fz = a.forgiveness!;
@@ -169,34 +262,83 @@ describe('no input changes anything before it (5f causality)', () => {
     expect(fz.effectiveMs).toBeLessThanOrEqual(fz.rawMs);
     const touch = a.exit?.t ?? a.impact?.t ?? null;
     if (touch !== null) expect(touch).toBeGreaterThanOrEqual(block.startT);
-    const r = strike(f1, { ...block, startT: block.startT + (fz.effectiveMs - fz.rawMs) / 1000 }, { assist: 'real', tierToleranceMs: 0, expect: expect1 });
+    const r = strike(
+      f1,
+      { ...block, startT: block.startT + (fz.effectiveMs - fz.rawMs) / 1000 },
+      { assist: 'real', tierToleranceMs: 0, expect: expect1 },
+    );
     expect(a.bat).toEqual(r.bat);
-    expect({ ...a.contact, timing: null, timingErrorMs: null }).toEqual({ ...r.contact, timing: null, timingErrorMs: null });
+    expect({ ...a.contact, timing: null, timingErrorMs: null }).toEqual({
+      ...r.contact,
+      timing: null,
+      timingErrorMs: null,
+    });
     // Slightly less late, the uncapped mapped swing already touches after the input: no reduction there.
-    const earlier = strike(f1, { ...block, startT: block.startT - 0.03 }, { assist: 'learn', tierToleranceMs: 0, expect: expect1 }).forgiveness!;
+    const earlier = strike(
+      f1,
+      { ...block, startT: block.startT - 0.03 },
+      { assist: 'learn', tierToleranceMs: 0, expect: expect1 },
+    ).forgiveness!;
     expect(earlier.effectiveMs).toBe(earlier.mappedMs);
   });
 
   it('no contact, pad or body touch ever comes before the raw input start', () => {
-    const balls = [fly({ lengthM: 6.5, lineM: 0.05, speedKph: 136 }, PACE, 'balanced', 't3'), fly({ lengthM: 2.4, lineM: 0, speedKph: 128 }, PACE, 'balanced', 'causal'), fly({ lengthM: 4.2, lineM: 0.12, speedKph: 84 }, OFFSPIN, 'turning', 'causal')];
+    const balls = [
+      fly({ lengthM: 6.5, lineM: 0.05, speedKph: 136 }, PACE, 'balanced', 't3'),
+      fly({ lengthM: 2.4, lineM: 0, speedKph: 128 }, PACE, 'balanced', 'causal'),
+      fly({ lengthM: 4.2, lineM: 0.12, speedKph: 84 }, OFFSPIN, 'turning', 'causal'),
+    ];
     let late = 0;
-    for (const fl of balls) for (const st of strokes) for (const d of [-150, -60, -20, 0, 20, 40, 80]) for (const [assist, tol] of [['real', 0], ['play', 0], ['learn', 20]] as const) {
-      const swing = { ...st, startT: fl.idealContactT - batTravelMs(st.kind, st.power) / 1000 + d / 1000 + (d >= 0 ? batTravelMs(st.kind, st.power) / 1000 : 0) };
-      if (swing.startT >= fl.idealContactT) late++;
-      const common = { flight: fl, field: autoField(PACE, 'balanced', 'right'), bowler: PACE, conditions: 'balanced' as const, handedness: 'right' as const, tierToleranceMs: tol };
-      const r = resolveDelivery({ ...common, swing, assist });
-      // The only touch allowed before the input is the leave's own (the ball met the stance body before the swing began).
-      const leave = resolveDelivery({ ...common, swing: null, assist: 'real' }).events.find((e) => e.kind === 'contact' || e.kind === 'pad');
-      for (const e of r.events) {
-        if ((e.kind === 'contact' || e.kind === 'pad') && e.t < swing.startT) expect(leave && leave.kind === e.kind && leave.t === e.t, `${assist}/${tol} ${st.kind} ${d}`).toBe(true);
-      }
-    }
+    for (const fl of balls)
+      for (const st of strokes)
+        for (const d of [-150, -60, -20, 0, 20, 40, 80])
+          for (const [assist, tol] of [
+            ['real', 0],
+            ['play', 0],
+            ['learn', 20],
+          ] as const) {
+            const swing = {
+              ...st,
+              startT:
+                fl.idealContactT -
+                batTravelMs(st.kind, st.power) / 1000 +
+                d / 1000 +
+                (d >= 0 ? batTravelMs(st.kind, st.power) / 1000 : 0),
+            };
+            if (swing.startT >= fl.idealContactT) late++;
+            const common = {
+              flight: fl,
+              field: autoField(PACE, 'balanced', 'right'),
+              bowler: PACE,
+              conditions: 'balanced' as const,
+              handedness: 'right' as const,
+              tierToleranceMs: tol,
+            };
+            const r = resolveDelivery({ ...common, swing, assist });
+            // The only touch allowed before the input is the leave's own (the ball met the stance body before the swing began).
+            const leave = resolveDelivery({ ...common, swing: null, assist: 'real' }).events.find(
+              (e) => e.kind === 'contact' || e.kind === 'pad',
+            );
+            for (const e of r.events) {
+              if ((e.kind === 'contact' || e.kind === 'pad') && e.t < swing.startT)
+                expect(leave && leave.kind === e.kind && leave.t === e.t, `${assist}/${tol} ${st.kind} ${d}`).toBe(
+                  true,
+                );
+            }
+          }
     expect(late).toBeGreaterThan(0);
   });
 });
 
 function practiceFlightOf(over: ReturnType<typeof randomOver>, ballIndex: number) {
-  return flightOf({ plan: over.balls[ballIndex], bowler: over.bowler, conditions: 'green', seed: ballSeed(over, ballIndex), handedness: 'right', ball: over.ball });
+  return flightOf({
+    plan: over.balls[ballIndex],
+    bowler: over.bowler,
+    conditions: 'green',
+    seed: ballSeed(over, ballIndex),
+    handedness: 'right',
+    ball: over.ball,
+  });
 }
 
 describe('contact from the physics', () => {
@@ -207,7 +349,10 @@ describe('contact from the physics', () => {
   it('rejects the frozen legacy post-zone-out handle pose because it penetrates head/neck anatomy', () => {
     const flight = fly({ lengthM: 10.5, lineM: -0.5, speedKph: 136 }, PACE, 'balanced', 'post-contact-audit');
     const swing = timedSwing(flight, -250, { directionDeg: 70, power: 0.7, elevation: 0.2 });
-    const options = { assist: 'real' as const, expect: { bowler: PACE, conditions: 'balanced' as const, handedness: 'right' as const } };
+    const options = {
+      assist: 'real' as const,
+      expect: { bowler: PACE, conditions: 'balanced' as const, handedness: 'right' as const },
+    };
     const track = buildBatTrack(flight, swing, options);
     const direct = sweep(flight.samples, track, track.body, 0, flight.samples.at(-1)!.t);
     const result = strike(flight, swing, options);
@@ -230,7 +375,9 @@ describe('contact from the physics', () => {
     expect(result.track).toEqual(track);
     expect(result.bat.length).toBeGreaterThan(2);
     for (const sample of result.bat) {
-      expect(batPoseAdmissibility({ grip: sample.grip, toe: sample.toe, n: sample.face }, result.track!.body).gap).toBeGreaterThanOrEqual(-1e-10);
+      expect(
+        batPoseAdmissibility({ grip: sample.grip, toe: sample.toe, n: sample.face }, result.track!.body).gap,
+      ).toBeGreaterThanOrEqual(-1e-10);
     }
   });
 
@@ -274,7 +421,9 @@ describe('contact from the physics', () => {
       expect(result.bat.filter((sample) => sample.t === result.track!.plannedContactT)).toHaveLength(1);
       expect(result.bat.filter((sample) => sample.t === result.track!.zoneOut)).toHaveLength(1);
       for (const sample of result.bat) {
-        expect(batPoseAdmissibility({ grip: sample.grip, toe: sample.toe, n: sample.face }, result.track!.body).gap).toBeGreaterThanOrEqual(-1e-10);
+        expect(
+          batPoseAdmissibility({ grip: sample.grip, toe: sample.toe, n: sample.face }, result.track!.body).gap,
+        ).toBeGreaterThanOrEqual(-1e-10);
       }
     }
     expect(defence.track).not.toBeNull();
@@ -302,15 +451,24 @@ describe('contact from the physics', () => {
       const kindAt = (e: number) => play(f, e, {}, a);
       for (const e of [0, b.perfectMs - 3, -(b.perfectMs - 3)]) {
         const result = kindAt(e);
-        expect.soft(result.quality?.sweet, `${a} ${e} sweet ${JSON.stringify({ quality: result.quality, bladeU: result.contact.bladeU })}`).toBe(true);
+        expect
+          .soft(
+            result.quality?.sweet,
+            `${a} ${e} sweet ${JSON.stringify({ quality: result.quality, bladeU: result.contact.bladeU })}`,
+          )
+          .toBe(true);
       }
-      for (const e of [b.solidMs - 3, -(b.solidMs - 3)]) expect.soft(kindAt(e).contact.kind, `${a} ${e} middle`).toBe('middle');
+      for (const e of [b.solidMs - 3, -(b.solidMs - 3)])
+        expect.soft(kindAt(e).contact.kind, `${a} ${e} middle`).toBe('middle');
       for (let e = -(b.edgeMs + 20); e <= b.edgeMs + 20; e++) {
         const result = kindAt(e);
         const middle = result.contact.kind === 'middle';
-        if (result.contact.timing === 'perfect') expect.soft(middle && result.quality?.sweet, `${a} ${e} perfect is a sweet middle`).toBe(true);
-        if (result.contact.timing === 'solid') expect.soft(middle, `${a} ${e} solid is a middle (${result.contact.kind})`).toBe(true);
-        if (result.contact.timing === 'missed') expect.soft(middle || EDGES.has(result.contact.kind), `${a} ${e} missed is no bat contact`).toBe(false);
+        if (result.contact.timing === 'perfect')
+          expect.soft(middle && result.quality?.sweet, `${a} ${e} perfect is a sweet middle`).toBe(true);
+        if (result.contact.timing === 'solid')
+          expect.soft(middle, `${a} ${e} solid is a middle (${result.contact.kind})`).toBe(true);
+        if (result.contact.timing === 'missed')
+          expect.soft(middle || EDGES.has(result.contact.kind), `${a} ${e} missed is no bat contact`).toBe(false);
       }
       for (const e of [-(b.edgeMs + 15), a === 'learn' ? 185 : b.edgeMs + 15]) {
         const result = kindAt(e);
@@ -355,7 +513,8 @@ describe('contact from the physics', () => {
         }
         if (!met) expect(block.contact.timing).toBe(classifyTiming(block.contact.timingErrorMs!, bands));
         const drive = play(f, e, { directionDeg: 25 }, a);
-        if (drive.contact.kind === 'middle' || EDGES.has(drive.contact.kind)) expect(drive.contact.timing, `${a} ${e} drive`).not.toBe('missed');
+        if (drive.contact.kind === 'middle' || EDGES.has(drive.contact.kind))
+          expect(drive.contact.timing, `${a} ${e} drive`).not.toBe('missed');
       }
     }
     expect(faceBlocksBeyondSolid).toBeGreaterThan(0);
@@ -404,11 +563,23 @@ describe('contact from the physics', () => {
     // misses, so the early edge band [−edge, −solid) is checked for the leading edge (and never another edge).
     const real = TIMING_BANDS.real;
     const flickKinds: string[] = [];
-    for (let e = real.solidMs + 1; e <= real.edgeMs; e++) flickKinds.push(play(f, -e, { directionDeg: -55 }).contact.kind);
+    for (let e = real.solidMs + 1; e <= real.edgeMs; e++)
+      flickKinds.push(play(f, -e, { directionDeg: -55 }).contact.kind);
     expect(flickKinds).toContain('leading_edge');
     expect(flickKinds.filter((kind) => EDGES.has(kind) && kind !== 'leading_edge')).toEqual([]);
     const flick = play(f, -(real.solidMs + 1 + flickKinds.indexOf('leading_edge')), { directionDeg: -55 });
-    expect(flick.contact.kind, JSON.stringify({ contact: flick.contact, miss: flick.miss, track: flick.track && { root: flick.track.batterRootOffset, posture: flick.track.batterPosture, shot: flick.track.shot } })).toBe('leading_edge');
+    expect(
+      flick.contact.kind,
+      JSON.stringify({
+        contact: flick.contact,
+        miss: flick.miss,
+        track: flick.track && {
+          root: flick.track.batterRootOffset,
+          posture: flick.track.batterPosture,
+          shot: flick.track.shot,
+        },
+      }),
+    ).toBe('leading_edge');
     const short = fly({ variation: 'bouncer', lengthM: 10.5, lineM: 0, speedKph: 136 });
     // Late, the horizontal bat is still below the ball: it takes the top edge or passes under the ball.
     const pull = play(short, 70, { directionDeg: -70, power: 0.8, elevation: 0.3 });
@@ -420,7 +591,8 @@ describe('contact from the physics', () => {
     // ±20 ms), so the pull fends it on the middle through +55 ms and the late top edge comes at +60..+65 ms, before the
     // horizontal bat passes under the ball. The late top-edge semantics are checked across that late band.
     const lateKinds: string[] = [];
-    for (let e = 30; e <= 90; e += 5) lateKinds.push(play(short, e, { directionDeg: -70, power: 0.8, elevation: 0.3 }).contact.kind);
+    for (let e = 30; e <= 90; e += 5)
+      lateKinds.push(play(short, e, { directionDeg: -70, power: 0.8, elevation: 0.3 }).contact.kind);
     expect(lateKinds).toContain('top_edge');
     expect(lateKinds.indexOf('top_edge')).toBeLessThan(lateKinds.lastIndexOf('miss'));
     expect(play(short, 0, { directionDeg: -70, power: 0.8, elevation: 0.3 }).contact.kind).toBe('middle');
@@ -445,7 +617,13 @@ describe('contact from the physics', () => {
     const g = fly({ lengthM: 7.5, lineM: 0.18 });
     const shifts = [-30, -15, 15, 30].map((e) => {
       const r = play(g, e, { directionDeg: 20, power: 0.7 });
-      return { face: bearingDelta(r.contact.faceBearingDeg!, play(g, 0, { directionDeg: 20, power: 0.7 }).contact.faceBearingDeg!), exit: bearingDelta(r.contact.exitBearingDeg!, 20) };
+      return {
+        face: bearingDelta(
+          r.contact.faceBearingDeg!,
+          play(g, 0, { directionDeg: 20, power: 0.7 }).contact.faceBearingDeg!,
+        ),
+        exit: bearingDelta(r.contact.exitBearingDeg!, 20),
+      };
     });
     for (const s of shifts) expect(Math.sign(s.exit)).toBe(Math.sign(s.face));
     expect(shifts[0].exit).toBeLessThan(shifts[1].exit);
@@ -497,7 +675,10 @@ describe('contact from the physics', () => {
               expect(rootM).toBeLessThan(0.18);
               expect(r.track!.batterPosture.crouchM).toBeLessThanOrEqual(0.18);
             }
-            expect(r.contact.kind, `${c.b.family} L${L} ${fw} ${dir} ${JSON.stringify({ root: r.track!.batterRootOffset, posture: r.track!.batterPosture, contact: r.contact, miss: r.miss })}`).toBe('middle');
+            expect(
+              r.contact.kind,
+              `${c.b.family} L${L} ${fw} ${dir} ${JSON.stringify({ root: r.track!.batterRootOffset, posture: r.track!.batterPosture, contact: r.contact, miss: r.miss })}`,
+            ).toBe('middle');
             expect(r.contact.exitSpeedKph!).toBeLessThan(25);
             // Footwork that fights the length (back to a half-volley, forward to a ball short of a length) costs
             // balance: the dead bat then squirts the ball, and can let it trickle on towards the stumps.
@@ -506,7 +687,10 @@ describe('contact from the physics', () => {
             // A block with under 10 km/h of horizontal travel dies at the batter's feet whatever its compass
             // bearing; the total speed can be larger while the ball is dropping almost vertically off the toe.
             if (Math.hypot(r.exit!.v.x, r.exit!.v.z) * 3.6 >= 10) {
-              expect(Math.abs(bearingDelta(r.contact.exitBearingDeg!, dir)), `${c.b.family} L${L} ${fw} ${dir} ${JSON.stringify(r.contact)}`).toBeLessThanOrEqual(30);
+              expect(
+                Math.abs(bearingDelta(r.contact.exitBearingDeg!, dir)),
+                `${c.b.family} L${L} ${fw} ${dir} ${JSON.stringify(r.contact)}`,
+              ).toBeLessThanOrEqual(30);
             }
           }
         }
@@ -516,15 +700,24 @@ describe('contact from the physics', () => {
 
   it('a well-timed attack inside the reach of its stroke goes within 10° of the aim against pace and spin', () => {
     let inReach = 0;
-    for (const [b, kph] of [[PACE, 140], [OFFSPIN, 84], [LEGSPIN, 84]] as const) {
+    for (const [b, kph] of [
+      [PACE, 140],
+      [OFFSPIN, 84],
+      [LEGSPIN, 84],
+    ] as const) {
       // A spinner's full ball turns after the batter has committed (80 ms): it beats the read, so spin is checked
       // where it pitches early enough to be read.
       for (const L of b === PACE ? [3, 5, 6.5] : [5, 6.5]) {
-        for (const [dir, line] of [[-45, -0.12], [0, 0.05], [45, 0.25]] as const) {
+        for (const [dir, line] of [
+          [-45, -0.12],
+          [0, 0.05],
+          [45, 0.25],
+        ] as const) {
           const d = fly({ lengthM: L, lineM: line, speedKph: kph }, b);
           const r = play(d, 0, { directionDeg: dir, power: 0.7, elevation: 0.15 }, 'play');
           const sh = r.track!.shot;
-          if (Math.hypot(sh.outside.x, sh.outside.y) > 0.01 || r.contact.kind !== 'middle' || !r.quality?.sweet) continue;
+          if (Math.hypot(sh.outside.x, sh.outside.y) > 0.01 || r.contact.kind !== 'middle' || !r.quality?.sweet)
+            continue;
           inReach++;
           expect(Math.abs(bearingDelta(r.contact.exitBearingDeg!, dir)), `${b.family} ${L} m ${dir}°`).toBeLessThan(10);
         }
@@ -548,11 +741,19 @@ describe('contact from the physics', () => {
 
   it('a swing started after the ball has passed never blocks it with a waiting bat; a malformed swing is a leave', () => {
     const straight = fly({ lengthM: 5, lineM: 0 });
-    const tooLate = strike(straight, { kind: 'attack', startT: straight.stumpsT + 0.05, directionDeg: 0, power: 0.5, elevation: 0, footwork: 'auto' }, { assist: 'learn' });
+    const tooLate = strike(
+      straight,
+      { kind: 'attack', startT: straight.stumpsT + 0.05, directionDeg: 0, power: 0.5, elevation: 0, footwork: 'auto' },
+      { assist: 'learn' },
+    );
     expect(tooLate.contact.kind).toBe('miss');
     expect(tooLate.contact.timing).toBe('missed');
     expect(tooLate.exit).toBeNull();
-    const bad = strike(straight, { kind: 'attack', startT: Number.NaN, directionDeg: 0, power: 0.5, elevation: 0, footwork: 'auto' }, { assist: 'real' });
+    const bad = strike(
+      straight,
+      { kind: 'attack', startT: Number.NaN, directionDeg: 0, power: 0.5, elevation: 0, footwork: 'auto' },
+      { assist: 'real' },
+    );
     expect(bad.contact.kind === 'leave' || bad.contact.kind === 'pad').toBe(true);
     expect(bad.bat).toHaveLength(0);
   });

@@ -8,7 +8,14 @@
  * About 1.6 s on a typical device, at most about 2.8 s, and only once per app version (cache.ts).
  */
 import type { DeviceAssessment, QualityProfileId } from '@/contracts';
-import { classifyDevice, hasHighHeadroom, limitedByFrameRateOnly, tierRank, type PerfMeasurements, type PerfReason } from './classify';
+import {
+  classifyDevice,
+  hasHighHeadroom,
+  limitedByFrameRateOnly,
+  tierRank,
+  type PerfMeasurements,
+  type PerfReason,
+} from './classify';
 import { frameStats, median } from './frames';
 import { probeGpu, type GpuProbe } from './gpu';
 
@@ -47,7 +54,9 @@ export interface BenchmarkOptions {
 export const BENCHMARK_MS = 1400;
 export const CONFIRM_MS = 900;
 
-export function deviceMemoryGb(nav: Navigator | undefined = typeof navigator === 'undefined' ? undefined : navigator): number | null {
+export function deviceMemoryGb(
+  nav: Navigator | undefined = typeof navigator === 'undefined' ? undefined : navigator,
+): number | null {
   const v = (nav as (Navigator & { deviceMemory?: number }) | undefined)?.deviceMemory;
   return typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null;
 }
@@ -104,7 +113,13 @@ export async function measureEventToFrame(samples = 6, env: FrameEnv | null = de
   return out.length ? median(out) : null;
 }
 
-async function measure(stage: BenchmarkTarget, profile: QualityProfileId, ms: number, o: BenchmarkOptions, memoryGb: number | null): Promise<PerfMeasurements> {
+async function measure(
+  stage: BenchmarkTarget,
+  profile: QualityProfileId,
+  ms: number,
+  o: BenchmarkOptions,
+  memoryGb: number | null,
+): Promise<PerfMeasurements> {
   stage.setProfile(profile);
   const input = o.measureInput ?? (() => measureEventToFrame());
   const [run, inputToFrameMs] = await Promise.all([stage.benchmark(ms), input().catch(() => null)]);
@@ -130,7 +145,10 @@ function withReason(a: DeviceAssessment, r: PerfReason): DeviceAssessment {
  * Benchmarks the device on the stage (or, without one, records why there is none) and classifies it. The stage is
  * left at the chosen profile.
  */
-export async function runDeviceBenchmark(stage: BenchmarkTarget | null, o: BenchmarkOptions = {}): Promise<DeviceAssessment> {
+export async function runDeviceBenchmark(
+  stage: BenchmarkTarget | null,
+  o: BenchmarkOptions = {},
+): Promise<DeviceAssessment> {
   const a = await benchmarkRuns(stage, o);
   try {
     stage?.setProfile(a.profile);
@@ -144,7 +162,16 @@ async function benchmarkRuns(stage: BenchmarkTarget | null, o: BenchmarkOptions)
   const memoryGb = o.memoryGb === undefined ? deviceMemoryGb() : o.memoryGb;
   const none = (): DeviceAssessment => {
     const p = (o.probe ?? probeGpu)();
-    return classifyDevice({ webgl2: p.webgl2, hardware: p.hardware, renderer: p.renderer, shaderCompileMs: 0, frameMs: [], contextLosses: 0, inputToFrameMs: null, memoryGb });
+    return classifyDevice({
+      webgl2: p.webgl2,
+      hardware: p.hardware,
+      renderer: p.renderer,
+      shaderCompileMs: 0,
+      frameMs: [],
+      contextLosses: 0,
+      inputToFrameMs: null,
+      memoryGb,
+    });
   };
   if (!stage) return none();
   let first: PerfMeasurements;
@@ -157,11 +184,17 @@ async function benchmarkRuns(stage: BenchmarkTarget | null, o: BenchmarkOptions)
   const a = classifyDevice(first);
   const confirmMs = o.confirmMs ?? CONFIRM_MS;
   try {
-    const confirm = a.tier === 'full' && hasHighHeadroom(frameStats(first.frameMs), first) ? 'high' : a.tier !== 'full' && limitedByFrameRateOnly(a) ? 'lite' : null;
+    const confirm =
+      a.tier === 'full' && hasHighHeadroom(frameStats(first.frameMs), first)
+        ? 'high'
+        : a.tier !== 'full' && limitedByFrameRateOnly(a)
+          ? 'lite'
+          : null;
     if (confirm) {
       const m = await measure(stage, confirm, confirmMs, o, memoryGb);
       // A context loss in any run counts against the device.
-      if (m.contextLosses > 0) return classifyDevice({ ...first, contextLosses: first.contextLosses + m.contextLosses });
+      if (m.contextLosses > 0)
+        return classifyDevice({ ...first, contextLosses: first.contextLosses + m.contextLosses });
       const b = { ...classifyDevice(m), shaderCompileMs: a.shaderCompileMs };
       if (confirm === 'high' && b.tier === 'full' && b.profile === 'high') return withReason(b, 'high_headroom');
       if (confirm === 'lite' && tierRank(b.tier) > tierRank(a.tier)) return withReason(b, 'lite_rerun');

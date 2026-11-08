@@ -22,20 +22,52 @@ import s from './MiniRadar.module.css';
 /** True while the live screen shows the field inset (Play provides it around the rail). */
 export const FieldPipShown = createContext(false);
 
-export function MiniRadar({ field, handedness, size = 40 }: { field: FieldLayout; handedness: Handedness; size?: number }) {
+export function MiniRadar({
+  field,
+  handedness,
+  size = 40,
+}: {
+  field: FieldLayout;
+  handedness: Handedness;
+  size?: number;
+}) {
   const { ground: g, fielderClass } = useKit();
   const inset = useContext(FieldPipShown);
   const R = g.boundaryR + 3;
   const mirror = handedness === 'left' ? -1 : 1;
   return (
-    <svg width={size} height={size} viewBox={`${-R} ${-R} ${2 * R} ${2 * R}`} aria-hidden="true" focusable="false" style={{ flex: 'none' }} data-inset={inset ? 'true' : 'false'}>
+    <svg
+      width={size}
+      height={size}
+      viewBox={`${-R} ${-R} ${2 * R} ${2 * R}`}
+      aria-hidden="true"
+      focusable="false"
+      style={{ flex: 'none' }}
+      data-inset={inset ? 'true' : 'false'}
+    >
       <circle cx={0} cy={0} r={g.boundaryR} fill="#10261d" stroke="rgba(243,239,231,0.5)" strokeWidth={2} />
-      <circle cx={0} cy={0} r={g.ringR} fill="none" stroke="rgba(243,239,231,0.3)" strokeWidth={1.4} strokeDasharray="4 4" />
+      <circle
+        cx={0}
+        cy={0}
+        r={g.ringR}
+        fill="none"
+        stroke="rgba(243,239,231,0.3)"
+        strokeWidth={1.4}
+        strokeDasharray="4 4"
+      />
       <rect x={-2} y={-g.pitchHalf} width={4} height={2 * g.pitchHalf} fill="#b48c5a" />
       {!inset &&
         field.fielders.map((f) => {
           const c = fielderClass(f);
-          return <circle key={f.id} cx={mirror * f.x} cy={f.z} r={c === 'deep' ? 4.2 : 3.6} fill={c === 'close' ? '#f2ad41' : c === 'keeper' || c === 'bowler' ? '#8d8982' : '#f3efe7'} />;
+          return (
+            <circle
+              key={f.id}
+              cx={mirror * f.x}
+              cy={f.z}
+              r={c === 'deep' ? 4.2 : 3.6}
+              fill={c === 'close' ? '#f2ad41' : c === 'keeper' || c === 'bowler' ? '#8d8982' : '#f3efe7'}
+            />
+          );
         })}
     </svg>
   );
@@ -155,7 +187,12 @@ export function FieldPip({ field, handedness, phase, side, onRoom, onQuietOver }
         const r = host.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect();
         if (r) rail += r.width * r.height;
       }
-      const over = quietBudgetOver(rail, el.offsetWidth, host.clientWidth || window.innerWidth, host.clientHeight || window.innerHeight);
+      const over = quietBudgetOver(
+        rail,
+        el.offsetWidth,
+        host.clientWidth || window.innerWidth,
+        host.clientHeight || window.innerHeight,
+      );
       el.dataset.quietBudget = over ? 'over' : 'ok';
       quietRef.current?.(over);
     };
@@ -166,19 +203,65 @@ export function FieldPip({ field, handedness, phase, side, onRoom, onQuietOver }
     return () => ro.disconnect();
   }, [phase]);
   return (
-    <div ref={ref} className={s.pip} data-pip="" data-side={side} data-phase={phase} aria-hidden="true" data-testid="practice-pip">
-      <svg className={s.fill} viewBox={`${-R - 2} ${-R - 2} ${2 * R + 4} ${2 * R + 4}`} focusable="false" data-testid="practice-pip-static">
-        <rect x={-R - 2} y={-R - 2} width={2 * R + 4} height={2 * R + 4} rx={(2 * R + 4) * 0.1} fill="rgba(8,9,13,0.72)" />
+    <div
+      ref={ref}
+      className={s.pip}
+      data-pip=""
+      data-side={side}
+      data-phase={phase}
+      aria-hidden="true"
+      data-testid="practice-pip"
+    >
+      <svg
+        className={s.fill}
+        viewBox={`${-R - 2} ${-R - 2} ${2 * R + 4} ${2 * R + 4}`}
+        focusable="false"
+        data-testid="practice-pip-static"
+      >
+        <rect
+          x={-R - 2}
+          y={-R - 2}
+          width={2 * R + 4}
+          height={2 * R + 4}
+          rx={(2 * R + 4) * 0.1}
+          fill="rgba(8,9,13,0.72)"
+        />
         <circle cx={0} cy={0} r={g.boundaryR} fill="#1b6038" stroke="rgba(243,239,231,0.78)" strokeWidth={1.4} />
-        <circle cx={0} cy={0} r={g.ringR} fill="none" stroke="rgba(243,239,231,0.34)" strokeWidth={1} strokeDasharray="3 3" />
+        <circle
+          cx={0}
+          cy={0}
+          r={g.ringR}
+          fill="none"
+          stroke="rgba(243,239,231,0.34)"
+          strokeWidth={1}
+          strokeDasharray="3 3"
+        />
         <rect x={-1.6} y={-g.pitchHalf} width={3.2} height={2 * g.pitchHalf} fill="#c9a26b" />
         {field.fielders.map((f) => {
           const c = fielderClass(f);
           const x = mirror * f.x;
           return c === 'keeper' ? (
-            <rect key={f.id} x={x - 2.6} y={f.z - 2.6} width={5.2} height={5.2} rx={1} fill="#f2ad41" stroke="#0b0d12" strokeWidth={0.9} />
+            <rect
+              key={f.id}
+              x={x - 2.6}
+              y={f.z - 2.6}
+              width={5.2}
+              height={5.2}
+              rx={1}
+              fill="#f2ad41"
+              stroke="#0b0d12"
+              strokeWidth={0.9}
+            />
           ) : (
-            <circle key={f.id} cx={x} cy={f.z} r={2.7} fill={c === 'bowler' ? '#aaa69e' : '#f3efe7'} stroke="#0b0d12" strokeWidth={0.9} />
+            <circle
+              key={f.id}
+              cx={x}
+              cy={f.z}
+              r={2.7}
+              fill={c === 'bowler' ? '#aaa69e' : '#f3efe7'}
+              stroke="#0b0d12"
+              strokeWidth={0.9}
+            />
           );
         })}
         <circle cx={striker.x} cy={striker.z} r={2.7} fill="#52d3f2" stroke="#0b0d12" strokeWidth={0.9} />

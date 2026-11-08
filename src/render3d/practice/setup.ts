@@ -18,5 +18,10 @@ export function benchmarkSetup(): PracticeSceneSetup {
     ...fieldSpots('balanced').map((s, i): Fielder => ({ id: `f${i}`, role: 'cover', x: s.pos.x, z: s.pos.z })),
   ];
   const field: FieldLayout = { id: 'benchmark', fielders };
-  return { field, bowler: { family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'benchmark' }, conditions: 'balanced', handedness: 'right' };
+  return {
+    field,
+    bowler: { family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'benchmark' },
+    conditions: 'balanced',
+    handedness: 'right',
+  };
 }

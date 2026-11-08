@@ -9,7 +9,14 @@ import type { GestureInput } from '@/contracts';
 import { PRACTICE_SIM_VERSION } from '@/contracts';
 import { useApp } from '@/app/store';
 import { tierForQuality } from '@/perf';
-import { TESTER_SCHEDULE, loadCalibrations, testerEnabled, type MarkerCode, type TesterCohort, type TesterQuestion } from '@/practice/store';
+import {
+  TESTER_SCHEDULE,
+  loadCalibrations,
+  testerEnabled,
+  type MarkerCode,
+  type TesterCohort,
+  type TesterQuestion,
+} from '@/practice/store';
 import { useKit } from '../context';
 import type { FlowState, PracticeFlow } from '../flow/controller';
 import { TesterRecorder, gestureClass, readGesture, type GestureRead } from './recorder';
@@ -95,22 +102,75 @@ export function useTester(flow: PracticeFlow, state: FlowState, appVersion: stri
       const g = pendingGesture.current;
       pendingGesture.current = null;
       const sw = last.result.swing;
-      rec.event({ type: 'gesture', pointer: g?.pointer ?? 'none', cls: gestureClass(g?.pointer ?? null, sw), dwellMs: g?.dwellMs ?? null, durMs: g?.durMs ?? null, lenFrac: g?.lenFrac ?? null, travelling: g?.travelling ?? null, swing: sw ? { kind: sw.kind, directionDeg: Math.round(sw.directionDeg), power: Math.round(sw.power * 100) / 100, elevation: Math.round(sw.elevation * 100) / 100, footwork: sw.footwork } : null, movedAfterTapDecision: null });
+      rec.event({
+        type: 'gesture',
+        pointer: g?.pointer ?? 'none',
+        cls: gestureClass(g?.pointer ?? null, sw),
+        dwellMs: g?.dwellMs ?? null,
+        durMs: g?.durMs ?? null,
+        lenFrac: g?.lenFrac ?? null,
+        travelling: g?.travelling ?? null,
+        swing: sw
+          ? {
+              kind: sw.kind,
+              directionDeg: Math.round(sw.directionDeg),
+              power: Math.round(sw.power * 100) / 100,
+              elevation: Math.round(sw.elevation * 100) / 100,
+              footwork: sw.footwork,
+            }
+          : null,
+        movedAfterTapDecision: null,
+      });
       if (flow.firstDeliveryMs() !== null) rec.field({ ttfcdMs: Math.round(flow.firstDeliveryMs()!) });
       const c = last.result.contact;
-      const source = r.plan && state.innings?.current?.plan.source === 'reference' ? 'reference' : state.overKind === 'built' ? 'predefined' : state.overKind ?? 'random';
+      const source =
+        r.plan && state.innings?.current?.plan.source === 'reference'
+          ? 'reference'
+          : state.overKind === 'built'
+            ? 'predefined'
+            : (state.overKind ?? 'random');
       ballFlags.current = { whyOpened: false, replayOpened: false, demoWatched: false };
       flushBall.current = () => {
-        rec.event({ type: 'ball', over: r.overIndex + 1, ball: r.ballIndex + 1, kind: 'innings', variation: r.plan.variation, runs: last.result.outcome.runs, dismissal: last.result.outcome.dismissal, timing: c.timing, contact: c.kind, timingErrorMs: c.timingErrorMs === null ? null : Math.round(c.timingErrorMs), exitBearingDeg: c.exitBearingDeg === null ? null : Math.round(c.exitBearingDeg), intendedBearingDeg: c.intendedBearingDeg === null ? null : Math.round(c.intendedBearingDeg), exitElevationDeg: c.exitElevationDeg === null ? null : Math.round(c.exitElevationDeg), assist: r.assist, toleranceMs: r.tierToleranceMs, tier: tierForQuality(state.quality), source, ...ballFlags.current });
+        rec.event({
+          type: 'ball',
+          over: r.overIndex + 1,
+          ball: r.ballIndex + 1,
+          kind: 'innings',
+          variation: r.plan.variation,
+          runs: last.result.outcome.runs,
+          dismissal: last.result.outcome.dismissal,
+          timing: c.timing,
+          contact: c.kind,
+          timingErrorMs: c.timingErrorMs === null ? null : Math.round(c.timingErrorMs),
+          exitBearingDeg: c.exitBearingDeg === null ? null : Math.round(c.exitBearingDeg),
+          intendedBearingDeg: c.intendedBearingDeg === null ? null : Math.round(c.intendedBearingDeg),
+          exitElevationDeg: c.exitElevationDeg === null ? null : Math.round(c.exitElevationDeg),
+          assist: r.assist,
+          toleranceMs: r.tierToleranceMs,
+          tier: tierForQuality(state.quality),
+          source,
+          ...ballFlags.current,
+        });
         flushBall.current = null;
       };
       oversSeen.current.add(`${r.seed.split(':')[0]}|${r.overIndex}`);
       const overNo = oversSeen.current.size;
       const asks: Ask[] = [];
       const facts = engine.coachingFacts(last.result, r);
-      if (TESTER_SCHEDULE.intentOvers.includes(overNo)) asks.push({ q: rec.cohort && EXPERT.includes(rec.cohort) ? 'intent_expert' : 'intent_rookie' }, { q: 'intent_direction' }, { q: 'control' });
-      if (TESTER_SCHEDULE.readOvers.includes(overNo)) asks.push({ q: 'line', truth: lineTruth(facts) }, { q: 'length', truth: lengthTruth(facts) }, { q: 'movement', truth: movementTruth(facts) });
-      if (r.ballIndex === 0 && overNo <= TESTER_SCHEDULE.paceOrSpinOvers) asks.push({ q: 'pace_or_spin', truth: r.bowler.family });
+      if (TESTER_SCHEDULE.intentOvers.includes(overNo))
+        asks.push(
+          { q: rec.cohort && EXPERT.includes(rec.cohort) ? 'intent_expert' : 'intent_rookie' },
+          { q: 'intent_direction' },
+          { q: 'control' },
+        );
+      if (TESTER_SCHEDULE.readOvers.includes(overNo))
+        asks.push(
+          { q: 'line', truth: lineTruth(facts) },
+          { q: 'length', truth: lengthTruth(facts) },
+          { q: 'movement', truth: movementTruth(facts) },
+        );
+      if (r.ballIndex === 0 && overNo <= TESTER_SCHEDULE.paceOrSpinOvers)
+        asks.push({ q: 'pace_or_spin', truth: r.bowler.family });
       if (!firstBallAsked.current) {
         firstBallAsked.current = true;
         asks.push(...TESTER_SCHEDULE.afterFirstBall.map((q) => ({ q })));
@@ -125,17 +185,35 @@ export function useTester(flow: PracticeFlow, state: FlowState, appVersion: stri
     if (!active) return;
     const c = state.coach;
     if (c) {
-      const ctx = { over: c.overNumber, ball: c.ballNumber, variation: c.source.plan.variation, stage: c.mastery.stage };
+      const ctx = {
+        over: c.overNumber,
+        ball: c.ballNumber,
+        variation: c.source.plan.variation,
+        stage: c.mastery.stage,
+      };
       const prev = coachOpen.current;
       coachOpen.current = { key: c.key, attempts: c.attempts.length, ctx };
       if (prev?.key === c.key && c.attempts.length > prev.attempts) {
-        rec.event({ type: 'retry', attempt: c.attempts.length, success: c.attempts[c.attempts.length - 1], verdict: c.comparison?.verdict ?? null });
-        if (c.attempts.length === TESTER_SCHEDULE.masteryRun) ask(TESTER_SCHEDULE.afterMasteryRun.map((q) => ({ q })), ctx);
+        rec.event({
+          type: 'retry',
+          attempt: c.attempts.length,
+          success: c.attempts[c.attempts.length - 1],
+          verdict: c.comparison?.verdict ?? null,
+        });
+        if (c.attempts.length === TESTER_SCHEDULE.masteryRun)
+          ask(
+            TESTER_SCHEDULE.afterMasteryRun.map((q) => ({ q })),
+            ctx,
+          );
       }
     } else if (coachOpen.current) {
       const was = coachOpen.current;
       coachOpen.current = null;
-      if (was.attempts > 0) ask(TESTER_SCHEDULE.afterCoach.map((q) => ({ q })), was.ctx);
+      if (was.attempts > 0)
+        ask(
+          TESTER_SCHEDULE.afterCoach.map((q) => ({ q })),
+          was.ctx,
+        );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, state.coach]);
@@ -150,7 +228,8 @@ export function useTester(flow: PracticeFlow, state: FlowState, appVersion: stri
     }
   }, [active, state.screen, rec]);
 
-  const advance = () => setQueue((cur) => (cur && cur.index + 1 < cur.asks.length ? { ...cur, index: cur.index + 1 } : null));
+  const advance = () =>
+    setQueue((cur) => (cur && cur.index + 1 < cur.asks.length ? { ...cur, index: cur.index + 1 } : null));
   const cur = queue?.asks[queue.index] ?? null;
   return {
     enabled,
@@ -160,7 +239,23 @@ export function useTester(flow: PracticeFlow, state: FlowState, appVersion: stri
       const cal = loadCalibrations();
       const off = (m: 'touch' | 'mouse' | 'keyboard') => cal[m]?.offsetMs ?? null;
       const inn = state.innings;
-      rec.begin({ cohort, handReported, appVersion, build: typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : appVersion, simVersion: PRACTICE_SIM_VERSION, locale, device: { graphics: tierForQuality(state.quality), screen: `${window.innerWidth}x${window.innerHeight}`, input: navigator.maxTouchPoints > 0 ? 'touch' : 'mouse' }, hand: inn?.handedness ?? flow.settings.handedness, assist: inn?.assist ?? flow.settings.assist, calibration: { touch: off('touch'), mouse: off('mouse'), keyboard: off('keyboard') }, ttfcdMs: null });
+      rec.begin({
+        cohort,
+        handReported,
+        appVersion,
+        build: typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : appVersion,
+        simVersion: PRACTICE_SIM_VERSION,
+        locale,
+        device: {
+          graphics: tierForQuality(state.quality),
+          screen: `${window.innerWidth}x${window.innerHeight}`,
+          input: navigator.maxTouchPoints > 0 ? 'touch' : 'mouse',
+        },
+        hand: inn?.handedness ?? flow.settings.handedness,
+        assist: inn?.assist ?? flow.settings.assist,
+        calibration: { touch: off('touch'), mouse: off('mouse'), keyboard: off('keyboard') },
+        ttfcdMs: null,
+      });
       setActive(rec.active);
     },
     decline: () => setDeclined(true),
@@ -178,7 +273,13 @@ export function useTester(flow: PracticeFlow, state: FlowState, appVersion: stri
     endSession: () => {
       flushBall.current?.();
       rec.event({ type: 'marker', code: 'end_session' });
-      ask([...TESTER_SCHEDULE.endOfSession, ...(rec.cohort && EXPERT.includes(rec.cohort) ? TESTER_SCHEDULE.endOfSessionExperts : [])].map((q) => ({ q })), {});
+      ask(
+        [
+          ...TESTER_SCHEDULE.endOfSession,
+          ...(rec.cohort && EXPERT.includes(rec.cohort) ? TESTER_SCHEDULE.endOfSessionExperts : []),
+        ].map((q) => ({ q })),
+        {},
+      );
     },
     gesture: (input) => {
       if (rec.active) pendingGesture.current = readGesture(input);
@@ -186,12 +287,18 @@ export function useTester(flow: PracticeFlow, state: FlowState, appVersion: stri
     nextOver: (action) => {
       if (!rec.active || summaryAt.current === null) return;
       const choiceMs = rec.t() - summaryAt.current;
-      rec.event({ type: 'next_over', action, choiceMs, voluntary: !prompted.current && action !== 'exit' && choiceMs <= TESTER_SCHEDULE.continuationWindowMs });
+      rec.event({
+        type: 'next_over',
+        action,
+        choiceMs,
+        voluntary: !prompted.current && action !== 'exit' && choiceMs <= TESTER_SCHEDULE.continuationWindowMs,
+      });
       summaryAt.current = null;
     },
     abandon: () => {
       const s = flow.getState().innings;
-      if (rec.active && s?.current) rec.event({ type: 'abandon', over: s.overs.length + 1, ball: s.current.deliveries.length });
+      if (rec.active && s?.current)
+        rec.event({ type: 'abandon', over: s.overs.length + 1, ball: s.current.deliveries.length });
     },
   };
 }

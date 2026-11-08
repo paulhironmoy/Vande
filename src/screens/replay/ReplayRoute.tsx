@@ -14,12 +14,25 @@ export default function ReplayRoute({ route }: { route: RouteOf<'replay'> }) {
   const navigate = useRouter((st) => st.navigate);
   const { net, services, booting } = useNet();
   // The match itself (best effort): which side is mine and whether a rematch is on offer.
-  const view = useLoad<MatchView>(net && player?.id ? () => net.api.call('GET /v1/matches/:id', { params: { id: route.matchId } }) : null, [net, player?.id, route.matchId]);
+  const view = useLoad<MatchView>(
+    net && player?.id ? () => net.api.call('GET /v1/matches/:id', { params: { id: route.matchId } }) : null,
+    [net, player?.id, route.matchId],
+  );
   if (!player) return null;
   if (booting || !net)
     return (
       <ScreenShell title={t('reveal.title')} onBack={back} narrow testId="replay-screen">
-        {booting ? <StateView kind="loading" /> : <StateView kind="offline" title={t('match.needs_online_title')} body={t('match.needs_online_body')} actionLabel={t('home.ghosts.title')} onAction={() => navigate({ name: 'ghosts' })} />}
+        {booting ? (
+          <StateView kind="loading" />
+        ) : (
+          <StateView
+            kind="offline"
+            title={t('match.needs_online_title')}
+            body={t('match.needs_online_body')}
+            actionLabel={t('home.ghosts.title')}
+            onAction={() => navigate({ name: 'ghosts' })}
+          />
+        )}
       </ScreenShell>
     );
   const v = view.data;

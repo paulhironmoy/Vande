@@ -61,7 +61,8 @@ describe('crowd reactions', () => {
     expect(b('ooh')).toBeLessThan(b('cheer') - 0.1);
     expect(b('groan')).toBeLessThan(b('cheer') - 0.1);
     expect(b('dismay')).toBeLessThan(b('cheer') - 0.1);
-    for (const k of ['ooh', 'groan', 'lift', 'cheer', 'eruption', 'dismay'] as const) expect(b('applause')).toBeGreaterThan(b(k) + 0.2);
+    for (const k of ['ooh', 'groan', 'lift', 'cheer', 'eruption', 'dismay'] as const)
+      expect(b('applause')).toBeGreaterThan(b(k) + 0.2);
     // A gasp is front-loaded; dismay rises slowly out of the silence; an ovation is sustained.
     expect(centre(renders.get('ooh')!)).toBeLessThan(0.45);
     expect(centre(renders.get('dismay')!)).toBeGreaterThan(0.5);
@@ -108,7 +109,8 @@ describe('the voice bank', () => {
     const offline = FakeContext.made[1];
     const { slots } = fxLayout();
     const starts = offline.sources().flatMap((s) => s.starts.map((x) => x.when));
-    for (const [id] of FX_SOURCES) expect(starts.some((t) => t >= slots[id][0] && t < slots[id][0] + slots[id][1])).toBe(true);
+    for (const [id] of FX_SOURCES)
+      expect(starts.some((t) => t >= slots[id][0] && t < slots[id][0] + slots[id][1])).toBe(true);
     // Quiet: the crowd build waits.
     await vi.advanceTimersByTimeAsync(2000);
     expect(bank.crowdReady('lift')).toBe(false);

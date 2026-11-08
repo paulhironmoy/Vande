@@ -15,12 +15,7 @@ import {
   translateBatterBody,
 } from '@/physics/admissibility';
 import { batPose, batterBody, buildBatTrack, type BatPose, type BatterBody, type Capsule } from '@/physics/bat';
-import {
-  bladeFrame,
-  bladeGroundSupportY,
-  handleCapsule,
-  handleGroundSupportY,
-} from '@/physics/batGeometry';
+import { bladeFrame, bladeGroundSupportY, handleCapsule, handleGroundSupportY } from '@/physics/batGeometry';
 import { BLADE_L, HANDLE_L, LOWER_HAND_FROM_CAP, TOP_HAND_FROM_CAP } from '@/physics/constants';
 import type { Vec3 } from '@/physics/vec';
 import { fly, timedSwing } from './physics-helpers';
@@ -72,12 +67,14 @@ function fullSolidCounterexampleBody(overlap: 'torso' | 'pad'): BatterBody {
   return {
     footwork: null,
     stance: { x: 0, y: 0, z: 0 },
-    pads: overlap === 'pad'
-      ? [{ a: { x: 0, y: 0.3, z: 0 }, b: { x: 0, y: 0.7, z: 0 }, r: 0.05 }, farPad(1)]
-      : [farPad(-1), farPad(1)],
-    torso: overlap === 'torso'
-      ? { a: { x: 0, y: 0.5, z: 0 }, b: { x: 0.19, y: 1.2, z: 0 }, r: 0.05 }
-      : { a: { x: 0.19, y: 0.7, z: 0 }, b: { x: 0.19, y: 1.2, z: 0 }, r: 0.05 },
+    pads:
+      overlap === 'pad'
+        ? [{ a: { x: 0, y: 0.3, z: 0 }, b: { x: 0, y: 0.7, z: 0 }, r: 0.05 }, farPad(1)]
+        : [farPad(-1), farPad(1)],
+    torso:
+      overlap === 'torso'
+        ? { a: { x: 0, y: 0.5, z: 0 }, b: { x: 0.19, y: 1.2, z: 0 }, r: 0.05 }
+        : { a: { x: 0.19, y: 0.7, z: 0 }, b: { x: 0.19, y: 1.2, z: 0 }, r: 0.05 },
     head: { c: { x: 1, y: 1.7, z: 0 }, r: 0.1 },
   };
 }
@@ -173,14 +170,9 @@ describe('bat-pose anatomical admissibility', () => {
 
   it('reports each signed threshold and the minimum as one continuous gap', () => {
     const value = batPoseAdmissibility(pose, track.body);
-    expect(value.gap).toBe(Math.min(
-      value.reachGap,
-      value.helmetGap,
-      value.neckGap,
-      value.torsoGap,
-      value.padGap,
-      value.toeGap,
-    ));
+    expect(value.gap).toBe(
+      Math.min(value.reachGap, value.helmetGap, value.neckGap, value.torsoGap, value.padGap, value.toeGap),
+    );
     expect(value.reachGap).toBe(BAT_HAND_REACH_M - value.reach);
     if (value.reachGap >= 0) expect(value.reach).toBeLessThanOrEqual(BAT_HAND_REACH_M + 1e-12);
     const frame = bladeFrame(pose);
@@ -216,20 +208,14 @@ describe('bat-pose anatomical admissibility', () => {
   });
 
   it('rejects a torso intrusion that reach, head, neck and ground-only admission would accept', () => {
-    const value = batPoseAdmissibility(
-      FULL_SOLID_COUNTEREXAMPLE_POSE,
-      fullSolidCounterexampleBody('torso'),
-    );
+    const value = batPoseAdmissibility(FULL_SOLID_COUNTEREXAMPLE_POSE, fullSolidCounterexampleBody('torso'));
     expect(Math.min(value.reachGap, value.helmetGap, value.neckGap, value.padGap, value.toeGap)).toBeGreaterThan(0);
     expect(value.torsoGap).toBeLessThan(0);
     expect(value.gap).toBe(value.torsoGap);
   });
 
   it('rejects a pad intrusion that reach, head, neck, torso and ground-only admission would accept', () => {
-    const value = batPoseAdmissibility(
-      FULL_SOLID_COUNTEREXAMPLE_POSE,
-      fullSolidCounterexampleBody('pad'),
-    );
+    const value = batPoseAdmissibility(FULL_SOLID_COUNTEREXAMPLE_POSE, fullSolidCounterexampleBody('pad'));
     expect(Math.min(value.reachGap, value.helmetGap, value.neckGap, value.torsoGap, value.toeGap)).toBeGreaterThan(0);
     expect(value.padGap).toBeLessThan(0);
     expect(value.gap).toBe(value.padGap);
@@ -276,11 +262,10 @@ describe('bat-pose anatomical admissibility', () => {
 
   it('matches the retained oracle on synthetic and production pose sets, including mirrored inputs', () => {
     const nominal = batterBody(track.footwork, flight);
-    const production = [track.startT, track.plannedContactT, track.zoneOut]
-      .map((time) => batPose(track, time));
-    const denseProduction = Array.from({ length: 7 }, (_, index) => (
-      batPose(track, track.startT + ((track.zoneOut - track.startT) * index) / 6)
-    ));
+    const production = [track.startT, track.plannedContactT, track.zoneOut].map((time) => batPose(track, time));
+    const denseProduction = Array.from({ length: 7 }, (_, index) =>
+      batPose(track, track.startT + ((track.zoneOut - track.startT) * index) / 6),
+    );
     const synthetic = [
       translated(production[1], { x: 0.04, y: -0.03, z: 0.02 }),
       translated(production[1], { x: -0.02, y: 0.04, z: -0.05 }),
@@ -377,5 +362,4 @@ describe('bat-pose anatomical admissibility', () => {
     expect(batPoseAdmissibility(throughHelmet, body).helmetGap).toBeLessThan(0);
     expect(solveBatterRootOffset(throughHelmet, body)).toEqual({ solved: false, offset: { x: 0, z: 0 }, crouchM: 0 });
   });
-
 });

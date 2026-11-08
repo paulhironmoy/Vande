@@ -30,7 +30,10 @@ export interface Locks {
 
 /** Web Locks across tabs when the browser has them (Android WebView 69+), otherwise one in-page queue per name. */
 export function defaultLocks(): Locks {
-  const locks = (typeof navigator !== 'undefined' ? (navigator as { locks?: { request(name: string, cb: () => Promise<unknown>): Promise<unknown> } }).locks : undefined) ?? null;
+  const locks =
+    (typeof navigator !== 'undefined'
+      ? (navigator as { locks?: { request(name: string, cb: () => Promise<unknown>): Promise<unknown> } }).locks
+      : undefined) ?? null;
   const chains = new Map<string, Promise<unknown>>();
   return {
     run<T>(name: string, fn: () => Promise<T>): Promise<T> {
@@ -41,7 +44,10 @@ export function defaultLocks(): Locks {
         () => fn(),
         () => fn(),
       ) as Promise<T>;
-      chains.set(name, next.catch(() => undefined));
+      chains.set(
+        name,
+        next.catch(() => undefined),
+      );
       return next;
     },
   };
@@ -128,7 +134,11 @@ export class SessionManager {
         key = newIdempotencyKey();
         await this.o.store.set(SIGNUP_KEY, key);
       }
-      const tokens = await this.o.api.call('POST /v1/auth/guest', { body: { locale: this.o.locale(), adultConfirmed: true, ...(alias ? { alias } : {}) } }, { idempotencyKey: key, anonymous: true });
+      const tokens = await this.o.api.call(
+        'POST /v1/auth/guest',
+        { body: { locale: this.o.locale(), adultConfirmed: true, ...(alias ? { alias } : {}) } },
+        { idempotencyKey: key, anonymous: true },
+      );
       await this.save(tokens);
       await this.o.store.remove(SIGNUP_KEY);
       this.emit('signed_in');
@@ -159,7 +169,10 @@ export class SessionManager {
       if (s.refreshToken !== seen && Date.parse(s.expiresAt) - this.now() > REFRESH_EARLY_MS) return true;
       let key: string | null = null;
       try {
-        const pending = JSON.parse((await this.o.store.get(REFRESH_KEY)) ?? 'null') as { for: string; key: string } | null;
+        const pending = JSON.parse((await this.o.store.get(REFRESH_KEY)) ?? 'null') as {
+          for: string;
+          key: string;
+        } | null;
         if (pending?.for === s.refreshToken) key = pending.key;
       } catch {
         /* ignore a corrupt record */
@@ -169,7 +182,11 @@ export class SessionManager {
         await this.o.store.set(REFRESH_KEY, JSON.stringify({ for: s.refreshToken, key }));
       }
       try {
-        const tokens = await this.o.api.call('POST /v1/auth/refresh', { body: { refreshToken: s.refreshToken } }, { idempotencyKey: key, anonymous: true });
+        const tokens = await this.o.api.call(
+          'POST /v1/auth/refresh',
+          { body: { refreshToken: s.refreshToken } },
+          { idempotencyKey: key, anonymous: true },
+        );
         await this.save(tokens);
         await this.o.store.remove(REFRESH_KEY);
         this.emit('refreshed');

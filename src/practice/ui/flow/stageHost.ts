@@ -48,10 +48,12 @@ export function assessmentForRenderer(
 
 /** Native is opt-in only after its own benchmark proves both playability and input responsiveness. */
 export function nativeAssessmentEligible(assessment: DeviceAssessment): boolean {
-  return assessment.backend === 'unity' &&
+  return (
+    assessment.backend === 'unity' &&
     assessment.tier !== 'below' &&
     assessment.inputToFrameMs !== null &&
-    Number.isFinite(assessment.inputToFrameMs);
+    Number.isFinite(assessment.inputToFrameMs)
+  );
 }
 
 export class StageHost {
@@ -96,9 +98,14 @@ export class StageHost {
       document.documentElement.removeAttribute(PRACTICE_RENDERER_EVIDENCE_ATTRIBUTE);
       return;
     }
-    const renderer: PracticeRendererEvidence = stage.ownsInput === true
-      ? (__UNITY_PRACTICE_WEB_ENABLED__ ? 'unity-webgl' : 'unity-native')
-      : stage.kind === '2d' ? 'classic' : 'three-webgl';
+    const renderer: PracticeRendererEvidence =
+      stage.ownsInput === true
+        ? __UNITY_PRACTICE_WEB_ENABLED__
+          ? 'unity-webgl'
+          : 'unity-native'
+        : stage.kind === '2d'
+          ? 'classic'
+          : 'three-webgl';
     document.documentElement.setAttribute(PRACTICE_RENDERER_EVIDENCE_ATTRIBUTE, renderer);
   }
 
@@ -120,7 +127,8 @@ export class StageHost {
   qualityFor(a: DeviceAssessment | null): QualityState {
     if (this.forcedClassicReason) return { stage: '2d', profile: 'lite', tier: 'full', toleranceMs: 0 };
     const choice = this.core.settings.quality;
-    if (choice === 'classic') return { stage: '2d', profile: 'lite', tier: a?.tier ?? 'full', toleranceMs: toleranceFor(a?.tier ?? 'full') };
+    if (choice === 'classic')
+      return { stage: '2d', profile: 'lite', tier: a?.tier ?? 'full', toleranceMs: toleranceFor(a?.tier ?? 'full') };
     if (!a) return { stage: '3d', profile: 'standard', tier: 'full', toleranceMs: 0 };
     const eff = effectiveQuality(a, choice);
     return { stage: eff.stage, profile: eff.profile, tier: a.tier, toleranceMs: toleranceFor(a.tier) };
@@ -213,7 +221,12 @@ export class StageHost {
     });
     const learnCue = assist === 'learn' && this.core.settings.learnCue;
     try {
-      await stage.mount(canvas, { profile, handedness, reducedMotion: this.core.deps.reducedMotion?.() ?? false, learnCue });
+      await stage.mount(canvas, {
+        profile,
+        handedness,
+        reducedMotion: this.core.deps.reducedMotion?.() ?? false,
+        learnCue,
+      });
     } catch (e) {
       off();
       stage.dispose();
@@ -226,14 +239,20 @@ export class StageHost {
       throw new Error(fellBack ? 'fallback during mount' : 'flow disposed');
     }
     stage.setTimeScale(this.core.clock.scale);
-    this.off = [off, stage.on('contextlost', () => this.monitor?.noteContextLoss()), stage.on('quiet', (p) => this.onQuiet?.(Boolean(p?.quiet)))];
-    const selected = stage.ownsInput === true && !skipUnity
-      ? createCoachSafeUnityStage(
-        stage,
-        (source, control) => this.routeCoachToRetained(source, assist, handedness, profile, deviceTier, epoch, control),
-        (source, retained) => this.restoreUnityAfterCoach(source, retained, epoch),
-      )
-      : stage;
+    this.off = [
+      off,
+      stage.on('contextlost', () => this.monitor?.noteContextLoss()),
+      stage.on('quiet', (p) => this.onQuiet?.(Boolean(p?.quiet))),
+    ];
+    const selected =
+      stage.ownsInput === true && !skipUnity
+        ? createCoachSafeUnityStage(
+            stage,
+            (source, control) =>
+              this.routeCoachToRetained(source, assist, handedness, profile, deviceTier, epoch, control),
+            (source, retained) => this.restoreUnityAfterCoach(source, retained, epoch),
+          )
+        : stage;
     this.applyLanguage(selected);
     this.stage = selected;
     this.markRenderer(selected);
@@ -340,15 +359,7 @@ export class StageHost {
     // steal the first live delivery.
     let candidate: { stage: PracticeStageLike; off: Array<() => void> } | null = null;
     try {
-      candidate = await this.createCoachCandidate(
-        false,
-        assist,
-        handedness,
-        profile,
-        deviceTier,
-        epoch,
-        control,
-      );
+      candidate = await this.createCoachCandidate(false, assist, handedness, profile, deviceTier, epoch, control);
     } catch {
       if (epoch !== this.epoch || control.cancelled()) return null;
       try {
@@ -370,7 +381,8 @@ export class StageHost {
 
     try {
       source.setInputSink?.(null);
-      if (source.pause && !(await source.pause('interruption'))) throw new Error('Unity Practice could not pause for Coach.');
+      if (source.pause && !(await source.pause('interruption')))
+        throw new Error('Unity Practice could not pause for Coach.');
     } catch {
       this.disposeCoachCandidate(candidate);
       this.failCoachHandoff(source);
@@ -502,7 +514,8 @@ export class StageHost {
   ): Promise<boolean> {
     if (epoch !== this.epoch || !isCoachSafeUnityStage(this.stage)) return false;
     try {
-      if (source.resume && !(await source.resume('recreated'))) throw new Error('Unity Practice could not resume after Coach.');
+      if (source.resume && !(await source.resume('recreated')))
+        throw new Error('Unity Practice could not resume after Coach.');
     } catch {
       try {
         retained.setInputSink?.(null);
@@ -542,13 +555,18 @@ export class StageHost {
 
   private async benchmark(stage: PracticeStageLike | null): Promise<DeviceAssessment> {
     const run = this.core.deps.benchmark ?? ((s, o) => runDeviceBenchmark(s, o));
-    return run(stage, stage ? {
-      durationMs: this.core.deps.hooks?.benchmarkMs,
-      allowProbeFallback: stage.ownsInput !== true,
-      // Browser event-to-frame timing says nothing about a native Unity surface. Until the Unity benchmark reports
-      // a genuine touch-to-presented-frame value, preserve the field as unknown instead of mixing runtimes.
-      ...(stage.ownsInput === true ? { measureInput: async () => null } : {}),
-    } : {});
+    return run(
+      stage,
+      stage
+        ? {
+            durationMs: this.core.deps.hooks?.benchmarkMs,
+            allowProbeFallback: stage.ownsInput !== true,
+            // Browser event-to-frame timing says nothing about a native Unity surface. Until the Unity benchmark reports
+            // a genuine touch-to-presented-frame value, preserve the field as unknown instead of mixing runtimes.
+            ...(stage.ownsInput === true ? { measureInput: async () => null } : {}),
+          }
+        : {},
+    );
   }
 
   /**
@@ -577,7 +595,12 @@ export class StageHost {
     return this.preparing !== null;
   }
 
-  private async run(assist: AssistLevel, handedness: Handedness, epoch: number, recheck: boolean): Promise<PracticeStageLike | null> {
+  private async run(
+    assist: AssistLevel,
+    handedness: Handedness,
+    epoch: number,
+    recheck: boolean,
+  ): Promise<PracticeStageLike | null> {
     const core = this.core;
     const stale = () => epoch !== this.epoch;
     const engineeringPreview = unityPracticeEngineeringPreviewEnabled();
@@ -598,22 +621,28 @@ export class StageHost {
           try {
             assessment = await this.benchmark(made);
           } catch {
-            if (!canRetainUnityPracticeEngineeringPreview({
-              enabled: engineeringPreview,
-              ownsInput: made.ownsInput === true,
-              assessment: null,
-            })) throw new Error('native renderer benchmark failed');
+            if (
+              !canRetainUnityPracticeEngineeringPreview({
+                enabled: engineeringPreview,
+                ownsInput: made.ownsInput === true,
+                assessment: null,
+              })
+            )
+              throw new Error('native renderer benchmark failed');
             nativeEngineeringPreview = true;
             engineeringPreviewReason = 'benchmark_unavailable';
           }
           // A dependency that violates its typed contract by resolving without evidence is still a failed native
           // benchmark. Only the separately marked engineering preview may retain it for inspection.
           if (!assessment && !nativeEngineeringPreview) {
-            if (!canRetainUnityPracticeEngineeringPreview({
-              enabled: engineeringPreview,
-              ownsInput: made.ownsInput === true,
-              assessment: null,
-            })) throw new Error('native renderer benchmark returned no evidence');
+            if (
+              !canRetainUnityPracticeEngineeringPreview({
+                enabled: engineeringPreview,
+                ownsInput: made.ownsInput === true,
+                assessment: null,
+              })
+            )
+              throw new Error('native renderer benchmark returned no evidence');
             nativeEngineeringPreview = true;
             engineeringPreviewReason = 'benchmark_unavailable';
           }
@@ -621,11 +650,14 @@ export class StageHost {
           // A fast-looking native renderer is not enough: unknown touch-to-visible response is an incomplete
           // qualification, and a below-cutoff result must try the retained Three.js path before Classic.
           if (__UNITY_PRACTICE_ENABLED__ && made.ownsInput && assessment && !nativeAssessmentEligible(assessment)) {
-            if (!canRetainUnityPracticeEngineeringPreview({
-              enabled: engineeringPreview,
-              ownsInput: true,
-              assessment,
-            })) throw new Error('native renderer did not pass its complete qualification gate');
+            if (
+              !canRetainUnityPracticeEngineeringPreview({
+                enabled: engineeringPreview,
+                ownsInput: true,
+                assessment,
+              })
+            )
+              throw new Error('native renderer did not pass its complete qualification gate');
             nativeEngineeringPreview = true;
             engineeringPreviewReason = 'qualification_incomplete';
           }
@@ -654,7 +686,15 @@ export class StageHost {
             if (assessment?.backend === 'unity') assessment = null;
             q = this.qualityFor(assessment);
             try {
-              made = await this.create(false, assist, handedness, assessment ? q.profile : 'standard', q.tier, epoch, true);
+              made = await this.create(
+                false,
+                assist,
+                handedness,
+                assessment ? q.profile : 'standard',
+                q.tier,
+                epoch,
+                true,
+              );
               if (!assessment) {
                 assessment = await this.benchmark(made);
                 if (stale()) return null;
@@ -673,7 +713,9 @@ export class StageHost {
             fresh = true;
             saveCachedAssessment(core.deps.appVersion, assessment, core.store);
           }
-          core.track('renderer_fallback', { reason: assessment?.backend === 'unity' || assessment?.webgl2 ? 'context_lost' : 'no_webgl' });
+          core.track('renderer_fallback', {
+            reason: assessment?.backend === 'unity' || assessment?.webgl2 ? 'context_lost' : 'no_webgl',
+          });
           core.saveMetrics(bump(core.metrics, 'fallbacks'));
         }
       }
@@ -706,7 +748,11 @@ export class StageHost {
     if (!a || this.tierReported) return;
     this.tierReported = true;
     this.core.saveMetrics(addTier(this.core.metrics, a.tier));
-    this.core.track('practice_tier', { tier: a.tier, quality: q.stage === '2d' ? '2d' : q.profile, fpsBucket: fpsBucket(a.avgFps) });
+    this.core.track('practice_tier', {
+      tier: a.tier,
+      quality: q.stage === '2d' ? '2d' : q.profile,
+      fpsBucket: fpsBucket(a.avgFps),
+    });
   }
 
   /** Settings changed: a graphics choice applies before the next ball. */
@@ -714,7 +760,8 @@ export class StageHost {
     const s = this.core.getState();
     const q = this.qualityFor(s.assessment);
     const cur = s.quality;
-    if (q.stage !== cur.stage || q.profile !== cur.profile) this.pending = { q: { ...q, tier: cur.tier, toleranceMs: cur.toleranceMs }, why: 'settings' };
+    if (q.stage !== cur.stage || q.profile !== cur.profile)
+      this.pending = { q: { ...q, tier: cur.tier, toleranceMs: cur.toleranceMs }, why: 'settings' };
   }
 
   /**
@@ -733,11 +780,18 @@ export class StageHost {
     if (this.preparing) await this.preparing;
     const epoch = this.epoch;
     const decision = this.monitor?.checkpoint() ?? null;
-    if (decision) this.pending = { q: { stage: decision.stage, profile: decision.profile, tier: decision.tier, toleranceMs: decision.toleranceMs }, why: 'monitor' };
+    if (decision)
+      this.pending = {
+        q: { stage: decision.stage, profile: decision.profile, tier: decision.tier, toleranceMs: decision.toleranceMs },
+        why: 'monitor',
+      };
     const fallback = this.fallbackRequested;
     this.fallbackRequested = null;
     if (fallback && this.stage?.kind === '3d') {
-      this.pending = { q: { stage: '2d', profile: 'lite', tier: 'below', toleranceMs: toleranceFor('below') }, why: 'fallback' };
+      this.pending = {
+        q: { stage: '2d', profile: 'lite', tier: 'below', toleranceMs: toleranceFor('below') },
+        why: 'fallback',
+      };
       core.track('renderer_fallback', { reason: fallback === 'low_fps' ? 'low_fps' : 'context_lost' });
       core.saveMetrics(bump(core.metrics, 'fallbacks'));
     }
@@ -753,7 +807,8 @@ export class StageHost {
       } catch {
         // The first-person stage would not come back: Classic keeps the innings going. If even that cannot load, the
         // flow stops calmly (no stage) instead of waiting.
-        if (q.stage === '3d' && epoch === this.epoch) await this.create(true, assist, handedness, 'lite', q.tier, epoch).catch(() => undefined);
+        if (q.stage === '3d' && epoch === this.epoch)
+          await this.create(true, assist, handedness, 'lite', q.tier, epoch).catch(() => undefined);
       }
       if (epoch !== this.epoch) return null;
       if (this.forcedClassicReason) {
@@ -764,7 +819,12 @@ export class StageHost {
       core.set({ stageReady: Boolean(this.stage) });
     } else this.stage?.setProfile(q.profile);
     this.monitor?.reset({ tier: q.tier, profile: q.profile, stage: this.stage?.kind ?? q.stage });
-    if (p.why !== 'settings') core.track('practice_tier', { tier: q.tier, quality: q.stage === '2d' ? '2d' : q.profile, ...(q.stage === '2d' ? { reason: p.why === 'fallback' ? 'context_lost' : 'low_fps' } : {}) });
+    if (p.why !== 'settings')
+      core.track('practice_tier', {
+        tier: q.tier,
+        quality: q.stage === '2d' ? '2d' : q.profile,
+        ...(q.stage === '2d' ? { reason: p.why === 'fallback' ? 'context_lost' : 'low_fps' } : {}),
+      });
     core.set({ quality: q });
     if (p.why === 'settings' || !tierChanged(prev, q)) return null;
     return tierForQuality(q) === 'classic' ? 'classic' : 'balanced';

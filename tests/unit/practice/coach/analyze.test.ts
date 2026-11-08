@@ -9,7 +9,10 @@ import { NEW_BALL, OFFSPIN, play, recordFor, referenceRecord, replayOption, swin
 
 const FULL_OUTSWINGER = recordFor({ variation: 'outswing', lengthM: 3.6, lineM: 0.18, speedKph: 134 });
 const GOOD_LENGTH = recordFor({ variation: 'stock', lengthM: 6, lineM: 0.2, speedKph: 136 });
-const SPINNER = recordFor({ variation: 'stock', lengthM: 4, lineM: 0.1, speedKph: 84 }, { bowler: OFFSPIN, conditions: 'turning' });
+const SPINNER = recordFor(
+  { variation: 'stock', lengthM: 4, lineM: 0.1, speedKph: 84 },
+  { bowler: OFFSPIN, conditions: 'turning' },
+);
 
 const fresh = (r: DeliveryRecord, result: Parameters<typeof analyzeBall>[1] = null): CoachAnalysis => {
   clearCoachCache();
@@ -37,14 +40,25 @@ describe('analyzeBall: what the ball did', () => {
     const worn = analyzeBall({ ...FULL_OUTSWINGER, ball: { colour: 'red', age: 'worn' } });
     const fresh = analyzeBall({ ...FULL_OUTSWINGER, ball: NEW_BALL });
     expect(Math.abs(worn.ball.airMovementM)).toBeLessThan(Math.abs(fresh.ball.airMovementM) - 0.02);
-    expect(worn.ball.airMovementM).toBeCloseTo(flightMovement(practiceFlight({ ...FULL_OUTSWINGER, ball: { colour: 'red', age: 'worn' } })).airM, 3);
+    expect(worn.ball.airMovementM).toBeCloseTo(
+      flightMovement(practiceFlight({ ...FULL_OUTSWINGER, ball: { colour: 'red', age: 'worn' } })).airM,
+      3,
+    );
   });
 });
 
 describe('analyzeBall: what the player attempted', () => {
   it('a leave', () => {
     const a = analyzeBall(GOOD_LENGTH);
-    expect(a.attempted).toMatchObject({ decision: 'leave', directionDeg: null, elevation: null, power: null, timingErrorMs: null, timing: 'none', dismissal: null });
+    expect(a.attempted).toMatchObject({
+      decision: 'leave',
+      directionDeg: null,
+      elevation: null,
+      power: null,
+      timingErrorMs: null,
+      timing: 'none',
+      dismissal: null,
+    });
     expect(['leave', 'pad', 'body']).toContain(a.attempted.contact);
     expect(a.why.length).toBeGreaterThan(0);
   });
@@ -121,7 +135,12 @@ describe('analyzeBall: the options are real simulations', () => {
       if (rec.decision === 'attack' && !rec.risks.includes('into_protected_region')) {
         const intent = fieldIntent(record.field, record.bowler, record.conditions, record.handedness);
         const lofted = rec.swing!.elevation >= 0.45;
-        const inside = intent.protected.some((p) => p.depth === (lofted ? 'deep' : 'ring') && rec.swing!.directionDeg >= p.fromDeg && rec.swing!.directionDeg <= p.toDeg);
+        const inside = intent.protected.some(
+          (p) =>
+            p.depth === (lofted ? 'deep' : 'ring') &&
+            rec.swing!.directionDeg >= p.fromDeg &&
+            rec.swing!.directionDeg <= p.toDeg,
+        );
         expect(inside).toBe(false);
       }
     });
@@ -129,7 +148,9 @@ describe('analyzeBall: the options are real simulations', () => {
 
   it('the alternatives depend on the delivery, never on the swing', () => {
     const left = fresh(FULL_OUTSWINGER);
-    const swung = analyzeBall(play(FULL_OUTSWINGER, swingFor(FULL_OUTSWINGER, { directionDeg: -60, errorMs: -40 })).record);
+    const swung = analyzeBall(
+      play(FULL_OUTSWINGER, swingFor(FULL_OUTSWINGER, { directionDeg: -60, errorMs: -40 })).record,
+    );
     expect(swung.options).toEqual(left.options);
     expect(swung.attempted).not.toEqual(left.attempted);
   });
@@ -141,7 +162,10 @@ describe('analyzeBall: the options are real simulations', () => {
   });
 
   it('a left-hander is analysed in his own (physics) frame', () => {
-    const lefty = recordFor({ variation: 'outswing', lengthM: 3.6, lineM: 0.18, speedKph: 134 }, { handedness: 'left' });
+    const lefty = recordFor(
+      { variation: 'outswing', lengthM: 3.6, lineM: 0.18, speedKph: 134 },
+      { handedness: 'left' },
+    );
     const a = analyzeBall(lefty);
     expect(a.ball.lineAtStumpsM).toBeGreaterThan(0.1);
     expect(a.options[0].outcome.dismissal).toBeNull();
@@ -163,12 +187,12 @@ describe('analyzeBall: determinism', () => {
     const values = [
       null,
       base,
-      { ...base, kind: base.kind === 'attack' ? 'defend' as const : 'attack' as const },
+      { ...base, kind: base.kind === 'attack' ? ('defend' as const) : ('attack' as const) },
       { ...base, startT: base.startT + 0.0001 },
       { ...base, directionDeg: base.directionDeg + 0.1 },
       { ...base, power: base.power + 0.001 },
       { ...base, elevation: base.elevation + 0.001 },
-      { ...base, footwork: base.footwork === 'auto' ? 'forward' as const : 'auto' as const },
+      { ...base, footwork: base.footwork === 'auto' ? ('forward' as const) : ('auto' as const) },
     ];
     expect(new Set(values.map(coachResultKey)).size).toBe(values.length);
     const reordered = {
@@ -209,7 +233,11 @@ describe('analyzeBall: determinism', () => {
   it('a sliced analysis can be abandoned', async () => {
     clearCoachCache();
     const ac = new AbortController();
-    const p = analyzeBallInSlices(referenceRecord('ref-3'), null, { sliceMs: 0, signal: ac.signal, yieldTo: async () => ac.abort() });
+    const p = analyzeBallInSlices(referenceRecord('ref-3'), null, {
+      sliceMs: 0,
+      signal: ac.signal,
+      yieldTo: async () => ac.abort(),
+    });
     await expect(p).rejects.toMatchObject({ name: 'AbortError' });
   });
 });
@@ -234,12 +262,24 @@ describe('analyzeBall: cost', () => {
     for (let round = 0; round < 3 && !(meanOf(times) < MEAN_BUDGET_MS); round++) {
       ids.forEach((id, i) => {
         clearCoachCache();
-        times[i] = Math.min(times[i], cpuMs(() => analyzeBall(referenceRecord(id))));
+        times[i] = Math.min(
+          times[i],
+          cpuMs(() => analyzeBall(referenceRecord(id))),
+        );
       });
     }
-    const repeat = bestOf(3, () => cpuMs(() => analyzeBall(play(referenceRecord('ref-6'), swingFor(referenceRecord('ref-6'), { kind: 'defend' })).record)), REPEAT_BUDGET_MS);
+    const repeat = bestOf(
+      3,
+      () =>
+        cpuMs(() =>
+          analyzeBall(play(referenceRecord('ref-6'), swingFor(referenceRecord('ref-6'), { kind: 'defend' })).record),
+        ),
+      REPEAT_BUDGET_MS,
+    );
     const mean = meanOf(times);
-    console.info(`coach analysis: ${times.map((t) => t.toFixed(0)).join(' ')} ms CPU (mean ${mean.toFixed(0)} ms); repeat ${repeat.toFixed(1)} ms`);
+    console.info(
+      `coach analysis: ${times.map((t) => t.toFixed(0)).join(' ')} ms CPU (mean ${mean.toFixed(0)} ms); repeat ${repeat.toFixed(1)} ms`,
+    );
     // The budget is ~150 ms per new ball in plain Node on an M1 Pro (docs/PRACTICE_COACH.md, "Cost"). Vitest's module
     // runner is ~3.5× slower and shared CI runners slower again, so this only guards against blow-ups.
     // The budgets are exact. Only an overrun on a machine above load 20 is skipped, by name; a quiet machine fails it.

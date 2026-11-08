@@ -23,7 +23,14 @@ import {
 import type { BenchmarkRun } from '@/perf';
 import type { OneGestureState } from '@/input';
 import { PRACTICE_KEYS, memoryStore, type KeyStore } from '@/practice/store';
-import type { NextDeliveryLike, PracticeEngine, PracticeStageLike, StageEvent, StageEventPayloads, StageFactory } from '@/practice/ui/flow/types';
+import type {
+  NextDeliveryLike,
+  PracticeEngine,
+  PracticeStageLike,
+  StageEvent,
+  StageEventPayloads,
+  StageFactory,
+} from '@/practice/ui/flow/types';
 
 export const bowler: BowlerProfile = { family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'look' };
 
@@ -32,7 +39,12 @@ export const ball: BallCondition = { colour: 'white', age: 'new' };
 
 export const field: FieldLayout = {
   id: 'fake',
-  fielders: Array.from({ length: 11 }, (_, i) => ({ id: `f${i}`, role: i === 0 ? 'keeper' : i === 1 ? 'bowler' : 'cover', x: (i % 3) * 5 - 5, z: i * 3 - 15 })),
+  fielders: Array.from({ length: 11 }, (_, i) => ({
+    id: `f${i}`,
+    role: i === 0 ? 'keeper' : i === 1 ? 'bowler' : 'cover',
+    x: (i % 3) * 5 - 5,
+    z: i * 3 - 15,
+  })),
 };
 
 export function plan(variation: PracticeDeliveryPlan['variation'] = 'stock'): PracticeDeliveryPlan {
@@ -40,7 +52,14 @@ export function plan(variation: PracticeDeliveryPlan['variation'] = 'stock'): Pr
 }
 
 export function overPlan(seed: string, source: PracticeOverPlan['source'] = 'random'): PracticeOverPlan {
-  return { version: PRACTICE_SIM_VERSION, bowler, ball: { ...ball }, balls: [plan(), plan(), plan(), plan(), plan(), plan()], seed, source };
+  return {
+    version: PRACTICE_SIM_VERSION,
+    bowler,
+    ball: { ...ball },
+    balls: [plan(), plan(), plan(), plan(), plan(), plan()],
+    seed,
+    source,
+  };
 }
 
 /** Swing conventions of the fake physics: attack direction 180 = caught; power ≥ 0.8 six, ≥ 0.5 four, else 1. */
@@ -91,8 +110,22 @@ export function fakeResult(flight: BallFlight, swing: NormalizedSwing | null): D
     ball: [],
     fielders: [],
     events: [],
-    outcome: { runs, boundary, dismissal, fielderId: null, endBearingDeg: 40, endDistanceM: 60, region: swing ? 'cover' : null },
-    coaching: { reason: swing ? 'found_the_gap' : 'left_well', timing: swing ? 'on_time' : null, zone: swing ? 'cover' : null, fielderRole: null, lbw: null },
+    outcome: {
+      runs,
+      boundary,
+      dismissal,
+      fielderId: null,
+      endBearingDeg: 40,
+      endDistanceM: 60,
+      region: swing ? 'cover' : null,
+    },
+    coaching: {
+      reason: swing ? 'found_the_gap' : 'left_well',
+      timing: swing ? 'on_time' : null,
+      zone: swing ? 'cover' : null,
+      fielderRole: null,
+      lbw: null,
+    },
     deadT: 3,
   };
 }
@@ -118,9 +151,25 @@ export function fakeEngine(over: Partial<PracticeEngine> = {}): PracticeEngine &
   const nextDelivery = (s: PracticeInningsState): NextDeliveryLike | null => {
     if (s.status !== 'batting' || !s.current || s.current.deliveries.length >= 6) return null;
     const i = s.current.deliveries.length;
-    return { overIndex: s.overs.length, ballIndex: i, plan: s.current.plan.balls[i], seed: `${s.current.plan.seed}:${i}`, bowler: s.current.plan.bowler, field: s.current.field, conditions: s.conditions, handedness: s.handedness, assist: s.assist, ball: { ...(s.current.plan.ball ?? ball) } };
+    return {
+      overIndex: s.overs.length,
+      ballIndex: i,
+      plan: s.current.plan.balls[i],
+      seed: `${s.current.plan.seed}:${i}`,
+      bowler: s.current.plan.bowler,
+      field: s.current.field,
+      conditions: s.conditions,
+      handedness: s.handedness,
+      assist: s.assist,
+      ball: { ...(s.current.plan.ball ?? ball) },
+    };
   };
-  const makeRecord = (next: NextDeliveryLike, swing: NormalizedSwing | null, tierToleranceMs: number, result: Pick<DeliveryResult, 'outcome'>): DeliveryRecord => ({
+  const makeRecord = (
+    next: NextDeliveryLike,
+    swing: NormalizedSwing | null,
+    tierToleranceMs: number,
+    result: Pick<DeliveryResult, 'outcome'>,
+  ): DeliveryRecord => ({
     version: PRACTICE_SIM_VERSION,
     ...next,
     tierToleranceMs,
@@ -131,7 +180,9 @@ export function fakeEngine(over: Partial<PracticeEngine> = {}): PracticeEngine &
   const reducer: PracticeEngine['inningsReducer'] = (s, a) => {
     switch (a.type) {
       case 'chooseOver':
-        return s.status === 'choosing_over' ? { ...s, status: 'batting', current: { plan: a.plan, field: a.field, deliveries: [] } } : s;
+        return s.status === 'choosing_over'
+          ? { ...s, status: 'batting', current: { plan: a.plan, field: a.field, deliveries: [] } }
+          : s;
       case 'deliveryStarted': {
         const next = nextDelivery(s);
         return next && !s.inFlight ? { ...s, inFlight: { overIndex: next.overIndex, ballIndex: next.ballIndex } } : s;
@@ -146,12 +197,22 @@ export function fakeEngine(over: Partial<PracticeEngine> = {}): PracticeEngine &
         const current = done ? null : { ...s.current, deliveries };
         if (r.dismissal) return { ...base, overs, current, status: 'out', dismissal: { record: r } };
         if (!done) return { ...base, current };
-        return { ...base, overs, current: null, status: overs.length >= PRACTICE_MAX_OVERS ? 'complete' : 'over_complete' };
+        return {
+          ...base,
+          overs,
+          current: null,
+          status: overs.length >= PRACTICE_MAX_OVERS ? 'complete' : 'over_complete',
+        };
       }
       case 'restartOver': {
         if (s.status !== 'batting' || !s.current || s.inFlight || s.current.deliveries.length === 0) return s;
         const runs = s.current.deliveries.reduce((n, r) => n + r.runs, 0);
-        return { ...s, runs: s.runs - runs, balls: s.balls - s.current.deliveries.length, current: { ...s.current, deliveries: [] } };
+        return {
+          ...s,
+          runs: s.runs - runs,
+          balls: s.balls - s.current.deliveries.length,
+          current: { ...s.current, deliveries: [] },
+        };
       }
       case 'nextOver':
         return s.status === 'over_complete' ? { ...s, status: 'choosing_over' } : s;
@@ -169,18 +230,47 @@ export function fakeEngine(over: Partial<PracticeEngine> = {}): PracticeEngine &
       calls.push('resolve');
       return fakeResult(a.flight, a.swing);
     },
-    resolveCalibrations: (set) => ({ touch: set?.touch?.offsetMs ?? 0, mouse: set?.mouse?.offsetMs ?? 0, pen: set?.pen?.offsetMs ?? set?.touch?.offsetMs ?? 0, keyboard: set?.keyboard?.offsetMs ?? 0 }),
+    resolveCalibrations: (set) => ({
+      touch: set?.touch?.offsetMs ?? 0,
+      mouse: set?.mouse?.offsetMs ?? 0,
+      pen: set?.pen?.offsetMs ?? set?.touch?.offsetMs ?? 0,
+      keyboard: set?.keyboard?.offsetMs ?? 0,
+    }),
     autoField: () => field,
-    fieldIntent: () => ({ intention: 'save_singles', attacking: ['f0'], protected: [{ fromDeg: 10, toDeg: 40, depth: 'ring' }], gaps: [{ fromDeg: 50, toDeg: 70, depth: 'deep', region: 'cover' }] }),
+    fieldIntent: () => ({
+      intention: 'save_singles',
+      attacking: ['f0'],
+      protected: [{ fromDeg: 10, toDeg: 40, depth: 'ring' }],
+      gaps: [{ fromDeg: 50, toDeg: 70, depth: 'deep', region: 'cover' }],
+    }),
     regionOf: () => 'cover',
     randomOver: (a) => {
       calls.push(`randomOver:${a.difficulty}:${a.conditions}:${a.family ?? 'any'}`);
       return overPlan(a.seed);
     },
     referenceOver: () => overPlan('reference', 'reference'),
-    referenceBalls: () => (['outswing', 'inswing', 'stock', 'cutter', 'bouncer', 'yorker'] as const).map((variation, index) => ({ id: `ref-${index + 1}`, index, variation, objective: 'play_straight' })),
+    referenceBalls: () =>
+      (['outswing', 'inswing', 'stock', 'cutter', 'bouncer', 'yorker'] as const).map((variation, index) => ({
+        id: `ref-${index + 1}`,
+        index,
+        variation,
+        objective: 'play_straight',
+      })),
     ballSeed: (o, i) => `${o.seed}:${i}`,
-    newInnings: (a) => ({ version: PRACTICE_SIM_VERSION, id: a.id, status: 'choosing_over', conditions: a.conditions, assist: a.assist, handedness: a.handedness, runs: 0, balls: 0, overs: [], current: null, inFlight: null, dismissal: null }),
+    newInnings: (a) => ({
+      version: PRACTICE_SIM_VERSION,
+      id: a.id,
+      status: 'choosing_over',
+      conditions: a.conditions,
+      assist: a.assist,
+      handedness: a.handedness,
+      runs: 0,
+      balls: 0,
+      overs: [],
+      current: null,
+      inFlight: null,
+      dismissal: null,
+    }),
     inningsReducer: reducer,
     resumeInnings: (s) => {
       calls.push('resume');
@@ -209,7 +299,13 @@ export function fakeEngine(over: Partial<PracticeEngine> = {}): PracticeEngine &
         sixes: rs.filter((r) => r.outcome.boundary === 6).length,
         boundaries: rs.filter((r) => r.outcome.boundary).length,
         dots: rs.filter((r) => r.outcome.runs === 0).length,
-        timing: { perfect: rs.filter((r) => r.swing).length, solid: 0, mistimed: 0, missed: 0, none: rs.filter((r) => !r.swing).length },
+        timing: {
+          perfect: rs.filter((r) => r.swing).length,
+          solid: 0,
+          mistimed: 0,
+          missed: 0,
+          none: rs.filter((r) => !r.swing).length,
+        },
         scoringAreas: [],
         weakest: null,
         dismissal: rs.find((r) => r.outcome.dismissal)?.outcome.dismissal ?? null,
@@ -239,16 +335,21 @@ export function fakeEngine(over: Partial<PracticeEngine> = {}): PracticeEngine &
       timingBand: r.contact.timing,
       timingErrorMs: r.contact.timingErrorMs,
       contact: r.contact.kind,
-      intent: r.swing ? {
-        kind: r.swing.kind,
-        directionDeg: r.swing.directionDeg,
-        power: r.swing.power,
-        elevation: r.swing.elevation,
-        requestedFootwork: r.swing.footwork,
-      } : null,
+      intent: r.swing
+        ? {
+            kind: r.swing.kind,
+            directionDeg: r.swing.directionDeg,
+            power: r.swing.power,
+            elevation: r.swing.elevation,
+            requestedFootwork: r.swing.footwork,
+          }
+        : null,
       bat: {
         faceBearingDeg: r.contact.faceBearingDeg,
-        faceToIntentDeg: r.contact.faceBearingDeg === null || r.contact.intendedBearingDeg === null ? null : r.contact.faceBearingDeg - r.contact.intendedBearingDeg,
+        faceToIntentDeg:
+          r.contact.faceBearingDeg === null || r.contact.intendedBearingDeg === null
+            ? null
+            : r.contact.faceBearingDeg - r.contact.intendedBearingDeg,
         speedKph: r.contact.batSpeedKph,
         bladeU: r.contact.bladeU,
         sweetSpotAlongOffsetM: null,
@@ -262,7 +363,14 @@ export function fakeEngine(over: Partial<PracticeEngine> = {}): PracticeEngine &
       exitSpeedKph: r.contact.exitSpeedKph,
       exitElevationDeg: r.contact.exitElevationDeg,
       movement: { airM: 0, pitchM: 0, lineAtStumpsM: 0, heightAtBatM: 0.5 },
-      delivery: { variation: r.flight.plan.variation, speedKph: r.flight.release.speedKph, lengthM: 5.5, lineM: 0.1, lengthBand: 'good', lineBand: 'outside_off' },
+      delivery: {
+        variation: r.flight.plan.variation,
+        speedKph: r.flight.release.speedKph,
+        lengthM: 5.5,
+        lineM: 0.1,
+        lengthBand: 'good',
+        lineBand: 'outside_off',
+      },
       fielder: null,
       returnS: null,
       runs: r.outcome.runs,
@@ -276,7 +384,9 @@ export function fakeEngine(over: Partial<PracticeEngine> = {}): PracticeEngine &
       const s0 = input.samples[0];
       if (!s0) return null;
       const startT = (s0.t - ctx.calibrationMs - ctx.releasePerfMs) / 1000;
-      return input.samples.length === 1 ? { kind: 'defend', startT, directionDeg: 0, power: 0.2, elevation: 0, footwork: 'auto' } : { kind: 'attack', startT, directionDeg: 30, power: 0.6, elevation: 0, footwork: 'auto' };
+      return input.samples.length === 1
+        ? { kind: 'defend', startT, directionDeg: 0, power: 0.2, elevation: 0, footwork: 'auto' }
+        : { kind: 'attack', startT, directionDeg: 30, power: 0.6, elevation: 0, footwork: 'auto' };
     },
     ...over,
   };
@@ -318,7 +428,14 @@ export class FakeStage implements PracticeStageLike {
   }
   async benchmark(): Promise<BenchmarkRun> {
     this.note('benchmark');
-    return { frameMs: Array.from({ length: 90 }, () => 16.7), shaderCompileMs: 100, contextLosses: 0, renderer: 'Fake GPU', webgl2: true, hardware: true };
+    return {
+      frameMs: Array.from({ length: 90 }, () => 16.7),
+      shaderCompileMs: 100,
+      contextLosses: 0,
+      renderer: 'Fake GPU',
+      webgl2: true,
+      hardware: true,
+    };
   }
   quietNow = false;
   assistance: Array<number | null> = [];
@@ -388,7 +505,11 @@ export class FakeStage implements PracticeStageLike {
     const list = this.handlers.get(event) ?? [];
     list.push(fn);
     this.handlers.set(event, list);
-    return () => this.handlers.set(event, (this.handlers.get(event) ?? []).filter((x) => x !== fn));
+    return () =>
+      this.handlers.set(
+        event,
+        (this.handlers.get(event) ?? []).filter((x) => x !== fn),
+      );
   }
   emit<E extends StageEvent>(event: E, payload: StageEventPayloads[E]) {
     for (const cb of this.handlers.get(event) ?? []) cb(payload);
@@ -410,10 +531,16 @@ export class FakeStage implements PracticeStageLike {
   }
 }
 
-export function stageFactory(store: KeyStore, opts: { fail3d?: boolean; lateReleaseMs?: number } = {}): StageFactory & { stages: FakeStage[] } {
+export function stageFactory(
+  store: KeyStore,
+  opts: { fail3d?: boolean; lateReleaseMs?: number } = {},
+): StageFactory & { stages: FakeStage[] } {
   const stages: FakeStage[] = [];
   const make: StageFactory = async ({ force2d }) => {
-    const s = new FakeStage(force2d ? '2d' : '3d', store, { failMount: !force2d && opts.fail3d, lateReleaseMs: opts.lateReleaseMs });
+    const s = new FakeStage(force2d ? '2d' : '3d', store, {
+      failMount: !force2d && opts.fail3d,
+      lateReleaseMs: opts.lateReleaseMs,
+    });
     stages.push(s);
     return s;
   };

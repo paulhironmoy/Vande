@@ -26,7 +26,19 @@ function cx(...parts: (string | false | undefined | null)[]): string {
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = 'secondary', size = 'md', block, icon, iconEnd, loading, className, type = 'button', children, disabled, ...rest },
+  {
+    variant = 'secondary',
+    size = 'md',
+    block,
+    icon,
+    iconEnd,
+    loading,
+    className,
+    type = 'button',
+    children,
+    disabled,
+    ...rest
+  },
   ref,
 ) {
   const iconSize = size === 'xl' ? 24 : size === 'lg' ? 22 : size === 'sm' ? 18 : 20;
@@ -69,7 +81,14 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
   ref,
 ) {
   return (
-    <button ref={ref} type={type} aria-label={label} title={label} className={cx(s.btn, s.iconBtn, s[variant], size === 'lg' && s.lg, className)} {...rest}>
+    <button
+      ref={ref}
+      type={type}
+      aria-label={label}
+      title={label}
+      className={cx(s.btn, s.iconBtn, s[variant], size === 'lg' && s.lg, className)}
+      {...rest}
+    >
       <Icon name={icon} size={iconSize ?? (size === 'lg' ? 24 : 22)} />
     </button>
   );

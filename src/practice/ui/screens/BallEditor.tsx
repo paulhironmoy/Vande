@@ -41,18 +41,38 @@ export function BallEditor(p: BallEditorProps) {
   const name = (v: DeliveryVariation) => t.tk(`practice.var.${variationKey(v, spin)}`);
   const preview = useMemo(() => {
     try {
-      return build.buildBall({ family: p.family, target, variation, paceBand: p.family === 'pace' ? band : undefined, spinType: spin, assist: p.assist });
+      return build.buildBall({
+        family: p.family,
+        target,
+        variation,
+        paceBand: p.family === 'pace' ? band : undefined,
+        spinType: spin,
+        assist: p.assist,
+      });
     } catch {
       return null;
     }
   }, [build, p.family, target, variation, band, spin, p.assist]);
   // The plan's target is what the game clamped it to (a bouncer pitches short, a yorker full).
   const commit = (next: Partial<DraftBall>) => {
-    const merged = { lineM: target.lineM, lengthM: target.lengthM, variation, ...(p.family === 'pace' ? { paceBand: band } : {}), ...next };
+    const merged = {
+      lineM: target.lineM,
+      lengthM: target.lengthM,
+      variation,
+      ...(p.family === 'pace' ? { paceBand: band } : {}),
+      ...next,
+    };
     let lineM = merged.lineM;
     let lengthM = merged.lengthM;
     try {
-      const plan = build.buildBall({ family: p.family, target: { lineM, lengthM }, variation: merged.variation, paceBand: merged.paceBand, spinType: spin, assist: p.assist });
+      const plan = build.buildBall({
+        family: p.family,
+        target: { lineM, lengthM },
+        variation: merged.variation,
+        paceBand: merged.paceBand,
+        spinType: spin,
+        assist: p.assist,
+      });
       lineM = plan.lineM;
       lengthM = plan.lengthM;
     } catch {
@@ -62,7 +82,14 @@ export function BallEditor(p: BallEditorProps) {
   };
   return (
     <section className={s.editor} aria-labelledby="practice-editing">
-      <PitchMap build={build} family={p.family} handedness={p.handedness} target={target} ballNumber={p.index + 1} onChange={(tg) => commit({ lineM: tg.lineM, lengthM: tg.lengthM })} />
+      <PitchMap
+        build={build}
+        family={p.family}
+        handedness={p.handedness}
+        target={target}
+        ballNumber={p.index + 1}
+        onChange={(tg) => commit({ lineM: tg.lineM, lengthM: tg.lengthM })}
+      />
       <div className={s.side}>
         <h2 id="practice-editing" className={sys.section}>
           {t.t('practice.build.editing', { n: p.index + 1 })}
@@ -75,23 +102,57 @@ export function BallEditor(p: BallEditorProps) {
             label={t.t('practice.build.pace_band')}
             value={band}
             onChange={(v: PaceBand) => (p.ball ? commit({ paceBand: v }) : p.onDefaults({ paceBand: v }))}
-            options={(['controlled', 'fast', 'express'] as PaceBand[]).map((v) => ({ value: v, label: t.tk(`practice.build.band.${v}`) }))}
+            options={(['controlled', 'fast', 'express'] as PaceBand[]).map((v) => ({
+              value: v,
+              label: t.tk(`practice.build.band.${v}`),
+            }))}
             testId="practice-build-band"
           />
         )}
-        <PDisclosure label={t.t('practice.build.delivery_value', { delivery: name(variation) })} testId="practice-build-delivery">
-          <PSegmented label={t.t('practice.build.delivery')} value={variation} onChange={(v: DeliveryVariation) => (p.ball ? commit({ variation: v }) : p.onDefaults({ variation: v }))} options={variations.map((v) => ({ value: v, label: name(v), description: t.tk(`practice.var.${variationKey(v, spin)}_hint`) }))} testId="practice-build-variation" />
+        <PDisclosure
+          label={t.t('practice.build.delivery_value', { delivery: name(variation) })}
+          testId="practice-build-delivery"
+        >
+          <PSegmented
+            label={t.t('practice.build.delivery')}
+            value={variation}
+            onChange={(v: DeliveryVariation) => (p.ball ? commit({ variation: v }) : p.onDefaults({ variation: v }))}
+            options={variations.map((v) => ({
+              value: v,
+              label: name(v),
+              description: t.tk(`practice.var.${variationKey(v, spin)}_hint`),
+            }))}
+            testId="practice-build-variation"
+          />
         </PDisclosure>
         {preview && <p className={sys.caption}>{t.t('practice.build.speed', { kph: Math.round(preview.speedKph) })}</p>}
         {p.ball && (
           <div className={s.actions}>
-            <PButton variant="quiet" icon="copy" onClick={p.onCopy} disabled={!p.canCopy} data-testid="practice-ball-copy">
+            <PButton
+              variant="quiet"
+              icon="copy"
+              onClick={p.onCopy}
+              disabled={!p.canCopy}
+              data-testid="practice-ball-copy"
+            >
               {t.t('practice.build.copy')}
             </PButton>
-            <PButton variant="quiet" icon="back" onClick={() => p.onMove(-1)} disabled={p.index === 0} data-testid="practice-ball-earlier">
+            <PButton
+              variant="quiet"
+              icon="back"
+              onClick={() => p.onMove(-1)}
+              disabled={p.index === 0}
+              data-testid="practice-ball-earlier"
+            >
               {t.t('practice.build.earlier')}
             </PButton>
-            <PButton variant="quiet" iconEnd="forward" onClick={() => p.onMove(1)} disabled={p.index === 5} data-testid="practice-ball-later">
+            <PButton
+              variant="quiet"
+              iconEnd="forward"
+              onClick={() => p.onMove(1)}
+              disabled={p.index === 5}
+              data-testid="practice-ball-later"
+            >
               {t.t('practice.build.later')}
             </PButton>
             <PButton variant="quiet" icon="trash" onClick={p.onClear} data-testid="practice-ball-clear">

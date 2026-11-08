@@ -17,7 +17,18 @@ import type { BallFlight, DeliveryResult, Footwork, Handedness, NormalizedSwing 
 import { evaluateActor, lookScale } from '@/render3d/core/actors';
 import type { BatPose } from '@/render3d/practice/frame';
 import { simToScene } from '@/render3d/practice/frame';
-import { BACKLIFT_TOP, FIRST_PERSON_READY, PROVISIONAL_TRAVEL_MS, STANCE_GROUNDED, batPoseAt, clipBatPose, provisionalPose, reachable, rigidBatBlend, visibleSwingStart } from '@/render3d/practice/bat';
+import {
+  BACKLIFT_TOP,
+  FIRST_PERSON_READY,
+  PROVISIONAL_TRAVEL_MS,
+  STANCE_GROUNDED,
+  batPoseAt,
+  clipBatPose,
+  provisionalPose,
+  reachable,
+  rigidBatBlend,
+  visibleSwingStart,
+} from '@/render3d/practice/bat';
 import { buildPracticeScript } from '@/render3d/practice/script';
 import type { PracticeSceneSetup } from '@/render3d/practice/types';
 import { evalOvers, overBalls, type EvalBall } from '@/practice/game/evaluate';
@@ -42,7 +53,15 @@ function quat(p: BatPose): Q {
   const a = norm(v(p.toe.x - p.grip.x, p.toe.y - p.grip.y, p.toe.z - p.grip.z));
   const b = norm(v(p.face.x - a.x * dot(p.face, a), p.face.y - a.y * dot(p.face, a), p.face.z - a.z * dot(p.face, a)));
   const c = cross(a, b);
-  const m00 = a.x, m01 = b.x, m02 = c.x, m10 = a.y, m11 = b.y, m12 = c.y, m20 = a.z, m21 = b.z, m22 = c.z;
+  const m00 = a.x,
+    m01 = b.x,
+    m02 = c.x,
+    m10 = a.y,
+    m11 = b.y,
+    m12 = c.y,
+    m20 = a.z,
+    m21 = b.z,
+    m22 = c.z;
   const tr = m00 + m11 + m22;
   if (tr > 0) {
     const s = 0.5 / Math.sqrt(tr + 1);
@@ -122,15 +141,32 @@ describe('the shortest-way rigid bat blend (UNITY-3), as the web has it', () => 
           for (const bx of [-0.2, 0.3, 0.9])
             for (const by of [0.1, 0.7, 1.3])
               for (const bz of [7.4, 8.2, 9.0]) {
-                const state = { forwardBearingDeg: bearing, elevationIntent, pathPower: 0.5, pullbackIntent: 0, lateralAdjustment: 0 } as never;
-                worst = Math.max(worst, angleDeg(w, provisionalPose(PROVISIONAL_TRAVEL_MS, reachable(v(bx, by, bz)), state)));
+                const state = {
+                  forwardBearingDeg: bearing,
+                  elevationIntent,
+                  pathPower: 0.5,
+                  pullbackIntent: 0,
+                  lateralAdjustment: 0,
+                } as never;
+                worst = Math.max(
+                  worst,
+                  angleDeg(w, provisionalPose(PROVISIONAL_TRAVEL_MS, reachable(v(bx, by, bz)), state)),
+                );
               }
     // The compact backlift top is the furthest: about 105 degrees.
-    expect(worst, `largest rotation from a presented waiting bat to a hitting pose: ${worst.toFixed(1)} deg`).toBeLessThan(120);
+    expect(
+      worst,
+      `largest rotation from a presented waiting bat to a hitting pose: ${worst.toFixed(1)} deg`,
+    ).toBeLessThan(120);
     expect(worst).toBeGreaterThan(100);
   });
 
-  const setupOf = (eb: EvalBall, hand: Handedness): PracticeSceneSetup => ({ field: hand === 'right' ? eb.field : autoField(eb.over.bowler, eb.conditions, 'left', eb.over.ball), bowler: eb.over.bowler, conditions: eb.conditions, handedness: hand });
+  const setupOf = (eb: EvalBall, hand: Handedness): PracticeSceneSetup => ({
+    field: hand === 'right' ? eb.field : autoField(eb.over.bowler, eb.conditions, 'left', eb.over.ball),
+    bowler: eb.over.bowler,
+    conditions: eb.conditions,
+    handedness: hand,
+  });
 
   it("the external views' waiting bat, the pack clip's own, against the physics swing it closes on: not flipped, and how far a roll it would take", () => {
     const footworks: Footwork[] = ['auto', 'forward', 'back', 'across', 'down_track'];
@@ -140,9 +176,25 @@ describe('the shortest-way rigid bat blend (UNITY-3), as the web has it', () => 
       const n = k++;
       const kind = n % 3 === 0 ? 'attack' : 'defend';
       const power = kind === 'attack' ? 0.35 + ((n * 17) % 60) / 100 : 0.2;
-      const swing: NormalizedSwing = { kind, startT: fl.idealContactT - batTravelMs(kind, power) / 1000 + (((n * 37) % 161) - 80) / 1000, directionDeg: ((n * 53) % 140) - 70, power, elevation: (n % 5) / 8, footwork: footworks[n % 5] };
+      const swing: NormalizedSwing = {
+        kind,
+        startT: fl.idealContactT - batTravelMs(kind, power) / 1000 + (((n * 37) % 161) - 80) / 1000,
+        directionDeg: ((n * 53) % 140) - 70,
+        power,
+        elevation: (n % 5) / 8,
+        footwork: footworks[n % 5],
+      };
       const setup = setupOf(eb, hand);
-      const result: DeliveryResult = resolveDelivery({ flight: fl, swing, field: setup.field, bowler: eb.over.bowler, conditions: eb.conditions, handedness: hand, assist: 'play', tierToleranceMs: 0 });
+      const result: DeliveryResult = resolveDelivery({
+        flight: fl,
+        swing,
+        field: setup.field,
+        bowler: eb.over.bowler,
+        conditions: eb.conditions,
+        handedness: hand,
+        assist: 'play',
+        tierToleranceMs: 0,
+      });
       const releaseScene = buildPracticeScript({ setup, flight: fl }).practice!.releaseScene;
       const press = simToScene({ releaseScene }, swing.startT);
       const script = buildPracticeScript({ setup, flight: fl, result, provisionalStart: press, resultAt: press + 40 });
@@ -154,7 +206,8 @@ describe('the shortest-way rigid bat blend (UNITY-3), as the web has it', () => 
       if (!from) return;
       const end = bat.contactScene ?? bat.velocityPeakScene ?? start + 200;
       const targets: BatPose[] = [];
-      for (let s = start; s <= end; s += 2) targets.push(batPoseAt(bat, Math.max(s, releaseScene + (bat.samples?.[0]?.t ?? 0) * 1000)));
+      for (let s = start; s <= end; s += 2)
+        targets.push(batPoseAt(bat, Math.max(s, releaseScene + (bat.samples?.[0]?.t ?? 0) * 1000)));
       found.push({ hand, from, targets, max: Math.max(...targets.map((t) => angleDeg(from, t))) });
     };
     for (const eb of overBalls(REFERENCE_OVER, 'balanced')) for (let i = 0; i < 6; i++) add(eb, 'right', eb.flight);
@@ -163,7 +216,17 @@ describe('the shortest-way rigid bat blend (UNITY-3), as the web has it', () => 
         evalOvers({ difficulty, overs: 4, key: `blend2|${difficulty}|${family}`, family }).forEach((over, oi) =>
           over.forEach((eb) => {
             const hand: Handedness = oi % 2 === 1 ? 'left' : 'right';
-            const fl = hand === 'right' ? eb.flight : physicsFlight({ plan: eb.over.balls[eb.ballIndex], bowler: eb.over.bowler, conditions: eb.conditions, seed: eb.seed, ball: eb.over.ball, handedness: 'left' });
+            const fl =
+              hand === 'right'
+                ? eb.flight
+                : physicsFlight({
+                    plan: eb.over.balls[eb.ballIndex],
+                    bowler: eb.over.bowler,
+                    conditions: eb.conditions,
+                    seed: eb.seed,
+                    ball: eb.over.ball,
+                    handedness: 'left',
+                  });
             for (let i = 0; i < 3; i++) add(eb, hand, fl);
           }),
         );
@@ -171,23 +234,34 @@ describe('the shortest-way rigid bat blend (UNITY-3), as the web has it', () => 
     expect(found.some((f) => f.hand === 'left')).toBe(true);
     const worst = found.reduce((a, b) => (b.max > a.max ? b : a));
     // Not flipped today: no frame of any closing window reaches 180 degrees (the angle, the shorter way, stays clear of it).
-    expect(worst.max, `largest rotation between the clip's waiting bat and the swing it closes on: ${worst.max.toFixed(1)} deg`).toBeLessThan(175);
+    expect(
+      worst.max,
+      `largest rotation between the clip's waiting bat and the swing it closes on: ${worst.max.toFixed(1)} deg`,
+    ).toBeLessThan(175);
     // How far the waiting bat would have to roll about its blade, either way, for some frame to come within a degree of 180.
     const flipRoll = (f: (typeof found)[number]) => {
-      for (let deg = 1; deg <= 180; deg++) for (const sign of [1, -1]) if (f.targets.some((t) => angleDeg(rolled(f.from, sign * deg), t) > 179)) return sign * deg;
+      for (let deg = 1; deg <= 180; deg++)
+        for (const sign of [1, -1])
+          if (f.targets.some((t) => angleDeg(rolled(f.from, sign * deg), t) > 179)) return sign * deg;
       return Number.POSITIVE_INFINITY;
     };
-    const tightest = found.map((f) => ({ f, roll: flipRoll(f) })).reduce((a, b) => (Math.abs(b.roll) < Math.abs(a.roll) ? b : a));
+    const tightest = found
+      .map((f) => ({ f, roll: flipRoll(f) }))
+      .reduce((a, b) => (Math.abs(b.roll) < Math.abs(a.roll) ? b : a));
     const margin = tightest.roll;
     // About 21 degrees in the tightest case: a re-authored face hint of that much, the unfavourable way, would flip the blend.
-    expect(Math.abs(margin), `the pack clip's waiting bat would flip with a roll of ${margin} deg`).toBeGreaterThanOrEqual(10);
+    expect(
+      Math.abs(margin),
+      `the pack clip's waiting bat would flip with a roll of ${margin} deg`,
+    ).toBeGreaterThanOrEqual(10);
     expect(Math.abs(margin)).toBeLessThanOrEqual(40);
     // And when it flips, the blend's toe jumps: the same swing frame with the waiting bat rolled to either side of the flip.
     let top = { roll: margin, angle: 0, frame: tightest.f.targets[0] };
-    for (let roll = margin - 1; roll <= margin + 1; roll += 0.01) for (const t of tightest.f.targets) {
-      const angle = angleDeg(rolled(tightest.f.from, roll), t);
-      if (angle > top.angle) top = { roll, angle, frame: t };
-    }
+    for (let roll = margin - 1; roll <= margin + 1; roll += 0.01)
+      for (const t of tightest.f.targets) {
+        const angle = angleDeg(rolled(tightest.f.from, roll), t);
+        if (angle > top.angle) top = { roll, angle, frame: t };
+      }
     expect(top.angle).toBeGreaterThan(179.9);
     const before = rigidBatBlend(rolled(tightest.f.from, top.roll - 0.3), top.frame, 0.5).toe;
     const after = rigidBatBlend(rolled(tightest.f.from, top.roll + 0.3), top.frame, 0.5).toe;

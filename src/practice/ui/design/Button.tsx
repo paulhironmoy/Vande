@@ -25,7 +25,12 @@ export const PButton = forwardRef<HTMLButtonElement, PButtonProps>(function PBut
   ref,
 ) {
   return (
-    <button ref={ref} type={type} className={cx(s.btn, s[variant], size === 'lg' && s.lg, block && s.block, className)} {...rest}>
+    <button
+      ref={ref}
+      type={type}
+      className={cx(s.btn, s[variant], size === 'lg' && s.lg, block && s.block, className)}
+      {...rest}
+    >
       {icon && (
         <span className={s.icon} aria-hidden="true">
           <Icon name={icon} size={20} />
@@ -47,9 +52,19 @@ export interface PIconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEl
   variant?: PVariant;
 }
 
-export const PIconButton = forwardRef<HTMLButtonElement, PIconButtonProps>(function PIconButton({ icon, label, variant = 'quiet', className, type = 'button', ...rest }, ref) {
+export const PIconButton = forwardRef<HTMLButtonElement, PIconButtonProps>(function PIconButton(
+  { icon, label, variant = 'quiet', className, type = 'button', ...rest },
+  ref,
+) {
   return (
-    <button ref={ref} type={type} aria-label={label} title={label} className={cx(s.btn, s[variant], s.iconOnly, className)} {...rest}>
+    <button
+      ref={ref}
+      type={type}
+      aria-label={label}
+      title={label}
+      className={cx(s.btn, s[variant], s.iconOnly, className)}
+      {...rest}
+    >
       <Icon name={icon} size={22} />
     </button>
   );

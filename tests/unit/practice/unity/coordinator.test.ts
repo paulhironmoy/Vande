@@ -110,7 +110,8 @@ class FakeUnityBridge implements UnityPracticeBridge {
   emitUnloadedOnDispose = false;
   omitReadyOnInitialize = false;
   private unitySequence = 0;
-  private messageListener: ((packet: Parameters<UnityPracticeBridge['launch']>[0], receivedPerfMs: number) => void) | null = null;
+  private messageListener:
+    ((packet: Parameters<UnityPracticeBridge['launch']>[0], receivedPerfMs: number) => void) | null = null;
   private errorListener: ((error: UnityPracticeNativeError) => void) | null = null;
   private clockIndex = 0;
 
@@ -215,7 +216,12 @@ class FakeUnityBridge implements UnityPracticeBridge {
         benchmarkId: message.payload.benchmarkId,
         quality: message.payload.quality,
         frameIntervalsMs: [16.7, 16.6, 16.8],
-        warmup: { frames: message.payload.warmupFrames, durationMs: 480, shaderWarmupMs: 37, shaderWarmupCompleted: true },
+        warmup: {
+          frames: message.payload.warmupFrames,
+          durationMs: 480,
+          shaderWarmupMs: 37,
+          shaderWarmupCompleted: true,
+        },
         graphics: { api: 'Vulkan', device: 'Adreno 619', contextGeneration: null, contextLosses: null },
         memoryMb: 230,
         thermalState: 'nominal',
@@ -433,14 +439,16 @@ describe('Unity Practice session coordinator', () => {
     const h = harness({ useDefaultAckTimeout: true });
     await startAtScene(h);
     const flight = fixtureFlight({ seed: 'slow-native-result-ack' });
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, {
-      overIndex: 0,
-      ballIndex: 0,
-      plan: flight.plan,
-      seed: flight.seed,
-      flight,
-      presentation: { learnCue: false, coach: null },
-    })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: flight.plan,
+        seed: flight.seed,
+        flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     h.bridge.omitAckFor.add('host.result');
 
     const pending = h.coordinator.sendResult(DELIVERY_ID, await resolution(flight));
@@ -461,14 +469,16 @@ describe('Unity Practice session coordinator', () => {
     const h = harness({ useDefaultAckTimeout: true });
     await startAtScene(h);
     const flight = fixtureFlight({ seed: 'slow-native-replay-ack' });
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, {
-      overIndex: 0,
-      ballIndex: 0,
-      plan: flight.plan,
-      seed: flight.seed,
-      flight,
-      presentation: { learnCue: false, coach: null },
-    })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: flight.plan,
+        seed: flight.seed,
+        flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     const resolved = await resolution(flight);
     expect(await h.coordinator.sendResult(DELIVERY_ID, resolved)).toBe(true);
     h.bridge.omitAckFor.add('host.replay');
@@ -495,14 +505,16 @@ describe('Unity Practice session coordinator', () => {
     const h = harness();
     await startAtScene(h);
     const flight = fixtureFlight({ seed: 'false-result-identity' });
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, {
-      overIndex: 0,
-      ballIndex: 0,
-      plan: flight.plan,
-      seed: flight.seed,
-      flight,
-      presentation: { learnCue: false, coach: null },
-    })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: flight.plan,
+        seed: flight.seed,
+        flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     const resolved = await resolution(flight);
     const falseDigest = resolved.replayDigest === 'f'.repeat(64) ? 'e'.repeat(64) : 'f'.repeat(64);
 
@@ -519,23 +531,27 @@ describe('Unity Practice session coordinator', () => {
     const h = harness();
     await startAtScene(h);
     const flight = fixtureFlight({ seed: 'false-replay-identity' });
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, {
-      overIndex: 0,
-      ballIndex: 0,
-      plan: flight.plan,
-      seed: flight.seed,
-      flight,
-      presentation: { learnCue: false, coach: null },
-    })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: flight.plan,
+        seed: flight.seed,
+        flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     const resolved = await resolution(flight);
     expect(await h.coordinator.sendResult(DELIVERY_ID, resolved)).toBe(true);
     const falseDigest = resolved.replayDigest === 'f'.repeat(64) ? 'e'.repeat(64) : 'f'.repeat(64);
 
-    expect(await h.coordinator.replay(DELIVERY_ID, {
-      resolution: { ...resolved, replayDigest: falseDigest },
-      speed: 0.5,
-      diagnostics: false,
-    })).toBe(false);
+    expect(
+      await h.coordinator.replay(DELIVERY_ID, {
+        resolution: { ...resolved, replayDigest: falseDigest },
+        speed: 0.5,
+        diagnostics: false,
+      }),
+    ).toBe(false);
     expect(h.bridge.sent.some((message) => message.type === 'host.replay')).toBe(false);
     expect(h.events).toContainEqual({
       type: 'fallback',
@@ -548,14 +564,16 @@ describe('Unity Practice session coordinator', () => {
     const resultHarness = harness();
     await startAtScene(resultHarness);
     const resultFlight = fixtureFlight({ seed: 'short-result-override' });
-    expect(await resultHarness.coordinator.startDelivery(DELIVERY_ID, {
-      overIndex: 0,
-      ballIndex: 0,
-      plan: resultFlight.plan,
-      seed: resultFlight.seed,
-      flight: resultFlight,
-      presentation: { learnCue: false, coach: null },
-    })).toBe(true);
+    expect(
+      await resultHarness.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: resultFlight.plan,
+        seed: resultFlight.seed,
+        flight: resultFlight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     resultHarness.bridge.omitAckFor.add('host.result');
     const pendingResult = resultHarness.coordinator.sendResult(DELIVERY_ID, await resolution(resultFlight));
     await spinUntil(() => resultHarness.bridge.sent.some((message) => message.type === 'host.result'));
@@ -572,14 +590,16 @@ describe('Unity Practice session coordinator', () => {
     const replayHarness = harness();
     await startAtScene(replayHarness);
     const replayFlight = fixtureFlight({ seed: 'short-replay-override' });
-    expect(await replayHarness.coordinator.startDelivery(DELIVERY_ID, {
-      overIndex: 0,
-      ballIndex: 0,
-      plan: replayFlight.plan,
-      seed: replayFlight.seed,
-      flight: replayFlight,
-      presentation: { learnCue: false, coach: null },
-    })).toBe(true);
+    expect(
+      await replayHarness.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: replayFlight.plan,
+        seed: replayFlight.seed,
+        flight: replayFlight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     const resolved = await resolution(replayFlight);
     expect(await replayHarness.coordinator.sendResult(DELIVERY_ID, resolved)).toBe(true);
     replayHarness.bridge.omitAckFor.add('host.replay');
@@ -604,14 +624,16 @@ describe('Unity Practice session coordinator', () => {
     const h = harness({ useDefaultAckTimeout: true });
     await startAtScene(h);
     const flight = fixtureFlight({ seed: 'late-result-ack' });
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, {
-      overIndex: 0,
-      ballIndex: 0,
-      plan: flight.plan,
-      seed: flight.seed,
-      flight,
-      presentation: { learnCue: false, coach: null },
-    })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: flight.plan,
+        seed: flight.seed,
+        flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     h.bridge.omitAckFor.add('host.result');
     const pending = h.coordinator.sendResult(DELIVERY_ID, await resolution(flight));
     await spinUntil(() => h.bridge.sent.some((message) => message.type === 'host.result'));
@@ -645,8 +667,22 @@ describe('Unity Practice session coordinator', () => {
     expect(h.bridge.sent.find((message) => message.type === 'host.locale')?.payload).toEqual({ locale: 'hi' });
 
     const flight = fixtureFlight({ seed: 'delivery-flight' });
-    const first = h.coordinator.startDelivery(DELIVERY_ID, { overIndex: 0, ballIndex: 0, plan: flight.plan, seed: flight.seed, flight, presentation: { learnCue: false, coach: null } });
-    const duplicate = h.coordinator.startDelivery(DELIVERY_ID, { overIndex: 0, ballIndex: 0, plan: flight.plan, seed: flight.seed, flight, presentation: { learnCue: false, coach: null } });
+    const first = h.coordinator.startDelivery(DELIVERY_ID, {
+      overIndex: 0,
+      ballIndex: 0,
+      plan: flight.plan,
+      seed: flight.seed,
+      flight,
+      presentation: { learnCue: false, coach: null },
+    });
+    const duplicate = h.coordinator.startDelivery(DELIVERY_ID, {
+      overIndex: 0,
+      ballIndex: 0,
+      plan: flight.plan,
+      seed: flight.seed,
+      flight,
+      presentation: { learnCue: false, coach: null },
+    });
     expect(first).toBe(duplicate);
     expect(await first).toBe(true);
     expect(h.bridge.sent.filter((message) => message.type === 'host.delivery')).toHaveLength(1);
@@ -696,7 +732,16 @@ describe('Unity Practice session coordinator', () => {
     const h = harness();
     await startAtScene(h);
     const flight = fixtureFlight({ seed: 'exactly-once-flight' });
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, { overIndex: 0, ballIndex: 0, plan: flight.plan, seed: flight.seed, flight, presentation: { learnCue: false, coach: null } })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: flight.plan,
+        seed: flight.seed,
+        flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     const resolved = await resolution(flight);
     const first = h.coordinator.sendResult(DELIVERY_ID, resolved);
     const duplicate = h.coordinator.sendResult(DELIVERY_ID, resolved);
@@ -719,20 +764,26 @@ describe('Unity Practice session coordinator', () => {
     const h = harness();
     await startAtScene(h);
     const liveFlight = fixtureFlight({ seed: 'live-before-demonstration' });
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, {
-      overIndex: 0,
-      ballIndex: 0,
-      plan: liveFlight.plan,
-      seed: liveFlight.seed,
-      flight: liveFlight,
-      presentation: { learnCue: false, coach: null },
-    })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: liveFlight.plan,
+        seed: liveFlight.seed,
+        flight: liveFlight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     const live = await resolution(liveFlight);
     expect(await h.coordinator.sendResult(DELIVERY_ID, live)).toBe(true);
-    await h.bridge.emit('unity.dead', {
-      deadT: live.result.deadT,
-      replayDigest: live.replayDigest,
-    }, DELIVERY_ID);
+    await h.bridge.emit(
+      'unity.dead',
+      {
+        deadT: live.result.deadT,
+        replayDigest: live.replayDigest,
+      },
+      DELIVERY_ID,
+    );
     await h.coordinator.flushInbound();
 
     const demoId = 'demonstration-one';
@@ -742,10 +793,14 @@ describe('Unity Practice session coordinator', () => {
     expect(h.events).toContainEqual({ type: 'demonstration_started', deliveryId: demoId });
     expect(h.bridge.sent.filter((message) => message.type === 'host.demonstration')).toHaveLength(1);
 
-    await h.bridge.emit('unity.dead', {
-      deadT: demo.result.deadT,
-      replayDigest: demo.replayDigest,
-    }, demoId);
+    await h.bridge.emit(
+      'unity.dead',
+      {
+        deadT: demo.result.deadT,
+        replayDigest: demo.replayDigest,
+      },
+      demoId,
+    );
     await h.coordinator.flushInbound();
 
     expect(h.coordinator.status).toBe('dead_ball');
@@ -756,20 +811,24 @@ describe('Unity Practice session coordinator', () => {
       replayDigest: demo.replayDigest,
     });
     expect(h.events.filter((event) => event.type === 'dead')).toHaveLength(1);
-    expect(await h.coordinator.sendDeadBallUi(DELIVERY_ID, {
-      replayDigest: live.replayDigest,
-      reason: 'Original ball',
-      recommendation: 'Keep watching it',
-      primaryAction: 'next_ball',
-      primaryLabel: 'Next ball',
-      secondaryAction: null,
-      secondaryLabel: null,
-    })).toBe(true);
-    expect(await h.coordinator.replay(DELIVERY_ID, {
-      resolution: live,
-      speed: 0.3,
-      diagnostics: true,
-    })).toBe(true);
+    expect(
+      await h.coordinator.sendDeadBallUi(DELIVERY_ID, {
+        replayDigest: live.replayDigest,
+        reason: 'Original ball',
+        recommendation: 'Keep watching it',
+        primaryAction: 'next_ball',
+        primaryLabel: 'Next ball',
+        secondaryAction: null,
+        secondaryLabel: null,
+      }),
+    ).toBe(true);
+    expect(
+      await h.coordinator.replay(DELIVERY_ID, {
+        resolution: live,
+        speed: 0.3,
+        diagnostics: true,
+      }),
+    ).toBe(true);
   });
 
   it('cancels a pending demonstration at an ACK boundary and ignores its queued native tail', async () => {
@@ -794,19 +853,31 @@ describe('Unity Practice session coordinator', () => {
 
     // These packets can be queued by the renderer before its cancel ACK. They
     // must consume Unity sequence numbers without becoming a real delivery.
-    await h.bridge.emit('unity.release', {
-      releaseUnityMs: 2_000,
-      clockSampleId: h.bridge.clockSampleIds[1],
-    }, demoId);
-    await h.bridge.emit('unity.protected_regions', {
-      regions: [{ kind: 'ball_path', x: 10, y: 10, width: 30, height: 40 }],
-      viewportHeight: 200,
-      viewportWidth: 300,
-    }, demoId);
-    await h.bridge.emit('unity.dead', {
-      deadT: resolved.result.deadT,
-      replayDigest: resolved.replayDigest,
-    }, demoId);
+    await h.bridge.emit(
+      'unity.release',
+      {
+        releaseUnityMs: 2_000,
+        clockSampleId: h.bridge.clockSampleIds[1],
+      },
+      demoId,
+    );
+    await h.bridge.emit(
+      'unity.protected_regions',
+      {
+        regions: [{ kind: 'ball_path', x: 10, y: 10, width: 30, height: 40 }],
+        viewportHeight: 200,
+        viewportWidth: 300,
+      },
+      demoId,
+    );
+    await h.bridge.emit(
+      'unity.dead',
+      {
+        deadT: resolved.result.deadT,
+        replayDigest: resolved.replayDigest,
+      },
+      demoId,
+    );
     h.bridge.omitAckFor.delete('host.demonstration_cancel');
     await h.bridge.acknowledgeLast('host.demonstration_cancel');
     await h.coordinator.flushInbound();
@@ -818,10 +889,14 @@ describe('Unity Practice session coordinator', () => {
 
     const liveId = 'delivery-after-demonstration-cancel';
     expect(await h.coordinator.startDelivery(liveId, demonstration(resolved).delivery)).toBe(true);
-    await h.bridge.emit('unity.release', {
-      releaseUnityMs: 2_100,
-      clockSampleId: h.bridge.clockSampleIds[1],
-    }, liveId);
+    await h.bridge.emit(
+      'unity.release',
+      {
+        releaseUnityMs: 2_100,
+        clockSampleId: h.bridge.clockSampleIds[1],
+      },
+      liveId,
+    );
     await h.coordinator.flushInbound();
     expect(h.coordinator.status).toBe('delivery');
     expect(h.events).toContainEqual(expect.objectContaining({ type: 'release', deliveryId: liveId }));
@@ -859,30 +934,38 @@ describe('Unity Practice session coordinator', () => {
 
     expect(await pending).toBe(false);
     expect(h.coordinator.status).toBe('fallback');
-    expect(h.events).toContainEqual(expect.objectContaining({
-      type: 'fallback',
-      reason: 'ack_timeout:host.demonstration',
-    }));
+    expect(h.events).toContainEqual(
+      expect.objectContaining({
+        type: 'fallback',
+        reason: 'ack_timeout:host.demonstration',
+      }),
+    );
   });
 
   it('publishes repeatable guidance and accepts one current action across a pause race', async () => {
     const h = harness();
     await startAtScene(h);
     const flight = fixtureFlight({ seed: 'dead-ball-actions-flight' });
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, {
-      overIndex: 0,
-      ballIndex: 0,
-      plan: flight.plan,
-      seed: flight.seed,
-      flight,
-      presentation: { learnCue: false, coach: null },
-    })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: flight.plan,
+        seed: flight.seed,
+        flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     const resolved = await resolution(flight);
     expect(await h.coordinator.sendResult(DELIVERY_ID, resolved)).toBe(true);
-    await h.bridge.emit('unity.dead', {
-      deadT: resolved.result.deadT,
-      replayDigest: resolved.replayDigest,
-    }, DELIVERY_ID);
+    await h.bridge.emit(
+      'unity.dead',
+      {
+        deadT: resolved.result.deadT,
+        replayDigest: resolved.replayDigest,
+      },
+      DELIVERY_ID,
+    );
     await h.coordinator.flushInbound();
 
     const initial = {
@@ -895,18 +978,24 @@ describe('Unity Practice session coordinator', () => {
       secondaryLabel: 'Next ball',
     };
     expect(await h.coordinator.sendDeadBallUi(DELIVERY_ID, initial)).toBe(true);
-    expect(await h.coordinator.sendDeadBallUi(DELIVERY_ID, {
-      ...initial,
-      reason: 'You played too early',
-      recommendation: 'Wait for the ball',
-    })).toBe(true);
+    expect(
+      await h.coordinator.sendDeadBallUi(DELIVERY_ID, {
+        ...initial,
+        reason: 'You played too early',
+        recommendation: 'Wait for the ball',
+      }),
+    ).toBe(true);
     expect(h.bridge.sent.filter((message) => message.type === 'host.dead_ball_ui')).toHaveLength(2);
 
     expect(await h.coordinator.pause('background')).toBe(true);
-    await h.bridge.emit('unity.dead_ball_action', {
-      action: 'practice_ball',
-      replayDigest: resolved.replayDigest,
-    }, DELIVERY_ID);
+    await h.bridge.emit(
+      'unity.dead_ball_action',
+      {
+        action: 'practice_ball',
+        replayDigest: resolved.replayDigest,
+      },
+      DELIVERY_ID,
+    );
     await h.coordinator.flushInbound();
     expect(h.events.filter((event) => event.type === 'dead_ball_action')).toHaveLength(0);
     expect(h.events).toContainEqual({
@@ -916,32 +1005,47 @@ describe('Unity Practice session coordinator', () => {
     });
 
     expect(await h.coordinator.resume('foreground')).toBe(true);
-    await h.bridge.emit('unity.dead_ball_action', {
-      action: 'practice_ball',
-      replayDigest: resolved.replayDigest,
-    }, DELIVERY_ID);
+    await h.bridge.emit(
+      'unity.dead_ball_action',
+      {
+        action: 'practice_ball',
+        replayDigest: resolved.replayDigest,
+      },
+      DELIVERY_ID,
+    );
     await h.coordinator.flushInbound();
     expect(h.events.filter((event) => event.type === 'dead_ball_action')).toHaveLength(0);
-    expect(h.events.filter((event) =>
-      event.type === 'protocol_rejected' && event.decision === 'action_unavailable')).toHaveLength(2);
+    expect(
+      h.events.filter((event) => event.type === 'protocol_rejected' && event.decision === 'action_unavailable'),
+    ).toHaveLength(2);
 
     expect(await h.coordinator.resume('player')).toBe(true);
-    await h.bridge.emit('unity.dead_ball_action', {
-      action: 'practice_ball',
-      replayDigest: resolved.replayDigest,
-    }, DELIVERY_ID);
+    await h.bridge.emit(
+      'unity.dead_ball_action',
+      {
+        action: 'practice_ball',
+        replayDigest: resolved.replayDigest,
+      },
+      DELIVERY_ID,
+    );
     await h.coordinator.flushInbound();
-    expect(h.events.filter((event) => event.type === 'dead_ball_action')).toEqual([{
-      type: 'dead_ball_action',
-      deliveryId: DELIVERY_ID,
-      action: 'practice_ball',
-      replayDigest: resolved.replayDigest,
-    }]);
+    expect(h.events.filter((event) => event.type === 'dead_ball_action')).toEqual([
+      {
+        type: 'dead_ball_action',
+        deliveryId: DELIVERY_ID,
+        action: 'practice_ball',
+        replayDigest: resolved.replayDigest,
+      },
+    ]);
 
-    await h.bridge.emit('unity.dead_ball_action', {
-      action: 'next_ball',
-      replayDigest: resolved.replayDigest,
-    }, DELIVERY_ID);
+    await h.bridge.emit(
+      'unity.dead_ball_action',
+      {
+        action: 'next_ball',
+        replayDigest: resolved.replayDigest,
+      },
+      DELIVERY_ID,
+    );
     await h.coordinator.flushInbound();
     expect(h.events.filter((event) => event.type === 'dead_ball_action')).toHaveLength(1);
     expect(h.coordinator.status).toBe('dead_ball');
@@ -951,35 +1055,47 @@ describe('Unity Practice session coordinator', () => {
     const h = harness();
     await startAtScene(h);
     const flight = fixtureFlight({ seed: 'dead-ball-digest-flight' });
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, {
-      overIndex: 0,
-      ballIndex: 0,
-      plan: flight.plan,
-      seed: flight.seed,
-      flight,
-      presentation: { learnCue: false, coach: null },
-    })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: flight.plan,
+        seed: flight.seed,
+        flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     const resolved = await resolution(flight);
     expect(await h.coordinator.sendResult(DELIVERY_ID, resolved)).toBe(true);
-    await h.bridge.emit('unity.dead', {
-      deadT: resolved.result.deadT,
-      replayDigest: resolved.replayDigest,
-    }, DELIVERY_ID);
+    await h.bridge.emit(
+      'unity.dead',
+      {
+        deadT: resolved.result.deadT,
+        replayDigest: resolved.replayDigest,
+      },
+      DELIVERY_ID,
+    );
     await h.coordinator.flushInbound();
-    expect(await h.coordinator.sendDeadBallUi(DELIVERY_ID, {
-      replayDigest: resolved.replayDigest,
-      reason: 'Reading your shot…',
-      recommendation: '',
-      primaryAction: 'next_ball',
-      primaryLabel: 'Next ball',
-      secondaryAction: null,
-      secondaryLabel: null,
-    })).toBe(true);
+    expect(
+      await h.coordinator.sendDeadBallUi(DELIVERY_ID, {
+        replayDigest: resolved.replayDigest,
+        reason: 'Reading your shot…',
+        recommendation: '',
+        primaryAction: 'next_ball',
+        primaryLabel: 'Next ball',
+        secondaryAction: null,
+        secondaryLabel: null,
+      }),
+    ).toBe(true);
 
-    await h.bridge.emit('unity.dead_ball_action', {
-      action: 'next_ball',
-      replayDigest: 'f'.repeat(64),
-    }, DELIVERY_ID);
+    await h.bridge.emit(
+      'unity.dead_ball_action',
+      {
+        action: 'next_ball',
+        replayDigest: 'f'.repeat(64),
+      },
+      DELIVERY_ID,
+    );
     await h.coordinator.flushInbound();
     expect(h.events.filter((event) => event.type === 'dead_ball_action')).toEqual([]);
     expect(h.coordinator.status).toBe('fallback');
@@ -989,20 +1105,26 @@ describe('Unity Practice session coordinator', () => {
     const h = harness();
     await startAtScene(h);
     const flight = fixtureFlight({ seed: 'queued-dead-ball-ui-flight' });
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, {
-      overIndex: 0,
-      ballIndex: 0,
-      plan: flight.plan,
-      seed: flight.seed,
-      flight,
-      presentation: { learnCue: false, coach: null },
-    })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: flight.plan,
+        seed: flight.seed,
+        flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     const resolved = await resolution(flight);
     expect(await h.coordinator.sendResult(DELIVERY_ID, resolved)).toBe(true);
-    await h.bridge.emit('unity.dead', {
-      deadT: resolved.result.deadT,
-      replayDigest: resolved.replayDigest,
-    }, DELIVERY_ID);
+    await h.bridge.emit(
+      'unity.dead',
+      {
+        deadT: resolved.result.deadT,
+        replayDigest: resolved.replayDigest,
+      },
+      DELIVERY_ID,
+    );
     await h.coordinator.flushInbound();
     const initial = {
       replayDigest: resolved.replayDigest,
@@ -1024,10 +1146,14 @@ describe('Unity Practice session coordinator', () => {
       recommendation: 'Wait for the ball',
     });
 
-    await h.bridge.emit('unity.dead_ball_action', {
-      action: 'practice_ball',
-      replayDigest: resolved.replayDigest,
-    }, DELIVERY_ID);
+    await h.bridge.emit(
+      'unity.dead_ball_action',
+      {
+        action: 'practice_ball',
+        replayDigest: resolved.replayDigest,
+      },
+      DELIVERY_ID,
+    );
     await h.coordinator.flushInbound();
     expect(h.events.filter((event) => event.type === 'dead_ball_action')).toHaveLength(1);
 
@@ -1038,10 +1164,14 @@ describe('Unity Practice session coordinator', () => {
     expect(await blocker).toBe(true);
     await spinUntil(() => h.bridge.sent.filter((message) => message.type === 'host.dead_ball_ui').length === 2);
 
-    await h.bridge.emit('unity.dead_ball_action', {
-      action: 'next_ball',
-      replayDigest: resolved.replayDigest,
-    }, DELIVERY_ID);
+    await h.bridge.emit(
+      'unity.dead_ball_action',
+      {
+        action: 'next_ball',
+        replayDigest: resolved.replayDigest,
+      },
+      DELIVERY_ID,
+    );
     await h.coordinator.flushInbound();
     expect(h.events.filter((event) => event.type === 'dead_ball_action')).toHaveLength(1);
 
@@ -1057,7 +1187,16 @@ describe('Unity Practice session coordinator', () => {
     const h = harness();
     await startAtScene(h);
     const flight = fixtureFlight({ seed: 'wrong-dead-time-flight' });
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, { overIndex: 0, ballIndex: 0, plan: flight.plan, seed: flight.seed, flight, presentation: { learnCue: false, coach: null } })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: flight.plan,
+        seed: flight.seed,
+        flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     const resolved = await resolution(flight);
     expect(await h.coordinator.sendResult(DELIVERY_ID, resolved)).toBe(true);
 
@@ -1082,7 +1221,16 @@ describe('Unity Practice session coordinator', () => {
     const h = harness();
     await startAtScene(h);
     const flight = fixtureFlight({ seed: 'late-dead-flight' });
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, { overIndex: 0, ballIndex: 0, plan: flight.plan, seed: flight.seed, flight, presentation: { learnCue: false, coach: null } })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: flight.plan,
+        seed: flight.seed,
+        flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     const resolved = await resolution(flight);
     expect(await h.coordinator.sendResult(DELIVERY_ID, resolved)).toBe(true);
     const dead = await h.bridge.emit(
@@ -1140,7 +1288,16 @@ describe('Unity Practice session coordinator', () => {
     const h = harness({ useDefaultAckTimeout: true });
     await startAtScene(h);
     const flight = fixtureFlight({ seed: 'timeout-flight' });
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, { overIndex: 0, ballIndex: 0, plan: flight.plan, seed: flight.seed, flight, presentation: { learnCue: false, coach: null } })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: flight.plan,
+        seed: flight.seed,
+        flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     h.bridge.omitAckFor.add('host.result');
 
     const pending = h.coordinator.sendResult(DELIVERY_ID, await resolution(flight));
@@ -1197,7 +1354,14 @@ describe('Unity Practice session coordinator', () => {
       handedness: 'right',
     });
     expect(raw.samples).toEqual([]);
-    expect(swing).toEqual({ kind: 'defend', startT: 0.01, directionDeg: 0, power: 0.2, elevation: 0, footwork: 'auto' });
+    expect(swing).toEqual({
+      kind: 'defend',
+      startT: 0.01,
+      directionDeg: 0,
+      power: 0.2,
+      elevation: 0,
+      footwork: 'auto',
+    });
     expect(swing).not.toHaveProperty('samples');
   });
 
@@ -1249,14 +1413,16 @@ describe('Unity Practice coordinator resolution made once', () => {
   async function started(flight: ReturnType<typeof fixtureFlight>) {
     const h = harness();
     await startAtScene(h);
-    expect(await h.coordinator.startDelivery(DELIVERY_ID, {
-      overIndex: 0,
-      ballIndex: 0,
-      plan: flight.plan,
-      seed: flight.seed,
-      flight,
-      presentation: { learnCue: false, coach: null },
-    })).toBe(true);
+    expect(
+      await h.coordinator.startDelivery(DELIVERY_ID, {
+        overIndex: 0,
+        ballIndex: 0,
+        plan: flight.plan,
+        seed: flight.seed,
+        flight,
+        presentation: { learnCue: false, coach: null },
+      }),
+    ).toBe(true);
     return h;
   }
 
@@ -1273,14 +1439,18 @@ describe('Unity Practice coordinator resolution made once', () => {
     const handResolution = await resolution(flight);
     digest.mockClear();
     expect(await byHand.coordinator.sendResult(DELIVERY_ID, handResolution)).toBe(true);
-    expect(await byHand.coordinator.replay(DELIVERY_ID, { resolution: handResolution, speed: 0.5, diagnostics: false })).toBe(true);
+    expect(
+      await byHand.coordinator.replay(DELIVERY_ID, { resolution: handResolution, speed: 0.5, diagnostics: false }),
+    ).toBe(true);
     const handDigests = digest.mock.calls.length;
 
     const viaMake = await started(flight);
     const made = await madeResolution(flight);
     digest.mockClear();
     expect(await viaMake.coordinator.sendResult(DELIVERY_ID, made)).toBe(true);
-    expect(await viaMake.coordinator.replay(DELIVERY_ID, { resolution: made, speed: 0.5, diagnostics: false })).toBe(true);
+    expect(await viaMake.coordinator.replay(DELIVERY_ID, { resolution: made, speed: 0.5, diagnostics: false })).toBe(
+      true,
+    );
     const madeDigests = digest.mock.calls.length;
 
     // The result and the replay each skip the coordinator's identity check and the packer's.

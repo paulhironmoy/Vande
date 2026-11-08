@@ -3,12 +3,23 @@
  * the way it did (docs/PRACTICE_COACH.md, "The read"). Every verdict needs evidence in the attempt itself: footwork the
  * physics chose, a leave's timing or a block's direction are not the player's choices and read 'unclear'.
  */
-import type { CoachRead, CoachingReason, ContactKind, DeliveryResult, NormalizedSwing, ReadVerdict } from '@/contracts/practice';
+import type {
+  CoachRead,
+  CoachingReason,
+  ContactKind,
+  DeliveryResult,
+  NormalizedSwing,
+  ReadVerdict,
+} from '@/contracts/practice';
 import { BALL_R, BEATEN_BY, STUMPS_HALF_W } from '@/physics';
 import { acrossTheLine, acrossTheMovement, footworkFightsLength } from './cricket';
 import { READ_THRESHOLDS, type BallFacts, type Mover } from './facts';
 
-const BEATEN_BY_MOVEMENT: ReadonlySet<CoachingReason> = new Set<CoachingReason>(['beaten_by_swing', 'beaten_by_seam', 'beaten_by_turn']);
+const BEATEN_BY_MOVEMENT: ReadonlySet<CoachingReason> = new Set<CoachingReason>([
+  'beaten_by_swing',
+  'beaten_by_seam',
+  'beaten_by_turn',
+]);
 /** The physics' technical diagnoses (what beat the bat), which a misread of the length or bounce can explain better. */
 const TECHNICAL: ReadonlySet<CoachingReason> = new Set<CoachingReason>([
   'beaten_by_swing',
@@ -20,7 +31,15 @@ const TECHNICAL: ReadonlySet<CoachingReason> = new Set<CoachingReason>([
   'missed_straight_ball',
   'played_across_the_line',
 ]);
-const BEATEN: ReadonlySet<ContactKind> = new Set<ContactKind>(['miss', 'pad', 'body', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge']);
+const BEATEN: ReadonlySet<ContactKind> = new Set<ContactKind>([
+  'miss',
+  'pad',
+  'body',
+  'inside_edge',
+  'outside_edge',
+  'top_edge',
+  'leading_edge',
+]);
 const IN_LINE_M = STUMPS_HALF_W + BALL_R;
 type ReadResult = Pick<DeliveryResult, 'contact' | 'outcome' | 'footwork' | 'coaching'>;
 
@@ -82,7 +101,13 @@ function readBounce(f: BallFacts, swing: NormalizedSwing | null, r: ReadResult):
 }
 
 export function inferRead(f: BallFacts, swing: NormalizedSwing | null, r: ReadResult): CoachRead {
-  return { length: readLength(f, swing, r), line: readLine(f, swing), pace: readPace(swing, r), movement: readMovement(f, swing, r), bounce: readBounce(f, swing, r) };
+  return {
+    length: readLength(f, swing, r),
+    line: readLine(f, swing),
+    pace: readPace(swing, r),
+    movement: readMovement(f, swing, r),
+    bounce: readBounce(f, swing, r),
+  };
 }
 
 /** The reason that names what moved the ball. */
@@ -99,7 +124,12 @@ function paceReason(f: BallFacts, r: ReadResult): CoachingReason {
 }
 
 /** Reasons that say how the ball was caught rather than why: a misread that caused it explains it better. */
-const CAUGHT: ReadonlySet<CoachingReason> = new Set<CoachingReason>(['edged_behind', 'edged_to_slip', 'caught_in_the_ring', 'caught_in_the_deep']);
+const CAUGHT: ReadonlySet<CoachingReason> = new Set<CoachingReason>([
+  'edged_behind',
+  'edged_to_slip',
+  'caught_in_the_ring',
+  'caught_in_the_deep',
+]);
 
 /**
  * Why, most important first. The physics' own reason (src/physics scoring.ts) leads when it names a cause: a technical
@@ -115,9 +145,11 @@ export function whyOf(f: BallFacts, swing: NormalizedSwing | null, r: ReadResult
   const causes: CoachingReason[] = [];
   if (read.bounce === 'wrong' && f.short) causes.push('beaten_by_bounce');
   if (read.movement === 'wrong' && f.mover) causes.push(movementReason(f.mover));
-  if (swing?.kind === 'attack' && read.line === 'wrong' && acrossTheLine(swing.directionDeg, f)) causes.push('played_across_the_line');
+  if (swing?.kind === 'attack' && read.line === 'wrong' && acrossTheLine(swing.directionDeg, f))
+    causes.push('played_across_the_line');
   if (read.pace === 'wrong') causes.push(paceReason(f, r));
-  const lead = causes.length > 0 && (CAUGHT.has(primary) || (causes[0] === 'beaten_by_bounce' && TECHNICAL.has(primary)));
+  const lead =
+    causes.length > 0 && (CAUGHT.has(primary) || (causes[0] === 'beaten_by_bounce' && TECHNICAL.has(primary)));
   const out = lead ? [causes[0], primary, ...causes.slice(1)] : [primary, ...causes];
   return out.filter((x, i) => out.indexOf(x) === i);
 }

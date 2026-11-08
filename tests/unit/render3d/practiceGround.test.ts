@@ -103,7 +103,10 @@ describe('Practice boundary boards', () => {
     const ctx = new Proxy(
       {},
       {
-        get: (_t, key: string) => (key === 'fillStyle' || key === 'strokeStyle' ? '#000' : (...args: unknown[]) => calls.push(`${key}:${args.length}`)),
+        get: (_t, key: string) =>
+          key === 'fillStyle' || key === 'strokeStyle'
+            ? '#000'
+            : (...args: unknown[]) => calls.push(`${key}:${args.length}`),
         set: (_t, key: string, value: unknown) => {
           if (key === 'fillStyle' && typeof value === 'string') fills.push(value);
           return true;

@@ -166,7 +166,12 @@ function tube(points: Vector3[], r: number, segs: number, radial: number): Buffe
 }
 
 /** A grid surface (rows × cols of points) as an indexed geometry with smooth normals. */
-function gridSurface(rows: number, cols: number, at: (i: number, j: number, out: Vector3) => void, closeCols = false): BufferGeometry {
+function gridSurface(
+  rows: number,
+  cols: number,
+  at: (i: number, j: number, out: Vector3) => void,
+  closeCols = false,
+): BufferGeometry {
   const pos: number[] = [];
   const idx: number[] = [];
   const v = new Vector3();
@@ -220,12 +225,22 @@ function orient(g: BufferGeometry, want: (c: Vector3) => Vector3): BufferGeometr
 /** A thin closed slab from a strip of (inner, outer) point pairs, `t` thick along `up`: top, underside and edge. */
 function slab(strip: Array<[Vector3, Vector3]>, t: number, up: Vector3): BufferGeometry {
   const off = up.clone().multiplyScalar(t / 2);
-  const surf = (pick: (k: number, j: number) => Vector3) => gridSurface(strip.length - 1, 1, (i, j, out) => out.copy(pick(i, j)));
+  const surf = (pick: (k: number, j: number) => Vector3) =>
+    gridSurface(strip.length - 1, 1, (i, j, out) => out.copy(pick(i, j)));
   const down = up.clone().negate();
-  const top = orient(surf((i, j) => strip[i][j].clone().add(off)), () => up);
-  const bottom = orient(surf((i, j) => strip[i][j].clone().sub(off)), () => down);
+  const top = orient(
+    surf((i, j) => strip[i][j].clone().add(off)),
+    () => up,
+  );
+  const bottom = orient(
+    surf((i, j) => strip[i][j].clone().sub(off)),
+    () => down,
+  );
   const mid = strip[Math.floor(strip.length / 2)][0];
-  const edge = orient(surf((i, j) => strip[i][1].clone().addScaledVector(off, j === 0 ? 1 : -1)), (cc) => cc.clone().sub(mid));
+  const edge = orient(
+    surf((i, j) => strip[i][1].clone().addScaledVector(off, j === 0 ? 1 : -1)),
+    (cc) => cc.clone().sub(mid),
+  );
   // Smooth the top and underside across the strip (their triangles now agree).
   return mergeGeometries([top, bottom, edge])!;
 }
@@ -263,11 +278,17 @@ function sculpt(d: Vector3, out: Vector3): Vector3 {
   return out.set(x, y, z).add(HEAD.c);
 }
 
-const dirOf = (theta: number, phi: number, out: Vector3) => out.set(Math.sin(theta) * Math.sin(phi), Math.cos(theta), Math.sin(theta) * Math.cos(phi));
+const dirOf = (theta: number, phi: number, out: Vector3) =>
+  out.set(Math.sin(theta) * Math.sin(phi), Math.cos(theta), Math.sin(theta) * Math.cos(phi));
 
 function headGeometry(rows: number, cols: number): BufferGeometry {
   const d = new Vector3();
-  return gridSurface(rows, cols, (i, j, out) => sculpt(dirOf((i / rows) * Math.PI, (j / cols) * Math.PI * 2, d), out), true);
+  return gridSurface(
+    rows,
+    cols,
+    (i, j, out) => sculpt(dirOf((i / rows) * Math.PI, (j / cols) * Math.PI * 2, d), out),
+    true,
+  );
 }
 
 function noseGeometry(): BufferGeometry {
@@ -286,7 +307,9 @@ function noseGeometry(): BufferGeometry {
     p.setXYZ(i, v.x * w, EYE_Y - 0.004 - t * 0.046, z);
   }
   g.computeVertexNormals();
-  const wings = [-1, 1].map((s2) => blob(new Vector3(s2 * 0.0098, EYE_Y - 0.0452, zFace + 0.0042), 0.0049, 0.0042, 0.0052, 8, 6));
+  const wings = [-1, 1].map((s2) =>
+    blob(new Vector3(s2 * 0.0098, EYE_Y - 0.0452, zFace + 0.0042), 0.0049, 0.0042, 0.0052, 8, 6),
+  );
   return mergeGeometries([g.toNonIndexed(), ...wings.map((w) => w.toNonIndexed())])!;
 }
 
@@ -330,7 +353,11 @@ function hairShell(style: (typeof HAIR_STYLES)[number], rows: number, cols: numb
       case 'curly':
         return 0.016 + 0.005 * Math.sin(az * 17 + seed) * Math.sin(dd.y * 21 + seed) + 0.004 * Math.max(0, dd.y);
       case 'side_part':
-        return 0.008 + (dd.x > -0.25 ? 0.0045 : 0.0015) * smooth(-0.2, 0.6, dd.y) + 0.003 * Math.max(0, dd.z) * Math.max(0, dd.y);
+        return (
+          0.008 +
+          (dd.x > -0.25 ? 0.0045 : 0.0015) * smooth(-0.2, 0.6, dd.y) +
+          0.003 * Math.max(0, dd.z) * Math.max(0, dd.y)
+        );
       case 'tied':
         return 0.004;
       default:
@@ -338,14 +365,19 @@ function hairShell(style: (typeof HAIR_STYLES)[number], rows: number, cols: numb
     }
   };
   const basePts: number[] = [];
-  const geo = gridSurface(rows, cols, (i, j, out) => {
-    dirOf((i / rows) * Math.PI, (j / cols) * Math.PI * 2, d);
-    sculpt(d, s);
-    n.copy(s).sub(HEAD.c).normalize();
-    const m = hairMask(d);
-    out.copy(s).addScaledVector(n, -0.0025 + (thick(d) + 0.0025) * m);
-    basePts.push(s.x, s.y, s.z);
-  }, true);
+  const geo = gridSurface(
+    rows,
+    cols,
+    (i, j, out) => {
+      dirOf((i / rows) * Math.PI, (j / cols) * Math.PI * 2, d);
+      sculpt(d, s);
+      n.copy(s).sub(HEAD.c).normalize();
+      const m = hairMask(d);
+      out.copy(s).addScaledVector(n, -0.0025 + (thick(d) + 0.0025) * m);
+      basePts.push(s.x, s.y, s.z);
+    },
+    true,
+  );
   geo.setAttribute('aBase', new BufferAttribute(new Float32Array(basePts), 3));
   if (style !== 'tied') return geo;
   // A bun at the back of the crown.
@@ -363,17 +395,22 @@ function beardShell(rows: number, cols: number): BufferGeometry {
   const s = new Vector3();
   const n = new Vector3();
   const basePts: number[] = [];
-  const geo = gridSurface(rows, cols, (i, j, out) => {
-    dirOf((i / rows) * Math.PI, (j / cols) * Math.PI * 2, d);
-    sculpt(d, s);
-    n.copy(s).sub(HEAD.c).normalize();
-    const jaw = smooth(-0.18, -0.42, d.y) * smooth(-0.35, 0.05, d.z);
-    const lip = gauss2(d.y + 0.42, d.x, 0.06, 0.28) * Math.max(0, d.z);
-    const mouth = gauss2(d.y + 0.56, d.x, 0.05, 0.22) * Math.max(0, d.z);
-    const m = Math.max(jaw, lip * 0.8) * (1 - mouth * 0.9);
-    out.copy(s).addScaledVector(n, m > 0.05 ? 0.0075 * m + 0.001 : -0.003);
-    basePts.push(s.x, s.y, s.z);
-  }, true);
+  const geo = gridSurface(
+    rows,
+    cols,
+    (i, j, out) => {
+      dirOf((i / rows) * Math.PI, (j / cols) * Math.PI * 2, d);
+      sculpt(d, s);
+      n.copy(s).sub(HEAD.c).normalize();
+      const jaw = smooth(-0.18, -0.42, d.y) * smooth(-0.35, 0.05, d.z);
+      const lip = gauss2(d.y + 0.42, d.x, 0.06, 0.28) * Math.max(0, d.z);
+      const mouth = gauss2(d.y + 0.56, d.x, 0.05, 0.22) * Math.max(0, d.z);
+      const m = Math.max(jaw, lip * 0.8) * (1 - mouth * 0.9);
+      out.copy(s).addScaledVector(n, m > 0.05 ? 0.0075 * m + 0.001 : -0.003);
+      basePts.push(s.x, s.y, s.z);
+    },
+    true,
+  );
   geo.setAttribute('aBase', new BufferAttribute(new Float32Array(basePts), 3));
   return geo;
 }
@@ -383,12 +420,32 @@ function beardShell(rows: number, cols: number): BufferGeometry {
 // ---------------------------------------------------------------------------------------------------------------
 
 /** An open shell over the head: an ellipsoid from its crown down to a rim at polar angle rim(φ) (φ = 0 at the front). */
-function shell(c: Vector3, rx: number, ry: number, rz: number, rim: (phi: number) => number, rows: number, cols: number, inward = 0): BufferGeometry {
-  const g = gridSurface(rows, cols, (i, j, out) => {
-    const phi = (j / cols) * Math.PI * 2;
-    const theta = (i / rows) * rim(phi);
-    out.set(Math.sin(theta) * Math.sin(phi) * (rx - inward), Math.cos(theta) * (ry - inward), Math.sin(theta) * Math.cos(phi) * (rz - inward)).add(c);
-  }, true);
+function shell(
+  c: Vector3,
+  rx: number,
+  ry: number,
+  rz: number,
+  rim: (phi: number) => number,
+  rows: number,
+  cols: number,
+  inward = 0,
+): BufferGeometry {
+  const g = gridSurface(
+    rows,
+    cols,
+    (i, j, out) => {
+      const phi = (j / cols) * Math.PI * 2;
+      const theta = (i / rows) * rim(phi);
+      out
+        .set(
+          Math.sin(theta) * Math.sin(phi) * (rx - inward),
+          Math.cos(theta) * (ry - inward),
+          Math.sin(theta) * Math.cos(phi) * (rz - inward),
+        )
+        .add(c);
+    },
+    true,
+  );
   if (inward > 0) {
     // The padding faces inwards: reverse the winding.
     const idx = g.index!.array as Uint16Array | Uint32Array;
@@ -410,13 +467,36 @@ const rimOf = (front: number, side: number, back: number) => (phi: number) => {
 };
 
 /** Points along a shell's rim (for peaks, brims and guards). */
-function rimPoint(c: Vector3, rx: number, ry: number, rz: number, rim: (phi: number) => number, phi: number, grow = 0): Vector3 {
+function rimPoint(
+  c: Vector3,
+  rx: number,
+  ry: number,
+  rz: number,
+  rim: (phi: number) => number,
+  phi: number,
+  grow = 0,
+): Vector3 {
   const th = rim(phi);
-  return new Vector3(Math.sin(th) * Math.sin(phi) * (rx + grow), Math.cos(th) * (ry + grow), Math.sin(th) * Math.cos(phi) * (rz + grow)).add(c);
+  return new Vector3(
+    Math.sin(th) * Math.sin(phi) * (rx + grow),
+    Math.cos(th) * (ry + grow),
+    Math.sin(th) * Math.cos(phi) * (rz + grow),
+  ).add(c);
 }
 
 /** A peak or brim off a rim, from phi0 to phi1: `reach` outwards, dropping `drop` at its edge. */
-function brim(c: Vector3, rx: number, ry: number, rz: number, rim: (phi: number) => number, phi0: number, phi1: number, reach: number, drop: number, n: number): BufferGeometry {
+function brim(
+  c: Vector3,
+  rx: number,
+  ry: number,
+  rz: number,
+  rim: (phi: number) => number,
+  phi0: number,
+  phi1: number,
+  reach: number,
+  drop: number,
+  n: number,
+): BufferGeometry {
   const strip: Array<[Vector3, Vector3]> = [];
   for (let i = 0; i <= n; i++) {
     const phi = phi0 + ((phi1 - phi0) * i) / n;
@@ -424,7 +504,13 @@ function brim(c: Vector3, rx: number, ry: number, rz: number, rim: (phi: number)
     const out = new Vector3(Math.sin(phi), 0, Math.cos(phi));
     // Peaks are deepest at the front.
     const k = reach * (phi1 - phi0 < Math.PI * 1.9 ? 0.55 + 0.45 * Math.cos(phi) : 1);
-    strip.push([a, a.clone().addScaledVector(out, k).add(new Vector3(0, -drop, 0))]);
+    strip.push([
+      a,
+      a
+        .clone()
+        .addScaledVector(out, k)
+        .add(new Vector3(0, -drop, 0)),
+    ]);
   }
   return slab(strip, 0.0045, new Vector3(0, 1, 0));
 }
@@ -467,13 +553,30 @@ function helmetParts(detail: boolean): Headpiece[] {
   const yTop = EYE_Y - 0.022;
   const yMid = EYE_Y - 0.062;
   const yBot = EYE_Y - 0.098;
-  for (const [y, chin] of [[yTop, 0], [yMid, 0.004], [yBot, 0.012]] as const) parts.push({ geo: tube(arc(y, chin), 0.0032, 24, 5), region: R.grille });
+  for (const [y, chin] of [
+    [yTop, 0],
+    [yMid, 0.004],
+    [yBot, 0.012],
+  ] as const)
+    parts.push({ geo: tube(arc(y, chin), 0.0032, 24, 5), region: R.grille });
   for (const psi of [0, -32, 32].map((d) => d * DEG)) {
-    const at = (y: number, chin: number) => new Vector3(0.099 * Math.sin(psi), y - chin * Math.cos(psi), HEAD.c.z + 0.006 + 0.138 * Math.cos(psi));
+    const at = (y: number, chin: number) =>
+      new Vector3(0.099 * Math.sin(psi), y - chin * Math.cos(psi), HEAD.c.z + 0.006 + 0.138 * Math.cos(psi));
     parts.push({ geo: tube([at(yTop, 0), at(yMid, 0.004), at(yBot, 0.012)], 0.003, 6, 5), region: R.grille });
   }
   parts.push({
-    geo: tube([new Vector3(-0.09, 1.632, 0.004), new Vector3(-0.05, 1.59, 0.046), new Vector3(0, 1.578, 0.064), new Vector3(0.05, 1.59, 0.046), new Vector3(0.09, 1.632, 0.004)], 0.0045, 12, 4),
+    geo: tube(
+      [
+        new Vector3(-0.09, 1.632, 0.004),
+        new Vector3(-0.05, 1.59, 0.046),
+        new Vector3(0, 1.578, 0.064),
+        new Vector3(0.05, 1.59, 0.046),
+        new Vector3(0.09, 1.632, 0.004),
+      ],
+      0.0045,
+      12,
+      4,
+    ),
     region: R.strap,
   });
   return parts;
@@ -487,7 +590,8 @@ function capParts(detail: boolean): Headpiece[] {
     { geo: shell(c, rx, ry, rz, rim, detail ? 8 : 4, detail ? 22 : 10), region: R.cap },
     { geo: brim(c, rx, ry, rz, rim, -70 * DEG, 70 * DEG, 0.072, 0.018, detail ? 12 : 5), region: R.cap },
   ];
-  if (detail) parts.push({ geo: blob(new Vector3(c.x, c.y + ry + 0.002, c.z), 0.007, 0.004, 0.007, 6, 4), region: R.cap });
+  if (detail)
+    parts.push({ geo: blob(new Vector3(c.x, c.y + ry + 0.002, c.z), 0.007, 0.004, 0.007, 6, 4), region: R.cap });
   return parts;
 }
 
@@ -506,7 +610,17 @@ function patkaParts(detail: boolean): Headpiece[] {
   const c = HEAD.c.clone().add(new Vector3(0, 0.01, -0.004));
   return [
     { geo: shell(c, 0.088, 0.128, 0.108, rimOf(62, 86, 94), detail ? 8 : 4, detail ? 20 : 10), region: R.cap },
-    { geo: blob(new Vector3(0, HEAD.c.y + 0.108, HEAD.c.z + 0.025), 0.034, 0.03, 0.032, detail ? 10 : 6, detail ? 8 : 4), region: R.cap },
+    {
+      geo: blob(
+        new Vector3(0, HEAD.c.y + 0.108, HEAD.c.z + 0.025),
+        0.034,
+        0.03,
+        0.032,
+        detail ? 10 : 6,
+        detail ? 8 : 4,
+      ),
+      region: R.cap,
+    },
   ];
 }
 
@@ -523,13 +637,25 @@ function patkaParts(detail: boolean): Headpiece[] {
 export const GLOVE_GRIP = Object.freeze({
   centre: [-0.034, -0.078, 0.004] as const,
   axis: [0, -Math.sin(20 * (Math.PI / 180)), Math.cos(20 * (Math.PI / 180))] as const,
-  fingers: [[0.033, 0.0112], [0.011, 0.0114], [-0.011, 0.0108], [-0.032, 0.0098]] as ReadonlyArray<readonly [number, number]>,
+  fingers: [
+    [0.033, 0.0112],
+    [0.011, 0.0114],
+    [-0.011, 0.0108],
+    [-0.032, 0.0098],
+  ] as ReadonlyArray<readonly [number, number]>,
 });
 /** The handle radius the rolls close round (the bat's rubber grip, props.GRIP_R, plus a little leather). */
 const GRIP_R_GLOVE = 0.0186;
 
 /** One finger roll curled round the grip channel: from the knuckle (towards the back of the hand) over the far side. */
-function fingerRoll(centre: Vector3, axis: Vector3, side: 1 | -1, radius: number, tube: number, detail: boolean): BufferGeometry {
+function fingerRoll(
+  centre: Vector3,
+  axis: Vector3,
+  side: 1 | -1,
+  radius: number,
+  tube: number,
+  detail: boolean,
+): BufferGeometry {
   const e1 = new Vector3(side, 0, 0);
   const e2 = new Vector3(0, -1, 0).addScaledVector(axis, axis.y).normalize();
   const e3 = new Vector3().crossVectors(e1, e2);
@@ -539,7 +665,12 @@ function fingerRoll(centre: Vector3, axis: Vector3, side: 1 | -1, radius: number
 }
 
 /** A hand at the wrist (`side` +1 left, −1 right; palm towards the body, thumb forward, fingers down). */
-function handParts(wr: Vector3, side: 1 | -1, kind: 'bare' | 'batting' | 'keeper', detail: boolean): Array<{ geo: BufferGeometry; region: Region }> {
+function handParts(
+  wr: Vector3,
+  side: 1 | -1,
+  kind: 'bare' | 'batting' | 'keeper',
+  detail: boolean,
+): Array<{ geo: BufferGeometry; region: Region }> {
   const at = (x: number, y: number, z: number) => wr.clone().add(new Vector3(x * side, y, z));
   const out: Array<{ geo: BufferGeometry; region: Region }> = [];
   const rad = detail ? 8 : 5;
@@ -547,7 +678,9 @@ function handParts(wr: Vector3, side: 1 | -1, kind: 'bare' | 'batting' | 'keeper
     out.push({ geo: blob(at(0, -0.052, 0.006), 0.019, 0.05, 0.041, detail ? 10 : 6, detail ? 8 : 5), region: R.skin });
     if (detail) {
       const tips = [-0.13, -0.137, -0.133, -0.122];
-      [0.017, 0.006, -0.005, -0.016].forEach((z, i) => out.push({ geo: capsule(at(-0.004, -0.09, z), at(-0.012, tips[i], z + 0.01), 0.0082, 6), region: R.skin }));
+      [0.017, 0.006, -0.005, -0.016].forEach((z, i) =>
+        out.push({ geo: capsule(at(-0.004, -0.09, z), at(-0.012, tips[i], z + 0.01), 0.0082, 6), region: R.skin }),
+      );
       out.push({ geo: capsule(at(-0.006, -0.03, 0.03), at(-0.014, -0.075, 0.048), 0.0095, 6), region: R.skin });
     }
     return out;
@@ -559,15 +692,31 @@ function handParts(wr: Vector3, side: 1 | -1, kind: 'bare' | 'batting' | 'keeper
     const c = at(GLOVE_GRIP.centre[0], GLOVE_GRIP.centre[1], GLOVE_GRIP.centre[2]);
     const axis = new Vector3(0, GLOVE_GRIP.axis[1], GLOVE_GRIP.axis[2]);
     out.push({ geo: segment(at(0, 0.035, 0), at(0, -0.018, 0.004), 0.04, 0.041, rad + 4, 1), region: R.gloves });
-    out.push({ geo: blob(at(0.006, -0.056, 0.004), 0.022, 0.05, 0.043, detail ? 12 : 6, detail ? 8 : 5), region: R.gloves });
-    const rolls = detail ? GLOVE_GRIP.fingers : ([[0.017, 0.017], [-0.017, 0.016]] as const);
-    for (const [along, tube] of rolls) out.push({ geo: fingerRoll(c.clone().addScaledVector(axis, along), axis, side, GRIP_R_GLOVE + tube, tube, detail), region: R.gloves });
-    if (detail) out.push({ geo: capsule(at(-0.008, -0.03, 0.036), at(-0.06, -0.074, 0.03), 0.0125, 7), region: R.gloves });
+    out.push({
+      geo: blob(at(0.006, -0.056, 0.004), 0.022, 0.05, 0.043, detail ? 12 : 6, detail ? 8 : 5),
+      region: R.gloves,
+    });
+    const rolls = detail
+      ? GLOVE_GRIP.fingers
+      : ([
+          [0.017, 0.017],
+          [-0.017, 0.016],
+        ] as const);
+    for (const [along, tube] of rolls)
+      out.push({
+        geo: fingerRoll(c.clone().addScaledVector(axis, along), axis, side, GRIP_R_GLOVE + tube, tube, detail),
+        region: R.gloves,
+      });
+    if (detail)
+      out.push({ geo: capsule(at(-0.008, -0.03, 0.036), at(-0.06, -0.074, 0.03), 0.0125, 7), region: R.gloves });
     return out;
   }
   // Keeping gloves: a broad, padded mitt with a webbed thumb.
   out.push({ geo: segment(at(0, 0.04, 0), at(0, -0.02, 0.004), 0.046, 0.047, rad + 4, 1), region: R.keeperGloves });
-  out.push({ geo: blob(at(0, -0.08, 0.008), 0.034, 0.08, 0.06, detail ? 12 : 6, detail ? 8 : 5), region: R.keeperGloves });
+  out.push({
+    geo: blob(at(0, -0.08, 0.008), 0.034, 0.08, 0.06, detail ? 12 : 6, detail ? 8 : 5),
+    region: R.keeperGloves,
+  });
   if (detail) {
     out.push({ geo: blob(at(0.004, -0.15, 0.004), 0.03, 0.05, 0.057, 10, 7), region: R.keeperGloves });
     out.push({ geo: capsule(at(0, -0.04, 0.052), at(0.006, -0.1, 0.07), 0.016, 7), region: R.keeperGloves });
@@ -576,16 +725,33 @@ function handParts(wr: Vector3, side: 1 | -1, kind: 'bare' | 'batting' | 'keeper
 }
 
 /** A cricket shoe: rounded upper, a sole stepped up at the heel, spikes under the forefoot and heel. */
-function shoeParts(ankle: Vector3, detail: boolean): Array<{ geo: BufferGeometry; region: Region | ((p: Vector3) => Region) }> {
+function shoeParts(
+  ankle: Vector3,
+  detail: boolean,
+): Array<{ geo: BufferGeometry; region: Region | ((p: Vector3) => Region) }> {
   const out: Array<{ geo: BufferGeometry; region: Region | ((p: Vector3) => Region) }> = [];
   const top = ankle.y;
-  out.push({ geo: blob(new Vector3(ankle.x, top - 0.032, 0.055), 0.05, 0.04, 0.132, detail ? 12 : 6, detail ? 8 : 4), region: R.shoes });
-  out.push({ geo: blob(new Vector3(ankle.x, top - 0.012, -0.03), 0.046, 0.045, 0.05, detail ? 10 : 6, detail ? 6 : 4), region: R.shoes });
+  out.push({
+    geo: blob(new Vector3(ankle.x, top - 0.032, 0.055), 0.05, 0.04, 0.132, detail ? 12 : 6, detail ? 8 : 4),
+    region: R.shoes,
+  });
+  out.push({
+    geo: blob(new Vector3(ankle.x, top - 0.012, -0.03), 0.046, 0.045, 0.05, detail ? 10 : 6, detail ? 6 : 4),
+    region: R.shoes,
+  });
   const sole = new BoxGeometry(0.098, 0.016, 0.285, 1, 1, detail ? 4 : 1);
   sole.translate(ankle.x, top - 0.064, 0.052);
   out.push({ geo: sole, region: R.sole });
   if (detail) {
-    for (const [dx, dz] of [[-0.028, 0.14], [0.028, 0.14], [-0.03, 0.09], [0.03, 0.09], [0, 0.115], [-0.024, -0.05], [0.024, -0.05]]) {
+    for (const [dx, dz] of [
+      [-0.028, 0.14],
+      [0.028, 0.14],
+      [-0.03, 0.09],
+      [0.03, 0.09],
+      [0, 0.115],
+      [-0.024, -0.05],
+      [0.024, -0.05],
+    ]) {
       const spike = new CylinderGeometry(0.0015, 0.0042, 0.009, 5);
       spike.translate(ankle.x + dx, top - 0.077, dz);
       out.push({ geo: spike, region: R.spikes });
@@ -595,7 +761,12 @@ function shoeParts(ankle: Vector3, detail: boolean): Array<{ geo: BufferGeometry
 }
 
 /** Leg guards: vertical rolls round the front of the shin, a knee roll, thigh rolls (batting), side wings, straps. */
-function padParts(knee: Vector3, ankle: Vector3, keeper: boolean, detail: boolean): Array<{ geo: BufferGeometry; region: Region; thigh?: boolean }> {
+function padParts(
+  knee: Vector3,
+  ankle: Vector3,
+  keeper: boolean,
+  detail: boolean,
+): Array<{ geo: BufferGeometry; region: Region; thigh?: boolean }> {
   const out: Array<{ geo: BufferGeometry; region: Region; thigh?: boolean }> = [];
   if (!detail) {
     const pad = new BoxGeometry(0.15, keeper ? 0.4 : 0.5, 0.09, 1, 1, 1);
@@ -614,13 +785,25 @@ function padParts(knee: Vector3, ankle: Vector3, keeper: boolean, detail: boolea
     const az = Math.cos(a) * 0.068 + 0.01;
     out.push({ geo: capsule(new Vector3(ax, y0, az), new Vector3(ax, y1, az + 0.004), r, 8), region: R.pads });
   }
-  out.push({ geo: capsule(new Vector3(knee.x - 0.062, knee.y + 0.012, 0.062), new Vector3(knee.x + 0.062, knee.y + 0.012, 0.062), keeper ? 0.032 : 0.042, 10), region: R.pads });
+  out.push({
+    geo: capsule(
+      new Vector3(knee.x - 0.062, knee.y + 0.012, 0.062),
+      new Vector3(knee.x + 0.062, knee.y + 0.012, 0.062),
+      keeper ? 0.032 : 0.042,
+      10,
+    ),
+    region: R.pads,
+  });
   if (!keeper) {
     for (let k = 0; k < 4; k++) {
       const a = (-50 + (100 * k) / 3) * DEG;
       const ax = knee.x + Math.sin(a) * 0.078;
       const az = Math.cos(a) * 0.072 + 0.006;
-      out.push({ geo: capsule(new Vector3(ax, knee.y + 0.07, az), new Vector3(ax, knee.y + 0.2, az - 0.006), 0.017, 7), region: R.pads, thigh: true });
+      out.push({
+        geo: capsule(new Vector3(ax, knee.y + 0.07, az), new Vector3(ax, knee.y + 0.2, az - 0.006), 0.017, 7),
+        region: R.pads,
+        thigh: true,
+      });
     }
   }
   for (const s of [1, -1]) {
@@ -661,11 +844,21 @@ function bodyParts(lod: 0 | 1, gear: Gear): Part[] {
   const torso = new CapsuleGeometry(0.168, 0.29, detail ? 6 : 3, detail ? 22 : 10);
   torso.scale(1, 1, 0.72);
   torso.translate(0, (spine.y + chest.y) / 2 + 0.11, 0.0);
-  parts.push({ geo: torso, bone: 'chest', blend: { bone: 'spine', a: spine.clone(), b: chest.clone().add(new Vector3(0, 0.2, 0)), range: 0.55 }, region: shirtOrTrousers });
+  parts.push({
+    geo: torso,
+    bone: 'chest',
+    blend: { bone: 'spine', a: spine.clone(), b: chest.clone().add(new Vector3(0, 0.2, 0)), range: 0.55 },
+    region: shirtOrTrousers,
+  });
   const belly = new CapsuleGeometry(0.147, 0.08, detail ? 4 : 2, detail ? 20 : 10);
   belly.scale(1, 1, 0.78);
   belly.translate(0, spine.y + 0.04, 0.005);
-  parts.push({ geo: belly, bone: 'spine', blend: { bone: 'hips', a: hips.clone(), b: spine.clone().add(new Vector3(0, 0.12, 0)), range: 0.6 }, region: shirtOrTrousers });
+  parts.push({
+    geo: belly,
+    bone: 'spine',
+    blend: { bone: 'hips', a: hips.clone(), b: spine.clone().add(new Vector3(0, 0.12, 0)), range: 0.6 },
+    region: shirtOrTrousers,
+  });
   const pelvis = new CapsuleGeometry(0.136, 0.11, detail ? 4 : 2, detail ? 18 : 9);
   pelvis.rotateZ(Math.PI / 2);
   pelvis.scale(1, 1.05, 0.8);
@@ -678,24 +871,50 @@ function bodyParts(lod: 0 | 1, gear: Gear): Part[] {
       const a = (28 + (304 * i) / 14) * DEG;
       pts.push(new Vector3(Math.sin(a) * 0.071, neck.y + 0.012 - 0.008 * Math.cos(a), Math.cos(a) * 0.064 + 0.004));
     }
-    parts.push({ geo: tube(pts, 0.011, 20, 5), bone: 'chest', blend: { bone: 'neck', a: neck.clone(), b: neck.clone().add(new Vector3(0, 0.1, 0)), range: 0.4 }, region: R.collar });
+    parts.push({
+      geo: tube(pts, 0.011, 20, 5),
+      bone: 'chest',
+      blend: { bone: 'neck', a: neck.clone(), b: neck.clone().add(new Vector3(0, 0.1, 0)), range: 0.4 },
+      region: R.collar,
+    });
   }
 
   // Neck and head.
-  parts.push({ geo: segment(neck.clone().add(new Vector3(0, -0.04, 0)), head.clone().add(new Vector3(0, 0.03, 0)), 0.052, 0.047, rad, 1), bone: 'neck', blend: { bone: 'chest', a: neck.clone().add(new Vector3(0, -0.04, 0)), b: head.clone(), range: 0.45 }, region: R.skin });
+  parts.push({
+    geo: segment(
+      neck.clone().add(new Vector3(0, -0.04, 0)),
+      head.clone().add(new Vector3(0, 0.03, 0)),
+      0.052,
+      0.047,
+      rad,
+      1,
+    ),
+    bone: 'neck',
+    blend: { bone: 'chest', a: neck.clone().add(new Vector3(0, -0.04, 0)), b: head.clone(), range: 0.45 },
+    region: R.skin,
+  });
   parts.push({ geo: headGeometry(detail ? 22 : 9, detail ? 28 : 12), bone: 'head', region: R.skin });
   if (detail) {
     parts.push({ geo: noseGeometry(), bone: 'head', region: R.skin });
-    parts.push({ geo: earGeometry(1), bone: 'head', region: R.skin }, { geo: earGeometry(-1), bone: 'head', region: R.skin });
+    parts.push(
+      { geo: earGeometry(1), bone: 'head', region: R.skin },
+      { geo: earGeometry(-1), bone: 'head', region: R.skin },
+    );
   }
   // Hair: every style for players whose hair shows (bowlers, fielders without a cap, umpires under the hat brim);
   // a close crop under the batter's helmet.
   const styles = gear === 'batter' ? (['crop'] as const) : HAIR_STYLES;
   styles.forEach((style) => {
     if (style === 'shaved') return;
-    parts.push({ geo: hairShell(style, detail ? 15 : 6, detail ? 22 : 8), bone: 'head', region: R.hair, variant: V_HAIR + HAIR_STYLES.indexOf(style) });
+    parts.push({
+      geo: hairShell(style, detail ? 15 : 6, detail ? 22 : 8),
+      bone: 'head',
+      region: R.hair,
+      variant: V_HAIR + HAIR_STYLES.indexOf(style),
+    });
   });
-  if (gear !== 'batter') parts.push({ geo: beardShell(detail ? 13 : 5, detail ? 20 : 8), bone: 'head', region: R.hair, variant: V_BEARD });
+  if (gear !== 'batter')
+    parts.push({ geo: beardShell(detail ? 13 : 5, detail ? 20 : 8), bone: 'head', region: R.hair, variant: V_BEARD });
 
   // Arms: sleeves (long for the umpire), skin or gloves below.
   const longSleeves = gear === 'umpire';
@@ -704,13 +923,40 @@ function bodyParts(lod: 0 | 1, gear: Gear): Part[] {
     const sh = W(`upperArm${side}`);
     const el = W(`forearm${side}`);
     const wr = W(`hand${side}`);
-    parts.push({ geo: blob(sh.clone().add(new Vector3(0, -0.01, 0)), 0.078, 0.074, 0.07, sph[0], sph[1]), bone: `upperArm${side}`, region: R.shirt });
+    parts.push({
+      geo: blob(sh.clone().add(new Vector3(0, -0.01, 0)), 0.078, 0.074, 0.07, sph[0], sph[1]),
+      bone: `upperArm${side}`,
+      region: R.shirt,
+    });
     const sleeveEnd = sh.y - 0.15;
-    parts.push({ geo: segment(sh, el, 0.063, 0.05, rad, rings), bone: `upperArm${side}`, blendEnd: { bone: `forearm${side}`, range: 0.22 }, region: (p) => (longSleeves || p.y > sleeveEnd ? R.shirt : R.skin) });
-    if (detail && !longSleeves) parts.push({ geo: segment(new Vector3(sh.x, sleeveEnd + 0.012, sh.z), new Vector3(sh.x, sleeveEnd - 0.004, sh.z), 0.0565, 0.0545, rad, 1), bone: `upperArm${side}`, region: R.collar });
-    parts.push({ geo: segment(el, wr, 0.049, 0.038, rad, rings), bone: `forearm${side}`, blend: { bone: `upperArm${side}`, a: el.clone(), b: wr.clone(), range: 0.22 }, region: longSleeves ? R.shirt : R.skin });
+    parts.push({
+      geo: segment(sh, el, 0.063, 0.05, rad, rings),
+      bone: `upperArm${side}`,
+      blendEnd: { bone: `forearm${side}`, range: 0.22 },
+      region: (p) => (longSleeves || p.y > sleeveEnd ? R.shirt : R.skin),
+    });
+    if (detail && !longSleeves)
+      parts.push({
+        geo: segment(
+          new Vector3(sh.x, sleeveEnd + 0.012, sh.z),
+          new Vector3(sh.x, sleeveEnd - 0.004, sh.z),
+          0.0565,
+          0.0545,
+          rad,
+          1,
+        ),
+        bone: `upperArm${side}`,
+        region: R.collar,
+      });
+    parts.push({
+      geo: segment(el, wr, 0.049, 0.038, rad, rings),
+      bone: `forearm${side}`,
+      blend: { bone: `upperArm${side}`, a: el.clone(), b: wr.clone(), range: 0.22 },
+      region: longSleeves ? R.shirt : R.skin,
+    });
     const kind = gear === 'batter' ? 'batting' : gear === 'keeper' ? 'keeper' : 'bare';
-    for (const h of handParts(wr, s as 1 | -1, kind, detail)) parts.push({ geo: h.geo, bone: `hand${side}`, region: h.region });
+    for (const h of handParts(wr, s as 1 | -1, kind, detail))
+      parts.push({ geo: h.geo, bone: `hand${side}`, region: h.region });
   }
 
   // Legs, shoes and (batter, keeper) pads.
@@ -718,18 +964,44 @@ function bodyParts(lod: 0 | 1, gear: Gear): Part[] {
     const hip = W(`thigh${side}`);
     const knee = W(`shin${side}`);
     const ankle = W(`foot${side}`);
-    parts.push({ geo: segment(hip.clone().add(new Vector3(0, 0.04, 0)), knee, 0.098, 0.068, rad, rings), bone: `thigh${side}`, blend: { bone: 'hips', a: hip.clone().add(new Vector3(0, 0.04, 0)), b: knee.clone(), range: 0.22 }, blendEnd: { bone: `shin${side}`, range: 0.2 }, region: R.trousers });
-    parts.push({ geo: segment(knee, ankle.clone().add(new Vector3(0, 0.02, 0)), 0.066, 0.046, rad, rings), bone: `shin${side}`, blend: { bone: `thigh${side}`, a: knee.clone(), b: ankle.clone(), range: 0.18 }, region: R.trousers });
+    parts.push({
+      geo: segment(hip.clone().add(new Vector3(0, 0.04, 0)), knee, 0.098, 0.068, rad, rings),
+      bone: `thigh${side}`,
+      blend: { bone: 'hips', a: hip.clone().add(new Vector3(0, 0.04, 0)), b: knee.clone(), range: 0.22 },
+      blendEnd: { bone: `shin${side}`, range: 0.2 },
+      region: R.trousers,
+    });
+    parts.push({
+      geo: segment(knee, ankle.clone().add(new Vector3(0, 0.02, 0)), 0.066, 0.046, rad, rings),
+      bone: `shin${side}`,
+      blend: { bone: `thigh${side}`, a: knee.clone(), b: ankle.clone(), range: 0.18 },
+      region: R.trousers,
+    });
     for (const p of shoeParts(ankle, detail)) parts.push({ geo: p.geo, bone: `foot${side}`, region: p.region });
     if (gear === 'batter' || gear === 'keeper') {
       for (const p of padParts(knee, ankle, gear === 'keeper', detail)) {
-        parts.push(p.thigh ? { geo: p.geo, bone: `thigh${side}`, region: p.region } : { geo: p.geo, bone: `shin${side}`, blend: { bone: `thigh${side}`, a: knee.clone().add(new Vector3(0, 0.08, 0)), b: ankle.clone(), range: 0.12 }, region: p.region });
+        parts.push(
+          p.thigh
+            ? { geo: p.geo, bone: `thigh${side}`, region: p.region }
+            : {
+                geo: p.geo,
+                bone: `shin${side}`,
+                blend: {
+                  bone: `thigh${side}`,
+                  a: knee.clone().add(new Vector3(0, 0.08, 0)),
+                  b: ankle.clone(),
+                  range: 0.12,
+                },
+                region: p.region,
+              },
+        );
       }
     }
   }
 
   // Headgear variants.
-  const head2 = (pieces: Headpiece[], option: number) => pieces.forEach((h) => parts.push({ geo: h.geo, bone: 'head', region: h.region, variant: V_HEAD + option }));
+  const head2 = (pieces: Headpiece[], option: number) =>
+    pieces.forEach((h) => parts.push({ geo: h.geo, bone: 'head', region: h.region, variant: V_HEAD + option }));
   if (gear === 'batter') head2(helmetParts(detail), 0);
   else if (gear === 'keeper') {
     head2(helmetParts(detail), 0);
@@ -1052,12 +1324,21 @@ function patchPlayer(material: MeshStandardMaterial, uniforms: PlayerUniforms) {
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms, { uFill: PLAYER_FILL });
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', `#include <common>\nattribute float region;\nattribute vec3 bindPos;\nvarying float vRegion;\nvarying vec3 vBind;\n${PLAYER_VERTEX}`)
-      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvRegion = region;\nvBind = bindPos;\n${PLAYER_VARIANTS}`);
+      .replace(
+        '#include <common>',
+        `#include <common>\nattribute float region;\nattribute vec3 bindPos;\nvarying float vRegion;\nvarying vec3 vBind;\n${PLAYER_VERTEX}`,
+      )
+      .replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>\nvRegion = region;\nvBind = bindPos;\n${PLAYER_VARIANTS}`,
+      );
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>\n${PLAYER_FRAGMENT_COMMON}`)
       // A touch of contact shadow at the feet grounds the player (bind-pose height, so it moves with the legs).
-      .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb = regionColor(vRegion, vBind) * mix(0.74, 1.0, smoothstep(0.0, 0.3, vBind.y));')
+      .replace(
+        '#include <color_fragment>',
+        '#include <color_fragment>\ndiffuseColor.rgb = regionColor(vRegion, vBind) * mix(0.74, 1.0, smoothstep(0.0, 0.3, vBind.y));',
+      )
       .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = vcRough;')
       .replace('#include <metalnessmap_fragment>', 'float metalnessFactor = vcMetal;')
       // Skin: soft wrap lighting (light reaches round the form, warmer where it wraps).
@@ -1168,7 +1449,13 @@ export function createRig(gear: Gear, lodDistance: number): PlayerRig {
     boneMap[def.name] = b;
   }
   const { material, uniforms } = createPlayerMaterial();
-  const ghostMaterial = new MeshStandardMaterial({ roughness: 0.7, metalness: 0, transparent: true, depthWrite: false, opacity: 0.4 });
+  const ghostMaterial = new MeshStandardMaterial({
+    roughness: 0.7,
+    metalness: 0,
+    transparent: true,
+    depthWrite: false,
+    opacity: 0.4,
+  });
   patchPlayer(ghostMaterial, uniforms);
   const depth = playerDepthMaterial(uniforms);
   const root = new Group();
@@ -1196,8 +1483,31 @@ export function createRig(gear: Gear, lodDistance: number): PlayerRig {
   twin.frustumCulled = false;
   twin.name = 'ghost-warmup';
   root.add(twin);
-  const headgear: Headgear = gear === 'batter' || gear === 'keeper' ? (gear === 'keeper' ? 'cap' : 'helmet') : gear === 'umpire' ? 'sunhat' : gear === 'bowler' ? 'none' : 'cap';
-  const rig: PlayerRig = { root, lod, bones, boneMap, skeleton, meshes, uniforms, material, ghostMaterial, gear, lookKey: '', scale: 1, headgear };
+  const headgear: Headgear =
+    gear === 'batter' || gear === 'keeper'
+      ? gear === 'keeper'
+        ? 'cap'
+        : 'helmet'
+      : gear === 'umpire'
+        ? 'sunhat'
+        : gear === 'bowler'
+          ? 'none'
+          : 'cap';
+  const rig: PlayerRig = {
+    root,
+    lod,
+    bones,
+    boneMap,
+    skeleton,
+    meshes,
+    uniforms,
+    material,
+    ghostMaterial,
+    gear,
+    lookKey: '',
+    scale: 1,
+    headgear,
+  };
   setRigHeadgear(rig, headgear);
   return rig;
 }
@@ -1241,7 +1551,19 @@ export function dressRig(rig: PlayerRig, look: Look, kit: KitSpec) {
   }
   u.uHelmet.value.set(kit.primary).multiplyScalar(0.35).offsetHSL(0, -0.1, 0.02);
   // Fielders: a cap, a sun hat, bareheaded or a patka, from the look (keepers and batters are set by the stage).
-  if (look.gear === 'fielder') setRigHeadgear(rig, tr.headwear === 'patka' ? 'patka' : tr.headwear === 'cap' ? 'cap' : tr.headwear === 'band' ? 'sunhat' : (h >>> 4) % 3 === 0 ? 'none' : 'cap');
+  if (look.gear === 'fielder')
+    setRigHeadgear(
+      rig,
+      tr.headwear === 'patka'
+        ? 'patka'
+        : tr.headwear === 'cap'
+          ? 'cap'
+          : tr.headwear === 'band'
+            ? 'sunhat'
+            : (h >>> 4) % 3 === 0
+              ? 'none'
+              : 'cap',
+    );
   rig.scale = look.scale ?? tr.height;
   rig.root.scale.setScalar(rig.scale);
 }
@@ -1281,7 +1603,20 @@ export function setRigExpression(rig: PlayerRig, expression: Expression, weight 
  * back to the periodic blink and a centred iris, which is what every rig that is not directed always draws. Cheap: four
  * uniform writes for a directed rig, one comparison for the rest.
  */
-export function setRigFace(rig: PlayerRig, face: { valid: boolean; lidL: number; lidR: number; gx: number; gy: number; ex?: number; ey?: number; ez?: number; ew?: number } | null) {
+export function setRigFace(
+  rig: PlayerRig,
+  face: {
+    valid: boolean;
+    lidL: number;
+    lidR: number;
+    gx: number;
+    gy: number;
+    ex?: number;
+    ey?: number;
+    ez?: number;
+    ew?: number;
+  } | null,
+) {
   const u = rig.uniforms;
   if (!face || !face.valid) {
     if (u.uLidL.value >= 0) {
@@ -1349,7 +1684,18 @@ export const HEAD_LIMIT = { speed: 600, accel: 5000, brake: 6000, memoryMs: 50 }
  */
 function limitHead(rig: PlayerRig, t: number, brake: boolean): boolean {
   let mem = HEAD_MEMORY.get(rig);
-  if (!mem) HEAD_MEMORY.set(rig, (mem = { t: Number.NaN, q: new Float64Array(8), s: new Float64Array(2), pt: Number.NaN, pq: new Float64Array(8), ps: new Float64Array(2) }));
+  if (!mem)
+    HEAD_MEMORY.set(
+      rig,
+      (mem = {
+        t: Number.NaN,
+        q: new Float64Array(8),
+        s: new Float64Array(2),
+        pt: Number.NaN,
+        pq: new Float64Array(8),
+        ps: new Float64Array(2),
+      }),
+    );
   // The same frame posed again (a second pass of one frame: a camera that reads the posed bones and draws, a probe, a seek to the
   // frame just shown) starts from where the frame began, as the first pass did. Otherwise its dt is 0, it is not continued and nothing
   // is held: the second pass would draw the head the first pass had held back, at any speed (the 106 degrees a frame of the reel's
@@ -1382,20 +1728,29 @@ function limitHead(rig: PlayerRig, t: number, brake: boolean): boolean {
       if (ang > step && ang > 1e-9) {
         // slerp from the last rotation towards the new one by step / ang
         const k = step / ang;
-        const sign = mem.q[o] * bone.x + mem.q[o + 1] * bone.y + mem.q[o + 2] * bone.z + mem.q[o + 3] * bone.w < 0 ? -1 : 1;
-        const nx = sign * bone.x, ny = sign * bone.y, nz = sign * bone.z, nw = sign * bone.w;
+        const sign =
+          mem.q[o] * bone.x + mem.q[o + 1] * bone.y + mem.q[o + 2] * bone.z + mem.q[o + 3] * bone.w < 0 ? -1 : 1;
+        const nx = sign * bone.x,
+          ny = sign * bone.y,
+          nz = sign * bone.z,
+          nw = sign * bone.w;
         const dot = Math.min(1, mem.q[o] * nx + mem.q[o + 1] * ny + mem.q[o + 2] * nz + mem.q[o + 3] * nw);
         const th = Math.acos(dot);
         const sn = Math.sin(th) || 1;
         const a = Math.sin((1 - k) * th) / sn;
         const c = Math.sin(k * th) / sn;
-        bone.set(a * mem.q[o] + c * nx, a * mem.q[o + 1] + c * ny, a * mem.q[o + 2] + c * nz, a * mem.q[o + 3] + c * nw).normalize();
+        bone
+          .set(a * mem.q[o] + c * nx, a * mem.q[o + 1] + c * ny, a * mem.q[o + 2] + c * nz, a * mem.q[o + 3] + c * nw)
+          .normalize();
         ang = step;
         held = true;
       }
     }
     mem.s[b] = continued ? (ang * 1000) / dt : 0;
-    mem.q[o] = bone.x; mem.q[o + 1] = bone.y; mem.q[o + 2] = bone.z; mem.q[o + 3] = bone.w;
+    mem.q[o] = bone.x;
+    mem.q[o + 1] = bone.y;
+    mem.q[o + 2] = bone.z;
+    mem.q[o + 3] = bone.w;
   }
   mem.t = t;
   return held;
@@ -1463,7 +1818,8 @@ const ARM_MEMORY = new WeakMap<PlayerRig, ArmMemory>();
 /** Holds the finished arm bones to `ARM_LIMIT.speed` from the frame before. Returns whether a bone was held back. */
 export function limitArms(rig: PlayerRig, t: number): boolean {
   let mem = ARM_MEMORY.get(rig);
-  if (!mem) ARM_MEMORY.set(rig, (mem = { t: Number.NaN, q: new Float64Array(24), pt: Number.NaN, pq: new Float64Array(24) }));
+  if (!mem)
+    ARM_MEMORY.set(rig, (mem = { t: Number.NaN, q: new Float64Array(24), pt: Number.NaN, pq: new Float64Array(24) }));
   if (Math.abs(t - mem.t) < 0.5 && !Number.isNaN(mem.pt)) {
     mem.t = mem.pt;
     mem.q.set(mem.pq);
@@ -1484,16 +1840,24 @@ export function limitArms(rig: PlayerRig, t: number): boolean {
       if (ang > step && ang > 1e-9) {
         const k = step / ang;
         const sign = dot < 0 ? -1 : 1;
-        const nx = sign * bone.x, ny = sign * bone.y, nz = sign * bone.z, nw = sign * bone.w;
+        const nx = sign * bone.x,
+          ny = sign * bone.y,
+          nz = sign * bone.z,
+          nw = sign * bone.w;
         const th = Math.acos(Math.min(1, mem.q[o] * nx + mem.q[o + 1] * ny + mem.q[o + 2] * nz + mem.q[o + 3] * nw));
         const sn = Math.sin(th) || 1;
         const a = Math.sin((1 - k) * th) / sn;
         const c = Math.sin(k * th) / sn;
-        bone.set(a * mem.q[o] + c * nx, a * mem.q[o + 1] + c * ny, a * mem.q[o + 2] + c * nz, a * mem.q[o + 3] + c * nw).normalize();
+        bone
+          .set(a * mem.q[o] + c * nx, a * mem.q[o + 1] + c * ny, a * mem.q[o + 2] + c * nz, a * mem.q[o + 3] + c * nw)
+          .normalize();
         held = true;
       }
     }
-    mem.q[o] = bone.x; mem.q[o + 1] = bone.y; mem.q[o + 2] = bone.z; mem.q[o + 3] = bone.w;
+    mem.q[o] = bone.x;
+    mem.q[o + 1] = bone.y;
+    mem.q[o + 2] = bone.z;
+    mem.q[o + 3] = bone.w;
   }
   mem.t = t;
   if (held) {
@@ -1526,7 +1890,11 @@ export function setRigShadowPolicy(rig: PlayerRig, shadows: boolean) {
 export function setRigGhost(rig: PlayerRig, ghost: { color: string; opacity: number } | null) {
   const u = rig.uniforms;
   if (ghost) {
-    if (!ghostShadowState.has(rig)) ghostShadowState.set(rig, rig.meshes.map((mesh) => mesh.castShadow));
+    if (!ghostShadowState.has(rig))
+      ghostShadowState.set(
+        rig,
+        rig.meshes.map((mesh) => mesh.castShadow),
+      );
     u.uGhost.value.set(ghost.color);
     u.uGhostAmt.value = 0.35;
     rig.ghostMaterial.opacity = Math.min(1, Math.max(0.05, ghost.opacity));
@@ -1660,7 +2028,8 @@ function easeTopHand(rig: PlayerRig, stamp: number | undefined, target: number):
   if (mem) {
     const dt = stamp - mem.stamp;
     if (dt === 0) w = mem.weight;
-    else if (dt > 0 && dt <= ELBOW_MEMORY_MS) w = Math.max(mem.weight - dt / TOP_HAND_LET_GO_MS, Math.min(mem.weight + dt / TOP_HAND_TAKE_MS, target));
+    else if (dt > 0 && dt <= ELBOW_MEMORY_MS)
+      w = Math.max(mem.weight - dt / TOP_HAND_LET_GO_MS, Math.min(mem.weight + dt / TOP_HAND_TAKE_MS, target));
   }
   TOP_HAND_MEMORY.set(rig, { stamp, weight: w });
   return w;
@@ -1686,7 +2055,12 @@ const LEAN_MAX_DEG_PER_S = 360;
  * speed, up to a few centimetres for a few frames.
  */
 function easeLean(rig: PlayerRig, stamp: number | undefined, base: { chest: Quaternion; spine: Quaternion }): boolean {
-  const now: LeanMemory = { stamp: stamp ?? NaN, chest: base.chest.clone().invert().multiply(rig.boneMap.chest.quaternion), spine: base.spine.clone().invert().multiply(rig.boneMap.spine.quaternion), before: null };
+  const now: LeanMemory = {
+    stamp: stamp ?? NaN,
+    chest: base.chest.clone().invert().multiply(rig.boneMap.chest.quaternion),
+    spine: base.spine.clone().invert().multiply(rig.boneMap.spine.quaternion),
+    before: null,
+  };
   let prev = LEAN_MEMORY.get(rig) ?? null;
   // The same frame posed again (a camera that reads the posed bones and draws, a seek to the frame just shown): its first pass
   // is what the frame before it was held to, so it starts from where the frame began and draws what the first pass drew.
@@ -1765,7 +2139,14 @@ interface ArmGeometry {
   beyond: number;
 }
 
-function armGeometry(rig: PlayerRig, side: 'L' | 'R', target: Vector3, pole: Vector3, handRot: Quaternion | null, memory: ElbowMemory | null): ArmGeometry {
+function armGeometry(
+  rig: PlayerRig,
+  side: 'L' | 'R',
+  target: Vector3,
+  pole: Vector3,
+  handRot: Quaternion | null,
+  memory: ElbowMemory | null,
+): ArmGeometry {
   const upper = rig.boneMap[`upperArm${side}`];
   const fore = rig.boneMap[`forearm${side}`];
   const hand = rig.boneMap[`hand${side}`];
@@ -1835,7 +2216,18 @@ function armGeometry(rig: PlayerRig, side: 'L' | 'R', target: Vector3, pole: Vec
       ref -= Math.max(-home, Math.min(home, ref));
     }
   }
-  return { upper, fore, hand, th, handWorld, localFor, tw, swingOf, ref, beyond: Math.abs(reachLength - Math.sqrt(Math.max(0, a * a + b * b + 2 * a * b * Math.cos(th)))) };
+  return {
+    upper,
+    fore,
+    hand,
+    th,
+    handWorld,
+    localFor,
+    tw,
+    swingOf,
+    ref,
+    beyond: Math.abs(reachLength - Math.sqrt(Math.max(0, a * a + b * b + 2 * a * b * Math.cos(th)))),
+  };
 }
 
 /**
@@ -1847,10 +2239,28 @@ function armGeometry(rig: PlayerRig, side: 'L' | 'R', target: Vector3, pole: Vec
  * upper arm's twist allows. With the arm's `memory` the plane starts from where the elbow was (ElbowMemory, round 8).
  * `forcePhi` (round 9) puts the plane at that turn (from the pole's) without any search: seekClearance has weighed the turns.
  */
-export function reachIK(rig: PlayerRig, side: 'L' | 'R', target: Vector3, pole: Vector3, handRot: Quaternion | null = null, memory: ElbowMemory | null = null, wristLimit = true, forcePhi?: number) {
-  const { upper, fore, hand, th, handWorld, localFor, tw, swingOf, ref } = armGeometry(rig, side, target, pole, handRot, memory);
+export function reachIK(
+  rig: PlayerRig,
+  side: 'L' | 'R',
+  target: Vector3,
+  pole: Vector3,
+  handRot: Quaternion | null = null,
+  memory: ElbowMemory | null = null,
+  wristLimit = true,
+  forcePhi?: number,
+) {
+  const { upper, fore, hand, th, handWorld, localFor, tw, swingOf, ref } = armGeometry(
+    rig,
+    side,
+    target,
+    pole,
+    handRot,
+    memory,
+  );
   // How far a plane turn is outside the two ranges (deg; 0 inside both), the upper arm's twist first.
-  const over = (phi: number) => 10 * Math.max(0, tw(localFor(phi)) - UPPER_ARM_TWIST_MAX_DEG) + (wristLimit ? Math.max(0, swingOf(phi) - WRIST_SWING_MAX_DEG) : 0);
+  const over = (phi: number) =>
+    10 * Math.max(0, tw(localFor(phi)) - UPPER_ARM_TWIST_MAX_DEG) +
+    (wristLimit ? Math.max(0, swingOf(phi) - WRIST_SWING_MAX_DEG) : 0);
   let phi = forcePhi ?? ref;
   if (forcePhi === undefined && over(ref) > 0) {
     // The smaller turn of the plane from there, either way, that brings both within range (5° steps, then refined between
@@ -1896,7 +2306,9 @@ export const BALL_IN_HAND: readonly [number, number, number] = [0, -0.085, 0.03]
 
 /** The held ball's centre in a rig's hand (world): the hand joint plus BALL_IN_HAND in the hand's frame. */
 export function ballInHand(rig: PlayerRig, side: 'L' | 'R', out = new Vector3()): Vector3 {
-  return out.set(BALL_IN_HAND[0], BALL_IN_HAND[1], BALL_IN_HAND[2]).applyMatrix4(rig.boneMap[side === 'L' ? 'handL' : 'handR'].matrixWorld);
+  return out
+    .set(BALL_IN_HAND[0], BALL_IN_HAND[1], BALL_IN_HAND[2])
+    .applyMatrix4(rig.boneMap[side === 'L' ? 'handL' : 'handR'].matrixWorld);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1932,7 +2344,9 @@ function gripRotation(side: 'L' | 'R', dir: Vector3, back: Vector3, out = new Qu
 export function gripPoint(rig: PlayerRig, side: 'L' | 'R', out = new Vector3()): Vector3 {
   const hand = rig.boneMap[`hand${side}`];
   hand.updateWorldMatrix(true, false);
-  return out.set(GLOVE_GRIP.centre[0] * (side === 'L' ? 1 : -1), GLOVE_GRIP.centre[1], GLOVE_GRIP.centre[2]).applyMatrix4(hand.matrixWorld);
+  return out
+    .set(GLOVE_GRIP.centre[0] * (side === 'L' ? 1 : -1), GLOVE_GRIP.centre[1], GLOVE_GRIP.centre[2])
+    .applyMatrix4(hand.matrixWorld);
 }
 
 /** Turns a bone (world-space rotation `q` applied on top of its current world rotation). */
@@ -1968,7 +2382,9 @@ interface HandGrip {
 function handGrip(rig: PlayerRig, side: 'L' | 'R', at: Vector3, dir: Vector3, back: Vector3): HandGrip {
   const rot = gripRotation(side, dir, back);
   const s = rig.scale;
-  const centre = new Vector3(GLOVE_GRIP.centre[0] * (side === 'L' ? 1 : -1), GLOVE_GRIP.centre[1], GLOVE_GRIP.centre[2]).multiplyScalar(s).applyQuaternion(rot);
+  const centre = new Vector3(GLOVE_GRIP.centre[0] * (side === 'L' ? 1 : -1), GLOVE_GRIP.centre[1], GLOVE_GRIP.centre[2])
+    .multiplyScalar(s)
+    .applyQuaternion(rot);
   const wrist = at.clone().sub(centre);
   // The forearm continues the back of the hand: the elbow is bent towards where the forearm would lie.
   const pole = wrist.clone().addScaledVector(new Vector3(0, 1, 0).applyQuaternion(rot), 0.3 * s);
@@ -2064,7 +2480,8 @@ function armClearance(rig: PlayerRig, g: HandGrip): number {
   const t = Math.abs((2 * Math.atan2(q.y, q.w) * 180) / Math.PI + 360) % 360;
   const twist = t > 180 ? 360 - t : t;
   const fy = new Vector3(0, 1, 0).transformDirection(rig.boneMap[`forearm${g.side}`].matrixWorld);
-  const swing = (Math.acos(Math.max(-1, Math.min(1, fy.dot(new Vector3(0, 1, 0).applyQuaternion(g.rot))))) * 180) / Math.PI;
+  const swing =
+    (Math.acos(Math.max(-1, Math.min(1, fy.dot(new Vector3(0, 1, 0).applyQuaternion(g.rot))))) * 180) / Math.PI;
   return Math.min(UPPER_ARM_TWIST_MAX_DEG - twist, WRIST_SWING_MAX_DEG - swing);
 }
 
@@ -2084,7 +2501,8 @@ function seekClearance(rig: PlayerRig, g: HandGrip, ortho: Vector3, mem: ElbowMe
         const sw = arm.swingOf(phi);
         const clear = Math.min(UPPER_ARM_TWIST_MAX_DEG - tw, WRIST_SWING_MAX_DEG - sw);
         const law = 10 * Math.max(0, tw - UPPER_ARM_TWIST_LAW_DEG) + Math.max(0, sw - WRIST_SWING_LAW_DEG);
-        const move = Math.abs(offDeg) + (Math.abs(Math.atan2(Math.sin(phi - arm.ref), Math.cos(phi - arm.ref))) * 180) / Math.PI;
+        const move =
+          Math.abs(offDeg) + (Math.abs(Math.atan2(Math.sin(phi - arm.ref), Math.cos(phi - arm.ref))) * 180) / Math.PI;
         return { s: Math.min(CLEAR_AIM_DEG, clear) - CLEAR_MOVE_COST * move - 1000 * law - 1000 * arm.beyond, law };
       };
       let lo = { s: -Infinity, phi: arm.ref, law: Infinity };
@@ -2145,7 +2563,10 @@ function seekClearance(rig: PlayerRig, g: HandGrip, ortho: Vector3, mem: ElbowMe
   // Still outside §9 (the 7.5° grid missed a thin window): look closer round the best roll found.
   if (pick.law > 0) {
     const at = ((pick.beta - rollNow) * 180) / Math.PI;
-    const fine = search([-12, -9, -6, -4, -2, -1, 1, 2, 4, 6, 9, 12].map((d) => at + d), 45);
+    const fine = search(
+      [-12, -9, -6, -4, -2, -1, 1, 2, 4, 6, 9, 12].map((d) => at + d),
+      45,
+    );
     if (fine.law < pick.law || (fine.law === pick.law && fine.score > pick.score)) pick = fine;
   }
   reachIK(rig, pick.grip.side, pick.grip.wrist, pick.grip.pole, pick.grip.rot, mem, false, pick.phi);
@@ -2191,7 +2612,8 @@ const SHOULDER_REACH_M = 0.04;
 function solveGrips(rig: PlayerRig, grips: HandGrip[], stamp: number | undefined) {
   const mem = nextElbowFrame(rig, stamp);
   // The shoulders at rest (a reach of the last frame never carries over).
-  for (const side of ['L', 'R'] as const) rig.boneMap[`upperArm${side}`].position.fromArray(SKELETON[BONE_INDEX[`upperArm${side}`]].offset as number[]);
+  for (const side of ['L', 'R'] as const)
+    rig.boneMap[`upperArm${side}`].position.fromArray(SKELETON[BONE_INDEX[`upperArm${side}`]].offset as number[]);
   rig.root.updateMatrixWorld(true);
   const ortho = grips.map((g) => g.back.clone());
   for (const g of grips) reachIK(rig, g.side, g.wrist, g.pole, g.rot, mem[g.side], false);
@@ -2201,7 +2623,10 @@ function solveGrips(rig: PlayerRig, grips: HandGrip[], stamp: number | undefined
     grips[i] = relaxGrip(rig, orth, m);
     // The glove's roll drifts (relaxGrip), but where the forearm has just turned fast round the handle (the swing's first move) the
     // arm is at full stretch and a glove that has not yet turned puts the wrist out of reach: it turns as far as that takes.
-    const turned = m.wantPrev !== null && m.wantNow !== null && Math.abs(Math.atan2(Math.sin(m.wantNow - m.wantPrev), Math.cos(m.wantNow - m.wantPrev))) > ROLL_FOLLOW_DEG * DEG;
+    const turned =
+      m.wantPrev !== null &&
+      m.wantNow !== null &&
+      Math.abs(Math.atan2(Math.sin(m.wantNow - m.wantPrev), Math.cos(m.wantNow - m.wantPrev))) > ROLL_FOLLOW_DEG * DEG;
     if (m.rollPrev !== null && turned) grips[i] = reachableRoll(rig, orth, grips[i], m);
     reachIK(rig, grips[i].side, grips[i].wrist, grips[i].pole, grips[i].rot, m, false);
   }
@@ -2222,8 +2647,14 @@ function solveGrips(rig: PlayerRig, grips: HandGrip[], stamp: number | undefined
     if (worst < 0.002) break;
     const name = k % 2 === 0 ? 'chest' : 'spine';
     const pivot = boneWorld(rig, name, new Vector3());
-    const a = now.multiplyScalar(1 / grips.length).sub(pivot).normalize();
-    const b = want.multiplyScalar(1 / grips.length).sub(pivot).normalize();
+    const a = now
+      .multiplyScalar(1 / grips.length)
+      .sub(pivot)
+      .normalize();
+    const b = want
+      .multiplyScalar(1 / grips.length)
+      .sub(pivot)
+      .normalize();
     const q = new Quaternion().setFromUnitVectors(a, b);
     const ang = 2 * Math.acos(Math.min(1, Math.abs(q.w)));
     const cap = Math.min(REACH_LEAN_MAX_DEG * DEG - used[name], (REACH_LEAN_MAX_DEG / 2) * DEG);
@@ -2234,7 +2665,8 @@ function solveGrips(rig: PlayerRig, grips: HandGrip[], stamp: number | undefined
     for (const g of grips) reachIK(rig, g.side, g.wrist, g.pole, g.rot, mem[g.side], false);
   }
   // The lean comes and goes no faster than the trunk's §9 speed (the bat's first move asked 15° of the chest in one frame).
-  if (easeLean(rig, stamp, leanBase)) for (const g of grips) reachIK(rig, g.side, g.wrist, g.pole, g.rot, mem[g.side], false);
+  if (easeLean(rig, stamp, leanBase))
+    for (const g of grips) reachIK(rig, g.side, g.wrist, g.pole, g.rot, mem[g.side], false);
   // Still short (the trunk has turned as far as it may): the shoulder comes forward to it, at most SHOULDER_REACH_M.
   for (const g of grips) {
     const hand = boneWorld(rig, `hand${g.side}`, new Vector3());
@@ -2242,7 +2674,12 @@ function solveGrips(rig: PlayerRig, grips: HandGrip[], stamp: number | undefined
     if (e < 0.002) continue;
     const arm = rig.boneMap[`upperArm${g.side}`];
     const sh = boneWorld(rig, `upperArm${g.side}`, new Vector3());
-    const to = g.wrist.clone().sub(sh).normalize().multiplyScalar(Math.min(e * 1.05, SHOULDER_REACH_M * rig.scale)).add(sh);
+    const to = g.wrist
+      .clone()
+      .sub(sh)
+      .normalize()
+      .multiplyScalar(Math.min(e * 1.05, SHOULDER_REACH_M * rig.scale))
+      .add(sh);
     arm.parent!.updateMatrixWorld(true);
     arm.position.copy(arm.parent!.worldToLocal(to));
     arm.updateMatrixWorld(true);
@@ -2257,7 +2694,11 @@ function solveGrips(rig: PlayerRig, grips: HandGrip[], stamp: number | undefined
 /** `v` turned by `deg` about the unit axis `k` (Rodrigues; v ⟂ k). */
 function turnAbout(v: Vector3, k: Vector3, deg: number): Vector3 {
   const a = deg * DEG;
-  return v.clone().multiplyScalar(Math.cos(a)).add(new Vector3().crossVectors(k, v).multiplyScalar(Math.sin(a))).addScaledVector(k, k.dot(v) * (1 - Math.cos(a)));
+  return v
+    .clone()
+    .multiplyScalar(Math.cos(a))
+    .add(new Vector3().crossVectors(k, v).multiplyScalar(Math.sin(a)))
+    .addScaledVector(k, k.dot(v) * (1 - Math.cos(a)));
 }
 
 export interface HeldBatPose {
@@ -2276,7 +2717,13 @@ export interface HeldBatPose {
  * TOP_HAND_FROM_CAP below the cap and the bottom hand at LOWER_HAND_FROM_CAP, each glove's channel on the handle's
  * axis, the V's aligned (GRIP_V_DEG).
  */
-export function holdBat(rig: PlayerRig, bat: Object3D, physicsBat: HeldBatPose | null, pose: SampledPose, mirror: boolean): void {
+export function holdBat(
+  rig: PlayerRig,
+  bat: Object3D,
+  physicsBat: HeldBatPose | null,
+  pose: SampledPose,
+  mirror: boolean,
+): void {
   const m = mirror ? -1 : 1;
   const bottom: 'L' | 'R' = mirror ? 'L' : 'R';
   const top: 'L' | 'R' = mirror ? 'R' : 'L';
@@ -2289,18 +2736,27 @@ export function holdBat(rig: PlayerRig, bat: Object3D, physicsBat: HeldBatPose |
     cap = new Vector3(physicsBat.grip.x, physicsBat.grip.y, physicsBat.grip.z);
     dir = new Vector3(physicsBat.toe.x, physicsBat.toe.y, physicsBat.toe.z).sub(cap).normalize();
   } else if (pose.bat) {
-    const lower = rig.root.localToWorld(new Vector3(pose.bat.grip[0], pose.bat.grip[1], pose.bat.grip[2]).multiplyScalar(s / rig.root.scale.x));
+    const lower = rig.root.localToWorld(
+      new Vector3(pose.bat.grip[0], pose.bat.grip[1], pose.bat.grip[2]).multiplyScalar(s / rig.root.scale.x),
+    );
     dir = new Vector3(pose.bat.dir[0], pose.bat.dir[1], pose.bat.dir[2]).normalize().applyQuaternion(rootQ);
     // The clip's own face when its key carries one (MOTION-SPEC v1.2 bat.face; bat.clipBatPose reads it too), else towards the bowler.
     // It was always the second, so the bat turned about its blade in the frame the external bat handed over to the clip's key.
     const kf = pose.bat.face;
-    placeBat(bat, lower, dir, kf ? new Vector3(kf[0], kf[1], kf[2]).applyQuaternion(rootQ) : new Vector3(m, 0, 0).applyQuaternion(rootQ));
+    placeBat(
+      bat,
+      lower,
+      dir,
+      kf ? new Vector3(kf[0], kf[1], kf[2]).applyQuaternion(rootQ) : new Vector3(m, 0, 0).applyQuaternion(rootQ),
+    );
     cap = lower.clone().addScaledVector(dir, -LOWER_HAND_FROM_CAP);
   } else {
     // Carried without a key of the clip's own: the bottom hand holds it at the carried key (clips.CARRY_BAT_KEY), the
     // same key a crossfade to or from a keyed clip blends through, so the bat never jumps.
     const k = CARRY_BAT_KEY;
-    const lower = rig.root.localToWorld(new Vector3(k.grip[0] * m, k.grip[1], k.grip[2]).multiplyScalar(s / rig.root.scale.x));
+    const lower = rig.root.localToWorld(
+      new Vector3(k.grip[0] * m, k.grip[1], k.grip[2]).multiplyScalar(s / rig.root.scale.x),
+    );
     dir = new Vector3(k.dir[0] * m, k.dir[1], k.dir[2]).normalize().applyQuaternion(rootQ);
     placeBat(bat, lower, dir, new Vector3(0, 0, 1).applyQuaternion(rootQ));
     cap = lower.clone().addScaledVector(dir, -LOWER_HAND_FROM_CAP);
@@ -2309,7 +2765,13 @@ export function holdBat(rig: PlayerRig, bat: Object3D, physicsBat: HeldBatPose |
   const face = new Vector3(0, 0, 1).transformDirection(bat.matrixWorld);
   face.addScaledVector(dir, -face.dot(dir)).normalize();
   const grips = [
-    handGrip(rig, bottom, cap.clone().addScaledVector(dir, LOWER_HAND_FROM_CAP), dir, turnAbout(face.clone().negate(), dir, GRIP_V_DEG * m)),
+    handGrip(
+      rig,
+      bottom,
+      cap.clone().addScaledVector(dir, LOWER_HAND_FROM_CAP),
+      dir,
+      turnAbout(face.clone().negate(), dir, GRIP_V_DEG * m),
+    ),
   ];
   // The top hand: on the handle for the physics bat; for a clip, as much as the clip's crossfade says (it lets go of
   // the bat, or takes it, over the crossfade instead of snapping).
@@ -2323,7 +2785,9 @@ export function holdBat(rig: PlayerRig, bat: Object3D, physicsBat: HeldBatPose |
   }
   const topBones = (['upperArm', 'forearm', 'hand'] as const).map((b) => rig.boneMap[`${b}${top}`]);
   const free = topW < 1 ? topBones.map((b) => b.quaternion.clone()) : null;
-  grips.push(handGrip(rig, top, cap.clone().addScaledVector(dir, TOP_HAND_FROM_CAP), dir, turnAbout(face, dir, GRIP_V_DEG * m)));
+  grips.push(
+    handGrip(rig, top, cap.clone().addScaledVector(dir, TOP_HAND_FROM_CAP), dir, turnAbout(face, dir, GRIP_V_DEG * m)),
+  );
   solveGrips(rig, grips, stamp);
   if (free) {
     topBones.forEach((b, i) => b.quaternion.slerpQuaternions(free[i], b.quaternion.clone(), topW));

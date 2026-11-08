@@ -11,8 +11,19 @@ import type { IdentityProvider } from '@/contracts';
 import { isNativePlatform, nativePlugin, type PluginBox } from './capacitor';
 
 interface GisId {
-  initialize(config: { client_id: string; callback: (r: { credential?: string }) => void; use_fedcm_for_prompt?: boolean; auto_select?: boolean }): void;
-  prompt(listener?: (n: { isNotDisplayed?: () => boolean; isSkippedMoment?: () => boolean; isDismissedMoment?: () => boolean }) => void): void;
+  initialize(config: {
+    client_id: string;
+    callback: (r: { credential?: string }) => void;
+    use_fedcm_for_prompt?: boolean;
+    auto_select?: boolean;
+  }): void;
+  prompt(
+    listener?: (n: {
+      isNotDisplayed?: () => boolean;
+      isSkippedMoment?: () => boolean;
+      isDismissedMoment?: () => boolean;
+    }) => void,
+  ): void;
 }
 
 export interface GoogleSignInPlugin {
@@ -38,7 +49,12 @@ async function loadGis(): Promise<GisId> {
   return id;
 }
 
-export function createGoogleIdentityProvider(o: { clientId: string | null; native?: () => boolean; nativePlugin?: () => Promise<PluginBox<GoogleSignInPlugin> | null>; gis?: () => Promise<GisId> }): IdentityProvider {
+export function createGoogleIdentityProvider(o: {
+  clientId: string | null;
+  native?: () => boolean;
+  nativePlugin?: () => Promise<PluginBox<GoogleSignInPlugin> | null>;
+  gis?: () => Promise<GisId>;
+}): IdentityProvider {
   const native = o.native ?? isNativePlatform;
   return {
     id: 'google',
@@ -47,13 +63,20 @@ export function createGoogleIdentityProvider(o: { clientId: string | null; nativ
       if (!o.clientId) return null;
       if (native()) {
         // Boxed: awaiting a Capacitor plugin proxy itself never settles (see PluginBox).
-        const boxed = await (o.nativePlugin ?? (() => nativePlugin<GoogleSignInPlugin>('VandeGoogleSignIn')))().catch(() => null);
+        const boxed = await (o.nativePlugin ?? (() => nativePlugin<GoogleSignInPlugin>('VandeGoogleSignIn')))().catch(
+          () => null,
+        );
         if (!boxed) return null;
         return (await boxed.plugin.signIn({ clientId: o.clientId }).catch(() => ({ idToken: null }))).idToken;
       }
       const id = await (o.gis ?? loadGis)();
       return new Promise((resolve) => {
-        id.initialize({ client_id: o.clientId as string, callback: (r) => resolve(r.credential ?? null), use_fedcm_for_prompt: true, auto_select: false });
+        id.initialize({
+          client_id: o.clientId as string,
+          callback: (r) => resolve(r.credential ?? null),
+          use_fedcm_for_prompt: true,
+          auto_select: false,
+        });
         id.prompt((n) => {
           if (n.isNotDisplayed?.() || n.isSkippedMoment?.() || n.isDismissedMoment?.()) resolve(null);
         });
@@ -62,17 +85,36 @@ export function createGoogleIdentityProvider(o: { clientId: string | null; nativ
   };
 }
 
-export function createPasskeyIdentityProvider(o: { enabled: boolean; challenge?: () => Promise<PublicKeyCredentialRequestOptions> }): IdentityProvider {
+export function createPasskeyIdentityProvider(o: {
+  enabled: boolean;
+  challenge?: () => Promise<PublicKeyCredentialRequestOptions>;
+}): IdentityProvider {
   return {
     id: 'passkey',
-    available: () => o.enabled && typeof window !== 'undefined' && typeof window.PublicKeyCredential === 'function' && Boolean(o.challenge),
+    available: () =>
+      o.enabled &&
+      typeof window !== 'undefined' &&
+      typeof window.PublicKeyCredential === 'function' &&
+      Boolean(o.challenge),
     async obtainCredential() {
       if (!o.enabled || !o.challenge) return null;
-      const cred = (await navigator.credentials.get({ publicKey: await o.challenge() }).catch(() => null)) as PublicKeyCredential | null;
+      const cred = (await navigator.credentials
+        .get({ publicKey: await o.challenge() })
+        .catch(() => null)) as PublicKeyCredential | null;
       if (!cred) return null;
       const r = cred.response as AuthenticatorAssertionResponse;
-      const b64 = (b: ArrayBuffer) => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-      return JSON.stringify({ id: cred.id, clientDataJSON: b64(r.clientDataJSON), authenticatorData: b64(r.authenticatorData), signature: b64(r.signature), userHandle: r.userHandle ? b64(r.userHandle) : null });
+      const b64 = (b: ArrayBuffer) =>
+        btoa(String.fromCharCode(...new Uint8Array(b)))
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
+      return JSON.stringify({
+        id: cred.id,
+        clientDataJSON: b64(r.clientDataJSON),
+        authenticatorData: b64(r.authenticatorData),
+        signature: b64(r.signature),
+        userHandle: r.userHandle ? b64(r.userHandle) : null,
+      });
     },
   };
 }

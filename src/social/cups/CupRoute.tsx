@@ -10,7 +10,21 @@ import { FailureState, NeedsOnline } from '../components/States';
 import { PlayerLine } from '../components/PlayerLine';
 import { deadlineText } from '../components/time';
 import { shareUrl } from '../components/links';
-import { cupState, currentRound, finalFixture, membersById, movementOf, MIN_CUP_PLAYERS, mySeat, nextTask, nrrText, playedByAuto, roundsOf, startsAt, type RoundModel } from './cupModel';
+import {
+  cupState,
+  currentRound,
+  finalFixture,
+  membersById,
+  movementOf,
+  MIN_CUP_PLAYERS,
+  mySeat,
+  nextTask,
+  nrrText,
+  playedByAuto,
+  roundsOf,
+  startsAt,
+  type RoundModel,
+} from './cupModel';
 import { reportablePlayer, useReportPlayer } from '../components/ReportPlayer';
 import { useCupMilestones } from './cupAnalytics';
 import s from '../components/social.module.css';
@@ -32,7 +46,11 @@ export default function CupRoute({ route }: { route: RouteOf<'cup'> }) {
   const account = useAccount(net, player);
   const now = useNow(30_000);
   const ready = Boolean(net && account.state === 'ok');
-  const cup = useResource<CupView>(ready && net ? () => net.api.call('GET /v1/cups/:id', { params: { id: route.cupId } }) : null, [ready, route.cupId], { pollMs: POLL_MS });
+  const cup = useResource<CupView>(
+    ready && net ? () => net.api.call('GET /v1/cups/:id', { params: { id: route.cupId } }) : null,
+    [ready, route.cupId],
+    { pollMs: POLL_MS },
+  );
   useCupMilestones(cup.data, player?.id ?? null, services?.analytics ?? null);
   if (!player) return null;
 
@@ -40,21 +58,43 @@ export default function CupRoute({ route }: { route: RouteOf<'cup'> }) {
   const shell = (children: React.ReactNode) => (
     <ScreenShell
       title={view?.name ?? t('social.cup.title')}
-      eyebrow={view ? t(`social.cup.status_${cupState(view)}` as 'social.cup.status_group_stage') : t('social.cup.eyebrow')}
+      eyebrow={
+        view ? t(`social.cup.status_${cupState(view)}` as 'social.cup.status_group_stage') : t('social.cup.eyebrow')
+      }
       onBack={back}
       narrow
       testId="cup-screen"
-      actions={view ? <IconButton icon="message" label={t('social.cup.room')} onClick={() => navigate({ name: 'room', roomId: view.roomId })} data-testid="cup-room-link" /> : undefined}
+      actions={
+        view ? (
+          <IconButton
+            icon="message"
+            label={t('social.cup.room')}
+            onClick={() => navigate({ name: 'room', roomId: view.roomId })}
+            data-testid="cup-room-link"
+          />
+        ) : undefined
+      }
     >
       {children}
     </ScreenShell>
   );
 
-  if (booting || (net && (account.state === 'idle' || account.state === 'syncing') && !view)) return shell(<StateView kind="loading" />);
-  if (!net) return shell(<NeedsOnline actionLabel={t('social.common.home')} onAction={() => navigate({ name: 'home' })} />);
-  if (account.state === 'offline' || account.state === 'error' || account.state === 'age_required') return shell(<FailureState failure={account.state} onRetry={account.retry} />);
+  if (booting || (net && (account.state === 'idle' || account.state === 'syncing') && !view))
+    return shell(<StateView kind="loading" />);
+  if (!net)
+    return shell(<NeedsOnline actionLabel={t('social.common.home')} onAction={() => navigate({ name: 'home' })} />);
+  if (account.state === 'offline' || account.state === 'error' || account.state === 'age_required')
+    return shell(<FailureState failure={account.state} onRetry={account.retry} />);
   if (!view) {
-    if (cup.error) return shell(<FailureState failure={socialFailure(cup.error)} onRetry={cup.reload} notFoundTitle={t('social.cup.not_found_title')} notFoundBody={t('social.cup.not_found_body')} />);
+    if (cup.error)
+      return shell(
+        <FailureState
+          failure={socialFailure(cup.error)}
+          onRetry={cup.reload}
+          notFoundTitle={t('social.cup.not_found_title')}
+          notFoundBody={t('social.cup.not_found_body')}
+        />,
+      );
     return shell(<StateView kind="loading" />);
   }
 
@@ -67,7 +107,13 @@ export default function CupRoute({ route }: { route: RouteOf<'cup'> }) {
   if (state === 'cancelled')
     return shell(
       <div className={s.stack}>
-        <StateView kind="deadline_expired" title={t('social.cup.cancelled_title')} body={t('social.cup.cancelled_body', { min: MIN_CUP_PLAYERS })} actionLabel={t('social.cup.new_cup')} onAction={() => navigate({ name: 'cup_new' })} />
+        <StateView
+          kind="deadline_expired"
+          title={t('social.cup.cancelled_title')}
+          body={t('social.cup.cancelled_body', { min: MIN_CUP_PLAYERS })}
+          actionLabel={t('social.cup.new_cup')}
+          onAction={() => navigate({ name: 'cup_new' })}
+        />
         <Members members={view.members} tr={tr} />
       </div>,
     );
@@ -78,16 +124,33 @@ export default function CupRoute({ route }: { route: RouteOf<'cup'> }) {
     return shell(
       <div className={s.stack}>
         {state === 'gathering_short' ? (
-          <StateView kind="empty_cup" title={t('social.cup.gathering_short_title', { joined: view.members.length, min: MIN_CUP_PLAYERS })} body={t('social.cup.gathering_body', { when: deadlineText(tr, start, now), min: MIN_CUP_PLAYERS })} />
+          <StateView
+            kind="empty_cup"
+            title={t('social.cup.gathering_short_title', { joined: view.members.length, min: MIN_CUP_PLAYERS })}
+            body={t('social.cup.gathering_body', { when: deadlineText(tr, start, now), min: MIN_CUP_PLAYERS })}
+          />
         ) : (
           <Card padding={5} className={s.stackSm} data-testid="cup-gathering">
             <p className={s.eyebrow}>{t('social.cup.gathering_eyebrow')}</p>
-            <h2 className={s.h2}>{t('social.cup.gathering_title', { joined: view.members.length, size: view.size })}</h2>
-            <p className={s.body}>{t('social.cup.gathering_body', { when: deadlineText(tr, start, now), min: MIN_CUP_PLAYERS })}</p>
+            <h2 className={s.h2}>
+              {t('social.cup.gathering_title', { joined: view.members.length, size: view.size })}
+            </h2>
+            <p className={s.body}>
+              {t('social.cup.gathering_body', { when: deadlineText(tr, start, now), min: MIN_CUP_PLAYERS })}
+            </p>
           </Card>
         )}
         <p className={s.small}>{t('social.cup.non_joiners')}</p>
-        {url && <InvitePanel kind="cup" matchId={view.cupId} inviteUrl={url} inviter={localPlayerRef(player)} conditions={null} cupName={view.name} />}
+        {url && (
+          <InvitePanel
+            kind="cup"
+            matchId={view.cupId}
+            inviteUrl={url}
+            inviter={localPlayerRef(player)}
+            conditions={null}
+            cupName={view.name}
+          />
+        )}
         <Members members={view.members} tr={tr} />
         <Rules tr={tr} />
       </div>,
@@ -116,10 +179,31 @@ export default function CupRoute({ route }: { route: RouteOf<'cup'> }) {
           </div>
         </Card>
       )}
-      {task && state !== 'complete' && <NextTask task={task} fixtures={view.fixtures} byId={byId} myId={myId} tr={tr} now={now} onOpen={(matchId) => navigate({ name: 'match', matchId })} />}
-      {current && state !== 'complete' && <CurrentRound round={current} lockedCount={view.lockedCount} tr={tr} now={now} />}
-      {view.standings.length > 0 && <Standings rows={view.standings} byId={byId} myId={myId} tr={tr} complete={state === 'complete'} />}
-      <Fixtures rounds={rounds} byId={byId} myId={myId} tr={tr} now={now} onOpen={(matchId) => navigate({ name: 'match', matchId })} />
+      {task && state !== 'complete' && (
+        <NextTask
+          task={task}
+          fixtures={view.fixtures}
+          byId={byId}
+          myId={myId}
+          tr={tr}
+          now={now}
+          onOpen={(matchId) => navigate({ name: 'match', matchId })}
+        />
+      )}
+      {current && state !== 'complete' && (
+        <CurrentRound round={current} lockedCount={view.lockedCount} tr={tr} now={now} />
+      )}
+      {view.standings.length > 0 && (
+        <Standings rows={view.standings} byId={byId} myId={myId} tr={tr} complete={state === 'complete'} />
+      )}
+      <Fixtures
+        rounds={rounds}
+        byId={byId}
+        myId={myId}
+        tr={tr}
+        now={now}
+        onOpen={(matchId) => navigate({ name: 'match', matchId })}
+      />
       <Rules tr={tr} />
     </div>,
   );
@@ -162,29 +246,67 @@ function Members({ members, tr }: { members: PlayerRef[]; tr: SocialT }) {
   );
 }
 
-function NextTask({ task, fixtures, byId, myId, tr, now, onOpen }: { task: CupView['myTasks'][number]; fixtures: Fixture[]; byId: Map<string, PlayerRef>; myId: string | null; tr: SocialT; now: number; onOpen: (matchId: string) => void }) {
+function NextTask({
+  task,
+  fixtures,
+  byId,
+  myId,
+  tr,
+  now,
+  onOpen,
+}: {
+  task: CupView['myTasks'][number];
+  fixtures: Fixture[];
+  byId: Map<string, PlayerRef>;
+  myId: string | null;
+  tr: SocialT;
+  now: number;
+  onOpen: (matchId: string) => void;
+}) {
   const { t } = tr;
   const f = fixtures.find((x) => x.matchId === task.matchId);
   const seat = f ? mySeat(f, myId) : null;
-  const opponent = f && seat !== null ? byId.get(seat === 0 ? f.away : f.home) ?? null : null;
+  const opponent = f && seat !== null ? (byId.get(seat === 0 ? f.away : f.home) ?? null) : null;
   const isFinal = f?.round === 'final';
   return (
     <Card padding={5} className={[s.stackSm, isFinal ? s.final : ''].join(' ')} data-testid="cup-next">
-      <p className={[s.eyebrow, isFinal ? s.finalEyebrow : ''].join(' ')}>{isFinal ? t('social.cup.next_final') : t('social.cup.next_eyebrow')}</p>
+      <p className={[s.eyebrow, isFinal ? s.finalEyebrow : ''].join(' ')}>
+        {isFinal ? t('social.cup.next_final') : t('social.cup.next_eyebrow')}
+      </p>
       <PlayerLine player={opponent} meta={t(`social.cup.task_${task.kind}` as 'social.cup.task_lock')} size={48} />
       {task.by && (
         <p className={s.body}>
-          <Icon name="clock" size={16} /> {t(task.kind === 'bat' ? 'social.cup.bat_by' : 'social.cup.lock_by', { when: deadlineText(tr, task.by, now) })}
+          <Icon name="clock" size={16} />{' '}
+          {t(task.kind === 'bat' ? 'social.cup.bat_by' : 'social.cup.lock_by', {
+            when: deadlineText(tr, task.by, now),
+          })}
         </p>
       )}
-      <Button variant={task.kind === 'watch' ? 'accent' : 'primary'} size="lg" block icon={task.kind === 'lock' ? 'seal' : task.kind === 'bat' ? 'bat' : 'play'} onClick={() => onOpen(task.matchId)} data-testid="cup-next-open">
+      <Button
+        variant={task.kind === 'watch' ? 'accent' : 'primary'}
+        size="lg"
+        block
+        icon={task.kind === 'lock' ? 'seal' : task.kind === 'bat' ? 'bat' : 'play'}
+        onClick={() => onOpen(task.matchId)}
+        data-testid="cup-next-open"
+      >
         {t(`social.cup.task_cta_${task.kind}` as 'social.cup.task_cta_lock')}
       </Button>
     </Card>
   );
 }
 
-function CurrentRound({ round, lockedCount, tr, now }: { round: RoundModel; lockedCount: CupView['lockedCount']; tr: SocialT; now: number }) {
+function CurrentRound({
+  round,
+  lockedCount,
+  tr,
+  now,
+}: {
+  round: RoundModel;
+  lockedCount: CupView['lockedCount'];
+  tr: SocialT;
+  now: number;
+}) {
   const { t } = tr;
   const isFinal = round.round === 'final';
   const label = isFinal ? t('social.cup.final') : t('social.cup.round', { n: round.round as number });
@@ -192,7 +314,10 @@ function CurrentRound({ round, lockedCount, tr, now }: { round: RoundModel; lock
     <Card padding={4} className={[s.stackSm, isFinal ? s.final : ''].join(' ')} data-testid="cup-current">
       <div className={s.spread}>
         <h2 className={s.h3}>{t('social.cup.current', { round: label })}</h2>
-        <Chip tone={round.phase === 'locking' ? 'cyan' : round.phase === 'batting' ? 'amber' : 'violet'} icon={round.phase === 'locking' ? 'seal' : round.phase === 'batting' ? 'bat' : 'clock'}>
+        <Chip
+          tone={round.phase === 'locking' ? 'cyan' : round.phase === 'batting' ? 'amber' : 'violet'}
+          icon={round.phase === 'locking' ? 'seal' : round.phase === 'batting' ? 'bat' : 'clock'}
+        >
           {t(`social.cup.phase_${round.phase}` as 'social.cup.phase_locking')}
         </Chip>
       </div>
@@ -214,7 +339,19 @@ function CurrentRound({ round, lockedCount, tr, now }: { round: RoundModel; lock
   );
 }
 
-function Standings({ rows, byId, myId, tr, complete }: { rows: StandingRow[]; byId: Map<string, PlayerRef>; myId: string | null; tr: SocialT; complete: boolean }) {
+function Standings({
+  rows,
+  byId,
+  myId,
+  tr,
+  complete,
+}: {
+  rows: StandingRow[];
+  byId: Map<string, PlayerRef>;
+  myId: string | null;
+  tr: SocialT;
+  complete: boolean;
+}) {
   const { t } = tr;
   const reporting = useReportPlayer();
   return (
@@ -252,7 +389,9 @@ function Standings({ rows, byId, myId, tr, complete }: { rows: StandingRow[]; by
                     {tr.number(i + 1)}
                     <span className={[s.movement, move === 'up' ? s.up : move === 'down' ? s.down : ''].join(' ')}>
                       <span aria-hidden="true">{move === 'up' ? '▲' : move === 'down' ? '▼' : '='}</span>
-                      <VisuallyHidden>{t(`social.cup.move_${move}` as 'social.cup.move_up', { n: Math.abs(r.movement) })}</VisuallyHidden>
+                      <VisuallyHidden>
+                        {t(`social.cup.move_${move}` as 'social.cup.move_up', { n: Math.abs(r.movement) })}
+                      </VisuallyHidden>
                       {move !== 'same' && <span aria-hidden="true">{tr.number(Math.abs(r.movement))}</span>}
                     </span>
                   </td>
@@ -269,12 +408,16 @@ function Standings({ rows, byId, myId, tr, complete }: { rows: StandingRow[]; by
                           {r.form.length > 0 && ` · ${t('social.cup.form', { form: r.form.join(' ') })}`}
                         </span>
                       </span>
-                      {!mine && reportablePlayer(r.playerId, myId) && reporting.button({ playerId: r.playerId, alias: r.alias }, `cup-report-${i + 1}`)}
+                      {!mine &&
+                        reportablePlayer(r.playerId, myId) &&
+                        reporting.button({ playerId: r.playerId, alias: r.alias }, `cup-report-${i + 1}`)}
                     </div>
                   </td>
                   <td className={s.num}>{tr.number(r.played)}</td>
                   <td className={s.num}>{tr.number(r.points)}</td>
-                  <td className={s.num}>{nrrText(r.netRunRate, (n) => tr.number(n, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}</td>
+                  <td className={s.num}>
+                    {nrrText(r.netRunRate, (n) => tr.number(n, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}
+                  </td>
                 </tr>
               );
             })}
@@ -287,7 +430,21 @@ function Standings({ rows, byId, myId, tr, complete }: { rows: StandingRow[]; by
   );
 }
 
-function Fixtures({ rounds, byId, myId, tr, now, onOpen }: { rounds: RoundModel[]; byId: Map<string, PlayerRef>; myId: string | null; tr: SocialT; now: number; onOpen: (matchId: string) => void }) {
+function Fixtures({
+  rounds,
+  byId,
+  myId,
+  tr,
+  now,
+  onOpen,
+}: {
+  rounds: RoundModel[];
+  byId: Map<string, PlayerRef>;
+  myId: string | null;
+  tr: SocialT;
+  now: number;
+  onOpen: (matchId: string) => void;
+}) {
   const { t } = tr;
   return (
     <section className={s.section} aria-labelledby="cup-fixtures">
@@ -298,10 +455,18 @@ function Fixtures({ rounds, byId, myId, tr, now, onOpen }: { rounds: RoundModel[
         const isFinal = r.round === 'final';
         const label = isFinal ? t('social.cup.final') : t('social.cup.round', { n: r.round as number });
         return (
-          <Card key={String(r.round)} padding={4} className={[s.stackSm, isFinal ? s.final : ''].join(' ')} as="section" aria-label={label}>
+          <Card
+            key={String(r.round)}
+            padding={4}
+            className={[s.stackSm, isFinal ? s.final : ''].join(' ')}
+            as="section"
+            aria-label={label}
+          >
             <div className={s.spread}>
               <h3 className={s.h3}>{label}</h3>
-              <span className={s.meta}>{t('social.cup.reveal_short', { when: deadlineText(tr, r.revealAt, now) })}</span>
+              <span className={s.meta}>
+                {t('social.cup.reveal_short', { when: deadlineText(tr, r.revealAt, now) })}
+              </span>
             </div>
             {r.fixtures.length === 0 ? (
               <p className={s.small}>{isFinal ? t('social.cup.final_pending') : t('social.cup.round_pending')}</p>
@@ -319,7 +484,19 @@ function Fixtures({ rounds, byId, myId, tr, now, onOpen }: { rounds: RoundModel[
   );
 }
 
-function FixtureRow({ f, byId, myId, tr, onOpen }: { f: Fixture; byId: Map<string, PlayerRef>; myId: string | null; tr: SocialT; onOpen: (matchId: string) => void }) {
+function FixtureRow({
+  f,
+  byId,
+  myId,
+  tr,
+  onOpen,
+}: {
+  f: Fixture;
+  byId: Map<string, PlayerRef>;
+  myId: string | null;
+  tr: SocialT;
+  onOpen: (matchId: string) => void;
+}) {
   const { t } = tr;
   const home = byId.get(f.home) ?? null;
   const away = byId.get(f.away) ?? null;
@@ -330,7 +507,9 @@ function FixtureRow({ f, byId, myId, tr, onOpen }: { f: Fixture; byId: Map<strin
     <li className={s.stackSm} data-testid={mine ? 'cup-my-fixture' : undefined}>
       <div className={s.spread}>
         <span className={s.alias}>{t('social.cup.vs', { home: home?.alias ?? '—', away: away?.alias ?? '—' })}</span>
-        <Chip tone={f.status === 'revealed' ? 'success' : f.status === 'void' ? 'neutral' : 'cyan'}>{t(`social.cup.fixture_${f.status}` as 'social.cup.fixture_planning')}</Chip>
+        <Chip tone={f.status === 'revealed' ? 'success' : f.status === 'void' ? 'neutral' : 'cyan'}>
+          {t(`social.cup.fixture_${f.status}` as 'social.cup.fixture_planning')}
+        </Chip>
       </div>
       <div className={s.row}>
         {f.auto[0] && <Chip icon="info">{t('social.cup.auto_side', { name: home?.alias ?? '—' })}</Chip>}
@@ -339,7 +518,11 @@ function FixtureRow({ f, byId, myId, tr, onOpen }: { f: Fixture; byId: Map<strin
       {auto && <p className={s.small}>{t('social.cup.practice_note')}</p>}
       {canOpen && (
         <Button variant={mine ? 'secondary' : 'ghost'} size="sm" iconEnd="forward" onClick={() => onOpen(f.matchId)}>
-          {auto ? t('social.cup.practice_cta') : f.status === 'revealed' ? t('social.cup.watch') : t('social.cup.open_match')}
+          {auto
+            ? t('social.cup.practice_cta')
+            : f.status === 'revealed'
+              ? t('social.cup.watch')
+              : t('social.cup.open_match')}
         </Button>
       )}
     </li>

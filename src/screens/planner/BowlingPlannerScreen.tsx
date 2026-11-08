@@ -1,22 +1,67 @@
 import { useEffect, useMemo, useState } from 'react';
 import '../engineRules';
-import type { Conditions, DeliveryPlan, DeliveryVariant, ExecutionGrade, FieldSetting, InputTrace, Intensity, Intent, Length, Line, OverPlan, SealedSixEngineApi } from '@/contracts';
+import type {
+  Conditions,
+  DeliveryPlan,
+  DeliveryVariant,
+  ExecutionGrade,
+  FieldSetting,
+  InputTrace,
+  Intensity,
+  Intent,
+  Length,
+  Line,
+  OverPlan,
+  SealedSixEngineApi,
+} from '@/contracts';
 import * as Engine from '@/engine';
 import { engine as realEngine } from '@/engine';
 import { overSummary, pitchHints, unlockHint } from '@/engine/advice';
 import { useT, type MessageKey } from '@/i18n';
 import { useBackHandler } from '@/app/back';
-import { Button, CardButton, Chip, Dialog, EnergyMeter, ExecutionMeter, FieldMap, Icon, ScreenShell, SegmentedControl, StateView } from '@/ui';
+import {
+  Button,
+  CardButton,
+  Chip,
+  Dialog,
+  EnergyMeter,
+  ExecutionMeter,
+  FieldMap,
+  Icon,
+  ScreenShell,
+  SegmentedControl,
+  StateView,
+} from '@/ui';
 import { playSealChime } from '@/audio';
 import s from './BowlingPlannerScreen.module.css';
 
-const VARIANTS: DeliveryVariant[] = ['good_length', 'yorker', 'bouncer', 'slower', 'inswing', 'outswing', 'offspin', 'legspin'];
+const VARIANTS: DeliveryVariant[] = [
+  'good_length',
+  'yorker',
+  'bouncer',
+  'slower',
+  'inswing',
+  'outswing',
+  'offspin',
+  'legspin',
+];
 const LINES: Line[] = ['wide_off', 'off', 'middle', 'leg'];
 const LENGTHS: Length[] = ['full', 'good', 'short'];
 const INTENTS: Intent[] = ['attack', 'contain', 'setup'];
 const FIELDS: FieldSetting[] = ['attacking', 'balanced', 'sweeper'];
-const FAMILY: Record<DeliveryVariant, 'pace' | 'swing' | 'spin'> = { yorker: 'pace', good_length: 'pace', bouncer: 'pace', slower: 'pace', inswing: 'swing', outswing: 'swing', offspin: 'spin', legspin: 'spin' };
-const ALLOWED: Record<DeliveryVariant, readonly Length[]> = (Engine as { ALLOWED_LENGTHS?: Record<DeliveryVariant, readonly Length[]> }).ALLOWED_LENGTHS ?? {
+const FAMILY: Record<DeliveryVariant, 'pace' | 'swing' | 'spin'> = {
+  yorker: 'pace',
+  good_length: 'pace',
+  bouncer: 'pace',
+  slower: 'pace',
+  inswing: 'swing',
+  outswing: 'swing',
+  offspin: 'spin',
+  legspin: 'spin',
+};
+const ALLOWED: Record<DeliveryVariant, readonly Length[]> = (
+  Engine as { ALLOWED_LENGTHS?: Record<DeliveryVariant, readonly Length[]> }
+).ALLOWED_LENGTHS ?? {
   yorker: ['full'],
   good_length: ['full', 'good', 'short'],
   bouncer: ['short'],
@@ -38,7 +83,15 @@ interface Draft {
   grade: ExecutionGrade | null;
 }
 
-const draft = (variant: DeliveryVariant, line: Line, length: Length, intensity: Intensity, intent: Intent): Draft => ({ variant, line, length, intensity, intent, gesture: null, grade: null });
+const draft = (variant: DeliveryVariant, line: Line, length: Length, intensity: Intensity, intent: Intent): Draft => ({
+  variant,
+  line,
+  length,
+  intensity,
+  intent,
+  gesture: null,
+  grade: null,
+});
 
 export interface BowlingPlannerProps {
   conditions: Conditions;
@@ -87,21 +140,36 @@ function writeDraft(key: string | undefined, d: StoredDraft | null) {
 }
 
 /** Plan a sealed over: six deliveries, a Super Ball, a field, and a release gesture for each ball. */
-export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, deadline, title, engine = realEngine, draftKey, coach = false }: BowlingPlannerProps) {
+export function BowlingPlannerScreen({
+  conditions,
+  unlocked,
+  onLock,
+  onBack,
+  deadline,
+  title,
+  engine = realEngine,
+  draftKey,
+  coach = false,
+}: BowlingPlannerProps) {
   const { t } = useT();
   // Android Back leaves the planner (the draft is not sent) instead of leaving the match.
   useBackHandler(Boolean(onBack), () => onBack?.());
   const [stored] = useState(() => readDraft(draftKey));
   const [field, setField] = useState<FieldSetting>(stored?.field ?? 'balanced');
-  const [balls, setBalls] = useState<Draft[]>(() => stored?.balls ?? [
-    draft('good_length', 'off', 'good', 2, 'contain'),
-    draft('good_length', 'off', 'full', 2, 'attack'),
-    draft('bouncer', 'middle', 'short', 2, 'setup'),
-    draft('yorker', 'middle', 'full', 1, 'attack'),
-    draft('good_length', 'off', 'good', 1, 'contain'),
-    draft('good_length', 'wide_off', 'full', 2, 'attack'),
-  ]);
-  const [superBall, setSuperBall] = useState<Draft>(() => stored?.superBall ?? draft('yorker', 'middle', 'full', 1, 'attack'));
+  const [balls, setBalls] = useState<Draft[]>(
+    () =>
+      stored?.balls ?? [
+        draft('good_length', 'off', 'good', 2, 'contain'),
+        draft('good_length', 'off', 'full', 2, 'attack'),
+        draft('bouncer', 'middle', 'short', 2, 'setup'),
+        draft('yorker', 'middle', 'full', 1, 'attack'),
+        draft('good_length', 'off', 'good', 1, 'contain'),
+        draft('good_length', 'wide_off', 'full', 2, 'attack'),
+      ],
+  );
+  const [superBall, setSuperBall] = useState<Draft>(
+    () => stored?.superBall ?? draft('yorker', 'middle', 'full', 1, 'attack'),
+  );
   const [sel, setSel] = useState(0);
   const [confirm, setConfirm] = useState(false);
   const [locking, setLocking] = useState(false);
@@ -130,7 +198,13 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
 
   const cost = (d: Draft) => {
     try {
-      const c = engine.energyCost({ variant: d.variant, line: d.line, length: d.length, intensity: d.intensity, intent: d.intent });
+      const c = engine.energyCost({
+        variant: d.variant,
+        line: d.line,
+        length: d.length,
+        intensity: d.intensity,
+        intent: d.intent,
+      });
       return Number.isFinite(c) ? c : 0;
     } catch {
       return 0;
@@ -143,7 +217,14 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
 
   const plan: OverPlan | null = useMemo(() => {
     if (missing > 0) return null;
-    const toPlan = (d: Draft): DeliveryPlan => ({ variant: d.variant, line: d.line, length: d.length, intensity: d.intensity, intent: d.intent, gesture: d.gesture! });
+    const toPlan = (d: Draft): DeliveryPlan => ({
+      variant: d.variant,
+      line: d.line,
+      length: d.length,
+      intensity: d.intensity,
+      intent: d.intent,
+      gesture: d.gesture!,
+    });
     return { v: 1, field, balls: balls.map(toPlan) as OverPlan['balls'], superBall: toPlan(superBall) };
   }, [missing, field, balls, superBall]);
 
@@ -195,7 +276,9 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
   if (locked) {
     return (
       <ScreenShell title={title ?? t('plan.title')} onBack={onBack} narrow testId="planner-locked">
-        <StateView kind="locked">{locked.commitHash && <code className={s.hash}>{locked.commitHash.slice(0, 16)}…</code>}</StateView>
+        <StateView kind="locked">
+          {locked.commitHash && <code className={s.hash}>{locked.commitHash.slice(0, 16)}…</code>}
+        </StateView>
       </ScreenShell>
     );
   }
@@ -215,7 +298,16 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
               <Icon name="alert" size={16} /> {error ?? problem}
             </p>
           )}
-          <Button variant="accent" size="lg" block icon="lock" disabled={!validation?.ok || locking} loading={locking} onClick={() => setConfirm(true)} data-testid="plan-lock">
+          <Button
+            variant="accent"
+            size="lg"
+            block
+            icon="lock"
+            disabled={!validation?.ok || locking}
+            loading={locking}
+            onClick={() => setConfirm(true)}
+            data-testid="plan-lock"
+          >
             {locking ? t('plan.locking') : t('plan.lock')}
           </Button>
         </div>
@@ -235,7 +327,11 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
         )}
       </div>
       <p className={s.sub}>{t('plan.subtitle')}</p>
-      <aside className={s.pitchTip} data-testid="plan-pitch-tip" aria-label={t(`pitch.${conditions.pitch}` as MessageKey)}>
+      <aside
+        className={s.pitchTip}
+        data-testid="plan-pitch-tip"
+        aria-label={t(`pitch.${conditions.pitch}` as MessageKey)}
+      >
         <Icon name="info" size={16} />
         <span className={s.pitchTipText}>
           {tips.map((tip) => (
@@ -268,7 +364,13 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
       <section className={s.section}>
         <h2 className={s.h}>{t('plan.field')}</h2>
         {/* The choice spans the full width (it wraps at large text instead of overlapping), the map and notes below. */}
-        <SegmentedControl<FieldSetting> label={t('plan.field')} value={field} onChange={setField} options={FIELDS.map((f) => ({ value: f, label: t(`field.${f}` as MessageKey) }))} block />
+        <SegmentedControl<FieldSetting>
+          label={t('plan.field')}
+          value={field}
+          onChange={setField}
+          options={FIELDS.map((f) => ({ value: f, label: t(`field.${f}` as MessageKey) }))}
+          block
+        />
         <div className={s.fieldRow}>
           <FieldMap field={field} size={112} orientation="broadcast" />
           <div className={s.fieldPick}>
@@ -280,7 +382,16 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
 
       <nav className={s.tabs} aria-label={t('plan.title')}>
         {[...balls, superBall].map((d, i) => (
-          <button key={i} type="button" className={s.tab} aria-current={sel === i ? 'step' : undefined} data-super={i === 6 || undefined} onClick={() => setSel(i)} data-testid={`plan-ball-${i}`} data-done={Boolean(d.gesture) || undefined}>
+          <button
+            key={i}
+            type="button"
+            className={s.tab}
+            aria-current={sel === i ? 'step' : undefined}
+            data-super={i === 6 || undefined}
+            onClick={() => setSel(i)}
+            data-testid={`plan-ball-${i}`}
+            data-done={Boolean(d.gesture) || undefined}
+          >
             <span className={s.tabN}>{i === 6 ? t('plan.super_tab') : i + 1}</span>
             <span className={s.tabV}>{t(`variant.${d.variant}` as MessageKey)}</span>
             <span className={s.tabState} data-done={Boolean(d.gesture) || undefined}>
@@ -293,7 +404,8 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
       <section className={s.editor} aria-label={isSuper ? t('plan.super_title') : t('plan.ball_tab', { n: sel + 1 })}>
         {isSuper && (
           <p className={s.superNote}>
-            <Icon name="sparkle" size={16} /> {t('plan.super_body')} ({t('plan.energy_cost', { n: superCost })} / {SUPER_ALLOWANCE})
+            <Icon name="sparkle" size={16} /> {t('plan.super_body')} ({t('plan.energy_cost', { n: superCost })} /{' '}
+            {SUPER_ALLOWANCE})
           </p>
         )}
         <h3 className={s.h3}>{t('plan.delivery')}</h3>
@@ -301,7 +413,11 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
           {VARIANTS.map((v) => {
             const isLocked = !unlocked.includes(v);
             const unlock = isLocked ? unlockHint(v) : null;
-            const c = cost({ ...cur, variant: v, length: ALLOWED[v].includes(cur.length) ? cur.length : ALLOWED[v][0] });
+            const c = cost({
+              ...cur,
+              variant: v,
+              length: ALLOWED[v].includes(cur.length) ? cur.length : ALLOWED[v][0],
+            });
             return (
               <CardButton
                 key={v}
@@ -326,7 +442,11 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
                     </span>
                   )}
                 </span>
-                {unlock ? <span className={s.vUnlock}>{t(unlock.key as MessageKey)}</span> : <span className={s.vFamily}>{t(`family.${FAMILY[v]}` as MessageKey)}</span>}
+                {unlock ? (
+                  <span className={s.vUnlock}>{t(unlock.key as MessageKey)}</span>
+                ) : (
+                  <span className={s.vFamily}>{t(`family.${FAMILY[v]}` as MessageKey)}</span>
+                )}
               </CardButton>
             );
           })}
@@ -335,14 +455,24 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
         <p className={s.hint}>{t(`variant_hint.${cur.variant}` as MessageKey)}</p>
 
         <h3 className={s.h3}>{t('plan.line')}</h3>
-        <SegmentedControl<Line> label={t('plan.line')} value={cur.line} onChange={(line) => update({ line })} options={LINES.map((l) => ({ value: l, label: t(`line.${l}` as MessageKey) }))} block />
+        <SegmentedControl<Line>
+          label={t('plan.line')}
+          value={cur.line}
+          onChange={(line) => update({ line })}
+          options={LINES.map((l) => ({ value: l, label: t(`line.${l}` as MessageKey) }))}
+          block
+        />
 
         <h3 className={s.h3}>{t('plan.length')}</h3>
         <SegmentedControl<Length>
           label={t('plan.length')}
           value={cur.length}
           onChange={(length) => update({ length })}
-          options={LENGTHS.map((l) => ({ value: l, label: t(`length.${l}` as MessageKey), disabled: !ALLOWED[cur.variant].includes(l) }))}
+          options={LENGTHS.map((l) => ({
+            value: l,
+            label: t(`length.${l}` as MessageKey),
+            disabled: !ALLOWED[cur.variant].includes(l),
+          }))}
           block
         />
         {ALLOWED[cur.variant].length === 1 && <p className={s.hint}>{t('plan.length_fixed')}</p>}
@@ -352,12 +482,21 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
           label={family === 'spin' ? t('plan.intensity_spin') : t('plan.intensity')}
           value={cur.intensity}
           onChange={(intensity) => update({ intensity })}
-          options={([1, 2, 3] as const).map((i) => ({ value: i, label: t(`intensity.${family === 'spin' ? 'spin' : 'pace'}.${i}` as MessageKey) }))}
+          options={([1, 2, 3] as const).map((i) => ({
+            value: i,
+            label: t(`intensity.${family === 'spin' ? 'spin' : 'pace'}.${i}` as MessageKey),
+          }))}
           block
         />
 
         <h3 className={s.h3}>{t('plan.intent')}</h3>
-        <SegmentedControl<Intent> label={t('plan.intent')} value={cur.intent} onChange={(intent) => update({ intent })} options={INTENTS.map((i) => ({ value: i, label: t(`intent.${i}` as MessageKey) }))} block />
+        <SegmentedControl<Intent>
+          label={t('plan.intent')}
+          value={cur.intent}
+          onChange={(intent) => update({ intent })}
+          options={INTENTS.map((i) => ({ value: i, label: t(`intent.${i}` as MessageKey) }))}
+          block
+        />
         <p className={s.hint}>{t(`intent_hint.${cur.intent}` as MessageKey)}</p>
 
         <h3 className={s.h3}>{t('plan.gesture')}</h3>
@@ -378,7 +517,10 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
             }}
           />
           {cur.gesture && (
-            <Chip tone={cur.grade === 'perfect' ? 'amber' : cur.grade === 'good' ? 'cyan' : 'neutral'} icon={cur.grade === 'perfect' || cur.grade === 'good' || !cur.grade ? 'check' : 'alert'}>
+            <Chip
+              tone={cur.grade === 'perfect' ? 'amber' : cur.grade === 'good' ? 'cyan' : 'neutral'}
+              icon={cur.grade === 'perfect' || cur.grade === 'good' || !cur.grade ? 'check' : 'alert'}
+            >
               {cur.grade ? t(`execution.${cur.grade}` as MessageKey) : t('plan.gesture_done')}
             </Chip>
           )}
@@ -389,7 +531,13 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
             icon="copy"
             onClick={() => {
               const prev = balls[sel - 1];
-              update({ variant: prev.variant, line: prev.line, length: prev.length, intensity: prev.intensity, intent: prev.intent });
+              update({
+                variant: prev.variant,
+                line: prev.line,
+                length: prev.length,
+                intensity: prev.intensity,
+                intent: prev.intent,
+              });
             }}
           >
             {t('plan.copy_previous')}
@@ -397,14 +545,25 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
         )}
       </section>
 
-      <Dialog open={confirm} title={t('plan.lock_confirm_title')} description={t('plan.lock_confirm_body')} confirmLabel={t('plan.lock')} confirmVariant="accent" onConfirm={() => void doLock()} onCancel={() => setConfirm(false)} testId="plan-lock-dialog">
+      <Dialog
+        open={confirm}
+        title={t('plan.lock_confirm_title')}
+        description={t('plan.lock_confirm_body')}
+        confirmLabel={t('plan.lock')}
+        confirmVariant="accent"
+        onConfirm={() => void doLock()}
+        onCancel={() => setConfirm(false)}
+        testId="plan-lock-dialog"
+      >
         {summary && (
           // Compact and self-scrolling, so the dialog's buttons stay on screen at 360 px and large text.
           <section className={s.summary} data-testid="plan-summary" aria-label={t('advice.summary.title')} tabIndex={0}>
             <p className={s.sumLine}>
               <strong>{t('advice.summary.title')}:</strong>{' '}
               {[
-                ...(Object.keys(summary.families) as Array<keyof typeof summary.families>).filter((f) => summary.families[f] > 0).map((f) => t(`advice.summary.${f}` as MessageKey, { count: summary.families[f] })),
+                ...(Object.keys(summary.families) as Array<keyof typeof summary.families>)
+                  .filter((f) => summary.families[f] > 0)
+                  .map((f) => t(`advice.summary.${f}` as MessageKey, { count: summary.families[f] })),
                 t('advice.summary.energy', { used: summary.energy.used, budget: summary.energy.budget }),
                 t(`advice.summary.field_${summary.field}` as MessageKey),
               ].join(' · ')}
@@ -417,7 +576,11 @@ export function BowlingPlannerScreen({ conditions, unlocked, onLock, onBack, dea
               </ul>
             )}
             <p className={s.sumLine}>
-              {[t('advice.summary.lengths', summary.lengths), t('advice.summary.lines', { count: summary.lines }), t('advice.summary.super', { variant: t(`variant.${summary.superBall.variant}` as MessageKey) })].join(' · ')}
+              {[
+                t('advice.summary.lengths', summary.lengths),
+                t('advice.summary.lines', { count: summary.lines }),
+                t('advice.summary.super', { variant: t(`variant.${summary.superBall.variant}` as MessageKey) }),
+              ].join(' · ')}
             </p>
             <p className={s.sumNote}>{t('advice.summary.note')}</p>
           </section>

@@ -58,7 +58,16 @@ describe('G9: the bowler keeps his head on the batter from the gather to the rel
         worstShare = Math.min(worstShare, ok / n);
       }
       const share = (x: number[], deg: number) => x.filter((v) => v <= deg).length / x.length;
-      record(`bowler.${name}.headOffBatterDeg`, { draws: 200, frames: withDirector.length, ...stats(withDirector), within10: share(withDirector, 10), within5: share(withDirector, 5), worstDrawWithin10: worstShare, clipOnlyWithin10: share(clipOnly, 10), clipOnlyP50: quantile(clipOnly, 0.5) });
+      record(`bowler.${name}.headOffBatterDeg`, {
+        draws: 200,
+        frames: withDirector.length,
+        ...stats(withDirector),
+        within10: share(withDirector, 10),
+        within5: share(withDirector, 5),
+        worstDrawWithin10: worstShare,
+        clipOnlyWithin10: share(clipOnly, 10),
+        clipOnlyP50: quantile(clipOnly, 0.5),
+      });
       expect(withDirector.length).toBeGreaterThan(5000);
       expect(worstShare).toBeGreaterThanOrEqual(0.9);
       expect(Math.max(...withDirector)).toBeLessThanOrEqual(10);
@@ -93,7 +102,11 @@ describe('the head moves within MOTION-SPEC section 9 (neck and head at most 720
     for (let k = 0; k < 80; k++) {
       for (const role of ['bowler', 'striker'] as const) {
         const d = delivery(randomSpec(r));
-        const a = anchorsFor(d, { role, key: deliveryTakeKey({ seed: 'cap', overIndex: 0, ballIndex: k }), series: k % 2 ? 'pace' : 'pace-late' });
+        const a = anchorsFor(d, {
+          role,
+          key: deliveryTakeKey({ seed: 'cap', overIndex: 0, ballIndex: k }),
+          series: k % 2 ? 'pace' : 'pace-late',
+        });
         const p = prepare(a, { hz: 60 });
         const prev = new Float64Array(3);
         const cur = new Float64Array(3);
@@ -132,7 +145,11 @@ describe('G8: the striker follows the ball that is visible', () => {
         a.clipHead(timeOf(p, i - 1), clip);
         return Math.hypot(y1 - clip[0] - val(p, i - 1, CH.headYaw), p1 - clip[1] - val(p, i - 1, CH.headPitch)) * p.hz;
       };
-      const gazeSpeed = (i: number) => Math.hypot(val(p, i, CH.gazeYaw) - val(p, i - 1, CH.gazeYaw), val(p, i, CH.gazePitch) - val(p, i - 1, CH.gazePitch)) * p.hz;
+      const gazeSpeed = (i: number) =>
+        Math.hypot(
+          val(p, i, CH.gazeYaw) - val(p, i - 1, CH.gazeYaw),
+          val(p, i, CH.gazePitch) - val(p, i - 1, CH.gazePitch),
+        ) * p.hz;
       for (const sc of saccades(p, CH.gazeYaw, CH.gazePitch, 130, 15)) {
         if (sc.v0 >= 40) continue; // from rest (the edge detector leaves about 25 deg/s at the foot of a saccade)
         const i0 = frameOf(p, sc.t);
@@ -156,41 +173,49 @@ describe('G8: the striker follows the ball that is visible', () => {
 
   // P3 (extrapolated pursuit, ruling 4 after P1, and the head's pursuit feed-forward) closes most of the head's lag behind the ball:
   // this test is about the latency itself, so it runs with both off, as it was written (the next test measures them on).
-  it('in flight the head turns with the ball and trails it by its latency: it matches the ball as it was about 350 ms ago, never the ball as it will be', () => withParams({ 'gaze.leadX': 0, 'head.ffX': 0 }, () => {
-    const r = rng(67);
-    const errAt: Record<number, number[]> = {};
-    const ahead: number[] = [];
-    const clip = new Float64Array(3);
-    const b = new Float64Array(3);
-    const b2 = new Float64Array(3);
-    for (let k = 0; k < 100; k++) {
-      const d = delivery(randomSpec(r));
-      const a = anchorsFor(d, { role: 'striker', key: deliveryTakeKey({ seed: 'follow', overIndex: 0, ballIndex: k }) });
-      const p = prepare(a, { hz: 60 });
-      const t = d.timeline;
-      for (let i = frameOf(p, t.release + 300); i <= frameOf(p, (t.contact ?? t.passAt) - 60); i++) {
-        const tm = timeOf(p, i);
-        a.clipHead(tm, clip);
-        const hy = clip[0] + val(p, i, CH.headYaw);
-        const hp = clip[1] + val(p, i, CH.headPitch);
-        for (let lag = 0; lag <= 600; lag += 50) if (a.visibleBall(tm - lag, b)) (errAt[lag] ??= []).push(Math.hypot(hy - b[0], hp - b[1]));
-        // is the head nearer the ball 100 ms from now than the ball now? (a look-ahead would be)
-        if (a.visibleBall(tm, b) && a.visibleBall(tm + 100, b2)) ahead.push(Math.hypot(hy - b2[0], hp - b2[1]) < Math.hypot(hy - b[0], hp - b[1]) ? 1 : 0);
+  it('in flight the head turns with the ball and trails it by its latency: it matches the ball as it was about 350 ms ago, never the ball as it will be', () =>
+    withParams({ 'gaze.leadX': 0, 'head.ffX': 0 }, () => {
+      const r = rng(67);
+      const errAt: Record<number, number[]> = {};
+      const ahead: number[] = [];
+      const clip = new Float64Array(3);
+      const b = new Float64Array(3);
+      const b2 = new Float64Array(3);
+      for (let k = 0; k < 100; k++) {
+        const d = delivery(randomSpec(r));
+        const a = anchorsFor(d, {
+          role: 'striker',
+          key: deliveryTakeKey({ seed: 'follow', overIndex: 0, ballIndex: k }),
+        });
+        const p = prepare(a, { hz: 60 });
+        const t = d.timeline;
+        for (let i = frameOf(p, t.release + 300); i <= frameOf(p, (t.contact ?? t.passAt) - 60); i++) {
+          const tm = timeOf(p, i);
+          a.clipHead(tm, clip);
+          const hy = clip[0] + val(p, i, CH.headYaw);
+          const hp = clip[1] + val(p, i, CH.headPitch);
+          for (let lag = 0; lag <= 600; lag += 50)
+            if (a.visibleBall(tm - lag, b)) (errAt[lag] ??= []).push(Math.hypot(hy - b[0], hp - b[1]));
+          // is the head nearer the ball 100 ms from now than the ball now? (a look-ahead would be)
+          if (a.visibleBall(tm, b) && a.visibleBall(tm + 100, b2))
+            ahead.push(Math.hypot(hy - b2[0], hp - b2[1]) < Math.hypot(hy - b[0], hp - b[1]) ? 1 : 0);
+        }
       }
-    }
-    const table = Object.fromEntries(Object.entries(errAt).map(([lag, v]) => [lag, { n: v.length, p50: quantile(v, 0.5), p95: quantile(v, 0.95) }]));
-    record('striker.headVsBallByLagMs', table);
-    record('striker.headNearerFutureBallShare', mean(ahead));
-    expect(table[0].n).toBeGreaterThan(1000);
-    // the older the ball, the closer the head to it, down to a lag of about 300 ms (the pursuit lag plus the neck's)
-    expect(table[0].p50).toBeGreaterThan(table[100].p50);
-    expect(table[100].p50).toBeGreaterThan(table[200].p50);
-    expect(table[200].p50).toBeGreaterThan(table[300].p50);
-    expect(table[350].p50).toBeLessThanOrEqual(3);
-    expect(table[350].p95).toBeLessThanOrEqual(6);
-    expect(table[0].p50).toBeGreaterThan(3 * table[350].p50); // against the ball as it is now it is clearly further off
-    expect(mean(ahead)).toBeLessThan(0.1);
-  }));
+      const table = Object.fromEntries(
+        Object.entries(errAt).map(([lag, v]) => [lag, { n: v.length, p50: quantile(v, 0.5), p95: quantile(v, 0.95) }]),
+      );
+      record('striker.headVsBallByLagMs', table);
+      record('striker.headNearerFutureBallShare', mean(ahead));
+      expect(table[0].n).toBeGreaterThan(1000);
+      // the older the ball, the closer the head to it, down to a lag of about 300 ms (the pursuit lag plus the neck's)
+      expect(table[0].p50).toBeGreaterThan(table[100].p50);
+      expect(table[100].p50).toBeGreaterThan(table[200].p50);
+      expect(table[200].p50).toBeGreaterThan(table[300].p50);
+      expect(table[350].p50).toBeLessThanOrEqual(3);
+      expect(table[350].p95).toBeLessThanOrEqual(6);
+      expect(table[0].p50).toBeGreaterThan(3 * table[350].p50); // against the ball as it is now it is clearly further off
+      expect(mean(ahead)).toBeLessThan(0.1);
+    }));
 
   it('P3: with the extrapolated pursuit and the head feed-forward the head is far nearer the ball as it is now, and still never ahead of it', () => {
     const measure = (lead: boolean, over: Record<string, number>) =>
@@ -203,7 +228,11 @@ describe('G8: the striker follows the ball that is visible', () => {
         const b2 = new Float64Array(3);
         for (let k = 0; k < 100; k++) {
           const d = delivery(randomSpec(r));
-          const a = anchorsFor(d, { role: 'striker', key: deliveryTakeKey({ seed: 'follow', overIndex: 0, ballIndex: k }), lead });
+          const a = anchorsFor(d, {
+            role: 'striker',
+            key: deliveryTakeKey({ seed: 'follow', overIndex: 0, ballIndex: k }),
+            lead,
+          });
           const p = prepare(a, { hz: 60 });
           const t = d.timeline;
           for (let i = frameOf(p, t.release + 300); i <= frameOf(p, (t.contact ?? t.passAt) - 60); i++) {
@@ -214,7 +243,8 @@ describe('G8: the striker follows the ball that is visible', () => {
             if (!a.visibleBall(tm, b)) continue;
             now.push(Math.hypot(hy - b[0], hp - b[1]));
             // a look-ahead would put the head nearer the ball 100 ms from now than the ball now
-            if (a.visibleBall(tm + 100, b2)) later.push(Math.hypot(hy - b2[0], hp - b2[1]) < Math.hypot(hy - b[0], hp - b[1]) ? 1 : 0);
+            if (a.visibleBall(tm + 100, b2))
+              later.push(Math.hypot(hy - b2[0], hp - b2[1]) < Math.hypot(hy - b[0], hp - b[1]) ? 1 : 0);
           }
         }
         return { now: stats(now), p95: quantile(now, 0.95), nearerLater: mean(later) };

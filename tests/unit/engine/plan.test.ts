@@ -9,7 +9,12 @@ import { ALL_VARIANTS, clone, randomPlan } from './helpers';
 
 const rng = rngFromKey('plan-tests');
 const g = (release = 800 + rng.normal() * 30) => synthExecutionTrace(rng, release);
-const d = (variant: DeliveryPlan['variant'], length: DeliveryPlan['length'], intensity: DeliveryPlan['intensity'] = 2, intent: DeliveryPlan['intent'] = 'contain'): DeliveryPlan => ({
+const d = (
+  variant: DeliveryPlan['variant'],
+  length: DeliveryPlan['length'],
+  intensity: DeliveryPlan['intensity'] = 2,
+  intent: DeliveryPlan['intent'] = 'contain',
+): DeliveryPlan => ({
   variant,
   line: 'off',
   length,
@@ -21,7 +26,14 @@ function stockPlan(): OverPlan {
   return {
     v: 1,
     field: 'balanced',
-    balls: [d('good_length', 'good'), d('yorker', 'full', 1, 'attack'), d('bouncer', 'short', 1, 'setup'), d('offspin', 'good'), d('good_length', 'full'), d('offspin', 'good', 1)],
+    balls: [
+      d('good_length', 'good'),
+      d('yorker', 'full', 1, 'attack'),
+      d('bouncer', 'short', 1, 'setup'),
+      d('offspin', 'good'),
+      d('good_length', 'full'),
+      d('offspin', 'good', 1),
+    ],
     superBall: d('yorker', 'full', 1, 'attack'),
   };
 }
@@ -29,14 +41,33 @@ function stockPlan(): OverPlan {
 describe('energy', () => {
   it('costs base + (intensity − 1), with the express yorker the most expensive ball', () => {
     for (const variant of VARIANTS)
-      for (const intensity of INTENSITIES) expect(engine.energyCost({ variant, line: 'off', length: ALLOWED_LENGTHS[variant][0], intensity, intent: 'attack' })).toBe(ENERGY_BASE[variant] + intensity - 1);
-    expect(engine.energyCost({ variant: 'yorker', line: 'middle', length: 'full', intensity: 3, intent: 'attack' })).toBe(5);
-    expect(engine.energyCost({ variant: 'good_length', line: 'middle', length: 'good', intensity: 1, intent: 'attack' })).toBe(1);
-    expect(engine.energyCost({ variant: 'nope' as DeliveryPlan['variant'], line: 'off', length: 'good', intensity: 2, intent: 'attack' })).toBe(Number.POSITIVE_INFINITY);
+      for (const intensity of INTENSITIES)
+        expect(
+          engine.energyCost({ variant, line: 'off', length: ALLOWED_LENGTHS[variant][0], intensity, intent: 'attack' }),
+        ).toBe(ENERGY_BASE[variant] + intensity - 1);
+    expect(
+      engine.energyCost({ variant: 'yorker', line: 'middle', length: 'full', intensity: 3, intent: 'attack' }),
+    ).toBe(5);
+    expect(
+      engine.energyCost({ variant: 'good_length', line: 'middle', length: 'good', intensity: 1, intent: 'attack' }),
+    ).toBe(1);
+    expect(
+      engine.energyCost({
+        variant: 'nope' as DeliveryPlan['variant'],
+        line: 'off',
+        length: 'good',
+        intensity: 2,
+        intent: 'attack',
+      }),
+    ).toBe(Number.POSITIVE_INFINITY);
   });
 
   it('is budgeted so that the strongest delivery cannot be bowled six times', () => {
-    const strongest = Math.max(...VARIANTS.map((v) => engine.energyCost({ variant: v, line: 'off', length: ALLOWED_LENGTHS[v][0], intensity: 3, intent: 'attack' })));
+    const strongest = Math.max(
+      ...VARIANTS.map((v) =>
+        engine.energyCost({ variant: v, line: 'off', length: ALLOWED_LENGTHS[v][0], intensity: 3, intent: 'attack' }),
+      ),
+    );
     expect(strongest * 6).toBeGreaterThan(engine.OVER_ENERGY_BUDGET);
     expect(engine.OVER_ENERGY_BUDGET).toBe(15);
     expect(SUPER_BALL_ALLOWANCE).toBe(3);
@@ -55,7 +86,8 @@ describe('validatePlan', () => {
   });
 
   it('accepts 500 random legal plans', () => {
-    for (let i = 0; i < 500; i++) expect(engine.validatePlan(randomPlan(rngFromKey(`legal|${i}`)), ALL_VARIANTS).ok).toBe(true);
+    for (let i = 0; i < 500; i++)
+      expect(engine.validatePlan(randomPlan(rngFromKey(`legal|${i}`)), ALL_VARIANTS).ok).toBe(true);
   });
 
   const reject = (mutate: (p: OverPlan) => void, code: string, unlocked = ALL_VARIANTS) => {
@@ -103,8 +135,22 @@ describe('validatePlan', () => {
   });
 
   it('rejects implausible gestures, superhuman consistency and copy-pasted gestures', () => {
-    reject((p) => (p.balls[3].gesture = { pointer: 'touch', samples: [[0, 0.5, 0.5]] }), 'ball3.gesture.too_few_samples');
-    reject((p) => (p.balls[4].gesture = { pointer: 'touch', samples: [[0, 0.5, 0.5], [0, 0.5, 0.4], [800, 0.5, 0.3]] }), 'ball4.gesture.duplicate_timestamp');
+    reject(
+      (p) => (p.balls[3].gesture = { pointer: 'touch', samples: [[0, 0.5, 0.5]] }),
+      'ball3.gesture.too_few_samples',
+    );
+    reject(
+      (p) =>
+        (p.balls[4].gesture = {
+          pointer: 'touch',
+          samples: [
+            [0, 0.5, 0.5],
+            [0, 0.5, 0.4],
+            [800, 0.5, 0.3],
+          ],
+        }),
+      'ball4.gesture.duplicate_timestamp',
+    );
     reject((p) => {
       const all = [...p.balls, p.superBall];
       all.forEach((b, i) => (b.gesture = synthExecutionTrace(rngFromKey(`bull|${i}`), 800 + (i % 2 ? 1 : -1))));

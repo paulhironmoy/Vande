@@ -19,7 +19,14 @@ export function playUiCue(cue: UiCue): void {
   if (isQuiet()) return;
   const g = audible();
   if (!g) return;
-  playSound(g, cue === 'select' ? 'ui_select' : cue === 'confirm' ? 'ui_confirm' : 'seal', g.ctx.currentTime + 0.005, 1, 'interface', now());
+  playSound(
+    g,
+    cue === 'select' ? 'ui_select' : cue === 'confirm' ? 'ui_confirm' : 'seal',
+    g.ctx.currentTime + 0.005,
+    1,
+    'interface',
+    now(),
+  );
 }
 
 export type MasteryEvent = 'mastered' | 'stage_up';

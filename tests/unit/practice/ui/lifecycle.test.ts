@@ -4,14 +4,18 @@ import { loadInnings } from '@/practice/store';
 import { quickPlay, setup, until, useFakeTimers } from './flowSetup';
 
 const cleanups: Array<() => void> = [];
-const flush = async () => { for (let i = 0; i < 5; i++) await Promise.resolve(); };
+const flush = async () => {
+  for (let i = 0; i < 5; i++) await Promise.resolve();
+};
 function native() {
   const callbacks = new Map<string, () => void>();
   const removals = new Map<string, ReturnType<typeof vi.fn>>();
   const app = {
     addListener: vi.fn(async (event: 'pause' | 'resume', callback: () => void) => {
       callbacks.set(event, callback);
-      const remove = vi.fn(async () => { callbacks.delete(event); });
+      const remove = vi.fn(async () => {
+        callbacks.delete(event);
+      });
       removals.set(event, remove);
       return { remove };
     }),
@@ -38,7 +42,12 @@ describe('Practice lifecycle bridge', () => {
     const { flow, store, createStage } = setup();
     const plugin = native();
     cleanups.push(() => flow.dispose());
-    cleanups.push(bindPracticeLifecycle((hidden) => flow.setHidden(hidden), async () => ({ App: plugin.app })));
+    cleanups.push(
+      bindPracticeLifecycle(
+        (hidden) => flow.setHidden(hidden),
+        async () => ({ App: plugin.app }),
+      ),
+    );
     await flush();
     flow.init();
     await quickPlay(flow);
@@ -70,7 +79,12 @@ describe('Practice lifecycle bridge', () => {
     const { flow, createStage } = setup();
     const plugin = native();
     cleanups.push(() => flow.dispose());
-    cleanups.push(bindPracticeLifecycle((hidden) => flow.setHidden(hidden), async () => ({ App: plugin.app })));
+    cleanups.push(
+      bindPracticeLifecycle(
+        (hidden) => flow.setHidden(hidden),
+        async () => ({ App: plugin.app }),
+      ),
+    );
     await flush();
     flow.init();
     await quickPlay(flow);
@@ -133,7 +147,13 @@ describe('Practice lifecycle bridge', () => {
   it('does not register after an import resolves following disposal', async () => {
     const plugin = native();
     let resolve!: (module: { App: typeof plugin.app }) => void;
-    const dispose = bindPracticeLifecycle(vi.fn(), () => new Promise((done) => { resolve = done; }));
+    const dispose = bindPracticeLifecycle(
+      vi.fn(),
+      () =>
+        new Promise((done) => {
+          resolve = done;
+        }),
+    );
     dispose();
     resolve({ App: plugin.app });
     await flush();
@@ -144,12 +164,14 @@ describe('Practice lifecycle bridge', () => {
     const pending: Array<(handle: { remove(): Promise<void> }) => void> = [];
     const hidden = vi.fn();
     const callbacks: Array<() => void> = [];
-    const dispose = bindPracticeLifecycle(hidden, async () => ({ App: {
-      addListener: (_event, callback) => {
-        callbacks.push(callback);
-        return new Promise((resolve) => pending.push(resolve));
+    const dispose = bindPracticeLifecycle(hidden, async () => ({
+      App: {
+        addListener: (_event, callback) => {
+          callbacks.push(callback);
+          return new Promise((resolve) => pending.push(resolve));
+        },
       },
-    } }));
+    }));
     await flush();
     dispose();
     const removals = pending.map((resolve) => {
@@ -166,9 +188,13 @@ describe('Practice lifecycle bridge', () => {
 
   it('never assimilates the native plugin proxy as a Promise thenable', async () => {
     const plugin = native();
-    const then = vi.fn(() => { throw new Error('App.then() is not implemented on android'); });
+    const then = vi.fn(() => {
+      throw new Error('App.then() is not implemented on android');
+    });
     const proxy = new Proxy(plugin.app, {
-      get(target, key, receiver) { return key === 'then' ? then : Reflect.get(target, key, receiver); },
+      get(target, key, receiver) {
+        return key === 'then' ? then : Reflect.get(target, key, receiver);
+      },
     });
     const hidden = vi.fn();
     cleanups.push(bindPracticeLifecycle(hidden, async () => ({ App: proxy })));

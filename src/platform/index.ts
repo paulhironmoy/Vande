@@ -7,7 +7,15 @@
  *   VITE_GOOGLE_CLIENT_ID    Google linking and recovery (web client id)
  *   VITE_PASSKEYS=1          passkeys (also needs the server verifier)
  */
-import type { AdsAdapter, BillingAdapter, DeepLinkSource, IdentityProvider, PushAdapter, SecureStore, ShareAdapter } from '@/contracts';
+import type {
+  AdsAdapter,
+  BillingAdapter,
+  DeepLinkSource,
+  IdentityProvider,
+  PushAdapter,
+  SecureStore,
+  ShareAdapter,
+} from '@/contracts';
 import { createDeepLinkSource } from './deepLinks';
 import { createGoogleIdentityProvider, createPasskeyIdentityProvider } from './identity';
 import { createInstallReferrerSource, nativeInstallReferrer } from './installReferrer';
@@ -66,16 +74,27 @@ export interface PlatformOptions {
  * IndexedDB or memory for the secure store, no install referrer, no launch link) instead of leaving the app on
  * "Setting up the ground". Plugins are only ever passed around boxed (PluginBox in ./capacitor).
  */
-export async function createPlatform(env: Record<string, unknown> = import.meta.env as Record<string, unknown>, opts: PlatformOptions = {}): Promise<Platform> {
+export async function createPlatform(
+  env: Record<string, unknown> = import.meta.env as Record<string, unknown>,
+  opts: PlatformOptions = {},
+): Promise<Platform> {
   const ms = opts.nativeTimeoutMs ?? NATIVE_TIMEOUT_MS;
   const [secureStore, referrerPlugin] = await Promise.all([
     // defaultSecureStore settles by itself; the outer bound is a second line of defence.
     settleWithin(defaultSecureStore(ms), 3 * ms, null).then((s) => s ?? browserSecureStore(ms)),
     settleWithin(nativeInstallReferrer(), ms, null),
   ]);
-  const webOrigins = [String(env.VITE_PUBLIC_WEB_ORIGIN ?? '').replace(/\/+$/, ''), typeof location !== 'undefined' ? location.origin : ''].filter((o) => /^https?:\/\//.test(o));
+  const webOrigins = [
+    String(env.VITE_PUBLIC_WEB_ORIGIN ?? '').replace(/\/+$/, ''),
+    typeof location !== 'undefined' ? location.origin : '',
+  ].filter((o) => /^https?:\/\//.test(o));
   const installs = lateEvent<string>();
-  const referrer = createInstallReferrerSource({ plugin: referrerPlugin?.plugin ?? null, store: secureStore, timeoutMs: ms, onInstall: (code) => installs.emit(code) });
+  const referrer = createInstallReferrerSource({
+    plugin: referrerPlugin?.plugin ?? null,
+    store: secureStore,
+    timeoutMs: ms,
+    onInstall: (code) => installs.emit(code),
+  });
   return {
     secureStore,
     share: createShareAdapter(),
@@ -96,14 +115,34 @@ export async function createPlatform(env: Record<string, unknown> = import.meta.
 export { parseAppLink, createDeepLinkSource } from './deepLinks';
 export type { AppLink } from './deepLinks';
 export { createShareAdapter, whatsappUrl, openWhatsapp } from './share';
-export { createIdbSecureStore, createMemorySecureStore, createNativeSecureStore, defaultSecureStore } from './secureStore';
+export {
+  createIdbSecureStore,
+  createMemorySecureStore,
+  createNativeSecureStore,
+  defaultSecureStore,
+} from './secureStore';
 export { playStoreUrl, parseInstallReferrer, createInstallReferrerSource } from './installReferrer';
 export { createFcmPushAdapter, createMockPushAdapter, createDisabledPushAdapter } from './push';
 export { createGoogleIdentityProvider, createPasskeyIdentityProvider, createMockIdentityProvider } from './identity';
 export { createDisabledAds, createDisabledBilling, createMockAds, createMockBilling, guardAds } from './monetization';
-export { buildShareMessage, canShare, claimMoment, istWhen, localShareLedger, memoryShareLedger, reminderFor, setMomentClaimer, shareMoment } from './shareMoments';
+export {
+  buildShareMessage,
+  canShare,
+  claimMoment,
+  istWhen,
+  localShareLedger,
+  memoryShareLedger,
+  reminderFor,
+  setMomentClaimer,
+  shareMoment,
+} from './shareMoments';
 export type { MomentClaimer, ShareContext, ShareLedger, ShareMoment } from './shareMoments';
 export { isNativePlatform } from './capacitor';
 export { createUnityPracticeBridge, nativeUnityPracticeBridge } from './unityPractice';
-export type { NativeUnityPracticePlugin, UnityPracticeAvailability, UnityPracticeBridge, UnityPracticeNativeError } from './unityPractice';
+export type {
+  NativeUnityPracticePlugin,
+  UnityPracticeAvailability,
+  UnityPracticeBridge,
+  UnityPracticeNativeError,
+} from './unityPractice';
 export { createWebUnityPracticeBridge } from './unityPracticeWeb';

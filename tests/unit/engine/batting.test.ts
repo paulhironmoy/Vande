@@ -11,7 +11,8 @@ const conditions = { pitch: 'green', weather: 'clear' } as const;
 const plan = randomPlan(rngFromKey('batting-plan'));
 const delivery: RevealedDelivery = engine.revealDelivery(plan, 2, conditions);
 const rng = rngFromKey('batting-inputs');
-const good = (): BattingInput => battingInputFor(rng, delivery, 'drive', 'cover', delivery.timing.releaseToContactMs + 10);
+const good = (): BattingInput =>
+  battingInputFor(rng, delivery, 'drive', 'cover', delivery.timing.releaseToContactMs + 10);
 
 const errorsOf = (input: BattingInput, d = delivery) => {
   const r = engine.validateBattingInput(input, d);
@@ -36,7 +37,13 @@ describe('revealDelivery', () => {
     for (const c of CONDITIONS)
       for (const variant of VARIANTS)
         for (const intensity of [1, 2, 3] as const) {
-          const core = { variant, line: 'off' as const, length: variant === 'bouncer' ? ('short' as const) : ('full' as const), intensity, intent: 'attack' as const };
+          const core = {
+            variant,
+            line: 'off' as const,
+            length: variant === 'bouncer' ? ('short' as const) : ('full' as const),
+            intensity,
+            intent: 'attack' as const,
+          };
           const t = deliveryTiming(core, c);
           expect(t.perfectMs).toBeGreaterThan(15);
           expect(t.perfectMs).toBeLessThan(t.goodMs);
@@ -50,8 +57,14 @@ describe('revealDelivery', () => {
           expect(p.bounceAtM).toBeLessThan(20.12);
           expect(p.heightAtBatM).toBeGreaterThan(0);
         }
-    const express = deliveryTiming({ variant: 'yorker', line: 'off', length: 'full', intensity: 3, intent: 'attack' }, conditions);
-    const changeUp = deliveryTiming({ variant: 'yorker', line: 'off', length: 'full', intensity: 1, intent: 'attack' }, conditions);
+    const express = deliveryTiming(
+      { variant: 'yorker', line: 'off', length: 'full', intensity: 3, intent: 'attack' },
+      conditions,
+    );
+    const changeUp = deliveryTiming(
+      { variant: 'yorker', line: 'off', length: 'full', intensity: 1, intent: 'attack' },
+      conditions,
+    );
     expect(express.releaseToContactMs).toBeLessThan(changeUp.releaseToContactMs);
     expect(express.perfectMs).toBeLessThan(changeUp.perfectMs);
   });
@@ -76,7 +89,13 @@ describe('validateBattingInput', () => {
   it('accepts well-formed inputs for every legal shot and zone and returns a clean copy', () => {
     for (const shot of SHOTS)
       for (const zone of LEGAL_ZONES[shot].length ? LEGAL_ZONES[shot] : [null]) {
-        const input = battingInputFor(rng, delivery, shot, zone, shot === 'leave' ? null : delivery.timing.releaseToContactMs);
+        const input = battingInputFor(
+          rng,
+          delivery,
+          shot,
+          zone,
+          shot === 'leave' ? null : delivery.timing.releaseToContactMs,
+        );
         const r = engine.validateBattingInput({ ...input, junk: true } as BattingInput, delivery);
         expect(r.ok, `${shot} ${zone}`).toBe(true);
         if (r.ok) expect(r.input).toEqual(input);
@@ -86,7 +105,9 @@ describe('validateBattingInput', () => {
 
   it('rejects taps before the release and after the window', () => {
     expect(errorsOf({ ...good(), tapMs: -5 })).toContain('input.tap_before_release');
-    expect(errorsOf({ ...good(), tapMs: delivery.timing.releaseToContactMs + LATE_LIMIT_MS + 1, clientElapsedMs: 5000 })).toContain('input.tap_after_window');
+    expect(
+      errorsOf({ ...good(), tapMs: delivery.timing.releaseToContactMs + LATE_LIMIT_MS + 1, clientElapsedMs: 5000 }),
+    ).toContain('input.tap_after_window');
     expect(errorsOf({ ...good(), tapMs: Number.NaN })).toContain('input.tap_invalid');
   });
 
@@ -109,14 +130,45 @@ describe('validateBattingInput', () => {
   it('checks the trace against the shot: present for a tap, no longer than the elapsed time, swipe agrees with the zone', () => {
     expect(errorsOf({ ...good(), trace: { pointer: 'touch', samples: [] } })).toContain('input.trace_missing_tap');
     const g = good();
-    expect(errorsOf({ ...g, clientElapsedMs: g.tapMs as number, trace: { pointer: 'touch', samples: [[0, 0.5, 0.5], [4000, 0.5, 0.5]] } })).toContain('input.trace_longer_than_elapsed');
+    expect(
+      errorsOf({
+        ...g,
+        clientElapsedMs: g.tapMs as number,
+        trace: {
+          pointer: 'touch',
+          samples: [
+            [0, 0.5, 0.5],
+            [4000, 0.5, 0.5],
+          ],
+        },
+      }),
+    ).toContain('input.trace_longer_than_elapsed');
     // A swipe towards fine leg while claiming a cover drive.
     const wrong = battingInputFor(rng, delivery, 'drive', 'cover', delivery.timing.releaseToContactMs);
-    const flipped = { ...wrong, trace: { ...wrong.trace, samples: wrong.trace.samples.map(([t, x, y]) => [t, 1 - x, 1 - y] as [number, number, number]) } };
+    const flipped = {
+      ...wrong,
+      trace: {
+        ...wrong.trace,
+        samples: wrong.trace.samples.map(([t, x, y]) => [t, 1 - x, 1 - y] as [number, number, number]),
+      },
+    };
     expect(errorsOf(flipped)).toContain('input.swipe_zone_mismatch');
     // Keyboard play has no swipe direction to check.
-    expect(errorsOf({ ...flipped, trace: { ...flipped.trace, pointer: 'keyboard' } })).not.toContain('input.swipe_zone_mismatch');
-    expect(errorsOf({ ...good(), trace: { pointer: 'touch', samples: [[0, 0.5, 0.5], [0, 0.5, 0.6]] } })).toContain('input.trace.duplicate_timestamp');
+    expect(errorsOf({ ...flipped, trace: { ...flipped.trace, pointer: 'keyboard' } })).not.toContain(
+      'input.swipe_zone_mismatch',
+    );
+    expect(
+      errorsOf({
+        ...good(),
+        trace: {
+          pointer: 'touch',
+          samples: [
+            [0, 0.5, 0.5],
+            [0, 0.5, 0.6],
+          ],
+        },
+      }),
+    ).toContain('input.trace.duplicate_timestamp');
   });
 });
 
@@ -124,10 +176,16 @@ describe('timingAudit', () => {
   it('flags superhuman, machine-perfect tapping over an innings', () => {
     const pairs = [0, 1, 2, 3, 4, 5].map((b) => {
       const del = engine.revealDelivery(plan, b, conditions);
-      return { delivery: del, input: battingInputFor(rng, del, 'drive', 'cover', del.timing.releaseToContactMs + (b % 2)) };
+      return {
+        delivery: del,
+        input: battingInputFor(rng, del, 'drive', 'cover', del.timing.releaseToContactMs + (b % 2)),
+      };
     });
     expect(timingAudit(pairs).suspicious).toBe(true);
-    const human = pairs.map(({ delivery: del }) => ({ delivery: del, input: battingInputFor(rng, del, 'drive', 'cover', del.timing.releaseToContactMs + rng.normal() * 40) }));
+    const human = pairs.map(({ delivery: del }) => ({
+      delivery: del,
+      input: battingInputFor(rng, del, 'drive', 'cover', del.timing.releaseToContactMs + rng.normal() * 40),
+    }));
     expect(timingAudit(human).bullseyes).toBeLessThan(5);
   });
 });

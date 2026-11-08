@@ -33,16 +33,33 @@ const ARM_BONES = ['upperArmL', 'forearmL', 'handL', 'upperArmR', 'forearmR', 'h
 type ArmBone = (typeof ARM_BONES)[number];
 
 /** The drawn arm bones of the striker standing between balls: [frame][bone] local rotations, from `fromS` to `toS` seconds of the scene. */
-function standingArms(bowler: BowlerProfile, hand: Handedness, fps: number, fromS: number, toS: number): Quaternion[][] {
+function standingArms(
+  bowler: BowlerProfile,
+  hand: Handedness,
+  fps: number,
+  fromS: number,
+  toS: number,
+): Quaternion[][] {
   const field = autoField(bowler, 'balanced', hand);
   const setup = { field, bowler, conditions: 'balanced' as const, handedness: hand };
-  const script = buildPracticeScript({ setup, flight: null, releaseHand: measureReleaseBall(stubStage(), bowler, KITS_BOTH) as never });
+  const script = buildPracticeScript({
+    setup,
+    flight: null,
+    releaseHand: measureReleaseBall(stubStage(), bowler, KITS_BOTH) as never,
+  });
   // The Director's scene between balls (ThreePracticeStage.setScene registers it as 'idle'), its plans whole.
   const director = new DirectorRuntime();
   director.register(script, 'idle', null);
   director.finish(script);
-  const proto = ThreePracticeStage.prototype as unknown as { poseHooks(s: unknown, p: unknown): never; cueHook: unknown };
-  const hook = proto.poseHooks.call({ hookCache: new WeakMap(), reducedMotion: false, cueHook: proto.cueHook, director }, script, script.practice!);
+  const proto = ThreePracticeStage.prototype as unknown as {
+    poseHooks(s: unknown, p: unknown): never;
+    cueHook: unknown;
+  };
+  const hook = proto.poseHooks.call(
+    { hookCache: new WeakMap(), reducedMotion: false, cueHook: proto.cueHook, director },
+    script,
+    script.practice!,
+  );
   const striker = script.actors.find((a) => a.id === 'striker')!;
   const hidden = new Set(script.actors.filter((a) => a.id !== 'striker').map((a) => a.id));
   const cam = { pos: { x: 0, y: 1.7, z: 12 }, target: { x: 0, y: 1, z: 0 }, fov: 30 } as never;
@@ -53,7 +70,15 @@ function standingArms(bowler: BowlerProfile, hand: Handedness, fps: number, from
   for (let k = 0; k * dt <= toS * 1000 + 1e-6; k++) {
     const t = k * dt;
     const bat = externalBatPose(script.practice!.bat, striker, t, stage.rigOf('striker')?.scale ?? 1);
-    stage.drawScript(script, t, cam, { kits: KITS_BOTH, slow: false, clockMs: t, reducedMotion: false, hidden, bat: bat ? { actor: 'striker', pose: bat } : null, poseHook: hook });
+    stage.drawScript(script, t, cam, {
+      kits: KITS_BOTH,
+      slow: false,
+      clockMs: t,
+      reducedMotion: false,
+      hidden,
+      bat: bat ? { actor: 'striker', pose: bat } : null,
+      poseHook: hook,
+    });
     if (t < fromS * 1000 - 1e-6) continue;
     const rig = stage.rigOf('striker')!;
     out.push(index.map((i) => rig.bones[i].quaternion.clone()));
@@ -66,7 +91,9 @@ const DEG = 180 / Math.PI;
 /** The mean rotation of the six arm bones (deg/s per bone): the sum of their one-frame turns over the time. */
 function meanRate(frames: Quaternion[][], fps: number): number {
   let sum = 0;
-  for (let k = 1; k < frames.length; k++) for (let b = 0; b < ARM_BONES.length; b++) sum += 2 * Math.acos(Math.min(1, Math.abs(frames[k - 1][b].dot(frames[k][b])))) * DEG;
+  for (let k = 1; k < frames.length; k++)
+    for (let b = 0; b < ARM_BONES.length; b++)
+      sum += 2 * Math.acos(Math.min(1, Math.abs(frames[k - 1][b].dot(frames[k][b])))) * DEG;
   return (sum / (frames.length - 1) / ARM_BONES.length) * fps;
 }
 
@@ -89,12 +116,18 @@ function turnChange(frames: Quaternion[][], bone: ArmBone): number {
   const mid = frames[frames.length >> 1][b];
   const r = frames.map((f) => rotationAbout(mid, f[b]));
   let sum = 0;
-  for (let k = 1; k < r.length - 1; k++) sum += r[k + 1].clone().sub(r[k].clone().multiplyScalar(2)).add(r[k - 1]).length();
+  for (let k = 1; k < r.length - 1; k++)
+    sum += r[k + 1]
+      .clone()
+      .sub(r[k].clone().multiplyScalar(2))
+      .add(r[k - 1])
+      .length();
   return sum / (r.length - 2);
 }
 
 /** The arm of the top hand (the left of a right-hander, the right of a left-hander). */
-const topArm = (hand: Handedness): { upper: ArmBone; hand: ArmBone } => (hand === 'right' ? { upper: 'upperArmL', hand: 'handL' } : { upper: 'upperArmR', hand: 'handR' });
+const topArm = (hand: Handedness): { upper: ArmBone; hand: ArmBone } =>
+  hand === 'right' ? { upper: 'upperArmL', hand: 'handL' } : { upper: 'upperArmR', hand: 'handR' };
 
 const PACE: BowlerProfile = { family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'idle-arms-a' };
 const SPIN: BowlerProfile = { family: 'spin', spinType: 'finger', arm: 'right', lookSeed: 'idle-arms-f' };
@@ -106,7 +139,7 @@ const SCENES: Array<[string, BowlerProfile, Handedness]> = [
   ['spin, left-hander', { ...SPIN, lookSeed: 'idle-arms-g' }, 'left'],
 ];
 
-describe('IDLE-ARMS: the standing batter\'s arms between balls', () => {
+describe("IDLE-ARMS: the standing batter's arms between balls", () => {
   it('turn no more than 11 deg/s per bone and have no ripple (they rippled: 12.5–15.2 deg/s, the top upper arm 0.44–0.48 and the top glove 1.0–1.2 deg/frame² of change in the turn; fixed: 6.8–9.5, 0.07–0.11, 0.19–0.43)', async () => {
     await withPacks(() => {
       for (const [name, bowler, hand] of SCENES) {

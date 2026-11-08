@@ -110,7 +110,9 @@ function gradeOf(q: number): ExecutionGrade {
   return q >= METER.perfectQuality ? 'perfect' : q >= METER.goodQuality ? 'good' : 'loose';
 }
 
-export function executionQuality(trace: InputTrace): { ok: true; quality: number; grade: ExecutionGrade } | { ok: false; errors: string[] } {
+export function executionQuality(
+  trace: InputTrace,
+): { ok: true; quality: number; grade: ExecutionGrade } | { ok: false; errors: string[] } {
   const errors = checkTrace(trace, 'execution');
   if (errors.length) return { ok: false, errors };
   return { ok: true, ...qualityFromRelease(releaseMs(trace)) };
@@ -198,7 +200,14 @@ export function synthExecutionTrace(rng: Sfc32, release: number, pointer: Pointe
   }
   x += (rng.float() - 0.5) * 0.006;
   samples.push([end, round(x, 4), round(Math.max(0.05, y - 0.01), 4)]);
-  if (pointer === 'keyboard') return { pointer, samples: [[0, 0.5, 0.5], [end, 0.5, 0.5]] };
+  if (pointer === 'keyboard')
+    return {
+      pointer,
+      samples: [
+        [0, 0.5, 0.5],
+        [end, 0.5, 0.5],
+      ],
+    };
   return { pointer, samples };
 }
 
@@ -211,7 +220,11 @@ export function synthBattingTrace(rng: Sfc32, zone: FieldZone | null, durationMs
   if (!zone) {
     const end = round(Math.max(45, Math.min(160, durationMs)), 1);
     samples.push([0, round(x0, 4), round(y0, 4)]);
-    samples.push([round(end * (0.45 + rng.float() * 0.1), 1), round(x0 + (rng.float() - 0.5) * 0.004, 4), round(y0 + (rng.float() - 0.5) * 0.004, 4)]);
+    samples.push([
+      round(end * (0.45 + rng.float() * 0.1), 1),
+      round(x0 + (rng.float() - 0.5) * 0.004, 4),
+      round(y0 + (rng.float() - 0.5) * 0.004, 4),
+    ]);
     samples.push([end, round(x0 + (rng.float() - 0.5) * 0.004, 4), round(y0 + (rng.float() - 0.5) * 0.004, 4)]);
     return { pointer: 'touch', samples };
   }
@@ -228,6 +241,7 @@ export function synthBattingTrace(rng: Sfc32, zone: FieldZone | null, durationMs
     const ny = y0 + v.dy * len * ease + (rng.float() - 0.5) * 0.006;
     samples.push([t, round(Math.min(1, Math.max(0, nx)), 4), round(Math.min(1, Math.max(0, ny)), 4)]);
   }
-  for (let i = 1; i < samples.length; i++) if (samples[i][0] <= samples[i - 1][0]) samples[i][0] = round(samples[i - 1][0] + 1, 1);
+  for (let i = 1; i < samples.length; i++)
+    if (samples[i][0] <= samples[i - 1][0]) samples[i][0] = round(samples[i - 1][0] + 1, 1);
   return { pointer: 'touch', samples };
 }

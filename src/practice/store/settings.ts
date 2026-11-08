@@ -60,7 +60,8 @@ export function loadPracticeSettings(store: KeyStore | null = localStore()): Pra
   const raw = readJson(store, PRACTICE_KEYS.settings);
   if (!isObj(raw)) return { ...DEFAULT_PRACTICE_SETTINGS };
   const d = DEFAULT_PRACTICE_SETTINGS;
-  const pick = <T,>(v: unknown, allowed: readonly T[], fallback: T): T => (allowed.includes(v as T) ? (v as T) : fallback);
+  const pick = <T>(v: unknown, allowed: readonly T[], fallback: T): T =>
+    allowed.includes(v as T) ? (v as T) : fallback;
   return {
     v: 1,
     assist: pick(raw.assist, ASSISTS, d.assist),
@@ -71,7 +72,8 @@ export function loadPracticeSettings(store: KeyStore | null = localStore()): Pra
     bowling: pick(raw.bowling, BOWLING, d.bowling),
     learnCue: typeof raw.learnCue === 'boolean' ? raw.learnCue : d.learnCue,
     focusAid: raw.focusAid === true,
-    hintsShown: Number.isInteger(raw.hintsShown) && (raw.hintsShown as number) >= 0 ? Math.min(99, raw.hintsShown as number) : 0,
+    hintsShown:
+      Number.isInteger(raw.hintsShown) && (raw.hintsShown as number) >= 0 ? Math.min(99, raw.hintsShown as number) : 0,
     teach: raw.teach !== false,
     demoSeen: raw.demoSeen === true,
   };
@@ -81,7 +83,10 @@ function savePracticeSettings(next: PracticeSettings, store: KeyStore | null = l
   writeJson(store, PRACTICE_KEYS.settings, next);
 }
 
-export function updatePracticeSettings(patch: Partial<Omit<PracticeSettings, 'v'>>, store: KeyStore | null = localStore()): PracticeSettings {
+export function updatePracticeSettings(
+  patch: Partial<Omit<PracticeSettings, 'v'>>,
+  store: KeyStore | null = localStore(),
+): PracticeSettings {
   const next = { ...loadPracticeSettings(store), ...patch, v: 1 as const };
   savePracticeSettings(next, store);
   return next;

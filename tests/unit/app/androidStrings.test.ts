@@ -5,7 +5,11 @@ import messages from '../../../backend/src/ops/messages.ts?raw';
  * FCM sends only localisation keys (backend/src/ops/push.ts), so every notification kind needs its title and body in
  * every Android locale, or the device shows nothing useful.
  */
-const files = import.meta.glob<string>('/android/app/src/main/res/values*/strings.xml', { query: '?raw', import: 'default', eager: true });
+const files = import.meta.glob<string>('/android/app/src/main/res/values*/strings.xml', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
 const union = /export type NotifyKind =([^;]+);/.exec(messages)?.[1] ?? '';
 const kinds = [...union.matchAll(/'([a-z0-9_]+)'/g)].map((m) => m[1]);
 const locales = Object.keys(files)
@@ -15,7 +19,20 @@ const locales = Object.keys(files)
 describe('Android push strings', () => {
   it('finds the notification kinds and the locale folders', () => {
     expect(kinds.length).toBeGreaterThanOrEqual(11);
-    expect(locales).toEqual(expect.arrayContaining(['values', 'values-hi', 'values-bn', 'values-te', 'values-mr', 'values-ta', 'values-gu', 'values-kn', 'values-ml', 'values-pa']));
+    expect(locales).toEqual(
+      expect.arrayContaining([
+        'values',
+        'values-hi',
+        'values-bn',
+        'values-te',
+        'values-mr',
+        'values-ta',
+        'values-gu',
+        'values-kn',
+        'values-ml',
+        'values-pa',
+      ]),
+    );
   });
 
   for (const [path, xml] of Object.entries(files)) {

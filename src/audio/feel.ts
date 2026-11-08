@@ -55,14 +55,50 @@ export const FEEL_PATTERNS: Readonly<Record<FeelPattern, FeelSpec>> = {
   tick: { web: [10], native: [[0, 'light']], ms: 10 },
   soft: { web: [16], native: [[0, 'light']], ms: 16 },
   pulse: { web: [24], native: [[0, 'medium']], ms: 24 },
-  double: { web: [32, 70, 14], native: [[0, 'heavy'], [102, 'light']], ms: 116 },
+  double: {
+    web: [32, 70, 14],
+    native: [
+      [0, 'heavy'],
+      [102, 'light'],
+    ],
+    ms: 116,
+  },
   tap: { web: [12], native: [[0, 'light']], ms: 12 },
   restrained: { web: [8], native: [[0, 'light']], ms: 8 },
   sharp: { web: [22], native: [[0, 'heavy']], ms: 22 },
-  decisive: { web: [40, 80, 24], native: [[0, 'heavy'], [120, 'medium']], ms: 144 },
-  confirm: { web: [14, 70, 14], native: [[0, 'medium'], [100, 'light']], ms: 98 },
-  confirm_strong: { web: [24, 70, 24, 70, 14], native: [[0, 'heavy'], [110, 'medium'], [220, 'light']], ms: 202 },
-  mastery: { web: [8, 90, 8], native: [[0, 'light'], [110, 'light']], ms: 106 },
+  decisive: {
+    web: [40, 80, 24],
+    native: [
+      [0, 'heavy'],
+      [120, 'medium'],
+    ],
+    ms: 144,
+  },
+  confirm: {
+    web: [14, 70, 14],
+    native: [
+      [0, 'medium'],
+      [100, 'light'],
+    ],
+    ms: 98,
+  },
+  confirm_strong: {
+    web: [24, 70, 24, 70, 14],
+    native: [
+      [0, 'heavy'],
+      [110, 'medium'],
+      [220, 'light'],
+    ],
+    ms: 202,
+  },
+  mastery: {
+    web: [8, 90, 8],
+    native: [
+      [0, 'light'],
+      [110, 'light'],
+    ],
+    ms: 106,
+  },
 };
 
 /** The least quiet time between the end of one pattern and the start of the next. */
@@ -102,7 +138,12 @@ export interface FeelScheduler {
  * Plays patterns no closer than FEEL_GAP_MS apart: a pattern asked for too soon waits; a newer one replaces any
  * pattern still waiting (the latest outcome is the true one). Pure apart from the injected clock and timer.
  */
-export function createFeelScheduler(deps: { now(): number; setTimer(fn: () => void, ms: number): unknown; clearTimer(id: unknown): void; emit(pattern: FeelPattern): void }): FeelScheduler {
+export function createFeelScheduler(deps: {
+  now(): number;
+  setTimer(fn: () => void, ms: number): unknown;
+  clearTimer(id: unknown): void;
+  emit(pattern: FeelPattern): void;
+}): FeelScheduler {
   let playedUntil = Number.NEGATIVE_INFINITY;
   let waiting: unknown = null;
   let pending: FeelPattern | null = null;

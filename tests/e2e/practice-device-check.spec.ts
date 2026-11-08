@@ -7,7 +7,18 @@
  * renderer alike.
  */
 import { expect, test, type Page } from '@playwright/test';
-import { GPU_ARGS, block, openPractice, perfect, queue, seen, state, toOverSummary, waitFor, type HookState } from './practice-helpers';
+import {
+  GPU_ARGS,
+  block,
+  openPractice,
+  perfect,
+  queue,
+  seen,
+  state,
+  toOverSummary,
+  waitFor,
+  type HookState,
+} from './practice-helpers';
 
 test.use({ ...GPU_ARGS, viewport: { width: 915, height: 412 }, hasTouch: true });
 
@@ -16,7 +27,9 @@ async function batOver(page: Page): Promise<HookState> {
   await queue(page, perfect(10), block(), perfect(-25), block(), perfect(35), block());
   // Read inside the page the moment the first ball is dead (it continues by itself soon after).
   const first = await page.evaluate(async () => {
-    const api = (window as unknown as { __vandePractice: { waitFor(x: string[], t: number): Promise<boolean>; state(): unknown } }).__vandePractice;
+    const api = (
+      window as unknown as { __vandePractice: { waitFor(x: string[], t: number): Promise<boolean>; state(): unknown } }
+    ).__vandePractice;
     await api.waitFor(['dead'], 240_000);
     return api.state() as HookState;
   });
@@ -24,9 +37,15 @@ async function batOver(page: Page): Promise<HookState> {
   return first;
 }
 
-test('a first session on the real device check: Play at once, the demonstration, two complete overs', async ({ page }) => {
+test('a first session on the real device check: Play at once, the demonstration, two complete overs', async ({
+  page,
+}) => {
   test.setTimeout(600_000);
-  await openPractice(page, { benchmarkMs: 1400, timeScale: 2, autoNext: true, seed: 'e2e-device-check' }, { teach: true });
+  await openPractice(
+    page,
+    { benchmarkMs: 1400, timeScale: 2, autoNext: true, seed: 'e2e-device-check' },
+    { teach: true },
+  );
   await page.getByTestId('practice-random').click();
   await expect(page.getByTestId('practice-setup')).toBeVisible({ timeout: 45_000 });
   // At once: the device check has not finished.

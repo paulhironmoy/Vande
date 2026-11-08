@@ -111,7 +111,11 @@ export function defaultPlan(script: BallScript, reducedMotion: boolean): Directo
         push('broadcast_end', pre, contact - 220);
         push('side_on', contact - 220, decisive + 700);
       }
-      push('celebration', fate.wicket === 'caught' ? decisive + 700 : fate.wicket === 'bowled' ? decisive + 900 : decisive + 800, end);
+      push(
+        'celebration',
+        fate.wicket === 'caught' ? decisive + 700 : fate.wicket === 'bowled' ? decisive + 900 : decisive + 800,
+        end,
+      );
       break;
     }
     default:
@@ -136,11 +140,15 @@ export function planFor(script: BallScript, reducedMotion: boolean): DirectorCue
   if (!cues || cues.length === 0) return defaultPlan(script, reducedMotion);
   if (!reducedMotion) return cues;
   // Reduced motion: no tracking orbits or follow-cams.
-  return cues.map((c) => ({ ...c, shot: c.shot === 'bowler_follow' || c.shot === 'aerial' ? 'broadcast_end' : c.shot === 'celebration' ? 'crowd' : c.shot }));
+  return cues.map((c) => ({
+    ...c,
+    shot:
+      c.shot === 'bowler_follow' || c.shot === 'aerial' ? 'broadcast_end' : c.shot === 'celebration' ? 'crowd' : c.shot,
+  }));
 }
 
 function vfov(fovH: number, aspect: number, minV: number, maxV: number): number {
-  const v = 2 * Math.atan(Math.tan((fovH * DEG) / 2) / Math.max(0.2, aspect)) / DEG;
+  const v = (2 * Math.atan(Math.tan((fovH * DEG) / 2) / Math.max(0.2, aspect))) / DEG;
   return clamp(v, minV, maxV);
 }
 
@@ -163,7 +171,13 @@ function smoothBall(script: BallScript, t: number): Vec3 {
 }
 
 /** Pose for one shot at scene time t (cue-local time drives pans and orbits). */
-export function shotPose(shot: DirectorShot, script: BallScript, t: number, cueStart: number, ctx: DirectorContext): CameraPose {
+export function shotPose(
+  shot: DirectorShot,
+  script: BallScript,
+  t: number,
+  cueStart: number,
+  ctx: DirectorContext,
+): CameraPose {
   const local = t - cueStart;
   const aspect = ctx.aspect;
   const portrait = aspect < 0.9;
@@ -183,14 +197,27 @@ export function shotPose(shot: DirectorShot, script: BallScript, t: number, cueS
     case 'batting_pov': {
       const push = ctx.reducedMotion ? 0 : smoothstep(0, script.times.release, t) * 0.8;
       // Portrait phones: a step closer and narrower, so the bowler and the pitch fill the frame instead of the sky.
-      if (portrait) return { pos: v3(-0.7, 2.25, PITCH_HALF + 4.6 - push), target: v3(0.05, 0.95, -8), fov: vfov(39, aspect, 32, 58) };
-      return { pos: v3(-0.75, 2.45, PITCH_HALF + 5.6 - push), target: v3(0.05, 0.85, -7), fov: vfov(40, aspect, 34, 66) };
+      if (portrait)
+        return {
+          pos: v3(-0.7, 2.25, PITCH_HALF + 4.6 - push),
+          target: v3(0.05, 0.95, -8),
+          fov: vfov(39, aspect, 32, 58),
+        };
+      return {
+        pos: v3(-0.75, 2.45, PITCH_HALF + 5.6 - push),
+        target: v3(0.05, 0.85, -7),
+        fov: vfov(40, aspect, 34, 66),
+      };
     }
     case 'broadcast_end': {
       const ball = sampleBall(script, t).pos;
       const follow = clamp(ball.x * 0.25, -0.6, 0.6);
       const pos = portrait ? v3(0.7 + follow, 10.5, -36) : v3(0.6 + follow, 6.2, -38);
-      return { pos, target: v3(follow * 0.5, portrait ? 0.2 : 0.9, portrait ? 3.2 : 6.5), fov: vfov(portrait ? 14.5 : 12.5, aspect, 7, 40) };
+      return {
+        pos,
+        target: v3(follow * 0.5, portrait ? 0.2 : 0.9, portrait ? 3.2 : 6.5),
+        fov: vfov(portrait ? 14.5 : 12.5, aspect, 7, 40),
+      };
     }
     case 'bowler_follow': {
       const b = actorPos(script, 'bowler', t);
@@ -201,8 +228,17 @@ export function shotPose(shot: DirectorShot, script: BallScript, t: number, cueS
     case 'batter_close': {
       const s = actorPos(script, 'striker', t);
       const drift = ctx.reducedMotion ? 0 : local * 0.00012;
-      if (portrait) return { pos: add(s, v3(2.6 - drift, 1.6, -4.3)), target: add(s, v3(0.2, 1.1, 0)), fov: vfov(28, aspect, 20, 54) };
-      return { pos: add(s, v3(2.4 - drift, 1.45, -4.1)), target: add(s, v3(0.2, 1.0, 0)), fov: vfov(30, aspect, 20, 60) };
+      if (portrait)
+        return {
+          pos: add(s, v3(2.6 - drift, 1.6, -4.3)),
+          target: add(s, v3(0.2, 1.1, 0)),
+          fov: vfov(28, aspect, 20, 54),
+        };
+      return {
+        pos: add(s, v3(2.4 - drift, 1.45, -4.1)),
+        target: add(s, v3(0.2, 1.0, 0)),
+        fov: vfov(30, aspect, 20, 60),
+      };
     }
     case 'side_on': {
       const runOut = script.fate.kind === 'wicket' && script.fate.wicket === 'run_out';
@@ -221,13 +257,21 @@ export function shotPose(shot: DirectorShot, script: BallScript, t: number, cueS
       return { pos: v3(21, 1.5, z), target: v3(0, 0.75, z), fov: vfov(48, aspect, 22, 72) };
     }
     case 'stump_cam': {
-      return { pos: v3(0.32, 0.42, PITCH_HALF + 1.6), target: v3(-0.05, 0.75, -6), fov: vfov(portrait ? 58 : 54, aspect, 36, 80) };
+      return {
+        pos: v3(0.32, 0.42, PITCH_HALF + 1.6),
+        target: v3(-0.05, 0.75, -6),
+        fov: vfov(portrait ? 58 : 54, aspect, 36, 80),
+      };
     }
     case 'aerial': {
       const a = 0.7 + (ctx.reducedMotion ? 0 : t * 0.00009);
       // Portrait: lower and closer, the square and the players rather than the whole bowl.
       const r = portrait ? 40 : 74;
-      return { pos: v3(Math.cos(a) * r, portrait ? 30 : 44, Math.sin(a) * r), target: v3(0, 0, 1), fov: vfov(portrait ? 44 : 56, aspect, 30, 70) };
+      return {
+        pos: v3(Math.cos(a) * r, portrait ? 30 : 44, Math.sin(a) * r),
+        target: v3(0, 0, 1),
+        fov: vfov(portrait ? 44 : 56, aspect, 30, 70),
+      };
     }
     case 'fielder_follow': {
       const ball = smoothBall(script, t);
@@ -240,7 +284,11 @@ export function shotPose(shot: DirectorShot, script: BallScript, t: number, cueS
       // narrower, so the ball and the chasing fielder fill the frame.
       const back = portrait ? 15 + dl * 0.2 : 22 + dl * 0.25;
       const side = portrait ? 2.5 : 4;
-      const pos = v3(from.x - ux * back + uz * side, (portrait ? 8 : 11) + dl * (portrait ? 0.12 : 0.16), from.z - uz * back - ux * side);
+      const pos = v3(
+        from.x - ux * back + uz * side,
+        (portrait ? 8 : 11) + dl * (portrait ? 0.12 : 0.16),
+        from.z - uz * back - ux * side,
+      );
       const target = lerpV(ball, v3(ball.x, 0.5, ball.z), 0.4);
       const fovH = clamp(46 - dl * 0.32, 22, 46);
       return { pos, target, fov: vfov(portrait ? fovH - 6 : fovH, aspect, 16, 58) };
@@ -256,7 +304,11 @@ export function shotPose(shot: DirectorShot, script: BallScript, t: number, cueS
         const ease = ctx.reducedMotion ? 0 : Math.min(1, local / 4000);
         const r = 6.2 - ease * 0.9;
         const a = facing + ease * 0.12;
-        return { pos: add(h, v3(Math.sin(a) * r, 1.8, Math.cos(a) * r)), target: add(h, v3(0, 1.1, 0)), fov: vfov(30, aspect, 20, 56) };
+        return {
+          pos: add(h, v3(Math.sin(a) * r, 1.8, Math.cos(a) * r)),
+          target: add(h, v3(0, 1.1, 0)),
+          fov: vfov(30, aspect, 20, 56),
+        };
       }
       const bearing = (script.shotBearing ?? 30) * DEG;
       const pan = ctx.reducedMotion ? 0 : (local * 0.00003) % 0.3;
@@ -274,14 +326,22 @@ export function shotPose(shot: DirectorShot, script: BallScript, t: number, cueS
       const from = portrait ? v3(0.9, 13, -34) : v3(0.9, 10, -32);
       const to = portrait ? v3(0.5, 5.6, -16) : v3(0.5, 4.4, -17);
       const target = lerpV(v3(0, 0.6, 3), v3(0, 1.0, PITCH_HALF - 1.5), u);
-      return { pos: lerpV(from, to, u), target, fov: vfov(lerp(portrait ? 30 : 26, portrait ? 22 : 18, u), aspect, 12, 56) };
+      return {
+        pos: lerpV(from, to, u),
+        target,
+        fov: vfov(lerp(portrait ? 30 : 26, portrait ? 22 : 18, u), aspect, 12, 56),
+      };
     }
     case 'celebration': {
       const hero = script.heroes[0] ?? 'bowler';
       const h = actorPos(script, hero, t);
       const a = (ctx.reducedMotion ? 0.8 : 0.8 + local * 0.00026) + (hero === 'striker' ? Math.PI : 0);
       const r = (hero === 'bowler' ? 8.5 : 5.2) * (portrait ? 0.8 : 1);
-      return { pos: add(h, v3(Math.cos(a) * r, hero === 'bowler' ? 3.1 : 1.9, Math.sin(a) * r)), target: add(h, v3(0, 1.05, 0)), fov: vfov(portrait ? 38 : 38, aspect, 26, 60) };
+      return {
+        pos: add(h, v3(Math.cos(a) * r, hero === 'bowler' ? 3.1 : 1.9, Math.sin(a) * r)),
+        target: add(h, v3(0, 1.05, 0)),
+        fov: vfov(portrait ? 38 : 38, aspect, 26, 60),
+      };
     }
   }
 }
@@ -301,7 +361,12 @@ function shake(script: BallScript, t: number): Vec3 {
   return v3(x, y, 0);
 }
 
-export function cameraAt(script: BallScript, t: number, cues: readonly DirectorCue[], ctx: DirectorContext): CameraPose & { shot: DirectorShot } {
+export function cameraAt(
+  script: BallScript,
+  t: number,
+  cues: readonly DirectorCue[],
+  ctx: DirectorContext,
+): CameraPose & { shot: DirectorShot } {
   const cue = cueAt(cues, t) ?? { shot: 'broadcast_end' as DirectorShot, atMs: 0, durationMs: script.duration };
   const pose = shotPose(cue.shot, script, t, cue.atMs, ctx);
   // Practice keeps a stable camera: no impact shake (the contact is felt through sound and haptics).
@@ -436,7 +501,8 @@ const unit = (x: number, y: number, z: number): Vec3 => {
   return v3(x / l, y / l, z / l);
 };
 const yawPitchOf = (d: Vec3) => ({ yaw: Math.atan2(d.x, -d.z), pitch: Math.asin(clamp(d.y, -1, 1)) });
-const fromYawPitch = (yaw: number, pitch: number): Vec3 => v3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
+const fromYawPitch = (yaw: number, pitch: number): Vec3 =>
+  v3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
 const wrap = (a: number) => {
   let d = a % (Math.PI * 2);
   if (d > Math.PI) d -= Math.PI * 2;
@@ -506,7 +572,10 @@ export function gazeTrackWeight(distM: number, reducedMotion: boolean): number {
   return weightWith(far, close, distM);
 }
 function weightWith(far: number, close: number, distM: number): number {
-  return (far + (close - far) * smoothstep(GAZE.closeFarM, GAZE.closeNearM, distM)) * smoothstep(GAZE.rampFarM, GAZE.rampNearM, distM);
+  return (
+    (far + (close - far) * smoothstep(GAZE.closeFarM, GAZE.closeNearM, distM)) *
+    smoothstep(GAZE.rampFarM, GAZE.rampNearM, distM)
+  );
 }
 
 // Rotation vectors (axis × angle, radians) between unit directions, for the comfort limits.
@@ -580,7 +649,11 @@ function gazeOf(table: GazeTable, t: number): Vec3 {
   const u = Math.min(1, x - i);
   const k = table.knot;
   if (k && i === k.index - 1) {
-    if (t < k.t) return fromYawPitch(table.yaw[i] + wrap(k.nextYaw - table.yaw[i]) * u, table.pitch[i] + (k.nextPitch - table.pitch[i]) * u);
+    if (t < k.t)
+      return fromYawPitch(
+        table.yaw[i] + wrap(k.nextYaw - table.yaw[i]) * u,
+        table.pitch[i] + (k.nextPitch - table.pitch[i]) * u,
+      );
     const v = Math.min(1, (t - k.t) / (table.from + k.index * GAZE.stepMs - k.t));
     return fromYawPitch(k.yaw + wrap(table.yaw[k.index] - k.yaw) * v, k.pitch + (table.pitch[k.index] - k.pitch) * v);
   }
@@ -666,15 +739,38 @@ class PeakScan {
     const { from, n } = src;
     const tableEnd = from + (n - 1) * this.dt;
     const ideal = Math.min(tableEnd, p.flight ? simToScene(p, p.flight.idealContactT) : p.releaseScene);
-    const fp = Math.min(tableEnd, Number.isFinite(p.firstPersonUntil) ? Math.min(p.firstPersonUntil, script.duration) : script.duration);
+    const fp = Math.min(
+      tableEnd,
+      Number.isFinite(p.firstPersonUntil) ? Math.min(p.firstPersonUntil, script.duration) : script.duration,
+    );
     const zero = () => [0, 0, 0, 0];
-    this.pk = { from, ideal, fp, gridTurn: zero(), yawPitch: zero(), gridChange: zero(), frameTurn: GAZE.comfortFrameMs.map(zero), frameChange: GAZE.comfortFrameMs.map(zero), frameTurnAll: GAZE.comfortFrameMs.map(zero), frameChangeAll: GAZE.comfortFrameMs.map(zero) };
+    this.pk = {
+      from,
+      ideal,
+      fp,
+      gridTurn: zero(),
+      yawPitch: zero(),
+      gridChange: zero(),
+      frameTurn: GAZE.comfortFrameMs.map(zero),
+      frameChange: GAZE.comfortFrameMs.map(zero),
+      frameTurnAll: GAZE.comfortFrameMs.map(zero),
+      frameChangeAll: GAZE.comfortFrameMs.map(zero),
+    };
     this.gPrevDir = fromYawPitch(src.yaw(0), src.pitch(0));
     GAZE.comfortFrameMs.forEach((F, ri) => {
       const phases = fine ? GAZE.comfortPhasesFine : GAZE.comfortPhases;
       const per = phases / GAZE.comfortPhases;
       const end = fine ? Math.min(tableEnd, fp + 2 * F) : tableEnd;
-      for (let k = 0; k < phases; k++) this.chains.push({ ri, F, main: k % per === 0, t: from + 1 + (k * F) / phases, end, prevDir: null, prevTurn: null });
+      for (let k = 0; k < phases; k++)
+        this.chains.push({
+          ri,
+          F,
+          main: k % per === 0,
+          t: from + 1 + (k * F) / phases,
+          end,
+          prevDir: null,
+          prevTurn: null,
+        });
     });
   }
 
@@ -698,13 +794,22 @@ class PeakScan {
    */
   require(level: 0 | 1 | 2 | 3): void {
     const pk = this.pk;
-    this.coverTo(level === 0 ? pk.ideal : level === 1 ? pk.ideal + 2 * this.maxF + 2 * this.dt : level === 2 ? pk.fp : Number.POSITIVE_INFINITY);
+    this.coverTo(
+      level === 0
+        ? pk.ideal
+        : level === 1
+          ? pk.ideal + 2 * this.maxF + 2 * this.dt
+          : level === 2
+            ? pk.fp
+            : Number.POSITIVE_INFINITY,
+    );
   }
 
   /** Goes on measuring, a short stretch of time at a time, until about `units` more are done or nothing is left. True while some is left. */
   step(units: number): boolean {
     const until = this.units + units;
-    while (this.units < until && !this.complete) this.coverTo((Number.isFinite(this.covered) ? this.covered : this.src.from) + SCAN_CHUNK_MS);
+    while (this.units < until && !this.complete)
+      this.coverTo((Number.isFinite(this.covered) ? this.covered : this.src.from) + SCAN_CHUNK_MS);
     return !this.complete;
   }
 
@@ -723,7 +828,8 @@ class PeakScan {
       putPeak(pk.yawPitch, yp, t0, t1, pk.ideal, pk.fp);
     }
     const prev = this.gPrev;
-    if (i >= 3 && prev) putPeak(pk.gridChange, Math.hypot(r.x - prev.x, r.y - prev.y, r.z - prev.z), t0 - dt, t1, pk.ideal, pk.fp);
+    if (i >= 3 && prev)
+      putPeak(pk.gridChange, Math.hypot(r.x - prev.x, r.y - prev.y, r.z - prev.z), t0 - dt, t1, pk.ideal, pk.fp);
     this.gPrev = r;
     this.units++;
   }
@@ -755,8 +861,17 @@ class PeakScan {
 const SCAN_CHUNK_MS = 24;
 
 /** The peaks of a table, measured whole (`sample` when it is not the table's own interpolation). */
-function gazePeaks(script: BallScript, ref: GazeTable, sample: (t: number) => Vec3 = (t) => gazeOf(ref, t), fine = false): GazePeaks {
-  const scan = new PeakScan(script, { from: ref.from, n: ref.yaw.length, yaw: (i) => ref.yaw[i], pitch: (i) => ref.pitch[i], sample }, fine);
+function gazePeaks(
+  script: BallScript,
+  ref: GazeTable,
+  sample: (t: number) => Vec3 = (t) => gazeOf(ref, t),
+  fine = false,
+): GazePeaks {
+  const scan = new PeakScan(
+    script,
+    { from: ref.from, n: ref.yaw.length, yaw: (i) => ref.yaw[i], pitch: (i) => ref.pitch[i], sample },
+    fine,
+  );
   scan.coverTo(Number.POSITIVE_INFINITY);
   return scan.pk;
 }
@@ -786,20 +901,27 @@ function stepLimit(pk: GazePeaks, i: number, budgets = false): GazeLimit {
   let turn = capOf(pk, pk.gridTurn, t0, dt);
   const yawPitch = capOf(pk, pk.yawPitch, t0, dt);
   let change = capOf(pk, pk.gridChange, t0, 2 * dt);
-  if (!budgets) GAZE.comfortFrameMs.forEach((F, ri) => {
-    const k = dt / F;
-    const m = F / dt;
-    const spread = m / Math.ceil(m - 1e-9);
-    turn = Math.min(turn, capOf(pk, pk.frameTurn[ri], t0, F) * k);
-    change = Math.min(change, capOf(pk, pk.frameChange[ri], t0, 2 * F) * k * k * spread);
-  });
+  if (!budgets)
+    GAZE.comfortFrameMs.forEach((F, ri) => {
+      const k = dt / F;
+      const m = F / dt;
+      const spread = m / Math.ceil(m - 1e-9);
+      turn = Math.min(turn, capOf(pk, pk.frameTurn[ri], t0, F) * k);
+      change = Math.min(change, capOf(pk, pk.frameChange[ri], t0, 2 * F) * k * k * spread);
+    });
   return { turn, yawPitch, change };
 }
 
 /** The peak a whole frame [a, b] at comfort rate ri may reach (its change of turn: the pair ending at b). */
 function frameCap(pk: GazePeaks, ri: number, a: number, b: number, change: boolean, main = true): number {
   // A frame at one of the comfortPhases phases is judged against those phases' peaks, any other against all phases'.
-  const vals = main ? (change ? pk.frameChange[ri] : pk.frameTurn[ri]) : change ? pk.frameChangeAll[ri] : pk.frameTurnAll[ri];
+  const vals = main
+    ? change
+      ? pk.frameChange[ri]
+      : pk.frameTurn[ri]
+    : change
+      ? pk.frameChangeAll[ri]
+      : pk.frameTurnAll[ri];
   const start = change ? a - GAZE.comfortFrameMs[ri] : a;
   pk.scan?.require(b <= pk.ideal ? 0 : start < pk.ideal ? 1 : b <= pk.fp ? 2 : 3);
   let c = vals[3];
@@ -816,7 +938,17 @@ interface StepBall {
   r: number;
 }
 
-function withinLimit(yaw: number, pitch: number, from: Vec3, nextYaw: number, nextPitch: number, last: Vec3 | null, lim: GazeLimit, extra: readonly StepBall[] = [], span = 1): [number, number] {
+function withinLimit(
+  yaw: number,
+  pitch: number,
+  from: Vec3,
+  nextYaw: number,
+  nextPitch: number,
+  last: Vec3 | null,
+  lim: GazeLimit,
+  extra: readonly StepBall[] = [],
+  span = 1,
+): [number, number] {
   // A step shorter than the grid (`span` of it, from a hand-over) is judged by its rate: rotations per full step.
   const keep = 1 - LIMIT_MARGIN;
   const yawPitchCap = (y: number, q: number): [number, number] => {
@@ -830,7 +962,11 @@ function withinLimit(yaw: number, pitch: number, from: Vec3, nextYaw: number, ne
   let r = scale3(turnBetween(from, fromYawPitch(nextYaw, nextPitch)), 1 / span);
   // The frame budgets first and the step's own caps last, so a step that cannot meet every frame budget still keeps
   // the step caps.
-  const balls: StepBall[] = [...extra, { c: v3(0, 0, 0), r: lim.turn * keep }, ...(last ? [{ c: last, r: lim.change * keep }] : [])];
+  const balls: StepBall[] = [
+    ...extra,
+    { c: v3(0, 0, 0), r: lim.turn * keep },
+    ...(last ? [{ c: last, r: lim.change * keep }] : []),
+  ];
   const into = (b: StepBall) => {
     const d = v3(r.x - b.c.x, r.y - b.c.y, r.z - b.c.z);
     const dl = len3(d);
@@ -881,7 +1017,10 @@ function stepTurnOf(table: GazeTable, k: number): Vec3 {
  */
 function budgetRadius(room: number, s0: number, later: ReadonlyArray<readonly [number, number]>): number {
   if (room <= 0) return 0;
-  const items = later.filter(([sk]) => sk > 1e-12).slice().sort((a, b) => b[1] - a[1]);
+  const items = later
+    .filter(([sk]) => sk > 1e-12)
+    .slice()
+    .sort((a, b) => b[1] - a[1]);
   let slope = s0;
   let off = 0; // Σ s·d over the active items
   let k = 0;
@@ -909,7 +1048,8 @@ function budgetRadius(room: number, s0: number, later: ReadonlyArray<readonly [n
 function brakingTurn(room: number, share: number, t1: number, b: number, brake: number): number {
   const dt = GAZE.stepMs;
   const later: Array<[number, number]> = [];
-  for (let k = 1; t1 + (k - 1) * dt < b - 1e-9; k++) later.push([Math.min(1, (b - (t1 + (k - 1) * dt)) / dt), -k * brake]);
+  for (let k = 1; t1 + (k - 1) * dt < b - 1e-9; k++)
+    later.push([Math.min(1, (b - (t1 + (k - 1) * dt)) / dt), -k * brake]);
   return budgetRadius(room, share, later);
 }
 
@@ -920,7 +1060,16 @@ function brakingTurn(room: number, share: number, t1: number, b: number, brake: 
  * over the frame, which bounds the change between it and the frame before, stays within that peak (a ball around the
  * step one frame earlier).
  */
-function straddleBalls(table: GazeTable, pk: GazePeaks, i: number, firstLimited: number, all = false, turns: Float64Array | null = null, brake = 0, knotTurn: Vec3 | null = null): StepBall[] {
+function straddleBalls(
+  table: GazeTable,
+  pk: GazePeaks,
+  i: number,
+  firstLimited: number,
+  all = false,
+  turns: Float64Array | null = null,
+  brake = 0,
+  knotTurn: Vec3 | null = null,
+): StepBall[] {
   const dt = GAZE.stepMs;
   const from = table.from;
   const knot = table.knot && knotTurn ? table.knot : null;
@@ -930,7 +1079,8 @@ function straddleBalls(table: GazeTable, pk: GazePeaks, i: number, firstLimited:
   const tL = from + (firstLimited - 1) * dt;
   const keep = 1 - LIMIT_MARGIN;
   const out: StepBall[] = [];
-  const turnOf = (k: number): Vec3 => (turns ? v3(turns[3 * k], turns[3 * k + 1], turns[3 * k + 2]) : stepTurnOf(table, k));
+  const turnOf = (k: number): Vec3 =>
+    turns ? v3(turns[3 * k], turns[3 * k + 1], turns[3 * k + 2]) : stepTurnOf(table, k);
   // The step whose interval starts at or before tt and ends after it (never past the last entry built, i - 1).
   const stepAfter = (tt: number) => Math.min(i - 1, Math.max(1, Math.floor((tt - from) / dt + 1e-7) + 1));
   // The view's rotation rate at s (per full step): constant per step, and in a knot's cell the earlier script's
@@ -942,7 +1092,7 @@ function straddleBalls(table: GazeTable, pk: GazePeaks, i: number, firstLimited:
   // ∫ |ω(s) − ω(s − F)| ds over [p0, p1] (all earlier than t0), in radians.
   const diffIntegral = (p0: number, p1: number, F: number) => {
     let sum = 0;
-    for (let s0 = p0; s0 < p1 - 1e-9; ) {
+    for (let s0 = p0; s0 < p1 - 1e-9;) {
       const q0 = s0 - F;
       // Each pass crosses a change of rate of either the frame or the frame before it (at least 1e-6 ms forward).
       const e = Math.max(s0 + 1e-6, Math.min(p1, nextBreak(s0), nextBreak(q0) + F));
@@ -957,7 +1107,10 @@ function straddleBalls(table: GazeTable, pk: GazePeaks, i: number, firstLimited:
     // The grid's own intervals that hold the hand-over (EVAL-WORLD's 1 ms grid and its 4 ms grid 0.001 ms on): the
     // earlier script's part and this step's share stay within the grid turn peak.
     const cap = stepLimit(pk, i, true).turn * keep;
-    for (const [a, len] of [[from + Math.floor(knot.t - from), 1], [from + (i - 1) * dt + 0.001, dt]] as const) {
+    for (const [a, len] of [
+      [from + Math.floor(knot.t - from), 1],
+      [from + (i - 1) * dt + 0.001, dt],
+    ] as const) {
       const b = a + len;
       if (b <= knot.t) continue;
       const before = Math.acos(clamp(dot3(gazeOf(table, a), gazeOf(table, knot.t)), -1, 1));
@@ -975,8 +1128,15 @@ function straddleBalls(table: GazeTable, pk: GazePeaks, i: number, firstLimited:
         const share = (Math.min(b, t1) - Math.max(a, t0)) / dt;
         if (share <= 1e-9) continue;
         if ((all || a < tL) && a < t0) {
-          const before = Math.acos(clamp(dot3(gazeOf(table, a), knot && i === knot.index ? gazeOf(table, knot.t) : tableDir(table, i - 1)), -1, 1));
-          const room = frameCap(pk, ri, a, b, false, ph % (GAZE.comfortPhasesFine / GAZE.comfortPhases) === 0) * keep - before;
+          const before = Math.acos(
+            clamp(
+              dot3(gazeOf(table, a), knot && i === knot.index ? gazeOf(table, knot.t) : tableDir(table, i - 1)),
+              -1,
+              1,
+            ),
+          );
+          const room =
+            frameCap(pk, ri, a, b, false, ph % (GAZE.comfortPhasesFine / GAZE.comfortPhases) === 0) * keep - before;
           out.push({ c: v3(0, 0, 0), r: all ? brakingTurn(room, share, t1, b, brake) : Math.max(0, room / share) });
         }
         if (fn >= 1 && (all || a - F < tL) && a - F >= from + 1) {
@@ -989,13 +1149,16 @@ function straddleBalls(table: GazeTable, pk: GazePeaks, i: number, firstLimited:
           const len1 = (split - q0) / dt;
           const len2 = (q1 - split) / dt;
           let extra = 0;
-          for (let s0 = split; s0 < q1 - 1e-9; ) {
+          for (let s0 = split; s0 < q1 - 1e-9;) {
             const e = Math.max(s0 + 1e-6, Math.min(q1, nextBreak(s0)));
             const r2 = velAt(s0);
             extra += ((e - s0) / dt) * Math.hypot(r1.x - r2.x, r1.y - r2.y, r1.z - r2.z);
             s0 = e;
           }
-          const room = frameCap(pk, ri, a, b, true, ph % (GAZE.comfortPhasesFine / GAZE.comfortPhases) === 0) * keep - done - extra;
+          const room =
+            frameCap(pk, ri, a, b, true, ph % (GAZE.comfortPhasesFine / GAZE.comfortPhases) === 0) * keep -
+            done -
+            extra;
           if (!all) {
             out.push({ c: r1, r: Math.max(0, room / (len1 + len2)) });
             continue;
@@ -1053,7 +1216,17 @@ function eyeAt(script: BallScript, t: number, reducedMotion: boolean): Vec3 {
  * returns the table with the entries already on screen and integrates the rest as it is read (`fill`), step by step in
  * the same order, so the table is the same, bit for bit, however it is read; `onFill` is called after each read of it.
  */
-function integrateGaze(script: BallScript, reducedMotion: boolean, close: number, peaks: GazePeaks | null, track: BallTrack | null = null, start: GazeStart | null = null, eye: Vec3 | null = null, lazy = false, onFill: (() => void) | null = null): GazeTable {
+function integrateGaze(
+  script: BallScript,
+  reducedMotion: boolean,
+  close: number,
+  peaks: GazePeaks | null,
+  track: BallTrack | null = null,
+  start: GazeStart | null = null,
+  eye: Vec3 | null = null,
+  lazy = false,
+  onFill: (() => void) | null = null,
+): GazeTable {
   const p = script.practice!;
   const eye0 = eye ?? practiceEye(script);
   const moving = eye === null && !reducedMotion && Boolean(p.gazeFrom && p.stanceEye) && GAZE.eyeEaseMs > 0;
@@ -1075,9 +1248,18 @@ function integrateGaze(script: BallScript, reducedMotion: boolean, close: number
   let near = false;
   // A live result takes over at the hand-over itself (a knot inside its grid cell), unless that falls on the cell's end.
   const knotAt = start?.at;
-  const knot = start && knotAt !== undefined && Number.isFinite(knotAt) && start.index >= 1 && from + start.index * GAZE.stepMs - knotAt >= 1e-3 * GAZE.stepMs ? knotOf(start.table, start.index, knotAt) : null;
+  const knot =
+    start &&
+    knotAt !== undefined &&
+    Number.isFinite(knotAt) &&
+    start.index >= 1 &&
+    from + start.index * GAZE.stepMs - knotAt >= 1e-3 * GAZE.stepMs
+      ? knotOf(start.table, start.index, knotAt)
+      : null;
   /** The earlier script's rate (per full step) in the knot's cell. */
-  const knotTurn = knot ? turnBetween(tableDir(start!.table, knot.index - 1), tableDir(start!.table, knot.index)) : null;
+  const knotTurn = knot
+    ? turnBetween(tableDir(start!.table, knot.index - 1), tableDir(start!.table, knot.index))
+    : null;
   const copyTo = start ? (knot ? start.index - 1 : start.index) : -1;
   /** The first limited step (its interval starts at from + (firstLimited - 1) * stepMs, or at the knot). */
   let firstLimited = start ? copyTo + 1 : Number.POSITIVE_INFINITY;
@@ -1097,7 +1279,10 @@ function integrateGaze(script: BallScript, reducedMotion: boolean, close: number
     const d = fromYawPitch(yaws[k], pitches[k]);
     if (knot && k === knot.index) prevStored = fromYawPitch(knot.yaw, knot.pitch);
     if (prevStored && k >= 1) {
-      const r = knot && k === knot.index ? scale3(turnBetween(prevStored, d), GAZE.stepMs / (from + k * GAZE.stepMs - knot.t)) : turnBetween(prevStored, d);
+      const r =
+        knot && k === knot.index
+          ? scale3(turnBetween(prevStored, d), GAZE.stepMs / (from + k * GAZE.stepMs - knot.t))
+          : turnBetween(prevStored, d);
       turns[3 * k] = r.x;
       turns[3 * k + 1] = r.y;
       turns[3 * k + 2] = r.z;
@@ -1108,98 +1293,127 @@ function integrateGaze(script: BallScript, reducedMotion: boolean, close: number
   let next = 0;
   // One grid step after another, up to entry `to`.
   const advance = (to: number) => {
-  for (; next <= Math.min(to, n - 1); next++) {
-    const i = next;
-    const t = from + i * GAZE.stepMs;
-    let b: Vec3;
-    // After a live result has taken over the swing is made: the eyes may follow the ball as it is (resultSeenNow).
-    if (GAZE.resultSeenNow && budgets && i > start!.index) b = sampleBall(script, t).pos;
-    else if (shared && i < shared.upTo) b = v3(shared.x[i], shared.y[i], shared.z[i]);
-    else {
-      b = seenBall(script, t);
-      if (shared) {
-        shared.x[i] = b.x;
-        shared.y[i] = b.y;
-        shared.z[i] = b.z;
-        if (i === shared.upTo) shared.upTo = i + 1;
+    for (; next <= Math.min(to, n - 1); next++) {
+      const i = next;
+      const t = from + i * GAZE.stepMs;
+      let b: Vec3;
+      // After a live result has taken over the swing is made: the eyes may follow the ball as it is (resultSeenNow).
+      if (GAZE.resultSeenNow && budgets && i > start!.index) b = sampleBall(script, t).pos;
+      else if (shared && i < shared.upTo) b = v3(shared.x[i], shared.y[i], shared.z[i]);
+      else {
+        b = seenBall(script, t);
+        if (shared) {
+          shared.x[i] = b.x;
+          shared.y[i] = b.y;
+          shared.z[i] = b.z;
+          if (i === shared.upTo) shared.upTo = i + 1;
+        }
       }
-    }
-    if (start && i <= copyTo) {
-      // Already on screen: the eyes were here.
-      yaw = start.table.yaw[i];
-      pitch = start.table.pitch[i];
-      yaws[i] = yaw;
-      pitches[i] = pitch;
-      store(i);
+      if (start && i <= copyTo) {
+        // Already on screen: the eyes were here.
+        yaw = start.table.yaw[i];
+        pitch = start.table.pitch[i];
+        yaws[i] = yaw;
+        pitches[i] = pitch;
+        store(i);
+        if (here) {
+          const there = fromYawPitch(yaw, pitch);
+          if (i >= 1) last = turnBetween(here, there);
+          here = there;
+        }
+        continue;
+      }
+      // The step from the knot: the eyes are where the earlier script showed them at the hand-over, turning as it did.
+      let span = 1;
+      if (knot && i === knot.index) {
+        yaw = knot.yaw;
+        pitch = knot.pitch;
+        if (here) {
+          here = fromYawPitch(yaw, pitch);
+          last = knotTurn;
+        }
+        span = (t - knot.t) / GAZE.stepMs;
+      }
+      const e = moving ? eyeAt(script, t, reducedMotion) : eye0;
+      const dist = Math.hypot(b.x - e.x, b.y - e.y, b.z - e.z);
+      if (!Number.isFinite(dist)) {
+        // A ball sample that is not a number (bad input): the eyes hold where they are instead of turning undefined.
+        yaws[i] = yaw;
+        pitches[i] = pitch;
+        store(i);
+        if (here && i >= 1) last = v3(0, 0, 0);
+        continue;
+      }
+      const to = yawPitchOf(unit(b.x - e.x, b.y - e.y, b.z - e.z));
+      let w = p.flight ? weightWith(far, close, dist) : 0;
+      if (p.contactScene !== null && t > p.contactScene)
+        w = lerp(w, follow, smoothstep(p.contactScene, p.contactScene + GAZE.followRampMs, t));
+      const wantYaw = base.yaw + clamp(wrap(to.yaw - base.yaw) * w, -GAZE.maxYawDeg * DEG, GAZE.maxYawDeg * DEG);
+      const wantPitch = clamp(base.pitch + (to.pitch - base.pitch) * w, -GAZE.maxDownDeg * DEG, 30 * DEG);
+      let nextYaw = yaw + clamp(wrap(wantYaw - yaw), -maxStep * span, maxStep * span);
+      let nextPitch = pitch + clamp(wantPitch - pitch, -maxStep * span, maxStep * span);
+      if (peaks && !near && dist < GAZE.closeFarM) {
+        near = true;
+        if (!start) firstLimited = Math.max(1, i);
+      }
+      const lim =
+        peaks && i >= firstLimited && (!budgets || t - GAZE.stepMs <= budgetEnd) ? stepLimit(peaks, i, budgets) : null;
+      // Only frames that began before the first limited step need a budget; they end within two frames of it.
+      const straddling =
+        budgets || i <= firstLimited + Math.ceil((2 * Math.max(...GAZE.comfortFrameMs)) / GAZE.stepMs) + 2;
+      if (lim && budgets) {
+        const safe = stepLimit(peaks!, i, false);
+        const fits = (y: number, q: number) => {
+          const r = scale3(turnBetween(here!, fromYawPitch(y, q)), 1 / span);
+          return (
+            len3(r) <= safe.turn * keepIn &&
+            (!last || Math.hypot(r.x - last.x, r.y - last.y, r.z - last.z) <= safe.change * keepIn) &&
+            Math.hypot(wrap(y - yaw), q - pitch) <= safe.yawPitch * keepIn * span
+          );
+        };
+        if (i - lastUnsafe <= horizon || !fits(nextYaw, nextPitch)) {
+          // How fast a frame's later steps can be assumed to slow down: by the step's own change cap; under Reduced
+          // Motion by the geometric mean of that and the per-step share of the frame peaks, so frames keep room and the
+          // view seldom has to brake (EVAL-WORLD's 476 balls, 2026-11-04: Reduced Motion above shipped on 11 balls, not
+          // 25, with the ball in view as long; in Normal the same costs view on 5 balls, so not there).
+          const brake = reducedMotion ? Math.min(lim.change, Math.sqrt(lim.change * safe.change)) : lim.change;
+          [nextYaw, nextPitch] = withinLimit(
+            yaw,
+            pitch,
+            here!,
+            nextYaw,
+            nextPitch,
+            last,
+            lim,
+            straddleBalls(partial, peaks!, i, firstLimited, true, turns, brake * keepIn, knotTurn),
+            span,
+          );
+          if (!fits(nextYaw, nextPitch)) lastUnsafe = i;
+        }
+      } else if (lim)
+        [nextYaw, nextPitch] = withinLimit(
+          yaw,
+          pitch,
+          here!,
+          nextYaw,
+          nextPitch,
+          last,
+          lim,
+          straddling
+            ? straddleBalls(partial, peaks!, i, firstLimited, budgets, turns, lim.change * (1 - LIMIT_MARGIN))
+            : [],
+        );
       if (here) {
-        const there = fromYawPitch(yaw, pitch);
-        if (i >= 1) last = turnBetween(here, there);
+        const there = fromYawPitch(nextYaw, nextPitch);
+        if (i >= 1) last = scale3(turnBetween(here, there), 1 / span);
         here = there;
       }
-      continue;
-    }
-    // The step from the knot: the eyes are where the earlier script showed them at the hand-over, turning as it did.
-    let span = 1;
-    if (knot && i === knot.index) {
-      yaw = knot.yaw;
-      pitch = knot.pitch;
-      if (here) {
-        here = fromYawPitch(yaw, pitch);
-        last = knotTurn;
-      }
-      span = (t - knot.t) / GAZE.stepMs;
-    }
-    const e = moving ? eyeAt(script, t, reducedMotion) : eye0;
-    const dist = Math.hypot(b.x - e.x, b.y - e.y, b.z - e.z);
-    if (!Number.isFinite(dist)) {
-      // A ball sample that is not a number (bad input): the eyes hold where they are instead of turning undefined.
+      yaw = nextYaw;
+      pitch = nextPitch;
       yaws[i] = yaw;
       pitches[i] = pitch;
       store(i);
-      if (here && i >= 1) last = v3(0, 0, 0);
-      continue;
     }
-    const to = yawPitchOf(unit(b.x - e.x, b.y - e.y, b.z - e.z));
-    let w = p.flight ? weightWith(far, close, dist) : 0;
-    if (p.contactScene !== null && t > p.contactScene) w = lerp(w, follow, smoothstep(p.contactScene, p.contactScene + GAZE.followRampMs, t));
-    const wantYaw = base.yaw + clamp(wrap(to.yaw - base.yaw) * w, -GAZE.maxYawDeg * DEG, GAZE.maxYawDeg * DEG);
-    const wantPitch = clamp(base.pitch + (to.pitch - base.pitch) * w, -GAZE.maxDownDeg * DEG, 30 * DEG);
-    let nextYaw = yaw + clamp(wrap(wantYaw - yaw), -maxStep * span, maxStep * span);
-    let nextPitch = pitch + clamp(wantPitch - pitch, -maxStep * span, maxStep * span);
-    if (peaks && !near && dist < GAZE.closeFarM) {
-      near = true;
-      if (!start) firstLimited = Math.max(1, i);
-    }
-    const lim = peaks && i >= firstLimited && (!budgets || t - GAZE.stepMs <= budgetEnd) ? stepLimit(peaks, i, budgets) : null;
-    // Only frames that began before the first limited step need a budget; they end within two frames of it.
-    const straddling = budgets || i <= firstLimited + Math.ceil((2 * Math.max(...GAZE.comfortFrameMs)) / GAZE.stepMs) + 2;
-    if (lim && budgets) {
-      const safe = stepLimit(peaks!, i, false);
-      const fits = (y: number, q: number) => {
-        const r = scale3(turnBetween(here!, fromYawPitch(y, q)), 1 / span);
-        return len3(r) <= safe.turn * keepIn && (!last || Math.hypot(r.x - last.x, r.y - last.y, r.z - last.z) <= safe.change * keepIn) && Math.hypot(wrap(y - yaw), q - pitch) <= safe.yawPitch * keepIn * span;
-      };
-      if (i - lastUnsafe <= horizon || !fits(nextYaw, nextPitch)) {
-        // How fast a frame's later steps can be assumed to slow down: by the step's own change cap; under Reduced
-        // Motion by the geometric mean of that and the per-step share of the frame peaks, so frames keep room and the
-        // view seldom has to brake (EVAL-WORLD's 476 balls, 2026-11-04: Reduced Motion above shipped on 11 balls, not
-        // 25, with the ball in view as long; in Normal the same costs view on 5 balls, so not there).
-        const brake = reducedMotion ? Math.min(lim.change, Math.sqrt(lim.change * safe.change)) : lim.change;
-        [nextYaw, nextPitch] = withinLimit(yaw, pitch, here!, nextYaw, nextPitch, last, lim, straddleBalls(partial, peaks!, i, firstLimited, true, turns, brake * keepIn, knotTurn), span);
-        if (!fits(nextYaw, nextPitch)) lastUnsafe = i;
-      }
-    } else if (lim) [nextYaw, nextPitch] = withinLimit(yaw, pitch, here!, nextYaw, nextPitch, last, lim, straddling ? straddleBalls(partial, peaks!, i, firstLimited, budgets, turns, lim.change * (1 - LIMIT_MARGIN)) : []);
-    if (here) {
-      const there = fromYawPitch(nextYaw, nextPitch);
-      if (i >= 1) last = scale3(turnBetween(here, there), 1 / span);
-      here = there;
-    }
-    yaw = nextYaw;
-    pitch = nextPitch;
-    yaws[i] = yaw;
-    pitches[i] = pitch;
-    store(i);
-  }
   };
   const table: GazeTable = { from, yaw: yaws, pitch: pitches, base, ...(knot ? { knot } : {}) };
   if (!lazy) {
@@ -1223,9 +1437,19 @@ function integrateGaze(script: BallScript, reducedMotion: boolean, close: number
 function handoverOf(script: BallScript, reducedMotion: boolean): { index: number; pair: GazePair } | null {
   const p = script.practice!;
   const h = p.gazeFrom;
-  if (!h || h.script === script || !h.script.practice || h.script.practice.releaseScene !== p.releaseScene || !Number.isFinite(h.atScene)) return null;
+  if (
+    !h ||
+    h.script === script ||
+    !h.script.practice ||
+    h.script.practice.releaseScene !== p.releaseScene ||
+    !Number.isFinite(h.atScene)
+  )
+    return null;
   const pair = gazePair(h.script, reducedMotion);
-  const index = Math.min(pair.table.yaw.length - 1, Math.max(0, Math.floor((h.atScene - pair.table.from) / GAZE.stepMs) + 1));
+  const index = Math.min(
+    pair.table.yaw.length - 1,
+    Math.max(0, Math.floor((h.atScene - pair.table.from) / GAZE.stepMs) + 1),
+  );
   return { index, pair };
 }
 
@@ -1235,8 +1459,12 @@ function buildGaze(script: BallScript, reducedMotion: boolean): GazePair {
   const p = script.practice!;
   const prev = handoverOf(script, reducedMotion);
   const a3 = close !== far && Boolean(p.flight);
-  const n = Math.max(2, Math.ceil((Math.min(script.duration, p.releaseScene + 9000) - p.releaseScene) / GAZE.stepMs) + 1);
-  const track: BallTrack | null = a3 || prev ? { upTo: 0, x: new Float64Array(n), y: new Float64Array(n), z: new Float64Array(n) } : null;
+  const n = Math.max(
+    2,
+    Math.ceil((Math.min(script.duration, p.releaseScene + 9000) - p.releaseScene) / GAZE.stepMs) + 1,
+  );
+  const track: BallTrack | null =
+    a3 || prev ? { upTo: 0, x: new Float64Array(n), y: new Float64Array(n), z: new Float64Array(n) } : null;
   if (!prev) {
     // The rule without A3: the gaze itself when A3 does not apply, otherwise the comfort reference for A3.
     const ref = integrateGaze(script, reducedMotion, far, null, track);
@@ -1262,12 +1490,32 @@ function buildGaze(script: BallScript, reducedMotion: boolean): GazePair {
     own.fill?.(k);
     return own;
   };
-  const peaks = lazyPeaks(script, { from: own.from, n: own.yaw.length, yaw: (k) => shown(k).yaw[k], pitch: (k) => shown(k).pitch[k], sample: (t) => (t < at ? gazeOf(head, t) : gazeOf(own, t)) }, at);
+  const peaks = lazyPeaks(
+    script,
+    {
+      from: own.from,
+      n: own.yaw.length,
+      yaw: (k) => shown(k).yaw[k],
+      pitch: (k) => shown(k).pitch[k],
+      sample: (t) => (t < at ? gazeOf(head, t) : gazeOf(own, t)),
+    },
+    at,
+  );
   const gain = reducedMotion ? GAZE.resultGainReduced : close;
   // Integrated as frames read it (play() pays only for what comes before; each frame for its own few steps, and a few
   // more of the scan the peaks are still being measured by: the stage gives it the spare time of frames as well).
   const scan = peaks.scan;
-  const table = integrateGaze(script, reducedMotion, gain, peaks, track, { index, table: prev.pair.table, at }, null, true, scan ? () => void scan.step(scan.driven ? PAY_DRIVEN_UNITS : PAY_UNITS) : null);
+  const table = integrateGaze(
+    script,
+    reducedMotion,
+    gain,
+    peaks,
+    track,
+    { index, table: prev.pair.table, at },
+    null,
+    true,
+    scan ? () => void scan.step(scan.driven ? PAY_DRIVEN_UNITS : PAY_UNITS) : null,
+  );
   return { table, ref: table, ...(scan ? { scan } : {}) };
 }
 
@@ -1343,7 +1591,11 @@ function batterEyePose(script: BallScript, t: number, ctx: DirectorContext): Cam
   const p = script.practice;
   const eye = p ? eyeAt(script, t, ctx.reducedMotion) : batterEyeWorld(false);
   const dir = p ? practiceGaze(script, t, ctx.reducedMotion) : v3(0, -0.17, -1);
-  return { pos: eye, target: v3(eye.x + dir.x * 10, eye.y + dir.y * 10, eye.z + dir.z * 10), fov: batterFov(ctx.aspect) };
+  return {
+    pos: eye,
+    target: v3(eye.x + dir.x * 10, eye.y + dir.y * 10, eye.z + dir.z * 10),
+    fov: batterFov(ctx.aspect),
+  };
 }
 
 /**
@@ -1358,12 +1610,19 @@ function batterEyePose(script: BallScript, t: number, ctx: DirectorContext): Cam
 export const REPLAY_SIDE_AIM_Y = 0.95;
 
 /** Fixed cameras: the broken wicket after a bowled, and the three external replay views. */
-function practiceFixedPose(shot: 'practice_stumps' | 'replay_side' | 'replay_behind' | 'replay_top' | 'demo_side', script: BallScript, ctx: DirectorContext): CameraPose {
+function practiceFixedPose(
+  shot: 'practice_stumps' | 'replay_side' | 'replay_behind' | 'replay_top' | 'demo_side',
+  script: BallScript,
+  ctx: DirectorContext,
+): CameraPose {
   const p = script.practice;
   const m = p?.mirror ? -1 : 1;
   const crease = PITCH_HALF - POPPING;
   const r = p?.result ?? null;
-  const contact = r?.contact.point ?? (p?.flight ? ballAt(p.flight.samples, p.flight.idealContactT) : null) ?? v3(0, 0.5, crease - 0.6);
+  const contact =
+    r?.contact.point ??
+    (p?.flight ? ballAt(p.flight.samples, p.flight.idealContactT) : null) ??
+    v3(0, 0.5, crease - 0.6);
   const focus = v3(contact.x * m, clamp(contact.y, 0.2, 1.4), contact.z);
   const vertical = (deg: number) => clamp(deg, 10, 80);
   const portrait = ctx.aspect < 1;
@@ -1374,17 +1633,37 @@ function practiceFixedPose(shot: 'practice_stumps' | 'replay_side' | 'replay_beh
       // the batter in front of it and on the leg side).
       // A little in front of the wicket, so the keeper (behind it) and the batter (in front, leg side) stand clear
       // to either side of the broken stumps instead of across them.
-      return { pos: v3(3.3 * m, 1.0, PITCH_HALF - 1.5), target: v3(0, 0.38, PITCH_HALF + 0.1), fov: vertical(portrait ? 44 : 28) };
+      return {
+        pos: v3(3.3 * m, 1.0, PITCH_HALF - 1.5),
+        target: v3(0, 0.38, PITCH_HALF + 0.1),
+        fov: vertical(portrait ? 44 : 28),
+      };
     case 'replay_side':
-      return { pos: v3(3.4 * m, 1.3, crease - 2.7), target: portrait ? focus : v3(focus.x, REPLAY_SIDE_AIM_Y, focus.z), fov: vertical(portrait ? 56 : 36) };
+      return {
+        pos: v3(3.4 * m, 1.3, crease - 2.7),
+        target: portrait ? focus : v3(focus.x, REPLAY_SIDE_AIM_Y, focus.z),
+        fov: vertical(portrait ? 56 : 36),
+      };
     case 'replay_behind':
-      return { pos: v3(0.5 * m, 2.5, -17.5), target: v3(focus.x * 0.6, 0.75, crease - 0.6), fov: vertical(portrait ? 26 : 15) };
+      return {
+        pos: v3(0.5 * m, 2.5, -17.5),
+        target: v3(focus.x * 0.6, 0.75, crease - 0.6),
+        fov: vertical(portrait ? 26 : 15),
+      };
     case 'replay_top':
-      return { pos: v3(1.0 * m, 8.5, crease - 4.2), target: v3(focus.x * 0.5, 0, crease - 1.8), fov: vertical(portrait ? 70 : 58) };
+      return {
+        pos: v3(1.0 * m, 8.5, crease - 4.2),
+        target: v3(focus.x * 0.5, 0, crease - 1.8),
+        fov: vertical(portrait ? 70 : 58),
+      };
     case 'demo_side':
       // Coach Mode's demonstration: square of the batter on the off side and a little in front, wide enough for the
       // stride, the whole bat path and the ball arriving, at the batter's own height.
-      return { pos: v3(3.6 * m, 1.35, crease - 2.4), target: v3(focus.x * 0.4 - 0.15 * m, 0.8, crease - 0.25), fov: vertical(portrait ? 62 : 40) };
+      return {
+        pos: v3(3.6 * m, 1.35, crease - 2.4),
+        target: v3(focus.x * 0.4 - 0.15 * m, 0.8, crease - 0.25),
+        fov: vertical(portrait ? 62 : 40),
+      };
   }
 }
 
@@ -1427,7 +1706,11 @@ function ballClosePose(script: BallScript, t: number, ctx: DirectorContext): Cam
   const focus = t < rel && p ? p.releaseWorld : sampleBall(script, t).pos;
   const m = p?.mirror ? -1 : 1;
   const pos = v3(focus.x - BALL_CLOSE.side * m, focus.y - BALL_CLOSE.below, focus.z + BALL_CLOSE.back);
-  return { pos, target: focus, fov: clamp(BALL_CLOSE.fov / Math.min(1, Math.max(0.55, ctx.aspect / 1.6)), BALL_CLOSE.fov, 40) };
+  return {
+    pos,
+    target: focus,
+    fov: clamp(BALL_CLOSE.fov / Math.min(1, Math.max(0.55, ctx.aspect / 1.6)), BALL_CLOSE.fov, 40),
+  };
 }
 
 /**
@@ -1438,9 +1721,11 @@ function ballClosePose(script: BallScript, t: number, ctx: DirectorContext): Cam
 export function practicePlan(script: BallScript, reducedMotion: boolean): DirectorCue[] {
   const p = script.practice!;
   const end = Math.max(1, script.duration);
-  if (!Number.isFinite(p.firstPersonUntil) || p.external === 'none') return [{ shot: 'batter_eye', atMs: 0, durationMs: end }];
+  if (!Number.isFinite(p.firstPersonUntil) || p.external === 'none')
+    return [{ shot: 'batter_eye', atMs: 0, durationMs: end }];
   const fp = clamp(p.firstPersonUntil, 1, end - 1);
-  const after: DirectorShot = p.external === 'stumps' ? 'practice_stumps' : reducedMotion ? 'broadcast_end' : 'fielder_follow';
+  const after: DirectorShot =
+    p.external === 'stumps' ? 'practice_stumps' : reducedMotion ? 'broadcast_end' : 'fielder_follow';
   return [
     { shot: 'batter_eye', atMs: 0, durationMs: fp },
     { shot: after, atMs: fp, durationMs: end - fp },
@@ -1449,7 +1734,13 @@ export function practicePlan(script: BallScript, reducedMotion: boolean): Direct
 
 /** One fixed (or first-person) camera for a whole replay. */
 export function replayShot(camera: 'batter' | 'side' | 'behind' | 'top'): DirectorShot {
-  return camera === 'batter' ? 'batter_eye' : camera === 'side' ? 'replay_side' : camera === 'behind' ? 'replay_behind' : 'replay_top';
+  return camera === 'batter'
+    ? 'batter_eye'
+    : camera === 'side'
+      ? 'replay_side'
+      : camera === 'behind'
+        ? 'replay_behind'
+        : 'replay_top';
 }
 
 /** A standing player as the camera checks it: a vertical capsule around the actor (metres). */
@@ -1459,7 +1750,13 @@ const ACTOR_CAPSULE = { radius: 0.38, bottom: 0.05, top: 1.9 } as const;
  * Actors whose body comes within `near` metres of the camera inside its view: they would fill the foreground of an
  * external shot. Pure; the stage hides them, and the director's own dismissal shots are tested to have none.
  */
-export function occludingActors(script: BallScript, t: number, pose: CameraPose, near = 1.5, skip: ReadonlySet<string> = new Set()): string[] {
+export function occludingActors(
+  script: BallScript,
+  t: number,
+  pose: CameraPose,
+  near = 1.5,
+  skip: ReadonlySet<string> = new Set(),
+): string[] {
   const f = unit(pose.target.x - pose.pos.x, pose.target.y - pose.pos.y, pose.target.z - pose.pos.z);
   const out: string[] = [];
   for (const a of script.actors) {

@@ -69,12 +69,24 @@ describe('Unity Practice resolution made once', () => {
     const g = golden(goldens[0]);
     const canonical = await canonicalizeUnityPracticeResolution(g.record, g.result);
     // Integer-like keys are listed in numeric order by every JavaScript engine; the fragment must not change that.
-    const withFragments = { '10': canonical.record, '9': 1, a: [canonical.result, null, 'x', -0], b: { nested: canonical.record } };
+    const withFragments = {
+      '10': canonical.record,
+      '9': 1,
+      a: [canonical.result, null, 'x', -0],
+      b: { nested: canonical.record },
+    };
     const withValues = { '10': g.record, '9': 1, a: [g.result, null, 'x', -0], b: { nested: g.record } };
     expect(canonicalUnityPracticeJson(withFragments) === canonicalUnityPracticeJson(withValues)).toBe(true);
     expect(canonicalUnityPracticeJson(canonical.result) === canonicalUnityPracticeJson(g.result)).toBe(true);
-    expect(canonicalUnityPracticeJson({ simVersion: PRACTICE_SIM_VERSION, record: canonical.record, result: canonical.result }))
-      .toBe(`{"record":${canonical.record.json},"result":${canonical.result.json},"simVersion":${PRACTICE_SIM_VERSION}}`);
+    expect(
+      canonicalUnityPracticeJson({
+        simVersion: PRACTICE_SIM_VERSION,
+        record: canonical.record,
+        result: canonical.result,
+      }),
+    ).toBe(
+      `{"record":${canonical.record.json},"result":${canonical.result.json},"simVersion":${PRACTICE_SIM_VERSION}}`,
+    );
     // Documents without a fragment are written as before.
     expect(canonicalUnityPracticeJson({ b: [2, { d: 1, c: -0 }], a: 'é"' })).toBe('{"a":"é\\"","b":[2,{"c":0,"d":1}]}');
   });
@@ -126,16 +138,27 @@ describe('Unity Practice resolution made once', () => {
 
   it('packs a made demonstration resolution into the bytes of a hand-built one', async () => {
     const g = golden(goldens[1]);
-    const score = { runs: g.result.outcome.runs, wickets: (g.result.outcome.dismissal === null ? 0 : 1) as 0 | 1, balls: 1, maxOvers: 10 as const };
+    const score = {
+      runs: g.result.outcome.runs,
+      wickets: (g.result.outcome.dismissal === null ? 0 : 1) as 0 | 1,
+      balls: 1,
+      maxOvers: 10 as const,
+    };
     const delivery = parseUnityPracticeMessage(goldens[1].wire.packets.delivery.body);
     if (delivery.type !== 'host.delivery') throw new Error('golden delivery narrowing failed');
-    const demonstration = (resolution: UnityPracticeResolution) => makeUnityPracticeMessage(
-      { ...g.fields, deliveryId: 'demonstration-1', messageId: 'demonstration-message-1' },
-      'host.demonstration',
-      { delivery: delivery.payload, resolution, speed: 1 },
-    );
+    const demonstration = (resolution: UnityPracticeResolution) =>
+      makeUnityPracticeMessage(
+        { ...g.fields, deliveryId: 'demonstration-1', messageId: 'demonstration-message-1' },
+        'host.demonstration',
+        { delivery: delivery.payload, resolution, speed: 1 },
+      );
     const made = await makeUnityPracticeResolution(g.record, g.result, score);
-    const byHand: UnityPracticeResolution = { record: g.record, result: g.result, score, replayDigest: made.replayDigest };
+    const byHand: UnityPracticeResolution = {
+      record: g.record,
+      result: g.result,
+      score,
+      replayDigest: made.replayDigest,
+    };
     const digest = digestSpy();
     const madePacket = await packUnityPracticeMessage(demonstration(made));
     expect(digest).toHaveBeenCalledTimes(1);
@@ -153,21 +176,100 @@ describe('Unity Practice resolution made once', () => {
 describe('Unity Practice resolution changed after it was made', () => {
   // Each change is made in place on the very record or result the resolution holds.
   const changes: Array<[string, (g: Golden) => void]> = [
-    ['a ball sample appended', (g) => { g.result.ball.push({ ...g.result.ball[g.result.ball.length - 1] }); }],
-    ['a ball sample removed', (g) => { g.result.ball.pop(); }],
-    ['a ball sample rewritten', (g) => { g.result.ball[7].p.y += 0.001; }],
-    ['every ball sample mirrored (an even number of sign flips)', (g) => { for (const s of g.result.ball) { s.p.x = -s.p.x; s.v.x = -s.v.x; } }],
-    ['the ball trace sorted in place', (g) => { g.result.ball.reverse(); }],
-    ['a flight sample rewritten', (g) => { g.result.flight.samples[2].v.z += 1e-9; }],
-    ['the bat trace replaced by a copy with one value moved', (g) => { g.result.bat = g.result.bat.map((s, i) => (i === 3 ? { ...s, grip: { ...s.grip, y: s.grip.y + 1e-6 } } : s)); }],
-    ['a fielder sample rewritten', (g) => { g.result.fielders[3].samples[1].x += 0.01; }],
-    ['a fielder action rewritten', (g) => { g.result.fielders[0].samples[0].action = 'idle'; }],
-    ['two events swapped', (g) => { const e = g.result.events; [e[1], e[2]] = [e[2], e[1]]; }],
-    ['the outcome rewritten', (g) => { g.result.outcome = { ...g.result.outcome, runs: g.result.outcome.runs === 4 ? 6 : 4 }; }],
-    ['the dead time rewritten', (g) => { g.result.deadT += 0.5; }],
-    ['a member added to the result', (g) => { (g.result as unknown as Record<string, unknown>).extra = 1; }],
-    ['the record rewritten', (g) => { g.record.tierToleranceMs += 1; }],
-    ['the record field changed', (g) => { g.record.field = { ...g.record.field, id: `${g.record.field.id}-moved` }; }],
+    [
+      'a ball sample appended',
+      (g) => {
+        g.result.ball.push({ ...g.result.ball[g.result.ball.length - 1] });
+      },
+    ],
+    [
+      'a ball sample removed',
+      (g) => {
+        g.result.ball.pop();
+      },
+    ],
+    [
+      'a ball sample rewritten',
+      (g) => {
+        g.result.ball[7].p.y += 0.001;
+      },
+    ],
+    [
+      'every ball sample mirrored (an even number of sign flips)',
+      (g) => {
+        for (const s of g.result.ball) {
+          s.p.x = -s.p.x;
+          s.v.x = -s.v.x;
+        }
+      },
+    ],
+    [
+      'the ball trace sorted in place',
+      (g) => {
+        g.result.ball.reverse();
+      },
+    ],
+    [
+      'a flight sample rewritten',
+      (g) => {
+        g.result.flight.samples[2].v.z += 1e-9;
+      },
+    ],
+    [
+      'the bat trace replaced by a copy with one value moved',
+      (g) => {
+        g.result.bat = g.result.bat.map((s, i) => (i === 3 ? { ...s, grip: { ...s.grip, y: s.grip.y + 1e-6 } } : s));
+      },
+    ],
+    [
+      'a fielder sample rewritten',
+      (g) => {
+        g.result.fielders[3].samples[1].x += 0.01;
+      },
+    ],
+    [
+      'a fielder action rewritten',
+      (g) => {
+        g.result.fielders[0].samples[0].action = 'idle';
+      },
+    ],
+    [
+      'two events swapped',
+      (g) => {
+        const e = g.result.events;
+        [e[1], e[2]] = [e[2], e[1]];
+      },
+    ],
+    [
+      'the outcome rewritten',
+      (g) => {
+        g.result.outcome = { ...g.result.outcome, runs: g.result.outcome.runs === 4 ? 6 : 4 };
+      },
+    ],
+    [
+      'the dead time rewritten',
+      (g) => {
+        g.result.deadT += 0.5;
+      },
+    ],
+    [
+      'a member added to the result',
+      (g) => {
+        (g.result as unknown as Record<string, unknown>).extra = 1;
+      },
+    ],
+    [
+      'the record rewritten',
+      (g) => {
+        g.record.tierToleranceMs += 1;
+      },
+    ],
+    [
+      'the record field changed',
+      (g) => {
+        g.record.field = { ...g.record.field, id: `${g.record.field.id}-moved` };
+      },
+    ],
   ];
 
   it.each(changes)('is not trusted after %s', async (_name, change) => {
@@ -245,10 +347,15 @@ describe('Unity Practice resolution the host did not make', () => {
 
     expect(await hasValidUnityPracticeResolutionIdentity(handBuilt(g)), 'hand built').toBe(true);
     expect(digest).toHaveBeenCalledTimes(1);
-    expect(isUnchangedUnityPracticeResolution(handBuilt(g)), 'a hand-built resolution is never "unchanged"').toBe(false);
+    expect(isUnchangedUnityPracticeResolution(handBuilt(g)), 'a hand-built resolution is never "unchanged"').toBe(
+      false,
+    );
 
     digest.mockClear();
-    expect(await hasValidUnityPracticeResolutionIdentity({ ...handBuilt(g), replayDigest: FALSE_DIGEST }), 'false digest').toBe(false);
+    expect(
+      await hasValidUnityPracticeResolutionIdentity({ ...handBuilt(g), replayDigest: FALSE_DIGEST }),
+      'false digest',
+    ).toBe(false);
     expect(digest).toHaveBeenCalledTimes(1);
 
     digest.mockClear();
@@ -265,8 +372,9 @@ describe('Unity Practice resolution the host did not make', () => {
     expect(digest).toHaveBeenCalledTimes(2);
 
     // A hand-built resolution with a false digest is refused when packed, as it always was.
-    await expect(packUnityPracticeMessage(hostResult(g, { ...handBuilt(g), replayDigest: FALSE_DIGEST })))
-      .rejects.toMatchObject({ code: 'integrity' });
+    await expect(
+      packUnityPracticeMessage(hostResult(g, { ...handBuilt(g), replayDigest: FALSE_DIGEST })),
+    ).rejects.toMatchObject({ code: 'integrity' });
   });
 
   it('is refused when a received packet carries a digest that is not its own', async () => {
@@ -274,25 +382,31 @@ describe('Unity Practice resolution the host did not make', () => {
     const g = golden(item);
     const forged = makeUnityPracticeMessage(g.fields, 'host.result', { ...handBuilt(g), replayDigest: FALSE_DIGEST });
     const body = canonicalUnityPracticeJson(forged);
-    await expect(unpackUnityPracticePacket({ body, sha256: await unityPracticeSha256(body) }))
-      .rejects.toMatchObject({ code: 'integrity' });
+    await expect(unpackUnityPracticePacket({ body, sha256: await unityPracticeSha256(body) })).rejects.toMatchObject({
+      code: 'integrity',
+    });
   });
 });
 
 describe('Unity Practice resolution types', () => {
   it('makes a resolution of the contract shape', async () => {
     const g = golden(goldens[5]);
-    const made: UnityPracticeResolution = await makeUnityPracticeResolution(g.record as DeliveryRecord, g.result as DeliveryResult, g.score);
+    const made: UnityPracticeResolution = await makeUnityPracticeResolution(
+      g.record as DeliveryRecord,
+      g.result as DeliveryResult,
+      g.score,
+    );
     expect(Object.keys(made).sort()).toEqual(['record', 'replayDigest', 'result', 'score']);
   });
 });
 
 describe('Unity Practice packets made once', () => {
-  const unityReady = () => makeUnityPracticeMessage(
-    { buildId: 'packet-test', sessionId: 'packet-session', messageId: 'unity-1', sequence: 0, sender: 'unity' },
-    'unity.ready',
-    { renderer: 'Vulkan', unityVersion: '6000.3.test' },
-  );
+  const unityReady = () =>
+    makeUnityPracticeMessage(
+      { buildId: 'packet-test', sessionId: 'packet-session', messageId: 'unity-1', sequence: 0, sender: 'unity' },
+      'unity.ready',
+      { renderer: 'Vulkan', unityVersion: '6000.3.test' },
+    );
 
   it('freezes the packet it makes, in the golden key order, and remembers the sender and type inside it', async () => {
     const item = goldens[0];
@@ -303,9 +417,15 @@ describe('Unity Practice packets made once', () => {
     for (const packet of [result, replay]) {
       expect(Object.isFrozen(packet)).toBe(true);
       expect(Object.keys(packet)).toEqual(['body', 'sha256']);
-      expect(() => { (packet as { body: string }).body = 'changed'; }).toThrow(TypeError);
-      expect(() => { (packet as { sha256: string }).sha256 = FALSE_DIGEST; }).toThrow(TypeError);
-      expect(() => { (packet as unknown as { extra: number }).extra = 1; }).toThrow(TypeError);
+      expect(() => {
+        (packet as { body: string }).body = 'changed';
+      }).toThrow(TypeError);
+      expect(() => {
+        (packet as { sha256: string }).sha256 = FALSE_DIGEST;
+      }).toThrow(TypeError);
+      expect(() => {
+        (packet as unknown as { extra: number }).extra = 1;
+      }).toThrow(TypeError);
     }
     expect(packedUnityPracticePacket(result)).toEqual({ sender: 'host', type: 'host.result' });
     expect(packedUnityPracticePacket(replay)).toEqual({ sender: 'host', type: 'host.replay' });
@@ -316,11 +436,13 @@ describe('Unity Practice packets made once', () => {
   it('remembers a packet of any sender, small or large', async () => {
     const ready = await packUnityPracticeMessage(unityReady());
     expect(packedUnityPracticePacket(ready)).toEqual({ sender: 'unity', type: 'unity.ready' });
-    const pause = await packUnityPracticeMessage(makeUnityPracticeMessage(
-      { buildId: 'packet-test', sessionId: 'packet-session', messageId: 'host-1', sequence: 1, sender: 'host' },
-      'host.pause',
-      { reason: 'player' },
-    ));
+    const pause = await packUnityPracticeMessage(
+      makeUnityPracticeMessage(
+        { buildId: 'packet-test', sessionId: 'packet-session', messageId: 'host-1', sequence: 1, sender: 'host' },
+        'host.pause',
+        { reason: 'player' },
+      ),
+    );
     expect(packedUnityPracticePacket(pause)).toEqual({ sender: 'host', type: 'host.pause' });
   });
 
@@ -330,7 +452,10 @@ describe('Unity Practice packets made once', () => {
     const made = await makeUnityPracticeResolution(g.record, g.result, g.score);
     const packet = await packUnityPracticeMessage(hostResult(g, made));
     expect(packedUnityPracticePacket({ ...packet }), 'a copy').toBeNull();
-    expect(packedUnityPracticePacket({ body: packet.body, sha256: packet.sha256 }), 'an equal hand-built packet').toBeNull();
+    expect(
+      packedUnityPracticePacket({ body: packet.body, sha256: packet.sha256 }),
+      'an equal hand-built packet',
+    ).toBeNull();
     expect(packedUnityPracticePacket({ ...packet, sha256: FALSE_DIGEST }), 'an altered copy').toBeNull();
     expect(packedUnityPracticePacket(item.wire.packets.result), 'a packet of the checked-in goldens').toBeNull();
     expect(packedUnityPracticePacket(JSON.parse(JSON.stringify(packet))), 'a packet that went through JSON').toBeNull();
@@ -345,7 +470,10 @@ describe('Unity Practice packets made once', () => {
     const packet = await packUnityPracticeMessage(hostResult(g, made));
     const digest = digestSpy();
     const message = await unpackUnityPracticePacket(packet);
-    expect(digest, 'unpack still checks the checksum and recomputes the identity of what it receives').toHaveBeenCalledTimes(2);
+    expect(
+      digest,
+      'unpack still checks the checksum and recomputes the identity of what it receives',
+    ).toHaveBeenCalledTimes(2);
     expect(message.type).toBe('host.result');
     expect(canonicalUnityPracticeJson(message) === packet.body).toBe(true);
     expect(parseUnityPracticeMessage(packet.body)).toEqual(message);
@@ -366,7 +494,9 @@ describe('Unity Practice protocol guard replay check', () => {
     const made = await makeUnityPracticeResolution(g.record, g.result, g.score);
     const guard = await acceptedResult(g, made);
     let decision = '';
-    const big = await countLargeStringifies(bigAs(g), () => { decision = guard.accept(guardReplay(g, made)); });
+    const big = await countLargeStringifies(bigAs(g), () => {
+      decision = guard.accept(guardReplay(g, made));
+    });
     expect(decision).toBe('accept');
     expect(big).toBe(0);
     expect(guard.phase).toBe('replaying');
@@ -377,7 +507,9 @@ describe('Unity Practice protocol guard replay check', () => {
     const byHand = handBuilt(g);
     const guard = await acceptedResult(g, byHand);
     let decision = '';
-    const big = await countLargeStringifies(bigAs(g), () => { decision = guard.accept(guardReplay(g, byHand)); });
+    const big = await countLargeStringifies(bigAs(g), () => {
+      decision = guard.accept(guardReplay(g, byHand));
+    });
     expect(decision).toBe('accept');
     expect(big, 'two full canonicalizations').toBeGreaterThanOrEqual(2);
   });
@@ -390,7 +522,9 @@ describe('Unity Practice protocol guard replay check', () => {
     expect(replayed).not.toBe(accepted);
     const guard = await acceptedResult(g, accepted);
     let decision = '';
-    const big = await countLargeStringifies(bigAs(g), () => { decision = guard.accept(guardReplay(copy, replayed)); });
+    const big = await countLargeStringifies(bigAs(g), () => {
+      decision = guard.accept(guardReplay(copy, replayed));
+    });
     expect(decision).toBe('accept');
     expect(big).toBe(0);
   });
@@ -399,10 +533,15 @@ describe('Unity Practice protocol guard replay check', () => {
     const g = golden(goldens[5]);
     const copy = golden(goldens[5]);
     const accepted = await makeUnityPracticeResolution(g.record, g.result, g.score);
-    const other = await makeUnityPracticeResolution(copy.record, copy.result, { ...copy.score, runs: copy.score.runs + 1 });
+    const other = await makeUnityPracticeResolution(copy.record, copy.result, {
+      ...copy.score,
+      runs: copy.score.runs + 1,
+    });
     const guard = await acceptedResult(g, accepted);
     let decision = '';
-    const big = await countLargeStringifies(bigAs(g), () => { decision = guard.accept(guardReplay(copy, other)); });
+    const big = await countLargeStringifies(bigAs(g), () => {
+      decision = guard.accept(guardReplay(copy, other));
+    });
     expect(decision).toBe('replay_mismatch');
     expect(big).toBe(0);
   });
@@ -416,7 +555,9 @@ describe('Unity Practice protocol guard replay check', () => {
     copy.result.ball[5].p.y += 0.001;
     const guard = await acceptedResult(g, accepted);
     let decision = '';
-    const big = await countLargeStringifies(bigAs(g), () => { decision = guard.accept(guardReplay(copy, replayed)); });
+    const big = await countLargeStringifies(bigAs(g), () => {
+      decision = guard.accept(guardReplay(copy, replayed));
+    });
     expect(decision).toBe('replay_mismatch');
     expect(big, 'the fallback canonicalizes').toBeGreaterThanOrEqual(2);
 
@@ -436,7 +577,9 @@ describe('Unity Practice protocol guard replay check', () => {
     const guard = await acceptedResult(g, made);
     const forged = { ...made, replayDigest: FALSE_DIGEST };
     let decision = '';
-    const big = await countLargeStringifies(bigAs(g), () => { decision = guard.accept(guardReplay(g, forged)); });
+    const big = await countLargeStringifies(bigAs(g), () => {
+      decision = guard.accept(guardReplay(g, forged));
+    });
     expect(decision).toBe('replay_mismatch');
     expect(big).toBe(0);
   });

@@ -23,13 +23,27 @@ const FORBIDDEN: RegExp[] = [
   /\/v1\/internal\//,
 ];
 
-const texts = (files: Record<string, unknown>): Record<string, string> => Object.fromEntries(Object.entries(files).filter((e): e is [string, string] => typeof e[1] === 'string'));
-const sources = texts(import.meta.glob(['/src/**/*.{ts,tsx,js,mjs}', '/index.html', '/admin.html'], { query: '?raw', import: 'default', eager: true }));
-const built = texts(import.meta.glob(['/dist/**/*.{js,html}', '/dist-pages/**/*.{js,html}'], { query: '?raw', import: 'default', eager: true }));
+const texts = (files: Record<string, unknown>): Record<string, string> =>
+  Object.fromEntries(Object.entries(files).filter((e): e is [string, string] => typeof e[1] === 'string'));
+const sources = texts(
+  import.meta.glob(['/src/**/*.{ts,tsx,js,mjs}', '/index.html', '/admin.html'], {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  }),
+);
+const built = texts(
+  import.meta.glob(['/dist/**/*.{js,html}', '/dist-pages/**/*.{js,html}'], {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  }),
+);
 
 function offenders(files: Record<string, string>): string[] {
   const hits: string[] = [];
-  for (const [path, text] of Object.entries(files)) for (const re of FORBIDDEN) if (re.test(text)) hits.push(`${path}: ${re}`);
+  for (const [path, text] of Object.entries(files))
+    for (const re of FORBIDDEN) if (re.test(text)) hits.push(`${path}: ${re}`);
   return hits;
 }
 
@@ -40,7 +54,9 @@ describe('client bundle hygiene', () => {
   });
 
   it('no client module imports the Worker or the render service', () => {
-    const hits = Object.entries(sources).filter(([path, text]) => /\.(ts|tsx)$/.test(path) && /from ['"](\.\.\/)+(backend|render-service)\//.test(text));
+    const hits = Object.entries(sources).filter(
+      ([path, text]) => /\.(ts|tsx)$/.test(path) && /from ['"](\.\.\/)+(backend|render-service)\//.test(text),
+    );
     expect(hits.map(([p]) => p)).toEqual([]);
   });
 

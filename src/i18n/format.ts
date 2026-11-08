@@ -166,7 +166,10 @@ function render(nodes: Node[], params: MessageParams, locale: string, hashValue:
         if (v === undefined || v === null) {
           out += `{${n.name}}`;
         } else if (typeof v === 'number') {
-          out += n.style === 'percent' ? numberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(v) : numberFormat(locale).format(v);
+          out +=
+            n.style === 'percent'
+              ? numberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(v)
+              : numberFormat(locale).format(v);
         } else {
           out += v;
         }

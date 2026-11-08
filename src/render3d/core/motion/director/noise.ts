@@ -18,7 +18,13 @@ export function vnoise(seed: number, x: number): number {
  * Fractal noise: octaves with lattice spacings `spacing` (s) and amplitudes `amp`, so the strength falls with
  * frequency (about 1/f). `x0` offsets the lattice so two balls never share it. Not periodic.
  */
-export function fractal(seed: number, tS: number, x0: number, spacing: readonly number[], amp: readonly number[]): number {
+export function fractal(
+  seed: number,
+  tS: number,
+  x0: number,
+  spacing: readonly number[],
+  amp: readonly number[],
+): number {
   let s = 0;
   for (let k = 0; k < spacing.length; k++) s += amp[k] * vnoise(seed + 977 * k, tS / spacing[k] + x0);
   return s;

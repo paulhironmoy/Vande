@@ -1,10 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { PERF_CACHE_KEY, classifyDevice, clearCachedAssessment, isDeviceAssessment, loadCachedAssessment, saveCachedAssessment } from '@/perf';
+import {
+  PERF_CACHE_KEY,
+  classifyDevice,
+  clearCachedAssessment,
+  isDeviceAssessment,
+  loadCachedAssessment,
+  saveCachedAssessment,
+} from '@/perf';
 import { measurements } from './fixtures';
 
 function memoryStore() {
   const m = new Map<string, string>();
-  return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v), removeItem: (k: string) => void m.delete(k), m };
+  return {
+    getItem: (k: string) => m.get(k) ?? null,
+    setItem: (k: string, v: string) => void m.set(k, v),
+    removeItem: (k: string) => void m.delete(k),
+    m,
+  };
 }
 
 describe('assessment cache', () => {
@@ -22,7 +34,10 @@ describe('assessment cache', () => {
     const store = memoryStore();
     store.setItem(PERF_CACHE_KEY, '{not json');
     expect(loadCachedAssessment('1.0.0', store)).toBeNull();
-    store.setItem(PERF_CACHE_KEY, JSON.stringify({ v: 1, appVersion: '1.0.0', assessment: { ...classifyDevice(measurements()), tier: 'ultra' } }));
+    store.setItem(
+      PERF_CACHE_KEY,
+      JSON.stringify({ v: 1, appVersion: '1.0.0', assessment: { ...classifyDevice(measurements()), tier: 'ultra' } }),
+    );
     expect(loadCachedAssessment('1.0.0', store)).toBeNull();
     expect(isDeviceAssessment(null)).toBe(false);
   });

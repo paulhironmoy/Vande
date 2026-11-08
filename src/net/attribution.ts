@@ -17,7 +17,10 @@ export interface AttributionReporter {
   flushInstall(): Promise<boolean>;
 }
 
-export function createAttributionReporter(api: Pick<ApiClient, 'call'>, store: Pick<SecureStore, 'get' | 'set'> | null): AttributionReporter {
+export function createAttributionReporter(
+  api: Pick<ApiClient, 'call'>,
+  store: Pick<SecureStore, 'get' | 'set'> | null,
+): AttributionReporter {
   const opened = new Set<string>();
   const report = async (code: string, event: AttributionEvent): Promise<boolean> => {
     if (!HIGHLIGHT_CODE_RE.test(code)) return false;

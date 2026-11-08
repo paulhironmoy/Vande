@@ -3,7 +3,16 @@
  * attempt at the exact ball with the previous one (docs/PRACTICE_COACH.md, "The card"). Closed keys only; the UI
  * words them in one short line with the numbers ("38 ms early", "right footwork this time").
  */
-import type { AttemptComparison, AttemptChangeKind, CoachAnalysis, CoachOption, CoachRecommendation, CoachRecommendationKind, ContactKind, PrimaryInsight } from '@/contracts/practice';
+import type {
+  AttemptComparison,
+  AttemptChangeKind,
+  CoachAnalysis,
+  CoachOption,
+  CoachRecommendation,
+  CoachRecommendationKind,
+  ContactKind,
+  PrimaryInsight,
+} from '@/contracts/practice';
 import { BALL_R, STUMPS_HALF_W, regionOf } from '@/physics';
 import { ORTHODOXY, acrossTheLine, acrossTheMovement } from './cricket';
 import { PICK } from './options';
@@ -14,7 +23,13 @@ import { READ_THRESHOLDS } from './facts';
 const IN_LINE_M = STUMPS_HALF_W + BALL_R;
 
 /** Contacts on the bat (the face or an edge); a miss, the pad and the body are not. */
-const ON_THE_BAT: ReadonlySet<ContactKind> = new Set<ContactKind>(['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge']);
+const ON_THE_BAT: ReadonlySet<ContactKind> = new Set<ContactKind>([
+  'middle',
+  'inside_edge',
+  'outside_edge',
+  'top_edge',
+  'leading_edge',
+]);
 
 /** Below this change in timing error (ms) two attempts are timed the same. */
 export const TIMING_CHANGE_MS = 5;
@@ -23,7 +38,11 @@ const lofted = (elevation: number | null) => (elevation ?? 0) >= ORTHODOXY.lofte
 
 function aimOf(rec: CoachOption): Pick<CoachRecommendation, 'directionDeg' | 'region' | 'lofted'> {
   if (rec.decision !== 'attack' || !rec.swing) return { directionDeg: null, region: null, lofted: null };
-  return { directionDeg: rec.swing.directionDeg, region: rec.region ?? regionOf(rec.swing.directionDeg), lofted: lofted(rec.swing.elevation) };
+  return {
+    directionDeg: rec.swing.directionDeg,
+    region: rec.region ?? regionOf(rec.swing.directionDeg),
+    lofted: lofted(rec.swing.elevation),
+  };
 }
 
 /**
@@ -50,7 +69,8 @@ export function leaveKind(an: Pick<CoachAnalysis, 'ball'>): CoachRecommendationK
   return an.ball.lineAtStumpsM < 0 ? 'leave_down_leg' : 'leave_outside_off';
 }
 
-const defendKind = (rec: CoachOption): CoachRecommendationKind => (rec.footwork === 'back' || rec.footwork === 'across' ? 'defend_back' : 'defend_forward');
+const defendKind = (rec: CoachOption): CoachRecommendationKind =>
+  rec.footwork === 'back' || rec.footwork === 'across' ? 'defend_back' : 'defend_forward';
 
 /**
  * Met the recommended response's standard: survived, the recommended decision, the middle of the bat or a correct
@@ -90,7 +110,11 @@ function isRecommendedResponse(an: CoachAnalysis): boolean {
   const rec = an.options[0];
   if (a.decision !== rec.decision) return false;
   if (rec.decision !== 'attack' || !rec.swing) return true;
-  return a.directionDeg !== null && Math.abs(a.directionDeg - rec.swing.directionDeg) < AIM_CHANGE_DEG && lofted(a.elevation) === lofted(rec.swing.elevation);
+  return (
+    a.directionDeg !== null &&
+    Math.abs(a.directionDeg - rec.swing.directionDeg) < AIM_CHANGE_DEG &&
+    lofted(a.elevation) === lofted(rec.swing.elevation)
+  );
 }
 
 /**
@@ -133,7 +157,8 @@ export function recommendationFor(an: CoachAnalysis): CoachRecommendation {
   }
   if (a.decision === 'leave') return make(an.ball.wouldHitStumps ? 'play_at_the_stumps' : 'repeat_it');
   // 2. Feet that fought the length.
-  if (an.read.length === 'wrong') return make(rec.footwork === 'back' || rec.footwork === 'across' ? 'get_back' : 'get_forward');
+  if (an.read.length === 'wrong')
+    return make(rec.footwork === 'back' || rec.footwork === 'across' ? 'get_back' : 'get_forward');
   // 3. The recommended stroke itself (the same decision, aim within AIM_CHANGE_DEG and lofting, on the same played
   // feet), timed outside the solid band, or inside it but off the middle, or inside it and still out (caught, or played
   // on): the timing is then the one recorded difference from the demonstration, which survives at its ideal point.
@@ -144,7 +169,11 @@ export function recommendationFor(an: CoachAnalysis): CoachRecommendation {
   // block met on the face at least 'solid' however late it is (2026-11-03 label rules).
   const sameStroke = isRecommendedResponse(an) && a.footwork === rec.footwork && rec.outcome.dismissal === null;
   const beyondSpread = Math.abs(err) > 2 * EXECUTION_SPREAD.timingSigmaMs;
-  const offBand = a.timing === 'mistimed' || a.timing === 'missed' || (a.timing === 'solid' && a.contact !== 'middle') || beyondSpread;
+  const offBand =
+    a.timing === 'mistimed' ||
+    a.timing === 'missed' ||
+    (a.timing === 'solid' && a.contact !== 'middle') ||
+    beyondSpread;
   const outPlayingIt = a.dismissal !== null && Math.abs(err) >= TIMING_CHANGE_MS;
   // A swing timed inside the band (perfect or solid) that the bat never met (a miss, the pad, the body) is never told
   // to move its timing: the label says the timing was right and the reach failed, so the action is the stroke's own
@@ -160,17 +189,23 @@ export function recommendationFor(an: CoachAnalysis): CoachRecommendation {
     if (rec.decision !== 'attack' || isRecommendedResponse(an) || playedAcross(an)) return make('play_straighter');
   }
   // A block repeats only on the recommended feet; on the other feet the recommended block is the one action.
-  if (a.decision === 'defend') return make(metStandard(an) && a.footwork === rec.footwork ? 'repeat_it' : defendKind(rec));
+  if (a.decision === 'defend')
+    return make(metStandard(an) && a.footwork === rec.footwork ? 'repeat_it' : defendKind(rec));
   // 5. A lofted stroke caught or stopped, when the recommended stroke keeps the ball down. Only a ball the bat met
   // was lofted: after a miss, the pad or the body, "keep it along the ground" names nothing that happened, so the
   // action falls to the feet or the aim below (lead ruling (A), 2026-11-04: 49 of the physics evaluator's 627
   // "perfect/solid with no bat contact" results were told to keep it down).
-  if (lofted(a.elevation) && !aim.lofted && ON_THE_BAT.has(a.contact) && (a.dismissal !== null || a.runs === 0)) return make('keep_it_down');
+  if (lofted(a.elevation) && !aim.lofted && ON_THE_BAT.has(a.contact) && (a.dismissal !== null || a.runs === 0))
+    return make('keep_it_down');
   // 5a. The recommended aim and lofting on the other feet: the feet are the one change (never "repeat it").
-  if (isRecommendedResponse(an) && a.footwork !== rec.footwork) return make(rec.footwork === 'back' || rec.footwork === 'across' ? 'get_back' : 'get_forward');
+  if (isRecommendedResponse(an) && a.footwork !== rec.footwork)
+    return make(rec.footwork === 'back' || rec.footwork === 'across' ? 'get_back' : 'get_forward');
   // 6. Done right, timed inside the solid band, and as many runs as the recommended stroke: repeat it. A mistimed
   // stroke that happened to survive off the middle is never told to repeat itself. Otherwise, aim where it aims.
-  const sameAim = a.directionDeg !== null && aim.directionDeg !== null && Math.abs(a.directionDeg - aim.directionDeg) < AIM_CHANGE_DEG;
+  const sameAim =
+    a.directionDeg !== null &&
+    aim.directionDeg !== null &&
+    Math.abs(a.directionDeg - aim.directionDeg) < AIM_CHANGE_DEG;
   const inBand = a.timing === 'perfect' || a.timing === 'solid';
   if (metStandard(an) && inBand && (sameAim || a.runs >= rec.outcome.runs)) return make('repeat_it');
   return make('aim_for_the_gap');
@@ -179,7 +214,11 @@ export function recommendationFor(an: CoachAnalysis): CoachRecommendation {
 /** The card's one insight: the primary reason (why[0]) and the one recommendation. */
 export function primaryInsight(an: CoachAnalysis): PrimaryInsight {
   const err = an.attempted.timingErrorMs;
-  return { reason: an.why[0], timingMs: err === null ? null : Math.round(err) || 0, recommendation: recommendationFor(an) };
+  return {
+    reason: an.why[0],
+    timingMs: err === null ? null : Math.round(err) || 0,
+    recommendation: recommendationFor(an),
+  };
 }
 
 interface Standard {
@@ -199,7 +238,11 @@ function standardOf(an: CoachAnalysis, rec: CoachOption, measuredClean?: boolean
     decision: a.decision === rec.decision,
     footwork: swung && rec.decision !== 'leave' ? an.read.length !== 'wrong' && a.footwork === rec.footwork : null,
     // The contact's own measurement when the caller has it (CoachTip.cleanContact), never the label alone.
-    clean: swung ? (typeof measuredClean === 'boolean' ? measuredClean : a.contact === 'middle') : a.dismissal === null && !an.ball.wouldHitStumps,
+    clean: swung
+      ? typeof measuredClean === 'boolean'
+        ? measuredClean
+        : a.contact === 'middle'
+      : a.dismissal === null && !an.ball.wouldHitStumps,
     absErr: a.timingErrorMs === null ? null : Math.abs(a.timingErrorMs),
     runs: a.dismissal ? 0 : a.runs,
   };
@@ -223,7 +266,11 @@ export const IMPROVEMENTS: ReadonlySet<AttemptChangeKind> = new Set<AttemptChang
  * attempt's measured clean contact (CoachTip.cleanContact: the face, the sweet zone, the bat speed); without it the
  * contact label decides, which counts a slow fend or a toe contact labelled 'middle' as clean.
  */
-export function compareAttempts(previous: CoachAnalysis, next: CoachAnalysis, clean?: { previous?: boolean | null; next?: boolean | null }): AttemptComparison {
+export function compareAttempts(
+  previous: CoachAnalysis,
+  next: CoachAnalysis,
+  clean?: { previous?: boolean | null; next?: boolean | null },
+): AttemptComparison {
   const rec = next.options[0];
   const p = standardOf(previous, rec, clean?.previous);
   const n = standardOf(next, rec, clean?.next);

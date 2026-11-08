@@ -41,13 +41,17 @@ export default function DuelNewRoute({ route }: { route: RouteOf<'duel_new'> }) 
     setError(null);
     const conditions: Conditions | undefined = pitch ? { pitch, weather } : undefined;
     try {
-      const r = await net.api.call('POST /v1/duels', { body: { ...(conditions ? { conditions } : {}), ...(attribution ? { attributionCode: attribution } : {}) } });
+      const r = await net.api.call('POST /v1/duels', {
+        body: { ...(conditions ? { conditions } : {}), ...(attribution ? { attributionCode: attribution } : {}) },
+      });
       saveInvite({ matchId: r.matchId, inviteToken: r.inviteToken, inviteUrl: r.inviteUrl });
       services?.analytics.track('invite_created', { mode: 'duel', ...(attribution ? { attribution } : {}) });
       setCreated({ ...r, conditions: conditions ?? null });
     } catch (e) {
       const k = failureKind(e);
-      setError(k === 'offline' ? t('duel.error_offline') : k === 'rate_limited' ? t('duel.error_rate') : t('duel.error'));
+      setError(
+        k === 'offline' ? t('duel.error_offline') : k === 'rate_limited' ? t('duel.error_rate') : t('duel.error'),
+      );
     } finally {
       setBusy(false);
     }
@@ -55,7 +59,16 @@ export default function DuelNewRoute({ route }: { route: RouteOf<'duel_new'> }) 
 
   const body = (() => {
     if (booting) return <StateView kind="loading" />;
-    if (!net) return <StateView kind="offline" title={t('duel.needs_online_title')} body={t('duel.needs_online_body')} actionLabel={t('home.ghosts.title')} onAction={() => navigate({ name: 'ghosts' })} />;
+    if (!net)
+      return (
+        <StateView
+          kind="offline"
+          title={t('duel.needs_online_title')}
+          body={t('duel.needs_online_body')}
+          actionLabel={t('home.ghosts.title')}
+          onAction={() => navigate({ name: 'ghosts' })}
+        />
+      );
     if (!player.id) {
       if (sync === 'alias_rejected') return <AliasFix />;
       if (sync === 'offline' || !online) return <StateView kind="offline" body={t('duel.signup_offline')} />;
@@ -67,7 +80,13 @@ export default function DuelNewRoute({ route }: { route: RouteOf<'duel_new'> }) 
           <p className={s.success} role="status">
             <Icon name="check" size={18} /> {t('duel.created')}
           </p>
-          <InvitePanel matchId={created.matchId} inviteUrl={created.inviteUrl} inviter={me} conditions={created.conditions} onPlan={() => navigate({ name: 'match', matchId: created.matchId }, { replace: true })} />
+          <InvitePanel
+            matchId={created.matchId}
+            inviteUrl={created.inviteUrl}
+            inviter={me}
+            conditions={created.conditions}
+            onPlan={() => navigate({ name: 'match', matchId: created.matchId }, { replace: true })}
+          />
         </div>
       );
     return (
@@ -77,14 +96,30 @@ export default function DuelNewRoute({ route }: { route: RouteOf<'duel_new'> }) 
             {t('duel.pitch_title')}
           </h2>
           <div className={s.pitches} role="radiogroup" aria-labelledby="duel-pitch">
-            <CardButton role="radio" aria-checked={pitch === null} className={s.pitch} padding={3} onClick={() => setPitch(null)} data-testid="duel-pitch-any">
+            <CardButton
+              role="radio"
+              aria-checked={pitch === null}
+              className={s.pitch}
+              padding={3}
+              onClick={() => setPitch(null)}
+              data-testid="duel-pitch-any"
+            >
               <span className={s.pitchName}>
                 <Icon name="shuffle" size={18} /> {t('duel.pitch_any')}
               </span>
               <span className={s.pitchHint}>{t('duel.pitch_any_hint')}</span>
             </CardButton>
             {PITCHES.map((p) => (
-              <CardButton key={p} role="radio" aria-checked={pitch === p} className={s.pitch} data-pitch={p} padding={3} onClick={() => setPitch(p)} data-testid={`duel-pitch-${p}`}>
+              <CardButton
+                key={p}
+                role="radio"
+                aria-checked={pitch === p}
+                className={s.pitch}
+                data-pitch={p}
+                padding={3}
+                onClick={() => setPitch(p)}
+                data-testid={`duel-pitch-${p}`}
+              >
                 <span className={s.pitchName}>
                   <span className={s.swatch} data-pitch={p} aria-hidden="true" /> {t(`pitch.${p}` as MessageKey)}
                 </span>
@@ -93,7 +128,13 @@ export default function DuelNewRoute({ route }: { route: RouteOf<'duel_new'> }) 
             ))}
           </div>
           {pitch && (
-            <SegmentedControl<WeatherId> label={t('duel.weather')} value={weather} onChange={setWeather} options={WEATHERS.map((w) => ({ value: w, label: t(`weather.${w}` as MessageKey) }))} block />
+            <SegmentedControl<WeatherId>
+              label={t('duel.weather')}
+              value={weather}
+              onChange={setWeather}
+              options={WEATHERS.map((w) => ({ value: w, label: t(`weather.${w}` as MessageKey) }))}
+              block
+            />
           )}
         </section>
         <section className={s.how} aria-labelledby="duel-how">
@@ -123,13 +164,28 @@ export default function DuelNewRoute({ route }: { route: RouteOf<'duel_new'> }) 
 
   const footer =
     net && player.id && !created ? (
-      <Button variant="accent" size="xl" block icon="users" onClick={() => void create()} loading={busy} data-testid="duel-create">
+      <Button
+        variant="accent"
+        size="xl"
+        block
+        icon="users"
+        onClick={() => void create()}
+        loading={busy}
+        data-testid="duel-create"
+      >
         {t('duel.create')}
       </Button>
     ) : undefined;
 
   return (
-    <ScreenShell title={t('duel.title')} eyebrow={t('brand.mode')} onBack={back} narrow footer={footer} testId="duel-new-screen">
+    <ScreenShell
+      title={t('duel.title')}
+      eyebrow={t('brand.mode')}
+      onBack={back}
+      narrow
+      footer={footer}
+      testId="duel-new-screen"
+    >
       {body}
     </ScreenShell>
   );

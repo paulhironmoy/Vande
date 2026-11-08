@@ -96,7 +96,10 @@ export function swingFor(record: DeliveryRecord, o: SwingOpts = {}): NormalizedS
 }
 
 /** Play the record with a swing (null = leave): the attempt's record and its real result. */
-export function play(record: DeliveryRecord, swing: NormalizedSwing | null): { record: DeliveryRecord; result: DeliveryResult } {
+export function play(
+  record: DeliveryRecord,
+  swing: NormalizedSwing | null,
+): { record: DeliveryRecord; result: DeliveryResult } {
   const result = resolveDelivery({
     flight: practiceFlight(record),
     swing,

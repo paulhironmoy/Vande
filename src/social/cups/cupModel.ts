@@ -35,8 +35,18 @@ export function phaseAt(times: { lockBy: string; batBy: string; revealAt: string
 }
 
 export function roundsOf(cup: CupView, now: number): RoundModel[] {
-  const rounds: RoundModel[] = cup.schedule.rounds.map((r) => ({ ...r, fixtures: cup.fixtures.filter((f) => f.round === r.round), phase: phaseAt(r, now) }));
-  if (cup.schedule.final) rounds.push({ round: 'final', ...cup.schedule.final, fixtures: cup.fixtures.filter((f) => f.round === 'final'), phase: phaseAt(cup.schedule.final, now) });
+  const rounds: RoundModel[] = cup.schedule.rounds.map((r) => ({
+    ...r,
+    fixtures: cup.fixtures.filter((f) => f.round === r.round),
+    phase: phaseAt(r, now),
+  }));
+  if (cup.schedule.final)
+    rounds.push({
+      round: 'final',
+      ...cup.schedule.final,
+      fixtures: cup.fixtures.filter((f) => f.round === 'final'),
+      phase: phaseAt(cup.schedule.final, now),
+    });
   return rounds;
 }
 
@@ -48,7 +58,13 @@ const OPEN: ReadonlySet<Fixture['status']> = new Set(['planning', 'batting', 'aw
  * the round the cup is really in (the clock only drives the countdowns).
  */
 export function currentRound(rounds: RoundModel[]): RoundModel | null {
-  return rounds.find((r) => r.fixtures.some((f) => OPEN.has(f.status))) ?? rounds.find((r) => r.phase !== 'revealed' && r.fixtures.some((f) => f.status !== 'revealed' && f.status !== 'void')) ?? null;
+  return (
+    rounds.find((r) => r.fixtures.some((f) => OPEN.has(f.status))) ??
+    rounds.find(
+      (r) => r.phase !== 'revealed' && r.fixtures.some((f) => f.status !== 'revealed' && f.status !== 'void'),
+    ) ??
+    null
+  );
 }
 
 export function membersById(cup: CupView): Map<string, PlayerRef> {

@@ -17,11 +17,38 @@ import { attack, quickPlay, setup, until, useFakeTimers } from './flowSetup';
 const GestureProbe: ComponentType<GestureSurfaceProps> = () => <div />;
 
 function tester(): TesterApi {
-  return { enabled: false, active: false, consentNeeded: false, begin: vi.fn(), decline: vi.fn(), current: null, answer: vi.fn(), skip: vi.fn(), marker: vi.fn(), endSession: vi.fn(), gesture: vi.fn(), nextOver: vi.fn(), abandon: vi.fn() };
+  return {
+    enabled: false,
+    active: false,
+    consentNeeded: false,
+    begin: vi.fn(),
+    decline: vi.fn(),
+    current: null,
+    answer: vi.fn(),
+    skip: vi.fn(),
+    marker: vi.fn(),
+    endSession: vi.fn(),
+    gesture: vi.fn(),
+    nextOver: vi.fn(),
+    abandon: vi.fn(),
+  };
 }
 
 function kitOf(value: { engine: unknown; coach: CoachKit | null; createStage: unknown }): PracticeKit {
-  return { engine: value.engine, coach: value.coach, createStage: value.createStage, input: { GestureSurface: GestureProbe }, ground: { boundaryR: 70, ringR: 27.4, pitchHalf: 10.06, bladeM: 0.96, striker: { x: 0, z: 10.06 } }, fielderClass: () => 'ring', build: { lengthBand: () => 'good', lineBand: () => 'outside_off', stockRange: () => [125, 135], variationsFor: () => ['stock'] } } as unknown as PracticeKit;
+  return {
+    engine: value.engine,
+    coach: value.coach,
+    createStage: value.createStage,
+    input: { GestureSurface: GestureProbe },
+    ground: { boundaryR: 70, ringR: 27.4, pitchHalf: 10.06, bladeM: 0.96, striker: { x: 0, z: 10.06 } },
+    fielderClass: () => 'ring',
+    build: {
+      lengthBand: () => 'good',
+      lineBand: () => 'outside_off',
+      stockRange: () => [125, 135],
+      variationsFor: () => ['stock'],
+    },
+  } as unknown as PracticeKit;
 }
 
 beforeEach(() => useFakeTimers());
@@ -52,7 +79,17 @@ describe('the dead ball card edge', () => {
       const state = value.flow.getState();
       render(
         <PracticeKitContext.Provider value={kitOf(value)}>
-          <Play flow={value.flow} state={{ ...state, quality: { ...state.quality, stage } }} onHome={vi.fn()} onSettings={vi.fn()} appVersion="test" onNextOver={vi.fn()} onChooseOver={vi.fn()} onHarder={null} tester={tester()} />
+          <Play
+            flow={value.flow}
+            state={{ ...state, quality: { ...state.quality, stage } }}
+            onHome={vi.fn()}
+            onSettings={vi.fn()}
+            appVersion="test"
+            onNextOver={vi.fn()}
+            onChooseOver={vi.fn()}
+            onHarder={null}
+            tester={tester()}
+          />
         </PracticeKitContext.Provider>,
       );
       expect(screen.getByTestId('practice-result').getAttribute('data-edge')).toBe(stage === '2d' ? 'right' : 'left');

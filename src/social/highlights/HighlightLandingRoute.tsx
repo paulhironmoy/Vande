@@ -29,7 +29,10 @@ export default function HighlightLandingRoute({ route }: { route: RouteOf<'highl
   const locale = useApp((st) => st.settings.locale);
   const toast = useApp((st) => st.toast);
   const { net, services, booting } = useSocialServices();
-  const hl = useResource<HighlightPublic>(net ? () => net.api.call('GET /v1/h/:code', { params: { code: route.code } }, { anonymous: true }) : null, [net, route.code]);
+  const hl = useResource<HighlightPublic>(
+    net ? () => net.api.call('GET /v1/h/:code', { params: { code: route.code } }, { anonymous: true }) : null,
+    [net, route.code],
+  );
   const [log, setLog] = useState<MatchEventLog | null>(null);
   const [mode, setMode] = useState<'landing' | 'replay' | { practice: 0 | 1 }>('landing');
   const action = useAction();
@@ -43,32 +46,67 @@ export default function HighlightLandingRoute({ route }: { route: RouteOf<'highl
   }, [hl.data, net, services, route.code]);
 
   const shell = (children: React.ReactNode) => (
-    <ScreenShell title={hl.data?.title ?? t('social.landing.title')} eyebrow={t('social.landing.eyebrow')} onBack={back} narrow testId="landing-screen">
+    <ScreenShell
+      title={hl.data?.title ?? t('social.landing.title')}
+      eyebrow={t('social.landing.eyebrow')}
+      onBack={back}
+      narrow
+      testId="landing-screen"
+    >
       {children}
     </ScreenShell>
   );
 
   if (booting) return shell(<StateView kind="loading" />);
-  if (!net) return shell(<NeedsOnline actionLabel={t('social.common.home')} onAction={() => navigate({ name: 'home' })} />);
+  if (!net)
+    return shell(<NeedsOnline actionLabel={t('social.common.home')} onAction={() => navigate({ name: 'home' })} />);
   const h = hl.data;
-  if (!h) return shell(hl.error ? <FailureState failure={socialFailure(hl.error)} onRetry={hl.reload} notFoundTitle={t('social.landing.gone_title')} notFoundBody={t('social.landing.gone_body')} /> : <StateView kind="loading" />);
+  if (!h)
+    return shell(
+      hl.error ? (
+        <FailureState
+          failure={socialFailure(hl.error)}
+          onRetry={hl.reload}
+          notFoundTitle={t('social.landing.gone_title')}
+          notFoundBody={t('social.landing.gone_body')}
+        />
+      ) : (
+        <StateView kind="loading" />
+      ),
+    );
 
   const loadLog = async (): Promise<MatchEventLog | null> => {
     if (log) return log;
-    const r = await action.run(() => net.api.call('GET /v1/h/:code/replay', { params: { code: route.code } }, { anonymous: true }));
+    const r = await action.run(() =>
+      net.api.call('GET /v1/h/:code/replay', { params: { code: route.code } }, { anonymous: true }),
+    );
     if (r.ok) {
       // The landing's moderated names, never the match-time aliases inside the replay.
-      const shown = withDisplayNames(r.value, h.participants.map((x) => x.alias));
+      const shown = withDisplayNames(
+        r.value,
+        h.participants.map((x) => x.alias),
+      );
       setLog(shown);
       return shown;
     }
-    toast({ kind: 'warning', text: r.failure === 'offline' ? t('social.state.offline_body') : t('social.landing.replay_failed') });
+    toast({
+      kind: 'warning',
+      text: r.failure === 'offline' ? t('social.state.offline_body') : t('social.landing.replay_failed'),
+    });
     return null;
   };
 
   if (mode === 'replay' && log) return <CutPlayer log={log} onClose={() => setMode('landing')} />;
   if (typeof mode === 'object' && log) {
-    const me: PlayerRef = player ? localPlayerRef(player) : { id: 'local', alias: t('social.landing.you'), avatar: { seed: 'guest0001' }, kit: { id: 'starter', primary: '#1E2A78', secondary: '#00B8D9', pattern: 'chevron' }, kind: 'human' };
+    const me: PlayerRef = player
+      ? localPlayerRef(player)
+      : {
+          id: 'local',
+          alias: t('social.landing.you'),
+          avatar: { seed: 'guest0001' },
+          kit: { id: 'starter', primary: '#1E2A78', secondary: '#00B8D9', pattern: 'chevron' },
+          kind: 'human',
+        };
     return (
       <Suspense
         fallback={
@@ -91,8 +129,17 @@ export default function HighlightLandingRoute({ route }: { route: RouteOf<'highl
 
   const shareHighlight = async () => {
     if (!services) return;
-    const ctx = { kind: 'duel' as const, id: h.matchId, url, players: [h.participants[0]?.alias ?? '', h.participants[1]?.alias ?? ''] as [string, string], highlight: { code: route.code, url }, locale: locale === 'hi' || locale === 'hi-Latn' ? locale : ('en' as const) };
-    const r = await shareMoment(services.platform.share, localShareLedger(), 'final', ctx, { onShared: () => void net.attribution.report(route.code, 'share') });
+    const ctx = {
+      kind: 'duel' as const,
+      id: h.matchId,
+      url,
+      players: [h.participants[0]?.alias ?? '', h.participants[1]?.alias ?? ''] as [string, string],
+      highlight: { code: route.code, url },
+      locale: locale === 'hi' || locale === 'hi-Latn' ? locale : ('en' as const),
+    };
+    const r = await shareMoment(services.platform.share, localShareLedger(), 'final', ctx, {
+      onShared: () => void net.attribution.report(route.code, 'share'),
+    });
     if (r === 'copied') toast({ kind: 'success', text: t('social.share.copied') });
     if (r === 'not_allowed') toast({ kind: 'info', text: t('social.landing.shared_already') });
   };
@@ -100,7 +147,11 @@ export default function HighlightLandingRoute({ route }: { route: RouteOf<'highl
   return shell(
     <div className={s.stack}>
       <Card padding={5} className={[s.hero, s.final].join(' ')} data-testid="landing-hero">
-        <p className={[s.eyebrow, s.finalEyebrow].join(' ')}>{t('social.landing.day', { day: tr.date(`${h.day}T12:00:00Z`, { day: 'numeric', month: 'long', year: 'numeric' }) })}</p>
+        <p className={[s.eyebrow, s.finalEyebrow].join(' ')}>
+          {t('social.landing.day', {
+            day: tr.date(`${h.day}T12:00:00Z`, { day: 'numeric', month: 'long', year: 'numeric' }),
+          })}
+        </p>
         <div className={s.versus}>
           <Participant p={h.participants[0]} tr={tr} />
           <span className={s.vs} aria-hidden="true">
@@ -110,7 +161,13 @@ export default function HighlightLandingRoute({ route }: { route: RouteOf<'highl
         </div>
         <div className={s.actions}>
           {h.youtubeVideoId && (
-            <a className={s.linkButton} href={youtubeUrl(h.youtubeVideoId)} target="_blank" rel="noopener noreferrer" data-testid="landing-youtube">
+            <a
+              className={s.linkButton}
+              href={youtubeUrl(h.youtubeVideoId)}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="landing-youtube"
+            >
               {t('social.landing.youtube')}
             </a>
           )}
@@ -149,7 +206,14 @@ export default function HighlightLandingRoute({ route }: { route: RouteOf<'highl
           ))}
         </div>
         <p className={s.small}>{t('social.landing.practice_note')}</p>
-        <Button variant="accent" size="lg" block icon="rematch" onClick={startChallenge} data-testid="landing-challenge">
+        <Button
+          variant="accent"
+          size="lg"
+          block
+          icon="rematch"
+          onClick={startChallenge}
+          data-testid="landing-challenge"
+        >
           {t('social.landing.challenge')}
         </Button>
       </section>
@@ -158,7 +222,12 @@ export default function HighlightLandingRoute({ route }: { route: RouteOf<'highl
           {t('social.landing.share')}
         </Button>
         {!isNativePlatform() && (
-          <a className={s.small} href={playStoreUrl({ highlight: route.code })} rel="noopener noreferrer" target="_blank">
+          <a
+            className={s.small}
+            href={playStoreUrl({ highlight: route.code })}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
             {t('social.landing.install')}
           </a>
         )}

@@ -8,7 +8,13 @@ import s from './Prompts.module.css';
  * Asked once, after the tutorial, never blocking: two equal choices, and declining changes nothing in the game.
  * Shown only when this build has an analytics provider configured.
  */
-export function ConsentPrompt({ analytics, configured }: { analytics: Pick<Analytics, 'consent' | 'setConsent'>; configured: boolean }) {
+export function ConsentPrompt({
+  analytics,
+  configured,
+}: {
+  analytics: Pick<Analytics, 'consent' | 'setConsent'>;
+  configured: boolean;
+}) {
   const { t } = useT();
   const [answered, setAnswered] = useState<'granted' | 'denied' | null>(null);
   if (!configured || (analytics.consent() !== 'unset' && answered === null)) return null;

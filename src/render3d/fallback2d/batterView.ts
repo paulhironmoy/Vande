@@ -23,7 +23,16 @@ import {
 import { type Vec3, clamp } from '../core/math';
 import { glovesOf } from '../practice/bat';
 import type { BatPose } from '../practice/frame';
-import { ballDiameterPx, closeUpBallDiameterPx, PRACTICE_BALL, projectBallSurface, shadeOpacity, traceAlpha, traceWidthPx, type ProjectedBallSurface } from '../practice/ballLook';
+import {
+  ballDiameterPx,
+  closeUpBallDiameterPx,
+  PRACTICE_BALL,
+  projectBallSurface,
+  shadeOpacity,
+  traceAlpha,
+  traceWidthPx,
+  type ProjectedBallSurface,
+} from '../practice/ballLook';
 
 interface Projected {
   x: number;
@@ -77,7 +86,11 @@ export class BatterViewPainter {
     const r = { x: -this.f.z, y: 0, z: this.f.x };
     const rl = Math.hypot(r.x, r.z) || 1;
     this.r = { x: r.x / rl, y: 0, z: r.z / rl };
-    this.u = { x: this.r.y * this.f.z - this.r.z * this.f.y, y: this.r.z * this.f.x - this.r.x * this.f.z, z: this.r.x * this.f.y - this.r.y * this.f.x };
+    this.u = {
+      x: this.r.y * this.f.z - this.r.z * this.f.y,
+      y: this.r.z * this.f.x - this.r.x * this.f.z,
+      z: this.r.x * this.f.y - this.r.y * this.f.x,
+    };
     this.focal = this.h / 2 / Math.tan((cam.fov * Math.PI) / 360);
   }
 
@@ -233,11 +246,27 @@ export class BatterViewPainter {
     this.calls += 3;
     // Sight screen behind the bowler: dark, so the white ball reads against it.
     const sz = -(BOUNDARY_R + 6.5);
-    this.poly([{ x: -9, y: 0, z: sz }, { x: 9, y: 0, z: sz }, { x: 9, y: 7.5, z: sz }, { x: -9, y: 7.5, z: sz }], o.ballColour === 'red' ? '#e7e6de' : '#07061c');
+    this.poly(
+      [
+        { x: -9, y: 0, z: sz },
+        { x: 9, y: 0, z: sz },
+        { x: 9, y: 7.5, z: sz },
+        { x: -9, y: 7.5, z: sz },
+      ],
+      o.ballColour === 'red' ? '#e7e6de' : '#07061c',
+    );
     // The pitch (clipped short of the batter's feet) and the creases.
     const nearZ = Math.min(PITCH_HALF + 1.2, this.pos.z - 0.6);
     const hw = (PITCH_WIDTH + 0.4) / 2;
-    this.poly([{ x: -hw, y: 0, z: -PITCH_HALF - 1.2 }, { x: hw, y: 0, z: -PITCH_HALF - 1.2 }, { x: hw, y: 0, z: nearZ }, { x: -hw, y: 0, z: nearZ }], '#c9a26b');
+    this.poly(
+      [
+        { x: -hw, y: 0, z: -PITCH_HALF - 1.2 },
+        { x: hw, y: 0, z: -PITCH_HALF - 1.2 },
+        { x: hw, y: 0, z: nearZ },
+        { x: -hw, y: 0, z: nearZ },
+      ],
+      '#c9a26b',
+    );
     // Popping creases (Law 7.2) and the bowler's bowling crease, which runs between the return creases (Law 7.3).
     for (const [z, half] of [
       [-(PITCH_HALF - POPPING), POPPING_CREASE_HALF],
@@ -247,7 +276,8 @@ export class BatterViewPainter {
       if (z < nearZ) this.line({ x: -half, y: 0, z }, { x: half, y: 0, z }, '#f7f5ef', 1.4);
     }
     // The bowler's stumps.
-    for (const x of [-STUMP_SPACING, 0, STUMP_SPACING]) this.line({ x, y: 0, z: -PITCH_HALF }, { x, y: STUMP_H, z: -PITCH_HALF }, '#f1eee4', 2);
+    for (const x of [-STUMP_SPACING, 0, STUMP_SPACING])
+      this.line({ x, y: 0, z: -PITCH_HALF }, { x, y: STUMP_H, z: -PITCH_HALF }, '#f1eee4', 2);
     // Players, far to near.
     const actors = (o.closeUp ? [] : script.actors)
       .filter((a) => !o.hidden.has(a.id))
@@ -311,16 +341,25 @@ export class BatterViewPainter {
         g.strokeStyle = 'rgba(126,240,197,0.9)';
         g.lineWidth = 2;
         g.beginPath();
-        g.ellipse(c.x, c.y, Math.max(3, this.px(0.12, c.d)), Math.max(1.5, this.px(0.12, c.d) * 0.35), 0, 0, Math.PI * 2);
+        g.ellipse(
+          c.x,
+          c.y,
+          Math.max(3, this.px(0.12, c.d)),
+          Math.max(1.5, this.px(0.12, c.d) * 0.35),
+          0,
+          0,
+          Math.PI * 2,
+        );
         g.stroke();
         this.calls++;
       }
     }
     // The ball: trace, shadow, then the ball itself.
     const sampled = sampleBall(script, t);
-    const ball = o.closeUp && t < (script.practice?.releaseScene ?? script.times.release) && script.practice
-      ? { ...sampled, pos: script.practice.releaseWorld }
-      : sampled;
+    const ball =
+      o.closeUp && t < (script.practice?.releaseScene ?? script.times.release) && script.practice
+        ? { ...sampled, pos: script.practice.releaseWorld }
+        : sampled;
     if (ball.visible && (ball.inFlight || o.closeUp)) {
       const trail: Projected[] = [];
       for (let i = 1; i < PRACTICE_BALL.trace.samples; i++) {
@@ -358,7 +397,8 @@ export class BatterViewPainter {
         const rr = (o.closeUp ? closeUpBallDiameterPx(this.h) : ballDiameterPx(head.d, this.focal)) / 2;
         const extent = rr + PRACTICE_BALL.shade.px;
         const shade = g.createRadialGradient(head.x, head.y, rr, head.x, head.y, extent);
-        for (let px = 0; px <= PRACTICE_BALL.shade.px; px += 0.25) shade.addColorStop(px / PRACTICE_BALL.shade.px, `rgba(5,6,15,${shadeOpacity(px)})`);
+        for (let px = 0; px <= PRACTICE_BALL.shade.px; px += 0.25)
+          shade.addColorStop(px / PRACTICE_BALL.shade.px, `rgba(5,6,15,${shadeOpacity(px)})`);
         g.fillStyle = shade;
         g.beginPath();
         g.arc(head.x, head.y, extent, 0, Math.PI * 2);
@@ -367,15 +407,33 @@ export class BatterViewPainter {
         if (o.closeUp) {
           for (const segment of script.ball) {
             if (segment.k === 'path' && segment.spinAxis && segment.seamAxis && segment.shineAxis) {
-              releaseSurface = { spinAxis: segment.spinAxis, seamAxis: segment.seamAxis, shineAxis: segment.shineAxis, surfaceTangent: segment.surfaceTangent };
+              releaseSurface = {
+                spinAxis: segment.spinAxis,
+                seamAxis: segment.seamAxis,
+                shineAxis: segment.shineAxis,
+                surfaceTangent: segment.surfaceTangent,
+              };
               break;
             }
           }
         }
-        const surface = ball.spinAxis && ball.seamAxis && ball.shineAxis
-          ? { spinAxis: ball.spinAxis, seamAxis: ball.seamAxis, shineAxis: ball.shineAxis, surfaceTangent: ball.surfaceTangent }
-          : releaseSurface;
-        if (o.closeUp && surface) this.detailedBall(head.x, head.y, rr, o.ballColour === 'red' ? 'red' : 'white', projectBallSurface(ball.spin, surface, { forward: this.f, right: this.r, up: this.u }));
+        const surface =
+          ball.spinAxis && ball.seamAxis && ball.shineAxis
+            ? {
+                spinAxis: ball.spinAxis,
+                seamAxis: ball.seamAxis,
+                shineAxis: ball.shineAxis,
+                surfaceTangent: ball.surfaceTangent,
+              }
+            : releaseSurface;
+        if (o.closeUp && surface)
+          this.detailedBall(
+            head.x,
+            head.y,
+            rr,
+            o.ballColour === 'red' ? 'red' : 'white',
+            projectBallSurface(ball.spin, surface, { forward: this.f, right: this.r, up: this.u }),
+          );
         else {
           g.fillStyle = o.ballColour === 'red' ? '#a8242b' : PRACTICE_BALL.color;
           g.beginPath();
@@ -399,9 +457,18 @@ export class BatterViewPainter {
       const c = this.project(e.at);
       if (!c) continue;
       const u = dt / 240;
-      g.fillStyle = e.kind === 'pad' ? `rgba(200,205,220,${0.6 * (1 - u)})` : `rgba(255,255,255,${(e.kind === 'bat' ? 0.9 : 0.55) * (1 - u)})`;
+      g.fillStyle =
+        e.kind === 'pad'
+          ? `rgba(200,205,220,${0.6 * (1 - u)})`
+          : `rgba(255,255,255,${(e.kind === 'bat' ? 0.9 : 0.55) * (1 - u)})`;
       g.beginPath();
-      g.arc(c.x, c.y, Math.max(4, this.px(0.12 + u * 0.25, c.d) * (e.kind === 'bat' ? e.intensity : 0.6)), 0, Math.PI * 2);
+      g.arc(
+        c.x,
+        c.y,
+        Math.max(4, this.px(0.12 + u * 0.25, c.d) * (e.kind === 'bat' ? e.intensity : 0.6)),
+        0,
+        Math.PI * 2,
+      );
       g.fill();
       this.calls++;
     }
@@ -443,7 +510,11 @@ export class BatterViewPainter {
     const u = clamp((t - (rel - 320)) / 470, 0, 1);
     const ang = (-170 + u * 230) * (Math.PI / 180);
     const shoulder = { x: at.x - 0.2, y: 1.5, z: at.z };
-    const hand = { x: shoulder.x + Math.sin(ang) * 0.1, y: shoulder.y + Math.cos(ang) * 0.72, z: shoulder.z + Math.sin(ang) * 0.6 };
+    const hand = {
+      x: shoulder.x + Math.sin(ang) * 0.1,
+      y: shoulder.y + Math.cos(ang) * 0.72,
+      z: shoulder.z + Math.sin(ang) * 0.6,
+    };
     this.line(shoulder, hand, '#b07650', Math.max(1, bw * 0.22));
   }
 }

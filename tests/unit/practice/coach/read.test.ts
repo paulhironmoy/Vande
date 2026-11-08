@@ -13,7 +13,9 @@ function attempt(record: DeliveryRecord, o: SwingOpts | null): CoachAnalysis {
   return analyzeBall(r, result);
 }
 
-const bad = (a: CoachAnalysis) => a.attempted.dismissal !== null || ['miss', 'pad', 'body', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge'].includes(a.attempted.contact);
+const bad = (a: CoachAnalysis) =>
+  a.attempted.dismissal !== null ||
+  ['miss', 'pad', 'body', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge'].includes(a.attempted.contact);
 
 describe('the read: line', () => {
   it('leaving a ball that misses the stumps is right; the why is the physics own', () => {

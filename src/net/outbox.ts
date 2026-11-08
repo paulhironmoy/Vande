@@ -35,7 +35,9 @@ export interface OutboxStorage {
   remove(id: string): Promise<void>;
 }
 
-export type OutboxResult = { id: string; group: string; route: string; ok: true; response: unknown } | { id: string; group: string; route: string; ok: false; error: ApiClientError };
+export type OutboxResult =
+  | { id: string; group: string; route: string; ok: true; response: unknown }
+  | { id: string; group: string; route: string; ok: false; error: ApiClientError };
 
 export function memoryOutboxStorage(): OutboxStorage {
   const m = new Map<string, OutboxEntry>();
@@ -67,7 +69,12 @@ export function idbOutboxStorage(dbName?: string): OutboxStorage {
 }
 
 /** Full-jitter exponential backoff: uniform in [0, min(max, base · 2^attempt)), at least 250 ms. */
-export function backoffDelay(attempt: number, random: () => number = Math.random, baseMs = 1_000, maxMs = 60_000): number {
+export function backoffDelay(
+  attempt: number,
+  random: () => number = Math.random,
+  baseMs = 1_000,
+  maxMs = 60_000,
+): number {
   const cap = Math.min(maxMs, baseMs * 2 ** Math.max(0, attempt));
   return Math.max(250, Math.floor(random() * cap));
 }
@@ -91,7 +98,8 @@ export interface EnqueueInput {
   idempotencyKey?: string;
 }
 
-export type SubmitResult<T> = { status: 'sent'; response: T } | { status: 'queued'; entry: OutboxEntry; delivered: Promise<T> };
+export type SubmitResult<T> =
+  { status: 'sent'; response: T } | { status: 'queued'; entry: OutboxEntry; delivered: Promise<T> };
 
 export class Outbox {
   private readonly o: Required<Omit<OutboxOptions, 'storage' | 'send'>> & Pick<OutboxOptions, 'storage' | 'send'>;
@@ -216,7 +224,13 @@ export class Outbox {
     const all = await this.o.storage.list();
     for (const e of all) {
       await this.o.storage.remove(e.id);
-      this.emit({ id: e.id, group: e.group, route: e.route, ok: false, error: new ApiClientError('unauthorized', 'signed out on this device') });
+      this.emit({
+        id: e.id,
+        group: e.group,
+        route: e.route,
+        ok: false,
+        error: new ApiClientError('unauthorized', 'signed out on this device'),
+      });
     }
     if (wasRunning) this.start();
     return all.length;
@@ -258,7 +272,13 @@ export class Outbox {
         if (now - e.createdAt > this.o.maxAgeMs) {
           await this.o.storage.remove(e.id);
           failed++;
-          this.emit({ id: e.id, group: e.group, route: e.route, ok: false, error: new ApiClientError('deadline_passed', 'queued too long') });
+          this.emit({
+            id: e.id,
+            group: e.group,
+            route: e.route,
+            ok: false,
+            error: new ApiClientError('deadline_passed', 'queued too long'),
+          });
           continue;
         }
         if (e.nextAttemptAt > now) {
@@ -271,7 +291,9 @@ export class Outbox {
           sent++;
           this.emit({ id: e.id, group: e.group, route: e.route, ok: true, response });
         } catch (err) {
-          const error = isApiClientError(err) ? err : new ApiClientError('network', err instanceof Error ? err.message : 'send failed');
+          const error = isApiClientError(err)
+            ? err
+            : new ApiClientError('network', err instanceof Error ? err.message : 'send failed');
           if (error.retryable) {
             e.attempts += 1;
             e.lastError = error.code;

@@ -5,7 +5,20 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { BallFlight, Handedness } from '@/contracts/practice';
-import { BALL_R, BODY, CONTACT_PLANE_M, FLIGHT_TIME_S, PITCH_HALF, STUMPS_HALF_W, batTravelMs, flight, flightMovement, idealTimeFor, resolveFootwork, sampleAt } from '@/physics';
+import {
+  BALL_R,
+  BODY,
+  CONTACT_PLANE_M,
+  FLIGHT_TIME_S,
+  PITCH_HALF,
+  STUMPS_HALF_W,
+  batTravelMs,
+  flight,
+  flightMovement,
+  idealTimeFor,
+  resolveFootwork,
+  sampleAt,
+} from '@/physics';
 import { batterBody } from '@/physics/bat';
 import { strike } from '@/physics/contact';
 import { timeAtZ } from '@/physics/delivery';
@@ -27,7 +40,14 @@ import {
 } from '@/practice/game';
 
 const fly = (i: number, handedness: Handedness = 'right'): BallFlight =>
-  flight({ plan: REFERENCE_OVER.balls[i], bowler: REFERENCE_OVER.bowler, conditions: REFERENCE_CONDITIONS, seed: REFERENCE_BALLS[i].seed, handedness, ball: REFERENCE_OVER.ball });
+  flight({
+    plan: REFERENCE_OVER.balls[i],
+    bowler: REFERENCE_OVER.bowler,
+    conditions: REFERENCE_CONDITIONS,
+    seed: REFERENCE_BALLS[i].seed,
+    handedness,
+    ball: REFERENCE_OVER.ball,
+  });
 const FLIGHTS = REFERENCE_OVER.balls.map((_, i) => fly(i));
 
 /** Lateral position of the release line (the ball's direction as it leaves the hand) at z. */
@@ -57,7 +77,14 @@ describe('the reference over: fixed, legal and honest', () => {
     expect(REFERENCE_OVER.ball).toEqual({ colour: 'white', age: 'new' });
     expect(REFERENCE_BALL).toEqual(REFERENCE_OVER.ball);
     expect(REFERENCE_OVER.bowler).toMatchObject({ family: 'pace', paceBand: 'fast', arm: 'right' });
-    expect(REFERENCE_OVER.balls.map((b) => b.variation)).toEqual(['outswing', 'inswing', 'stock', 'cutter', 'bouncer', 'yorker']);
+    expect(REFERENCE_OVER.balls.map((b) => b.variation)).toEqual([
+      'outswing',
+      'inswing',
+      'stock',
+      'cutter',
+      'bouncer',
+      'yorker',
+    ]);
   });
 
   it('is deep-frozen, so nobody can change the benchmark', () => {
@@ -74,7 +101,14 @@ describe('the reference over: fixed, legal and honest', () => {
 
   it('names its six balls with ids, closed objectives and the seeds every over derives', () => {
     expect(REFERENCE_BALLS.map((b) => b.id)).toEqual(['ref-1', 'ref-2', 'ref-3', 'ref-4', 'ref-5', 'ref-6']);
-    expect(REFERENCE_BALLS.map((b) => b.objective)).toEqual(['leave_or_drive_late', 'play_straight', 'get_behind_it', 'soft_hands', 'sway_or_hook', 'dig_it_out']);
+    expect(REFERENCE_BALLS.map((b) => b.objective)).toEqual([
+      'leave_or_drive_late',
+      'play_straight',
+      'get_behind_it',
+      'soft_hands',
+      'sway_or_hook',
+      'dig_it_out',
+    ]);
     REFERENCE_BALLS.forEach((b, i) => {
       expect(b.index).toBe(i);
       expect(b.variation).toBe(REFERENCE_OVER.balls[i].variation);
@@ -188,7 +222,16 @@ describe('the reference over: each ball behaves like the real thing (batter end,
     expect(h).toBeLessThan(BOUNCER_ARRIVAL_M[1]);
     expect(Math.abs(h - BODY.headY)).toBeLessThan(0.03);
     // Its length is exactly the physics' solve for a head-height arrival with this bowler, seed and ball.
-    expect(bouncerLength(plan, REFERENCE_OVER.bowler, REFERENCE_CONDITIONS, REFERENCE_BALLS[4].seed, BODY.headY, REFERENCE_OVER.ball)).toBe(plan.lengthM);
+    expect(
+      bouncerLength(
+        plan,
+        REFERENCE_OVER.bowler,
+        REFERENCE_CONDITIONS,
+        REFERENCE_BALLS[4].seed,
+        BODY.headY,
+        REFERENCE_OVER.ball,
+      ),
+    ).toBe(plan.lengthM);
     // A leave from the stance clears the head (centre −0.20 m, 1.62 m, 1.2 m in front of the stumps) by > 5 cm.
     const head = batterBody(null).head;
     const closest = Math.min(...f.samples.map((s) => Math.hypot(s.p.x - head.c.x, s.p.y - head.c.y, s.p.z - head.c.z)));
@@ -210,10 +253,14 @@ describe('the reference over: each ball behaves like the real thing (batter end,
     // Automatic footwork meets it forward, and a straight bat timed to the ideal contact meets it with the bat.
     expect(resolveFootwork(f, 'auto')).toBe('forward');
     const drive = { kind: 'attack', directionDeg: 0, elevation: 0.05, power: 0.55, footwork: 'auto' } as const;
-    const met = strike(f, { ...drive, startT: idealTimeFor(f, 'auto') - batTravelMs('attack', drive.power) / 1000 }, {
-      assist: 'real',
-      expect: { bowler: REFERENCE_OVER.bowler, conditions: REFERENCE_CONDITIONS, handedness: 'right' },
-    });
+    const met = strike(
+      f,
+      { ...drive, startT: idealTimeFor(f, 'auto') - batTravelMs('attack', drive.power) / 1000 },
+      {
+        assist: 'real',
+        expect: { bowler: REFERENCE_OVER.bowler, conditions: REFERENCE_CONDITIONS, handedness: 'right' },
+      },
+    );
     expect(met.track!.footwork).toBe('forward');
     expect(['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge']).toContain(met.contact.kind);
     expect(f.wouldHitStumps).toBe(true);
@@ -253,14 +300,45 @@ describe('overPattern: the known pattern of a fixed over', () => {
 
   it('makes a spinner’s turn and arm ball batter-relative', () => {
     const bowler = { family: 'spin' as const, spinType: 'finger' as const, arm: 'right' as const, lookSeed: 'pattern' };
-    const ball = (variation: 'stock' | 'wrong_un' | 'arm_ball' | 'flighted', speedKph = 85) => ({ variation, lengthM: 4, lineM: 0.1, speedKph });
-    const over = buildOver({ bowler, balls: [ball('stock'), ball('flighted', 78), ball('stock'), ball('arm_ball', 90), ball('stock'), ball('wrong_un')], shuffle: false, seed: 'pattern' });
+    const ball = (variation: 'stock' | 'wrong_un' | 'arm_ball' | 'flighted', speedKph = 85) => ({
+      variation,
+      lengthM: 4,
+      lineM: 0.1,
+      speedKph,
+    });
+    const over = buildOver({
+      bowler,
+      balls: [
+        ball('stock'),
+        ball('flighted', 78),
+        ball('stock'),
+        ball('arm_ball', 90),
+        ball('stock'),
+        ball('wrong_un'),
+      ],
+      shuffle: false,
+      seed: 'pattern',
+    });
     // A right-arm off-spinner to a right-hander: the stock ball turns in, the carrom ball away, the arm ball goes away.
     // Only the flighted ball (−8%) is a change of pace; the arm ball's +5 km/h is 5.9%, under the 6% threshold.
-    expect(overPattern(over)).toMatchObject({ family: 'spin', swing: 'away', turn: 'both', shortBalls: 0, bouncers: 0, yorkers: 0, changeOfPace: 1, paceKph: [78, 90] });
+    expect(overPattern(over)).toMatchObject({
+      family: 'spin',
+      swing: 'away',
+      turn: 'both',
+      shortBalls: 0,
+      bouncers: 0,
+      yorkers: 0,
+      changeOfPace: 1,
+      paceKph: [78, 90],
+    });
     // The same over to a left-hander: the arm ball now comes into him.
     expect(overPattern(over, 'left').swing).toBe('in');
-    const plain = buildOver({ bowler, balls: [ball('stock'), ball('stock'), ball('stock'), ball('stock'), ball('stock'), ball('stock')], shuffle: false, seed: 'pattern' });
+    const plain = buildOver({
+      bowler,
+      balls: [ball('stock'), ball('stock'), ball('stock'), ball('stock'), ball('stock'), ball('stock')],
+      shuffle: false,
+      seed: 'pattern',
+    });
     expect(overPattern(plain)).toMatchObject({ swing: 'none', turn: 'in', changeOfPace: 0 });
     expect(overPattern(plain, 'left').turn).toBe('away');
   });

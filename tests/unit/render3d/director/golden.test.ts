@@ -16,7 +16,14 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import P from '@/render3d/core/motion/director/params.json';
-import { CHANNELS, deliveryTakeKey, fnv1a32, prepare, type DirectorAnchors, type DirectorPlan } from '@/render3d/core/motion/director';
+import {
+  CHANNELS,
+  deliveryTakeKey,
+  fnv1a32,
+  prepare,
+  type DirectorAnchors,
+  type DirectorPlan,
+} from '@/render3d/core/motion/director';
 import { anchorsFor, delivery, idleAnchors, type BallSpec } from './world';
 
 const FILE = `${process.cwd()}/tests/unit/render3d/director/fixtures/golden.json`;
@@ -27,27 +34,82 @@ interface Case {
   person: string;
   key: string;
   /** The test world: the ball and the release (world.ts delivery), absent for a scene between balls. */
-  world: (BallSpec & { release: number }) | { idleMs: number } ;
+  world: (BallSpec & { release: number }) | { idleMs: number };
   /** The anchors options that are not in the world. */
   options: { reducedMotion: boolean; lead: boolean; headPx: number; outcome: string | null };
 }
 
 const CASES: Case[] = [
-  { name: 'striker six, pace, extrapolated pursuit', role: 'striker', person: 'look-1', key: deliveryTakeKey({ seed: 'golden', overIndex: 2, ballIndex: 3 }), world: { speedKph: 136, lengthM: 6, lineM: 0.05, variation: 0, outcome: 'six', release: 2420 }, options: { reducedMotion: false, lead: true, headPx: 40, outcome: 'six' } },
-  { name: 'striker wicket, Reduced Motion', role: 'striker', person: 'look-2', key: deliveryTakeKey({ seed: 'golden', overIndex: 2, ballIndex: 4 }), world: { speedKph: 128, lengthM: 4, lineM: -0.1, variation: 0, outcome: 'bowled', release: 2420 }, options: { reducedMotion: true, lead: true, headPx: 40, outcome: 'wicket' } },
-  { name: 'bowler, pace', role: 'bowler', person: 'look-3', key: deliveryTakeKey({ seed: 'golden', overIndex: 2, ballIndex: 3 }), world: { speedKph: 136, lengthM: 6, lineM: 0.05, variation: 0, outcome: 'six', release: 2420 }, options: { reducedMotion: false, lead: true, headPx: 40, outcome: null } },
-  { name: 'striker between balls, 20 s with the seam', role: 'striker', person: 'look-1', key: 'golden|idle.1', world: { idleMs: 20_000 }, options: { reducedMotion: false, lead: false, headPx: 40, outcome: null } },
-  { name: 'bowler between balls, 20 s with the seam, small head', role: 'bowler', person: 'look-4', key: 'golden|idle.2', world: { idleMs: 20_000 }, options: { reducedMotion: false, lead: false, headPx: 20, outcome: null } },
+  {
+    name: 'striker six, pace, extrapolated pursuit',
+    role: 'striker',
+    person: 'look-1',
+    key: deliveryTakeKey({ seed: 'golden', overIndex: 2, ballIndex: 3 }),
+    world: { speedKph: 136, lengthM: 6, lineM: 0.05, variation: 0, outcome: 'six', release: 2420 },
+    options: { reducedMotion: false, lead: true, headPx: 40, outcome: 'six' },
+  },
+  {
+    name: 'striker wicket, Reduced Motion',
+    role: 'striker',
+    person: 'look-2',
+    key: deliveryTakeKey({ seed: 'golden', overIndex: 2, ballIndex: 4 }),
+    world: { speedKph: 128, lengthM: 4, lineM: -0.1, variation: 0, outcome: 'bowled', release: 2420 },
+    options: { reducedMotion: true, lead: true, headPx: 40, outcome: 'wicket' },
+  },
+  {
+    name: 'bowler, pace',
+    role: 'bowler',
+    person: 'look-3',
+    key: deliveryTakeKey({ seed: 'golden', overIndex: 2, ballIndex: 3 }),
+    world: { speedKph: 136, lengthM: 6, lineM: 0.05, variation: 0, outcome: 'six', release: 2420 },
+    options: { reducedMotion: false, lead: true, headPx: 40, outcome: null },
+  },
+  {
+    name: 'striker between balls, 20 s with the seam',
+    role: 'striker',
+    person: 'look-1',
+    key: 'golden|idle.1',
+    world: { idleMs: 20_000 },
+    options: { reducedMotion: false, lead: false, headPx: 40, outcome: null },
+  },
+  {
+    name: 'bowler between balls, 20 s with the seam, small head',
+    role: 'bowler',
+    person: 'look-4',
+    key: 'golden|idle.2',
+    world: { idleMs: 20_000 },
+    options: { reducedMotion: false, lead: false, headPx: 20, outcome: null },
+  },
 ];
 
 function anchorsOf(c: Case): DirectorAnchors {
   if ('idleMs' in c.world) {
-    return { ...idleAnchors(c.role, c.key, c.world.idleMs, { person: c.person, reducedMotion: c.options.reducedMotion }), start: -600, end: c.world.idleMs, seamMs: 600, headMode: 'space', headPx: c.options.headPx };
+    return {
+      ...idleAnchors(c.role, c.key, c.world.idleMs, { person: c.person, reducedMotion: c.options.reducedMotion }),
+      start: -600,
+      end: c.world.idleMs,
+      seamMs: 600,
+      headMode: 'space',
+      headPx: c.options.headPx,
+    };
   }
   const { release, ...spec } = c.world;
   const d = delivery(spec, release);
-  const a = anchorsFor(d, { role: c.role, key: c.key, person: c.person, reducedMotion: c.options.reducedMotion, lead: c.options.lead, headPx: c.options.headPx });
-  return { ...a, headMode: 'space', outcome: c.options.outcome, runStart: c.role === 'bowler' ? 300 : null, followEnd: c.role === 'bowler' ? release + 1500 : null };
+  const a = anchorsFor(d, {
+    role: c.role,
+    key: c.key,
+    person: c.person,
+    reducedMotion: c.options.reducedMotion,
+    lead: c.options.lead,
+    headPx: c.options.headPx,
+  });
+  return {
+    ...a,
+    headMode: 'space',
+    outcome: c.options.outcome,
+    runStart: c.role === 'bowler' ? 300 : null,
+    followEnd: c.role === 'bowler' ? release + 1500 : null,
+  };
 }
 
 const f32 = (x: number): number => Number(Math.fround(x).toPrecision(9));
@@ -101,12 +163,29 @@ function build(c: Case) {
       headPx: a.headPx,
     },
     keys: { person: fnv1a32(`life|person|${c.person}|${c.role}`), ball: plan.key },
-    plan: { t0: plan.t0, hz: plan.hz, n: plan.n, detail: plan.detail, amp: round(plan.amp), draw: round(plan.draw), fix: round(plan.fix), blink: round(plan.blink), micro: round(plan.micro.subarray(0, 30)), fidget: round(plan.fidget), react: round(plan.react) },
-    trace: { channels: CHANNELS, hash: traceHash(plan.trace), frames: picked, values: picked.map((i) => Array.from(plan.trace.subarray(i * CHANNELS, (i + 1) * CHANNELS))) },
+    plan: {
+      t0: plan.t0,
+      hz: plan.hz,
+      n: plan.n,
+      detail: plan.detail,
+      amp: round(plan.amp),
+      draw: round(plan.draw),
+      fix: round(plan.fix),
+      blink: round(plan.blink),
+      micro: round(plan.micro.subarray(0, 30)),
+      fidget: round(plan.fidget),
+      react: round(plan.react),
+    },
+    trace: {
+      channels: CHANNELS,
+      hash: traceHash(plan.trace),
+      frames: picked,
+      values: picked.map((i) => Array.from(plan.trace.subarray(i * CHANNELS, (i + 1) * CHANNELS))),
+    },
   };
 }
 
-describe('golden fixture: the Director\'s output is frozen for the Unity port', () => {
+describe("golden fixture: the Director's output is frozen for the Unity port", () => {
   const built = CASES.map(build);
   it('is rebuilt exactly from the seeds (UPDATE_GOLDEN=1 writes a new freeze)', () => {
     const doc = { contract: 'director/3', paramsBytes: JSON.stringify(P).length, channels: CHANNELS, cases: built };
@@ -135,7 +214,8 @@ describe('golden fixture: the Director\'s output is frozen for the Unity port', 
     for (const c of built) for (const row of c.trace.values) row.forEach((v, ch) => v !== 0 && moved.add(ch));
     // the head in space, the lids, the raw gaze, the breath, the sway, the exertion, the four expression weights the plan makes, the posture and the twist
     // (in 'space' mode the eyes' own channels 3-6 and 9 are not written: the stage takes the eyes from the gaze and the head it drew)
-    for (const ch of [0, 1, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23]) expect(moved.has(ch), `channel ${ch} moves in some case`).toBe(true);
+    for (const ch of [0, 1, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23])
+      expect(moved.has(ch), `channel ${ch} moves in some case`).toBe(true);
     // the effort (18) is the runtime's own, from the swing: never in a plan
     expect(moved.has(18)).toBe(false);
     expect(built.some((c) => c.plan.fidget.length > 0)).toBe(true);

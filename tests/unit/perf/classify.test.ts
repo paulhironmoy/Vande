@@ -22,10 +22,14 @@ describe('software renderers', () => {
     'Apple Software Renderer',
   ])('recognises %s', (r) => expect(isSoftwareRenderer(r)).toBe(true));
 
-  it.each(['Adreno (TM) 619', 'Mali-G57 MC2', 'PowerVR Rogue GE8320', 'ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)', 'NVIDIA GeForce RTX 3060/PCIe/SSE2', ''])(
-    'does not flag %s',
-    (r) => expect(isSoftwareRenderer(r)).toBe(false),
-  );
+  it.each([
+    'Adreno (TM) 619',
+    'Mali-G57 MC2',
+    'PowerVR Rogue GE8320',
+    'ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)',
+    'NVIDIA GeForce RTX 3060/PCIe/SSE2',
+    '',
+  ])('does not flag %s', (r) => expect(isSoftwareRenderer(r)).toBe(false));
 });
 
 describe('classifyDevice', () => {
@@ -152,7 +156,9 @@ describe('classifyDevice', () => {
 
   it('frame-rate-only limits are recognised (worth a run at Lite)', () => {
     expect(limitedByFrameRateOnly(classifyDevice(measurements({ frameMs: steady(40, 2) })))).toBe(true);
-    expect(limitedByFrameRateOnly(classifyDevice(measurements({ frameMs: steady(40, 2), renderer: 'llvmpipe' })))).toBe(false);
+    expect(limitedByFrameRateOnly(classifyDevice(measurements({ frameMs: steady(40, 2), renderer: 'llvmpipe' })))).toBe(
+      false,
+    );
     expect(limitedByFrameRateOnly(classifyDevice(measurements()))).toBe(false);
   });
 });
@@ -162,7 +168,11 @@ describe('quality choices', () => {
     const full = classifyDevice(measurements({ profile: 'high', memoryGb: 8 }));
     expect(allowedQualityChoices(full)).toEqual(['auto', 'lite', 'standard', 'high', 'classic']);
     expect(allowedQualityChoices(classifyDevice(measurements()))).toEqual(['auto', 'lite', 'standard', 'classic']);
-    expect(allowedQualityChoices(classifyDevice(measurements({ frameMs: steady(48, 2) })))).toEqual(['auto', 'lite', 'classic']);
+    expect(allowedQualityChoices(classifyDevice(measurements({ frameMs: steady(48, 2) })))).toEqual([
+      'auto',
+      'lite',
+      'classic',
+    ]);
     expect(allowedQualityChoices(classifyDevice(measurements({ webgl2: false })))).toEqual(['auto', 'classic']);
     expect(allowedQualityChoices(null)).toEqual(['auto', 'classic']);
   });

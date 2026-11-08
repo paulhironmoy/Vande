@@ -8,7 +8,15 @@
  * release, the pitch, the ball path and the bat.
  */
 import { useLayoutEffect, useRef } from 'react';
-import type { AssistLevel, BowlerProfile, Difficulty, FieldIntent, FieldLayout, Handedness, PitchCondition } from '@/contracts';
+import type {
+  AssistLevel,
+  BowlerProfile,
+  Difficulty,
+  FieldIntent,
+  FieldLayout,
+  Handedness,
+  PitchCondition,
+} from '@/contracts';
 import { usePracticeT } from '@/i18n/practice';
 import { PIconButton, sys } from '../design';
 import { useKit } from '../context';
@@ -53,9 +61,16 @@ export function StatusStrip(p: StatusStripProps) {
   const overs = oversText(p.board.balls);
   const score = t.t('practice.common.score', { runs: p.board.runs, wickets: p.board.wickets });
   const marks = Array.from({ length: 6 }, (_, i) => p.board.over[i] ?? null);
-  const status = p.status.kind === 'coach' ? t.t('practice.status.coach', { stage: p.status.stage }) : t.t('practice.status.practice');
+  const status =
+    p.status.kind === 'coach'
+      ? t.t('practice.status.coach', { stage: p.status.stage })
+      : t.t('practice.status.practice');
   const pitch = t.tk(`practice.pitch.${p.conditions}`);
-  const style = p.bowler ? (p.difficulty === null ? bowlerStyle(t, p.bowler) : `${bowlerStyle(t, p.bowler)} · ${paceRangeText(t, build, p.bowler, p.difficulty)}`) : '';
+  const style = p.bowler
+    ? p.difficulty === null
+      ? bowlerStyle(t, p.bowler)
+      : `${bowlerStyle(t, p.bowler)} · ${paceRangeText(t, build, p.bowler, p.difficulty)}`
+    : '';
   const preset = p.intent ? t.tk(`practice.intent.short.${p.intent.intention}`) : '';
   const rail = useRailBottom<HTMLDivElement>('--p-rail-bottom');
   const railLeft = useRailBottom<HTMLElement>('--p-rail-left-bottom');
@@ -81,7 +96,21 @@ export function StatusStrip(p: StatusStripProps) {
         </div>
         <ol className={s.marks} aria-label={t.t('practice.live.ball_of', { n: Math.min(6, p.ballNumber) })}>
           {marks.map((m, i) => (
-            <li key={i} className={s.mark} data-state={m ? (m.dismissal ? 'out' : m.runs >= 4 ? 'boundary' : 'done') : i === p.board.over.length ? 'current' : 'todo'}>
+            <li
+              key={i}
+              className={s.mark}
+              data-state={
+                m
+                  ? m.dismissal
+                    ? 'out'
+                    : m.runs >= 4
+                      ? 'boundary'
+                      : 'done'
+                  : i === p.board.over.length
+                    ? 'current'
+                    : 'todo'
+              }
+            >
               {m ? markText(m) : ''}
             </li>
           ))}
@@ -91,9 +120,22 @@ export function StatusStrip(p: StatusStripProps) {
         </span>
         <Captions />
       </section>
-      <div className={s.stripRight} data-quiet={p.quiet ? 'true' : 'false'} data-live={p.live ? 'true' : 'false'} ref={rail}>
+      <div
+        className={s.stripRight}
+        data-quiet={p.quiet ? 'true' : 'false'}
+        data-live={p.live ? 'true' : 'false'}
+        ref={rail}
+      >
         {/* Its name is exactly the words it shows (label in name, WCAG 2.5.3); what it does is its description. */}
-        <button type="button" className={s.conditions} onClick={p.onBrief ?? undefined} disabled={!p.onBrief} aria-describedby="practice-conditions-does" aria-haspopup="dialog" data-testid="practice-conditions">
+        <button
+          type="button"
+          className={s.conditions}
+          onClick={p.onBrief ?? undefined}
+          disabled={!p.onBrief}
+          aria-describedby="practice-conditions-does"
+          aria-haspopup="dialog"
+          data-testid="practice-conditions"
+        >
           {p.field && <MiniRadar field={p.field} handedness={p.handedness} />}
           <span className={s.condText}>
             <span className={s.condMain}>
@@ -116,7 +158,14 @@ export function StatusStrip(p: StatusStripProps) {
             {t.t('practice.status.conditions_does')}
           </span>
         </button>
-        <PIconButton icon="pause" label={t.t('practice.live.pause')} className={s.pause} onClick={p.onPause ?? undefined} disabled={!p.onPause} data-testid="practice-pause" />
+        <PIconButton
+          icon="pause"
+          label={t.t('practice.live.pause')}
+          className={s.pause}
+          onClick={p.onPause ?? undefined}
+          disabled={!p.onPause}
+          data-testid="practice-pause"
+        />
       </div>
     </>
   );
@@ -133,7 +182,11 @@ function useRailBottom<E extends HTMLElement>(name: string) {
     const el = ref.current;
     const host = el?.closest<HTMLElement>('[data-play-root]');
     if (!el || !host) return;
-    const measure = () => host.style.setProperty(name, `${Math.ceil(el.getBoundingClientRect().bottom - host.getBoundingClientRect().top)}px`);
+    const measure = () =>
+      host.style.setProperty(
+        name,
+        `${Math.ceil(el.getBoundingClientRect().bottom - host.getBoundingClientRect().top)}px`,
+      );
     measure();
     if (typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(measure);

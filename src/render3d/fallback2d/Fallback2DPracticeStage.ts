@@ -30,7 +30,9 @@ const SHOW_ALL: ReadonlySet<string> = new Set();
  * ball first and the presented ball never pitches there (feedback.ts presentedBounce, COH4): the ring never marks a
  * bounce the player does not see.
  */
-export function landingUntil(p: Pick<NonNullable<StageFrame['script']['practice']>, 'flight' | 'result' | 'contactScene' | 'releaseScene'>): number {
+export function landingUntil(
+  p: Pick<NonNullable<StageFrame['script']['practice']>, 'flight' | 'result' | 'contactScene' | 'releaseScene'>,
+): number {
   const bounce = p.flight?.bounce;
   if (!bounce) return 0;
   const after = simToScene(p, bounce.t) + 260;
@@ -74,7 +76,10 @@ export class Fallback2DPracticeStage extends PracticeSessionBase {
     this.h = Math.max(1, this.canvas.clientHeight || this.canvas.height);
     // Classic stays cheap: at most 2× and no more than the profile's internal height.
     const native = Math.min(2, typeof devicePixelRatio === 'number' ? devicePixelRatio : 1);
-    const dpr = Math.max(1, Math.min(native, PRACTICE_PROFILES[this.profileId].internal.max / Math.min(this.w, this.h)));
+    const dpr = Math.max(
+      1,
+      Math.min(native, PRACTICE_PROFILES[this.profileId].internal.max / Math.min(this.w, this.h)),
+    );
     this.canvas.width = Math.round(this.w * dpr);
     this.canvas.height = Math.round(this.h * dpr);
     this.top.resize(this.w, this.h, dpr);
@@ -94,12 +99,19 @@ export class Fallback2DPracticeStage extends PracticeSessionBase {
   protected drawFrame(frame: StageFrame): void {
     if (!this.top || !this.eye) return;
     const p = frame.script.practice ?? null;
-    const cam = cameraAt(frame.script, frame.scene, frame.plan, { aspect: this.w / this.h, reducedMotion: this.reducedMotion });
+    const cam = cameraAt(frame.script, frame.scene, frame.plan, {
+      aspect: this.w / this.h,
+      reducedMotion: this.reducedMotion,
+    });
     const batterView = cam.shot === 'batter_eye' || frame.coachOption !== null || frame.closeUpFlight !== null;
     // The field inset beside the stage (topDown.ts), stepping aside whenever this view already shows the field from
     // above, and at the dead ball (the card's half). It can never cost the frame: whatever it throws, the stage draws.
     try {
-      paintFieldInset(this.canvas, frame.script, frame.scene, { mode: frame.mode, fieldInView: !batterView, deadBall: false });
+      paintFieldInset(this.canvas, frame.script, frame.scene, {
+        mode: frame.mode,
+        fieldInView: !batterView,
+        deadBall: false,
+      });
     } catch {
       /* the inset shows nothing this frame */
     }
@@ -107,7 +119,13 @@ export class Fallback2DPracticeStage extends PracticeSessionBase {
       const until = p ? landingUntil(p) : 0;
       const coach = frame.coachOption !== null;
       this.eye.paint(frame.script, frame.scene, cam, this.kits, {
-        bat: p ? (coach ? batPoseAt(p.bat, frame.scene) : frame.closeUpFlight ? null : firstPersonBatPose(p.bat, frame.scene)) : null,
+        bat: p
+          ? coach
+            ? batPoseAt(p.bat, frame.scene)
+            : frame.closeUpFlight
+              ? null
+              : firstPersonBatPose(p.bat, frame.scene)
+          : null,
         landing: frame.mode === 'live' ? (p?.landing ?? null) : null,
         landingUntil: until,
         hidden: coach ? SHOW_ALL : HIDDEN,
@@ -186,12 +204,24 @@ export class Fallback2DPracticeStage extends PracticeSessionBase {
 
   async benchmark(ms: number): Promise<PracticeBenchmarkRun> {
     const setup = this.setup ?? benchmarkSetup();
-    const script = buildPracticeScript({ setup, flight: null, runUp: true, idleMs: practiceReleaseScene(setup.bowler) + 1500 });
+    const script = buildPracticeScript({
+      setup,
+      flight: null,
+      runUp: true,
+      idleMs: practiceReleaseScene(setup.bowler) + 1500,
+    });
     const before = this.contextLosses;
     const frameMs = await this.runBenchmarkScene(ms, script);
     // Classic draws no WebGL, but the classifier still wants to know what the device has.
     this.gpu ??= probeGpu();
-    return { frameMs, shaderCompileMs: 0, contextLosses: this.contextLosses - before, renderer: this.gpu.renderer, webgl2: this.gpu.webgl2, hardware: this.gpu.hardware };
+    return {
+      frameMs,
+      shaderCompileMs: 0,
+      contextLosses: this.contextLosses - before,
+      renderer: this.gpu.renderer,
+      webgl2: this.gpu.webgl2,
+      hardware: this.gpu.hardware,
+    };
   }
 
   dispose(): void {

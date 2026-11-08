@@ -45,9 +45,30 @@ type Inner = {
 
 function ball() {
   const eb = overBalls(REFERENCE_OVER, 'balanced')[1];
-  const setup: PracticeSceneSetup = { field: eb.field, bowler: eb.over.bowler, conditions: eb.conditions, handedness: 'right' };
-  const swing: NormalizedSwing = { kind: 'attack', startT: Math.max(0, eb.flight.idealContactT - 0.14), directionDeg: 20, power: 0.6, elevation: 0, footwork: 'auto' };
-  const result: DeliveryResult = resolveDelivery({ flight: eb.flight, swing, field: eb.field, bowler: eb.over.bowler, conditions: eb.conditions, handedness: 'right', assist: 'play', tierToleranceMs: 0 });
+  const setup: PracticeSceneSetup = {
+    field: eb.field,
+    bowler: eb.over.bowler,
+    conditions: eb.conditions,
+    handedness: 'right',
+  };
+  const swing: NormalizedSwing = {
+    kind: 'attack',
+    startT: Math.max(0, eb.flight.idealContactT - 0.14),
+    directionDeg: 20,
+    power: 0.6,
+    elevation: 0,
+    footwork: 'auto',
+  };
+  const result: DeliveryResult = resolveDelivery({
+    flight: eb.flight,
+    swing,
+    field: eb.field,
+    bowler: eb.over.bowler,
+    conditions: eb.conditions,
+    handedness: 'right',
+    assist: 'play',
+    tierToleranceMs: 0,
+  });
   return { setup, flight: eb.flight as BallFlight, result };
 }
 
@@ -60,7 +81,18 @@ function stageWithoutGl() {
   return { s, inner };
 }
 
-const idleFrame = (setup: PracticeSceneSetup): StageFrame => ({ mode: 'idle', script: buildPracticeScript({ setup, flight: null }), scene: 0, plan: [], clockMs: 0, slow: false, diagnostics: null, bands: null, coachOption: null, closeUpFlight: null });
+const idleFrame = (setup: PracticeSceneSetup): StageFrame => ({
+  mode: 'idle',
+  script: buildPracticeScript({ setup, flight: null }),
+  scene: 0,
+  plan: [],
+  clockMs: 0,
+  slow: false,
+  diagnostics: null,
+  bands: null,
+  coachOption: null,
+  closeUpFlight: null,
+});
 
 describe('the dry run of the result path', () => {
   it('finishes in slices on spare time, once, and leaves the stage as it was', () => {
@@ -117,7 +149,11 @@ describe('the dry run of the result path', () => {
     const { s, inner } = stageWithoutGl();
     const frame = idleFrame(setup);
     // A result that is not one: the build fails inside the dry run; the frame carries on and the dry run is dropped.
-    s.warmResult({ ...result, ball: undefined as never, bat: undefined as never, events: undefined as never }, flight, setup);
+    s.warmResult(
+      { ...result, ball: undefined as never, bat: undefined as never, events: undefined as never },
+      flight,
+      setup,
+    );
     for (let k = 0; k < 400 && inner.warmJob; k++) expect(() => inner.idleWork(frame, 4)).not.toThrow();
     expect(inner.warmJob).toBeNull();
   });

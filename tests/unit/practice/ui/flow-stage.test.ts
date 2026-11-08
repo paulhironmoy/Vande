@@ -17,10 +17,12 @@ beforeEach(useFakeTimers);
 afterEach(() => vi.useRealTimers());
 
 /** A device check that takes a while, as the real one does (about two seconds of measured frames). */
-const slowCheck = (tier: PerfTier, ms = 2200) => async () => {
-  await new Promise((r) => setTimeout(r, ms));
-  return assessment(tier);
-};
+const slowCheck =
+  (tier: PerfTier, ms = 2200) =>
+  async () => {
+    await new Promise((r) => setTimeout(r, ms));
+    return assessment(tier);
+  };
 
 /** Every delivery's frames arrive at 25 fps: the session monitor steps the device down between balls. */
 const slowFrames = (on: (ms: number) => void) => ({
@@ -71,7 +73,10 @@ describe('Play tapped before the stage is ready', () => {
 
 describe('quality changes between balls on the real device-check path', () => {
   it('two complete overs while the device steps down to Classic; the help is one value per over', async () => {
-    const { flow, swings, createStage } = setup({ autoNext: true, deps: { benchmark: slowCheck('full', 1500), frameSampler: slowFrames } });
+    const { flow, swings, createStage } = setup({
+      autoNext: true,
+      deps: { benchmark: slowCheck('full', 1500), frameSampler: slowFrames },
+    });
     flow.init();
     swings.push(...Array.from({ length: 12 }, (_, i) => (i % 2 ? defend() : attack(0.6))));
     flow.prepareOver({ kind: 'random' });

@@ -6,14 +6,21 @@ import { createPostHogAdapter } from '@/analytics/posthog';
 
 function memoryStorage(): KeyStore & { data: Map<string, string> } {
   const data = new Map<string, string>();
-  return { data, getItem: (k) => data.get(k) ?? null, setItem: (k, v) => void data.set(k, v), removeItem: (k) => void data.delete(k) };
+  return {
+    data,
+    getItem: (k) => data.get(k) ?? null,
+    setItem: (k, v) => void data.set(k, v),
+    removeItem: (k) => void data.delete(k),
+  };
 }
 
 const CONFIG = { provider: 'posthog' as const, host: 'https://eu.i.posthog.com', key: 'phc_test', killed: false };
 
 function recorder() {
   const events: Array<{ event: string; props: unknown; id: string }> = [];
-  const factory = (_c: unknown, id: string): AnalyticsAdapter => ({ track: (event, props) => void events.push({ event, props, id }) });
+  const factory = (_c: unknown, id: string): AnalyticsAdapter => ({
+    track: (event, props) => void events.push({ event, props, id }),
+  });
   return { events, factory };
 }
 
@@ -53,15 +60,30 @@ describe('analytics consent', () => {
   it('sends nothing until configured, consented and not blocked by DNT/GPC', () => {
     const r = recorder();
     const storage = memoryStorage();
-    const off = createAnalytics({ config: { ...CONFIG, provider: 'none' }, storage, privacyBlocked: () => false, adapterFactory: r.factory });
+    const off = createAnalytics({
+      config: { ...CONFIG, provider: 'none' },
+      storage,
+      privacyBlocked: () => false,
+      adapterFactory: r.factory,
+    });
     off.setConsent('granted');
     off.track('tutorial_started');
-    const unset = createAnalytics({ config: CONFIG, storage: memoryStorage(), privacyBlocked: () => false, adapterFactory: r.factory });
+    const unset = createAnalytics({
+      config: CONFIG,
+      storage: memoryStorage(),
+      privacyBlocked: () => false,
+      adapterFactory: r.factory,
+    });
     unset.track('tutorial_started');
     expect(unset.consent()).toBe('unset');
     const dnt = createAnalytics({ config: CONFIG, storage, privacyBlocked: () => true, adapterFactory: r.factory });
     dnt.track('tutorial_started');
-    const killed = createAnalytics({ config: { ...CONFIG, killed: true }, storage, privacyBlocked: () => false, adapterFactory: r.factory });
+    const killed = createAnalytics({
+      config: { ...CONFIG, killed: true },
+      storage,
+      privacyBlocked: () => false,
+      adapterFactory: r.factory,
+    });
     killed.track('tutorial_started');
     expect(r.events).toEqual([]);
   });
@@ -70,7 +92,14 @@ describe('analytics consent', () => {
     const r = recorder();
     const storage = memoryStorage();
     let now = new Date('2026-10-26T10:00:00Z');
-    const a = createAnalytics({ config: CONFIG, storage, privacyBlocked: () => false, adapterFactory: r.factory, now: () => now, base: () => ({ platform: 'android', appVersion: '1.0.0' }) });
+    const a = createAnalytics({
+      config: CONFIG,
+      storage,
+      privacyBlocked: () => false,
+      adapterFactory: r.factory,
+      now: () => now,
+      base: () => ({ platform: 'android', appVersion: '1.0.0' }),
+    });
     a.setConsent('granted');
     a.track('invite_created', { channel: 'whatsapp' });
     a.track('not_an_event' as never);
@@ -88,13 +117,26 @@ describe('analytics consent', () => {
 
   it('posts batches to PostHog without person profiles and with hour-resolution times', async () => {
     const bodies: string[] = [];
-    const ph = createPostHogAdapter({ host: 'https://eu.i.posthog.com', key: 'phc_test', distinctId: 'd1', batchSize: 2, fetchImpl: (async (_u: string, init: RequestInit) => void bodies.push(String(init.body))) as unknown as typeof fetch, now: () => new Date('2026-10-26T10:47:13Z') });
+    const ph = createPostHogAdapter({
+      host: 'https://eu.i.posthog.com',
+      key: 'phc_test',
+      distinctId: 'd1',
+      batchSize: 2,
+      fetchImpl: (async (_u: string, init: RequestInit) =>
+        void bodies.push(String(init.body))) as unknown as typeof fetch,
+      now: () => new Date('2026-10-26T10:47:13Z'),
+    });
     ph.track('share_initiated', { channel: 'copy' });
     ph.track('share_completed', { channel: 'copy' });
     await ph.flush?.();
     const payload = JSON.parse(bodies[0]);
     expect(payload.batch).toHaveLength(2);
-    expect(payload.batch[0]).toMatchObject({ event: 'share_initiated', distinct_id: 'd1', timestamp: '2026-10-26T10:00:00.000Z', properties: { $process_person_profile: false } });
+    expect(payload.batch[0]).toMatchObject({
+      event: 'share_initiated',
+      distinct_id: 'd1',
+      timestamp: '2026-10-26T10:00:00.000Z',
+      properties: { $process_person_profile: false },
+    });
   });
 });
 
@@ -105,7 +147,16 @@ describe('retention and crashes (sent by the device itself)', () => {
     const r = recorder();
     const storage = memoryStorage();
     let now = day('2026-10-26');
-    const open = () => createAnalytics({ config: CONFIG, storage, privacyBlocked: () => false, adapterFactory: r.factory, now: () => now, errorTarget: null, visibilityTarget: null });
+    const open = () =>
+      createAnalytics({
+        config: CONFIG,
+        storage,
+        privacyBlocked: () => false,
+        adapterFactory: r.factory,
+        now: () => now,
+        errorTarget: null,
+        visibilityTarget: null,
+      });
     // First open: only the local day is kept (never sent).
     open().setConsent('granted');
     expect(storage.data.get('vc:first-open')).toBe('2026-10-26');
@@ -135,8 +186,22 @@ describe('retention and crashes (sent by the device itself)', () => {
     const storage = memoryStorage();
     storage.setItem('vc:analytics-consent', 'granted');
     const target = new EventTarget();
-    createAnalytics({ config: CONFIG, storage, privacyBlocked: () => false, adapterFactory: r.factory, errorTarget: target, visibilityTarget: null, base: () => ({ platform: 'web', appVersion: '1.0.0' }) });
-    for (let i = 0; i < 5; i++) target.dispatchEvent(Object.assign(new Event('error'), { message: 'TypeError: secret at https://x.example/?token=abc', filename: 'https://x.example/app.js' }));
+    createAnalytics({
+      config: CONFIG,
+      storage,
+      privacyBlocked: () => false,
+      adapterFactory: r.factory,
+      errorTarget: target,
+      visibilityTarget: null,
+      base: () => ({ platform: 'web', appVersion: '1.0.0' }),
+    });
+    for (let i = 0; i < 5; i++)
+      target.dispatchEvent(
+        Object.assign(new Event('error'), {
+          message: 'TypeError: secret at https://x.example/?token=abc',
+          filename: 'https://x.example/app.js',
+        }),
+      );
     target.dispatchEvent(new Event('unhandledrejection'));
     expect(r.events.map((e) => [e.event, e.props])).toEqual([
       ['crash', { platform: 'web', appVersion: '1.0.0', reason: 'error' }],
@@ -153,7 +218,10 @@ describe('events only the app shell sees', () => {
     const tracked: Array<[string, unknown]> = [];
     const push = createMockPushAdapter();
     let install: ((code: string) => void) | null = null;
-    const off = connectAnalytics({ track: (e, p) => void tracked.push([e, p]) }, { push, onAttributedInstall: (cb) => ((install = cb), () => (install = null)) });
+    const off = connectAnalytics(
+      { track: (e, p) => void tracked.push([e, p]) },
+      { push, onAttributedInstall: (cb) => ((install = cb), () => (install = null)) },
+    );
     push.emit({ kind: 'deadline_reminder', data: { tapped: '1', matchId: 'm1' } });
     push.emit({ kind: 'deadline_reminder', data: { tapped: '1', matchId: 'm2', cupId: 'c1' } });
     // Received in the foreground (not opened), and other kinds: nothing.

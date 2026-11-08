@@ -102,4 +102,3 @@ export async function createPracticeStage(opts: { force2d?: boolean } = {}): Pro
   const { Fallback2DPracticeStage } = await loadClassicStage();
   return new Fallback2DPracticeStage();
 }
-

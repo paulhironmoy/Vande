@@ -32,7 +32,16 @@ export interface BallSpec {
 }
 
 /** How the crowd reads each test outcome (emotion.ts EmotionOutcome): the category the striker's reaction follows (P3). */
-export const OUTCOME_CATEGORY: Record<Outcome, string> = { four: 'four', six: 'six', two: 'runs', caught: 'wicket', dot: 'dot', missed: 'close_call', leave: 'leave', bowled: 'wicket' };
+export const OUTCOME_CATEGORY: Record<Outcome, string> = {
+  four: 'four',
+  six: 'six',
+  two: 'runs',
+  caught: 'wicket',
+  dot: 'dot',
+  missed: 'close_call',
+  leave: 'leave',
+  bowled: 'wicket',
+};
 
 export const STOCK: BallSpec = { speedKph: 136, lengthM: 6, lineM: 0.05, variation: 0, outcome: 'four' };
 
@@ -71,13 +80,21 @@ function bowlerHead(t: number, release: number): P3 {
   const ease = u * u * (3 - 2 * u) * 0.35 + u * 0.65;
   const zRun = -21 + (-9.3 + 21) * ease;
   const after = Math.min(1.6, Math.max(0, (t - release) / 1000));
-  return { x: 0.2, y: 1.78 - 0.04 * Math.sin(t / 95) * (u > 0 && t < release ? 1 : 0.3), z: t < release ? zRun : -9.3 + 1.1 * after };
+  return {
+    x: 0.2,
+    y: 1.78 - 0.04 * Math.sin(t / 95) * (u > 0 && t < release ? 1 : 0.3),
+    z: t < release ? zRun : -9.3 + 1.1 * after,
+  };
 }
 function bowlerHand(t: number, release: number): P3 {
   const h = bowlerHead(t, release);
   const u = Math.min(1, Math.max(0, (t - (release - 600)) / 600));
   const s = u * u * (3 - 2 * u);
-  return { x: h.x + 0.12 + (REL.x - h.x - 0.12) * s, y: h.y - 0.7 + (REL.y - h.y + 0.7) * s, z: h.z + 0.1 + (REL.z - h.z - 0.1) * s };
+  return {
+    x: h.x + 0.12 + (REL.x - h.x - 0.12) * s,
+    y: h.y - 0.7 + (REL.y - h.y + 0.7) * s,
+    z: h.z + 0.1 + (REL.z - h.z - 0.1) * s,
+  };
 }
 
 export function delivery(spec: BallSpec, release = 2420): Delivery {
@@ -94,7 +111,12 @@ export function delivery(spec: BallSpec, release = 2420): Delivery {
     return { x: REL.x + vx * s, y: Math.max(BALL_R, BALL_R + 0.53 * vyb * r - 0.5 * G * r * r), z: bz + vz1 * r };
   };
   const tPass = tb + (CREASE_Z - bz) / vz1;
-  const hits = spec.outcome === 'four' || spec.outcome === 'six' || spec.outcome === 'two' || spec.outcome === 'caught' || spec.outcome === 'dot';
+  const hits =
+    spec.outcome === 'four' ||
+    spec.outcome === 'six' ||
+    spec.outcome === 'two' ||
+    spec.outcome === 'caught' ||
+    spec.outcome === 'dot';
   const swung = hits || spec.outcome === 'missed' || spec.outcome === 'bowled';
   const contactS = hits ? tPass : null;
   const tc = contactS ?? tPass;
@@ -142,13 +164,26 @@ export function delivery(spec: BallSpec, release = 2420): Delivery {
     const r0 = release;
     let outcomeAt: number;
     switch (spec.outcome) {
-      case 'four': outcomeAt = r0 + (tc + 3.7) * 1000; break;
-      case 'six': outcomeAt = r0 + (tc + 2.7) * 1000; break;
-      case 'two': outcomeAt = r0 + (tc + 3.0) * 1000; break;
-      case 'caught': outcomeAt = r0 + (tc + 2.86) * 1000; break;
-      case 'dot': outcomeAt = r0 + (tc + 2.2) * 1000; break;
-      case 'bowled': outcomeAt = r0 + tStumps * 1000; break;
-      default: outcomeAt = r0 + tKeeper * 1000;
+      case 'four':
+        outcomeAt = r0 + (tc + 3.7) * 1000;
+        break;
+      case 'six':
+        outcomeAt = r0 + (tc + 2.7) * 1000;
+        break;
+      case 'two':
+        outcomeAt = r0 + (tc + 3.0) * 1000;
+        break;
+      case 'caught':
+        outcomeAt = r0 + (tc + 2.86) * 1000;
+        break;
+      case 'dot':
+        outcomeAt = r0 + (tc + 2.2) * 1000;
+        break;
+      case 'bowled':
+        outcomeAt = r0 + tStumps * 1000;
+        break;
+      default:
+        outcomeAt = r0 + tKeeper * 1000;
     }
     const swing = swung ? r0 + tc * 1000 - 260 : null;
     const dead = outcomeAt + (spec.outcome === 'dot' ? 0 : 500);
@@ -268,7 +303,7 @@ export function anchorsFor(d: Delivery, o: MakeOptions): DirectorAnchors {
     release: t.release,
     swing: pre || o.role === 'bowler' ? null : t.swing,
     contact: pre || o.role === 'bowler' ? null : t.contact,
-    taskEnd: pre ? t.passAt : t.contact ?? t.passAt,
+    taskEnd: pre ? t.passAt : (t.contact ?? t.passAt),
     outcomeAt: pre ? null : t.outcomeAt,
     outcome: pre || o.role === 'bowler' ? null : OUTCOME_CATEGORY[d.spec.outcome],
     dead: pre ? null : t.dead,
@@ -283,7 +318,12 @@ export function anchorsFor(d: Delivery, o: MakeOptions): DirectorAnchors {
 }
 
 /** Anchors for a script between deliveries (no release, no ball). */
-export function idleAnchors(role: Role, key: string, endMs: number, o: { person?: string; reducedMotion?: boolean } = {}): DirectorAnchors {
+export function idleAnchors(
+  role: Role,
+  key: string,
+  endMs: number,
+  o: { person?: string; reducedMotion?: boolean } = {},
+): DirectorAnchors {
   const hd: P3 = { x: -0.15, y: 1.58, z: 8.9 };
   const stand: P3 = { x: 0.2, y: 1.78, z: -9.9 };
   const eye = role === 'bowler' ? stand : EYE_S;
@@ -306,7 +346,12 @@ export function idleAnchors(role: Role, key: string, endMs: number, o: { person?
     headPx: 40,
     visibleBall: () => false,
     aim: (target, _ms, out) => {
-      dirOf(role, eye, target === 'hand' ? { x: stand.x + 0.12, y: 1.1, z: stand.z + 0.1 } : role === 'bowler' ? hd : stand, out);
+      dirOf(
+        role,
+        eye,
+        target === 'hand' ? { x: stand.x + 0.12, y: 1.1, z: stand.z + 0.1 } : role === 'bowler' ? hd : stand,
+        out,
+      );
       return true;
     },
     clipHead: (_ms, out) => {

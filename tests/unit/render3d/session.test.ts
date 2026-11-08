@@ -32,11 +32,17 @@ const throwingClock: Clock = {
 describe('deterministic renderAt', () => {
   it('produces the same frame for the same time, in any order, without the wall clock', async () => {
     const r = new Recorder(throwingClock);
-    await r.mount({} as HTMLCanvasElement, { quality: 'standard', reducedMotion: false, fps: 60, offline: { width: 1080, height: 1920 } });
+    await r.mount({} as HTMLCanvasElement, {
+      quality: 'standard',
+      reducedMotion: false,
+      fps: 60,
+      offline: { width: 1080, height: 1920 },
+    });
     const { durationMs } = await r.loadReplay(fixtureMatchLog(), 'full');
     const times = [0, 12_000, 37_500, 49_000, durationMs - 1, 12_000];
     times.forEach((t) => r.renderAt(t));
-    const key = (d: DrawInput) => JSON.stringify([d.script.kind, d.script.duration, d.segment?.eventIndex, Math.round(d.scene * 1000), d.slow]);
+    const key = (d: DrawInput) =>
+      JSON.stringify([d.script.kind, d.script.duration, d.segment?.eventIndex, Math.round(d.scene * 1000), d.slow]);
     const first = r.frames.slice(1).map(key);
     r.frames = [];
     [...times].reverse().forEach((t) => r.renderAt(t));
@@ -65,7 +71,12 @@ describe('live batting', () => {
     const clock: Clock = { now: () => now, raf: (cb) => (callbacks.push(cb), callbacks.length), caf: () => undefined };
     const r = new Recorder(clock);
     await r.mount({} as HTMLCanvasElement, { quality: 'standard', reducedMotion: false, fps: 60 });
-    await r.prepareInnings({ conditions: { pitch: 'hard', weather: 'clear' }, field: 'balanced', batter: FIXTURE_PLAYERS[0], bowler: FIXTURE_PLAYERS[1] });
+    await r.prepareInnings({
+      conditions: { pitch: 'hard', weather: 'clear' },
+      field: 'balanced',
+      batter: FIXTURE_PLAYERS[0],
+      bowler: FIXTURE_PLAYERS[1],
+    });
     const delivery = fixtureDelivery(0, 'good_length');
     const handle = r.bowl(delivery);
     const tick = (ms: number) => {
@@ -108,7 +119,12 @@ describe('live shots never strand a caller', () => {
     const clock: Clock = { now: () => now, raf: (cb) => (callbacks.push(cb), callbacks.length), caf: () => undefined };
     const r = new Live(clock);
     await r.mount({} as HTMLCanvasElement, { quality: 'standard', reducedMotion: false, fps: 60 });
-    await r.prepareInnings({ conditions: { pitch: 'hard', weather: 'clear' }, field: 'balanced', batter: FIXTURE_PLAYERS[0], bowler: FIXTURE_PLAYERS[1] });
+    await r.prepareInnings({
+      conditions: { pitch: 'hard', weather: 'clear' },
+      field: 'balanced',
+      batter: FIXTURE_PLAYERS[0],
+      bowler: FIXTURE_PLAYERS[1],
+    });
     const handle = r.bowl(fixtureDelivery(0, 'good_length'));
     const tick = (ms: number) => {
       now += ms;
@@ -168,7 +184,12 @@ describe('live shots never strand a caller', () => {
       const clock: Clock = { now: () => 5000, raf: () => 1, caf: () => undefined };
       const r = new Live(clock);
       await r.mount({} as HTMLCanvasElement, { quality: 'standard', reducedMotion: false, fps: 60 });
-      await r.prepareInnings({ conditions: { pitch: 'hard', weather: 'clear' }, field: 'balanced', batter: FIXTURE_PLAYERS[0], bowler: FIXTURE_PLAYERS[1] });
+      await r.prepareInnings({
+        conditions: { pitch: 'hard', weather: 'clear' },
+        field: 'balanced',
+        batter: FIXTURE_PLAYERS[0],
+        bowler: FIXTURE_PLAYERS[1],
+      });
       const handle = r.bowl(fixtureDelivery(0, 'good_length'));
       let released = false;
       void handle.released.then(() => (released = true));

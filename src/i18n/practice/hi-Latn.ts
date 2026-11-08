@@ -9,6 +9,13 @@ import { playHiLatn } from './hi-Latn/play';
 import { settingsHiLatn } from './hi-Latn/settings';
 import { startHiLatn } from './hi-Latn/start';
 
-export const practiceHiLatn: Record<string, string> = { ...startHiLatn, ...playHiLatn, ...coachHiLatn, ...fieldHiLatn, ...deliveriesHiLatn, ...settingsHiLatn };
+export const practiceHiLatn: Record<string, string> = {
+  ...startHiLatn,
+  ...playHiLatn,
+  ...coachHiLatn,
+  ...fieldHiLatn,
+  ...deliveriesHiLatn,
+  ...settingsHiLatn,
+};
 
 export default practiceHiLatn;

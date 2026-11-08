@@ -76,13 +76,16 @@ export function parseRoute(input: string): Route {
   if (scheme) pathname = `/${scheme[1].split(/[?#]/)[0]}`;
   const base = basePath();
   if (base !== '/' && pathname.startsWith(base)) pathname = `/${pathname.slice(base.length)}`;
-  const parts = pathname.split('/').filter(Boolean).map((p) => {
-    try {
-      return decodeURIComponent(p);
-    } catch {
-      return p;
-    }
-  });
+  const parts = pathname
+    .split('/')
+    .filter(Boolean)
+    .map((p) => {
+      try {
+        return decodeURIComponent(p);
+      } catch {
+        return p;
+      }
+    });
   const [a, b, c] = parts;
   if (!a) return { name: 'home' };
   switch (a) {
@@ -195,7 +198,10 @@ export function routePath(r: Route): string {
 }
 
 /** Absolute URL for sharing (invites, highlights). */
-export function routeUrl(r: Route, origin = typeof location !== 'undefined' ? location.origin : 'https://app.invalid'): string {
+export function routeUrl(
+  r: Route,
+  origin = typeof location !== 'undefined' ? location.origin : 'https://app.invalid',
+): string {
   return `${origin.replace(/\/+$/, '')}${basePath().replace(/\/$/, '')}${routePath(r)}`;
 }
 

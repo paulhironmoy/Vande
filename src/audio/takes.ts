@@ -15,7 +15,9 @@
 export const ONSET_RATIO = 0.1;
 
 /** The key every take choice of one delivery hashes: identical for the exact-ball retry of the same record. */
-export function deliveryTakeKey(ctx: { seed?: string | null; overIndex?: number | null; ballIndex?: number | null } | null | undefined): string {
+export function deliveryTakeKey(
+  ctx: { seed?: string | null; overIndex?: number | null; ballIndex?: number | null } | null | undefined,
+): string {
   if (!ctx || typeof ctx.seed !== 'string' || ctx.seed === '') return 'unseeded';
   const o = typeof ctx.overIndex === 'number' && Number.isFinite(ctx.overIndex) ? String(ctx.overIndex) : '-';
   const b = typeof ctx.ballIndex === 'number' && Number.isFinite(ctx.ballIndex) ? String(ctx.ballIndex) : '-';
@@ -61,7 +63,13 @@ export function findOnset(data: ArrayLike<number>, ratio: number = ONSET_RATIO):
  * to `prerollS` of the material before it. When that start is already past (`now`), the buffer starts now and skips
  * ahead by the same amount, so the onset still lands at `when`.
  */
-export function alignedStart(when: number, onsetS: number, prerollS: number, now: number, rate = 1): { start: number; offset: number } {
+export function alignedStart(
+  when: number,
+  onsetS: number,
+  prerollS: number,
+  now: number,
+  rate = 1,
+): { start: number; offset: number } {
   const r = rate > 0 ? rate : 1;
   const pre = Math.max(0, Math.min(onsetS, prerollS));
   let start = when - pre / r;

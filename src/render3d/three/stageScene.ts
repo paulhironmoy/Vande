@@ -23,15 +23,44 @@ import {
 import { RendererUnavailableError, type Conditions, type KitSpec } from '@/contracts';
 import type { QualityPreset } from '../core/quality';
 import { evaluateActor, type ActorTrack } from '../core/actors';
-import { aimWeight, createPose, mirrorSampledPose, samplePresented, setWeightedAims, type SampledPose } from '../core/clips';
+import {
+  aimWeight,
+  createPose,
+  mirrorSampledPose,
+  samplePresented,
+  setWeightedAims,
+  type SampledPose,
+} from '../core/clips';
 import type { CameraPose } from '../core/camera';
 import { crowdAt, sampleBall, type BallScript } from '../core/choreo';
 import type { BatPose } from '../practice/frame';
 import type { PracticeInfo } from '../practice/script';
 import { createStadium, glowTexture, towerPos, TOWER_ANGLES, type Stadium, type StadiumSignage } from './stadium';
-import { applyAim, applyDirectedHead, applyPose, ballInHand, boneWorld, createRig, dressRig, holdBat, limitArms, setRigFace, setRigShadowPolicy, type Gear, type PlayerRig } from './players';
+import {
+  applyAim,
+  applyDirectedHead,
+  applyPose,
+  ballInHand,
+  boneWorld,
+  createRig,
+  dressRig,
+  holdBat,
+  limitArms,
+  setRigFace,
+  setRigShadowPolicy,
+  type Gear,
+  type PlayerRig,
+} from './players';
 import { FACE, frameBegin } from '../core/motion/director/stage/face';
-import { createBat, createBlobShadows, createEventFx, createStumps, type BlobShadows, type EventFx, type StumpsFx } from './props';
+import {
+  createBat,
+  createBlobShadows,
+  createEventFx,
+  createStumps,
+  type BlobShadows,
+  type EventFx,
+  type StumpsFx,
+} from './props';
 import { createBall, type BallFx } from './ball';
 import { emotionAt, type EmotionState } from '../practice/emotion';
 import { insetMoment, insetTarget, paintFieldInset, type InsetMoment } from '../fallback2d/topDown';
@@ -53,7 +82,14 @@ function shadowTexture(): Texture {
   return t;
 }
 
-const GEAR_FOR: Record<string, Gear> = { striker: 'batter', nonStriker: 'batter', keeper: 'keeper', bowler: 'bowler', umpire: 'umpire', umpire2: 'umpire' };
+const GEAR_FOR: Record<string, Gear> = {
+  striker: 'batter',
+  nonStriker: 'batter',
+  keeper: 'keeper',
+  bowler: 'bowler',
+  umpire: 'umpire',
+  umpire2: 'umpire',
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // The release reach: the last centimetres between the drawn palm and the physics release point
@@ -75,7 +111,9 @@ const smooth01 = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 
 /** The residual's weight at scene time t: a C1 ramp to 1 at the release, a C1 ramp back to 0 after it. */
 export function releaseReachWeight(t: number, releaseScene: number): number {
-  return t <= releaseScene ? smooth01((t - (releaseScene - RELEASE_REACH.leadMs)) / RELEASE_REACH.leadMs) : 1 - smooth01((t - releaseScene) / RELEASE_REACH.tailMs);
+  return t <= releaseScene
+    ? smooth01((t - (releaseScene - RELEASE_REACH.leadMs)) / RELEASE_REACH.leadMs)
+    : 1 - smooth01((t - releaseScene) / RELEASE_REACH.tailMs);
 }
 
 const reachQ = new Quaternion();
@@ -223,7 +261,13 @@ export class StageScene {
   /** Creates the WebGL renderer, or throws RendererUnavailableError. */
   static createRenderer(canvas: HTMLCanvasElement, o: StageRendererOptions): WebGLRenderer {
     try {
-      return new WebGLRenderer({ canvas, antialias: o.antialias, powerPreference: 'high-performance', preserveDrawingBuffer: o.preserveDrawingBuffer, alpha: false });
+      return new WebGLRenderer({
+        canvas,
+        antialias: o.antialias,
+        powerPreference: 'high-performance',
+        preserveDrawingBuffer: o.preserveDrawingBuffer,
+        alpha: false,
+      });
     } catch (err) {
       throw new RendererUnavailableError(err instanceof Error ? err.message : 'no_webgl');
     }
@@ -312,7 +356,8 @@ export class StageScene {
           if (this.preset !== current) this.applyPreset(current);
         }
       } else this.renderer.compile(this.scene, this.camera);
-      for (const program of this.renderer.info.programs ?? []) (program as { getUniforms?: () => unknown }).getUniforms?.();
+      for (const program of this.renderer.info.programs ?? [])
+        (program as { getUniforms?: () => unknown }).getUniforms?.();
     } catch {
       /* an optimisation only */
     }
@@ -336,7 +381,8 @@ export class StageScene {
       let ancestor = object.parent;
       while (ancestor && !excluded.has(ancestor)) ancestor = ancestor.parent;
       // Removing an ancestor already excludes its descendants, whose own parent/ordering stays untouched.
-      if (!ancestor && object.parent) entries.push({ object, parent: object.parent, index: object.parent.children.indexOf(object) });
+      if (!ancestor && object.parent)
+        entries.push({ object, parent: object.parent, index: object.parent.children.indexOf(object) });
     }
     const detached: typeof entries = [];
     try {
@@ -437,7 +483,13 @@ export class StageScene {
   }
 
   /** Poses one actor at scene time t. */
-  poseActor(track: ActorTrack, t: number, kits: [KitSpec, KitSpec], batOverride: BatPose | null, hook?: ScriptDrawOptions['poseHook']) {
+  poseActor(
+    track: ActorTrack,
+    t: number,
+    kits: [KitSpec, KitSpec],
+    batOverride: BatPose | null,
+    hook?: ScriptDrawOptions['poseHook'],
+  ) {
     const rig = this.rig(track);
     const mirror = Boolean(track.mirror);
     this.mirrored.set(track.id, mirror);
@@ -473,7 +525,13 @@ export class StageScene {
     // (an actor the Director did not sample goes back to its own periodic blink).
     applyDirectedHead(rig);
     setRigFace(rig, FACE);
-    this.blobs.add(st.pos.x + (st.body?.x ?? 0), st.pos.z + (st.body?.z ?? 0), this.towers, this.preset.blobShadows, rig.scale);
+    this.blobs.add(
+      st.pos.x + (st.body?.x ?? 0),
+      st.pos.z + (st.body?.z ?? 0),
+      this.towers,
+      this.preset.blobShadows,
+      rig.scale,
+    );
   }
 
   /** The hand that holds the ball for an actor (the bowling hand of a mirrored, left-arm bowler is its left). */
@@ -486,7 +544,10 @@ export class StageScene {
     const mirror = this.mirrored.get(actor) ?? false;
     // The ball in the palm (players.ts BALL_IN_HAND: the same point as MOTION-BOWL's and UNITY's).
     const p = ballInHand(rig, mirror ? 'L' : 'R');
-    if (actor === 'keeper' && !throwing) return ballInHand(rig, mirror ? 'R' : 'L').add(p).multiplyScalar(0.5);
+    if (actor === 'keeper' && !throwing)
+      return ballInHand(rig, mirror ? 'R' : 'L')
+        .add(p)
+        .multiplyScalar(0.5);
     return p;
   }
 
@@ -495,7 +556,12 @@ export class StageScene {
    * less the palm as the bowler is drawn at the release instant (pose and hooks only, no reach). It is a function of the
    * script alone, measured once per script and pose hook.
    */
-  private releaseReachAt(script: BallScript, p: PracticeInfo, t: number, o: ScriptDrawOptions): { delta: Vector3; w: number } | null {
+  private releaseReachAt(
+    script: BallScript,
+    p: PracticeInfo,
+    t: number,
+    o: ScriptDrawOptions,
+  ): { delta: Vector3; w: number } | null {
     const w = releaseReachWeight(t, p.releaseScene);
     if (w <= 0) return null;
     const cache = (this.reachDelta ??= new WeakMap());
@@ -505,7 +571,10 @@ export class StageScene {
       if (!track) return null;
       this.poseActor(track, p.releaseScene, o.kits, null, o.poseHook);
       const palm = ballInHand(this.rig(track), p.bowlerLeftArm ? 'L' : 'R');
-      hit = { hook: o.poseHook, delta: new Vector3(p.releaseWorld.x - palm.x, p.releaseWorld.y - palm.y, p.releaseWorld.z - palm.z) };
+      hit = {
+        hook: o.poseHook,
+        delta: new Vector3(p.releaseWorld.x - palm.x, p.releaseWorld.y - palm.y, p.releaseWorld.z - palm.z),
+      };
       cache.set(script, hit);
     }
     return hit.delta.lengthSq() < 1e-8 ? null : { delta: hit.delta, w };
@@ -518,10 +587,13 @@ export class StageScene {
   drawScript(script: BallScript, t: number, cam: CameraPose, o: ScriptDrawOptions) {
     this.insetScript = script.practice ? script : null;
     this.insetT = t;
-    this.armsFreeAt = script.practice?.flight ? script.practice.releaseScene + RELEASE_REACH.tailMs : Number.POSITIVE_INFINITY;
+    this.armsFreeAt = script.practice?.flight
+      ? script.practice.releaseScene + RELEASE_REACH.tailMs
+      : Number.POSITIVE_INFINITY;
     const used = new Set<string>();
     // A delivery in its last moments before the release (a scene between balls has no release): the residual to take up.
-    const reach = script.practice?.flight && !o.hidden?.has('bowler') ? this.releaseReachAt(script, script.practice, t, o) : null;
+    const reach =
+      script.practice?.flight && !o.hidden?.has('bowler') ? this.releaseReachAt(script, script.practice, t, o) : null;
     this.blobs.begin();
     for (const track of script.actors) {
       // An actor the camera must not show is not posed at all (the first-person batter's own body).
@@ -567,7 +639,11 @@ export class StageScene {
     }
 
     // Ball, stumps, effects
-    this.ballFx.update(script, t, handAt, o.slow, this.preset.trailPoints, this.camera.position, { camera: this.camera, height: this.cssHeight, closeUp: o.ballCloseUp });
+    this.ballFx.update(script, t, handAt, o.slow, this.preset.trailPoints, this.camera.position, {
+      camera: this.camera,
+      height: this.cssHeight,
+      closeUp: o.ballCloseUp,
+    });
     this.stumpsFx.update(script, t);
     this.eventFx.update(script, t, this.camera.position, this.preset.particles, o.reducedMotion);
 
@@ -582,7 +658,13 @@ export class StageScene {
     for (const e of script.events) {
       const dt = t - e.t;
       if (dt < 0 || dt > 2600) continue;
-      if (e.kind === 'boundary' || e.kind === 'six' || e.kind === 'stumps' || e.kind === 'catch' || (e.kind === 'signal' && e.intensity > 0.9)) {
+      if (
+        e.kind === 'boundary' ||
+        e.kind === 'six' ||
+        e.kind === 'stumps' ||
+        e.kind === 'catch' ||
+        (e.kind === 'signal' && e.intensity > 0.9)
+      ) {
         flash = Math.max(flash, 1 - dt / 2600);
         color = e.kind === 'six' ? 'amber' : e.kind === 'boundary' ? 'cyan' : 'wicket';
       }
@@ -604,10 +686,13 @@ export class StageScene {
     try {
       target = script && canvas ? insetTarget(canvas) : null;
       if (target && real && (this.insetShown === 'calm' || this.insetShown === 'full')) {
-        const px = target.canvas.clientWidth * Math.min(2, typeof devicePixelRatio === 'number' && devicePixelRatio > 0 ? devicePixelRatio : 1);
+        const px =
+          target.canvas.clientWidth *
+          Math.min(2, typeof devicePixelRatio === 'number' && devicePixelRatio > 0 ? devicePixelRatio : 1);
         const look = this.insetLook();
         this.insetGround ??= new InsetGround();
-        if (px > 0 && this.insetGround.stale(px, look)) this.insetGround.capture(this.renderer, this.scene, [this.stadium.group], px, look);
+        if (px > 0 && this.insetGround.stale(px, look))
+          this.insetGround.capture(this.renderer, this.scene, [this.stadium.group], px, look);
       }
     } catch {
       target = null;
@@ -627,14 +712,32 @@ export class StageScene {
           const c = canvas.getBoundingClientRect();
           const b = target.root.getBoundingClientRect();
           const bowler = this.rigs.get('bowler');
-          if (this.insetFirstPerson?.parent !== this.scene) this.insetFirstPerson = this.scene.getObjectByName('first-person') ?? null;
-          if (b.width > 0 && c.width > 0 && insetBlocked(p, this.camera, { w: c.width, h: c.height }, { x: b.left - c.left, y: b.top - c.top, width: b.width, height: b.height }, bowler?.root.visible ? bowler.root.position : null, this.insetFirstPerson)) {
+          if (this.insetFirstPerson?.parent !== this.scene)
+            this.insetFirstPerson = this.scene.getObjectByName('first-person') ?? null;
+          if (
+            b.width > 0 &&
+            c.width > 0 &&
+            insetBlocked(
+              p,
+              this.camera,
+              { w: c.width, h: c.height },
+              { x: b.left - c.left, y: b.top - c.top, width: b.width, height: b.height },
+              bowler?.root.visible ? bowler.root.position : null,
+              this.insetFirstPerson,
+            )
+          ) {
             blocked = true;
             this.insetAsideUntil = now + 300;
           }
         }
       }
-      this.insetShown = target && script && canvas ? paintFieldInset(canvas, script, this.insetT, { ground: real ? (this.insetGround?.current() ?? null) : null, blocked }) : null;
+      this.insetShown =
+        target && script && canvas
+          ? paintFieldInset(canvas, script, this.insetT, {
+              ground: real ? (this.insetGround?.current() ?? null) : null,
+              blocked,
+            })
+          : null;
     } catch {
       this.insetShown = null;
     }

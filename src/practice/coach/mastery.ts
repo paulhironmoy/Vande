@@ -6,7 +6,13 @@
  * One lucky result is never mastery: the stage only advances after consecutive successes, and mastery needs repeated
  * success with no assistance at all.
  */
-import type { AssistanceStage, CoachAnalysis, DeliveryRecord, MasteryAttempt, MasteryState } from '@/contracts/practice';
+import type {
+  AssistanceStage,
+  CoachAnalysis,
+  DeliveryRecord,
+  MasteryAttempt,
+  MasteryState,
+} from '@/contracts/practice';
 import { metStandard } from './insight';
 
 /** The whole rule, in one place (tested and documented). */
@@ -15,7 +21,13 @@ export const MASTERY_RULE = {
    * A success: no dismissal, the recommended decision, and the middle of the bat (for a stroke, measured clean: at least
    * half the requested bat speed and inside the sweet zone), or a leave of a ball that misses.
    */
-  success: { noDismissal: true, recommendedDecision: true, contact: 'middle', strokeMeasuredClean: true, orCorrectLeave: true },
+  success: {
+    noDismissal: true,
+    recommendedDecision: true,
+    contact: 'middle',
+    strokeMeasuredClean: true,
+    orCorrectLeave: true,
+  },
   /** Move to the next (less assisted) stage after this many consecutive successes at the current stage. */
   advanceAfter: 2,
   /** Mastery is judged with no assistance ... */
@@ -49,7 +61,11 @@ export function startMastery(key: string): MasteryState {
  * The attempt as the mastery history records it, judged against the recommended response's standard. Pass the
  * attempt's tip (coachTip): its measured clean contact decides a stroke's success (metStandard).
  */
-export function masteryAttempt(analysis: CoachAnalysis, stage: AssistanceStage, tip?: { cleanContact?: boolean | null } | null): MasteryAttempt {
+export function masteryAttempt(
+  analysis: CoachAnalysis,
+  stage: AssistanceStage,
+  tip?: { cleanContact?: boolean | null } | null,
+): MasteryAttempt {
   const a = analysis.attempted;
   return {
     stage,
@@ -101,11 +117,19 @@ function lastAtMasteredStage(state: MasteryState): MasteryAttempt[] {
 export function isMastered(state: MasteryState): boolean {
   if (state.mastered) return true;
   const recent = lastAtMasteredStage(state);
-  return recent.length >= MASTERY_RULE.masteredSuccesses && recent.filter((a) => a.success).length >= MASTERY_RULE.masteredSuccesses;
+  return (
+    recent.length >= MASTERY_RULE.masteredSuccesses &&
+    recent.filter((a) => a.success).length >= MASTERY_RULE.masteredSuccesses
+  );
 }
 
 /** Record an attempt at the given stage: the new state (stage advanced and mastery set by the rule). */
-export function recordAttempt(state: MasteryState, analysis: CoachAnalysis, stage: AssistanceStage, tip?: { cleanContact?: boolean | null } | null): MasteryState {
+export function recordAttempt(
+  state: MasteryState,
+  analysis: CoachAnalysis,
+  stage: AssistanceStage,
+  tip?: { cleanContact?: boolean | null } | null,
+): MasteryState {
   const next: MasteryState = { ...state, attempts: [...state.attempts, masteryAttempt(analysis, stage, tip)] };
   next.stage = nextStage(next);
   next.mastered = isMastered(next);
@@ -149,7 +173,17 @@ export function masteryEvent(prev: MasteryState, next: MasteryState): 'stage_up'
 const STAGES = new Set([1, 2, 3, 4]);
 const DECISIONS = new Set(['leave', 'defend', 'attack']);
 const FOOTWORK = new Set(['forward', 'back', 'across', 'down_track']);
-const CONTACTS = new Set(['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge', 'pad', 'body', 'miss', 'leave']);
+const CONTACTS = new Set([
+  'middle',
+  'inside_edge',
+  'outside_edge',
+  'top_edge',
+  'leading_edge',
+  'pad',
+  'body',
+  'miss',
+  'leave',
+]);
 
 function isAttempt(v: unknown): v is MasteryAttempt {
   if (!v || typeof v !== 'object') return false;
@@ -170,5 +204,11 @@ function isAttempt(v: unknown): v is MasteryAttempt {
 export function isMasteryState(v: unknown): v is MasteryState {
   if (!v || typeof v !== 'object') return false;
   const s = v as Record<string, unknown>;
-  return typeof s.key === 'string' && STAGES.has(s.stage as number) && Array.isArray(s.attempts) && s.attempts.every(isAttempt) && typeof s.mastered === 'boolean';
+  return (
+    typeof s.key === 'string' &&
+    STAGES.has(s.stage as number) &&
+    Array.isArray(s.attempts) &&
+    s.attempts.every(isAttempt) &&
+    typeof s.mastered === 'boolean'
+  );
 }

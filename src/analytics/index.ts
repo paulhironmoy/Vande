@@ -26,7 +26,9 @@ export interface AnalyticsConfig {
   killed: boolean;
 }
 
-export function readAnalyticsConfig(env: Record<string, unknown> = import.meta.env as Record<string, unknown>): AnalyticsConfig {
+export function readAnalyticsConfig(
+  env: Record<string, unknown> = import.meta.env as Record<string, unknown>,
+): AnalyticsConfig {
   return {
     provider: env.VITE_ANALYTICS_PROVIDER === 'posthog' ? 'posthog' : 'none',
     host: String(env.VITE_POSTHOG_HOST ?? ''),
@@ -101,7 +103,8 @@ export function createAnalytics(o: AnalyticsOptions = {}): Analytics {
   const storage = o.storage === undefined ? safeStorage() : o.storage;
   const blocked = o.privacyBlocked ?? (() => privacySignalBlocks());
   const now = o.now ?? (() => new Date());
-  const configured = config.provider === 'posthog' && /^https:\/\//.test(config.host) && config.key.length > 0 && !config.killed;
+  const configured =
+    config.provider === 'posthog' && /^https:\/\//.test(config.host) && config.key.length > 0 && !config.killed;
   let adapter: AnalyticsAdapter | null = null;
   let adapterMonth = '';
 
@@ -135,7 +138,10 @@ export function createAnalytics(o: AnalyticsOptions = {}): Analytics {
       write(ID_KEY, id);
     }
     const distinctId = id.slice(month.length + 1);
-    adapter = (o.adapterFactory ?? ((c, d) => createPostHogAdapter({ host: c.host, key: c.key, distinctId: d, now })))(config, distinctId);
+    adapter = (o.adapterFactory ?? ((c, d) => createPostHogAdapter({ host: c.host, key: c.key, distinctId: d, now })))(
+      config,
+      distinctId,
+    );
     adapterMonth = month;
     return adapter;
   }
@@ -180,7 +186,8 @@ export function createAnalytics(o: AnalyticsOptions = {}): Analytics {
   const errors = o.errorTarget === undefined ? (typeof window !== 'undefined' ? window : null) : o.errorTarget;
   errors?.addEventListener('error', crashed('error'));
   errors?.addEventListener('unhandledrejection', crashed('rejection'));
-  const visibility = o.visibilityTarget === undefined ? (typeof document !== 'undefined' ? document : null) : o.visibilityTarget;
+  const visibility =
+    o.visibilityTarget === undefined ? (typeof document !== 'undefined' ? document : null) : o.visibilityTarget;
   visibility?.addEventListener('visibilitychange', () => {
     if (visibility.visibilityState === undefined || visibility.visibilityState === 'visible') checkRetention();
   });

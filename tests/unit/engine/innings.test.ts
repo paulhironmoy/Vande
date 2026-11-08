@@ -32,7 +32,9 @@ describe('innings flow', () => {
     for (let k = 0; k < 200; k++) {
       const rng = rngFromKey(`flow|${k}`);
       const plan = randomPlan(rng);
-      const { state, outcomes } = play(plan, hexSeed(rng), (ball) => randomInput(rng, engine.revealDelivery(plan, ball, conditions), 120));
+      const { state, outcomes } = play(plan, hexSeed(rng), (ball) =>
+        randomInput(rng, engine.revealDelivery(plan, ball, conditions), 120),
+      );
       expect(outcomes.map((o) => o.ball)).toEqual([0, 1, 2, 3, 4, 5, 6]);
       expect(state.outcomes).toHaveLength(6);
       expect(state.superBall?.ball).toBe(SUPER_BALL_INDEX);
@@ -61,7 +63,11 @@ describe('innings flow', () => {
       const after = state.outcomes.slice(second + 1);
       expect(after.every((o) => o.dead === true && o.runs === 0 && o.wicket === null && o.fielder === null)).toBe(true);
       expect(state.outcomes.slice(0, second + 1).every((o) => o.dead === undefined)).toBe(true);
-      expect(after.every((o) => o.factors.explainKey === 'explain.dead_ball' && !o.cues.key && o.cues.celebration === 'none')).toBe(true);
+      expect(
+        after.every(
+          (o) => o.factors.explainKey === 'explain.dead_ball' && !o.cues.key && o.cues.celebration === 'none',
+        ),
+      ).toBe(true);
       const summary = engine.summarise(state, 0);
       expect(summary.balls).toHaveLength(second + 1);
       expect(summary.ballsFaced).toBe(second + 1);
@@ -80,7 +86,11 @@ describe('innings flow', () => {
     const { state } = play(plan, hexSeed(rng), () => null);
     expect(state.runs).toBe(0);
     expect(state.wickets).toBe(0);
-    expect([...state.outcomes, state.superBall].every((o) => o?.timing === 'interrupted' && o.shot === 'leave' && o.factors.explainKey === 'explain.unanswered')).toBe(true);
+    expect(
+      [...state.outcomes, state.superBall].every(
+        (o) => o?.timing === 'interrupted' && o.shot === 'leave' && o.factors.explainKey === 'explain.unanswered',
+      ),
+    ).toBe(true);
   });
 
   it('never throws: finished innings are idempotent and inputs for other balls are ignored', () => {
@@ -108,7 +118,15 @@ describe('innings flow', () => {
         const ball = state.mainDone ? SUPER_BALL_INDEX : state.nextBall;
         const junk =
           rng.float() < 0.5
-            ? ({ v: 1, ball, shot: rng.pick(shots), zone: rng.pick([null, 'cover', 'nowhere']), tapMs: rng.pick([null, -50, 1e9, Number.NaN, 400]), trace: { pointer: 'touch', samples: [] }, clientElapsedMs: 0 } as unknown as BattingInput)
+            ? ({
+                v: 1,
+                ball,
+                shot: rng.pick(shots),
+                zone: rng.pick([null, 'cover', 'nowhere']),
+                tapMs: rng.pick([null, -50, 1e9, Number.NaN, 400]),
+                trace: { pointer: 'touch', samples: [] },
+                clientElapsedMs: 0,
+              } as unknown as BattingInput)
             : null;
         const r = engine.resolveNextBall(state, { seed: `g${k}`, conditions, plan, input: junk });
         expect(r.outcome.ball).toBe(ball);
@@ -124,9 +142,19 @@ describe('innings flow', () => {
     const seed = hexSeed(rng);
     const input = randomInput(rng, engine.revealDelivery(plan, 0, conditions));
     const a = engine.resolveNextBall(engine.startInnings(0), { seed, conditions, plan, input });
-    const b = engine.resolveNextBall(engine.startInnings(0), { seed, conditions, plan, input: JSON.parse(JSON.stringify(input)) });
+    const b = engine.resolveNextBall(engine.startInnings(0), {
+      seed,
+      conditions,
+      plan,
+      input: JSON.parse(JSON.stringify(input)),
+    });
     expect(b).toEqual(a);
-    const otherSeed = engine.resolveNextBall(engine.startInnings(0), { seed: `${seed.slice(0, -1)}${seed.endsWith('0') ? '1' : '0'}`, conditions, plan, input });
+    const otherSeed = engine.resolveNextBall(engine.startInnings(0), {
+      seed: `${seed.slice(0, -1)}${seed.endsWith('0') ? '1' : '0'}`,
+      conditions,
+      plan,
+      input,
+    });
     // Same input, different seed: the timing grade is identical (it is the batter's), the draw may differ.
     expect(otherSeed.outcome.timing).toBe(a.outcome.timing);
   });

@@ -21,12 +21,28 @@ export interface ScreenShellProps {
 }
 
 /** Standard page wrapper: safe-area aware sticky header with back button, scrollable content, sticky footer. */
-export function ScreenShell({ title, eyebrow, onBack, backLabel, actions, footer, narrow, testId, className, contentClassName, children, headingLevel = 1 }: ScreenShellProps) {
+export function ScreenShell({
+  title,
+  eyebrow,
+  onBack,
+  backLabel,
+  actions,
+  footer,
+  narrow,
+  testId,
+  className,
+  contentClassName,
+  children,
+  headingLevel = 1,
+}: ScreenShellProps) {
   const { t } = useT();
   const hasHeader = Boolean(title || onBack || actions);
   const Heading = (headingLevel === 1 ? 'h1' : 'h2') as 'h1';
   return (
-    <div className={[s.shell, narrow ? s.narrow : '', hasHeader ? '' : s.noHeader, className ?? ''].join(' ')} data-testid={testId}>
+    <div
+      className={[s.shell, narrow ? s.narrow : '', hasHeader ? '' : s.noHeader, className ?? ''].join(' ')}
+      data-testid={testId}
+    >
       {hasHeader && (
         <header className={s.header}>
           <div className={s.headerInner}>

@@ -20,7 +20,14 @@
  * Pure and deterministic: the same samples always give the same swing. Raw samples are read here and dropped; they
  * are never stored or sent anywhere.
  */
-import type { GestureInput, GestureSample, Handedness, InputModality, NormalizedSwing, SwingKind } from '@/contracts/practice';
+import type {
+  GestureInput,
+  GestureSample,
+  Handedness,
+  InputModality,
+  NormalizedSwing,
+  SwingKind,
+} from '@/contracts/practice';
 import {
   DEFEND_POWER,
   DEPARTURE,
@@ -325,7 +332,8 @@ export function readOneContact(input: GestureInput): OneContactRead | null {
     // new intentional-load interpretation unambiguous: tracking needs a held lateral refinement, or a very long
     // stationary read. Ordinary released full-circle swipes therefore keep their historical meaning.
     const heldMs = last.t - peak.t;
-    const heldLateral = heldMs >= STILL.ms && Math.abs(last.y - peak.y) <= STILL.epsPx && Math.abs(last.x - peak.x) >= threshold * 0.5;
+    const heldLateral =
+      heldMs >= STILL.ms && Math.abs(last.y - peak.y) <= STILL.epsPx && Math.abs(last.x - peak.x) >= threshold * 0.5;
     let stationarySegments = 0;
     for (let i = peakIndex + 1; i < s.length; i++) {
       if (Math.abs(s[i].y - s[i - 1].y) <= 0.1) stationarySegments++;
@@ -378,7 +386,10 @@ export function readOneContact(input: GestureInput): OneContactRead | null {
   let commitMs = d1 > d0 ? before.t + clamp01((DEPARTURE.radiusPx - d0) / (d1 - d0)) * (after.t - before.t) : after.t;
   if (after.t - before.t > ONSET_GAP.ms && d0 <= DEPARTURE.restPx) {
     const next = s[departIndex + 1];
-    const v = Math.max(next && next.t > after.t ? (dist(next, anchor) - d1) / (next.t - after.t) : 0, ONSET_GAP.minPxPerMs);
+    const v = Math.max(
+      next && next.t > after.t ? (dist(next, anchor) - d1) / (next.t - after.t) : 0,
+      ONSET_GAP.minPxPerMs,
+    );
     commitMs = Math.max(commitMs, after.t - Math.max(0, d1 - DEPARTURE.radiusPx) / v);
   }
   commitMs = clamp(commitMs, before.t, after.t);
@@ -421,7 +432,21 @@ export function readOneContact(input: GestureInput): OneContactRead | null {
 }
 
 function tapRead(startMs: number, source: 'pointer' | 'key'): GestureRead {
-  return { kind: 'tap', source, startMs, onsetMs: null, endMs: null, closedBy: null, readMs: 0, screenBearingDeg: 0, reach: 0, length: 0, speed: 0, travelling: false, loft: false };
+  return {
+    kind: 'tap',
+    source,
+    startMs,
+    onsetMs: null,
+    endMs: null,
+    closedBy: null,
+    readMs: 0,
+    screenBearingDeg: 0,
+    reach: 0,
+    length: 0,
+    speed: 0,
+    travelling: false,
+    loft: false,
+  };
 }
 
 /**
@@ -439,10 +464,21 @@ export function readGesture(input: GestureInput): GestureRead | null {
   if (input.pointer === 'keyboard') {
     const key = (input as TrackedInput).key;
     if (!key || key.kind !== 'attack' || !Number.isFinite(key.screenBearingDeg)) return tapRead(t0, 'key');
-    return { ...tapRead(t0, 'key'), kind: 'flick', onsetMs: t0, screenBearingDeg: wrap180(key.screenBearingDeg), loft: key.loft === true };
+    return {
+      ...tapRead(t0, 'key'),
+      kind: 'flick',
+      onsetMs: t0,
+      screenBearingDeg: wrap180(key.screenBearingDeg),
+      loft: key.loft === true,
+    };
   }
   const oneContact = readOneContact(input);
-  if (oneContact?.committed && oneContact.commitMs !== null && oneContact.forwardBearingDeg !== null && oneContact.forwardEndMs !== null) {
+  if (
+    oneContact?.committed &&
+    oneContact.commitMs !== null &&
+    oneContact.forwardBearingDeg !== null &&
+    oneContact.forwardEndMs !== null
+  ) {
     return {
       kind: 'flick',
       source: 'pointer',
@@ -585,17 +621,30 @@ export function minPowerForElevation(elevation: number): number {
  * Whether a player can produce this attacking swing's power and elevation: by a swipe (any direction), or by a key
  * (its fixed values). The coach uses it to demonstrate only swings a player can play.
  */
-export function canPlay(swing: { kind: SwingKind; power: number; elevation: number }, modality: InputModality = 'touch'): boolean {
+export function canPlay(
+  swing: { kind: SwingKind; power: number; elevation: number },
+  modality: InputModality = 'touch',
+): boolean {
   if (swing.kind === 'defend') return true;
   if (modality === 'keyboard') {
     const near = (a: number, b: number) => Math.abs(a - b) <= PRECISION.unit;
-    return (near(swing.power, KEYBOARD.power) && near(swing.elevation, 0)) || (near(swing.power, KEYBOARD.loftPower) && near(swing.elevation, KEYBOARD.loftElevation));
+    return (
+      (near(swing.power, KEYBOARD.power) && near(swing.elevation, 0)) ||
+      (near(swing.power, KEYBOARD.loftPower) && near(swing.elevation, KEYBOARD.loftElevation))
+    );
   }
-  return swing.power >= POWER_CURVE.min - 1e-9 && swing.power <= 1 + 1e-9 && swing.power + 1e-9 >= minPowerForElevation(swing.elevation);
+  return (
+    swing.power >= POWER_CURVE.min - 1e-9 &&
+    swing.power <= 1 + 1e-9 &&
+    swing.power + 1e-9 >= minPowerForElevation(swing.elevation)
+  );
 }
 
 /** The calibration offset normalizeGesture applies to a gesture of this modality. */
-export function calibrationOffset(modality: InputModality, opts: Pick<NormalizeOptions, 'calibrationMs' | 'calibrations'>): number {
+export function calibrationOffset(
+  modality: InputModality,
+  opts: Pick<NormalizeOptions, 'calibrationMs' | 'calibrations'>,
+): number {
   const own = opts.calibrations?.[modality];
   return typeof own === 'number' && Number.isFinite(own) ? own : opts.calibrationMs;
 }
@@ -612,11 +661,18 @@ export function normalizeGesture(input: GestureInput, opts: NormalizeOptions): N
   const k = opts.timeScale !== undefined && opts.timeScale > 0 && Number.isFinite(opts.timeScale) ? opts.timeScale : 1;
   const startT = round(((read.startMs - calibrationMs - opts.releasePerfMs) * k) / 1000, PRECISION.startT);
   const footwork = input.footwork ?? 'auto';
-  if (read.kind === 'tap') return { kind: 'defend', startT, directionDeg: 0, power: DEFEND_POWER, elevation: 0, footwork };
+  if (read.kind === 'tap')
+    return { kind: 'defend', startT, directionDeg: 0, power: DEFEND_POWER, elevation: 0, footwork };
   const mirror = opts.handedness === 'left' ? -1 : 1;
   const key = read.source === 'key';
   const power = key ? (read.loft ? KEYBOARD.loftPower : KEYBOARD.power) : powerOf(read.speed);
-  const elevation = key ? (read.loft ? KEYBOARD.loftElevation : 0) : read.oneContact ? oneContactElevationOf(read.oneContact, power) : elevationOf(read.reach);
+  const elevation = key
+    ? read.loft
+      ? KEYBOARD.loftElevation
+      : 0
+    : read.oneContact
+      ? oneContactElevationOf(read.oneContact, power)
+      : elevationOf(read.reach);
   return {
     kind: 'attack',
     startT,

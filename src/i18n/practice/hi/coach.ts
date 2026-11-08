@@ -115,7 +115,8 @@ export const coachHi: Record<string, string> = {
   'practice.tip.fact.unwarned.can_be_lbw': 'यह चल गया, पर यह शॉट चूककर LBW हो सकता है',
   'practice.tip.fact.unwarned.can_be_caught': 'यह चल गया, पर इस शॉट पर कैच हो सकता है',
   'practice.tip.fact.unwarned.can_edge': 'यह चल गया, पर इस शॉट पर एज लग सकता है',
-  'practice.tip.fact.unwarned.into_protected_region': 'यह चल गया, पर गेंद वहाँ गई जहाँ फ़ील्डर उसे रोकने के लिए खड़ा है',
+  'practice.tip.fact.unwarned.into_protected_region':
+    'यह चल गया, पर गेंद वहाँ गई जहाँ फ़ील्डर उसे रोकने के लिए खड़ा है',
   // how the bat met it, from the contact itself; AI-written, awaiting native review
   'practice.tip.fact.slow': 'बल्ला गेंद से सिर्फ़ {kph} km/h पर मिला, आपके {req} km/h के शॉट से बहुत धीमा',
   'practice.tip.fact.toe': 'गेंद बल्ले के निचले सिरे (टो) से लगी',
@@ -127,10 +128,14 @@ export const coachHi: Record<string, string> = {
   'practice.tip.fact.no_reach.moved_away': 'गेंद {cm} सेमी बाहर गई, और बल्ला उस तक पहुँचा ही नहीं',
   'practice.tip.fact.no_reach.moved_in': 'गेंद {cm} सेमी अंदर आई, और बल्ला उस तक पहुँचा ही नहीं',
   'practice.tip.fact.no_reach.across': 'आपने लाइन के आर-पार खेला, और बल्ला गेंद तक पहुँचा ही नहीं',
-  'practice.tip.fact.no_reach.too_short_to_drive': 'गेंद आपसे {m} मीटर पहले पड़ी, ड्राइव के लिए बहुत छोटी, और बल्ला उस तक पहुँचा ही नहीं',
-  'practice.tip.fact.no_reach.at_the_toes': 'गेंद आपसे {m} मीटर पहले पड़ी, ठीक आपके पंजों पर, और बल्ला उस तक पहुँचा ही नहीं',
-  'practice.tip.fact.no_reach.too_short_forward': 'गेंद आपसे {m} मीटर पहले पड़ी, आगे बढ़कर खेलने के लिए बहुत छोटी, और बल्ला उस तक पहुँचा ही नहीं',
-  'practice.tip.fact.no_reach.full_back': 'गेंद आपसे {m} मीटर पहले पड़ी, आगे बढ़कर खेलने लायक फ़ुल, और बल्ला उस तक पहुँचा ही नहीं',
+  'practice.tip.fact.no_reach.too_short_to_drive':
+    'गेंद आपसे {m} मीटर पहले पड़ी, ड्राइव के लिए बहुत छोटी, और बल्ला उस तक पहुँचा ही नहीं',
+  'practice.tip.fact.no_reach.at_the_toes':
+    'गेंद आपसे {m} मीटर पहले पड़ी, ठीक आपके पंजों पर, और बल्ला उस तक पहुँचा ही नहीं',
+  'practice.tip.fact.no_reach.too_short_forward':
+    'गेंद आपसे {m} मीटर पहले पड़ी, आगे बढ़कर खेलने के लिए बहुत छोटी, और बल्ला उस तक पहुँचा ही नहीं',
+  'practice.tip.fact.no_reach.full_back':
+    'गेंद आपसे {m} मीटर पहले पड़ी, आगे बढ़कर खेलने लायक फ़ुल, और बल्ला उस तक पहुँचा ही नहीं',
   'practice.tip.fact.no_reach.stroke': 'वह शॉट गेंद तक पहुँचा ही नहीं',
   'practice.tip.do.repeat_it': 'इसे फिर से ऐसे ही खेलें',
   'practice.tip.do.well_played': 'यह कोच के सुझाव जितना ही अच्छा है',
@@ -263,7 +268,8 @@ export const coachHi: Record<string, string> = {
   'practice.coachmode.stage.2': 'मदद 2: टप्पे और संपर्क के निशान',
   'practice.coachmode.stage.3': 'मदद 3: सिर्फ़ संपर्क का संकेत',
   'practice.coachmode.stage.4': 'कोई मदद नहीं',
-  'practice.coachmode.to_advance': '{count, plural, one {कम मदद के लिए लगातार एक और साफ़ शॉट} other {कम मदद के लिए लगातार # साफ़ शॉट}}',
+  'practice.coachmode.to_advance':
+    '{count, plural, one {कम मदद के लिए लगातार एक और साफ़ शॉट} other {कम मदद के लिए लगातार # साफ़ शॉट}}',
   'practice.coachmode.to_master': 'पिछले {window} में {done} साफ़। महारत के लिए इसे दोहराते रहें।',
   'practice.coachmode.mastered': 'महारत: बिना मदद के बार-बार।',
   'practice.coachmode.attempts': '{count, plural, one {# प्रयास} other {# प्रयास}} · {clean} साफ़',

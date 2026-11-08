@@ -34,7 +34,14 @@ export function EnergyMeter({ used, total, pending = 0, label, compact }: Energy
           )}
         </span>
       </div>
-      <div className={s.bar} role="meter" aria-valuemin={0} aria-valuemax={total} aria-valuenow={Math.min(used, total)} aria-label={t('a11y.energy_meter', { used, total })}>
+      <div
+        className={s.bar}
+        role="meter"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={Math.min(used, total)}
+        aria-label={t('a11y.energy_meter', { used, total })}
+      >
         {Array.from({ length: total }, (_, i) => {
           const state = i < used - pending ? 'used' : i < used ? 'pending' : 'free';
           return <span key={i} className={s.cell} data-state={state} />;

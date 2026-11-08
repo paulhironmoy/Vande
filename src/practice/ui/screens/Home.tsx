@@ -40,8 +40,21 @@ export function Home(p: HomeProps) {
   const notice = p.notice === 'updated' || p.notice === 'unreadable' ? t.tk(`practice.notice.${p.notice}`) : null;
   const choices = (primary: boolean) => (
     <div className={s.choices}>
-      <PChoice className={s.randomChoice} primary={primary} title={t.t('practice.home.random')} description={t.t('practice.home.random_sub')} onClick={() => choose('random')} data-testid="practice-random" />
-      <PChoice className={s.predefinedChoice} title={t.t('practice.home.predefined')} description={t.t('practice.home.predefined_sub')} onClick={() => choose('predefined')} data-testid="practice-predefined" />
+      <PChoice
+        className={s.randomChoice}
+        primary={primary}
+        title={t.t('practice.home.random')}
+        description={t.t('practice.home.random_sub')}
+        onClick={() => choose('random')}
+        data-testid="practice-random"
+      />
+      <PChoice
+        className={s.predefinedChoice}
+        title={t.t('practice.home.predefined')}
+        description={t.t('practice.home.predefined_sub')}
+        onClick={() => choose('predefined')}
+        data-testid="practice-predefined"
+      />
     </div>
   );
   return (
@@ -51,7 +64,14 @@ export function Home(p: HomeProps) {
         className={s.screen}
         title={p.mode === 'next' ? t.t('practice.home.next_title') : t.t('practice.home.title')}
         onBack={p.onBack ?? undefined}
-        end={<PIconButton icon="settings" label={t.t('practice.home.settings')} onClick={p.onSettings} data-testid="practice-settings-open" />}
+        end={
+          <PIconButton
+            icon="settings"
+            label={t.t('practice.home.settings')}
+            onClick={p.onSettings}
+            data-testid="practice-settings-open"
+          />
+        }
         testId="practice-menu"
       >
         <div className={s.commandPanel}>
@@ -78,7 +98,14 @@ export function Home(p: HomeProps) {
                     {t.t('practice.notice.resumed_leave')}
                   </p>
                 )}
-                <PButton variant="primary" size="lg" block icon="play" onClick={p.onContinue} data-testid="practice-continue">
+                <PButton
+                  variant="primary"
+                  size="lg"
+                  block
+                  icon="play"
+                  onClick={p.onContinue}
+                  data-testid="practice-continue"
+                >
                   {t.t('practice.home.resume')}
                 </PButton>
               </section>

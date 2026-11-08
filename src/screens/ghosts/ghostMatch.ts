@@ -3,7 +3,16 @@
  * and its batting come from the engine's ghost policies; the log is built and verified by the same engine code as an
  * official match, so the reveal, the tactics and the scorecard are exactly what a real match shows.
  */
-import type { BattingInput, Conditions, GhostProfile, KitSpec, MatchEventLog, OverPlan, PlayerRef, SealedSixEngineApi } from '@/contracts';
+import type {
+  BattingInput,
+  Conditions,
+  GhostProfile,
+  KitSpec,
+  MatchEventLog,
+  OverPlan,
+  PlayerRef,
+  SealedSixEngineApi,
+} from '@/contracts';
 import { SUPER_BALL_INDEX } from '@/contracts';
 import { localInnings, type LocalInnings } from '../local/localInnings';
 
@@ -17,7 +26,13 @@ const GHOST_KITS: KitSpec[] = [
 
 export function ghostRef(g: GhostProfile, alias: string): PlayerRef {
   const i = Math.max(0, ['anchor', 'swinger', 'enforcer', 'trickster', 'maestro'].indexOf(g.id));
-  return { id: `ghost_${g.id}`, alias, avatar: { seed: `ghost-${g.id}` }, kit: GHOST_KITS[i % GHOST_KITS.length], kind: 'ghost' };
+  return {
+    id: `ghost_${g.id}`,
+    alias,
+    avatar: { seed: `ghost-${g.id}` },
+    kit: GHOST_KITS[i % GHOST_KITS.length],
+    kind: 'ghost',
+  };
 }
 
 export function randomHex(bytes = 16): string {
@@ -38,16 +53,37 @@ export interface GhostMatch {
   innings: LocalInnings;
 }
 
-export function setupGhostMatch(engine: SealedSixEngineApi, ghost: GhostProfile, alias: string, conditions: Conditions, seed = randomHex()): GhostMatch {
+export function setupGhostMatch(
+  engine: SealedSixEngineApi,
+  ghost: GhostProfile,
+  alias: string,
+  conditions: Conditions,
+  seed = randomHex(),
+): GhostMatch {
   const plan = engine.ghostPlan(ghost.id, seed, conditions);
-  return { ghost, ref: ghostRef(ghost, alias), conditions, seed, plan, salt: randomHex(8), innings: localInnings({ plan, conditions, seed, innings: 0, includeSuperBall: true, engine }) };
+  return {
+    ghost,
+    ref: ghostRef(ghost, alias),
+    conditions,
+    seed,
+    plan,
+    salt: randomHex(8),
+    innings: localInnings({ plan, conditions, seed, innings: 0, includeSuperBall: true, engine }),
+  };
 }
 
 /**
  * The ghost bats against the player's sealed over; then the full, verifiable log is built. `mySalt` is the salt the
  * player's over was sealed with at lock, so the replay's commit is the hash shown on the lock screen.
  */
-export async function finishGhostMatch(engine: SealedSixEngineApi, gm: GhostMatch, me: PlayerRef, myPlan: OverPlan, hour: string, mySalt: string): Promise<MatchEventLog> {
+export async function finishGhostMatch(
+  engine: SealedSixEngineApi,
+  gm: GhostMatch,
+  me: PlayerRef,
+  myPlan: OverPlan,
+  hour: string,
+  mySalt: string,
+): Promise<MatchEventLog> {
   let state = engine.startInnings(1);
   const inputs: Array<BattingInput | null> = [];
   while (!state.done) {

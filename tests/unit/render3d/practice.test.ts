@@ -1,23 +1,70 @@
 import { describe, expect, it } from 'vitest';
 import type { CoachOption, DeliveryResult, QualityProfileId, Vec3 } from '@/contracts/practice';
 import type { OneGestureState } from '@/input';
-import { BATTER_FOV, GAZE, batterFov, cameraAt, occludingActors, practicePlan, type CameraPose } from '@/render3d/core/camera';
+import {
+  BATTER_FOV,
+  GAZE,
+  batterFov,
+  cameraAt,
+  occludingActors,
+  practicePlan,
+  type CameraPose,
+} from '@/render3d/core/camera';
 import { sampleBall, type BallScript } from '@/render3d/core/choreo';
 import { evaluateActor } from '@/render3d/core/actors';
 import { PRACTICE_PROFILES, practicePixelRatio } from '@/render3d/core/quality';
 import { STUMP_SPACING } from '@/render3d/core/ground';
 import { BODY, STUMP_SPACING as PHYSICS_SPACING } from '@/physics/constants';
 import { TAP_HOLD_MS } from '@/input';
-import { TOUCHDOWN, batMoved, batPoseAt, firstPersonBatPose, firstPersonLiftWeight, swingStartScene, STANCE, type BatTrack } from '@/render3d/practice/bat';
+import {
+  TOUCHDOWN,
+  batMoved,
+  batPoseAt,
+  firstPersonBatPose,
+  firstPersonLiftWeight,
+  swingStartScene,
+  STANCE,
+  type BatTrack,
+} from '@/render3d/practice/bat';
 import { buildDiagnostics } from '@/render3d/practice/diagnostics';
 import { feedbackCues } from '@/render3d/practice/feedback';
-import { ballAt, perfToSim, releasePerf, simToPerf, simToScene, toWorld, type Timebase } from '@/render3d/practice/frame';
-import { batterEye, buildPracticeScript, practiceReleaseScene, pathMoves, NOMINAL_RELEASE_HAND, practiceAction, STANCE_ROOT } from '@/render3d/practice/script';
+import {
+  ballAt,
+  perfToSim,
+  releasePerf,
+  simToPerf,
+  simToScene,
+  toWorld,
+  type Timebase,
+} from '@/render3d/practice/frame';
+import {
+  batterEye,
+  buildPracticeScript,
+  practiceReleaseScene,
+  pathMoves,
+  NOMINAL_RELEASE_HAND,
+  practiceAction,
+  STANCE_ROOT,
+} from '@/render3d/practice/script';
 import { batterBody } from '@/physics/bat';
-import { BENCH_CAP_MS, BENCH_MIN_MEASURED_FRAMES, CLOSE_UP_MS, PracticeSessionBase, replayWarp, warpScene, type StageClock, type StageFrame } from '@/render3d/practice/session';
+import {
+  BENCH_CAP_MS,
+  BENCH_MIN_MEASURED_FRAMES,
+  CLOSE_UP_MS,
+  PracticeSessionBase,
+  replayWarp,
+  warpScene,
+  type StageClock,
+  type StageFrame,
+} from '@/render3d/practice/session';
 import { SOUND_LEAD } from '@/render3d/practice/audio';
 import { frameStats, PERF_WARMUP_FRAMES } from '@/perf';
-import type { PracticeBenchmarkRun, PracticeMountOptions, PracticeSceneSetup, PracticeSink } from '@/render3d/practice/types';
+import type {
+  PracticeBenchmarkRun,
+  PracticeMountOptions,
+  PracticeSceneSetup,
+  PracticeSink,
+} from '@/render3d/practice/types';
 import { BatterViewPainter } from '@/render3d/fallback2d/batterView';
 import { closeUpBallDiameterPx } from '@/render3d/practice/ballLook';
 import { fixtureField, fixtureFlight, fixtureResult, type ResultKind } from './practiceFixtures';
@@ -27,7 +74,10 @@ import { REFERENCE_CONDITIONS, REFERENCE_OVER } from '@/practice/game/reference'
 
 const setupFor = (handedness: 'right' | 'left' = 'right', family: 'pace' | 'spin' = 'pace'): PracticeSceneSetup => ({
   field: fixtureField(),
-  bowler: family === 'pace' ? { family, paceBand: 'fast', arm: 'right', lookSeed: 'b1' } : { family, spinType: 'finger', arm: 'right', lookSeed: 's1' },
+  bowler:
+    family === 'pace'
+      ? { family, paceBand: 'fast', arm: 'right', lookSeed: 'b1' }
+      : { family, spinType: 'finger', arm: 'right', lookSeed: 's1' },
   conditions: 'balanced',
   handedness,
 });
@@ -51,7 +101,11 @@ const contactState = (patch: Partial<OneGestureState> = {}): OneGestureState => 
   ...patch,
 });
 
-function resultScript(kind: ResultKind, handedness: 'right' | 'left' = 'right', opts: { timingMs?: number } = {}): { script: BallScript; result: DeliveryResult } {
+function resultScript(
+  kind: ResultKind,
+  handedness: 'right' | 'left' = 'right',
+  opts: { timingMs?: number } = {},
+): { script: BallScript; result: DeliveryResult } {
   const flight = fixtureFlight({ lengthM: kind === 'bowled' ? 5 : 6, lineM: kind === 'bowled' ? 0 : 0.1 });
   const result = fixtureResult(flight, { kind, timingMs: opts.timingMs ?? 10, bearing: 30 });
   return { script: buildPracticeScript({ setup: setupFor(handedness), flight, result }), result };
@@ -71,7 +125,10 @@ function ndc(cam: CameraPose, p: { x: number; y: number; z: number }, aspect: nu
   const depth = d.x * fw.x + d.y * fw.y + d.z * fw.z;
   if (depth <= 0) return null;
   const tanV = Math.tan((cam.fov * Math.PI) / 360);
-  return { x: (d.x * r.x + d.y * r.y + d.z * r.z) / depth / (tanV * aspect), y: (d.x * u.x + d.y * u.y + d.z * u.z) / depth / tanV };
+  return {
+    x: (d.x * r.x + d.y * r.y + d.z * r.z) / depth / (tanV * aspect),
+    y: (d.x * u.x + d.y * u.y + d.z * u.z) / depth / tanV,
+  };
 }
 
 const angleBetween = (a: CameraPose, b: CameraPose) => {
@@ -89,7 +146,9 @@ describe('the batter-eye camera', () => {
       const eye = batterEye(mirror);
       expect(eye.y).toBeGreaterThanOrEqual(1.65);
       expect(eye.y).toBeLessThanOrEqual(1.75);
-      expect(Math.hypot(eye.x - (mirror ? -head.c.x : head.c.x), eye.y - head.c.y, eye.z - head.c.z)).toBeLessThan(head.r);
+      expect(Math.hypot(eye.x - (mirror ? -head.c.x : head.c.x), eye.y - head.c.y, eye.z - head.c.z)).toBeLessThan(
+        head.r,
+      );
       expect(Math.abs(eye.y - BODY.headY)).toBeLessThanOrEqual(BODY.headR);
     }
     expect(batterEye(false).x).toBeLessThan(0);
@@ -113,11 +172,16 @@ describe('the batter-eye camera', () => {
       const mirror = handedness === 'left';
       const script = buildPracticeScript({ setup: setupFor(handedness), flight, result });
       const striker = script.actors.find((actor) => actor.id === 'striker')!;
-      expect(striker.start).toEqual(toWorld({
-        x: STANCE_ROOT.x + result.batterRootOffset.x,
-        y: STANCE_ROOT.y,
-        z: STANCE_ROOT.z + result.batterRootOffset.z,
-      }, mirror));
+      expect(striker.start).toEqual(
+        toWorld(
+          {
+            x: STANCE_ROOT.x + result.batterRootOffset.x,
+            y: STANCE_ROOT.y,
+            z: STANCE_ROOT.z + result.batterRootOffset.z,
+          },
+          mirror,
+        ),
+      );
       expect(script.practice!.eye).toEqual(batterEye(mirror, result.batterRootOffset, result.batterPosture.crouchM));
       expect(script.practice!.eye.y).toBeCloseTo(batterEye(mirror, result.batterRootOffset, 0).y - 0.08, 12);
       // Bat samples are already canonical world-space physics. The actor/root channel must never translate them.
@@ -145,7 +209,10 @@ describe('the batter-eye camera', () => {
     // F-024: a wide phone keeps the horizontal cap; retaining 54° vertical would expand it to about 96°.
     const phoneFov = batterFov(2.16);
     expect(phoneFov).toBeLessThan(BATTER_FOV.vertical);
-    expect(2 * Math.atan(Math.tan(phoneFov * Math.PI / 360) * 2.16) * 180 / Math.PI).toBeCloseTo(BATTER_FOV.maxHorizontal, 9);
+    expect((2 * Math.atan(Math.tan((phoneFov * Math.PI) / 360) * 2.16) * 180) / Math.PI).toBeCloseTo(
+      BATTER_FOV.maxHorizontal,
+      9,
+    );
     expect(batterFov(1.33)).toBeGreaterThan(BATTER_FOV.vertical);
   });
 
@@ -183,18 +250,25 @@ describe('the batter-eye camera', () => {
     for (const handedness of ['right', 'left'] as const) {
       for (const family of ['pace', 'spin'] as const) {
         for (const kind of ['bowled', 'catch', 'drive', 'six'] as ResultKind[]) {
-          const flight = fixtureFlight({ lengthM: kind === 'bowled' ? 5 : 6, lineM: kind === 'bowled' ? 0 : 0.1, speedKph: family === 'spin' ? 86 : 136 });
+          const flight = fixtureFlight({
+            lengthM: kind === 'bowled' ? 5 : 6,
+            lineM: kind === 'bowled' ? 0 : 0.1,
+            speedKph: family === 'spin' ? 86 : 136,
+          });
           const result = fixtureResult(flight, { kind, timingMs: kind === 'bowled' ? -150 : 10, bearing: 30 });
           // A spinner's keeper stands up to the stumps: the case that once filled the bowled shot with legs.
           const field = fixtureField();
-          if (family === 'spin') field.fielders = field.fielders.map((f) => (f.role === 'keeper' ? { ...f, z: 10.06 + 0.8 } : f));
+          if (family === 'spin')
+            field.fielders = field.fielders.map((f) => (f.role === 'keeper' ? { ...f, z: 10.06 + 0.8 } : f));
           const script = buildPracticeScript({ setup: { ...setupFor(handedness, family), field }, flight, result });
           const plan = practicePlan(script, false);
           const p = script.practice!;
           for (let t = p.firstPersonUntil + 1; t < Math.min(script.duration, p.firstPersonUntil + 4000); t += 100) {
             const cam = cameraAt(script, t, plan, ctx);
             expect(cam.shot).not.toBe('batter_eye');
-            expect(occludingActors(script, t, cam, 1.5), `${handedness} ${family} ${kind} ${cam.shot} t=${t}`).toEqual([]);
+            expect(occludingActors(script, t, cam, 1.5), `${handedness} ${family} ${kind} ${cam.shot} t=${t}`).toEqual(
+              [],
+            );
             if (kind === 'bowled') {
               const stumps = ndc(cam, { x: 0, y: 0.4, z: 10.06 }, ctx.aspect)!;
               expect(Math.abs(stumps.x)).toBeLessThan(0.5);
@@ -212,7 +286,13 @@ describe('the batter-eye camera', () => {
     // at most HITTING_AREA_MS from the bat (≈ 2 m at express pace), never leaving earlier.
     const HITTING_AREA_MS = 60;
     for (const handedness of ['right', 'left'] as const) {
-      for (const [lengthM, speedKph, releaseY] of [[1.5, 142, 2.15], [4, 136, 2.15], [6, 136, 2.15], [8.5, 145, 2.2], [4.5, 86, 1.9]] as const) {
+      for (const [lengthM, speedKph, releaseY] of [
+        [1.5, 142, 2.15],
+        [4, 136, 2.15],
+        [6, 136, 2.15],
+        [8.5, 145, 2.2],
+        [4.5, 86, 1.9],
+      ] as const) {
         const flight = fixtureFlight({ lengthM, speedKph, releaseY });
         const result = fixtureResult(flight, { kind: 'drive', timingMs: 0 });
         const script = buildPracticeScript({ setup: setupFor(handedness), flight, result });
@@ -260,7 +340,11 @@ describe('physics positions are drawn where physics puts them', () => {
       expect(at.z).toBeCloseTo(s.z, 1);
     }
     // Dense run samples keep one stride phase (no restart every sample).
-    const moves = pathMoves({ fielderId: 'x', samples: [0, 0.1, 0.2, 0.3].map((t, i) => ({ t, x: i, z: 0, action: 'run' as const })) }, false, 1000);
+    const moves = pathMoves(
+      { fielderId: 'x', samples: [0, 0.1, 0.2, 0.3].map((t, i) => ({ t, x: i, z: 0, action: 'run' as const })) },
+      false,
+      1000,
+    );
     expect(moves.map((m) => m.clipStart)).toEqual([0, expect.any(Number), expect.any(Number)]);
     expect(moves[1].clipStart!).toBeGreaterThan(0);
   });
@@ -268,7 +352,13 @@ describe('physics positions are drawn where physics puts them', () => {
   it('the drawn bat is the physics bat once the result is in, and the provisional swing blends into it', () => {
     const { result } = resultScript('drive');
     const rel = 2000;
-    const live = buildPracticeScript({ setup: setupFor(), flight: result.flight, result, provisionalStart: simToScene({ releaseScene: rel }, result.swing!.startT), resultAt: simToScene({ releaseScene: rel }, result.swing!.startT + 0.05) });
+    const live = buildPracticeScript({
+      setup: setupFor(),
+      flight: result.flight,
+      result,
+      provisionalStart: simToScene({ releaseScene: rel }, result.swing!.startT),
+      resultAt: simToScene({ releaseScene: rel }, result.swing!.startT + 0.05),
+    });
     const p = live.practice!;
     const contact = simToScene(p, result.contact.t!);
     const drawn = batPoseAt(p.bat, contact);
@@ -294,7 +384,15 @@ describe('physics positions are drawn where physics puts them', () => {
     expect(deepPose.toe.x).toBeGreaterThan(shallowPose.toe.x + 0.08);
 
     const start = deepTrack.releaseScene + 320;
-    const leg = contactState({ phase: 'committing', committed: true, timingAtPerfMs: 320, forwardBearingDeg: -65, aggression: 0.8, elevationIntent: 0.8, pathPower: 0.85 });
+    const leg = contactState({
+      phase: 'committing',
+      committed: true,
+      timingAtPerfMs: 320,
+      forwardBearingDeg: -65,
+      aggression: 0.8,
+      elevationIntent: 0.8,
+      pathPower: 0.85,
+    });
     const off = contactState({ ...leg, forwardBearingDeg: 65, elevationIntent: 0.1, pathPower: 0.35 });
     const legTrack = buildPracticeScript({ setup, flight, provisionalStart: start, contactState: leg }).practice!.bat;
     const offTrack = buildPracticeScript({ setup, flight, provisionalStart: start, contactState: off }).practice!.bat;
@@ -303,10 +401,24 @@ describe('physics positions are drawn where physics puts them', () => {
     expect(offFollow.toe.x).toBeGreaterThan(legFollow.toe.x + 0.2);
     expect(legFollow.toe.y).toBeGreaterThan(offFollow.toe.y + 0.2);
 
-    const unloaded = contactState({ phase: 'committing', committed: true, timingAtPerfMs: 320, forwardBearingDeg: 0, aggression: 0.95, elevationIntent: 0.2, pathPower: 0 });
+    const unloaded = contactState({
+      phase: 'committing',
+      committed: true,
+      timingAtPerfMs: 320,
+      forwardBearingDeg: 0,
+      aggression: 0.95,
+      elevationIntent: 0.2,
+      pathPower: 0,
+    });
     const powered = contactState({ ...unloaded, pathPower: 1 });
-    const unloadedFollow = batPoseAt(buildPracticeScript({ setup, flight, provisionalStart: start, contactState: unloaded }).practice!.bat, start + 260);
-    const poweredFollow = batPoseAt(buildPracticeScript({ setup, flight, provisionalStart: start, contactState: powered }).practice!.bat, start + 260);
+    const unloadedFollow = batPoseAt(
+      buildPracticeScript({ setup, flight, provisionalStart: start, contactState: unloaded }).practice!.bat,
+      start + 260,
+    );
+    const poweredFollow = batPoseAt(
+      buildPracticeScript({ setup, flight, provisionalStart: start, contactState: powered }).practice!.bat,
+      start + 260,
+    );
     expect(poweredFollow.toe.z).toBeGreaterThan(unloadedFollow.toe.z + 0.08);
 
     // An uncommitted cancellation is represented by clearing contactState: the bat is back in stance.
@@ -315,7 +427,14 @@ describe('physics positions are drawn where physics puts them', () => {
 
     // Once the result arrives, even a strong provisional intent cannot move the bat away from authoritative contact.
     const result = fixtureResult(flight, { kind: 'drive', bearing: 30 });
-    const resolved = buildPracticeScript({ setup, flight, result, provisionalStart: start, contactState: leg, resultAt: start + 40 }).practice!.bat;
+    const resolved = buildPracticeScript({
+      setup,
+      flight,
+      result,
+      provisionalStart: start,
+      contactState: leg,
+      resultAt: start + 40,
+    }).practice!.bat;
     const contact = simToScene(resolved, result.contact.t!);
     const physics = result.bat.find((sample) => sample.t >= result.contact.t! - 1e-9)!;
     expect(batPoseAt(resolved, contact).grip.x).toBeCloseTo(physics.grip.x, 2);
@@ -331,7 +450,13 @@ describe('physics positions are drawn where physics puts them', () => {
     const contact = releaseScene + result.contact.t! * 1000;
     // Sparse held-finger input: an early cue starts at1264.25ms; normalization refines onset to1307.10ms.
     for (const arrives of [start + 20, contact - 5, contact + 5]) {
-      const live = buildPracticeScript({ setup, flight: result.flight, result, provisionalStart: start - 42.85, resultAt: arrives });
+      const live = buildPracticeScript({
+        setup,
+        flight: result.flight,
+        result,
+        provisionalStart: start - 42.85,
+        resultAt: arrives,
+      });
       const track = live.practice!.bat;
       expect(swingStartScene(track)).toBeCloseTo(start, 6);
       for (const t of [start + 20, start + 45, contact]) {
@@ -355,7 +480,10 @@ describe('physics positions are drawn where physics puts them', () => {
     expect(at.x + hand.x).toBeCloseTo(flight.release.p.x, 6);
     expect(at.z + hand.z).toBeCloseTo(flight.release.p.z, 6);
     // A left-arm bowler plays mirrored and its (mirrored) hand is at the release point.
-    const lefty = buildPracticeScript({ setup: { ...setup, bowler: { ...setup.bowler, arm: 'left' } }, flight: fixtureFlight({ releaseX: -0.42 }) });
+    const lefty = buildPracticeScript({
+      setup: { ...setup, bowler: { ...setup.bowler, arm: 'left' } },
+      flight: fixtureFlight({ releaseX: -0.42 }),
+    });
     const lb = lefty.actors.find((a) => a.id === 'bowler')!;
     expect(lb.mirror).toBe(true);
     expect(evaluateActor(lb, lefty.practice!.releaseScene).pos.x - hand.x).toBeCloseTo(-0.42, 6);
@@ -376,14 +504,24 @@ describe('quality profiles', () => {
       expect(p.ball.visualScale).toBeGreaterThanOrEqual(1.2);
       expect(p.ball.visualScale).toBeLessThanOrEqual(1.25);
     }
-    expect([lite.internal, standard.internal, high.internal]).toEqual([{ min: 540, max: 720 }, { min: 720, max: 900 }, { min: 900, max: 1440 }]);
+    expect([lite.internal, standard.internal, high.internal]).toEqual([
+      { min: 540, max: 720 },
+      { min: 720, max: 900 },
+      { min: 900, max: 1440 },
+    ]);
   });
 
   it('renders inside each profile’s internal-resolution band and never past its DPR cap', () => {
     const ids: QualityProfileId[] = ['lite', 'standard', 'high'];
     for (const id of ids) {
       const p = PRACTICE_PROFILES[id];
-      for (const [css, dpr] of [[390, 3], [360, 2], [768, 1], [1080, 2], [412, 2.625]] as const) {
+      for (const [css, dpr] of [
+        [390, 3],
+        [360, 2],
+        [768, 1],
+        [1080, 2],
+        [412, 2.625],
+      ] as const) {
         const ratio = practicePixelRatio(p, css, dpr);
         expect(ratio).toBeLessThanOrEqual(p.maxDpr + 1e-9);
         const h = css * ratio;
@@ -402,7 +540,13 @@ describe('replay frames are deterministic', () => {
       const plan = [{ shot: 'replay_side' as const, atMs: 0, durationMs: script.duration }];
       const cam = cameraAt(script, scene, plan, ctx);
       const fp = cameraAt(script, scene, [{ shot: 'batter_eye', atMs: 0, durationMs: script.duration }], ctx);
-      return JSON.stringify([cam, fp, sampleBall(script, scene), batPoseAt(script.practice!.bat, scene), script.actors.map((a) => evaluateActor(a, scene))]);
+      return JSON.stringify([
+        cam,
+        fp,
+        sampleBall(script, scene),
+        batPoseAt(script.practice!.bat, scene),
+        script.actors.map((a) => evaluateActor(a, scene)),
+      ]);
     };
     for (const kind of ['drive', 'six', 'bowled'] as const) {
       const flight = fixtureFlight({ lengthM: 5.5 });
@@ -412,9 +556,14 @@ describe('replay frames are deterministic', () => {
       const dur = replayWarp(a, 0.3).duration;
       const times = [0, 400, 1200, 2100, dur * 0.7, dur - 1];
       const fa = times.map((t) => frame(a, t));
-      const fb = [...times].reverse().map((t) => frame(b, t)).reverse();
+      const fb = [...times]
+        .reverse()
+        .map((t) => frame(b, t))
+        .reverse();
       expect(fb).toEqual(fa);
-      expect(buildDiagnostics(result, a.practice!.releaseScene, true)).toEqual(buildDiagnostics(result, b.practice!.releaseScene, true));
+      expect(buildDiagnostics(result, a.practice!.releaseScene, true)).toEqual(
+        buildDiagnostics(result, b.practice!.releaseScene, true),
+      );
     }
   });
 
@@ -445,9 +594,21 @@ describe('feedback is keyed to the simulation timestamps', () => {
     expect(feelOf('edge').cues.find((c) => c.feel)!.feel!.kind).toBe('edge');
     expect(feelOf('miss').cues.find((c) => c.feel)!.feel!.kind).toBe('miss');
     // Bowled after a miss: the miss is felt at the closest approach, then the stumps.
-    expect(feelOf('bowled').cues.filter((c) => c.feel).map((c) => c.feel!.kind)).toEqual(['miss', 'bowled']);
-    expect(feelOf('six').cues.filter((c) => c.feel).map((c) => c.feel!.kind)).toContain('six');
-    expect(feelOf('catch').cues.filter((c) => c.feel).map((c) => c.feel!.kind)).toContain('catch');
+    expect(
+      feelOf('bowled')
+        .cues.filter((c) => c.feel)
+        .map((c) => c.feel!.kind),
+    ).toEqual(['miss', 'bowled']);
+    expect(
+      feelOf('six')
+        .cues.filter((c) => c.feel)
+        .map((c) => c.feel!.kind),
+    ).toContain('six');
+    expect(
+      feelOf('catch')
+        .cues.filter((c) => c.feel)
+        .map((c) => c.feel!.kind),
+    ).toContain('catch');
     expect(feelOf('leave').cues.filter((c) => c.feel)).toEqual([]);
   });
 });
@@ -518,7 +679,10 @@ class RecordingStage extends PracticeSessionBase {
     this.startSession(o);
   }
   async benchmark(ms: number): Promise<PracticeBenchmarkRun> {
-    const frameMs = await this.runBenchmarkScene(ms, buildPracticeScript({ setup: setupFor(), flight: null, runUp: true }));
+    const frameMs = await this.runBenchmarkScene(
+      ms,
+      buildPracticeScript({ setup: setupFor(), flight: null, runUp: true }),
+    );
     return { frameMs, shaderCompileMs: 0, contextLosses: 0, renderer: 'test', webgl2: true, hardware: true };
   }
 }
@@ -533,9 +697,18 @@ async function mounted() {
     sounds.push(`${name}@${Math.round(at ?? c.now())}`);
     calls.push({ name, at: at ?? c.now(), calledAt: c.now() });
   };
-  const sink: PracticeSink = { cue: (k, _i, _r, at) => record(k, at), crowd: () => undefined, feel: (f, _i, _c, _t, at) => record(`feel:${f}`, at) };
+  const sink: PracticeSink = {
+    cue: (k, _i, _r, at) => record(k, at),
+    crowd: () => undefined,
+    feel: (f, _i, _c, _t, at) => record(`feel:${f}`, at),
+  };
   stage.setSink(sink);
-  await stage.mount({} as HTMLCanvasElement, { profile: 'standard', handedness: 'right', reducedMotion: false, learnCue: false });
+  await stage.mount({} as HTMLCanvasElement, {
+    profile: 'standard',
+    handedness: 'right',
+    reducedMotion: false,
+    learnCue: false,
+  });
   stage.setScene(setupFor());
   return { stage, c, sounds, calls };
 }
@@ -550,10 +723,18 @@ describe('the stage session', () => {
     const release = stage.releasePerfMs()!;
     await c.run(release + 30);
     const press = c.now();
-    const idleOf = (bat: BatTrack): BatTrack => ({ ...bat, touch: null, provisionalStart: null, contactState: null, readyAt: null });
+    const idleOf = (bat: BatTrack): BatTrack => ({
+      ...bat,
+      touch: null,
+      provisionalStart: null,
+      contactState: null,
+      readyAt: null,
+    });
     // Before the press the drawn bat is the no-input bat, exactly.
     const before = stage.frames.at(-1)!;
-    expect(firstPersonBatPose(before.script.practice!.bat, before.scene)).toEqual(firstPersonBatPose(idleOf(before.script.practice!.bat), before.scene));
+    expect(firstPersonBatPose(before.script.practice!.bat, before.scene)).toEqual(
+      firstPersonBatPose(idleOf(before.script.practice!.bat), before.scene),
+    );
     stage.prepareSwing(press);
     await c.run(press + 16);
     const first = stage.frames.at(-1)!;
@@ -570,14 +751,19 @@ describe('the stage session', () => {
     for (const heldMs of [TAP_HOLD_MS + TOUCHDOWN.checkMs, 600, 1000]) {
       await c.run(press + heldMs);
       const frame = stage.frames.at(-1)!;
-      expect(firstPersonBatPose(frame.script.practice!.bat, frame.scene)).toEqual(firstPersonBatPose(idleOf(frame.script.practice!.bat), frame.scene));
+      expect(firstPersonBatPose(frame.script.practice!.bat, frame.scene)).toEqual(
+        firstPersonBatPose(idleOf(frame.script.practice!.bat), frame.scene),
+      );
       expect(firstPersonLiftWeight(frame.script.practice!.bat, frame.scene)).toBe(1);
     }
     const committed = c.now();
     stage.beginSwing(committed);
     await c.run(committed + 16);
     const swingFrame = stage.frames.at(-1)!;
-    expect(swingStartScene(swingFrame.script.practice!.bat)).toBeCloseTo(swingFrame.script.practice!.releaseScene + committed - release, 6);
+    expect(swingStartScene(swingFrame.script.practice!.bat)).toBeCloseTo(
+      swingFrame.script.practice!.releaseScene + committed - release,
+      6,
+    );
     expect(swingFrame.script.practice!.bat.readyAt).toBeNull();
     expect(batPoseAt(swingFrame.script.practice!.bat, swingFrame.scene)).not.toEqual(STANCE);
     // The stroke had checked back, so the commitment starts the bat afresh and is measured from its own input.
@@ -616,7 +802,11 @@ describe('the stage session', () => {
     // Continuity across the commitment: the drawn hands never jump between two 1 ms samples.
     const commitAt = bat.touch!.commitAt!;
     const preTrack = { ...bat, provisionalStart: null, touch: { ...bat.touch!, commitAt: null } };
-    const hands = (b: { grip: Vec3; toe: Vec3 }) => ({ x: b.grip.x + (b.toe.x - b.grip.x) * 0.25, y: b.grip.y + (b.toe.y - b.grip.y) * 0.25, z: b.grip.z + (b.toe.z - b.grip.z) * 0.25 });
+    const hands = (b: { grip: Vec3; toe: Vec3 }) => ({
+      x: b.grip.x + (b.toe.x - b.grip.x) * 0.25,
+      y: b.grip.y + (b.toe.y - b.grip.y) * 0.25,
+      z: b.grip.z + (b.toe.z - b.grip.z) * 0.25,
+    });
     let worst = 0;
     for (let sc = commitAt - 20; sc < commitAt + TOUCHDOWN.commitMs + 20; sc += 1) {
       const a = hands(firstPersonBatPose(sc < commitAt ? preTrack : bat, sc));
@@ -646,14 +836,30 @@ describe('the stage session', () => {
     const latency = stage.stats().lastInputToBatMs;
     const swipeStart = press + 12;
     stage.beginSwing(swipeStart);
-    stage.previewContact(contactState({ phase: 'committing', atPerfMs: swipeStart, pressAtPerfMs: press, timingAtPerfMs: swipeStart, committed: true, forwardBearingDeg: 40, pathPower: 0.6 }));
+    stage.previewContact(
+      contactState({
+        phase: 'committing',
+        atPerfMs: swipeStart,
+        pressAtPerfMs: press,
+        timingAtPerfMs: swipeStart,
+        committed: true,
+        forwardBearingDeg: 40,
+        pathPower: 0.6,
+      }),
+    );
     await c.run(c.now() + 16);
     const bat = stage.frames.at(-1)!.script.practice!.bat;
     expect(bat.provisionalStart).toBeCloseTo(bat.touch!.start + 12, 6);
     expect(stage.stats().lastInputToBatMs).toBe(latency);
     // The swipe's intent shows once the commitment has blended in: the bearing turns the provisional's face.
     const later = bat.touch!.commitAt! + TOUCHDOWN.commitMs + 5;
-    const straight = firstPersonBatPose({ ...bat, contactState: contactState({ phase: 'committing', committed: true, forwardBearingDeg: 0, pathPower: 0.6 }) }, later);
+    const straight = firstPersonBatPose(
+      {
+        ...bat,
+        contactState: contactState({ phase: 'committing', committed: true, forwardBearingDeg: 0, pathPower: 0.6 }),
+      },
+      later,
+    );
     expect(firstPersonBatPose(bat, later).face).not.toEqual(straight.face);
     stage.dispose();
 
@@ -663,7 +869,9 @@ describe('the stage session', () => {
     const p2 = second.c.now();
     second.stage.prepareSwing(p2);
     await second.c.run(p2 + 30);
-    second.stage.previewContact(contactState({ phase: 'loading', atPerfMs: second.c.now(), pressAtPerfMs: p2, pullbackIntent: 0.75 }));
+    second.stage.previewContact(
+      contactState({ phase: 'loading', atPerfMs: second.c.now(), pressAtPerfMs: p2, pullbackIntent: 0.75 }),
+    );
     await second.c.run(second.c.now() + TOUCHDOWN.checkMs + 16);
     const loaded = second.stage.frames.at(-1)!;
     const lb = loaded.script.practice!.bat;
@@ -675,7 +883,9 @@ describe('the stage session', () => {
     await second.c.run(second.c.now() + TOUCHDOWN.checkMs + 16);
     const back = second.stage.frames.at(-1)!;
     const bb = back.script.practice!.bat;
-    expect(firstPersonBatPose(bb, back.scene)).toEqual(firstPersonBatPose({ ...bb, touch: null, contactState: null }, back.scene));
+    expect(firstPersonBatPose(bb, back.scene)).toEqual(
+      firstPersonBatPose({ ...bb, touch: null, contactState: null }, back.scene),
+    );
     second.stage.dispose();
   });
 
@@ -693,7 +903,15 @@ describe('the stage session', () => {
     const loadedPose = batPoseAt(loaded, stage.frames.at(-1)!.scene);
     expect(loadedPose.toe.y).toBeGreaterThan(STANCE.toe.y + 0.1);
 
-    stage.previewContact(contactState({ phase: 'tracking', atPerfMs: c.now(), pressAtPerfMs: c.now() - 100, pullbackIntent: 0.75, lateralAdjustment: 0.5 }));
+    stage.previewContact(
+      contactState({
+        phase: 'tracking',
+        atPerfMs: c.now(),
+        pressAtPerfMs: c.now() - 100,
+        pullbackIntent: 0.75,
+        lateralAdjustment: 0.5,
+      }),
+    );
     await c.run(c.now() + 16);
     const refined = stage.frames.at(-1)!.script.practice!.bat;
     expect(batPoseAt(refined, stage.frames.at(-1)!.scene).toe.x).toBeGreaterThan(loadedPose.toe.x + 0.08);
@@ -707,13 +925,31 @@ describe('the stage session', () => {
     const committedAt = c.now();
     stage.prepareSwing(committedAt);
     stage.beginSwing(committedAt);
-    stage.previewContact(contactState({ phase: 'committing', atPerfMs: committedAt, pressAtPerfMs: committedAt - 180, timingAtPerfMs: committedAt, committed: true, forwardBearingDeg: 55, elevationIntent: 0.7, pathPower: 0.8 }));
+    stage.previewContact(
+      contactState({
+        phase: 'committing',
+        atPerfMs: committedAt,
+        pressAtPerfMs: committedAt - 180,
+        timingAtPerfMs: committedAt,
+        committed: true,
+        forwardBearingDeg: 55,
+        elevationIntent: 0.7,
+        pathPower: 0.8,
+      }),
+    );
     await c.run(c.now() + 16);
-    expect(stage.frames.at(-1)!.script.practice!.bat.contactState).toMatchObject({ committed: true, forwardBearingDeg: 55, pathPower: 0.8 });
+    expect(stage.frames.at(-1)!.script.practice!.bat.contactState).toMatchObject({
+      committed: true,
+      forwardBearingDeg: 55,
+      pathPower: 0.8,
+    });
     const result = fixtureResult(flight, { kind: 'drive', timingMs: 5 });
     void stage.play(result);
     await c.run(c.now() + 16);
-    expect(stage.frames.at(-1)!.script.practice!.bat.contactState).toMatchObject({ committed: true, forwardBearingDeg: 55 });
+    expect(stage.frames.at(-1)!.script.practice!.bat.contactState).toMatchObject({
+      committed: true,
+      forwardBearingDeg: 55,
+    });
     stage.dispose();
   });
 
@@ -737,7 +973,10 @@ describe('the stage session', () => {
     stage.beginSwing(newIntent);
     await c.run(newIntent + 16);
     const nextIntent = stage.frames.at(-1)!;
-    expect(swingStartScene(nextIntent.script.practice!.bat)).toBeCloseTo(nextIntent.script.practice!.releaseScene + newIntent - release, 6);
+    expect(swingStartScene(nextIntent.script.practice!.bat)).toBeCloseTo(
+      nextIntent.script.practice!.releaseScene + newIntent - release,
+      6,
+    );
     expect(batPoseAt(nextIntent.script.practice!.bat, nextIntent.scene)).not.toEqual(STANCE);
     const result = fixtureResult(flight, { kind: 'drive', timingMs: 5 });
     void stage.play(result);
@@ -970,7 +1209,12 @@ describe('the stage session', () => {
     const stage = new Throwing(c.clock);
     const fallbacks: unknown[] = [];
     stage.on('fallback', (p) => fallbacks.push(p));
-    await stage.mount({} as HTMLCanvasElement, { profile: 'standard', handedness: 'right', reducedMotion: false, learnCue: false });
+    await stage.mount({} as HTMLCanvasElement, {
+      profile: 'standard',
+      handedness: 'right',
+      reducedMotion: false,
+      learnCue: false,
+    });
     stage.setScene(setupFor());
     await c.run(c.now() + 200);
     expect(fallbacks).toEqual([{ reason: 'error', message: 'boom' }]);
@@ -1006,13 +1250,33 @@ const COVER_DRIVE = { kind: 'attack', directionDeg: 50, elevation: 0.05, power: 
 function referenceDelivery(index: number, intent: Parameters<typeof swingOf>[1], errorMs = 0) {
   const b = overBalls(REFERENCE_OVER, REFERENCE_CONDITIONS)[index];
   const field = autoField(b.over.bowler, b.conditions, 'right', b.over.ball);
-  const flight = physicsFlight({ plan: b.flight.plan, bowler: b.over.bowler, conditions: b.conditions, seed: b.seed, handedness: 'right', ball: b.over.ball });
+  const flight = physicsFlight({
+    plan: b.flight.plan,
+    bowler: b.over.bowler,
+    conditions: b.conditions,
+    seed: b.seed,
+    handedness: 'right',
+    ball: b.over.ball,
+  });
   const swing = swingOf({ ...b, flight }, intent, errorMs);
-  const resolved = resolveDelivery({ flight, swing, field, bowler: b.over.bowler, conditions: b.conditions, handedness: 'right', assist: 'real', tierToleranceMs: 0 });
+  const resolved = resolveDelivery({
+    flight,
+    swing,
+    field,
+    bowler: b.over.bowler,
+    conditions: b.conditions,
+    handedness: 'right',
+    assist: 'real',
+    tierToleranceMs: 0,
+  });
   const bounce = flight.bounce;
-  const result: DeliveryResult = bounce && !resolved.events.some((e) => e.kind === 'bounce')
-    ? { ...resolved, events: [...resolved.events, { t: bounce.t, kind: 'bounce' as const, p: bounce.p }].sort((x, y) => x.t - y.t) }
-    : resolved;
+  const result: DeliveryResult =
+    bounce && !resolved.events.some((e) => e.kind === 'bounce')
+      ? {
+          ...resolved,
+          events: [...resolved.events, { t: bounce.t, kind: 'bounce' as const, p: bounce.p }].sort((x, y) => x.t - y.t),
+        }
+      : resolved;
   const setup: PracticeSceneSetup = { field, bowler: b.over.bowler, conditions: b.conditions, handedness: 'right' };
   return { flight, result, setup };
 }
@@ -1031,7 +1295,12 @@ async function referenceStage(setup: PracticeSceneSetup) {
     feel: (f, _i, _c, _t, at) => rec(`feel:${f}`, at),
     moment: (m, at) => rec(`moment:${m.kind}`, at),
   });
-  await stage.mount({} as HTMLCanvasElement, { profile: 'standard', handedness: 'right', reducedMotion: false, learnCue: false });
+  await stage.mount({} as HTMLCanvasElement, {
+    profile: 'standard',
+    handedness: 'right',
+    reducedMotion: false,
+    learnCue: false,
+  });
   stage.setScene(setup);
   return { stage, c, calls };
 }
@@ -1058,12 +1327,16 @@ describe('COH6 and COH4 in the live session', () => {
     // Every one of them (release, pitch, bat, fielding) reached the sink at least the lead ahead of its own time.
     for (const s of sounds) expect(s.at - s.calledAt).toBeGreaterThanOrEqual(SOUND_LEAD.minMs);
     // A moment (crowd, haptic, caption) still fires at its own time, not ahead.
-    for (const m of calls.filter((x) => x.name.startsWith('moment:') && x.name !== 'moment:approach')) expect(m.calledAt).toBeGreaterThanOrEqual(m.at - 0.5);
+    for (const m of calls.filter((x) => x.name.startsWith('moment:') && x.name !== 'moment:approach'))
+      expect(m.calledAt).toBeGreaterThanOrEqual(m.at - 0.5);
     stage.dispose();
   });
 
   it('plays no contact sound on a miss or a leave, only the swing’s air (COH6)', async () => {
-    for (const [intent, err] of [[COVER_DRIVE, 120], [null, 0]] as const) {
+    for (const [intent, err] of [
+      [COVER_DRIVE, 120],
+      [null, 0],
+    ] as const) {
       const { flight, result, setup } = referenceDelivery(0, intent, err);
       expect(['miss', 'leave']).toContain(result.contact.kind);
       const { stage, c, calls } = await referenceStage(setup);
@@ -1077,7 +1350,9 @@ describe('COH6 and COH4 in the live session', () => {
       void stage.play(result);
       await c.run(release + result.deadT * 1000 + 20);
       const names = calls.map((x) => x.name);
-      expect(names.filter((n) => ['feel:sweet', 'feel:middle', 'feel:edge', 'feel:block', 'feel:pad', 'pad'].includes(n))).toEqual([]);
+      expect(
+        names.filter((n) => ['feel:sweet', 'feel:middle', 'feel:edge', 'feel:block', 'feel:pad', 'pad'].includes(n)),
+      ).toEqual([]);
       expect(names.includes('feel:miss')).toBe(result.contact.kind === 'miss');
       stage.dispose();
     }
@@ -1175,10 +1450,16 @@ describe('Classic 2D', () => {
     painter.resize(844, 390, 1);
     const t = simToScene(p, result.contact.t! - 0.1);
     const cam = cameraAt(script, t, plan, { aspect: 844 / 390, reducedMotion: false });
-    painter.paint(script, t, cam, [
-      { id: 'a', primary: '#000000', secondary: '#ffffff', pattern: 'plain' },
-      { id: 'b', primary: '#000000', secondary: '#ffffff', pattern: 'plain' },
-    ], { bat: null, landing: null, landingUntil: 0, hidden: new Set(['striker']), visualScale: 1.22 });
+    painter.paint(
+      script,
+      t,
+      cam,
+      [
+        { id: 'a', primary: '#000000', secondary: '#ffffff', pattern: 'plain' },
+        { id: 'b', primary: '#000000', secondary: '#ffffff', pattern: 'plain' },
+      ],
+      { bat: null, landing: null, landingUntil: 0, hidden: new Set(['striker']), visualScale: 1.22 },
+    );
     const truth = toWorld(ballAt(result.ball, result.contact.t! - 0.1)!, false);
     const q = painter.project(truth)!;
     expect(ctx2d.arcs.some((a) => Math.abs(a.x - q.x) < 0.01 && Math.abs(a.y - q.y) < 0.01)).toBe(true);
@@ -1191,13 +1472,35 @@ describe('Classic 2D', () => {
     const painter = new BatterViewPainter(ctx2d);
     painter.resize(915, 412, 1);
     const scene = p.releaseScene - 100;
-    const cam = cameraAt(script, scene, [{ shot: 'ball_close', atMs: 0, durationMs: script.duration }], { aspect: 915 / 412, reducedMotion: false });
-    painter.paint(script, scene, cam, [
-      { id: 'a', primary: '#000000', secondary: '#ffffff', pattern: 'plain' },
-      { id: 'b', primary: '#000000', secondary: '#ffffff', pattern: 'plain' },
-    ], { bat: null, landing: null, landingUntil: 0, hidden: new Set(['striker']), visualScale: 1.22, closeUp: true, ballColour: 'white' });
+    const cam = cameraAt(script, scene, [{ shot: 'ball_close', atMs: 0, durationMs: script.duration }], {
+      aspect: 915 / 412,
+      reducedMotion: false,
+    });
+    painter.paint(
+      script,
+      scene,
+      cam,
+      [
+        { id: 'a', primary: '#000000', secondary: '#ffffff', pattern: 'plain' },
+        { id: 'b', primary: '#000000', secondary: '#ffffff', pattern: 'plain' },
+      ],
+      {
+        bat: null,
+        landing: null,
+        landingUntil: 0,
+        hidden: new Set(['striker']),
+        visualScale: 1.22,
+        closeUp: true,
+        ballColour: 'white',
+      },
+    );
     const q = painter.project(p.releaseWorld)!;
     const expectedRadius = closeUpBallDiameterPx(412) / 2;
-    expect(ctx2d.arcs.some((arc) => Math.abs(arc.x - q.x) < 0.01 && Math.abs(arc.y - q.y) < 0.01 && Math.abs(arc.r - expectedRadius) < 0.01)).toBe(true);
+    expect(
+      ctx2d.arcs.some(
+        (arc) =>
+          Math.abs(arc.x - q.x) < 0.01 && Math.abs(arc.y - q.y) < 0.01 && Math.abs(arc.r - expectedRadius) < 0.01,
+      ),
+    ).toBe(true);
   });
 });

@@ -14,7 +14,19 @@ import { createPose, mirrorSampledPose, samplePresented } from '@/render3d/core/
 import { createJoints, forwardKinematics, jointWorld } from '@/render3d/core/locomotion';
 import { humansPoseHook } from '@/render3d/core/motion/humansHook';
 import { ballAt, simToScene, toWorld } from '@/render3d/practice/frame';
-import { STANCE_FIT_AT_MS, STRIDE_BALL_CLEAR_M, STRIDE_PLANT_MS, buildPracticeScript, buildPracticeScriptSteps, strideGoverned, strideGovernedSteps, strideStartScene, strikerMoves, strikerPhysicsBody, strikerPreSwing } from '@/render3d/practice/script';
+import {
+  STANCE_FIT_AT_MS,
+  STRIDE_BALL_CLEAR_M,
+  STRIDE_PLANT_MS,
+  buildPracticeScript,
+  buildPracticeScriptSteps,
+  strideGoverned,
+  strideGovernedSteps,
+  strideStartScene,
+  strikerMoves,
+  strikerPhysicsBody,
+  strikerPreSwing,
+} from '@/render3d/practice/script';
 import type { PracticeSceneSetup } from '@/render3d/practice/types';
 import { evalOvers, overBalls, type EvalBall } from '@/practice/game/evaluate';
 import { REFERENCE_OVER } from '@/practice/game/reference';
@@ -45,7 +57,12 @@ afterAll(() => lib.resetMotionLibrary());
 const STANCE_BODY = batterBody(null);
 const PAD_CAPSULE_R = STANCE_BODY.pads[0].r;
 
-const setupOf = (eb: EvalBall, hand: Handedness): PracticeSceneSetup => ({ field: hand === 'right' ? eb.field : autoField(eb.over.bowler, eb.conditions, 'left', eb.over.ball), bowler: eb.over.bowler, conditions: eb.conditions, handedness: hand });
+const setupOf = (eb: EvalBall, hand: Handedness): PracticeSceneSetup => ({
+  field: hand === 'right' ? eb.field : autoField(eb.over.bowler, eb.conditions, 'left', eb.over.ball),
+  bowler: eb.over.bowler,
+  conditions: eb.conditions,
+  handedness: hand,
+});
 
 /** The loop as it was: its planted-feet hook and scratch poses made up front, every pose worked out in one go. */
 function reference(result: DeliveryResult, releaseScene: number, natural: ActorTrack, mirror: boolean): boolean {
@@ -98,22 +115,56 @@ function swingCases(): Case[] {
   const footworks: Footwork[] = ['auto', 'forward', 'back', 'across', 'down_track'];
   const add = (label: string, eb: EvalBall, hand: Handedness, fl: BallFlight, swing: NormalizedSwing | null) => {
     const setup = setupOf(eb, hand);
-    const result = resolveDelivery({ flight: fl, swing, field: setup.field, bowler: eb.over.bowler, conditions: eb.conditions, handedness: hand, assist: 'play', tierToleranceMs: 0 });
+    const result = resolveDelivery({
+      flight: fl,
+      swing,
+      field: setup.field,
+      bowler: eb.over.bowler,
+      conditions: eb.conditions,
+      handedness: hand,
+      assist: 'play',
+      tierToleranceMs: 0,
+    });
     out.push({ label, setup, flight: fl, result });
   };
   const swingOf = (fl: BallFlight, n: number): NormalizedSwing => {
     const kind = n % 3 === 0 ? 'attack' : 'defend';
     const power = kind === 'attack' ? 0.35 + ((n * 17) % 60) / 100 : 0.2;
-    return { kind, startT: fl.idealContactT - batTravelMs(kind, power) / 1000 + (((n * 37) % 161) - 80) / 1000, directionDeg: ((n * 53) % 140) - 70, power, elevation: (n % 5) / 8, footwork: footworks[n % footworks.length] };
+    return {
+      kind,
+      startT: fl.idealContactT - batTravelMs(kind, power) / 1000 + (((n * 37) % 161) - 80) / 1000,
+      directionDeg: ((n * 53) % 140) - 70,
+      power,
+      elevation: (n % 5) / 8,
+      footwork: footworks[n % footworks.length],
+    };
   };
-  for (const eb of overBalls(REFERENCE_OVER, 'balanced')) for (let v = 0; v < 8; v++) add(`ref-${eb.ballIndex + 1} #${v}`, eb, 'right', eb.flight, swingOf(eb.flight, k++));
+  for (const eb of overBalls(REFERENCE_OVER, 'balanced'))
+    for (let v = 0; v < 8; v++) add(`ref-${eb.ballIndex + 1} #${v}`, eb, 'right', eb.flight, swingOf(eb.flight, k++));
   for (const difficulty of ['beginner', 'club', 'expert'] as const) {
     for (const family of ['pace', 'spin'] as const) {
       evalOvers({ difficulty, overs: 6, key: `stride-reach|${difficulty}|${family}`, family }).forEach((over, oi) =>
         over.forEach((eb) => {
           const hand: Handedness = oi % 2 === 1 ? 'left' : 'right';
-          const fl = hand === 'right' ? eb.flight : physicsFlight({ plan: eb.over.balls[eb.ballIndex], bowler: eb.over.bowler, conditions: eb.conditions, seed: eb.seed, ball: eb.over.ball, handedness: 'left' });
-          for (let v = 0; v < 4; v++) add(`${difficulty} ${family} over ${oi + 1} ball ${eb.ballIndex + 1} ${hand} #${v}`, eb, hand, fl, swingOf(fl, k++));
+          const fl =
+            hand === 'right'
+              ? eb.flight
+              : physicsFlight({
+                  plan: eb.over.balls[eb.ballIndex],
+                  bowler: eb.over.bowler,
+                  conditions: eb.conditions,
+                  seed: eb.seed,
+                  ball: eb.over.ball,
+                  handedness: 'left',
+                });
+          for (let v = 0; v < 4; v++)
+            add(
+              `${difficulty} ${family} over ${oi + 1} ball ${eb.ballIndex + 1} ${hand} #${v}`,
+              eb,
+              hand,
+              fl,
+              swingOf(fl, k++),
+            );
         }),
       );
     }
@@ -137,7 +188,16 @@ describe('strideGoverned, steppable', () => {
       const natRest = natural.find((m) => m.clip === 'bat_rest')?.t0 ?? script.duration;
       const waiting = strikerPreSwing(rs, script.duration, true);
       const arrival = simToScene({ releaseScene: rs }, c.flight.idealContactT);
-      const body = strikerPhysicsBody(c.result, rs, mirror, STANCE_FIT_AT_MS, c.result.swing ? natRest : Number.POSITIVE_INFINITY, waiting, arrival, false);
+      const body = strikerPhysicsBody(
+        c.result,
+        rs,
+        mirror,
+        STANCE_FIT_AT_MS,
+        c.result.swing ? natRest : Number.POSITIVE_INFINITY,
+        waiting,
+        arrival,
+        false,
+      );
       const track: ActorTrack = { ...striker, moves: natural, physicsBody: body };
       const want = reference(c.result, rs, track, mirror);
       expect(strideGoverned(c.result, rs, track, mirror), c.label).toBe(want);
@@ -160,7 +220,8 @@ describe('strideGoverned, steppable', () => {
   }, 240_000);
 
   it('builds the same script a step at a time (and sliced, with more pauses) as in one go, and pauses more than a dozen times on a result', () => {
-    const json = (x: unknown) => JSON.stringify(x, (k, v) => (k === 'result' || k === 'flight' || k === 'samples' ? undefined : v));
+    const json = (x: unknown) =>
+      JSON.stringify(x, (k, v) => (k === 'result' || k === 'flight' || k === 'samples' ? undefined : v));
     for (const c of cases.slice(0, 40)) {
       const whole = json(buildPracticeScript({ setup: c.setup, flight: c.flight, result: c.result }));
       const pauses: number[] = [];

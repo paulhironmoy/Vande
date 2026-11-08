@@ -14,7 +14,15 @@
  * so installing the app keeps the pending match.
  */
 import type { DeepLinkSource } from '@/contracts';
-import { ATTRIBUTION_RE, CUP_ID_RE, CUSTOM_SCHEMES, HIGHLIGHT_CODE_RE, INVITE_TOKEN_RE, MATCH_ID_RE, SHARED_CODE_RE } from '@/net/shared/ids';
+import {
+  ATTRIBUTION_RE,
+  CUP_ID_RE,
+  CUSTOM_SCHEMES,
+  HIGHLIGHT_CODE_RE,
+  INVITE_TOKEN_RE,
+  MATCH_ID_RE,
+  SHARED_CODE_RE,
+} from '@/net/shared/ids';
 import { NATIVE_TIMEOUT_MS, isNativePlatform, settleWithin } from './capacitor';
 
 export type AppLink =

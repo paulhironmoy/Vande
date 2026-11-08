@@ -35,15 +35,25 @@ export function BallTimeline({ slots, active, onSelect, label, size = 'md', clas
           <>
             <OutcomeBadge mark={slot.mark} size={size} ball={slot.superBall ? undefined : n} />
             <span className={s.caption} aria-hidden="true">
-              {slot.superBall ? t('plan.super_tab') : slot.caption ?? n}
+              {slot.superBall ? t('plan.super_tab') : (slot.caption ?? n)}
             </span>
             {slot.note && <span className="sr-only">{slot.note}</span>}
           </>
         );
         return (
-          <li key={i} className={s.slot} data-active={active === i || undefined} data-super={slot.superBall || undefined}>
+          <li
+            key={i}
+            className={s.slot}
+            data-active={active === i || undefined}
+            data-super={slot.superBall || undefined}
+          >
             {onSelect ? (
-              <button type="button" className={s.button} onClick={() => onSelect(i)} aria-current={active === i ? 'step' : undefined}>
+              <button
+                type="button"
+                className={s.button}
+                onClick={() => onSelect(i)}
+                aria-current={active === i ? 'step' : undefined}
+              >
                 {content}
               </button>
             ) : (

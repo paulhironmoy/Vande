@@ -42,11 +42,7 @@ function axis(pose: BatPose): Vec3 {
 
 function assertRigid(pose: BatPose): void {
   const a = axis(pose);
-  const length = Math.hypot(
-    pose.grip.x - pose.toe.x,
-    pose.grip.y - pose.toe.y,
-    pose.grip.z - pose.toe.z,
-  );
+  const length = Math.hypot(pose.grip.x - pose.toe.x, pose.grip.y - pose.toe.y, pose.grip.z - pose.toe.z);
   const faceLength = Math.hypot(pose.face.x, pose.face.y, pose.face.z);
   const orthogonal = a.x * pose.face.x + a.y * pose.face.y + a.z * pose.face.z;
   expect(length).toBeCloseTo(BAT_FULL, 12);
@@ -131,17 +127,15 @@ function denseMotionMetrics(
     const before = intervals[i - 1];
     const after = intervals[i];
     if (impulseT !== null && before.end <= impulseT && after.start >= impulseT) continue;
-    const dt = ((before.end - before.start) + (after.end - after.start)) / 2;
-    gripAcceleration = Math.max(gripAcceleration, Math.hypot(
-      after.grip.x - before.grip.x,
-      after.grip.y - before.grip.y,
-      after.grip.z - before.grip.z,
-    ) / dt);
-    toeAcceleration = Math.max(toeAcceleration, Math.hypot(
-      after.toe.x - before.toe.x,
-      after.toe.y - before.toe.y,
-      after.toe.z - before.toe.z,
-    ) / dt);
+    const dt = (before.end - before.start + (after.end - after.start)) / 2;
+    gripAcceleration = Math.max(
+      gripAcceleration,
+      Math.hypot(after.grip.x - before.grip.x, after.grip.y - before.grip.y, after.grip.z - before.grip.z) / dt,
+    );
+    toeAcceleration = Math.max(
+      toeAcceleration,
+      Math.hypot(after.toe.x - before.toe.x, after.toe.y - before.toe.y, after.toe.z - before.toe.z) / dt,
+    );
     angularAcceleration = Math.max(angularAcceleration, Math.abs(after.angular - before.angular) / dt);
   }
   return { gripSpeed, toeSpeed, angularSpeed, gripAcceleration, toeAcceleration, angularAcceleration };
@@ -150,10 +144,10 @@ function denseMotionMetrics(
 describe('rigid C1 bat trace interpolation', () => {
   it('preserves exact knots, fixed length, orthonormal frame, contact and endpoint semantics', () => {
     const samples = [
-      rigidBat(0.20, { x: -0.18, y: 1.12, z: 9.18 }, -24),
+      rigidBat(0.2, { x: -0.18, y: 1.12, z: 9.18 }, -24),
       rigidBat(0.35, { x: -0.08, y: 1.28, z: 9.12 }, 8),
-      rigidBat(0.50, { x: 0.14, y: 1.08, z: 8.92 }, 61),
-      rigidBat(0.68, { x: 0.28, y: 1.34, z: 8.80 }, 108),
+      rigidBat(0.5, { x: 0.14, y: 1.08, z: 8.92 }, 61),
+      rigidBat(0.68, { x: 0.28, y: 1.34, z: 8.8 }, 108),
       rigidBat(0.82, { x: 0.24, y: 1.48, z: 8.74 }, 132),
     ];
 
@@ -178,16 +172,22 @@ describe('rigid C1 bat trace interpolation', () => {
 
   it('is seek-pure at 30 Hz, 60 Hz and seeded random clocks', () => {
     const samples = [
-      rigidBat(0.0, { x: -0.20, y: 1.10, z: 9.20 }, -30),
+      rigidBat(0.0, { x: -0.2, y: 1.1, z: 9.2 }, -30),
       rigidBat(0.2, { x: -0.08, y: 1.32, z: 9.08 }, 5),
       rigidBat(0.4, { x: 0.12, y: 1.12, z: 8.94 }, 55),
-      rigidBat(0.6, { x: 0.28, y: 1.30, z: 8.82 }, 104),
+      rigidBat(0.6, { x: 0.28, y: 1.3, z: 8.82 }, 104),
       rigidBat(0.8, { x: 0.24, y: 1.46, z: 8.76 }, 130),
-      rigidBat(1.0, { x: 0.18, y: 1.50, z: 8.78 }, 138),
+      rigidBat(1.0, { x: 0.18, y: 1.5, z: 8.78 }, 138),
     ];
     const direct = poseAt(samples, 0.6, 0.4);
-    expectPoseClose(clockPose(samples, 0.6, () => 1 / 30, 0.4), direct);
-    expectPoseClose(clockPose(samples, 0.6, () => 1 / 60, 0.4), direct);
+    expectPoseClose(
+      clockPose(samples, 0.6, () => 1 / 30, 0.4),
+      direct,
+    );
+    expectPoseClose(
+      clockPose(samples, 0.6, () => 1 / 60, 0.4),
+      direct,
+    );
     let state = 1701 >>> 0;
     const randomStep = () => {
       state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
@@ -203,11 +203,11 @@ describe('rigid C1 bat trace interpolation', () => {
 
   it('is C1 at ordinary knots and resets translation and rotation only at exact contact', () => {
     const samples = [
-      rigidBat(0.20, { x: 0.00, y: 1.10, z: 9.10 }, 0),
-      rigidBat(0.35, { x: 0.15, y: 1.10, z: 9.10 }, 15),
-      rigidBat(0.50, { x: 0.30, y: 1.10, z: 9.10 }, 30),
-      rigidBat(0.65, { x: 0.00, y: 1.10, z: 9.10 }, 5),
-      rigidBat(0.80, { x: -0.15, y: 1.10, z: 9.10 }, -10),
+      rigidBat(0.2, { x: 0.0, y: 1.1, z: 9.1 }, 0),
+      rigidBat(0.35, { x: 0.15, y: 1.1, z: 9.1 }, 15),
+      rigidBat(0.5, { x: 0.3, y: 1.1, z: 9.1 }, 30),
+      rigidBat(0.65, { x: 0.0, y: 1.1, z: 9.1 }, 5),
+      rigidBat(0.8, { x: -0.15, y: 1.1, z: 9.1 }, -10),
     ];
     const epsilon = 0.00001;
     const angle = (pose: BatPose) => Math.atan2(axis(pose).y, axis(pose).x);
@@ -239,15 +239,20 @@ describe('rigid C1 bat trace interpolation', () => {
       const t = Math.min(time, finishT);
       if (t <= velocityPeakT) return 0.5 * acceleration * t * t;
       const after = t - velocityPeakT;
-      return 0.5 * acceleration * velocityPeakT * velocityPeakT +
-        acceleration * velocityPeakT * after - 0.5 * acceleration * after * after;
+      return (
+        0.5 * acceleration * velocityPeakT * velocityPeakT +
+        acceleration * velocityPeakT * after -
+        0.5 * acceleration * after * after
+      );
     };
-    const times = [0, 0.004, 0.008, velocityPeakT, 0.012, 0.016, 0.020, finishT, 0.026];
-    const samples = times.map((time) => rigidBat(
-      time,
-      { x: -0.25 + progress(time, gripAcceleration), y: 1.12, z: 9.08 },
-      5 + (progress(time, angularAcceleration) * 180) / Math.PI,
-    ));
+    const times = [0, 0.004, 0.008, velocityPeakT, 0.012, 0.016, 0.02, finishT, 0.026];
+    const samples = times.map((time) =>
+      rigidBat(
+        time,
+        { x: -0.25 + progress(time, gripAcceleration), y: 1.12, z: 9.08 },
+        5 + (progress(time, angularAcceleration) * 180) / Math.PI,
+      ),
+    );
 
     const metrics = denseMotionMetrics(samples, null, velocityPeakT);
     expect(metrics.gripSpeed).toBeLessThanOrEqual(18);
@@ -274,8 +279,11 @@ describe('rigid C1 bat trace interpolation', () => {
     const canonicalProgress = (time: number, acceleration: number): number => {
       if (time <= velocityPeakT) return 0.5 * acceleration * time * time;
       const after = time - velocityPeakT;
-      return 0.5 * acceleration * velocityPeakT * velocityPeakT +
-        acceleration * velocityPeakT * after - 0.5 * acceleration * after * after;
+      return (
+        0.5 * acceleration * velocityPeakT * velocityPeakT +
+        acceleration * velocityPeakT * after -
+        0.5 * acceleration * after * after
+      );
     };
     const postProgress = (time: number): number => {
       const u = Math.max(0, Math.min(1, (time - impulseT) / (finishT - impulseT)));
@@ -283,7 +291,7 @@ describe('rigid C1 bat trace interpolation', () => {
     };
     const gripAtImpulse = canonicalProgress(impulseT, gripAcceleration);
     const angleAtImpulse = canonicalProgress(impulseT, angularAcceleration);
-    const times = [0, 0.004, 0.008, velocityPeakT, impulseT, 0.012, 0.016, 0.020, finishT, 0.026];
+    const times = [0, 0.004, 0.008, velocityPeakT, impulseT, 0.012, 0.016, 0.02, finishT, 0.026];
     const samples = times.map((time) => {
       const afterImpulse = time > impulseT;
       const gripProgress = afterImpulse
@@ -292,11 +300,7 @@ describe('rigid C1 bat trace interpolation', () => {
       const angle = afterImpulse
         ? angleAtImpulse + 0.0035 * postProgress(time)
         : canonicalProgress(time, angularAcceleration);
-      return rigidBat(
-        time,
-        { x: -0.25 + gripProgress, y: 1.12, z: 9.08 },
-        5 + (angle * 180) / Math.PI,
-      );
+      return rigidBat(time, { x: -0.25 + gripProgress, y: 1.12, z: 9.08 }, 5 + (angle * 180) / Math.PI);
     });
 
     const metrics = denseMotionMetrics(samples, impulseT, velocityPeakT);
@@ -316,9 +320,9 @@ describe('rigid C1 bat trace interpolation', () => {
   });
 
   it('keeps distinct one-sided velocities at the exact impulse and ignores a later planned peak', () => {
-    const impulseT = 0.010;
+    const impulseT = 0.01;
     const laterPlannedT = 0.014;
-    const finishT = 0.020;
+    const finishT = 0.02;
     const gripAtImpulse = 0.5 * 100 * impulseT * impulseT;
     const angleAtImpulse = 0.5 * 120 * impulseT * impulseT;
     const times = [0, 0.004, 0.008, impulseT, 0.012, laterPlannedT, 0.016, finishT, 0.024];
@@ -333,11 +337,7 @@ describe('rigid C1 bat trace interpolation', () => {
       const after = Math.min(time, finishT) - impulseT;
       const gripProgress = gripAtImpulse - 0.4 * after + 0.5 * 40 * after * after;
       const angle = angleAtImpulse - 0.6 * after + 0.5 * 60 * after * after;
-      return rigidBat(
-        time,
-        { x: -0.2 + gripProgress, y: 1.1, z: 9.1 },
-        (angle * 180) / Math.PI,
-      );
+      return rigidBat(time, { x: -0.2 + gripProgress, y: 1.1, z: 9.1 }, (angle * 180) / Math.PI);
     });
     const epsilon = 0.000001;
     const before = poseAt(samples, impulseT - epsilon, impulseT, laterPlannedT);
@@ -349,33 +349,27 @@ describe('rigid C1 bat trace interpolation', () => {
     expect((angle(at) - angle(before)) / epsilon).toBeCloseTo(1.2, 3);
     expect((angle(after) - angle(at)) / epsilon).toBeCloseTo(-0.6, 3);
     for (let time = impulseT; time <= finishT; time += 0.0005) {
-      expectPoseClose(
-        poseAt(samples, time, impulseT, laterPlannedT),
-        poseAt(samples, time, impulseT, null),
-        12,
-      );
+      expectPoseClose(poseAt(samples, time, impulseT, laterPlannedT), poseAt(samples, time, impulseT, null), 12);
     }
   });
 
   it('comes to rest at the first held-tail knot without post-finish overshoot', () => {
-    const finish = rigidBat(0.60, { x: 0.28, y: 1.30, z: 8.82 }, 104);
+    const finish = rigidBat(0.6, { x: 0.28, y: 1.3, z: 8.82 }, 104);
     const samples = [
-      rigidBat(0.00, { x: -0.20, y: 1.10, z: 9.20 }, -30),
-      rigidBat(0.20, { x: -0.08, y: 1.32, z: 9.08 }, 5),
-      rigidBat(0.40, { x: 0.12, y: 1.12, z: 8.94 }, 55),
+      rigidBat(0.0, { x: -0.2, y: 1.1, z: 9.2 }, -30),
+      rigidBat(0.2, { x: -0.08, y: 1.32, z: 9.08 }, 5),
+      rigidBat(0.4, { x: 0.12, y: 1.12, z: 8.94 }, 55),
       finish,
-      { ...finish, t: 0.80, grip: { ...finish.grip }, toe: { ...finish.toe }, face: { ...finish.face } },
-      { ...finish, t: 1.00, grip: { ...finish.grip }, toe: { ...finish.toe }, face: { ...finish.face } },
+      { ...finish, t: 0.8, grip: { ...finish.grip }, toe: { ...finish.toe }, face: { ...finish.face } },
+      { ...finish, t: 1.0, grip: { ...finish.grip }, toe: { ...finish.toe }, face: { ...finish.face } },
     ];
     const epsilon = 0.00001;
     const before = poseAt(samples, finish.t - epsilon);
     const atFinish = poseAt(samples, finish.t);
     const after = poseAt(samples, finish.t + epsilon);
-    const translationalSpeed = Math.hypot(
-      atFinish.grip.x - before.grip.x,
-      atFinish.grip.y - before.grip.y,
-      atFinish.grip.z - before.grip.z,
-    ) / epsilon;
+    const translationalSpeed =
+      Math.hypot(atFinish.grip.x - before.grip.x, atFinish.grip.y - before.grip.y, atFinish.grip.z - before.grip.z) /
+      epsilon;
     expect(translationalSpeed).toBeLessThan(0.01);
     expectPoseClose(atFinish, { grip: finish.grip, toe: finish.toe, face: finish.face }, 12);
     expectPoseClose(after, atFinish, 12);
@@ -387,37 +381,28 @@ describe('rigid C1 bat trace interpolation', () => {
   it('does not invent an impulse boundary when two knots are within the contact round-trip tolerance', () => {
     const contactT = 0.5;
     const samples = [
-      rigidBat(0.2, { x: 0.00, y: 1.10, z: 9.10 }, 0),
-      rigidBat(contactT - 5e-13, { x: 0.20, y: 1.18, z: 9.00 }, 24),
+      rigidBat(0.2, { x: 0.0, y: 1.1, z: 9.1 }, 0),
+      rigidBat(contactT - 5e-13, { x: 0.2, y: 1.18, z: 9.0 }, 24),
       rigidBat(contactT, { x: 0.21, y: 1.17, z: 8.99 }, 25),
-      rigidBat(0.8, { x: -0.15, y: 1.10, z: 9.10 }, -10),
+      rigidBat(0.8, { x: -0.15, y: 1.1, z: 9.1 }, -10),
     ];
     expect(poseAt(samples, 0.5001, contactT)).toEqual(poseAt(samples, 0.5001));
   });
 
   it('takes the deterministic shortest arc across quaternion signs and an exact pi tie', () => {
-    const signCrossing = [
-      rigidBat(0.2, { x: 0, y: 1.1, z: 9 }, 170),
-      rigidBat(0.8, { x: 0, y: 1.1, z: 9 }, -170),
-    ];
+    const signCrossing = [rigidBat(0.2, { x: 0, y: 1.1, z: 9 }, 170), rigidBat(0.8, { x: 0, y: 1.1, z: 9 }, -170)];
     const signAxis = axis(poseAt(signCrossing, 0.5));
     expect(signAxis.x).toBeLessThan(-0.999999);
     expect(Math.abs(signAxis.y)).toBeLessThan(0.000001);
 
-    const piTie = [
-      rigidBat(0.2, { x: 0, y: 1.1, z: 9 }, 0),
-      rigidBat(0.8, { x: 0, y: 1.1, z: 9 }, 180),
-    ];
+    const piTie = [rigidBat(0.2, { x: 0, y: 1.1, z: 9 }, 0), rigidBat(0.8, { x: 0, y: 1.1, z: 9 }, 180)];
     const tieAxis = axis(poseAt(piTie, 0.5));
     expect(Math.abs(tieAxis.x)).toBeLessThan(0.000001);
     expect(tieAxis.y).toBeGreaterThan(0.999999);
   });
 
   it('never serves a stale prepared path when a mutable diagnostic trace changes', () => {
-    const samples = [
-      rigidBat(0.2, { x: 0, y: 1.1, z: 9 }, 0),
-      rigidBat(0.8, { x: 0.4, y: 1.3, z: 8.8 }, 40),
-    ];
+    const samples = [rigidBat(0.2, { x: 0, y: 1.1, z: 9 }, 0), rigidBat(0.8, { x: 0.4, y: 1.3, z: 8.8 }, 40)];
     const before = poseAt(samples, 0.5);
     samples[1].grip.x += 0.3;
     samples[1].toe.x += 0.3;

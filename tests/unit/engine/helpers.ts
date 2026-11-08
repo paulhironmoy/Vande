@@ -16,11 +16,24 @@ import { SUPER_BALL_INDEX } from '@/contracts/cricket';
 import { engine } from '@/engine';
 import { rngFromKey, type Sfc32 } from '@/engine/prng';
 import { battingInputFor, fitBudget, fitSuperBall, type DeliverySpec } from '@/engine/v1/policies';
-import { ALLOWED_LENGTHS, FIELD_SETTINGS, INTENSITIES, INTENTS, LEGAL_ZONES, LINES, PITCHES, SHOTS, VARIANTS, WEATHERS } from '@/engine/v1/tables';
+import {
+  ALLOWED_LENGTHS,
+  FIELD_SETTINGS,
+  INTENSITIES,
+  INTENTS,
+  LEGAL_ZONES,
+  LINES,
+  PITCHES,
+  SHOTS,
+  VARIANTS,
+  WEATHERS,
+} from '@/engine/v1/tables';
 import { synthExecutionTrace } from '@/engine/v1/traces';
 
 export const ALL_VARIANTS: readonly DeliveryVariant[] = VARIANTS;
-export const CONDITIONS: readonly Conditions[] = PITCHES.flatMap((pitch) => WEATHERS.map((weather) => ({ pitch, weather })));
+export const CONDITIONS: readonly Conditions[] = PITCHES.flatMap((pitch) =>
+  WEATHERS.map((weather) => ({ pitch, weather })),
+);
 
 export function hexSeed(rng: Sfc32): string {
   let s = '';
@@ -32,11 +45,22 @@ export function hexSeed(rng: Sfc32): string {
 export function randomPlan(rng: Sfc32, sigma = 40, variants: readonly DeliveryVariant[] = ALL_VARIANTS): OverPlan {
   const spec = (): DeliverySpec => {
     const variant = rng.pick(variants);
-    return { variant, line: rng.pick(LINES), length: rng.pick(ALLOWED_LENGTHS[variant]), intensity: rng.pick(INTENSITIES), intent: rng.pick(INTENTS) };
+    return {
+      variant,
+      line: rng.pick(LINES),
+      length: rng.pick(ALLOWED_LENGTHS[variant]),
+      intensity: rng.pick(INTENSITIES),
+      intent: rng.pick(INTENTS),
+    };
   };
   const gesture = (): InputTrace => synthExecutionTrace(rng, 800 + rng.normal() * sigma);
   const balls = fitBudget([0, 1, 2, 3, 4, 5].map(spec)).map((d): DeliveryPlan => ({ ...d, gesture: gesture() }));
-  return { v: 1, field: rng.pick(FIELD_SETTINGS), balls: balls as OverPlan['balls'], superBall: { ...fitSuperBall(spec()), gesture: gesture() } };
+  return {
+    v: 1,
+    field: rng.pick(FIELD_SETTINGS),
+    balls: balls as OverPlan['balls'],
+    superBall: { ...fitSuperBall(spec()), gesture: gesture() },
+  };
 }
 
 /** A valid batting input: random legal shot and zone, tap error N(0, sigma) (or no tap with probability pNoTap). */
@@ -44,13 +68,26 @@ export function randomInput(rng: Sfc32, delivery: RevealedDelivery, sigma = 60, 
   const shot = rng.pick(SHOTS);
   const zones = LEGAL_ZONES[shot];
   const zone = zones.length ? rng.pick(zones) : null;
-  const tap = shot === 'leave' || rng.float() < pNoTap ? null : delivery.timing.releaseToContactMs + rng.normal() * sigma;
+  const tap =
+    shot === 'leave' || rng.float() < pNoTap ? null : delivery.timing.releaseToContactMs + rng.normal() * sigma;
   return battingInputFor(rng, delivery, shot, zone, tap);
 }
 
 export const PLAYERS: [PlayerRef, PlayerRef] = [
-  { id: 'p-alpha', alias: 'Alpha', avatar: { seed: 'alpha' }, kit: { id: 'kit-a', primary: '#1b1f5e', secondary: '#21d4fd', pattern: 'stripes' }, kind: 'human' },
-  { id: 'p-bravo', alias: 'Bravo', avatar: { seed: 'bravo' }, kit: { id: 'kit-b', primary: '#5e1b3a', secondary: '#ffb347', pattern: 'hoops' }, kind: 'human' },
+  {
+    id: 'p-alpha',
+    alias: 'Alpha',
+    avatar: { seed: 'alpha' },
+    kit: { id: 'kit-a', primary: '#1b1f5e', secondary: '#21d4fd', pattern: 'stripes' },
+    kind: 'human',
+  },
+  {
+    id: 'p-bravo',
+    alias: 'Bravo',
+    avatar: { seed: 'bravo' },
+    kit: { id: 'kit-b', primary: '#5e1b3a', secondary: '#ffb347', pattern: 'hoops' },
+    kind: 'human',
+  },
 ];
 
 export interface PlayedMatch {
@@ -85,9 +122,19 @@ export function playBoth(
   return { seed, conditions, plans, inputs, states };
 }
 
-export async function commitsFor(plans: [OverPlan, OverPlan], salts: [string, string] = ['salt-zero', 'salt-one']): Promise<[CommitRecord, CommitRecord]> {
+export async function commitsFor(
+  plans: [OverPlan, OverPlan],
+  salts: [string, string] = ['salt-zero', 'salt-one'],
+): Promise<[CommitRecord, CommitRecord]> {
   return Promise.all(
-    [0, 1].map(async (p) => ({ player: p as 0 | 1, hash: await engine.commitHash(plans[p], salts[p]), sig: 'ab'.repeat(32), keyId: 'test-key', lockedHour: '2026-10-25T09', salt: salts[p] })),
+    [0, 1].map(async (p) => ({
+      player: p as 0 | 1,
+      hash: await engine.commitHash(plans[p], salts[p]),
+      sig: 'ab'.repeat(32),
+      keyId: 'test-key',
+      lockedHour: '2026-10-25T09',
+      salt: salts[p],
+    })),
   ) as Promise<[CommitRecord, CommitRecord]>;
 }
 
@@ -111,7 +158,9 @@ export function randomMatch(key: string, opts: { sigma?: number; pUnanswered?: n
   const rng = rngFromKey(`test/match|${key}`);
   const conditions = rng.pick(CONDITIONS);
   const plans: [OverPlan, OverPlan] = [randomPlan(rng), randomPlan(rng)];
-  return playBoth(hexSeed(rng), conditions, plans, (_i, d) => (rng.float() < (opts.pUnanswered ?? 0.03) ? null : randomInput(rng, d, opts.sigma ?? 60)));
+  return playBoth(hexSeed(rng), conditions, plans, (_i, d) =>
+    rng.float() < (opts.pUnanswered ?? 0.03) ? null : randomInput(rng, d, opts.sigma ?? 60),
+  );
 }
 
 /** Deep copy through JSON (what a stored log looks like after a round trip). */

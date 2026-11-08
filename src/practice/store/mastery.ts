@@ -3,7 +3,14 @@
  * ball again later continues where it was left. The coach engine decides progress (never one lucky result); this
  * file only keeps the states, validated on every read and bounded to the most recently practised balls.
  */
-import { PRACTICE_SIM_VERSION, type ContactKind, type Decision, type MasteryAttempt, type MasteryState, type PlayedFootwork } from '@/contracts';
+import {
+  PRACTICE_SIM_VERSION,
+  type ContactKind,
+  type Decision,
+  type MasteryAttempt,
+  type MasteryState,
+  type PlayedFootwork,
+} from '@/contracts';
 import { PRACTICE_KEYS, isInt, isNum, isObj, localStore, readJson, writeJson, type KeyStore } from './storage';
 
 /** Balls kept (least recently practised dropped first), and attempts kept per ball. */
@@ -13,7 +20,17 @@ const MASTERY_MAX_ATTEMPTS = 40;
 const STAGES: readonly number[] = [1, 2, 3, 4];
 const DECISIONS: readonly Decision[] = ['leave', 'defend', 'attack'];
 const FOOTWORK: readonly PlayedFootwork[] = ['forward', 'back', 'across', 'down_track'];
-const CONTACTS: readonly ContactKind[] = ['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge', 'pad', 'body', 'miss', 'leave'];
+const CONTACTS: readonly ContactKind[] = [
+  'middle',
+  'inside_edge',
+  'outside_edge',
+  'top_edge',
+  'leading_edge',
+  'pad',
+  'body',
+  'miss',
+  'leave',
+];
 
 function isAttempt(v: unknown): v is MasteryAttempt {
   return (
@@ -30,7 +47,16 @@ function isAttempt(v: unknown): v is MasteryAttempt {
 }
 
 function isMasteryStateShape(v: unknown): v is MasteryState {
-  return isObj(v) && typeof v.key === 'string' && v.key.length > 0 && v.key.length < 300 && STAGES.includes(v.stage as number) && Array.isArray(v.attempts) && v.attempts.every(isAttempt) && typeof v.mastered === 'boolean';
+  return (
+    isObj(v) &&
+    typeof v.key === 'string' &&
+    v.key.length > 0 &&
+    v.key.length < 300 &&
+    STAGES.includes(v.stage as number) &&
+    Array.isArray(v.attempts) &&
+    v.attempts.every(isAttempt) &&
+    typeof v.mastered === 'boolean'
+  );
 }
 
 interface Saved {
@@ -65,4 +91,3 @@ export function saveMastery(state: MasteryState, store: KeyStore | null = localS
 export function allMastery(store: KeyStore | null = localStore()): MasteryState[] {
   return load(store).items;
 }
-

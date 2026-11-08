@@ -39,14 +39,22 @@ export function FormReport({ report }: { report: Report }) {
                 <span className={s.bar} aria-hidden="true">
                   <span style={{ width: `${Math.max(2, Math.min(100, r.score ?? 0))}%` }} />
                 </span>
-                <span className={`${sys.num} ${s.formScore}`}>{t.t('practice.form.score', { score: Math.round(r.score ?? 0) })}</span>
-                <span className={`${sys.caption} ${sys.num}`}>{trend === null || trend === 0 ? '' : t.t(trend > 0 ? 'practice.form.up' : 'practice.form.down', { n: Math.abs(trend) })}</span>
+                <span className={`${sys.num} ${s.formScore}`}>
+                  {t.t('practice.form.score', { score: Math.round(r.score ?? 0) })}
+                </span>
+                <span className={`${sys.caption} ${sys.num}`}>
+                  {trend === null || trend === 0
+                    ? ''
+                    : t.t(trend > 0 ? 'practice.form.up' : 'practice.form.down', { n: Math.abs(trend) })}
+                </span>
               </li>
             );
           })}
         </ul>
       )}
-      <p className={sys.caption}>{t.t('practice.form.not_measured', { list: unmeasured.map((k) => skillName(t, k)).join(', ') })}</p>
+      <p className={sys.caption}>
+        {t.t('practice.form.not_measured', { list: unmeasured.map((k) => skillName(t, k)).join(', ') })}
+      </p>
     </section>
   );
 }

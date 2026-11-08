@@ -54,7 +54,18 @@ describe('Practice native switch', () => {
   });
 
   it('prefers the visible setting label over an alternative aria-label', () => {
-    render(<><span id="sound-label">Match sound</span><PSwitch labelledBy="sound-label" label="Ignored fallback" checked={false} onChange={vi.fn()} testId="sound-switch" /></>);
+    render(
+      <>
+        <span id="sound-label">Match sound</span>
+        <PSwitch
+          labelledBy="sound-label"
+          label="Ignored fallback"
+          checked={false}
+          onChange={vi.fn()}
+          testId="sound-switch"
+        />
+      </>,
+    );
     const control = screen.getByRole('switch', { name: 'Match sound' });
     expect(control.getAttribute('aria-labelledby')).toBe('sound-label');
     expect(control.hasAttribute('aria-label')).toBe(false);
@@ -64,7 +75,11 @@ describe('Practice native switch', () => {
   it('does not submit a surrounding form', () => {
     const onSubmit = vi.fn((event: FormEvent) => event.preventDefault());
     const onChange = vi.fn();
-    render(<form onSubmit={onSubmit}><PSwitch label="Sound" checked={false} onChange={onChange} /></form>);
+    render(
+      <form onSubmit={onSubmit}>
+        <PSwitch label="Sound" checked={false} onChange={onChange} />
+      </form>,
+    );
     (screen.getByRole('switch') as HTMLButtonElement).click();
     expect(onChange.mock.calls).toEqual([[true]]);
     expect(onSubmit).not.toHaveBeenCalled();

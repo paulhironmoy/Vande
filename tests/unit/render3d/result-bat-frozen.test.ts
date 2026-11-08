@@ -6,7 +6,14 @@
  * changes no value: what is drawn is bit for bit what it was (bat-exact.test.ts has the corpus).
  */
 import { describe, expect, it } from 'vitest';
-import type { BatSample, BowlerProfile, CoachOption, DeliveryResult, NormalizedSwing, QualityProfileId } from '@/contracts/practice';
+import type {
+  BatSample,
+  BowlerProfile,
+  CoachOption,
+  DeliveryResult,
+  NormalizedSwing,
+  QualityProfileId,
+} from '@/contracts/practice';
 import { autoField, batTravelMs, flight, resolveDelivery } from '@/physics';
 import { freezeBatTrace } from '@/render3d/practice/bat';
 import { batAt } from '@/render3d/practice/frame';
@@ -14,12 +21,39 @@ import { PracticeSessionBase, type StageClock, type StageFrame } from '@/render3
 import type { PracticeMountOptions, PracticeSceneSetup, PracticeSink } from '@/render3d/practice/types';
 
 const PACE: BowlerProfile = { family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'frozen-pace' };
-const setupOf = (): PracticeSceneSetup => ({ field: autoField(PACE, 'balanced', 'right'), bowler: PACE, conditions: 'balanced', handedness: 'right' });
+const setupOf = (): PracticeSceneSetup => ({
+  field: autoField(PACE, 'balanced', 'right'),
+  bowler: PACE,
+  conditions: 'balanced',
+  handedness: 'right',
+});
 
 function resultOf(seed: string, errMs = 0): DeliveryResult {
-  const fl = flight({ plan: { variation: 'stock', lengthM: 5, lineM: 0.1, speedKph: 136 }, bowler: PACE, conditions: 'balanced', seed, handedness: 'right' });
-  const swing: NormalizedSwing = { kind: 'defend', startT: fl.idealContactT - batTravelMs('defend', 0.2) / 1000 + errMs / 1000, directionDeg: 0, power: 0.2, elevation: 0, footwork: 'auto' };
-  return resolveDelivery({ flight: fl, swing, field: setupOf().field, bowler: PACE, conditions: 'balanced', handedness: 'right', assist: 'real', tierToleranceMs: 0 });
+  const fl = flight({
+    plan: { variation: 'stock', lengthM: 5, lineM: 0.1, speedKph: 136 },
+    bowler: PACE,
+    conditions: 'balanced',
+    seed,
+    handedness: 'right',
+  });
+  const swing: NormalizedSwing = {
+    kind: 'defend',
+    startT: fl.idealContactT - batTravelMs('defend', 0.2) / 1000 + errMs / 1000,
+    directionDeg: 0,
+    power: 0.2,
+    elevation: 0,
+    footwork: 'auto',
+  };
+  return resolveDelivery({
+    flight: fl,
+    swing,
+    field: setupOf().field,
+    bowler: PACE,
+    conditions: 'balanced',
+    handedness: 'right',
+    assist: 'real',
+    tierToleranceMs: 0,
+  });
 }
 
 /** The result as the worker delivers it: a structured-clone copy, nothing frozen. */
@@ -28,7 +62,10 @@ function thawed(result: DeliveryResult): DeliveryResult {
 }
 
 const deeplyFrozen = (samples: readonly BatSample[]) =>
-  Object.isFrozen(samples) && samples.every((s) => Object.isFrozen(s) && Object.isFrozen(s.grip) && Object.isFrozen(s.toe) && Object.isFrozen(s.face));
+  Object.isFrozen(samples) &&
+  samples.every(
+    (s) => Object.isFrozen(s) && Object.isFrozen(s.grip) && Object.isFrozen(s.toe) && Object.isFrozen(s.face),
+  );
 
 describe('freezeBatTrace', () => {
   it('freezes a thawed trace in place without changing a value, and does it once', () => {
@@ -46,7 +83,11 @@ describe('freezeBatTrace', () => {
   });
 
   it('leaves batAt bit for bit as it was, on a thawed trace and on its frozen copy', () => {
-    for (const [seed, err] of [['frozen:b', 0], ['frozen:c', -30], ['frozen:d', 25]] as const) {
+    for (const [seed, err] of [
+      ['frozen:b', 0],
+      ['frozen:c', -30],
+      ['frozen:d', 25],
+    ] as const) {
       const result = resultOf(seed, err);
       const loose = thawed(result).bat;
       const kept = thawed(result).bat;
@@ -80,13 +121,24 @@ describe('the stage', () => {
       throw new Error('not used');
     }
   }
-  const clock: StageClock = { now: () => 1000, raf: () => 1, caf: () => undefined, setTimer: () => 1, clearTimer: () => undefined };
+  const clock: StageClock = {
+    now: () => 1000,
+    raf: () => 1,
+    caf: () => undefined,
+    setTimer: () => 1,
+    clearTimer: () => undefined,
+  };
   const sink: PracticeSink = { cue: () => undefined, crowd: () => undefined, feel: () => undefined };
 
   async function mounted() {
     const stage = new TestStage(clock);
     stage.setSink(sink);
-    await stage.mount({} as HTMLCanvasElement, { profile: 'standard', handedness: 'right', reducedMotion: false, learnCue: false });
+    await stage.mount({} as HTMLCanvasElement, {
+      profile: 'standard',
+      handedness: 'right',
+      reducedMotion: false,
+      learnCue: false,
+    });
     stage.setScene(setupOf());
     return stage;
   }

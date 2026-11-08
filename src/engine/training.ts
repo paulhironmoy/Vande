@@ -8,7 +8,19 @@
  * no verifier). Randomness is limited to the seed and the commit salts (crypto.getRandomValues, the same fallback as
  * newSeed); everything that decides an outcome is deterministic.
  */
-import type { BattingInput, CommitRecord, Conditions, DeliveryPlan, InningsState, InputTrace, KitSpec, MatchEventLog, OverPlan, PlayerRef, RevealedDelivery } from '@/contracts';
+import type {
+  BattingInput,
+  CommitRecord,
+  Conditions,
+  DeliveryPlan,
+  InningsState,
+  InputTrace,
+  KitSpec,
+  MatchEventLog,
+  OverPlan,
+  PlayerRef,
+  RevealedDelivery,
+} from '@/contracts';
 import { canonicalJson, commitHash } from './canonical';
 import { rngFromKey } from './prng';
 import { validateBattingInput } from './v1/batting';
@@ -42,7 +54,14 @@ const COACH: ReadonlyArray<TrainingDelivery & { releaseMs: number }> = [
   { variant: 'yorker', line: 'middle', length: 'full', intensity: 1, intent: 'attack', releaseMs: 790 },
   { variant: 'good_length', line: 'wide_off', length: 'short', intensity: 1, intent: 'contain', releaseMs: 758 },
 ];
-const COACH_SUPER: TrainingDelivery & { releaseMs: number } = { variant: 'yorker', line: 'middle', length: 'full', intensity: 1, intent: 'attack', releaseMs: 806 };
+const COACH_SUPER: TrainingDelivery & { releaseMs: number } = {
+  variant: 'yorker',
+  line: 'middle',
+  length: 'full',
+  intensity: 1,
+  intent: 'attack',
+  releaseMs: 806,
+};
 
 /**
  * Suggested deliveries for the player's bowling lesson. The lesson ball is ball 1 of their over (one of the four
@@ -97,7 +116,14 @@ export function newTrainingSeed(): string {
   return hex(16);
 }
 
-const withGesture = (d: TrainingDelivery, gesture: InputTrace): DeliveryPlan => ({ variant: d.variant, line: d.line, length: d.length, intensity: d.intensity, intent: d.intent, gesture });
+const withGesture = (d: TrainingDelivery, gesture: InputTrace): DeliveryPlan => ({
+  variant: d.variant,
+  line: d.line,
+  length: d.length,
+  intensity: d.intensity,
+  intent: d.intent,
+  gesture,
+});
 
 function assertLegal(plan: OverPlan, what: string): OverPlan {
   const v = validatePlan(plan, STARTER_VARIANTS);
@@ -107,20 +133,31 @@ function assertLegal(plan: OverPlan, what: string): OverPlan {
 
 /** The coach's over, with fixed human-like releases (ball 1 is a good release, never a perfect one). */
 export function trainingCoachOver(): OverPlan {
-  const g = (d: { releaseMs: number }, i: number) => synthExecutionTrace(rngFromKey(`vande/training/coach|${i}`), d.releaseMs);
+  const g = (d: { releaseMs: number }, i: number) =>
+    synthExecutionTrace(rngFromKey(`vande/training/coach|${i}`), d.releaseMs);
   const balls = COACH.map((d, i) => withGesture(d, g(d, i))) as OverPlan['balls'];
-  return assertLegal({ v: 1, field: 'balanced', balls, superBall: withGesture(COACH_SUPER, g(COACH_SUPER, 6)) }, 'coach over');
+  return assertLegal(
+    { v: 1, field: 'balanced', balls, superBall: withGesture(COACH_SUPER, g(COACH_SUPER, 6)) },
+    'coach over',
+  );
 }
 
 export function trainingSetup(seed: string = newTrainingSeed()): TrainingSetup {
-  return { conditions: { ...TRAINING_CONDITIONS }, ghostId: TRAINING_GHOST_ID, coachOver: trainingCoachOver(), lesson: TRAINING_LESSON, seed };
+  return {
+    conditions: { ...TRAINING_CONDITIONS },
+    ghostId: TRAINING_GHOST_ID,
+    coachOver: trainingCoachOver(),
+    lesson: TRAINING_LESSON,
+    seed,
+  };
 }
 
 /** An ordinary release (spread 35 ms), kept out of the "superhuman" window so the over can never look scripted. */
 function ordinaryGesture(seed: string, i: number): InputTrace {
   const rng = rngFromKey(`vande/training/lesson|${seed}|${i}`);
   let r = releaseFor(rng, 35);
-  if (Math.abs(r - METER.sweetMs) <= SUPERHUMAN_MS) r = METER.sweetMs + (r < METER.sweetMs ? -1 : 1) * (SUPERHUMAN_MS + 3);
+  if (Math.abs(r - METER.sweetMs) <= SUPERHUMAN_MS)
+    r = METER.sweetMs + (r < METER.sweetMs ? -1 : 1) * (SUPERHUMAN_MS + 3);
   return synthExecutionTrace(rng, r);
 }
 
@@ -131,11 +168,15 @@ function ordinaryGesture(seed: string, i: number): InputTrace {
  * an ordinary release, so the over is always legal. Throws for a non-starter variant (and for an illegal length or intensity).
  */
 export function trainingPlan(lessonBall: TrainingDelivery, gesture: InputTrace | null, seed: string): OverPlan {
-  if (!(STARTER_VARIANTS as readonly string[]).includes(lessonBall.variant)) throw new Error(`engine: ${lessonBall.variant} is not a starter delivery`);
+  if (!(STARTER_VARIANTS as readonly string[]).includes(lessonBall.variant))
+    throw new Error(`engine: ${lessonBall.variant} is not a starter delivery`);
   const over = (first: InputTrace): OverPlan => ({
     v: 1,
     field: TRAINING_LESSON.field,
-    balls: [withGesture(lessonBall, first), ...TRAINING_LESSON.rest.map((d, i) => withGesture(d, ordinaryGesture(seed, i + 1)))] as OverPlan['balls'],
+    balls: [
+      withGesture(lessonBall, first),
+      ...TRAINING_LESSON.rest.map((d, i) => withGesture(d, ordinaryGesture(seed, i + 1))),
+    ] as OverPlan['balls'],
     superBall: withGesture(TRAINING_LESSON.superBall, ordinaryGesture(seed, 6)),
   });
   if (gesture && executionQuality(gesture).ok) {
@@ -148,11 +189,23 @@ export function trainingPlan(lessonBall: TrainingDelivery, gesture: InputTrace |
 
 /** The tutorial ghost as a player in the log (the alias and kit come from the app). */
 export function trainingCoachRef(alias: string, kit: KitSpec): PlayerRef {
-  return { id: `ghost_${TRAINING_GHOST_ID}`, alias, avatar: { seed: `coach-${TRAINING_GHOST_ID}` }, kit, kind: 'ghost' };
+  return {
+    id: `ghost_${TRAINING_GHOST_ID}`,
+    alias,
+    avatar: { seed: `coach-${TRAINING_GHOST_ID}` },
+    kit,
+    kind: 'ghost',
+  };
 }
 
 /** Plays a whole innings (six balls and the Super Ball); `answer` proposes each input, invalid ones become unanswered. */
-function playInnings(innings: 0 | 1, plan: OverPlan, conditions: Conditions, seed: string, answer: (k: number, d: RevealedDelivery) => BattingInput | null): { state: InningsState; inputs: Array<BattingInput | null> } {
+function playInnings(
+  innings: 0 | 1,
+  plan: OverPlan,
+  conditions: Conditions,
+  seed: string,
+  answer: (k: number, d: RevealedDelivery) => BattingInput | null,
+): { state: InningsState; inputs: Array<BattingInput | null> } {
   let state = startInnings(innings);
   const inputs: Array<BattingInput | null> = [];
   while (!state.done) {
@@ -194,8 +247,12 @@ export async function buildTrainingLog(a: BuildTrainingLogArgs): Promise<MatchEv
   assertLegal(a.plan, 'over');
   assertLegal(coachOver, 'coach over');
   const finish = a.finish ?? 'auto';
-  const mine = playInnings(0, coachOver, conditions, seed, (k, d) => (k < a.inputs.length ? a.inputs[k] : finish === 'auto' ? autoBat(`${seed}:training:auto`, d, coachOver.field) : null));
-  const theirs = playInnings(1, a.plan, conditions, seed, (_k, d) => ghostBat(ghostId, `${seed}:training:coach`, d, a.plan.field));
+  const mine = playInnings(0, coachOver, conditions, seed, (k, d) =>
+    k < a.inputs.length ? a.inputs[k] : finish === 'auto' ? autoBat(`${seed}:training:auto`, d, coachOver.field) : null,
+  );
+  const theirs = playInnings(1, a.plan, conditions, seed, (_k, d) =>
+    ghostBat(ghostId, `${seed}:training:coach`, d, a.plan.field),
+  );
   const salts = a.salts ?? [hex(16), hex(16)];
   const [h0, h1] = await Promise.all([commitHash(a.plan, salts[0]), commitHash(coachOver, salts[1])]);
   const hour = a.hour ?? TRAINING_HOUR;

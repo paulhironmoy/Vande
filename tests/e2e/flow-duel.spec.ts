@@ -5,7 +5,9 @@ import { ADULT_YEAR, batInnings, newPhone, onboard, planAndLock, resultLine } fr
  * The core loop across every workstream: invite → lock → bat asynchronously → anticipation → reveal → rematch, with
  * two players on two phones against the real backend and engine. Nothing about the result may show before the reveal.
  */
-test('Friend Duel end to end: invite in the browser, both overs sealed, both innings, the same verified reveal', async ({ browser }) => {
+test('Friend Duel end to end: invite in the browser, both overs sealed, both innings, the same verified reveal', async ({
+  browser,
+}) => {
   test.setTimeout(8 * 60_000);
   const a = await newPhone(browser);
   const b = await newPhone(browser);

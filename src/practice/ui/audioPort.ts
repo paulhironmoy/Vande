@@ -3,7 +3,17 @@
  * the physics): the independent sound settings, captions, the interface cues, the mastery confirmation and the match
  * context for the stage's emotion signals.
  */
-import { AUDIO_LEVELS, deliveryContext, getAudioSettings, onCaption, playMasteryFeel, playUiCue, resetAudioSettings, setAudioSettings, subscribeAudioSettings } from '@/audio';
+import {
+  AUDIO_LEVELS,
+  deliveryContext,
+  getAudioSettings,
+  onCaption,
+  playMasteryFeel,
+  playUiCue,
+  resetAudioSettings,
+  setAudioSettings,
+  subscribeAudioSettings,
+} from '@/audio';
 import type { AudioKit } from './flow/types';
 
 export const audioKit: AudioKit | null = {

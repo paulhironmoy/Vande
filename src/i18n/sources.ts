@@ -25,7 +25,11 @@ const appLoaders = import.meta.glob(['./catalogs/*.ts', '!./catalogs/en.ts']) as
 const engineLoaders = import.meta.glob('./engine/*.json') as Record<string, Loader>;
 const socialLoaders = import.meta.glob(['./social/*.ts', '!./social/en.ts']) as Record<string, Loader>;
 
-const LOADERS: Record<SourceId, Record<string, Loader>> = { app: appLoaders, engine: engineLoaders, social: socialLoaders };
+const LOADERS: Record<SourceId, Record<string, Loader>> = {
+  app: appLoaders,
+  engine: engineLoaders,
+  social: socialLoaders,
+};
 
 /** Prefixes reserved for the social workstream's own catalogs (gameplay's are whatever its English JSON uses). */
 export const SOCIAL_PREFIXES = ['social', 'banter'] as const;
@@ -119,9 +123,15 @@ export async function loadLocale(locale: LocaleId): Promise<FlatCatalog> {
 }
 
 /** Loads the English sources (the fallback for every locale) and the given locale. */
-export async function ensureI18n(locale: LocaleId, opts: { engine?: boolean } = {}): Promise<{ english: FlatCatalog; catalog: FlatCatalog }> {
+export async function ensureI18n(
+  locale: LocaleId,
+  opts: { engine?: boolean } = {},
+): Promise<{ english: FlatCatalog; catalog: FlatCatalog }> {
   const wantEngine = opts.engine !== false;
-  await Promise.all([loadSource('app', locale), ...(wantEngine ? [loadSource('engine', locale), loadSource('engine', 'en')] : [])]);
+  await Promise.all([
+    loadSource('app', locale),
+    ...(wantEngine ? [loadSource('engine', locale), loadSource('engine', 'en')] : []),
+  ]);
   const c = currentCatalogs(locale);
   return { english: c.english, catalog: c.catalog };
 }

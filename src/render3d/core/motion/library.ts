@@ -12,7 +12,16 @@ import { registerFieldMotion } from '../fieldClips';
 import { createPoseOut, parsePack, sampleMotion, type MotionClip } from './vmp';
 
 /** The packs the Practice stage uses (MOTION-SPEC §4), in load order. */
-export const MOTION_PACKS = ['locomotion', 'batter', 'fielder', 'fielder_actions', 'keeper', 'bowler', 'nonstriker', 'batter_strokes'] as const;
+export const MOTION_PACKS = [
+  'locomotion',
+  'batter',
+  'fielder',
+  'fielder_actions',
+  'keeper',
+  'bowler',
+  'nonstriker',
+  'batter_strokes',
+] as const;
 /** Packs the field hook (WEB-FIELD) draws from. */
 const FIELD_PACKS = new Set(['locomotion', 'fielder', 'fielder_actions', 'keeper']);
 
@@ -65,7 +74,10 @@ export function motionBase(): string {
  * Fetches and decodes the packs once (resolves to the number of clips decoded). They wait in `pending` until the next
  * `commitMotion`. Safe to call again: the first load is shared.
  */
-export function loadMotionPacks(base = motionBase(), fetchBytes: (url: string) => Promise<ArrayBuffer | null> = defaultFetch): Promise<number> {
+export function loadMotionPacks(
+  base = motionBase(),
+  fetchBytes: (url: string) => Promise<ArrayBuffer | null> = defaultFetch,
+): Promise<number> {
   if (loading) return loading;
   loading = (async () => {
     const out: Loaded = { clips: new Map(), field: new Map(), bytes: 0 };
@@ -101,7 +113,10 @@ export function commitMotion(): boolean {
   committed = pending;
   pending = null;
   setMotionSources(new Map([...committed.clips].map(([id, clip]) => [id, source(clip)])));
-  registerFieldMotion({ clips: committed.field, sample: (clip, t, out) => sampleMotion(clip as MotionClip, t, out).contacts });
+  registerFieldMotion({
+    clips: committed.field,
+    sample: (clip, t, out) => sampleMotion(clip as MotionClip, t, out).contacts,
+  });
   return true;
 }
 

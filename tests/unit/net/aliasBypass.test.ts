@@ -29,7 +29,8 @@ describe('alias filter: review bypasses', () => {
   });
 
   it('refuses spelled-out abbreviations and the listed spellings', () => {
-    for (const bad of ['B C', 'M.C.', 'm c', 'B.S.D.K', 'fvck', 'phuk', 'Phuk Off']) expect(reason(bad), bad).toBe('offensive');
+    for (const bad of ['B C', 'M.C.', 'm c', 'B.S.D.K', 'fvck', 'phuk', 'Phuk Off'])
+      expect(reason(bad), bad).toBe('offensive');
     for (const bad of ['A D M I N', 'I.C.C']) expect(reason(bad), bad).toBe('reserved');
   });
 
@@ -42,7 +43,25 @@ describe('alias filter: review bypasses', () => {
   });
 
   it('still accepts names in every shipped script, accents and Indian transliteration', () => {
-    for (const ok of ['विराट कोहली', 'লক্ষ্মী', 'சச்சின்', 'ਸਿੰਘ ਜੀ', 'ધોની', 'ಕುಂಬ್ಳೆ', 'సచిన్', 'മോഹൻ', 'Virat विराट', 'José Ramírez', 'Zoë', "D'Souza", 'Kṛṣṇa Rao', 'Łukasz', 'Kohli18', 'B.C. Roy', 'MC Mary Kom Fan']) {
+    for (const ok of [
+      'विराट कोहली',
+      'লক্ষ্মী',
+      'சச்சின்',
+      'ਸਿੰਘ ਜੀ',
+      'ધોની',
+      'ಕುಂಬ್ಳೆ',
+      'సచిన్',
+      'മോഹൻ',
+      'Virat विराट',
+      'José Ramírez',
+      'Zoë',
+      "D'Souza",
+      'Kṛṣṇa Rao',
+      'Łukasz',
+      'Kohli18',
+      'B.C. Roy',
+      'MC Mary Kom Fan',
+    ]) {
       // 'MC Mary Kom Fan' stays refused by the whole-word rule for "MC"; everything else passes.
       if (ok === 'MC Mary Kom Fan') expect(reason(ok), ok).toBe('offensive');
       else expect(reason(ok), ok).toBe('ok');

@@ -42,8 +42,12 @@ describe('balance smoke simulation', () => {
 
   it('reading the ball beats lofting everything on every pitch', () => {
     for (const pitch of ['green', 'hard', 'slow'] as const) {
-      const oracle = battingCell({ strategy: 'oracle', skill: 'average' }, pitch, `ci-${pitch}`, 0, 400, { optimiser: false });
-      const loft = battingCell({ strategy: 'fixed:loft', skill: 'average' }, pitch, `ci-${pitch}`, 0, 400, { optimiser: false });
+      const oracle = battingCell({ strategy: 'oracle', skill: 'average' }, pitch, `ci-${pitch}`, 0, 400, {
+        optimiser: false,
+      });
+      const loft = battingCell({ strategy: 'fixed:loft', skill: 'average' }, pitch, `ci-${pitch}`, 0, 400, {
+        optimiser: false,
+      });
       expect(oracle.anomalies + loft.anomalies).toBe(0);
       expect(oracle.runs / oracle.innings).toBeGreaterThan((loft.runs / loft.innings) * 1.05);
       expect(loft.wickets / loft.innings).toBeGreaterThan(oracle.wickets / oracle.innings);

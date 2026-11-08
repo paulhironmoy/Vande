@@ -5,7 +5,10 @@
  */
 import type { Conditions, MatchEventLog, OverPlan, PlayerRef } from '@/contracts';
 
-export function practiceAgainst(log: MatchEventLog, me: 0 | 1): { conditions: Conditions; plan: OverPlan; opponent: PlayerRef } {
+export function practiceAgainst(
+  log: MatchEventLog,
+  me: 0 | 1,
+): { conditions: Conditions; plan: OverPlan; opponent: PlayerRef } {
   const other = me === 0 ? 1 : 0;
   return { conditions: log.conditions, plan: log.plans[other], opponent: log.players[other] };
 }

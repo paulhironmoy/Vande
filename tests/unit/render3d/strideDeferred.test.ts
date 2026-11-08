@@ -46,7 +46,12 @@ interface Case {
   afterRelease: number;
 }
 
-const setupOf = (eb: EvalBall, hand: Handedness): PracticeSceneSetup => ({ field: hand === 'right' ? eb.field : autoField(eb.over.bowler, eb.conditions, 'left', eb.over.ball), bowler: eb.over.bowler, conditions: eb.conditions, handedness: hand });
+const setupOf = (eb: EvalBall, hand: Handedness): PracticeSceneSetup => ({
+  field: hand === 'right' ? eb.field : autoField(eb.over.bowler, eb.conditions, 'left', eb.over.ball),
+  bowler: eb.over.bowler,
+  conditions: eb.conditions,
+  handedness: hand,
+});
 
 function corpus(): Case[] {
   const out: Case[] = [];
@@ -54,22 +59,63 @@ function corpus(): Case[] {
   const footworks: Footwork[] = ['auto', 'forward', 'back', 'across', 'down_track'];
   const add = (label: string, eb: EvalBall, hand: Handedness, fl: BallFlight, swing: NormalizedSwing | null) => {
     const setup = setupOf(eb, hand);
-    const result = resolveDelivery({ flight: fl, swing, field: setup.field, bowler: eb.over.bowler, conditions: eb.conditions, handedness: hand, assist: 'play', tierToleranceMs: 0 });
-    out.push({ label, setup, flight: fl, result, afterRelease: swing ? swing.startT * 1000 + 40 : fl.stumpsT * 1000 + 300 });
+    const result = resolveDelivery({
+      flight: fl,
+      swing,
+      field: setup.field,
+      bowler: eb.over.bowler,
+      conditions: eb.conditions,
+      handedness: hand,
+      assist: 'play',
+      tierToleranceMs: 0,
+    });
+    out.push({
+      label,
+      setup,
+      flight: fl,
+      result,
+      afterRelease: swing ? swing.startT * 1000 + 40 : fl.stumpsT * 1000 + 300,
+    });
   };
   const swingOf = (fl: BallFlight, n: number): NormalizedSwing => {
     const kind = n % 3 === 0 ? 'attack' : 'defend';
     const power = kind === 'attack' ? 0.35 + ((n * 17) % 60) / 100 : 0.2;
-    return { kind, startT: fl.idealContactT - batTravelMs(kind, power) / 1000 + (((n * 37) % 161) - 80) / 1000, directionDeg: ((n * 53) % 140) - 70, power, elevation: (n % 5) / 8, footwork: footworks[n % footworks.length] };
+    return {
+      kind,
+      startT: fl.idealContactT - batTravelMs(kind, power) / 1000 + (((n * 37) % 161) - 80) / 1000,
+      directionDeg: ((n * 53) % 140) - 70,
+      power,
+      elevation: (n % 5) / 8,
+      footwork: footworks[n % footworks.length],
+    };
   };
-  for (const eb of overBalls(REFERENCE_OVER, 'balanced')) for (let v = 0; v < 6; v++) add(`ref-${eb.ballIndex + 1} #${v}`, eb, 'right', eb.flight, v === 5 ? null : swingOf(eb.flight, k++));
+  for (const eb of overBalls(REFERENCE_OVER, 'balanced'))
+    for (let v = 0; v < 6; v++)
+      add(`ref-${eb.ballIndex + 1} #${v}`, eb, 'right', eb.flight, v === 5 ? null : swingOf(eb.flight, k++));
   for (const difficulty of ['beginner', 'club', 'expert'] as const) {
     for (const family of ['pace', 'spin'] as const) {
       evalOvers({ difficulty, overs: 4, key: `stride-deferred|${difficulty}|${family}`, family }).forEach((over, oi) =>
         over.forEach((eb) => {
           const hand: Handedness = oi % 2 === 1 ? 'left' : 'right';
-          const fl = hand === 'right' ? eb.flight : physicsFlight({ plan: eb.over.balls[eb.ballIndex], bowler: eb.over.bowler, conditions: eb.conditions, seed: eb.seed, ball: eb.over.ball, handedness: 'left' });
-          for (let v = 0; v < 4; v++) add(`${difficulty} ${family} over ${oi + 1} ball ${eb.ballIndex + 1} ${hand} #${v}`, eb, hand, fl, v === 3 ? null : swingOf(fl, k++));
+          const fl =
+            hand === 'right'
+              ? eb.flight
+              : physicsFlight({
+                  plan: eb.over.balls[eb.ballIndex],
+                  bowler: eb.over.bowler,
+                  conditions: eb.conditions,
+                  seed: eb.seed,
+                  ball: eb.over.ball,
+                  handedness: 'left',
+                });
+          for (let v = 0; v < 4; v++)
+            add(
+              `${difficulty} ${family} over ${oi + 1} ball ${eb.ballIndex + 1} ${hand} #${v}`,
+              eb,
+              hand,
+              fl,
+              v === 3 ? null : swingOf(fl, k++),
+            );
         }),
       );
     }
@@ -77,8 +123,10 @@ function corpus(): Case[] {
   return out;
 }
 
-const json = (x: unknown) => JSON.stringify(x, (k, v) => (k === 'result' || k === 'flight' || k === 'samples' ? undefined : v));
-const bitsEqual = (a: ArrayLike<number>, b: ArrayLike<number>) => a.length === b.length && Array.from({ length: a.length }).every((_, i) => Object.is(a[i], b[i]));
+const json = (x: unknown) =>
+  JSON.stringify(x, (k, v) => (k === 'result' || k === 'flight' || k === 'samples' ? undefined : v));
+const bitsEqual = (a: ArrayLike<number>, b: ArrayLike<number>) =>
+  a.length === b.length && Array.from({ length: a.length }).every((_, i) => Object.is(a[i], b[i]));
 
 describe('the deferred stride decision', () => {
   const cases = corpus();
@@ -116,7 +164,8 @@ describe('the deferred stride decision', () => {
   }, 240_000);
 
   it('made a slice at a time on the script’s hook, every pose of every actor is the eager build’s', () => {
-    const times = (rel: number, end: number) => Array.from({ length: 36 }, (_, i) => rel - 300 + (i * (end - rel + 300)) / 35);
+    const times = (rel: number, end: number) =>
+      Array.from({ length: 36 }, (_, i) => rel - 300 + (i * (end - rel + 300)) / 35);
     let sliced = 0;
     let governed = 0;
     let checked = 0;

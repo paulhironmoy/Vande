@@ -48,7 +48,8 @@ describe('one-gesture physics and coaching evidence', () => {
     const swing = swingFor(base, { directionDeg: 50, footwork: 'forward', errorMs: 0 });
     const { record, result } = play(base, swing);
     const offset = (metres: number) => SWEET_U + metres / BLADE_L;
-    const factsAt = (metres: number) => coachingFacts({ ...result, contact: { ...result.contact, bladeU: offset(metres) } }, record);
+    const factsAt = (metres: number) =>
+      coachingFacts({ ...result, contact: { ...result.contact, bladeU: offset(metres) } }, record);
 
     const justInside = factsAt(SWEET_ALONG_M - 0.00004);
     const justOutside = factsAt(SWEET_ALONG_M + 0.00004);
@@ -61,9 +62,18 @@ describe('one-gesture physics and coaching evidence', () => {
   });
 
   it.each([
-    { label: 'defence', opts: { kind: 'defend' as const, directionDeg: 0, elevation: 0, power: 0.15, footwork: 'back' as const } },
-    { label: 'ground stroke', opts: { kind: 'attack' as const, directionDeg: 35, elevation: 0.03, power: 0.62, footwork: 'forward' as const } },
-    { label: 'lofted stroke', opts: { kind: 'attack' as const, directionDeg: -115, elevation: 0.91, power: 0.87, footwork: 'back' as const } },
+    {
+      label: 'defence',
+      opts: { kind: 'defend' as const, directionDeg: 0, elevation: 0, power: 0.15, footwork: 'back' as const },
+    },
+    {
+      label: 'ground stroke',
+      opts: { kind: 'attack' as const, directionDeg: 35, elevation: 0.03, power: 0.62, footwork: 'forward' as const },
+    },
+    {
+      label: 'lofted stroke',
+      opts: { kind: 'attack' as const, directionDeg: -115, elevation: 0.91, power: 0.87, footwork: 'back' as const },
+    },
   ])('keeps $label as physical intent rather than selecting an outcome', ({ opts }) => {
     const base = referenceRecord('ref-3', 'real');
     const swing = swingFor(base, opts);
@@ -79,7 +89,9 @@ describe('one-gesture physics and coaching evidence', () => {
       requestedFootwork: opts.footwork,
     });
     expect(facts.intendedBearingDeg).toBe(opts.directionDeg);
-    expect(['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge', 'pad', 'body', 'miss']).toContain(result.contact.kind);
+    expect(['middle', 'inside_edge', 'outside_edge', 'top_edge', 'leading_edge', 'pad', 'body', 'miss']).toContain(
+      result.contact.kind,
+    );
   });
 
   it('repeats the exact ball and gesture deterministically, while a timing change remains causal', () => {

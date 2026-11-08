@@ -40,14 +40,38 @@ export function finalShareText(t: Translator, log: MatchEventLog): string {
 export function PrivateMatch() {
   const { t } = useT();
   const navigate = useRouter((st) => st.navigate);
-  return <StateView kind="locked" title={t('match.private_title')} body={t('match.private_body')} actionLabel={t('match.private_cta')} onAction={() => navigate({ name: 'home' })} />;
+  return (
+    <StateView
+      kind="locked"
+      title={t('match.private_title')}
+      body={t('match.private_body')}
+      actionLabel={t('match.private_cta')}
+      onAction={() => navigate({ name: 'home' })}
+    />
+  );
 }
 
 /**
  * The reveal: the cinematic replay, verified locally, with a spoiler-safe public share of the final card and the
  * rematch in all three states (ask for one; "Rematch sent", which can be sent again; the opponent's offer to accept).
  */
-export function RevealedView({ matchId, me, net, services, initialMode, rematch = null, opponentName = null }: { matchId: string; me?: 0 | 1; net: Net; services: Services | null; initialMode?: ReplayMode; rematch?: MatchView['rematch']; opponentName?: string | null }) {
+export function RevealedView({
+  matchId,
+  me,
+  net,
+  services,
+  initialMode,
+  rematch = null,
+  opponentName = null,
+}: {
+  matchId: string;
+  me?: 0 | 1;
+  net: Net;
+  services: Services | null;
+  initialMode?: ReplayMode;
+  rematch?: MatchView['rematch'];
+  opponentName?: string | null;
+}) {
   const tr = useT();
   const { t } = tr;
   const toast = useApp((st) => st.toast);
@@ -63,7 +87,13 @@ export function RevealedView({ matchId, me, net, services, initialMode, rematch 
     return (
       <ScreenShell title={t('reveal.title')} onBack={back} narrow testId="match-reveal-loading">
         {k === 'sealed' ? (
-          <StateView kind="pending_opponent" title={t('match.still_sealed')} body={t('match.still_sealed_body')} actionLabel={t('match.title')} onAction={() => navigate({ name: 'match', matchId })} />
+          <StateView
+            kind="pending_opponent"
+            title={t('match.still_sealed')}
+            body={t('match.still_sealed_body')}
+            actionLabel={t('match.title')}
+            onAction={() => navigate({ name: 'match', matchId })}
+          />
         ) : k === 'forbidden' || k === 'not_found' ? (
           <PrivateMatch />
         ) : k === 'offline' ? (
@@ -82,7 +112,9 @@ export function RevealedView({ matchId, me, net, services, initialMode, rematch 
     markWatched(matchId);
     // The rivalry record counts revealed results; remembering this one saves fetching its replay again.
     if (me !== undefined && log.kind !== 'daily') rememberResult(matchId, log, me);
-    services?.analytics.track('reveal_watched', { mode: log.kind === 'cup' ? 'cup' : log.kind === 'daily' ? 'daily' : 'duel' });
+    services?.analytics.track('reveal_watched', {
+      mode: log.kind === 'cup' ? 'cup' : log.kind === 'daily' ? 'daily' : 'duel',
+    });
   }
   const mode = log.kind === 'cup' ? ('cup' as const) : ('duel' as const);
   const offered = rematch && !rematch.fromMe ? rematch : null;
@@ -101,11 +133,27 @@ export function RevealedView({ matchId, me, net, services, initialMode, rematch 
         shareToast(tr, toast, failureKind(e) === 'offline' ? 'offline' : 'failed');
         return;
       }
-      const ctx = { kind: mode, id: matchId, url, players: [log.players[0].alias, log.players[1].alias] as [string, string], revealed: true, locale: shareLocale(tr.locale) };
+      const ctx = {
+        kind: mode,
+        id: matchId,
+        url,
+        players: [log.players[0].alias, log.players[1].alias] as [string, string],
+        revealed: true,
+        locale: shareLocale(tr.locale),
+      };
       services.analytics.track('share_initiated', { mode, channel: 'share_sheet' });
-      const image = await cardBlob(matchCardModel(tr, { log, players: [playerOf(log.players[0]), playerOf(log.players[1])], revealed: true, url }), tr.locale);
-      const r = await shareMatchMoment(services.platform.share, 'final', ctx, { via: 'sheet', t: tr, image, text: finalShareText(tr, log) });
-      if (r === 'shared' || r === 'copied') services.analytics.track('share_completed', { mode, channel: 'share_sheet' });
+      const image = await cardBlob(
+        matchCardModel(tr, { log, players: [playerOf(log.players[0]), playerOf(log.players[1])], revealed: true, url }),
+        tr.locale,
+      );
+      const r = await shareMatchMoment(services.platform.share, 'final', ctx, {
+        via: 'sheet',
+        t: tr,
+        image,
+        text: finalShareText(tr, log),
+      });
+      if (r === 'shared' || r === 'copied')
+        services.analytics.track('share_completed', { mode, channel: 'share_sheet' });
       shareToast(tr, toast, r);
     } finally {
       setSharing(false);
@@ -129,13 +177,23 @@ export function RevealedView({ matchId, me, net, services, initialMode, rematch 
       services?.analytics.track('rematch', { mode });
       navigate({ name: 'match', matchId: r.matchId });
     } catch (e) {
-      toast({ kind: 'warning', text: failureKind(e) === 'offline' ? t('match.rematch_offline') : t('match.rematch_failed') });
+      toast({
+        kind: 'warning',
+        text: failureKind(e) === 'offline' ? t('match.rematch_offline') : t('match.rematch_failed'),
+      });
     } finally {
       setRematching(false);
     }
   };
 
-  const onRematch = log.kind !== 'duel' ? undefined : offered ? acceptRematch : sent ? () => navigate({ name: 'match', matchId: sent.matchId }) : () => void rematchNew();
+  const onRematch =
+    log.kind !== 'duel'
+      ? undefined
+      : offered
+        ? acceptRematch
+        : sent
+          ? () => navigate({ name: 'match', matchId: sent.matchId })
+          : () => void rematchNew();
 
   return (
     <RevealScreen

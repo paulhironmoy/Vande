@@ -30,7 +30,17 @@ export const RUN_UP_MS: Record<BowlerAction, number> = {
   spin_leg: 1350,
 };
 /** Aftermath (ms after contact) by fate, before any celebration. */
-const AFTERMATH_MS = { dot_block: 1000, dot_beaten: 1200, dot_fielded: 1900, runs1: 2300, runs2: 2900, runs3: 3500, four: 2600, six: 3000, wicket: 2600 } as const;
+const AFTERMATH_MS = {
+  dot_block: 1000,
+  dot_beaten: 1200,
+  dot_fielded: 1900,
+  runs1: 2300,
+  runs2: 2900,
+  runs3: 3500,
+  four: 2600,
+  six: 3000,
+  wicket: 2600,
+} as const;
 /** Extra time for a celebration. */
 const CELEBRATION_MS = { none: 0, boundary: 1600, six: 2000, wicket: 2200, milestone: 2400 } as const;
 
@@ -54,7 +64,12 @@ function footworkFor(d: Core, shot: ShotType): BallCues['footwork'] {
   const short = d.variant === 'bouncer' || (d.variant !== 'yorker' && d.length === 'short');
   if (shot === 'leave') return 'still';
   if (shot === 'sweep') return 'across';
-  if (FAMILY[d.variant] === 'spin' && (shot === 'drive' || shot === 'loft') && (d.intensity === 1 || d.length === 'full')) return 'charge';
+  if (
+    FAMILY[d.variant] === 'spin' &&
+    (shot === 'drive' || shot === 'loft') &&
+    (d.intensity === 1 || d.length === 'full')
+  )
+    return 'charge';
   if (shot === 'cut_pull' || short) return 'back';
   return 'forward';
 }
@@ -113,7 +128,13 @@ export interface BallTimeline {
   endMs: number;
 }
 
-function timelineFor(action: BowlerAction, path: BallPath, flightMs: number, fate: BallFate, celebration: BallCues['celebration']): BallTimeline {
+function timelineFor(
+  action: BowlerAction,
+  path: BallPath,
+  flightMs: number,
+  fate: BallFate,
+  celebration: BallCues['celebration'],
+): BallTimeline {
   const releaseAtMs = RUN_UP_MS[action];
   const travel = path.bounceAtM - 1.2;
   const bounceAtMs = releaseAtMs + Math.round((flightMs * (travel > 0 ? travel : 0)) / 17.7);
@@ -122,7 +143,13 @@ function timelineFor(action: BowlerAction, path: BallPath, flightMs: number, fat
   return { releaseAtMs, bounceAtMs: bounceAtMs < contactAtMs ? bounceAtMs : contactAtMs - 1, contactAtMs, endMs };
 }
 
-function cameraPlan(tl: BallTimeline, fate: BallFate, celebration: BallCues['celebration'], middle: boolean, variety: number): CameraCue[] {
+function cameraPlan(
+  tl: BallTimeline,
+  fate: BallFate,
+  celebration: BallCues['celebration'],
+  middle: boolean,
+  variety: number,
+): CameraCue[] {
   const cams: CameraCue[] = [];
   const add = (shot: CameraCue['shot'], atMs: number, durationMs: number) => {
     if (durationMs > 0) cams.push({ shot, atMs, durationMs });
@@ -193,7 +220,8 @@ export interface CueInput {
 
 export function buildCues(c: CueInput): BallCues {
   const fate = fateFor(c.atom, c.sixDistance);
-  const celebration: BallCues['celebration'] = fate.kind === 'six' ? 'six' : fate.kind === 'four' ? 'boundary' : fate.kind === 'wicket' ? 'wicket' : 'none';
+  const celebration: BallCues['celebration'] =
+    fate.kind === 'six' ? 'six' : fate.kind === 'four' ? 'boundary' : fate.kind === 'wicket' ? 'wicket' : 'none';
   const crowdBase =
     fate.kind === 'six'
       ? 0.95
@@ -207,8 +235,14 @@ export function buildCues(c: CueInput): BallCues {
               ? 0.2
               : 0.15;
   const crowd = Math.round(Math.min(1, crowdBase + (c.superBall ? 0.1 : 0) + (c.lastBall ? 0.05 : 0)) * 100) / 100;
-  const slowMotion = fate.kind === 'wicket' || fate.kind === 'six' || (fate.kind === 'four' && (c.lastBall || c.superBall));
-  const key = fate.kind === 'wicket' || fate.kind === 'six' || fate.kind === 'four' || c.superBall || (c.lastBall && c.atom.runs >= 2);
+  const slowMotion =
+    fate.kind === 'wicket' || fate.kind === 'six' || (fate.kind === 'four' && (c.lastBall || c.superBall));
+  const key =
+    fate.kind === 'wicket' ||
+    fate.kind === 'six' ||
+    fate.kind === 'four' ||
+    c.superBall ||
+    (c.lastBall && c.atom.runs >= 2);
   const action = bowlerActionFor(c.d);
   const flight = deliveryTiming(c.d, c.conditions).releaseToContactMs;
   const tl = timelineFor(action, c.path, flight, fate, celebration);

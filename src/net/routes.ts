@@ -6,8 +6,14 @@ export type RouteRequest<K extends RouteKey> = ApiRoutes[K][0];
 export type RouteResponse<K extends RouteKey> = ApiRoutes[K][1];
 
 type PathOf<K> = K extends `${string} ${infer P}` ? P : never;
-type ParamNames<P> = P extends `${string}:${infer N}/${infer R}` ? N | ParamNames<`/${R}`> : P extends `${string}:${infer N}` ? N : never;
-export type RouteParams<K extends RouteKey> = [ParamNames<PathOf<K>>] extends [never] ? undefined : Record<ParamNames<PathOf<K>>, string>;
+type ParamNames<P> = P extends `${string}:${infer N}/${infer R}`
+  ? N | ParamNames<`/${R}`>
+  : P extends `${string}:${infer N}`
+    ? N
+    : never;
+export type RouteParams<K extends RouteKey> = [ParamNames<PathOf<K>>] extends [never]
+  ? undefined
+  : Record<ParamNames<PathOf<K>>, string>;
 
 /** Calls that never carry a bearer token. */
 export const ANONYMOUS_ROUTES: ReadonlySet<string> = new Set([

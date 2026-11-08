@@ -81,7 +81,10 @@ export interface RatedPlayer {
 }
 
 /** New ratings after a match (unchanged when the match is not rated). Each side uses its own K-factor. */
-export function updateRatings(players: [RatedPlayer, RatedPlayer], m: RatingMatch): { ratings: [number, number]; rated: boolean } {
+export function updateRatings(
+  players: [RatedPlayer, RatedPlayer],
+  m: RatingMatch,
+): { ratings: [number, number]; rated: boolean } {
   const [a, b] = players;
   if (!isRated(m)) return { ratings: [a.rating, b.rating], rated: false };
   const ea = expectedScore(a.rating, b.rating);
@@ -133,7 +136,14 @@ export interface Top100MatchInput {
 /** Ranking constants (documented in docs/GAME_RULES.md section 14). */
 export const TOP100 = {
   /** Weights of the six components (sum 1; the score is out of 100 per match). */
-  weights: { win: 0.25, opponentStrength: 0.15, tacticalEfficiency: 0.2, tournamentImportance: 0.1, clutch: 0.15, execution: 0.15 },
+  weights: {
+    win: 0.25,
+    opponentStrength: 0.15,
+    tacticalEfficiency: 0.2,
+    tournamentImportance: 0.1,
+    clutch: 0.15,
+    execution: 0.15,
+  },
   /** Duel < cup group < cup final. */
   importance: { duel: 0.4, group: 0.7, final: 1 },
   /** Matches that count per day, chosen from the first `window` eligible matches. */
@@ -158,7 +168,8 @@ export const TOP100 = {
 
 const stretch = (v: number, from: number) => clamp01((clamp01(v) - from) / (1 - from));
 
-export type IneligibleReason = 'kind' | 'auto' | 'practice' | 'late_answers' | 'timing_audit' | 'repeat_opponent' | 'outside_window';
+export type IneligibleReason =
+  'kind' | 'auto' | 'practice' | 'late_answers' | 'timing_audit' | 'repeat_opponent' | 'outside_window';
 
 export interface Top100MatchScore {
   matchId: string;
@@ -176,7 +187,8 @@ export function matchEligibility(m: Top100MatchInput): IneligibleReason[] {
   if (m.kind !== 'duel' && m.kind !== 'cup') reasons.push('kind');
   if (m.auto) reasons.push('auto');
   if (m.practice) reasons.push('practice');
-  if (m.lateAnswers[0] > TOP100.maxLateAnswers || m.lateAnswers[1] > TOP100.maxLateAnswers) reasons.push('late_answers');
+  if (m.lateAnswers[0] > TOP100.maxLateAnswers || m.lateAnswers[1] > TOP100.maxLateAnswers)
+    reasons.push('late_answers');
   if (m.timingSuspicious[0] || m.timingSuspicious[1]) reasons.push('timing_audit');
   return reasons;
 }
@@ -192,12 +204,19 @@ export function top100MatchScore(m: Top100MatchInput, opponentBaselineEffort: nu
   const reasons = matchEligibility(m);
   const W = TOP100.weights;
   const oppEffort = clamp01(m.opponentPerformance.tacticalEfficiency);
-  const competitive = oppEffort >= TOP100.effortFloor && (opponentBaselineEffort === null || oppEffort >= opponentBaselineEffort - TOP100.effortDrop);
+  const competitive =
+    oppEffort >= TOP100.effortFloor &&
+    (opponentBaselineEffort === null || oppEffort >= opponentBaselineEffort - TOP100.effortDrop);
   const resultValue = m.result === 'won' ? 1 : m.result === 'tied' ? 0.5 : 0;
   const win = competitive ? resultValue : 0;
   const upset = 1 - expectedScore(m.rating, m.opponentRating);
   const opponentStrength = competitive ? upset * resultValue : 0;
-  const importance = m.kind === 'cup' ? (m.stage === 'final' ? TOP100.importance.final : TOP100.importance.group) : TOP100.importance.duel;
+  const importance =
+    m.kind === 'cup'
+      ? m.stage === 'final'
+        ? TOP100.importance.final
+        : TOP100.importance.group
+      : TOP100.importance.duel;
   const components: Top100Components = {
     wins: win,
     opponentStrength: round2(opponentStrength),
@@ -233,8 +252,16 @@ export interface Top100DayScore {
  * Day score: the best three of the first five eligible matches of the day (in play order), counting at most two
  * matches against the same opponent. Playing more than five eligible matches cannot change the score.
  */
-export function top100DayScore(playerId: string, day: string, matches: readonly Top100MatchInput[], baselines: ReadonlyMap<string, number> = new Map()): Top100DayScore {
-  const ordered = matches.filter((m) => m.day === day).slice().sort((a, b) => a.order - b.order || (a.matchId < b.matchId ? -1 : a.matchId > b.matchId ? 1 : 0));
+export function top100DayScore(
+  playerId: string,
+  day: string,
+  matches: readonly Top100MatchInput[],
+  baselines: ReadonlyMap<string, number> = new Map(),
+): Top100DayScore {
+  const ordered = matches
+    .filter((m) => m.day === day)
+    .slice()
+    .sort((a, b) => a.order - b.order || (a.matchId < b.matchId ? -1 : a.matchId > b.matchId ? 1 : 0));
   const perOpponent = new Map<string, number>();
   const all: Top100MatchScore[] = [];
   let inWindow = 0;
@@ -282,7 +309,11 @@ function median(xs: number[]): number {
  * check. Ties break by: best single match, then counted wins, then mean tactical efficiency, then player id (stable;
  * never by time).
  */
-export function rankTop100(players: readonly Top100PlayerDay[], limit = 100, longTermEffort: ReadonlyMap<string, number> = new Map()): Top100Entry[] {
+export function rankTop100(
+  players: readonly Top100PlayerDay[],
+  limit = 100,
+  longTermEffort: ReadonlyMap<string, number> = new Map(),
+): Top100Entry[] {
   const efforts = new Map<string, number[]>();
   for (const p of players)
     for (const m of p.matches)

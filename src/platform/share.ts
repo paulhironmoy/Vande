@@ -17,7 +17,11 @@ export function whatsappUrl(text: string, url: string): string {
 }
 
 /** Opens WhatsApp with the message ready. Call it only from the player's tap (a user gesture). */
-export function openWhatsapp(text: string, url: string, open: (href: string, target: string, features: string) => unknown = (h, t, f) => window.open(h, t, f)): void {
+export function openWhatsapp(
+  text: string,
+  url: string,
+  open: (href: string, target: string, features: string) => unknown = (h, t, f) => window.open(h, t, f),
+): void {
   open(whatsappUrl(text, url), '_blank', 'noopener,noreferrer');
 }
 
@@ -37,7 +41,11 @@ async function blobToBase64(blob: Blob): Promise<string> {
 export interface ShareDeps {
   native?: () => boolean;
   nativeShare?: (input: ShareInput) => Promise<ShareOutcome>;
-  nav?: { share?: (data: ShareData) => Promise<void>; canShare?: (data: ShareData) => boolean; clipboard?: { writeText(text: string): Promise<void> } };
+  nav?: {
+    share?: (data: ShareData) => Promise<void>;
+    canShare?: (data: ShareData) => boolean;
+    clipboard?: { writeText(text: string): Promise<void> };
+  };
 }
 
 async function capacitorShare(input: ShareInput): Promise<ShareOutcome> {
@@ -45,11 +53,21 @@ async function capacitorShare(input: ShareInput): Promise<ShareOutcome> {
   const files: string[] = [];
   if (input.image) {
     const { Filesystem, Directory } = await import('@capacitor/filesystem');
-    const written = await Filesystem.writeFile({ path: `vande-share-${Date.now()}.png`, data: await blobToBase64(input.image), directory: Directory.Cache });
+    const written = await Filesystem.writeFile({
+      path: `vande-share-${Date.now()}.png`,
+      data: await blobToBase64(input.image),
+      directory: Directory.Cache,
+    });
     files.push(written.uri);
   }
   try {
-    await Share.share({ title: input.title, text: input.text, url: input.url, files: files.length ? files : undefined, dialogTitle: input.title });
+    await Share.share({
+      title: input.title,
+      text: input.text,
+      url: input.url,
+      files: files.length ? files : undefined,
+      dialogTitle: input.title,
+    });
     return 'shared';
   } catch (e) {
     if (isAbort(e)) return 'cancelled';
@@ -71,8 +89,13 @@ export function createShareAdapter(deps: ShareDeps = {}): ShareAdapter {
       }
       if (nav?.share) {
         try {
-          const file = input.image && typeof File !== 'undefined' ? new File([input.image], 'vande-cricket.png', { type: input.image.type || 'image/png' }) : null;
-          const withFile: ShareData | null = file ? { files: [file], title: input.title, text: `${input.text}\n${input.url}` } : null;
+          const file =
+            input.image && typeof File !== 'undefined'
+              ? new File([input.image], 'vande-cricket.png', { type: input.image.type || 'image/png' })
+              : null;
+          const withFile: ShareData | null = file
+            ? { files: [file], title: input.title, text: `${input.text}\n${input.url}` }
+            : null;
           if (withFile && nav.canShare?.(withFile)) await nav.share(withFile);
           else await nav.share({ title: input.title, text: input.text, url: input.url });
           return 'shared';

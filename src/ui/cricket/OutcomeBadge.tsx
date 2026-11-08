@@ -43,7 +43,17 @@ export interface OutcomeBadgeProps {
 export function OutcomeBadge({ mark, size = 'md', ball, className }: OutcomeBadgeProps) {
   const { t } = useT();
   const text =
-    mark.kind === 'runs' ? String(mark.runs) : mark.kind === 'four' ? '4' : mark.kind === 'six' ? '6' : mark.kind === 'wicket' ? t('outcome.short.wicket') : mark.kind === 'dot' ? t('outcome.short.dot') : '';
+    mark.kind === 'runs'
+      ? String(mark.runs)
+      : mark.kind === 'four'
+        ? '4'
+        : mark.kind === 'six'
+          ? '6'
+          : mark.kind === 'wicket'
+            ? t('outcome.short.wicket')
+            : mark.kind === 'dot'
+              ? t('outcome.short.dot')
+              : '';
   const result =
     mark.kind === 'runs'
       ? t('outcome.runs', { runs: mark.runs })
@@ -72,7 +82,9 @@ export function OutcomeBadge({ mark, size = 'md', ball, className }: OutcomeBadg
     <span className={[s.badge, s[size], className ?? ''].join(' ')} data-kind={mark.kind} role="img" aria-label={label}>
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d={SHAPES[mark.kind]} className={s.shape} />
-        {mark.kind === 'sealed' && <path d="M8.6 11h6.8v5.4H8.6zM10.2 11V9.4a1.8 1.8 0 013.6 0V11" className={s.glyph} />}
+        {mark.kind === 'sealed' && (
+          <path d="M8.6 11h6.8v5.4H8.6zM10.2 11V9.4a1.8 1.8 0 013.6 0V11" className={s.glyph} />
+        )}
       </svg>
       {text && <span className={s.text}>{text}</span>}
     </span>

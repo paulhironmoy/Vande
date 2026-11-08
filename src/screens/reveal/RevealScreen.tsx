@@ -3,7 +3,18 @@ import type { BallOutcome, MatchEventLog, ReplayMode } from '@/contracts';
 import { BALLS_PER_OVER } from '@/contracts/cricket';
 import { useT } from '@/i18n';
 import { useBackHandler } from '@/app/back';
-import { Avatar, BallTimeline, Button, Icon, IconButton, OutcomeBadge, SegmentedControl, markFromOutcome, type BallMark, type BallSlot } from '@/ui';
+import {
+  Avatar,
+  BallTimeline,
+  Button,
+  Icon,
+  IconButton,
+  OutcomeBadge,
+  SegmentedControl,
+  markFromOutcome,
+  type BallMark,
+  type BallSlot,
+} from '@/ui';
 import type { FallbackReason, StageRenderer } from '@/render3d';
 import { completeTimeline, locate, onTimelineChange, replayTimeline, resultTime } from '@/render3d/core/timeline';
 import { MatchStage } from '../stage/MatchStage';
@@ -121,7 +132,10 @@ export function RevealScreen({
   const version = useSyncExternalStore(subscribe, () => timeline.version);
   const duration = timeline.duration;
   // The scrubber's neutral track: every match laid out alike, so its length and proportions give nothing away.
-  const trackOpts = useMemo(() => ({ innings: log.kind === 'daily' ? (1 as const) : (2 as const), superBall: log.kind !== 'daily' }), [log.kind]);
+  const trackOpts = useMemo(
+    () => ({ innings: log.kind === 'daily' ? (1 as const) : (2 as const), superBall: log.kind !== 'daily' }),
+    [log.kind],
+  );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const track = useMemo(() => neutralTrack(timeline, trackOpts), [timeline, trackOpts, version]);
   const ix = useMemo(() => indexLog(log), [log]);
@@ -132,7 +146,9 @@ export function RevealScreen({
   const [seen, setSeen] = useState({ id: log.matchId, upTo: -1 });
   const upTo = Math.max(seen.id === log.matchId ? seen.upTo : -1, now);
   useEffect(() => {
-    setSeen((p) => (p.id !== log.matchId ? { id: log.matchId, upTo: now } : now > p.upTo ? { id: p.id, upTo: now } : p));
+    setSeen((p) =>
+      p.id !== log.matchId ? { id: log.matchId, upTo: now } : now > p.upTo ? { id: p.id, upTo: now } : p,
+    );
   }, [log.matchId, now]);
   const revealAll = () => setSeen({ id: log.matchId, upTo: ix.last });
   const disclosure = useMemo(() => disclose(log, ix, upTo), [log, ix, upTo]);
@@ -191,10 +207,19 @@ export function RevealScreen({
     const balls = log.innings[i]?.balls ?? [];
     const slots: BallSlot[] = [];
     for (let k = 0; k < (view.ended ? balls.length : BALLS_PER_OVER); k++) {
-      const mark: BallMark = k < view.shown ? markFromOutcome(balls[k]) : live && ix.balls[i][k] === live.eventIndex ? { kind: 'current' } : { kind: 'upcoming' };
+      const mark: BallMark =
+        k < view.shown
+          ? markFromOutcome(balls[k])
+          : live && ix.balls[i][k] === live.eventIndex
+            ? { kind: 'current' }
+            : { kind: 'upcoming' };
       const kind = auto.main[i][k];
       // "Auto" under the badge, and the same said to screen readers (batted or bowled automatically).
-      const note = kind ? (kind === 'both' ? `${t('auto.batted')}, ${t('auto.bowled')}` : t(kind === 'batted' ? 'auto.batted' : 'auto.bowled')) : undefined;
+      const note = kind
+        ? kind === 'both'
+          ? `${t('auto.batted')}, ${t('auto.bowled')}`
+          : t(kind === 'batted' ? 'auto.batted' : 'auto.bowled')
+        : undefined;
       slots.push({ mark, caption: kind ? t('auto.tag') : undefined, note });
     }
     const activeIndex = at.seg.kind === 'ball' && at.seg.innings === i ? ix.balls[i].indexOf(at.seg.eventIndex) : -1;
@@ -231,14 +256,18 @@ export function RevealScreen({
   const superUp = resultUp || disclosure.superStarted;
   const announcement = useMemo(() => {
     if (anchor < 0) return '';
-    const may = (e: (typeof log.events)[number]) => e.t !== 'commentary' || (RESULT_LINES.has(e.key) ? resultUp : TIE_LINES.has(e.key) ? superUp : true);
+    const may = (e: (typeof log.events)[number]) =>
+      e.t !== 'commentary' || (RESULT_LINES.has(e.key) ? resultUp : TIE_LINES.has(e.key) ? superUp : true);
     const own = log.events[anchor];
     const next = log.events[anchor + 1];
     if (next?.t === 'commentary' && may(next)) {
       const text = commentaryText(next, log, tr);
       if (text) return text;
     }
-    if (own?.t === 'ball') return own.innings === 'super' ? `${t('reveal.super_ball')}: ${outcomeText(own.outcome, tr)}` : t('a11y.ball_state_result', { n: own.ball + 1, result: outcomeText(own.outcome, tr) });
+    if (own?.t === 'ball')
+      return own.innings === 'super'
+        ? `${t('reveal.super_ball')}: ${outcomeText(own.outcome, tr)}`
+        : t('a11y.ball_state_result', { n: own.ball + 1, result: outcomeText(own.outcome, tr) });
     if (own?.t === 'result' && resultUp) return resultText(own.result, log, tr);
     for (let i = Math.min(anchor, log.events.length - 1); i >= 0; i--) {
       const e = log.events[i];
@@ -262,7 +291,14 @@ export function RevealScreen({
     </Button>
   );
   const rematchButton = onRematch && (
-    <Button variant={rematchState === 'offered' ? 'primary' : rematchState === 'sent' ? 'secondary' : 'accent'} size="lg" icon="rematch" onClick={onRematch} data-testid="reveal-rematch" data-state={rematchState}>
+    <Button
+      variant={rematchState === 'offered' ? 'primary' : rematchState === 'sent' ? 'secondary' : 'accent'}
+      size="lg"
+      icon="rematch"
+      onClick={onRematch}
+      data-testid="reveal-rematch"
+      data-state={rematchState}
+    >
       {rematchLabel ?? t('common.rematch')}
     </Button>
   );
@@ -283,12 +319,27 @@ export function RevealScreen({
           onFallback={onFallback}
           overlay={<RevealOverlay log={log} timeline={timeline} time={time} playing={playing} />}
         />
-        {onClose && <IconButton className={s.close} icon="close" label={t('common.close')} onClick={onClose} variant="secondary" />}
+        {onClose && (
+          <IconButton
+            className={s.close}
+            icon="close"
+            label={t('common.close')}
+            onClick={onClose}
+            variant="secondary"
+          />
+        )}
       </section>
 
       <section className={s.controls} aria-label={t('reveal.title')}>
         <div className={s.transport}>
-          <IconButton icon={playing ? 'pause' : 'play'} label={playing ? t('common.pause') : t('common.play')} variant="primary" size="lg" onClick={playing ? pause : play} data-testid="reveal-play" />
+          <IconButton
+            icon={playing ? 'pause' : 'play'}
+            label={playing ? t('common.pause') : t('common.play')}
+            variant="primary"
+            size="lg"
+            onClick={playing ? pause : play}
+            data-testid="reveal-play"
+          />
           <div className={s.scrub}>
             <input
               type="range"
@@ -296,9 +347,19 @@ export function RevealScreen({
               max={1000}
               step={1}
               value={Math.round(track.pos(time) * 1000)}
-              onChange={(e) => seek((completeTimeline(timeline) ? neutralTrack(timeline, trackOpts) : track).time(Number(e.target.value) / 1000))}
+              onChange={(e) =>
+                seek(
+                  (completeTimeline(timeline) ? neutralTrack(timeline, trackOpts) : track).time(
+                    Number(e.target.value) / 1000,
+                  ),
+                )
+              }
               aria-label={t('a11y.timeline_seek')}
-              aria-valuetext={disclosure.complete ? t('a11y.replay_position', { current: mm(time), total: mm(duration) }) : t('a11y.replay_elapsed', { current: mm(time) })}
+              aria-valuetext={
+                disclosure.complete
+                  ? t('a11y.replay_position', { current: mm(time), total: mm(duration) })
+                  : t('a11y.replay_elapsed', { current: mm(time) })
+              }
               className={s.range}
               style={{ ['--p' as string]: `${track.pos(time) * 100}%` }}
               data-testid="reveal-scrub"
@@ -316,12 +377,29 @@ export function RevealScreen({
                 timeline.segments.flatMap((seg): TickIn[] => {
                   if (seg.kind !== 'ball' || !seg.outcome || seg.eventIndex > upTo) return [];
                   const o = seg.outcome;
-                  return [{ pos: track.pos(seg.t0), kind: o.wicket ? 'wicket' : o.runs === 6 ? 'six' : o.runs === 4 ? 'four' : 'ball' }];
+                  return [
+                    {
+                      pos: track.pos(seg.t0),
+                      kind: o.wicket ? 'wicket' : o.runs === 6 ? 'six' : o.runs === 4 ? 'four' : 'ball',
+                    },
+                  ];
                 }),
                 ticksWidth,
               ).map((tick, i) => (
-                <span key={i} className={s.tick} data-kind={tick.kind} data-label={tick.label || undefined} style={{ left: `${tick.pos * 100}%` }}>
-                  {tick.label ? (tick.kind === 'wicket' ? t('outcome.short.wicket') : tick.kind === 'six' ? '6' : '4') : null}
+                <span
+                  key={i}
+                  className={s.tick}
+                  data-kind={tick.kind}
+                  data-label={tick.label || undefined}
+                  style={{ left: `${tick.pos * 100}%` }}
+                >
+                  {tick.label
+                    ? tick.kind === 'wicket'
+                      ? t('outcome.short.wicket')
+                      : tick.kind === 'six'
+                        ? '6'
+                        : '4'
+                    : null}
                 </span>
               ))}
             </div>
@@ -331,7 +409,12 @@ export function RevealScreen({
               {disclosure.complete && <span data-testid="reveal-total">{mm(duration)}</span>}
             </div>
           </div>
-          <Button variant={speed === 1 ? 'secondary' : 'primary'} icon="slowmo" onClick={changeSpeed} aria-label={`${t('reveal.slow_mo')}: ${t('reveal.speed', { x: speed })}`}>
+          <Button
+            variant={speed === 1 ? 'secondary' : 'primary'}
+            icon="slowmo"
+            onClick={changeSpeed}
+            aria-label={`${t('reveal.slow_mo')}: ${t('reveal.speed', { x: speed })}`}
+          >
             {t('reveal.speed', { x: speed })}
           </Button>
         </div>
@@ -347,11 +430,23 @@ export function RevealScreen({
               { value: 'key_moments', label: t('reveal.key_moments') },
             ]}
           />
-          <Button variant="secondary" icon="skip" onClick={skip} aria-label={t('reveal.skip')} data-testid="reveal-skip">
+          <Button
+            variant="secondary"
+            icon="skip"
+            onClick={skip}
+            aria-label={t('reveal.skip')}
+            data-testid="reveal-skip"
+          >
             {t('reveal.skip_short')}
           </Button>
         </div>
-        <p className={s.commentary} aria-live="polite" aria-atomic="true" data-empty={announcement ? undefined : 'true'} data-testid="reveal-live">
+        <p
+          className={s.commentary}
+          aria-live="polite"
+          aria-atomic="true"
+          data-empty={announcement ? undefined : 'true'}
+          data-testid="reveal-live"
+        >
           {announcement && <Icon name="message" size={16} />}
           <span>{announcement}</span>
         </p>
@@ -362,7 +457,13 @@ export function RevealScreen({
               <span className={s.tlName}>
                 {t('reveal.innings_n', { n: r.i + 1 })} · {log.players[log.innings[r.i].batter].alias}
               </span>
-              <BallTimeline slots={r.slots} active={r.active} onSelect={(idx) => seekToBall(r.i, idx)} label={t('reveal.innings_n', { n: r.i + 1 })} size="sm" />
+              <BallTimeline
+                slots={r.slots}
+                active={r.active}
+                onSelect={(idx) => seekToBall(r.i, idx)}
+                label={t('reveal.innings_n', { n: r.i + 1 })}
+                size="sm"
+              />
             </div>
           ))}
         </div>
@@ -399,10 +500,22 @@ export function RevealScreen({
           </div>
         )}
         <div className={s.tabs} role="tablist" aria-label={t('reveal.title')}>
-          <button role="tab" type="button" aria-selected={tab === 'scorecard'} className={s.tab} onClick={() => setTab('scorecard')}>
+          <button
+            role="tab"
+            type="button"
+            aria-selected={tab === 'scorecard'}
+            className={s.tab}
+            onClick={() => setTab('scorecard')}
+          >
             {t('reveal.scorecard')}
           </button>
-          <button role="tab" type="button" aria-selected={tab === 'tactics'} className={s.tab} onClick={() => setTab('tactics')}>
+          <button
+            role="tab"
+            type="button"
+            aria-selected={tab === 'tactics'}
+            className={s.tab}
+            onClick={() => setTab('tactics')}
+          >
             {t('reveal.tactics')}
           </button>
         </div>

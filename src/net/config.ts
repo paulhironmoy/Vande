@@ -25,13 +25,17 @@ function appVersion(): string {
 }
 
 function isAllowedApiUrl(url: string): boolean {
-  return /^https:\/\/[a-z0-9.-]+(:\d+)?(\/[^\s]*)?$/i.test(url) || /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(url);
+  return (
+    /^https:\/\/[a-z0-9.-]+(:\d+)?(\/[^\s]*)?$/i.test(url) || /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(url)
+  );
 }
 
 export function readNetConfig(env: Record<string, unknown> = import.meta.env as Record<string, unknown>): NetConfig {
   const base = { timeoutMs: 12_000, clientId: `vande-cricket/${appVersion()}` };
   if (String(env.VITE_KILL_ONLINE ?? '') === '1') return { ...base, apiUrl: null };
-  const explicit = String(env.VITE_API_URL ?? '').trim().replace(/\/+$/, '');
+  const explicit = String(env.VITE_API_URL ?? '')
+    .trim()
+    .replace(/\/+$/, '');
   const url = explicit || (String(env.VITE_API_LOCAL ?? '') === '1' ? LOCAL_API_URL : '');
   return { ...base, apiUrl: url && isAllowedApiUrl(url) ? url : null };
 }

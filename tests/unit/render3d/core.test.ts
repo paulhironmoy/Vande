@@ -1,7 +1,25 @@
 import { describe, expect, it, vi } from 'vitest';
 import { STUMPS_FRONT_Z, buildFlight, defaultFlightMs } from '@/render3d/core/trajectory';
-import { BALL_R, CONTACT_Z, PITCH_HALF, ZONES, zoneForBearing, ZONE_BEARING, fieldSpots, BOUNDARY_R } from '@/render3d/core/ground';
-import { buildTimeline, completeTimeline, locate, replayTimeline, sceneTimeOf, timelineTimeOf, resultTime, scoreAt } from '@/render3d/core/timeline';
+import {
+  BALL_R,
+  CONTACT_Z,
+  PITCH_HALF,
+  ZONES,
+  zoneForBearing,
+  ZONE_BEARING,
+  fieldSpots,
+  BOUNDARY_R,
+} from '@/render3d/core/ground';
+import {
+  buildTimeline,
+  completeTimeline,
+  locate,
+  replayTimeline,
+  sceneTimeOf,
+  timelineTimeOf,
+  resultTime,
+  scoreAt,
+} from '@/render3d/core/timeline';
 import { STUMPS_HALF_W } from '@/physics/constants';
 import { buildBallScript, buildLiveScript, sampleBall, retimeCameras, type BallScript } from '@/render3d/core/choreo';
 import { defaultPlan, cueAt, planFor } from '@/render3d/core/camera';
@@ -12,8 +30,10 @@ import { liveCast } from '@/render3d/core/session';
 import type { Look } from '@/render3d/core/actors';
 
 const cast = liveCast(FIXTURE_PLAYERS[0], FIXTURE_PLAYERS[1]);
-const scriptFor = (kind: Parameters<typeof fixtureBall>[0], extra: Partial<Parameters<typeof buildBallScript>[0]> = {}): BallScript =>
-  buildBallScript({ outcome: fixtureBall(kind), field: 'balanced', cast, seed: 42, ...extra });
+const scriptFor = (
+  kind: Parameters<typeof fixtureBall>[0],
+  extra: Partial<Parameters<typeof buildBallScript>[0]> = {},
+): BallScript => buildBallScript({ outcome: fixtureBall(kind), field: 'balanced', cast, seed: 42, ...extra });
 
 describe('trajectory (the physics flight of a match delivery)', () => {
   it('meets the contact plane at exactly releaseToContactMs, on the engine line, at the height the pitch allows', () => {
@@ -194,7 +214,19 @@ describe('timeline', () => {
 
 describe('choreography', () => {
   it('sequences release, bounce and contact, and resolves every fate', () => {
-    for (const k of ['six', 'four', 'bowled', 'caught', 'lbw', 'block', 'beaten', 'runs', 'fielded', 'runout', 'stumped'] as const) {
+    for (const k of [
+      'six',
+      'four',
+      'bowled',
+      'caught',
+      'lbw',
+      'block',
+      'beaten',
+      'runs',
+      'fielded',
+      'runout',
+      'stumped',
+    ] as const) {
       const s = scriptFor(k);
       const kinds = s.events.map((e) => e.kind);
       expect(s.times.release).toBeGreaterThan(0);
@@ -253,13 +285,28 @@ describe('choreography', () => {
 
   it('aligns release and contact with the engine timeline when given', () => {
     const outcome = fixtureBall('four');
-    const s = buildBallScript({ outcome, field: 'balanced', cast, seed: 1, engineTimeline: { releaseAtMs: 2200, contactAtMs: 2700, endMs: 7000 } });
+    const s = buildBallScript({
+      outcome,
+      field: 'balanced',
+      cast,
+      seed: 1,
+      engineTimeline: { releaseAtMs: 2200, contactAtMs: 2700, endMs: 7000 },
+    });
     expect(s.times.release).toBeCloseTo(2200, 0);
     expect(s.times.contact).toBeCloseTo(2700, 0);
   });
 
   it('re-times engine camera cues onto the animation (release and contact anchors unchanged)', () => {
-    const times = { runStart: 0, release: 2000, bounce: 2300, contact: 2500, decisive: 4000, shotEnd: 3000, celebrate: null, end: 7000 };
+    const times = {
+      runStart: 0,
+      release: 2000,
+      bounce: 2300,
+      contact: 2500,
+      decisive: 4000,
+      shotEnd: 3000,
+      celebrate: null,
+      end: 7000,
+    };
     const cues = retimeCameras(
       [
         { shot: 'bowler_follow', atMs: 0, durationMs: 1750 },
@@ -277,11 +324,24 @@ describe('choreography', () => {
   it('keeps live balls sealed: nothing after the seal can hint at runs or wickets', () => {
     const delivery = fixtureDelivery(0, 'good_length');
     for (const contact of ['middle', 'thick_edge', 'miss', 'pad', 'none'] as const) {
-      const s = buildLiveScript({ delivery, field: 'balanced', cast, seed: 7, shot: { shot: contact === 'none' ? 'leave' : 'drive', timing: 'good', contact, zone: 'cover', tapMs: delivery.timing.releaseToContactMs } });
+      const s = buildLiveScript({
+        delivery,
+        field: 'balanced',
+        cast,
+        seed: 7,
+        shot: {
+          shot: contact === 'none' ? 'leave' : 'drive',
+          timing: 'good',
+          contact,
+          zone: 'cover',
+          tapMs: delivery.timing.releaseToContactMs,
+        },
+      });
       expect(s.sealAt).toBeGreaterThan(s.times.contact);
       expect(s.stumps.striker).toBeNull();
       const kinds = s.events.map((e) => e.kind);
-      for (const forbidden of ['boundary', 'six', 'stumps', 'bails', 'catch', 'appeal', 'signal', 'fireworks'] as const) expect(kinds).not.toContain(forbidden);
+      for (const forbidden of ['boundary', 'six', 'stumps', 'bails', 'catch', 'appeal', 'signal', 'fireworks'] as const)
+        expect(kinds).not.toContain(forbidden);
       expect(sampleBall(s, s.sealAt! + 1).visible).toBe(false);
       expect(s.overlay.some((o) => o.kind === 'sealed')).toBe(true);
     }
@@ -313,7 +373,8 @@ describe('animation clips', () => {
       getClip(id);
       for (let t = 0; t <= def.duration; t += def.duration / 7) {
         sampleClip(id, t, pose);
-        for (let b = 0; b < pose.q.length; b += 4) expect(Math.hypot(pose.q[b], pose.q[b + 1], pose.q[b + 2], pose.q[b + 3])).toBeCloseTo(1, 4);
+        for (let b = 0; b < pose.q.length; b += 4)
+          expect(Math.hypot(pose.q[b], pose.q[b + 1], pose.q[b + 2], pose.q[b + 3])).toBeCloseTo(1, 4);
       }
     }
   });

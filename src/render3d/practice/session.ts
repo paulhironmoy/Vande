@@ -9,7 +9,15 @@
  * haptics and captions until it. Moments fire on a timer at their own time. Promises resolve on timers, so they keep
  * time even when no frame is drawn (a lost context, a background tab).
  */
-import type { AssistanceStage, BallFlight, CoachOption, DeliveryResult, QualityProfileId, TimingBands, Vec3 } from '@/contracts/practice';
+import type {
+  AssistanceStage,
+  BallFlight,
+  CoachOption,
+  DeliveryResult,
+  QualityProfileId,
+  TimingBands,
+  Vec3,
+} from '@/contracts/practice';
 import { TAP_HOLD_MS, type OneGestureState } from '@/input';
 import { activeBands } from '@/physics/timing';
 import { frameStats, PERF_WARMUP_FRAMES } from '@/perf';
@@ -48,7 +56,10 @@ export interface StageClock {
 
 export const defaultStageClock: StageClock = {
   now: () => (typeof performance !== 'undefined' ? performance.now() : Date.now()),
-  raf: (cb) => (typeof requestAnimationFrame !== 'undefined' ? requestAnimationFrame(cb) : (setTimeout(() => cb(defaultStageClock.now()), 16) as unknown as number)),
+  raf: (cb) =>
+    typeof requestAnimationFrame !== 'undefined'
+      ? requestAnimationFrame(cb)
+      : (setTimeout(() => cb(defaultStageClock.now()), 16) as unknown as number),
   caf: (id) => (typeof cancelAnimationFrame !== 'undefined' ? cancelAnimationFrame(id) : clearTimeout(id)),
   setTimer: (fn, ms) => setTimeout(fn, ms),
   clearTimer: (id) => clearTimeout(id as ReturnType<typeof setTimeout>),
@@ -114,14 +125,26 @@ export function replayWarp(script: BallScript, speed: number): ReplayWarp {
   const contact = p.contactScene ?? (p.flight ? simToScene(p, p.flight.idealContactT) : release + 500);
   const start = Math.max(0, release - REPLAY.leadMs);
   const dead = p.deadScene ?? contact + REPLAY.afterMaxMs;
-  const end = Math.min(script.duration, contact + Math.min(REPLAY.afterMaxMs, Math.max(REPLAY.afterMinMs, dead + 400 - contact)));
+  const end = Math.min(
+    script.duration,
+    contact + Math.min(REPLAY.afterMaxMs, Math.max(REPLAY.afterMinMs, dead + 400 - contact)),
+  );
   const s0 = Math.max(start, release - REPLAY.slowBeforeMs);
   const s1 = Math.min(end, contact + REPLAY.slowAfterMs);
   const k = Math.min(1, Math.max(0.05, speed));
   const a1 = s0 - start;
   const a2 = a1 + (s1 - s0) / k;
   const a3 = a2 + (end - s1);
-  return { anchors: [[0, start], [a1, s0], [a2, s1], [a3, end]], duration: a3, slow: [s0, s1] };
+  return {
+    anchors: [
+      [0, start],
+      [a1, s0],
+      [a2, s1],
+      [a3, end],
+    ],
+    duration: a3,
+    slow: [s0, s1],
+  };
 }
 
 /** Scene time for a replay time (pure). */
@@ -211,7 +234,12 @@ const CLOSE_UP_RATE = 0.06;
 export abstract class PracticeSessionBase implements PracticeStage {
   abstract readonly kind: '3d' | '2d';
   protected clock: StageClock;
-  protected options: PracticeMountOptions = { profile: 'standard', handedness: 'right', reducedMotion: false, learnCue: false };
+  protected options: PracticeMountOptions = {
+    profile: 'standard',
+    handedness: 'right',
+    reducedMotion: false,
+    learnCue: false,
+  };
   protected profileId: QualityProfileId = 'standard';
   protected reducedMotion = false;
   protected learnCue = false;
@@ -243,7 +271,10 @@ export abstract class PracticeSessionBase implements PracticeStage {
   protected assistance: { stage: AssistanceStage | null; guide: AssistanceGuide | null } = { stage: null, guide: null };
   private pendingAssistance: { stage: AssistanceStage | null; guide: AssistanceGuide | null } | null = null;
   /** The assistance the live delivery was bowled with. */
-  protected liveAssistance: { stage: AssistanceStage | null; guide: AssistanceGuide | null } = { stage: null, guide: null };
+  protected liveAssistance: { stage: AssistanceStage | null; guide: AssistanceGuide | null } = {
+    stage: null,
+    guide: null,
+  };
   protected focusAid = false;
   private quietOn = false;
   protected deliveryContext: DeliveryContext = {};
@@ -397,8 +428,18 @@ export abstract class PracticeSessionBase implements PracticeStage {
     this.activeSink()?.context?.({ ...context, conditions: setup.conditions });
     this.setQuiet(true);
     const now = this.clock.now();
-    const tb: Timebase = { startPerfMs: now, releaseScene: practiceReleaseScene(setup.bowler), timeScale: this.timeScale };
-    const script = buildPracticeScript({ setup, flight, learnCue: this.learnCue, releaseHand: this.releaseHand(setup), context });
+    const tb: Timebase = {
+      startPerfMs: now,
+      releaseScene: practiceReleaseScene(setup.bowler),
+      timeScale: this.timeScale,
+    };
+    const script = buildPracticeScript({
+      setup,
+      flight,
+      learnCue: this.learnCue,
+      releaseHand: this.releaseHand(setup),
+      context,
+    });
     tb.releaseScene = script.practice!.releaseScene;
     // The first-person gaze is built here, outside any animation frame (frames only read it).
     prewarmPracticeGaze(script, this.reducedMotion);
@@ -455,9 +496,16 @@ export abstract class PracticeSessionBase implements PracticeStage {
    */
   prepareSwing(atPerfMs: number, calibrationMs = 0): void {
     const live = this.live;
-    if (this.mode !== 'live' || !live || live.provisionalStart !== null || live.result || !Number.isFinite(atPerfMs)) return;
+    if (this.mode !== 'live' || !live || live.provisionalStart !== null || live.result || !Number.isFinite(atPerfMs))
+      return;
     const cal = Number.isFinite(calibrationMs) ? calibrationMs : 0;
-    live.touch = { start: sceneAtPerf(live.tb, atPerfMs - cal), end: sceneAtPerf(live.tb, atPerfMs + TAP_HOLD_MS), commitAt: null, state: null, ball: live.flight.samples };
+    live.touch = {
+      start: sceneAtPerf(live.tb, atPerfMs - cal),
+      end: sceneAtPerf(live.tb, atPerfMs + TAP_HOLD_MS),
+      commitAt: null,
+      state: null,
+      ball: live.flight.samples,
+    };
     live.script.practice!.bat = { ...live.script.practice!.bat, readyAt: null, touch: live.touch };
     this.latencyPending = atPerfMs;
   }
@@ -474,7 +522,8 @@ export abstract class PracticeSessionBase implements PracticeStage {
     // (no touch, or a stroke that checked back: a held press, a pullback) starts afresh, so only then is CTL1's
     // latency measured again, from this commitment's own input.
     const fresh = !touch || touch.commitAt !== null || now >= touch.end + TOUCHDOWN.checkMs;
-    if (touch && touch.commitAt === null) live.touch = { ...touch, commitAt: Math.max(now, touch.start), state: bat.contactState ?? null };
+    if (touch && touch.commitAt === null)
+      live.touch = { ...touch, commitAt: Math.max(now, touch.start), state: bat.contactState ?? null };
     live.script.practice!.bat = { ...bat, readyAt: null, provisionalStart: live.provisionalStart, touch: live.touch };
     if (fresh) this.latencyPending = atPerfMs;
   }
@@ -484,7 +533,13 @@ export abstract class PracticeSessionBase implements PracticeStage {
     if (this.mode !== 'live' || !live || live.result) return;
     live.provisionalStart = null;
     live.touch = this.checkBack(live);
-    live.script.practice!.bat = { ...live.script.practice!.bat, readyAt: null, contactState: null, provisionalStart: null, touch: live.touch };
+    live.script.practice!.bat = {
+      ...live.script.practice!.bat,
+      readyAt: null,
+      contactState: null,
+      provisionalStart: null,
+      touch: live.touch,
+    };
     this.latencyPending = null;
   }
 
@@ -495,12 +550,19 @@ export abstract class PracticeSessionBase implements PracticeStage {
     if (uncommittedEnd) {
       live.provisionalStart = null;
       live.touch = this.checkBack(live);
-      live.script.practice!.bat = { ...live.script.practice!.bat, readyAt: null, contactState: null, provisionalStart: null, touch: live.touch };
+      live.script.practice!.bat = {
+        ...live.script.practice!.bat,
+        readyAt: null,
+        contactState: null,
+        provisionalStart: null,
+        touch: live.touch,
+      };
       this.latencyPending = null;
       return;
     }
     // A press that is no longer a tap (held past the window, or pulled back into a load): the stroke checks back.
-    if (state.phase === 'waiting' || state.phase === 'loading' || state.phase === 'tracking') live.touch = this.checkBack(live);
+    if (state.phase === 'waiting' || state.phase === 'loading' || state.phase === 'tracking')
+      live.touch = this.checkBack(live);
     live.script.practice!.bat = {
       ...live.script.practice!.bat,
       readyAt: state.phase === 'ready' ? live.script.practice!.bat.readyAt : null,
@@ -530,8 +592,28 @@ export abstract class PracticeSessionBase implements PracticeStage {
       // No live delivery for this result: show it from its release now (no run-up wait).
       this.endLive();
       const releaseScene = practiceReleaseScene(setup.bowler);
-      const tb: Timebase = { startPerfMs: now - releaseScene / this.timeScale, releaseScene, timeScale: this.timeScale };
-      live = { flight: result.flight, tb, script: null as unknown as BallScript, plan: [], provisionalStart: null, touch: null, result: null, resultAt: null, resolveRelease: null, releaseTimer: null, resolvePlay: null, playTimer: null, dead: false, fired: new Set(['release:' + Math.round(releaseScene)]), pending: new Map() };
+      const tb: Timebase = {
+        startPerfMs: now - releaseScene / this.timeScale,
+        releaseScene,
+        timeScale: this.timeScale,
+      };
+      live = {
+        flight: result.flight,
+        tb,
+        script: null as unknown as BallScript,
+        plan: [],
+        provisionalStart: null,
+        touch: null,
+        result: null,
+        resultAt: null,
+        resolveRelease: null,
+        releaseTimer: null,
+        resolvePlay: null,
+        playTimer: null,
+        dead: false,
+        fired: new Set(['release:' + Math.round(releaseScene)]),
+        pending: new Map(),
+      };
       this.live = live;
       this.mode = 'live';
     }
@@ -543,7 +625,18 @@ export abstract class PracticeSessionBase implements PracticeStage {
     // The script on screen hands over to the result's: the camera keeps its eye and its gaze carries on (no jump).
     const handover = l.script?.practice ? { script: l.script, atScene: l.resultAt } : null;
     const liveScript = l.script ?? null;
-    l.script = buildPracticeScript({ setup, flight: l.flight, result, provisionalStart: l.provisionalStart, contactState, resultAt: l.provisionalStart !== null ? l.resultAt : null, handover, learnCue: this.learnCue, releaseHand: this.releaseHand(setup), context: this.deliveryContext });
+    l.script = buildPracticeScript({
+      setup,
+      flight: l.flight,
+      result,
+      provisionalStart: l.provisionalStart,
+      contactState,
+      resultAt: l.provisionalStart !== null ? l.resultAt : null,
+      handover,
+      learnCue: this.learnCue,
+      releaseHand: this.releaseHand(setup),
+      context: this.deliveryContext,
+    });
     // The touch-down stroke stays on the drawn bat: it hands over to the committed swing (or has checked back).
     if (l.touch) l.script.practice!.bat = { ...l.script.practice!.bat, touch: l.touch };
     l.tb.releaseScene = l.script.practice!.releaseScene;
@@ -562,10 +655,13 @@ export abstract class PracticeSessionBase implements PracticeStage {
       l.resolvePlay = resolve;
       // At dead ball, everything due by then fires first: what the dead ball wakes (the outcome screens) can hold the
       // main thread, and the wicket's haptic and caption must not wait behind it (+381 ms on 2026-11-03).
-      l.playTimer = this.clock.setTimer(() => {
-        if (l === this.live && this.mode === 'live') this.flushDue(l);
-        this.settlePlay(l);
-      }, Math.max(0, deadAt - this.clock.now()));
+      l.playTimer = this.clock.setTimer(
+        () => {
+          if (l === this.live && this.mode === 'live') this.flushDue(l);
+          this.settlePlay(l);
+        },
+        Math.max(0, deadAt - this.clock.now()),
+      );
     });
     // The result's sounds go to the sink now, ahead of their time, not at the next frame.
     if (this.mode === 'live' && this.live === l) this.dispatch(l, this.clock.now());
@@ -633,7 +729,10 @@ export abstract class PracticeSessionBase implements PracticeStage {
       plan: [{ shot, atMs: 0, durationMs: script.duration }],
       startPerf: this.clock.now(),
       warp,
-      diagnostics: options.diagnostics === false ? null : buildDiagnostics(result, script.practice!.releaseScene, script.practice!.mirror),
+      diagnostics:
+        options.diagnostics === false
+          ? null
+          : buildDiagnostics(result, script.practice!.releaseScene, script.practice!.mirror),
       bands: options.assist ? activeBands(options.assist, options.tierToleranceMs ?? 0) : null,
       resolve: null,
       timer: null,
@@ -697,7 +796,14 @@ export abstract class PracticeSessionBase implements PracticeStage {
     this.onScript(script, 'closeup', null);
     const durationMs = Math.max(800, options.durationMs ?? CLOSE_UP_MS);
     const release = script.practice!.releaseScene;
-    const warp: ReplayWarp = { anchors: [[0, release - CLOSE_UP_LEAD_MS], [durationMs, release + (durationMs - CLOSE_UP_HOLD_MS) * CLOSE_UP_RATE]], duration: durationMs, slow: [release - CLOSE_UP_LEAD_MS, release + durationMs] };
+    const warp: ReplayWarp = {
+      anchors: [
+        [0, release - CLOSE_UP_LEAD_MS],
+        [durationMs, release + (durationMs - CLOSE_UP_HOLD_MS) * CLOSE_UP_RATE],
+      ],
+      duration: durationMs,
+      slow: [release - CLOSE_UP_LEAD_MS, release + durationMs],
+    };
     const run: ReplayRun = {
       script,
       plan: [{ shot: 'ball_close', atMs: 0, durationMs: script.duration }],
@@ -860,7 +966,8 @@ export abstract class PracticeSessionBase implements PracticeStage {
       }
     } catch (err) {
       this.drawErrors++;
-      if (this.drawErrors === 3) this.emit('fallback', { reason: 'error', message: err instanceof Error ? err.message : String(err) });
+      if (this.drawErrors === 3)
+        this.emit('fallback', { reason: 'error', message: err instanceof Error ? err.message : String(err) });
     }
     if (!this.disposed) this.rafId = this.clock.raf(this.tick);
   };
@@ -873,7 +980,18 @@ export abstract class PracticeSessionBase implements PracticeStage {
       this.dispatch(live, now);
       this.activeSink()?.emotion?.(emotionAt(live.script.practice!.emotion, scene));
       this.activeSink()?.crowd(crowdAt(live.script, scene));
-      return { mode: 'live', script: live.script, scene, plan: live.plan, clockMs: now, slow: false, diagnostics: null, bands: null, coachOption: null, closeUpFlight: null };
+      return {
+        mode: 'live',
+        script: live.script,
+        scene,
+        plan: live.plan,
+        clockMs: now,
+        slow: false,
+        diagnostics: null,
+        bands: null,
+        coachOption: null,
+        closeUpFlight: null,
+      };
     }
     const rep = this.rep;
     if ((this.mode === 'replay' || this.mode === 'demo' || this.mode === 'closeup') && rep) {
@@ -895,11 +1013,33 @@ export abstract class PracticeSessionBase implements PracticeStage {
     }
     if (this.mode === 'benchmark' && this.benchScript) {
       const scene = ((now - this.benchStart) % Math.max(1, this.benchScript.duration)) * 1;
-      return { mode: 'benchmark', script: this.benchScript, scene, plan: this.benchPlan, clockMs: now, slow: false, diagnostics: null, bands: null, coachOption: null, closeUpFlight: null };
+      return {
+        mode: 'benchmark',
+        script: this.benchScript,
+        scene,
+        plan: this.benchPlan,
+        clockMs: now,
+        slow: false,
+        diagnostics: null,
+        bands: null,
+        coachOption: null,
+        closeUpFlight: null,
+      };
     }
     if (this.idleScript) {
       const scene = (now - this.idleStart) % Math.max(1, this.idleScript.duration);
-      return { mode: 'idle', script: this.idleScript, scene, plan: this.idlePlan, clockMs: now, slow: false, diagnostics: null, bands: null, coachOption: null, closeUpFlight: null };
+      return {
+        mode: 'idle',
+        script: this.idleScript,
+        scene,
+        plan: this.idlePlan,
+        clockMs: now,
+        slow: false,
+        diagnostics: null,
+        bands: null,
+        coachOption: null,
+        closeUpFlight: null,
+      };
     }
     return null;
   }
@@ -926,7 +1066,12 @@ export abstract class PracticeSessionBase implements PracticeStage {
     const p = live.script.practice!;
     const list: FiredCue[] = [];
     for (const moment of p.emotion.moments) {
-      list.push({ key: `moment:${moment.kind}:${Math.round(moment.scene)}`, t: moment.scene, ahead: false, fire: () => sink?.moment?.(moment, perfAtScene(live.tb, moment.scene)) });
+      list.push({
+        key: `moment:${moment.kind}:${Math.round(moment.scene)}`,
+        t: moment.scene,
+        ahead: false,
+        fire: () => sink?.moment?.(moment, perfAtScene(live.tb, moment.scene)),
+      });
     }
     if (live.result) {
       for (const c of p.cues) {

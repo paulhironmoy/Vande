@@ -15,25 +15,54 @@ export interface PushNotificationsPlugin {
   register(): Promise<void>;
   addListener(event: 'registration', cb: (t: { value: string }) => void): Promise<{ remove(): Promise<void> }>;
   addListener(event: 'registrationError', cb: (e: { error: string }) => void): Promise<{ remove(): Promise<void> }>;
-  addListener(event: 'pushNotificationReceived', cb: (n: { data?: Record<string, string> }) => void): Promise<{ remove(): Promise<void> }>;
-  addListener(event: 'pushNotificationActionPerformed', cb: (a: { notification: { data?: Record<string, string> } }) => void): Promise<{ remove(): Promise<void> }>;
+  addListener(
+    event: 'pushNotificationReceived',
+    cb: (n: { data?: Record<string, string> }) => void,
+  ): Promise<{ remove(): Promise<void> }>;
+  addListener(
+    event: 'pushNotificationActionPerformed',
+    cb: (a: { notification: { data?: Record<string, string> } }) => void,
+  ): Promise<{ remove(): Promise<void> }>;
 }
 
-const KINDS = new Set(['opponent_joined', 'opponent_locked', 'reveal_ready', 'auto_over', 'match_expired', 'rematch', 'deadline_reminder', 'new_fixture', 'final', 'cup_complete', 'cup_cancelled']);
+const KINDS = new Set([
+  'opponent_joined',
+  'opponent_locked',
+  'reveal_ready',
+  'auto_over',
+  'match_expired',
+  'rematch',
+  'deadline_reminder',
+  'new_fixture',
+  'final',
+  'cup_complete',
+  'cup_cancelled',
+]);
 
 /** Android notification channel for match pushes (the server sends `channel_id: matches`). */
-export const MATCH_CHANNEL = { id: 'matches', name: 'Matches', description: 'Locks, deadlines and reveals', importance: 4 as const, visibility: 1 as const };
+export const MATCH_CHANNEL = {
+  id: 'matches',
+  name: 'Matches',
+  description: 'Locks, deadlines and reveals',
+  importance: 4 as const,
+  visibility: 1 as const,
+};
 
 function toMessage(data: Record<string, string> | undefined, tapped: boolean): PushMessage | null {
   if (!data || !KINDS.has(data.kind)) return null;
   return { kind: data.kind, data: { ...data, tapped: tapped ? '1' : '0' } };
 }
 
-export function createFcmPushAdapter(o: { enabled: boolean; plugin: () => Promise<PluginBox<PushNotificationsPlugin> | null>; timeoutMs?: number }): PushAdapter {
+export function createFcmPushAdapter(o: {
+  enabled: boolean;
+  plugin: () => Promise<PluginBox<PushNotificationsPlugin> | null>;
+  timeoutMs?: number;
+}): PushAdapter {
   // The plugin stays boxed: an async function that returned the Capacitor proxy itself would never settle (PluginBox).
   let box: PluginBox<PushNotificationsPlugin> | null | undefined;
   let loading: Promise<PluginBox<PushNotificationsPlugin> | null> | null = null;
-  const get = () => (loading ??= (o.enabled ? o.plugin().catch(() => null) : Promise.resolve(null)).then((b) => (box = b)));
+  const get = () =>
+    (loading ??= (o.enabled ? o.plugin().catch(() => null) : Promise.resolve(null)).then((b) => (box = b)));
   if (o.enabled) void get();
   return {
     available: () => o.enabled && box !== null,
@@ -60,14 +89,18 @@ export function createFcmPushAdapter(o: { enabled: boolean; plugin: () => Promis
       void get().then((b) => {
         const p = b?.plugin;
         if (!p) return;
-        handles.push(p.addListener('pushNotificationReceived', (n) => {
-          const m = toMessage(n.data, false);
-          if (m) cb(m);
-        }));
-        handles.push(p.addListener('pushNotificationActionPerformed', (a) => {
-          const m = toMessage(a.notification.data, true);
-          if (m) cb(m);
-        }));
+        handles.push(
+          p.addListener('pushNotificationReceived', (n) => {
+            const m = toMessage(n.data, false);
+            if (m) cb(m);
+          }),
+        );
+        handles.push(
+          p.addListener('pushNotificationActionPerformed', (a) => {
+            const m = toMessage(a.notification.data, true);
+            if (m) cb(m);
+          }),
+        );
       });
       return () => {
         for (const h of handles) void h.then((x) => x.remove());
@@ -89,7 +122,9 @@ export function createDisabledPushAdapter(): PushAdapter {
 }
 
 /** For tests and local development: scripted permission and token, and emit() to simulate a push. */
-export function createMockPushAdapter(token: string | null = 'mock-fcm-token-0123456789abcdef'): PushAdapter & { emit(msg: PushMessage): void; registrations: number } {
+export function createMockPushAdapter(
+  token: string | null = 'mock-fcm-token-0123456789abcdef',
+): PushAdapter & { emit(msg: PushMessage): void; registrations: number } {
   const listeners = new Set<(m: PushMessage) => void>();
   const self = {
     registrations: 0,

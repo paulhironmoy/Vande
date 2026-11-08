@@ -8,13 +8,26 @@ import type { DeliveryResult, FieldLayout, FielderPath, SimEvent } from '@/contr
 import { evaluateActor, type ActorTrack } from '@/render3d/core/actors';
 import { clipMarker, type ClipId } from '@/render3d/core/clips';
 import { angleDelta } from '@/render3d/core/math';
-import { CHASE_SPEED_SHARE, DIVE_BODY_MAX_M, DIVE_HAND_REACH_M, chasedBall, fieldingMoves } from '@/render3d/practice/fielding';
+import {
+  CHASE_SPEED_SHARE,
+  DIVE_BODY_MAX_M,
+  DIVE_HAND_REACH_M,
+  chasedBall,
+  fieldingMoves,
+} from '@/render3d/practice/fielding';
 import { ballAt, ballVelocityAt, simToScene, toWorld } from '@/render3d/practice/frame';
 import { buildPracticeScript, WALK_IN } from '@/render3d/practice/script';
 import type { PracticeSceneSetup } from '@/render3d/practice/types';
 import { simulate } from '@/physics/ball';
 import { autoField } from '@/physics/field';
-import { ATHLETICS, fielderClass, keeperTake, simulateFielding, type FieldingResult, type PostContactBall } from '@/physics/fielding';
+import {
+  ATHLETICS,
+  fielderClass,
+  keeperTake,
+  simulateFielding,
+  type FieldingResult,
+  type PostContactBall,
+} from '@/physics/fielding';
 import { CONTACT_Z, PITCH_HALF } from '@/physics/geometry';
 import { fixtureFlight, fixtureResult } from './practiceFixtures';
 
@@ -35,10 +48,18 @@ function hit(bearingDeg: number, speed: number, elevDeg: number, seed: string): 
   const e = elevDeg * DEG;
   const v = { x: Math.sin(a) * Math.cos(e) * speed, y: Math.sin(e) * speed, z: -Math.cos(a) * Math.cos(e) * speed };
   const sim = simulate({ t: 0.5, p: { x: 0.2, y: 0.6, z: CONTACT_Z }, v, spinRps: 0 });
-  const post: PostContactBall = { t0: 0.5, samples: sim.samples, bounces: sim.bounces.map((b) => ({ t: b.t, p: b.p })), boundary: sim.boundary };
+  const post: PostContactBall = {
+    t0: 0.5,
+    samples: sim.samples,
+    bounces: sim.bounces.map((b) => ({ t: b.t, p: b.p })),
+    boundary: sim.boundary,
+  };
   const fielding = simulateFielding(field, post, { seed });
   const p = fielding.play;
-  const key = p.kind === 'fielded' ? `${p.how}${p.dive ? '+dive' : ''}` : `${p.kind}${p.kind === 'caught' && p.dive ? '+dive' : ''}`;
+  const key =
+    p.kind === 'fielded'
+      ? `${p.how}${p.dive ? '+dive' : ''}`
+      : `${p.kind}${p.kind === 'caught' && p.dive ? '+dive' : ''}`;
   return { key, post, fielding };
 }
 
@@ -88,7 +109,14 @@ function trackFor(c: Case, path: FielderPath, mirror: boolean): ActorTrack {
     keeper: f.role === 'keeper',
     striker: toWorld({ x: 0, y: 0, z: CONTACT_Z }, mirror),
   });
-  return { id: path.fielderId, role: 'fielder', look: { seed: 'x', team: 1, gear: 'fielder' }, start: physicsAt(path, 0, mirror), heading: 0, moves };
+  return {
+    id: path.fielderId,
+    role: 'fielder',
+    look: { seed: 'x', team: 1, gear: 'fielder' },
+    start: physicsAt(path, 0, mirror),
+    heading: 0,
+    moves,
+  };
 }
 
 const sceneOf = (t: number) => simToScene({ releaseScene: REL }, t);
@@ -112,7 +140,10 @@ describe('fielders on real physics fielding', () => {
           for (let t = path.samples[0].t; t <= end; t += 0.005) {
             const drawn = evaluateActor(track, sceneOf(t)).pos;
             const phys = physicsAt(path, t, mirror);
-            expect(Math.abs(drawn.x - phys.x) + Math.abs(drawn.z - phys.z), `${c.key} ${path.fielderId} t=${t.toFixed(3)}`).toBeLessThan(1e-6);
+            expect(
+              Math.abs(drawn.x - phys.x) + Math.abs(drawn.z - phys.z),
+              `${c.key} ${path.fielderId} t=${t.toFixed(3)}`,
+            ).toBeLessThan(1e-6);
           }
         }
   });
@@ -167,7 +198,8 @@ describe('fielders on real physics fielding', () => {
         for (const m of track.moves) {
           const d = Math.hypot(m.to!.x - m.from!.x, m.to!.z - m.from!.z);
           const speed = d / ((m.t1 - m.t0) / 1000);
-          if (m.clip === 'run' || m.clip === 'run_drive' || m.lower === 'run') expect(speed, `${c.key} ${path.fielderId} ${m.clip}`).toBeGreaterThan(0.3);
+          if (m.clip === 'run' || m.clip === 'run_drive' || m.lower === 'run')
+            expect(speed, `${c.key} ${path.fielderId} ${m.clip}`).toBeGreaterThan(0.3);
           if (prevHeading !== null) expect(Math.abs(angleDelta(prevHeading, m.heading!))).toBeLessThan(1e-9);
           const rate = Math.abs(angleDelta(m.heading!, m.headingTo!)) / ((m.t1 - m.t0) / 1000);
           expect(rate).toBeLessThanOrEqual(14 + 1e-6);
@@ -227,12 +259,22 @@ describe('fielders on real physics fielding', () => {
   it('the keeper takes a missed ball square to the bowler, diving to the side the ball passes', () => {
     for (const lateral of [-2.2, -0.9, 0, 1.1, 2.4]) {
       const keeper = field.fielders.find((f) => f.role === 'keeper')!;
-      const samples = Array.from({ length: 80 }, (_, i) => ({ t: 0.45 + i * 0.005, p: { x: keeper.x + lateral, y: 0.7, z: PITCH_HALF + i * 0.2 }, v: { x: 0, y: 0, z: 40 } }));
+      const samples = Array.from({ length: 80 }, (_, i) => ({
+        t: 0.45 + i * 0.005,
+        p: { x: keeper.x + lateral, y: 0.7, z: PITCH_HALF + i * 0.2 },
+        v: { x: 0, y: 0, z: 40 },
+      }));
       const take = keeperTake(field, samples, 0)!;
-      const c: Case = { key: 'keeper', post: { t0: 0, samples, bounces: [], boundary: null }, fielding: { ball: samples, paths: [take.path] } as unknown as FieldingResult };
+      const c: Case = {
+        key: 'keeper',
+        post: { t0: 0, samples, bounces: [], boundary: null },
+        fielding: { ball: samples, paths: [take.path] } as unknown as FieldingResult,
+      };
       const track = trackFor(c, take.path, false);
       const at = clipAt(track, take.t);
-      expect(at.clip).toMatch(take.dive ? (lateral > 0 ? /^keep_dive_r$/ : /^keep_dive_l$/) : /^keep_(take|crouch|shuffle)$/);
+      expect(at.clip).toMatch(
+        take.dive ? (lateral > 0 ? /^keep_dive_r$/ : /^keep_dive_l$/) : /^keep_(take|crouch|shuffle)$/,
+      );
       expect(Math.abs(angleDelta(evaluateActor(track, sceneOf(take.t)).heading, Math.PI))).toBeLessThan(1e-6);
       if (!take.dive) expect(at.time).toBeCloseTo(clipMarker('keep_take', 'catch'), 3);
     }
@@ -248,13 +290,23 @@ describe('the field walks in with the bowler and reacts after the ball', () => {
     const base = fixtureResult(flight, { kind: 'drive', timingMs: 0, bearing: 30 });
     const pre = base.ball.filter((s) => s.t < c.post.t0);
     const p = c.fielding.play;
-    const events = [...base.events.filter((e) => e.kind === 'release' || e.kind === 'bounce' || e.kind === 'contact'), ...c.fielding.events, { t: c.fielding.deadT, kind: 'dead' as const }];
+    const events = [
+      ...base.events.filter((e) => e.kind === 'release' || e.kind === 'bounce' || e.kind === 'contact'),
+      ...c.fielding.events,
+      { t: c.fielding.deadT, kind: 'dead' as const },
+    ];
     return {
       ...base,
       ball: [...pre, ...c.fielding.ball],
       fielders: c.fielding.paths,
       events: events.sort((a, b) => a.t - b.t),
-      outcome: { ...base.outcome, runs: p.kind === 'boundary' ? p.runs : 0, boundary: p.kind === 'boundary' ? p.runs : null, dismissal: p.kind === 'caught' ? 'caught' : null, fielderId: p.kind === 'boundary' ? null : p.fielderId },
+      outcome: {
+        ...base.outcome,
+        runs: p.kind === 'boundary' ? p.runs : 0,
+        boundary: p.kind === 'boundary' ? p.runs : null,
+        dismissal: p.kind === 'caught' ? 'caught' : null,
+        fielderId: p.kind === 'boundary' ? null : p.fielderId,
+      },
       deadT: c.fielding.deadT,
     };
   }
@@ -276,7 +328,10 @@ describe('the field walks in with the bowler and reacts after the ball', () => {
       expect(evaluateActor(track, rel).pos.x).toBeCloseTo(f.x, 9);
       const early = evaluateActor(track, 1).pos;
       const back = Math.hypot(early.x - f.x, early.z - f.z);
-      const between = evaluateActor(idle.actors.find((a) => a.id === id)!, 5000).pos;
+      const between = evaluateActor(
+        idle.actors.find((a) => a.id === id)!,
+        5000,
+      ).pos;
       expect(Math.hypot(between.x - early.x, between.z - early.z)).toBeLessThan(1e-9);
       if (back > 0) {
         walkers++;
@@ -288,7 +343,12 @@ describe('the field walks in with the bowler and reacts after the ball', () => {
     }
     expect(walkers).toBeGreaterThanOrEqual(6);
     // The keeper is crouched at the release (never the fielders' ready pose).
-    expect(evaluateActor(script.actors.find((a) => a.id === 'keeper')!, rel).current.clip).toBe('keep_crouch');
+    expect(
+      evaluateActor(
+        script.actors.find((a) => a.id === 'keeper')!,
+        rel,
+      ).current.clip,
+    ).toBe('keep_crouch');
   });
 
   it('reactions start only after the event that earns them, on the spot', () => {
@@ -298,7 +358,10 @@ describe('the field walks in with the bowler and reacts after the ball', () => {
       const result = resultFrom(c);
       const script = buildPracticeScript({ setup, flight: result.flight, result });
       const rel = script.practice!.releaseScene;
-      const eventT = key === 'caught' ? result.events.find((e) => e.kind === 'catch')!.t : result.events.find((e) => e.kind === 'boundary')!.t;
+      const eventT =
+        key === 'caught'
+          ? result.events.find((e) => e.kind === 'catch')!.t
+          : result.events.find((e) => e.kind === 'boundary')!.t;
       const reaction = key === 'caught' ? /clap|celebrate_jump/ : /hands_on_hips/;
       let reacting = 0;
       for (const track of script.actors.filter((a) => a.id.startsWith('fielder:'))) {
@@ -347,11 +410,23 @@ describe('FIELD follow-up: reactions only for the chase, and short dives timed t
       const base = fixtureResult(flight, { kind: 'drive', timingMs: 0, bearing: 30 });
       const pre = base.ball.filter((x) => x.t < c.post.t0);
       const p = c.fielding.play as Extract<FieldingResult['play'], { kind: 'boundary' }>;
-      const events = [...base.events.filter((e) => e.kind === 'release' || e.kind === 'bounce' || e.kind === 'contact'), ...c.fielding.events, { t: c.fielding.deadT, kind: 'dead' as const }];
-      const result: DeliveryResult = { ...base, ball: [...pre, ...c.fielding.ball], fielders: c.fielding.paths, events: events.sort((a, b) => a.t - b.t), outcome: { ...base.outcome, runs: p.runs, boundary: p.runs, dismissal: null, fielderId: null }, deadT: c.fielding.deadT };
+      const events = [
+        ...base.events.filter((e) => e.kind === 'release' || e.kind === 'bounce' || e.kind === 'contact'),
+        ...c.fielding.events,
+        { t: c.fielding.deadT, kind: 'dead' as const },
+      ];
+      const result: DeliveryResult = {
+        ...base,
+        ball: [...pre, ...c.fielding.ball],
+        fielders: c.fielding.paths,
+        events: events.sort((a, b) => a.t - b.t),
+        outcome: { ...base.outcome, runs: p.runs, boundary: p.runs, dismissal: null, fielderId: null },
+        deadT: c.fielding.deadT,
+      };
       const script = buildPracticeScript({ setup, flight: result.flight, result });
       const hips = new Set<string>();
-      for (const track of script.actors) for (const m of track.moves) if (m.clip === 'hands_on_hips') hips.add(track.id.replace(/^fielder:/, ''));
+      for (const track of script.actors)
+        for (const m of track.moves) if (m.clip === 'hands_on_hips') hips.add(track.id.replace(/^fielder:/, ''));
       for (const f of field.fielders) {
         const path = c.fielding.paths.find((x) => x.fielderId === f.id)!;
         const chased = chasedBall(path, f, p.p, p.t);
@@ -370,7 +445,7 @@ describe('FIELD follow-up: reactions only for the chase, and short dives timed t
     expect(fewerThanBefore).toBe(boundaries.length);
   });
 
-  it('a dive shorter than its clip\'s launch starts at the physics take-off, never during the run, with the hands out at the reach', () => {
+  it("a dive shorter than its clip's launch starts at the physics take-off, never during the run, with the hands out at the reach", () => {
     let short = 0;
     const check = (path: FielderPath, track: ActorTrack) => {
       const s = path.samples;
@@ -395,9 +470,17 @@ describe('FIELD follow-up: reactions only for the chase, and short dives timed t
     const keeper = field.fielders.find((f) => f.role === 'keeper')!;
     for (const lateral of [1.4, 2, 2.6])
       for (const watch of [0.5, 0.55]) {
-        const samples = Array.from({ length: 120 }, (_, i) => ({ t: 0.45 + i * 0.005, p: { x: keeper.x + lateral, y: 0.7, z: PITCH_HALF + i * 0.2 }, v: { x: 0, y: 0, z: 40 } }));
+        const samples = Array.from({ length: 120 }, (_, i) => ({
+          t: 0.45 + i * 0.005,
+          p: { x: keeper.x + lateral, y: 0.7, z: PITCH_HALF + i * 0.2 },
+          v: { x: 0, y: 0, z: 40 },
+        }));
         const take = keeperTake(field, samples, watch)!;
-        const c: Case = { key: 'keeper', post: { t0: 0, samples, bounces: [], boundary: null }, fielding: { ball: samples, paths: [take.path] } as unknown as FieldingResult };
+        const c: Case = {
+          key: 'keeper',
+          post: { t0: 0, samples, bounces: [], boundary: null },
+          fielding: { ball: samples, paths: [take.path] } as unknown as FieldingResult,
+        };
         check(take.path, trackFor(c, take.path, false));
       }
     // And every dive the physics makes on the struck balls of this file.

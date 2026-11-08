@@ -51,7 +51,8 @@ export const deliveriesEn = {
   'practice.build.mode.reference_hint': 'Recommended: six classic balls to master',
   'practice.build.mode.own': 'Your own six',
   'practice.build.mode.own_hint': 'Choose each ball',
-  'practice.build.reference_body': 'The same six balls every time, on a Balanced pitch with a new white ball. Tap a ball to see what it trains.',
+  'practice.build.reference_body':
+    'The same six balls every time, on a Balanced pitch with a new white ball. Tap a ball to see what it trains.',
   'practice.build.reference_copy': 'Edit a copy as your own six',
   'practice.build.bowler': 'Bowler',
   'practice.build.arm': 'Bowling arm',
@@ -64,7 +65,8 @@ export const deliveriesEn = {
   'practice.build.spin.wrist_hint': 'Leg-break: turns away from a right-hander',
   'practice.build.slots': 'The six balls',
   'practice.build.slot_empty': 'Tap the pitch',
-  'practice.build.chip_style': '{arm, select, left {Left-arm} other {Right-arm}} {family, select, spin {spin} other {pace}}',
+  'practice.build.chip_style':
+    '{arm, select, left {Left-arm} other {Right-arm}} {family, select, spin {spin} other {pace}}',
   'practice.build.editing': 'Ball {n}',
   'practice.build.map': 'Tap where this ball should pitch',
   'practice.build.map_label': 'Pitch map. Where ball {n} pitches: {target}. Arrow keys move it.',

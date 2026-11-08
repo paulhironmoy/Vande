@@ -31,12 +31,32 @@ describe('cup milestones', () => {
     const s = storage();
     expect(cupMilestones(view(), 'pme', s)).toEqual([{ event: 'tournament_joined', props: { mode: 'cup' } }]);
     expect(cupMilestones(view({ status: 'group_stage' }), 'pme', s)).toEqual([]);
-    const final = { fixtureId: 'f9', round: 'final' as const, home: 'pme', away: 'pb', matchId: 'm9', status: 'revealed' as const, auto: [false, false] as [boolean, boolean] };
-    expect(cupMilestones(view({ status: 'complete', fixtures: [final] }), 'pme', s)).toEqual([{ event: 'tournament_completed', props: { mode: 'cup', stage: 'final' } }]);
+    const final = {
+      fixtureId: 'f9',
+      round: 'final' as const,
+      home: 'pme',
+      away: 'pb',
+      matchId: 'm9',
+      status: 'revealed' as const,
+      auto: [false, false] as [boolean, boolean],
+    };
+    expect(cupMilestones(view({ status: 'complete', fixtures: [final] }), 'pme', s)).toEqual([
+      { event: 'tournament_completed', props: { mode: 'cup', stage: 'final' } },
+    ]);
     expect(cupMilestones(view({ status: 'complete', fixtures: [final] }), 'pme', s)).toEqual([]);
     // A member who did not reach the final; and someone who is not a member at all.
     const other = storage();
-    expect(cupMilestones(view({ status: 'complete', members: [ref('pme', 'Swift Tiger'), ref('pb', 'Calm Cobra'), ref('pc', 'Bold Falcon')], fixtures: [final] }), 'pc', other).map((m) => m.props)).toEqual([{ mode: 'cup' }, { mode: 'cup', stage: 'group' }]);
+    expect(
+      cupMilestones(
+        view({
+          status: 'complete',
+          members: [ref('pme', 'Swift Tiger'), ref('pb', 'Calm Cobra'), ref('pc', 'Bold Falcon')],
+          fixtures: [final],
+        }),
+        'pc',
+        other,
+      ).map((m) => m.props),
+    ).toEqual([{ mode: 'cup' }, { mode: 'cup', stage: 'group' }]);
     expect(cupMilestones(view(), 'pz', storage())).toEqual([]);
     expect(cupMilestones(null, 'pme', storage())).toEqual([]);
   });

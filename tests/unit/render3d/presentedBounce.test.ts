@@ -27,18 +27,40 @@ function withFlightBounce(r: DeliveryResult): DeliveryResult {
   return { ...r, events: [...r.events, { t: b.t, kind: 'bounce' as const, p: b.p }].sort((x, y) => x.t - y.t) };
 }
 
-function referenceBall(index: number, handedness: 'right' | 'left', intent: Parameters<typeof swingOf>[1], errorMs = 0) {
+function referenceBall(
+  index: number,
+  handedness: 'right' | 'left',
+  intent: Parameters<typeof swingOf>[1],
+  errorMs = 0,
+) {
   const b = overBalls(REFERENCE_OVER, REFERENCE_CONDITIONS)[index];
   const field = autoField(b.over.bowler, b.conditions, handedness, b.over.ball);
-  const flight = physicsFlight({ plan: b.flight.plan, bowler: b.over.bowler, conditions: b.conditions, seed: b.seed, handedness, ball: b.over.ball });
+  const flight = physicsFlight({
+    plan: b.flight.plan,
+    bowler: b.over.bowler,
+    conditions: b.conditions,
+    seed: b.seed,
+    handedness,
+    ball: b.over.ball,
+  });
   const swing = swingOf({ ...b, flight }, intent, errorMs);
-  const physics = resolveDelivery({ flight, swing, field, bowler: b.over.bowler, conditions: b.conditions, handedness, assist: 'real', tierToleranceMs: 0 });
+  const physics = resolveDelivery({
+    flight,
+    swing,
+    field,
+    bowler: b.over.bowler,
+    conditions: b.conditions,
+    handedness,
+    assist: 'real',
+    tierToleranceMs: 0,
+  });
   const result = withFlightBounce(physics);
   const setup: PracticeSceneSetup = { field, bowler: b.over.bowler, conditions: b.conditions, handedness };
   return { result, physics, setup, mirror: handedness === 'left' };
 }
 
-const touchedFirst = (r: DeliveryResult) => r.events.find((e) => (e.kind === 'contact' && e.contact !== 'miss' && e.contact !== 'leave') || e.kind === 'pad');
+const touchedFirst = (r: DeliveryResult) =>
+  r.events.find((e) => (e.kind === 'contact' && e.contact !== 'miss' && e.contact !== 'leave') || e.kind === 'pad');
 
 describe('COH4: no phantom bounce after the ball is met on the full', () => {
   it('reproduces the evaluator case: ref-6 cover drive on time at Real, contact 0.459 s, flight bounce 0.485 s at z 9.16', () => {
@@ -83,7 +105,9 @@ describe('COH4: no phantom bounce after the ball is met on the full', () => {
         expect(seg.spinRate).toBe(first.spinRate);
         expect(seg.spinAxis).toEqual(first.spinAxis);
       }
-      const holds = script.ball.filter((s): s is Extract<BallScript['ball'][number], { k: 'hand' }> => s.k === 'hand' && s.t0 >= releaseScene);
+      const holds = script.ball.filter(
+        (s): s is Extract<BallScript['ball'][number], { k: 'hand' }> => s.k === 'hand' && s.t0 >= releaseScene,
+      );
       const held = (scene: number) => holds.some((h) => scene >= h.t0 && scene < h.t1);
       // Outside the holds, the ball is drawn on the physics samples (the presented trajectory).
       let onPath = 0;
@@ -103,7 +127,8 @@ describe('COH4: no phantom bounce after the ball is met on the full', () => {
         return track ? { x: track.start.x + 0.11, y: 1.07, z: track.start.z - 0.13 } : null;
       };
       const physicsAt = (scene: number) => toWorld(ballAt(result.ball, (scene - releaseScene) / 1000)!, mirror);
-      const dist = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+      const dist = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) =>
+        Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
       for (const h of holds) {
         expect(script.actors.some((a) => a.id === h.actor)).toBe(true);
         expect(h.path).toBeDefined();
@@ -116,7 +141,9 @@ describe('COH4: no phantom bounce after the ball is met on the full', () => {
           expect(b.heldBy).toBe(h.actor);
           expect(dist(b.pos, handOf(h.actor)!)).toBeLessThan(1e-9);
         }
-        const throwEvent = result.events.find((e) => e.kind === 'throw' && Math.abs(simToScene({ releaseScene }, e.t) - h.t1) < 1e-6);
+        const throwEvent = result.events.find(
+          (e) => e.kind === 'throw' && Math.abs(simToScene({ releaseScene }, e.t) - h.t1) < 1e-6,
+        );
         if (throwEvent) {
           const end = sampleBall(script, h.t1 - 0.5, handOf);
           expect(dist(end.pos, physicsAt(h.t1))).toBeLessThan(0.01);
@@ -129,7 +156,11 @@ describe('COH4: no phantom bounce after the ball is met on the full', () => {
     let genuine = 0;
     let phantom = 0;
     for (let i = 0; i < 6; i++) {
-      for (const intent of [COVER_DRIVE, { kind: 'defend', directionDeg: 0, elevation: 0, power: 0.2, footwork: 'auto' } as const, null]) {
+      for (const intent of [
+        COVER_DRIVE,
+        { kind: 'defend', directionDeg: 0, elevation: 0, power: 0.2, footwork: 'auto' } as const,
+        null,
+      ]) {
         for (const err of [-40, 0, 40]) {
           const { result, setup, mirror } = referenceBall(i, 'right', intent, err);
           const bounce = result.events.find((e) => e.kind === 'bounce');
@@ -160,7 +191,8 @@ describe('COH4: no phantom bounce after the ball is met on the full', () => {
   it('shows no replay pitch marker for a ball met on the full, and the physics pitch for one that pitched', () => {
     for (const handedness of ['right', 'left'] as const) {
       const full = referenceBall(5, handedness, COVER_DRIVE);
-      const releaseScene = buildPracticeScript({ setup: full.setup, flight: full.result.flight, result: full.result }).practice!.releaseScene;
+      const releaseScene = buildPracticeScript({ setup: full.setup, flight: full.result.flight, result: full.result })
+        .practice!.releaseScene;
       const d = buildDiagnostics(full.result, releaseScene, full.mirror);
       expect(d.bounce).toBeNull();
       expect(d.times.bounce).toBeNull();
@@ -195,18 +227,58 @@ describe('COH4: no phantom bounce after the ball is met on the full', () => {
       if (listed) kept++;
       else dropped++;
     };
-    const intents = [COVER_DRIVE, { kind: 'defend', directionDeg: 0, elevation: 0, power: 0.2, footwork: 'auto' } as const, { kind: 'attack', directionDeg: -80, elevation: 0.1, power: 0.8, footwork: 'back' } as const, null];
-    for (let i = 0; i < 6; i++) for (const intent of intents) for (const err of [-60, 0, 60]) for (const h of ['right', 'left'] as const) check(referenceBall(i, h, intent, err).physics);
+    const intents = [
+      COVER_DRIVE,
+      { kind: 'defend', directionDeg: 0, elevation: 0, power: 0.2, footwork: 'auto' } as const,
+      { kind: 'attack', directionDeg: -80, elevation: 0.1, power: 0.8, footwork: 'back' } as const,
+      null,
+    ];
+    for (let i = 0; i < 6; i++)
+      for (const intent of intents)
+        for (const err of [-60, 0, 60])
+          for (const h of ['right', 'left'] as const) check(referenceBall(i, h, intent, err).physics);
     for (let i = 0; i < 48; i++) {
       const handedness = i % 2 ? 'left' : 'right';
       const conditions = (['balanced', 'green', 'hard', 'turning'] as const)[i % 4];
-      const over = randomOver({ seed: `pres-fix-5e|${i}`, conditions, assist: 'real', difficulty: 'club', family: i % 3 ? 'pace' : 'spin' });
+      const over = randomOver({
+        seed: `pres-fix-5e|${i}`,
+        conditions,
+        assist: 'real',
+        difficulty: 'club',
+        family: i % 3 ? 'pace' : 'spin',
+      });
       const k = i % 6;
       const field = autoField(over.bowler, conditions, handedness, over.ball);
-      const flight = physicsFlight({ plan: over.balls[k], bowler: over.bowler, conditions, seed: ballSeed(over, k), handedness, ball: over.ball });
-      for (const [intent, err] of [[COVER_DRIVE, 0], [COVER_DRIVE, -90], [null, 0]] as const) {
-        const swing = swingOf({ over, overIndex: 0, ballIndex: k, conditions, seed: ballSeed(over, k), flight, field }, intent, err);
-        check(resolveDelivery({ flight, swing, field, bowler: over.bowler, conditions, handedness, assist: 'real', tierToleranceMs: 0 }));
+      const flight = physicsFlight({
+        plan: over.balls[k],
+        bowler: over.bowler,
+        conditions,
+        seed: ballSeed(over, k),
+        handedness,
+        ball: over.ball,
+      });
+      for (const [intent, err] of [
+        [COVER_DRIVE, 0],
+        [COVER_DRIVE, -90],
+        [null, 0],
+      ] as const) {
+        const swing = swingOf(
+          { over, overIndex: 0, ballIndex: k, conditions, seed: ballSeed(over, k), flight, field },
+          intent,
+          err,
+        );
+        check(
+          resolveDelivery({
+            flight,
+            swing,
+            field,
+            bowler: over.bowler,
+            conditions,
+            handedness,
+            assist: 'real',
+            tierToleranceMs: 0,
+          }),
+        );
       }
     }
     expect(kept).toBeGreaterThan(200);
@@ -215,7 +287,9 @@ describe('COH4: no phantom bounce after the ball is met on the full', () => {
 
   it('drops a bounce the presented ball does not reach even with no touch before it (the ball stopped short)', () => {
     const { result } = referenceBall(0, 'right', COVER_DRIVE);
-    const bounce = result.events.find((e): e is Extract<DeliveryResult['events'][number], { kind: 'bounce' }> => e.kind === 'bounce')!;
+    const bounce = result.events.find(
+      (e): e is Extract<DeliveryResult['events'][number], { kind: 'bounce' }> => e.kind === 'bounce',
+    )!;
     expect(presentedBounce(result, bounce)).toBe(true);
     const moved = { ...bounce, p: { ...bounce.p, z: bounce.p.z + 0.4 } };
     expect(presentedBounce(result, moved)).toBe(false);

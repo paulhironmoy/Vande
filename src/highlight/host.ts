@@ -35,8 +35,14 @@ const SUPPORTED: LocaleId[] = ['en', 'hi', 'hi-Latn', 'bn', 'te', 'mr', 'ta', 'g
 
 async function fontsReady(locale: LocaleId): Promise<void> {
   if (typeof document === 'undefined' || !document.fonts) return;
-  const loads = [500, 600, 700, 750, 820, 900].map((w) => document.fonts.load(`${w} 40px "Manrope Variable"`, 'VANDE Cricket 0123456789'));
-  if (locale === 'hi' || locale === 'mr') loads.push(document.fonts.load('700 40px "Noto Sans Devanagari"', 'अआइ'), document.fonts.load('500 40px "Noto Sans Devanagari"', 'अआइ'));
+  const loads = [500, 600, 700, 750, 820, 900].map((w) =>
+    document.fonts.load(`${w} 40px "Manrope Variable"`, 'VANDE Cricket 0123456789'),
+  );
+  if (locale === 'hi' || locale === 'mr')
+    loads.push(
+      document.fonts.load('700 40px "Noto Sans Devanagari"', 'अआइ'),
+      document.fonts.load('500 40px "Noto Sans Devanagari"', 'अआइ'),
+    );
   await Promise.all(loads).catch(() => undefined);
   await document.fonts.ready;
 }
@@ -63,7 +69,12 @@ async function qrFor(url: string): Promise<{ path: Path2D; n: number } | null> {
 
 function dayLabel(day: string, intl: string): string {
   try {
-    return new Intl.DateTimeFormat(intl, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }).format(new Date(`${day}T12:00:00+05:30`));
+    return new Intl.DateTimeFormat(intl, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'Asia/Kolkata',
+    }).format(new Date(`${day}T12:00:00+05:30`));
   } catch {
     return day;
   }
@@ -89,7 +100,9 @@ export function createHighlightHost(o: HighlightHostOptions): HighlightHost {
       const locale: LocaleId = SUPPORTED.includes(input.locale) ? input.locale : 'en';
       const [{ english, catalog }, avatars, qr] = await Promise.all([
         ensureI18n(locale),
-        Promise.all(input.log.players.map((p) => avatarImage(p.avatar, p.kit, 480).catch(() => null))) as Promise<[HTMLImageElement | null, HTMLImageElement | null]>,
+        Promise.all(input.log.players.map((p) => avatarImage(p.avatar, p.kit, 480).catch(() => null))) as Promise<
+          [HTMLImageElement | null, HTMLImageElement | null]
+        >,
         qrFor(input.cta.url),
         fontsReady(locale),
       ]);
@@ -98,10 +111,18 @@ export function createHighlightHost(o: HighlightHostOptions): HighlightHost {
       renderer = await createMatchRenderer({ fallback: o.fallback });
       gl.width = out.width;
       gl.height = out.height;
-      await renderer.mount(gl, { quality: 'standard', reducedMotion: false, fps: 30, offline: { width: out.width, height: out.height } });
+      await renderer.mount(gl, {
+        quality: 'standard',
+        reducedMotion: false,
+        fps: 30,
+        offline: { width: out.width, height: out.height },
+      });
       await renderer.loadReplay(input.log, 'full');
       tl = renderer.timeline() ?? buildTimeline(input.log, 'full');
-      plan = planHighlight(input.log, tl, { standings: Boolean(input.standings && input.standings.length > 0), timelineTimeOf });
+      plan = planHighlight(input.log, tl, {
+        standings: Boolean(input.standings && input.standings.length > 0),
+        timelineTimeOf,
+      });
       assets = { t, log: input.log, tl, input, plan, avatars, qr, day: dayLabel(input.day, t.intl) };
       return { durationMs: plan.durationMs, fps: FPS };
     },
@@ -116,7 +137,9 @@ export function createHighlightHost(o: HighlightHostOptions): HighlightHost {
       drawOverlay(ctx, assets, at.scene, at.index, at.local, at.replay);
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       // Let the compositor present the canvas before the caller captures it.
-      await new Promise<void>((resolve) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(() => resolve()) : resolve()));
+      await new Promise<void>((resolve) =>
+        typeof requestAnimationFrame === 'function' ? requestAnimationFrame(() => resolve()) : resolve(),
+      );
     },
 
     async audio() {

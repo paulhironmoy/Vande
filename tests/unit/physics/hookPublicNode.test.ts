@@ -10,11 +10,7 @@ import {
   batSamples,
   batTrackAnalyticEnvelope,
 } from '@/physics/bat';
-import {
-  BAT_HAND_REACH_SOLVE_M,
-  batterShoulders,
-  batPoseAdmissibility,
-} from '@/physics/admissibility';
+import { BAT_HAND_REACH_SOLVE_M, batterShoulders, batPoseAdmissibility } from '@/physics/admissibility';
 import { LOWER_HAND_FROM_CAP, TOP_HAND_FROM_CAP } from '@/physics/constants';
 import { sweep } from '@/physics/collision';
 import { fly, play } from './physics-helpers';
@@ -26,10 +22,7 @@ function angularDifferenceDeg(left: number, right: number): number {
   return ((left - right + 540) % 360) - 180;
 }
 
-function distance(
-  left: { x: number; y: number; z: number },
-  right: { x: number; y: number; z: number },
-): number {
+function distance(left: { x: number; y: number; z: number }, right: { x: number; y: number; z: number }): number {
   return Math.hypot(left.x - right.x, left.y - right.y, left.z - right.z);
 }
 

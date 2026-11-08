@@ -7,7 +7,16 @@
  * must follow the pose he is actually drawn in, and the 60 s idle must not pop at its wrap.
  */
 import { describe, expect, it } from 'vitest';
-import { CH, CHANNELS, SCALE, prepare, sample, sampleWrapped, startPrepare, type DirectorAnchors } from '@/render3d/core/motion/director';
+import {
+  CH,
+  CHANNELS,
+  SCALE,
+  prepare,
+  sample,
+  sampleWrapped,
+  startPrepare,
+  type DirectorAnchors,
+} from '@/render3d/core/motion/director';
 import { anchorsFor, delivery, idleAnchors, randomSpec, rng, STOCK } from './world';
 import { frameOf, record, recordFile, timeOf, traceHash, val } from './gates';
 
@@ -74,14 +83,22 @@ describe('space mode: the head channels are the head in space and the stage clos
       // the head target is limited softly (so the quantised channel never clips), the gaze is the raw gaze, and from the
       // gather to the release (the bowler) or in the wait (the striker) the eyes and the head are on the same thing
       let maxHead = 0;
-      for (let i = 0; i < p.n; i++) maxHead = Math.max(maxHead, Math.abs(val(p, i, CH.headYaw)) / 62, Math.abs(val(p, i, CH.headPitch)) / 40);
+      for (let i = 0; i < p.n; i++)
+        maxHead = Math.max(maxHead, Math.abs(val(p, i, CH.headYaw)) / 62, Math.abs(val(p, i, CH.headPitch)) / 40);
       expect(maxHead).toBeLessThanOrEqual(1);
       const gap: number[] = [];
       const from = role === 'bowler' ? d.timeline.gather : 200;
       const to = role === 'bowler' ? d.timeline.release : d.timeline.release - 700;
-      for (let i = frameOf(p, from); i < frameOf(p, to); i++) gap.push(Math.hypot(val(p, i, CH.gazeYaw) - val(p, i, CH.headYaw), val(p, i, CH.gazePitch) - val(p, i, CH.headPitch)));
+      for (let i = frameOf(p, from); i < frameOf(p, to); i++)
+        gap.push(
+          Math.hypot(val(p, i, CH.gazeYaw) - val(p, i, CH.headYaw), val(p, i, CH.gazePitch) - val(p, i, CH.headPitch)),
+        );
       gap.sort((x, y) => x - y);
-      record(`space.${role}.gazeMinusHead`, { p50: gap[Math.floor(0.5 * gap.length)], p95: gap[Math.floor(0.95 * (gap.length - 1))], max: gap[gap.length - 1] });
+      record(`space.${role}.gazeMinusHead`, {
+        p50: gap[Math.floor(0.5 * gap.length)],
+        p95: gap[Math.floor(0.95 * (gap.length - 1))],
+        max: gap[gap.length - 1],
+      });
       expect(gap[Math.floor(0.95 * (gap.length - 1))]).toBeLessThan(10); // the eyes lead the head through a gaze shift (the glance to the batter at the gather, the lock-on to the ball)
     }
   });
@@ -149,7 +166,8 @@ describe('the bowler: life is off for the whole run-up (runStart), eyes go idle 
     const early = prepare({ ...a, runStart: 300 });
     // the gaze moves in the run-up (a dwell on the ground now and then), whatever the life channels do
     let moved = 0;
-    for (let i = frameOf(early, 400) + 1; i < frameOf(early, a.gather! - 300); i++) if (Math.abs(val(early, i, CH.headPitch) - val(early, i - 1, CH.headPitch)) > 0.01) moved++;
+    for (let i = frameOf(early, 400) + 1; i < frameOf(early, a.gather! - 300); i++)
+      if (Math.abs(val(early, i, CH.headPitch) - val(early, i - 1, CH.headPitch)) > 0.01) moved++;
     expect(moved).toBeGreaterThan(50);
   });
 
@@ -160,7 +178,9 @@ describe('the bowler: life is off for the whole run-up (runStart), eyes go idle 
     const withEnd = prepare({ ...a, followEnd: t.release + 3500 });
     // everything before followEnd is the same; after it the eyes keep dwelling (more fixations than the single ground look)
     const i1 = frameOf(without, t.release + 3500);
-    for (let i = 0; i < i1; i++) for (let c = 0; c < CHANNELS; c++) expect(withEnd.trace[i * CHANNELS + c], `frame ${i} channel ${c}`).toBe(without.trace[i * CHANNELS + c]);
+    for (let i = 0; i < i1; i++)
+      for (let c = 0; c < CHANNELS; c++)
+        expect(withEnd.trace[i * CHANNELS + c], `frame ${i} channel ${c}`).toBe(without.trace[i * CHANNELS + c]);
     expect(withEnd.fix.length).toBeGreaterThan(without.fix.length);
     const g0 = val(withEnd, frameOf(withEnd, t.release + 9000), CH.gazePitch);
     expect(Number.isFinite(g0)).toBe(true);
@@ -183,7 +203,18 @@ describe('a looping scene: the wrap is a cross-fade, and no blink falls across i
     for (let k = 0; k < 40; k++) {
       const p = loop(`wrap#${k}`, k % 2 ? 'bowler' : 'striker');
       sampleWrapped(p, 0, 60_000, SEAM, start, scratch);
-      for (const c of [CH.headYaw, CH.headPitch, CH.gazeYaw, CH.gazePitch, CH.breath, CH.swayX, CH.swayZ, CH.swayRoll, CH.blinkL, CH.blinkR]) {
+      for (const c of [
+        CH.headYaw,
+        CH.headPitch,
+        CH.gazeYaw,
+        CH.gazePitch,
+        CH.breath,
+        CH.swayX,
+        CH.swayZ,
+        CH.swayRoll,
+        CH.blinkL,
+        CH.blinkR,
+      ]) {
         // one frame before the wrap against the first frame after it, against the same step anywhere else in the loop
         sampleWrapped(p, 60_000 - 1000 / 60, 60_000, SEAM, out, scratch);
         const before = out[c];
@@ -191,7 +222,16 @@ describe('a looping scene: the wrap is a cross-fade, and no blink falls across i
         const at = out[c];
         worstWrap = Math.max(worstWrap, Math.abs(at - start[c]));
         const step = Math.abs(at - before);
-        worstStep = Math.max(worstStep, c === CH.breath ? step / 0.15 : c === CH.swayX || c === CH.swayZ ? step / 0.5 : c === CH.swayRoll ? step / 0.05 : step / 2);
+        worstStep = Math.max(
+          worstStep,
+          c === CH.breath
+            ? step / 0.15
+            : c === CH.swayX || c === CH.swayZ
+              ? step / 0.5
+              : c === CH.swayRoll
+                ? step / 0.05
+                : step / 2,
+        );
       }
     }
     record('wrap', { worstValueGap: worstWrap, worstStepOverNormalCap: worstStep });

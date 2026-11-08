@@ -8,7 +8,14 @@
  * the handle, the bat, and the two ranges MOTION-SPEC §9 puts on an arm (the upper arm's twist, the wrist's swing).
  */
 import { Group, PerspectiveCamera, Quaternion, Scene, Vector3, type Mesh } from 'three';
-import type { BowlerProfile, Footwork, Handedness, NormalizedSwing, PitchCondition, PracticeDeliveryPlan } from '@/contracts/practice';
+import type {
+  BowlerProfile,
+  Footwork,
+  Handedness,
+  NormalizedSwing,
+  PitchCondition,
+  PracticeDeliveryPlan,
+} from '@/contracts/practice';
 import { autoField, batTravelMs, flight, resolveDelivery } from '@/physics';
 import { idealTimeFor } from '@/physics/bat';
 import { HANDLE_L } from '@/physics/constants';
@@ -52,20 +59,43 @@ export async function withPacks(fn: () => void | Promise<void>): Promise<void> {
 
 /** The pose hook the stage draws a script's batters with (ThreePracticeStage.poseHooks, as drawScript is given it). */
 export function stageHook(script: BallScript): never {
-  const self = { hookCache: new WeakMap(), reducedMotion: false, cueHook: (ThreePracticeStage.prototype as unknown as { cueHook: unknown }).cueHook };
-  return (ThreePracticeStage.prototype as unknown as { poseHooks(s: unknown, p: unknown): never }).poseHooks.call(self, script, script.practice!);
+  const self = {
+    hookCache: new WeakMap(),
+    reducedMotion: false,
+    cueHook: (ThreePracticeStage.prototype as unknown as { cueHook: unknown }).cueHook,
+  };
+  return (ThreePracticeStage.prototype as unknown as { poseHooks(s: unknown, p: unknown): never }).poseHooks.call(
+    self,
+    script,
+    script.practice!,
+  );
 }
 
 export function stubStage(): StageScene {
   const stage = Object.create(StageScene.prototype) as StageScene;
   Object.assign(stage, {
-    scene: new Scene(), camera: new PerspectiveCamera(30, 1, 0.1, 1200),
-    ballFx: { update: () => undefined }, stumpsFx: { update: () => undefined }, eventFx: { update: () => undefined },
+    scene: new Scene(),
+    camera: new PerspectiveCamera(30, 1, 0.1, 1200),
+    ballFx: { update: () => undefined },
+    stumpsFx: { update: () => undefined },
+    eventFx: { update: () => undefined },
     blobs: { begin: () => undefined, end: () => undefined, add: () => undefined },
-    stadium: { group: new Group(), setTime: () => undefined, setExcitement: () => undefined, setCrowdMood: () => undefined, setBoardFlash: () => undefined },
-    preset: PRACTICE_PROFILES.standard.preset, cssHeight: 400,
-    rigs: new Map(), bats: new Map(), mirrored: new Map(),
-    pose: createPose(), poseB: createPose(), lower: createPose(), towers: [],
+    stadium: {
+      group: new Group(),
+      setTime: () => undefined,
+      setExcitement: () => undefined,
+      setCrowdMood: () => undefined,
+      setBoardFlash: () => undefined,
+    },
+    preset: PRACTICE_PROFILES.standard.preset,
+    cssHeight: 400,
+    rigs: new Map(),
+    bats: new Map(),
+    mirrored: new Map(),
+    pose: createPose(),
+    poseB: createPose(),
+    lower: createPose(),
+    towers: [],
   });
   return stage;
 }
@@ -103,10 +133,36 @@ const INTENTS: Array<[string, Intent | null, number]> = [
   ['leave', null, 0],
 ];
 
-function make(key: string, hand: Handedness, intent: string, fl: ReturnType<typeof flight>, bowler: BowlerProfile, conditions: PitchCondition, ball: Parameters<typeof autoField>[3], swing: NormalizedSwing | null): Job {
+function make(
+  key: string,
+  hand: Handedness,
+  intent: string,
+  fl: ReturnType<typeof flight>,
+  bowler: BowlerProfile,
+  conditions: PitchCondition,
+  ball: Parameters<typeof autoField>[3],
+  swing: NormalizedSwing | null,
+): Job {
   const field = autoField(bowler, conditions, hand, ball);
-  const result = resolveDelivery({ flight: fl, swing, field, bowler, conditions, handedness: hand, assist: 'play', tierToleranceMs: 0 });
-  return { key, hand, intent, script: buildPracticeScript({ setup: { field, bowler, conditions, handedness: hand }, flight: fl, result }), result, swing, idealContactT: fl.idealContactT };
+  const result = resolveDelivery({
+    flight: fl,
+    swing,
+    field,
+    bowler,
+    conditions,
+    handedness: hand,
+    assist: 'play',
+    tierToleranceMs: 0,
+  });
+  return {
+    key,
+    hand,
+    intent,
+    script: buildPracticeScript({ setup: { field, bowler, conditions, handedness: hand }, flight: fl, result }),
+    result,
+    swing,
+    idealContactT: fl.idealContactT,
+  };
 }
 
 /**
@@ -116,17 +172,46 @@ function make(key: string, hand: Handedness, intent: string, fl: ReturnType<type
 export function reelJobs(hands: Handedness[] = ['right', 'left']): Job[] {
   const bowler: BowlerProfile = { family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'harness-pace' };
   const balls: Array<[string, number, number, number, Intent | null, number]> = [
-    ['D1-drive-for-four', 3.5, 0.1, 124, { kind: 'attack', directionDeg: 12, elevation: 0.04, power: 0.9, footwork: 'forward' }, 0],
-    ['D2-forward-defence', 4.5, 0.25, 132, { kind: 'defend', directionDeg: 0, elevation: 0, power: 0.3, footwork: 'forward' }, 0],
+    [
+      'D1-drive-for-four',
+      3.5,
+      0.1,
+      124,
+      { kind: 'attack', directionDeg: 12, elevation: 0.04, power: 0.9, footwork: 'forward' },
+      0,
+    ],
+    [
+      'D2-forward-defence',
+      4.5,
+      0.25,
+      132,
+      { kind: 'defend', directionDeg: 0, elevation: 0, power: 0.3, footwork: 'forward' },
+      0,
+    ],
     ['D3-leave', 5, 0.4, 132, null, 0],
-    ['D4-bowled-late', 4, 0.1, 132, { kind: 'attack', directionDeg: 10, elevation: 0, power: 0.8, footwork: 'forward' }, 60],
+    [
+      'D4-bowled-late',
+      4,
+      0.1,
+      132,
+      { kind: 'attack', directionDeg: 10, elevation: 0, power: 0.8, footwork: 'forward' },
+      60,
+    ],
   ];
   const jobs: Job[] = [];
   for (const hand of hands) {
     for (const [id, lengthM, lineM, speedKph, intent, errMs] of balls) {
       const plan: PracticeDeliveryPlan = { variation: 'stock', lengthM, lineM, speedKph };
-      const fl = flight({ plan, bowler, conditions: 'balanced', seed: `harness:${JSON.stringify(plan)}`, handedness: hand });
-      const swing: NormalizedSwing | null = intent ? { ...intent, startT: fl.idealContactT - batTravelMs(intent.kind, intent.power) / 1000 + errMs / 1000 } : null;
+      const fl = flight({
+        plan,
+        bowler,
+        conditions: 'balanced',
+        seed: `harness:${JSON.stringify(plan)}`,
+        handedness: hand,
+      });
+      const swing: NormalizedSwing | null = intent
+        ? { ...intent, startT: fl.idealContactT - batTravelMs(intent.kind, intent.power) / 1000 + errMs / 1000 }
+        : null;
       jobs.push(make(`${id}/${hand}`, hand, id, fl, bowler, 'balanced', undefined, swing));
     }
   }
@@ -146,10 +231,33 @@ export function overJobs(overs: number): Job[] {
     const over = randomOver({ seed: `web-humans-ov|${i}`, conditions, assist: 'play', family });
     for (const b of overBalls(over, conditions, i).slice(0, 3)) {
       for (const hand of ['right', 'left'] as const) {
-        const fl = flight({ plan: over.balls[b.ballIndex], bowler: over.bowler, conditions, seed: b.seed, ball: over.ball, handedness: hand });
+        const fl = flight({
+          plan: over.balls[b.ballIndex],
+          bowler: over.bowler,
+          conditions,
+          seed: b.seed,
+          ball: over.ball,
+          handedness: hand,
+        });
         for (const [name, intent, err] of INTENTS) {
-          const swing: NormalizedSwing | null = intent ? { ...intent, startT: idealTimeFor(fl, intent.footwork) - batTravelMs(intent.kind, intent.power) / 1000 + err / 1000 } : null;
-          jobs.push(make(`${family}/${conditions}/${b.ballIndex}/${hand}/${name}`, hand, name, fl, over.bowler, conditions, over.ball, swing));
+          const swing: NormalizedSwing | null = intent
+            ? {
+                ...intent,
+                startT: idealTimeFor(fl, intent.footwork) - batTravelMs(intent.kind, intent.power) / 1000 + err / 1000,
+              }
+            : null;
+          jobs.push(
+            make(
+              `${family}/${conditions}/${b.ballIndex}/${hand}/${name}`,
+              hand,
+              name,
+              fl,
+              over.bowler,
+              conditions,
+              over.ball,
+              swing,
+            ),
+          );
         }
       }
     }
@@ -168,7 +276,12 @@ export function deadBallJobs(): Job[] {
     ['spin-R', { family: 'spin', spinType: 'finger', arm: 'right', lookSeed: 'fixa-spin-r' }],
     ['spin-L', { family: 'spin', spinType: 'wrist', arm: 'left', lookSeed: 'fixa-spin-l' }],
   ];
-  const plans: Array<[string, number, number]> = [['full-straight', 2.6, 0.0], ['yorker', 1.4, 0.05], ['short-leg', 7.5, -0.35], ['half-volley', 3.5, 0.1]];
+  const plans: Array<[string, number, number]> = [
+    ['full-straight', 2.6, 0.0],
+    ['yorker', 1.4, 0.05],
+    ['short-leg', 7.5, -0.35],
+    ['half-volley', 3.5, 0.1],
+  ];
   const kinds: Array<[string, Intent | null, number]> = [
     ['late-miss', { kind: 'attack', directionDeg: 10, elevation: 0, power: 0.8, footwork: 'forward' }, 70],
     ['early-miss', { kind: 'attack', directionDeg: 10, elevation: 0, power: 0.8, footwork: 'forward' }, -90],
@@ -179,10 +292,20 @@ export function deadBallJobs(): Job[] {
   for (const [bn, bowler] of bowlers) {
     for (const [pn, lengthM, lineM] of plans) {
       for (const hand of ['right', 'left'] as const) {
-        const plan: PracticeDeliveryPlan = { variation: 'stock', lengthM, lineM, speedKph: bowler.family === 'spin' ? 86 : bowler.paceBand === 'express' ? 144 : 130 };
+        const plan: PracticeDeliveryPlan = {
+          variation: 'stock',
+          lengthM,
+          lineM,
+          speedKph: bowler.family === 'spin' ? 86 : bowler.paceBand === 'express' ? 144 : 130,
+        };
         const fl = flight({ plan, bowler, conditions: 'balanced', seed: `fixa:${bn}:${pn}:${hand}`, handedness: hand });
         for (const [kn, intent, err] of kinds) {
-          const swing: NormalizedSwing | null = intent ? { ...intent, startT: idealTimeFor(fl, intent.footwork) - batTravelMs(intent.kind, intent.power) / 1000 + err / 1000 } : null;
+          const swing: NormalizedSwing | null = intent
+            ? {
+                ...intent,
+                startT: idealTimeFor(fl, intent.footwork) - batTravelMs(intent.kind, intent.power) / 1000 + err / 1000,
+              }
+            : null;
           jobs.push(make(`${bn}/${pn}/${hand}/${kn}`, hand, kn, fl, bowler, 'balanced', undefined, swing));
         }
       }
@@ -229,7 +352,25 @@ export interface Walk {
   bones: readonly string[];
 }
 
-const BONES = ['hips', 'spine', 'chest', 'neck', 'head', 'upperArmL', 'forearmL', 'handL', 'upperArmR', 'forearmR', 'handR', 'thighL', 'shinL', 'footL', 'thighR', 'shinR', 'footR'] as const;
+const BONES = [
+  'hips',
+  'spine',
+  'chest',
+  'neck',
+  'head',
+  'upperArmL',
+  'forearmL',
+  'handL',
+  'upperArmR',
+  'forearmR',
+  'handR',
+  'thighL',
+  'shinL',
+  'footL',
+  'thighR',
+  'shinR',
+  'footR',
+] as const;
 const swingDeg = (q: Quaternion) => (2 * Math.atan2(Math.hypot(q.x, q.z), Math.hypot(q.w, q.y)) * 180) / Math.PI;
 const twistDeg = (q: Quaternion) => {
   const t = Math.abs((2 * Math.atan2(q.y, q.w) * 180) / Math.PI + 360) % 360;
@@ -286,13 +427,18 @@ export function walkStriker(job: Job, fromMs: number, toMs: number): Walk {
       external: bp !== null,
     });
   }
-  const lastSample = p.bat.samples && p.bat.samples.length ? p.bat.releaseScene + p.bat.samples[p.bat.samples.length - 1].t * 1000 : null;
+  const lastSample =
+    p.bat.samples && p.bat.samples.length
+      ? p.bat.releaseScene + p.bat.samples[p.bat.samples.length - 1].t * 1000
+      : null;
   return {
-    job, release: p.releaseScene,
+    job,
+    release: p.releaseScene,
     input: job.swing ? simToScene(p, job.swing.startT) : simToScene(p, job.idealContactT) - 130,
     lastBat: lastSample === null ? null : lastSample - p.releaseScene,
     dead: simToScene(p, job.result.deadT) - p.releaseScene,
-    frames, bones: BONES,
+    frames,
+    bones: BONES,
   };
 }
 
@@ -321,4 +467,5 @@ export function armPops(w: Walk, deg: number, fromRel = -Infinity): Array<[numbe
   return out;
 }
 
-export const turnBetween = (a: Quaternion, b: Quaternion) => (2 * Math.acos(Math.min(1, Math.abs(a.dot(b)))) * 180) / Math.PI;
+export const turnBetween = (a: Quaternion, b: Quaternion) =>
+  (2 * Math.acos(Math.min(1, Math.abs(a.dot(b)))) * 180) / Math.PI;

@@ -2,7 +2,17 @@
 import { describe, expect, it } from 'vitest';
 import type { BattingInput, Conditions, InningsState, MatchEventLog, OverPlan, PitchId } from '@/contracts';
 import { autoXiSeed, engine } from '@/engine';
-import { ADVICE, overSummary, PITCH_ADVICE, pitchHints, pitchKind, UNLOCKS, unlocksEarned, unlockHint, type OverShape } from '@/engine/advice';
+import {
+  ADVICE,
+  overSummary,
+  PITCH_ADVICE,
+  pitchHints,
+  pitchKind,
+  UNLOCKS,
+  unlocksEarned,
+  unlockHint,
+  type OverShape,
+} from '@/engine/advice';
 import { rngFromKey } from '@/engine/prng';
 import { ARCHETYPES, optimisedSpec, overValue, randomOverSpec, type OverSpec } from '@/engine/sim/harness';
 import { energyCost } from '@/engine/v1/plan';
@@ -15,7 +25,14 @@ const PITCHES: PitchId[] = ['green', 'hard', 'slow'];
 const WEATHERS = ['clear', 'humid', 'dew'] as const;
 const hasKey = (key: string) => Object.prototype.hasOwnProperty.call(en, key);
 const keysOf = (s: { reads: Array<{ key: string }> }) => s.reads.map((r) => r.key);
-const neutral = (k: number) => ({ ball: k, superBall: false, lastBall: k >= 5, newBatter: k === 0, prev: null, repeats: 0 });
+const neutral = (k: number) => ({
+  ball: k,
+  superBall: false,
+  lastBall: k >= 5,
+  newBatter: k === 0,
+  prev: null,
+  repeats: 0,
+});
 
 describe('unlock hints and rules', () => {
   it('every delivery beyond the starters has an achievement and copy; starters have none', () => {
@@ -43,9 +60,16 @@ describe('unlock hints and rules', () => {
         if (wickets.some((o) => o.delivery.variant === 'offspin')) expected.add('legspin');
         if (inn.runs <= 6) expected.add('slower');
         expect(new Set(unlocksEarned(log, bowler))).toEqual(expected);
-        seen = { caught: seen.caught + Number(expected.has('outswing')), stumps: seen.stumps + Number(expected.has('inswing')), spin: seen.spin + Number(expected.has('legspin')), tight: seen.tight + Number(expected.has('slower')), none: seen.none + Number(expected.size === 0) };
+        seen = {
+          caught: seen.caught + Number(expected.has('outswing')),
+          stumps: seen.stumps + Number(expected.has('inswing')),
+          spin: seen.spin + Number(expected.has('legspin')),
+          tight: seen.tight + Number(expected.has('slower')),
+          none: seen.none + Number(expected.size === 0),
+        };
       }
-      for (const kind of ['ghost', 'training', 'daily'] as const) expect(unlocksEarned({ ...log, kind }, 0)).toEqual([]);
+      for (const kind of ['ghost', 'training', 'daily'] as const)
+        expect(unlocksEarned({ ...log, kind }, 0)).toEqual([]);
       expect(unlocksEarned({ ...log, kind: 'cup' }, 0)).toEqual(unlocksEarned(log, 0));
       // An Auto Over earns its owner nothing.
       expect(unlocksEarned({ ...log, commits: [{ ...log.commits[0], auto: true }, log.commits[1]] }, 0)).toEqual([]);
@@ -100,14 +124,23 @@ describe('pitch hints are true to the model', () => {
       }
   });
 
-  it("every ball a pitch hint recommends is harder to score from than every ball it warns against, in every weather", () => {
+  it('every ball a pitch hint recommends is harder to score from than every ball it warns against, in every weather', () => {
     const ctx = neutral(2);
     const lambda = wicketCost(ctx, 0);
-    const value = (variant: OverPlan['balls'][0]['variant'], length: OverPlan['balls'][0]['length'], cond: Conditions) => {
+    const value = (
+      variant: OverPlan['balls'][0]['variant'],
+      length: OverPlan['balls'][0]['length'],
+      cond: Conditions,
+    ) => {
       let best = Number.POSITIVE_INFINITY;
       for (const line of LINES)
         for (const intensity of INTENSITIES)
-          for (const field of FIELD_SETTINGS) best = Math.min(best, optionRange({ variant, line, length, intensity, intent: 'contain' }, 'good', field, cond, ctx, lambda).best);
+          for (const field of FIELD_SETTINGS)
+            best = Math.min(
+              best,
+              optionRange({ variant, line, length, intensity, intent: 'contain' }, 'good', field, cond, ctx, lambda)
+                .best,
+            );
       return best;
     };
     for (const pitch of PITCHES)
@@ -129,7 +162,17 @@ describe('pitch hints are true to the model', () => {
       expect(s.pitchBalls.good).toBeGreaterThanOrEqual(ADVICE.fitsPitch);
       // Six balls the hint warns against (different lines, so they are not repeats), on the same field.
       const poorKinds = PITCH_ADVICE[pitch].poor;
-      const poor: OverSpec = { field: best.field, balls: [0, 1, 2, 3, 4, 5].map((k) => ({ variant: poorKinds[k % poorKinds.length][0], length: poorKinds[k % poorKinds.length][1], line: LINES[k % 4], intensity: 1, intent: 'contain' })), superBall: best.superBall };
+      const poor: OverSpec = {
+        field: best.field,
+        balls: [0, 1, 2, 3, 4, 5].map((k) => ({
+          variant: poorKinds[k % poorKinds.length][0],
+          length: poorKinds[k % poorKinds.length][1],
+          line: LINES[k % 4],
+          intensity: 1,
+          intent: 'contain',
+        })),
+        superBall: best.superBall,
+      };
       expect(keysOf(overSummary(poor, cond))).toContain('advice.read.against_pitch');
       expect(overValue(poor, cond)).toBeGreaterThan(overValue(best, cond) + 1);
     }
@@ -137,7 +180,8 @@ describe('pitch hints are true to the model', () => {
 
   it('humid air helps swing most, and dew makes batting easier with spin hurt most', () => {
     for (const pitch of PITCHES) {
-      const delta = (name: string, weather: 'humid' | 'dew') => overValue(ARCHETYPES[name], { pitch, weather }) - overValue(ARCHETYPES[name], { pitch, weather: 'clear' });
+      const delta = (name: string, weather: 'humid' | 'dew') =>
+        overValue(ARCHETYPES[name], { pitch, weather }) - overValue(ARCHETYPES[name], { pitch, weather: 'clear' });
       const others = ['stock', 'pace_barrage', 'spin_only', 'slower_mix', 'contain_all', 'starter_mix'];
       for (const o of others) expect(delta('swing_only', 'humid')).toBeLessThan(delta(o, 'humid'));
       for (const o of ['stock', 'pace_barrage', 'swing_only', 'slower_mix', 'contain_all', 'starter_mix']) {
@@ -149,12 +193,25 @@ describe('pitch hints are true to the model', () => {
 });
 
 describe('overSummary', () => {
-  const ball = (variant: OverPlan['balls'][0]['variant'], line: OverPlan['balls'][0]['line'], length: OverPlan['balls'][0]['length'], intensity: 1 | 2 | 3, intent: OverPlan['balls'][0]['intent']) => ({ variant, line, length, intensity, intent });
+  const ball = (
+    variant: OverPlan['balls'][0]['variant'],
+    line: OverPlan['balls'][0]['line'],
+    length: OverPlan['balls'][0]['length'],
+    intensity: 1 | 2 | 3,
+    intent: OverPlan['balls'][0]['intent'],
+  ) => ({ variant, line, length, intensity, intent });
 
   it('counts families, energy, lengths, lines, the field and the Super Ball', () => {
     const over: OverShape = {
       field: 'balanced',
-      balls: [ball('good_length', 'off', 'good', 2, 'contain'), ball('inswing', 'middle', 'full', 2, 'attack'), ball('outswing', 'off', 'good', 1, 'setup'), ball('offspin', 'wide_off', 'good', 2, 'attack'), ball('yorker', 'middle', 'full', 1, 'attack'), ball('bouncer', 'leg', 'short', 1, 'contain')],
+      balls: [
+        ball('good_length', 'off', 'good', 2, 'contain'),
+        ball('inswing', 'middle', 'full', 2, 'attack'),
+        ball('outswing', 'off', 'good', 1, 'setup'),
+        ball('offspin', 'wide_off', 'good', 2, 'attack'),
+        ball('yorker', 'middle', 'full', 1, 'attack'),
+        ball('bouncer', 'leg', 'short', 1, 'contain'),
+      ],
       superBall: ball('yorker', 'middle', 'full', 1, 'attack'),
     };
     const s = overSummary(over, { pitch: 'green', weather: 'humid' });
@@ -172,19 +229,77 @@ describe('overSummary', () => {
   it('reads repeats, set-ups and intent the way the engine scores them', () => {
     const cond: Conditions = { pitch: 'hard', weather: 'clear' };
     const same = ball('yorker', 'middle', 'full', 1, 'contain');
-    const predictable = overSummary({ field: 'balanced', balls: [same, ball('good_length', 'off', 'good', 1, 'contain'), same, same, ball('offspin', 'off', 'good', 1, 'contain'), ball('good_length', 'wide_off', 'good', 1, 'contain')], superBall: same }, cond);
+    const predictable = overSummary(
+      {
+        field: 'balanced',
+        balls: [
+          same,
+          ball('good_length', 'off', 'good', 1, 'contain'),
+          same,
+          same,
+          ball('offspin', 'off', 'good', 1, 'contain'),
+          ball('good_length', 'wide_off', 'good', 1, 'contain'),
+        ],
+        superBall: same,
+      },
+      cond,
+    );
     expect(predictable.reads[0]).toEqual({ key: 'advice.read.predictable', params: { count: 3 } });
 
     // Short set-up, then a full attacking ball: ready. A set-up followed by a ball like it: wasted.
-    const ready = overSummary({ field: 'balanced', balls: [ball('bouncer', 'middle', 'short', 1, 'setup'), ball('yorker', 'middle', 'full', 1, 'attack'), ball('good_length', 'off', 'good', 1, 'contain'), ball('offspin', 'off', 'good', 1, 'contain'), ball('good_length', 'wide_off', 'good', 1, 'contain'), ball('offspin', 'middle', 'good', 1, 'contain')], superBall: same }, cond);
+    const ready = overSummary(
+      {
+        field: 'balanced',
+        balls: [
+          ball('bouncer', 'middle', 'short', 1, 'setup'),
+          ball('yorker', 'middle', 'full', 1, 'attack'),
+          ball('good_length', 'off', 'good', 1, 'contain'),
+          ball('offspin', 'off', 'good', 1, 'contain'),
+          ball('good_length', 'wide_off', 'good', 1, 'contain'),
+          ball('offspin', 'middle', 'good', 1, 'contain'),
+        ],
+        superBall: same,
+      },
+      cond,
+    );
     expect(ready.reads).toContainEqual({ key: 'advice.read.setup_ready', params: { n: 1, next: 2 } });
-    const wasted = overSummary({ field: 'balanced', balls: [ball('good_length', 'off', 'good', 1, 'setup'), ball('good_length', 'middle', 'good', 1, 'attack'), ball('yorker', 'off', 'full', 1, 'contain'), ball('offspin', 'off', 'good', 1, 'contain'), ball('good_length', 'wide_off', 'good', 1, 'contain'), ball('offspin', 'middle', 'good', 1, 'contain')], superBall: same }, cond);
+    const wasted = overSummary(
+      {
+        field: 'balanced',
+        balls: [
+          ball('good_length', 'off', 'good', 1, 'setup'),
+          ball('good_length', 'middle', 'good', 1, 'attack'),
+          ball('yorker', 'off', 'full', 1, 'contain'),
+          ball('offspin', 'off', 'good', 1, 'contain'),
+          ball('good_length', 'wide_off', 'good', 1, 'contain'),
+          ball('offspin', 'middle', 'good', 1, 'contain'),
+        ],
+        superBall: same,
+      },
+      cond,
+    );
     expect(wasted.reads).toContainEqual({ key: 'advice.read.setup_wasted', params: { n: 1 } });
 
-    const attack = overSummary({ field: 'attacking', balls: [0, 1, 2, 3, 4, 5].map((k) => ball(k % 2 ? 'yorker' : 'bouncer', LINES[k % 4], k % 2 ? 'full' : 'short', 1, 'attack')), superBall: same }, cond);
+    const attack = overSummary(
+      {
+        field: 'attacking',
+        balls: [0, 1, 2, 3, 4, 5].map((k) =>
+          ball(k % 2 ? 'yorker' : 'bouncer', LINES[k % 4], k % 2 ? 'full' : 'short', 1, 'attack'),
+        ),
+        superBall: same,
+      },
+      cond,
+    );
     expect(keysOf(attack)).toContain('advice.read.attack');
     // Six cheap spinners on a Slow pitch: safe, suited to the pitch, and 9 energy unused.
-    const contain = overSummary({ field: 'balanced', balls: [0, 1, 2, 3, 4, 5].map((k) => ball('offspin', LINES[k % 4], k < 4 ? 'good' : 'full', 1, 'contain')), superBall: same }, { pitch: 'slow', weather: 'clear' });
+    const contain = overSummary(
+      {
+        field: 'balanced',
+        balls: [0, 1, 2, 3, 4, 5].map((k) => ball('offspin', LINES[k % 4], k < 4 ? 'good' : 'full', 1, 'contain')),
+        superBall: same,
+      },
+      { pitch: 'slow', weather: 'clear' },
+    );
     expect(keysOf(contain)).toContain('advice.read.contain');
     expect(contain.reads).toContainEqual({ key: 'advice.read.energy_left', params: { n: 9 } });
     expect(keysOf(contain)).toContain('advice.read.fits_pitch');
@@ -241,7 +356,13 @@ describe('overSummary', () => {
     const cond: Conditions = { pitch: 'green', weather: 'humid' };
     const ctx = neutral(1);
     const lambda = wicketCost(ctx, 0);
-    const d = { variant: 'good_length' as const, line: 'off' as const, length: 'good' as const, intensity: 2 as const, intent: 'attack' as const };
+    const d = {
+      variant: 'good_length' as const,
+      line: 'off' as const,
+      length: 'good' as const,
+      intensity: 2 as const,
+      intent: 'attack' as const,
+    };
     const minOver = (variants: readonly string[]) => {
       let min = Number.POSITIVE_INFINITY;
       for (const variant of VARIANTS.filter((v) => variants.includes(v)))
@@ -249,11 +370,15 @@ describe('overSummary', () => {
           for (const intensity of INTENSITIES)
             for (const line of LINES) {
               const a = { variant, line, length, intensity, intent: d.intent };
-              if (energyCost(a) === energyCost(d)) min = Math.min(min, optionRange(a, 'good', 'attacking', cond, ctx, lambda).best);
+              if (energyCost(a) === energyCost(d))
+                min = Math.min(min, optionRange(a, 'good', 'attacking', cond, ctx, lambda).best);
             }
       return min;
     };
-    expect(bowlingChoice(d, 'attacking', cond, ctx, lambda, STARTER_VARIANTS).min).toBeCloseTo(minOver(STARTER_VARIANTS), 9);
+    expect(bowlingChoice(d, 'attacking', cond, ctx, lambda, STARTER_VARIANTS).min).toBeCloseTo(
+      minOver(STARTER_VARIANTS),
+      9,
+    );
     expect(bowlingChoice(d, 'attacking', cond, ctx, lambda).min).toBeCloseTo(minOver(VARIANTS), 9);
     // On a humid Green pitch a locked swing ball beats every starter of the same cost.
     expect(minOver(VARIANTS)).toBeLessThan(minOver(STARTER_VARIANTS));

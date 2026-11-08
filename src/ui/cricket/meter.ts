@@ -14,9 +14,19 @@ export interface MeterRules {
   maxHoldMs: number;
 }
 
-export const LOCAL_METER: MeterRules = { fillMs: 1000, sweetMs: 800, falloffMs: 160, perfectQuality: 0.85, goodQuality: 0.5, minHoldMs: 40, maxHoldMs: 1500 };
+export const LOCAL_METER: MeterRules = {
+  fillMs: 1000,
+  sweetMs: 800,
+  falloffMs: 160,
+  perfectQuality: 0.85,
+  goodQuality: 0.5,
+  minHoldMs: 40,
+  maxHoldMs: 1500,
+};
 
-type Grader = (trace: InputTrace) => { ok: true; quality: number; grade: ExecutionGrade } | { ok: false; errors: string[] };
+type Grader = (
+  trace: InputTrace,
+) => { ok: true; quality: number; grade: ExecutionGrade } | { ok: false; errors: string[] };
 let registered: { rules?: MeterRules; grade?: Grader } = {};
 
 export function registerMeterRules(r: { rules?: MeterRules; grade?: Grader }) {

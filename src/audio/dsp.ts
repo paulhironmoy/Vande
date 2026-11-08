@@ -80,11 +80,31 @@ export function curve(points: ReadonlyArray<readonly [number, number]>, x: numbe
 /** Three formants: [frequency Hz, gain, Q]. */
 export type Vowel = ReadonlyArray<readonly [number, number, number]>;
 export const VOWELS = {
-  oo: [[320, 1, 4], [800, 0.45, 5], [2300, 0.12, 6]],
-  oh: [[450, 1, 4], [850, 0.5, 5], [2500, 0.12, 6]],
-  aw: [[570, 1, 4], [840, 0.55, 5], [2410, 0.14, 6]],
-  ah: [[730, 1, 3.5], [1100, 0.6, 4.5], [2450, 0.2, 6]],
-  eh: [[600, 1, 3.5], [1900, 0.5, 5], [2600, 0.18, 6]],
+  oo: [
+    [320, 1, 4],
+    [800, 0.45, 5],
+    [2300, 0.12, 6],
+  ],
+  oh: [
+    [450, 1, 4],
+    [850, 0.5, 5],
+    [2500, 0.12, 6],
+  ],
+  aw: [
+    [570, 1, 4],
+    [840, 0.55, 5],
+    [2410, 0.14, 6],
+  ],
+  ah: [
+    [730, 1, 3.5],
+    [1100, 0.6, 4.5],
+    [2450, 0.2, 6],
+  ],
+  eh: [
+    [600, 1, 3.5],
+    [1900, 0.5, 5],
+    [2600, 0.18, 6],
+  ],
 } as const satisfies Record<string, Vowel>;
 
 export interface ChorusSpec {

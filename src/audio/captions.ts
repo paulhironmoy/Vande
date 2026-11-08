@@ -68,11 +68,18 @@ const KIND_OF = (key: CaptionKey): CaptionKind => {
   if (key.startsWith('crowd_')) return 'crowd';
   if (key === 'mastered' || key === 'stage_up') return 'coach';
   if (key === 'four' || key === 'six' || key.startsWith('milestone_')) return 'boundary';
-  if (key === 'bowled' || key === 'caught' || key === 'caught_behind' || key === 'lbw' || key === 'not_out') return 'wicket';
+  if (key === 'bowled' || key === 'caught' || key === 'caught_behind' || key === 'lbw' || key === 'not_out')
+    return 'wicket';
   return 'bat';
 };
 
-const HOLD_MS: Readonly<Record<CaptionKind, number>> = { bat: 1600, wicket: 2600, boundary: 2400, crowd: 2000, coach: 2400 };
+const HOLD_MS: Readonly<Record<CaptionKind, number>> = {
+  bat: 1600,
+  wicket: 2600,
+  boundary: 2400,
+  crowd: 2000,
+  coach: 2400,
+};
 
 /** The caption of a bat (or body) contact; null for a leave. */
 export function contactCaption(kind: ContactKind, timing?: SwingTiming): CaptionKey | null {

@@ -14,7 +14,9 @@ import { FALSE_DIGEST, digestSpy, golden, goldens, hostReplay, hostResult } from
  * validated as it was made); any other packet is unpacked exactly as before.
  */
 function plugin(): NativeUnityPracticePlugin {
-  const addListener = vi.fn(async () => ({ remove: vi.fn(async () => undefined) })) as unknown as NativeUnityPracticePlugin['addListener'];
+  const addListener = vi.fn(async () => ({
+    remove: vi.fn(async () => undefined),
+  })) as unknown as NativeUnityPracticePlugin['addListener'];
   return {
     availability: vi.fn(async () => ({
       available: true,
@@ -41,29 +43,35 @@ const fields = <TSender extends 'host' | 'unity'>(sender: TSender, sequence: num
   sender,
 });
 
-const initializePacket = () => packUnityPracticeMessage(makeUnityPracticeMessage(fields('host', 0, 'host-0'), 'host.initialize', {
-  locale: 'en-IN',
-  pixelsPerDp: 3,
-  quality: 'standard',
-  deviceTier: 'full',
-  handedness: 'right',
-  assistance: 'play',
-  reducedMotion: false,
-  textScale: 1,
-  highContrast: false,
-  captions: true,
-  audio: true,
-  haptics: true,
-  coordinateSystem: 'vande-striker-frame-v1',
-  handednessPolicy: 'physics-right-handed-presentation-mirrors-once',
-}));
+const initializePacket = () =>
+  packUnityPracticeMessage(
+    makeUnityPracticeMessage(fields('host', 0, 'host-0'), 'host.initialize', {
+      locale: 'en-IN',
+      pixelsPerDp: 3,
+      quality: 'standard',
+      deviceTier: 'full',
+      handedness: 'right',
+      assistance: 'play',
+      reducedMotion: false,
+      textScale: 1,
+      highContrast: false,
+      captions: true,
+      audio: true,
+      haptics: true,
+      coordinateSystem: 'vande-striker-frame-v1',
+      handednessPolicy: 'physics-right-handed-presentation-mirrors-once',
+    }),
+  );
 
-const pausePacket = () => packUnityPracticeMessage(makeUnityPracticeMessage(fields('host', 1, 'host-1'), 'host.pause', { reason: 'player' }));
-const unityReadyPacket = () => packUnityPracticeMessage(makeUnityPracticeMessage(
-  fields('unity', 0, 'unity-0'),
-  'unity.ready',
-  { renderer: 'Vulkan', unityVersion: '6000.3.test' },
-));
+const pausePacket = () =>
+  packUnityPracticeMessage(makeUnityPracticeMessage(fields('host', 1, 'host-1'), 'host.pause', { reason: 'player' }));
+const unityReadyPacket = () =>
+  packUnityPracticeMessage(
+    makeUnityPracticeMessage(fields('unity', 0, 'unity-0'), 'unity.ready', {
+      renderer: 'Vulkan',
+      unityVersion: '6000.3.test',
+    }),
+  );
 
 async function launched() {
   const native = plugin();
@@ -120,7 +128,9 @@ describe('Unity Practice native bridge send of packed packets', () => {
     const { native, bridge } = await launched();
 
     expect(await bridge.send({ ...result, sha256: FALSE_DIGEST })).toBe(false);
-    expect(await bridge.send({ body: result.body.replace('"sender":"host"', '"sender":"hosx"'), sha256: result.sha256 })).toBe(false);
+    expect(
+      await bridge.send({ body: result.body.replace('"sender":"host"', '"sender":"hosx"'), sha256: result.sha256 }),
+    ).toBe(false);
     expect(native.send).not.toHaveBeenCalled();
   });
 

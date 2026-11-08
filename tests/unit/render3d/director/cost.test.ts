@@ -28,7 +28,8 @@ import { record, recordFile, stats } from './gates';
 recordFile('cost');
 
 const load = () => loadavg()[0];
-const planBytes = (p: ReturnType<typeof prepare>) => p.fix.byteLength + p.blink.byteLength + p.micro.byteLength + p.draw.byteLength + p.amp.byteLength;
+const planBytes = (p: ReturnType<typeof prepare>) =>
+  p.fix.byteLength + p.blink.byteLength + p.micro.byteLength + p.draw.byteLength + p.amp.byteLength;
 
 describe('G-cost: sample', () => {
   const d = delivery(STOCK);
@@ -45,7 +46,10 @@ describe('G-cost: sample', () => {
       return ((cpuMicros() - t0) * 1e3) / n;
     };
     run(striker, 300_000); // warm
-    const ns = [bestOf(3, () => run(striker, 1_000_000), BUDGET_NS), bestOf(3, () => run(bowler, 1_000_000), BUDGET_NS)];
+    const ns = [
+      bestOf(3, () => run(striker, 1_000_000), BUDGET_NS),
+      bestOf(3, () => run(bowler, 1_000_000), BUDGET_NS),
+    ];
     const l = load();
     record('sample', { nsPerCall: ns, loadAverage1m: l, indicativeOnly: l > 20, node: process.version });
     skipOverBudgetWhenLoaded(ctx, 'Director sample, nanoseconds a call', Math.max(...ns), BUDGET_NS, 'ns', l);
@@ -93,11 +97,24 @@ describe('G-cost: prepare, off the frame path', () => {
     }
     // CPU milliseconds a call, the least of up to five rounds (a round already inside its budget settles that budget).
     const time = (f: () => void, n: number, budget: number) => bestOf(5, () => cpuMsPerCall(f, n), budget);
-    const delivered = Math.max(time(() => prepare(a), 100, DELIVERY_MS), time(() => prepare(b), 100, DELIVERY_MS));
-    const planOnly = Math.max(time(() => buildEvents(a), 300, PLAN_ONLY_MS), time(() => buildEvents(b), 300, PLAN_ONLY_MS));
+    const delivered = Math.max(
+      time(() => prepare(a), 100, DELIVERY_MS),
+      time(() => prepare(b), 100, DELIVERY_MS),
+    );
+    const planOnly = Math.max(
+      time(() => buildEvents(a), 300, PLAN_ONLY_MS),
+      time(() => buildEvents(b), 300, PLAN_ONLY_MS),
+    );
     const standing = time(() => prepare(idleAnchors('striker', 'cost#idle', 60_000)), 10, STANDING_MS);
     const l = load();
-    record('prepare', { deliveryMs: delivered, planOnlyMs: planOnly, scriptMs: d.timeline.end, standing60sMs: standing, loadAverage1m: l, indicativeOnly: l > 20 });
+    record('prepare', {
+      deliveryMs: delivered,
+      planOnlyMs: planOnly,
+      scriptMs: d.timeline.end,
+      standing60sMs: standing,
+      loadAverage1m: l,
+      indicativeOnly: l > 20,
+    });
     skipOverBudgetWhenLoaded(ctx, 'Director prepare, a delivery per actor', delivered, DELIVERY_MS, 'ms', l);
     skipOverBudgetWhenLoaded(ctx, 'Director buildEvents, a delivery per actor', planOnly, PLAN_ONLY_MS, 'ms', l);
     skipOverBudgetWhenLoaded(ctx, 'Director prepare, a minute of standing', standing, STANDING_MS, 'ms', l);
@@ -153,7 +170,24 @@ describe('budgets: plan, trace, parameters, code', () => {
   });
 
   it('the public surface is what P2 plugs into (names guarded)', () => {
-    for (const name of ['prepare', 'sample', 'detailForPx', 'createOut', 'CH', 'CHANNELS', 'SCALE', 'DRAW', 'AMP', 'deliveryTakeKey', 'fnv1a32', 'mix', 'u01', 'personKey', 'ballKey']) expect(api, name).toHaveProperty(name);
+    for (const name of [
+      'prepare',
+      'sample',
+      'detailForPx',
+      'createOut',
+      'CH',
+      'CHANNELS',
+      'SCALE',
+      'DRAW',
+      'AMP',
+      'deliveryTakeKey',
+      'fnv1a32',
+      'mix',
+      'u01',
+      'personKey',
+      'ballKey',
+    ])
+      expect(api, name).toHaveProperty(name);
   });
 
   it('the director, minified and tree-shaken with its parameter file and the stage binding, is at most 40 kB raw and 15 kB gzip (the lazy stage chunk budget)', async () => {
@@ -172,14 +206,27 @@ describe('budgets: plan, trace, parameters, code', () => {
       build: {
         write: false,
         minify: true,
-        lib: { entry: `${cwd}/src/render3d/core/motion/director/index.ts`, formats: ['iife'], name: 'Director', fileName: 'director' },
-        rollupOptions: { external: (id: string) => /render3d\/core\/(actors|choreo|clips|fieldClips|locomotion|skeleton|math)(\.ts)?$/.test(id), output: { globals: () => 'X' } },
+        lib: {
+          entry: `${cwd}/src/render3d/core/motion/director/index.ts`,
+          formats: ['iife'],
+          name: 'Director',
+          fileName: 'director',
+        },
+        rollupOptions: {
+          external: (id: string) =>
+            /render3d\/core\/(actors|choreo|clips|fieldClips|locomotion|skeleton|math)(\.ts)?$/.test(id),
+          output: { globals: () => 'X' },
+        },
       },
     })) as { output: { code: string }[] } | { output: { code: string }[] }[];
     const code = (Array.isArray(res) ? res[0] : res).output[0].code;
     const min = Buffer.byteLength(code);
     const gz = gzipSync(code).length;
-    record('bundle', { minifiedBytes: min, gzipBytes: gz, bundler: 'vite build (lib, iife, minify, stage modules external), in memory' });
+    record('bundle', {
+      minifiedBytes: min,
+      gzipBytes: gz,
+      bundler: 'vite build (lib, iife, minify, stage modules external), in memory',
+    });
     expect(min).toBeGreaterThan(8 * 1024); // it did bundle the director, not an empty file
     expect(min).toBeLessThanOrEqual(40 * 1024);
     expect(gz).toBeLessThanOrEqual(15 * 1024);

@@ -53,7 +53,11 @@ function humanise(key: string): string {
  * A translator for `locale`. `catalog` is the locale's merged catalog (all sources) and `english` the merged English
  * catalog used as the fallback; without `english` only the bundled English app catalog is available.
  */
-export function createTranslator(locale: LocaleId, catalog: Record<string, string | undefined> | null, english: Record<string, string | undefined> | null = null): Translator {
+export function createTranslator(
+  locale: LocaleId,
+  catalog: Record<string, string | undefined> | null,
+  english: Record<string, string | undefined> | null = null,
+): Translator {
   const info = localeInfo(locale);
   const intl = info.intl;
   const enCatalog = english ?? enAppCatalog;
@@ -61,7 +65,13 @@ export function createTranslator(locale: LocaleId, catalog: Record<string, strin
     const own = catalog?.[key];
     if (own !== undefined) return own;
     const fallback = enCatalog[key] ?? enAppCatalog[key];
-    if (fallback !== undefined && locale !== 'en' && catalog && import.meta.env.DEV && !warned.has(`${locale}:${key}`)) {
+    if (
+      fallback !== undefined &&
+      locale !== 'en' &&
+      catalog &&
+      import.meta.env.DEV &&
+      !warned.has(`${locale}:${key}`)
+    ) {
       warned.add(`${locale}:${key}`);
       console.debug(`[i18n] ${locale} is missing "${key}" (using English)`);
     }

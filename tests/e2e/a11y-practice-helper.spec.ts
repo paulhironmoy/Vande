@@ -67,7 +67,9 @@ test('48 px target audit rejects 32 and 44 px controls inside inert larger wrapp
   ]);
 });
 
-test('48 px target audit accepts an actual button-owned extension, not just a small visible track', async ({ page }) => {
+test('48 px target audit accepts an actual button-owned extension, not just a small visible track', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 640, height: 360 });
   await page.setContent(`
     <style>
@@ -82,7 +84,9 @@ test('48 px target audit accepts an actual button-owned extension, not just a sm
   expect((await inspect(page, 'owned extensions')).filter((f) => f.rule === 'target-size')).toEqual([]);
   await page.evaluate(() => {
     for (const el of document.querySelectorAll('button')) {
-      el.addEventListener('click', () => el.setAttribute('data-activations', String(Number(el.getAttribute('data-activations') ?? 0) + 1)));
+      el.addEventListener('click', () =>
+        el.setAttribute('data-activations', String(Number(el.getAttribute('data-activations') ?? 0) + 1)),
+      );
     }
   });
   for (const id of ['pseudo', 'descendant']) {
@@ -94,7 +98,9 @@ test('48 px target audit accepts an actual button-owned extension, not just a sm
   }
 });
 
-test('scroll census checks below-fold and disabled controls instead of sampling only the first viewport', async ({ page }) => {
+test('scroll census checks below-fold and disabled controls instead of sampling only the first viewport', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 640, height: 360 });
   await page.setContent(`
     <style>
@@ -112,11 +118,15 @@ test('scroll census checks below-fold and disabled controls instead of sampling 
   expect((await inspect(page, 'first viewport')).filter((f) => f.rule === 'target-size')).toEqual([]);
   const census = await scrollTargetCensus(page, 'full panel', page.getByTestId('panel'));
   expect(census.targets).toEqual(['first', 'below-fold']);
-  expect(census.fail).toContainEqual(expect.objectContaining({ rule: 'target-size', target: '[data-testid="below-fold"]' }));
+  expect(census.fail).toContainEqual(
+    expect.objectContaining({ rule: 'target-size', target: '[data-testid="below-fold"]' }),
+  );
   expect(await page.getByTestId('panel').evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
 });
 
-test('scroll census rejects large but clipped, covered or partly off-viewport targets and excludes hidden controls', async ({ page }) => {
+test('scroll census rejects large but clipped, covered or partly off-viewport targets and excludes hidden controls', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 640, height: 360 });
   await page.setContent(`
     <style>
@@ -143,6 +153,10 @@ test('scroll census rejects large but clipped, covered or partly off-viewport ta
   expect((await inspect(page, 'nominal boxes')).filter((f) => f.rule === 'target-size')).toEqual([]);
   const census = await scrollTargetCensus(page, 'actual reach', page.getByTestId('panel'));
   expect(census.targets).toEqual(['clipped', 'covered', 'partial', 'disabled']);
-  expect(census.fail.filter((f) => f.rule === 'target-reach').map((f) => f.target)).toEqual(['clipped', 'covered', 'partial']);
+  expect(census.fail.filter((f) => f.rule === 'target-reach').map((f) => f.target)).toEqual([
+    'clipped',
+    'covered',
+    'partial',
+  ]);
   expect(census.fail.filter((f) => f.target === 'disabled')).toEqual([]);
 });

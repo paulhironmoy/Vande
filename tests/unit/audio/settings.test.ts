@@ -16,12 +16,26 @@ import {
   subscribeAudioSettings,
   type AudioKeyStore,
 } from '@/audio/settings';
-import { CAPTION_KEYS, captionsEnabled, contactCaption, dismissalCaption, emitCaption, onCaption, setCaptionClock, type Caption } from '@/audio/captions';
+import {
+  CAPTION_KEYS,
+  captionsEnabled,
+  contactCaption,
+  dismissalCaption,
+  emitCaption,
+  onCaption,
+  setCaptionClock,
+  type Caption,
+} from '@/audio/captions';
 import { deliveryContext, matchPressure, milestoneInReach } from '@/audio/emotion';
 
 function memory(): AudioKeyStore & { map: Map<string, string> } {
   const map = new Map<string, string>();
-  return { map, getItem: (k) => map.get(k) ?? null, setItem: (k, v) => void map.set(k, v), removeItem: (k) => void map.delete(k) };
+  return {
+    map,
+    getItem: (k) => map.get(k) ?? null,
+    setItem: (k, v) => void map.set(k, v),
+    removeItem: (k) => void map.delete(k),
+  };
 }
 
 let store = memory();
@@ -33,7 +47,15 @@ afterEach(() => setAudioSettingsStore(undefined));
 
 describe('sound settings', () => {
   it('defaults: every bus at full, Practice vibration on, the release tick and captions off', () => {
-    expect(getAudioSettings()).toEqual({ v: 1, effects: 1, crowd: 1, music: 1, haptics: true, releaseHaptic: false, captions: false });
+    expect(getAudioSettings()).toEqual({
+      v: 1,
+      effects: 1,
+      crowd: 1,
+      music: 1,
+      haptics: true,
+      releaseHaptic: false,
+      captions: false,
+    });
     expect(DEFAULT_AUDIO_SETTINGS).toEqual(getAudioSettings());
     expect(AUDIO_SETTINGS_KEY).toBe('vc:practice:audio');
   });
@@ -41,7 +63,9 @@ describe('sound settings', () => {
   it('validates every read: corrupt JSON, wrong types and out-of-range levels never get through', () => {
     store.map.set(AUDIO_SETTINGS_KEY, '{not json');
     expect(loadAudioSettings(store)).toEqual(DEFAULT_AUDIO_SETTINGS);
-    expect(normaliseAudioSettings({ effects: 7, crowd: -1, music: '0.5', haptics: 'yes', captions: true, extra: 1 })).toEqual({ ...DEFAULT_AUDIO_SETTINGS, effects: 1, crowd: 0, captions: true });
+    expect(
+      normaliseAudioSettings({ effects: 7, crowd: -1, music: '0.5', haptics: 'yes', captions: true, extra: 1 }),
+    ).toEqual({ ...DEFAULT_AUDIO_SETTINGS, effects: 1, crowd: 0, captions: true });
     expect(normaliseAudioSettings({ effects: 0.333333, crowd: Number.NaN })).toMatchObject({ effects: 0.33, crowd: 1 });
     expect(normaliseAudioSettings([1, 2])).toEqual(DEFAULT_AUDIO_SETTINGS);
   });
@@ -111,7 +135,30 @@ describe('captions', () => {
     expect(contactCaption('leave')).toBeNull();
     expect(dismissalCaption('caught_behind')).toBe('caught_behind');
     expect(dismissalCaption('lbw')).toBe('lbw');
-    for (const k of ['inside_edge', 'outside_edge', 'leading_edge', 'pad', 'body', 'bowled', 'caught', 'not_out', 'four', 'six', 'milestone_fifty', 'milestone_hundred', 'crowd_rises', 'crowd_gasps', 'crowd_groans', 'crowd_applauds', 'crowd_cheers', 'crowd_stunned', 'crowd_relieved', 'crowd_ovation', 'mastered', 'stage_up'] as const) {
+    for (const k of [
+      'inside_edge',
+      'outside_edge',
+      'leading_edge',
+      'pad',
+      'body',
+      'bowled',
+      'caught',
+      'not_out',
+      'four',
+      'six',
+      'milestone_fifty',
+      'milestone_hundred',
+      'crowd_rises',
+      'crowd_gasps',
+      'crowd_groans',
+      'crowd_applauds',
+      'crowd_cheers',
+      'crowd_stunned',
+      'crowd_relieved',
+      'crowd_ovation',
+      'mastered',
+      'stage_up',
+    ] as const) {
       expect(CAPTION_KEYS).toContain(k);
     }
     expect(new Set(CAPTION_KEYS).size).toBe(CAPTION_KEYS.length);
@@ -137,8 +184,26 @@ describe('the match situation', () => {
   });
 
   it('milestones in reach and the context the stage receives', () => {
-    expect([43, 44, 49, 50, 94, 99, 100, 144].map(milestoneInReach)).toEqual([null, 'fifty', 'fifty', null, 'hundred', 'hundred', null, 'fifty']);
-    expect(deliveryContext({ runs: 47, wicketsInHand: 1, ballsLeft: 30 })).toEqual({ pressure: 0.12, milestone: 'fifty', wicketEndsInnings: true, runs: 47 });
-    expect(deliveryContext({ runs: 47, wicketsInHand: 2, ballsLeft: null, batterRuns: 12 })).toMatchObject({ milestone: null, wicketEndsInnings: false, runs: 12 });
+    expect([43, 44, 49, 50, 94, 99, 100, 144].map(milestoneInReach)).toEqual([
+      null,
+      'fifty',
+      'fifty',
+      null,
+      'hundred',
+      'hundred',
+      null,
+      'fifty',
+    ]);
+    expect(deliveryContext({ runs: 47, wicketsInHand: 1, ballsLeft: 30 })).toEqual({
+      pressure: 0.12,
+      milestone: 'fifty',
+      wicketEndsInnings: true,
+      runs: 47,
+    });
+    expect(deliveryContext({ runs: 47, wicketsInHand: 2, ballsLeft: null, batterRuns: 12 })).toMatchObject({
+      milestone: null,
+      wicketEndsInnings: false,
+      runs: 12,
+    });
   });
 });

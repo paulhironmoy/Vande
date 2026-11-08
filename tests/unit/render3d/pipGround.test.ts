@@ -4,7 +4,20 @@
  * bowler's end is at the top, and captured again only when the look changes or the inset grows.
  */
 import { describe, expect, it, vi } from 'vitest';
-import { BoxGeometry, Color, CylinderGeometry, DirectionalLight, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, Vector2, Vector3, Vector4 } from 'three';
+import {
+  BoxGeometry,
+  Color,
+  CylinderGeometry,
+  DirectionalLight,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  PerspectiveCamera,
+  Scene,
+  Vector2,
+  Vector3,
+  Vector4,
+} from 'three';
 import { INSET_GROUND_MAX_PX, InsetGround, insetBlocked, meshBoxRegions } from '@/render3d/three/pip';
 import { projectVisibleMeshRegions } from '@/render3d/three/protectedRegions';
 import { buildPracticeScript } from '@/render3d/practice/script';
@@ -21,7 +34,11 @@ function fakeRenderer(px = 4) {
     clear: new Color(0x123456),
     alpha: 1,
   };
-  const seen: { visible: Record<string, boolean>; scissorTest: boolean; camera: unknown } = { visible: {}, scissorTest: false, camera: null };
+  const seen: { visible: Record<string, boolean>; scissorTest: boolean; camera: unknown } = {
+    visible: {},
+    scissorTest: false,
+    camera: null,
+  };
   let scene: Scene | null = null;
   const r = {
     getDrawingBufferSize: (v: Vector2) => v.set(1280, 720),
@@ -32,8 +49,10 @@ function fakeRenderer(px = 4) {
     getClearColor: (c: Color) => c.copy(state.clear),
     getClearAlpha: () => state.alpha,
     setScissorTest: (on: boolean) => void (state.scissorTest = on),
-    setViewport: (x: number | Vector4, y?: number, w?: number, h?: number) => void (x instanceof Vector4 ? state.viewport.copy(x) : state.viewport.set(x, y!, w!, h!)),
-    setScissor: (x: number | Vector4, y?: number, w?: number, h?: number) => void (x instanceof Vector4 ? state.scissor.copy(x) : state.scissor.set(x, y!, w!, h!)),
+    setViewport: (x: number | Vector4, y?: number, w?: number, h?: number) =>
+      void (x instanceof Vector4 ? state.viewport.copy(x) : state.viewport.set(x, y!, w!, h!)),
+    setScissor: (x: number | Vector4, y?: number, w?: number, h?: number) =>
+      void (x instanceof Vector4 ? state.scissor.copy(x) : state.scissor.set(x, y!, w!, h!)),
     setClearColor: (c: Color | number, a = 1) => {
       state.clear = new Color(c as Color);
       state.alpha = a;
@@ -163,8 +182,18 @@ describe('field inset ground (3D tiers)', () => {
 describe('field inset guard: it never covers what the stage protects', () => {
   const b = overBalls(REFERENCE_OVER, REFERENCE_CONDITIONS)[0];
   const field = autoField(b.over.bowler, b.conditions, 'right', b.over.ball);
-  const flight = physicsFlight({ plan: b.flight.plan, bowler: b.over.bowler, conditions: b.conditions, seed: b.seed, handedness: 'right', ball: b.over.ball });
-  const script = buildPracticeScript({ setup: { field, bowler: b.over.bowler, conditions: b.conditions, handedness: 'right' }, flight });
+  const flight = physicsFlight({
+    plan: b.flight.plan,
+    bowler: b.over.bowler,
+    conditions: b.conditions,
+    seed: b.seed,
+    handedness: 'right',
+    ball: b.over.ball,
+  });
+  const script = buildPracticeScript({
+    setup: { field, bowler: b.over.bowler, conditions: b.conditions, handedness: 'right' },
+    flight,
+  });
   const p = script.practice!;
   const size = { w: 915, h: 412 };
   const camera = new PerspectiveCamera(48, size.w / size.h, 0.1, 1200);
@@ -173,7 +202,9 @@ describe('field inset guard: it never covers what the stage protects', () => {
   camera.updateMatrixWorld();
 
   it('is blocked over the pitch and the ball path down the middle of the batter’s view', () => {
-    expect(insetBlocked(p, camera, size, { x: size.w / 2 - 40, y: size.h / 2 - 40, width: 80, height: 80 }, null)).toBe(true);
+    expect(insetBlocked(p, camera, size, { x: size.w / 2 - 40, y: size.h / 2 - 40, width: 80, height: 80 }, null)).toBe(
+      true,
+    );
   });
 
   it('is clear in the top-right corner below the rail, where the inset sits', () => {
@@ -183,7 +214,11 @@ describe('field inset guard: it never covers what the stage protects', () => {
   it('counts the bowler, from his drawn root', () => {
     const r = { x: 780, y: 94, width: 119, height: 119 };
     // A bowler whose body centre projects into the middle of the corner rectangle, 30 m from the lens.
-    const ndc = new Vector3(((r.x + r.width / 2) / size.w) * 2 - 1, 1 - ((r.y + r.height / 2) / size.h) * 2, 0.5).unproject(camera);
+    const ndc = new Vector3(
+      ((r.x + r.width / 2) / size.w) * 2 - 1,
+      1 - ((r.y + r.height / 2) / size.h) * 2,
+      0.5,
+    ).unproject(camera);
     const into = ndc.sub(camera.position).normalize().multiplyScalar(30).add(camera.position);
     expect(insetBlocked(p, camera, size, r, { x: into.x, y: into.y - 1.1, z: into.z })).toBe(true);
   });
@@ -235,7 +270,17 @@ describe('field inset guard: the batter’s own bat and gloves', () => {
     const blade = g.children[0] as Mesh;
     const exact = projectVisibleMeshRegions(blade, 'bat', camera, size)[0];
     const boxed = meshBoxRegions(blade, camera, size)[0];
-    if (boxed.x < exact.x - 6) expect(insetBlocked(p, camera, size, { x: boxed.x, y: exact.y + exact.height / 2, width: Math.max(1, exact.x - boxed.x - 2), height: 2 }, null, blade)).toBe(false);
+    if (boxed.x < exact.x - 6)
+      expect(
+        insetBlocked(
+          p,
+          camera,
+          size,
+          { x: boxed.x, y: exact.y + exact.height / 2, width: Math.max(1, exact.x - boxed.x - 2), height: 2 },
+          null,
+          blade,
+        ),
+      ).toBe(false);
     g.visible = false;
     expect(meshBoxRegions(g, camera, size)).toEqual([]);
   });

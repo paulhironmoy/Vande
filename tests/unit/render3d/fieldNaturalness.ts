@@ -19,7 +19,16 @@
 import type { DeliveryResult } from '@/contracts/practice';
 import { type ActorTrack, evaluateActor, lookScale } from '@/render3d/core/actors';
 import { clipDuration, createPose, type ClipId, type SampledPose } from '@/render3d/core/clips';
-import { createJoints, createPoseScratch, forwardKinematics, jointWorld, localToWorld, palmLocal, trackPoseAt, turnRateCap } from '@/render3d/core/locomotion';
+import {
+  createJoints,
+  createPoseScratch,
+  forwardKinematics,
+  jointWorld,
+  localToWorld,
+  palmLocal,
+  trackPoseAt,
+  turnRateCap,
+} from '@/render3d/core/locomotion';
 import { BONE_INDEX, BONE_NAMES } from '@/render3d/core/skeleton';
 import { buildPracticeScript } from '@/render3d/practice/script';
 import { ballAt, simToScene, toWorld } from '@/render3d/practice/frame';
@@ -42,14 +51,46 @@ export interface CorpusBall {
 }
 
 const INTENTS: Array<{ name: string; intent: Intent; errorMs: number }> = [
-  { name: 'drive', intent: { kind: 'attack', directionDeg: 10, elevation: 0, power: 0.8, footwork: 'forward' }, errorMs: 0 },
-  { name: 'cover', intent: { kind: 'attack', directionDeg: 45, elevation: 0.1, power: 0.9, footwork: 'forward' }, errorMs: 15 },
-  { name: 'cut', intent: { kind: 'attack', directionDeg: 95, elevation: 0, power: 0.9, footwork: 'back' }, errorMs: -10 },
-  { name: 'pull', intent: { kind: 'attack', directionDeg: -80, elevation: 0.2, power: 0.9, footwork: 'back' }, errorMs: 10 },
-  { name: 'loft', intent: { kind: 'attack', directionDeg: -20, elevation: 0.7, power: 1, footwork: 'forward' }, errorMs: 0 },
-  { name: 'glance', intent: { kind: 'attack', directionDeg: -130, elevation: 0, power: 0.5, footwork: 'back' }, errorMs: 25 },
-  { name: 'defend', intent: { kind: 'defend', directionDeg: 0, elevation: 0, power: 0.3, footwork: 'forward' }, errorMs: 0 },
-  { name: 'late', intent: { kind: 'attack', directionDeg: 30, elevation: 0.1, power: 0.9, footwork: 'forward' }, errorMs: 70 },
+  {
+    name: 'drive',
+    intent: { kind: 'attack', directionDeg: 10, elevation: 0, power: 0.8, footwork: 'forward' },
+    errorMs: 0,
+  },
+  {
+    name: 'cover',
+    intent: { kind: 'attack', directionDeg: 45, elevation: 0.1, power: 0.9, footwork: 'forward' },
+    errorMs: 15,
+  },
+  {
+    name: 'cut',
+    intent: { kind: 'attack', directionDeg: 95, elevation: 0, power: 0.9, footwork: 'back' },
+    errorMs: -10,
+  },
+  {
+    name: 'pull',
+    intent: { kind: 'attack', directionDeg: -80, elevation: 0.2, power: 0.9, footwork: 'back' },
+    errorMs: 10,
+  },
+  {
+    name: 'loft',
+    intent: { kind: 'attack', directionDeg: -20, elevation: 0.7, power: 1, footwork: 'forward' },
+    errorMs: 0,
+  },
+  {
+    name: 'glance',
+    intent: { kind: 'attack', directionDeg: -130, elevation: 0, power: 0.5, footwork: 'back' },
+    errorMs: 25,
+  },
+  {
+    name: 'defend',
+    intent: { kind: 'defend', directionDeg: 0, elevation: 0, power: 0.3, footwork: 'forward' },
+    errorMs: 0,
+  },
+  {
+    name: 'late',
+    intent: { kind: 'attack', directionDeg: 30, elevation: 0.1, power: 0.9, footwork: 'forward' },
+    errorMs: 70,
+  },
   { name: 'leave', intent: null, errorMs: 0 },
 ];
 
@@ -65,7 +106,11 @@ export function corpus(overs = 4, perOver = 2): CorpusBall[] {
     for (const b of balls)
       for (const it of INTENTS) {
         const result = playBall(b, it.intent, it.errorMs, 'play');
-        out.push({ key: `${family}/${conditions}/${b.ballIndex}/${it.name}`, setup: { field: b.field, bowler: over.bowler, conditions, handedness: 'right' }, result });
+        out.push({
+          key: `${family}/${conditions}/${b.ballIndex}/${it.name}`,
+          setup: { field: b.field, bowler: over.bowler, conditions, handedness: 'right' },
+          result,
+        });
       }
   }
   return out;
@@ -139,18 +184,40 @@ export const DIAG = { slideM: 0.1, maxSlides: 6, stills: false, touchM: Infinity
 export const POP_BODY = 25;
 export const POP_ARM = 45;
 
-const LEG_TRUNK = ['hips', 'spine', 'chest', 'neck', 'head', 'thighL', 'shinL', 'footL', 'thighR', 'shinR', 'footR'].map((n) => BONE_INDEX[n as keyof typeof BONE_INDEX]);
-const ARMS = ['upperArmL', 'forearmL', 'handL', 'upperArmR', 'forearmR', 'handR'].map((n) => BONE_INDEX[n as keyof typeof BONE_INDEX]);
+const LEG_TRUNK = [
+  'hips',
+  'spine',
+  'chest',
+  'neck',
+  'head',
+  'thighL',
+  'shinL',
+  'footL',
+  'thighR',
+  'shinR',
+  'footR',
+].map((n) => BONE_INDEX[n as keyof typeof BONE_INDEX]);
+const ARMS = ['upperArmL', 'forearmL', 'handL', 'upperArmR', 'forearmR', 'handR'].map(
+  (n) => BONE_INDEX[n as keyof typeof BONE_INDEX],
+);
 const GAIT_CLIPS = new Set<ClipId>(['walk', 'jog', 'run', 'run_drive', 'keep_shuffle']);
 const HOLD_CLIPS = new Set<ClipId>(['idle', 'ready', 'keep_crouch', 'hands_on_hips', 'clap']);
 
 function angleBetween(a: Float32Array, b: Float32Array, i: number): number {
-  const d = Math.abs(a[i * 4] * b[i * 4] + a[i * 4 + 1] * b[i * 4 + 1] + a[i * 4 + 2] * b[i * 4 + 2] + a[i * 4 + 3] * b[i * 4 + 3]);
+  const d = Math.abs(
+    a[i * 4] * b[i * 4] + a[i * 4 + 1] * b[i * 4 + 1] + a[i * 4 + 2] * b[i * 4 + 2] + a[i * 4 + 3] * b[i * 4 + 3],
+  );
   return 2 * Math.acos(Math.min(1, d));
 }
 
 /** Metrics of one track over [t0, t1] (scene ms), posed as the stage poses it (with `hook` when given). */
-export function measureTrack(track: ActorTrack, t0: number, t1: number, releaseScene: number, hook?: PoseHook): TrackMetrics {
+export function measureTrack(
+  track: ActorTrack,
+  t0: number,
+  t1: number,
+  releaseScene: number,
+  hook?: PoseHook,
+): TrackMetrics {
   const scratch = createPoseScratch();
   const joints = createJoints();
   const scale = lookScale(track.look);
@@ -162,7 +229,31 @@ export function measureTrack(track: ActorTrack, t0: number, t1: number, releaseS
   const touch = Array.from({ length: 6 }, () => ({ x: 0, z: 0, worst: 0, n: 0 }));
   const labels: string[] = [];
   const prevQ = new Float32Array(BONE_NAMES.length * 4);
-  const m: TrackMetrics = { id: track.id, plants: 0, slides: [], slideKinds: [], movingS: 0, afterS: 0, slideSpeedMax: 0, bodyAngMax: 0, armAngMax: 0, bodyPops: 0, armPops: 0, turnMax: 0, turnOverCap: 0, turnOverCapWin: 0, snaps: 0, speedStepMax: 0, speedStep30Max: 0, stillMax: 0, animated: false, cadence: [], frames: n, examples: [], touchSlides: [] };
+  const m: TrackMetrics = {
+    id: track.id,
+    plants: 0,
+    slides: [],
+    slideKinds: [],
+    movingS: 0,
+    afterS: 0,
+    slideSpeedMax: 0,
+    bodyAngMax: 0,
+    armAngMax: 0,
+    bodyPops: 0,
+    armPops: 0,
+    turnMax: 0,
+    turnOverCap: 0,
+    turnOverCapWin: 0,
+    snaps: 0,
+    speedStepMax: 0,
+    speedStep30Max: 0,
+    stillMax: 0,
+    animated: false,
+    cadence: [],
+    frames: n,
+    examples: [],
+    touchSlides: [],
+  };
   let prevHeading = NaN;
   const headHist: Array<{ h: number; x: number; z: number }> = [];
   let prevPos: { x: number; z: number } | null = null;
@@ -183,12 +274,22 @@ export function measureTrack(track: ActorTrack, t0: number, t1: number, releaseS
     hook?.(track, pose, t);
     const root = { x: st.pos.x + (st.body?.x ?? 0), y: 0, z: st.pos.z + (st.body?.z ?? 0) };
     forwardKinematics(pose, joints);
-    ankles.push({ L: jointWorld(joints, 'footL', root, st.heading, scale), R: jointWorld(joints, 'footR', root, st.heading, scale) });
+    ankles.push({
+      L: jointWorld(joints, 'footL', root, st.heading, scale),
+      R: jointWorld(joints, 'footR', root, st.heading, scale),
+    });
     for (let f = 0; f < 2; f++) {
       const bi = BONE_INDEX[f === 0 ? 'footL' : 'footR'];
       for (let q = 0; q < 3; q++) {
         const r = rotQ(joints.q, bi * 4, SHOE[q]);
-        const wpt = localToWorld(joints.p[bi * 3] + r[0], joints.p[bi * 3 + 1] + r[1], joints.p[bi * 3 + 2] + r[2], root, st.heading, scale);
+        const wpt = localToWorld(
+          joints.p[bi * 3] + r[0],
+          joints.p[bi * 3 + 1] + r[1],
+          joints.p[bi * 3 + 2] + r[2],
+          root,
+          st.heading,
+          scale,
+        );
         const tc = touch[f * 3 + q];
         if (wpt.y <= TOUCH_M) {
           if (tc.n === 0) {
@@ -200,14 +301,25 @@ export function measureTrack(track: ActorTrack, t0: number, t1: number, releaseS
         } else {
           if (tc.n >= 3) {
             m.touchSlides.push(tc.worst);
-            if (tc.worst > DIAG.touchM && m.examples.filter((e) => e.startsWith('touch')).length < DIAG.maxTouches) m.examples.push(`touch ${f ? 'R' : 'L'}${q} ${(tc.worst * 100).toFixed(1)}cm ${tc.n}f ${labels[labels.length - 1 - tc.n] ?? ''} .. ${labels[labels.length - 1] ?? ''}`);
+            if (tc.worst > DIAG.touchM && m.examples.filter((e) => e.startsWith('touch')).length < DIAG.maxTouches)
+              m.examples.push(
+                `touch ${f ? 'R' : 'L'}${q} ${(tc.worst * 100).toFixed(1)}cm ${tc.n}f ${labels[labels.length - 1 - tc.n] ?? ''} .. ${labels[labels.length - 1] ?? ''}`,
+              );
           }
           tc.n = 0;
         }
       }
     }
-    labels.push(`${st.previous && st.weight < 1 ? st.previous.clip + '>' : ''}${st.current.clip}${st.current.lower ? '/' + st.current.lower : ''}@${(t - releaseScene).toFixed(0)}`);
-    kinds.push(GAIT_CLIPS.has(st.current.clip) || (st.current.lower && GAIT_CLIPS.has(st.current.lower)) ? 'gait' : HOLD_CLIPS.has(st.current.clip) ? 'hold' : 'shot');
+    labels.push(
+      `${st.previous && st.weight < 1 ? st.previous.clip + '>' : ''}${st.current.clip}${st.current.lower ? '/' + st.current.lower : ''}@${(t - releaseScene).toFixed(0)}`,
+    );
+    kinds.push(
+      GAIT_CLIPS.has(st.current.clip) || (st.current.lower && GAIT_CLIPS.has(st.current.lower))
+        ? 'gait'
+        : HOLD_CLIPS.has(st.current.clip)
+          ? 'hold'
+          : 'shot',
+    );
     if (k > 0) {
       let fastest = 0;
       for (let i = 0; i < BONE_NAMES.length; i++) fastest = Math.max(fastest, angleBetween(prevQ, pose.q, i) * FPS);
@@ -221,7 +333,8 @@ export function measureTrack(track: ActorTrack, t0: number, t1: number, releaseS
         m.bodyAngMax = Math.max(m.bodyAngMax, w);
         if (w > POP_BODY) {
           m.bodyPops++;
-          if (m.examples.length < 40) m.examples.push(`pop ${BONE_NAMES[i]} ${w.toFixed(0)} ${labels[labels.length - 1]}`);
+          if (m.examples.length < 40)
+            m.examples.push(`pop ${BONE_NAMES[i]} ${w.toFixed(0)} ${labels[labels.length - 1]}`);
         }
       }
       for (const i of ARMS) {
@@ -272,7 +385,8 @@ export function measureTrack(track: ActorTrack, t0: number, t1: number, releaseS
       } else if (!m.animated) {
         let maxA = 0;
         for (let i = 0; i < BONE_NAMES.length; i++) maxA = Math.max(maxA, angleBetween(firstAfter, pose.q, i));
-        if (maxA > (10 * Math.PI) / 180 || Math.hypot(st.pos.x - firstPos!.x, st.pos.z - firstPos!.z) > 0.5) m.animated = true;
+        if (maxA > (10 * Math.PI) / 180 || Math.hypot(st.pos.x - firstPos!.x, st.pos.z - firstPos!.z) > 0.5)
+          m.animated = true;
       }
       hist.push(new Float32Array(pose.q));
       posHist.push({ x: st.pos.x, z: st.pos.z });
@@ -282,15 +396,21 @@ export function measureTrack(track: ActorTrack, t0: number, t1: number, releaseS
       }
       if (hist.length === FPS) {
         let maxA = 0;
-        for (let i = 0; i < BONE_NAMES.length; i++) maxA = Math.max(maxA, angleBetween(hist[0], hist[hist.length - 1], i));
-        const moved = Math.hypot(posHist[0].x - posHist[posHist.length - 1].x, posHist[0].z - posHist[posHist.length - 1].z);
+        for (let i = 0; i < BONE_NAMES.length; i++)
+          maxA = Math.max(maxA, angleBetween(hist[0], hist[hist.length - 1], i));
+        const moved = Math.hypot(
+          posHist[0].x - posHist[posHist.length - 1].x,
+          posHist[0].z - posHist[posHist.length - 1].z,
+        );
         // Also any frame in between: the largest deviation from the window's first pose.
         if (maxA < (1.5 * Math.PI) / 180 && moved < 0.01) {
           let dev = 0;
-          for (const h of hist) for (let i = 0; i < BONE_NAMES.length; i++) dev = Math.max(dev, angleBetween(hist[0], h, i));
+          for (const h of hist)
+            for (let i = 0; i < BONE_NAMES.length; i++) dev = Math.max(dev, angleBetween(hist[0], h, i));
           if (dev < (1.5 * Math.PI) / 180) still = still === 0 ? 1 : still + 1 / FPS;
           else still = 0;
-          if (DIAG.stills && still > 1.5 && still - 1 / FPS <= 1.5) m.examples.push(`still ${labels[labels.length - 1]}`);
+          if (DIAG.stills && still > 1.5 && still - 1 / FPS <= 1.5)
+            m.examples.push(`still ${labels[labels.length - 1]}`);
         } else still = 0;
         m.stillMax = Math.max(m.stillMax, still);
       }
@@ -307,7 +427,8 @@ export function measureTrack(track: ActorTrack, t0: number, t1: number, releaseS
       let planted = false;
       if (k < ankles.length) {
         let lo = Infinity;
-        for (let j = Math.max(0, k - W); j <= Math.min(ankles.length - 1, k + W); j++) lo = Math.min(lo, ankles[j].L.y, ankles[j].R.y);
+        for (let j = Math.max(0, k - W); j <= Math.min(ankles.length - 1, k + W); j++)
+          lo = Math.min(lo, ankles[j].L.y, ankles[j].R.y);
         const a = ankles[k][side];
         planted = a.y <= lo + PLANT_EPS_M && a.y <= ankles[k][other].y + 0.005;
       }
@@ -327,7 +448,10 @@ export function measureTrack(track: ActorTrack, t0: number, t1: number, releaseS
           m.plants++;
           m.slides.push(maxDrift);
           m.slideKinds.push(kinds[start]);
-          if (maxDrift > DIAG.slideM && m.examples.filter((e) => e.startsWith('slide')).length < DIAG.maxSlides) m.examples.push(`slide ${side} ${(maxDrift * 100).toFixed(1)}cm ${(k - start)}f ${labels[start]} .. ${labels[k - 1]}`);
+          if (maxDrift > DIAG.slideM && m.examples.filter((e) => e.startsWith('slide')).length < DIAG.maxSlides)
+            m.examples.push(
+              `slide ${side} ${(maxDrift * 100).toFixed(1)}cm ${k - start}f ${labels[start]} .. ${labels[k - 1]}`,
+            );
         }
         start = -1;
       }
@@ -340,7 +464,11 @@ export function measureTrack(track: ActorTrack, t0: number, t1: number, releaseS
  * The held ball's hand at its two physics moments, drawn as the stage draws it (the hook's pose): the catching hand
  * (the keeper's two gloves' midpoint) at each take and the throwing hand at each release, against the physics ball (m).
  */
-export function handBallGaps(b: CorpusBall, script: BallScript, hook?: PoseHook): { take: number[]; release: number[] } {
+export function handBallGaps(
+  b: CorpusBall,
+  script: BallScript,
+  hook?: PoseHook,
+): { take: number[]; release: number[] } {
   const out = { take: [] as number[], release: [] as number[] };
   const p = script.practice!;
   const sc = createPoseScratch();
@@ -366,7 +494,8 @@ export function handBallGaps(b: CorpusBall, script: BallScript, hook?: PoseHook)
     const L = localToWorld(pl.x, pl.y, pl.z, root, st.heading, scale);
     // As the stage draws the held ball: at a release the throwing hand (StageScene.handOf('<actor>:throw')), at the
     // keeper's takes the palms' midpoint, at a fielder's take his right hand.
-    const hand = e.kind === 'throw' || id !== 'keeper' ? R : { x: (L.x + R.x) / 2, y: (L.y + R.y) / 2, z: (L.z + R.z) / 2 };
+    const hand =
+      e.kind === 'throw' || id !== 'keeper' ? R : { x: (L.x + R.x) / 2, y: (L.y + R.y) / 2, z: (L.z + R.z) / 2 };
     const ball = toWorld(ballAt(b.result.ball, e.t)!, p.mirror);
     (e.kind === 'throw' ? out.release : out.take).push(Math.hypot(hand.x - ball.x, hand.y - ball.y, hand.z - ball.z));
   }
@@ -452,7 +581,11 @@ function join(a: TrackMetrics, b: TrackMetrics): TrackMetrics {
  * The corpus summary. `live`: each delivery as the live stage shows it, the delivery's first script (built before the
  * result) up to the release and the result script from it; otherwise the result script alone throughout.
  */
-export function summarize(balls: CorpusBall[], hook?: (script: BallScript) => PoseHook | undefined, live = false): Summary {
+export function summarize(
+  balls: CorpusBall[],
+  hook?: (script: BallScript) => PoseHook | undefined,
+  live = false,
+): Summary {
   const all: TrackMetrics[] = [];
   const perBall: number[] = [];
   const takes: number[] = [];
@@ -474,7 +607,11 @@ export function summarize(balls: CorpusBall[], hook?: (script: BallScript) => Po
       let m: TrackMetrics;
       const ft = first?.actors.find((a) => a.id === tr.id);
       // The result reaches the stage around the swing, about RESULT_AT_MS after the release.
-      if (ft) m = join(measureTrack(ft, Math.max(0, rel - 1500), rel + RESULT_AT_MS - 1, rel, hf), measureTrack(tr, rel + RESULT_AT_MS, script.duration - 1, rel, h));
+      if (ft)
+        m = join(
+          measureTrack(ft, Math.max(0, rel - 1500), rel + RESULT_AT_MS - 1, rel, hf),
+          measureTrack(tr, rel + RESULT_AT_MS, script.duration - 1, rel, h),
+        );
       else m = measureTrack(tr, Math.max(0, rel - 1500), script.duration - 1, rel, h);
       all.push(m);
       if (m.animated) animated++;
@@ -494,19 +631,44 @@ export function summarize(balls: CorpusBall[], hook?: (script: BallScript) => Po
     slideMedianCm: +(pct(slides, 0.5) * 100).toFixed(2),
     slideP95Cm: +(pct(slides, 0.95) * 100).toFixed(2),
     plantsOver2cmPct: +((100 * slides.filter((s) => s > 0.02).length) / Math.max(1, slides.length)).toFixed(1),
-    handAtTake: [takes.length, +(pct(takes, 0.5) * 100).toFixed(1), +(pct(takes, 0.95) * 100).toFixed(1), +((100 * takes.filter((x) => x > 0.03).length) / Math.max(1, takes.length)).toFixed(1)],
-    handAtRelease: [releases.length, +(pct(releases, 0.5) * 100).toFixed(1), +(pct(releases, 0.95) * 100).toFixed(1), +((100 * releases.filter((x) => x > 0.03).length) / Math.max(1, releases.length)).toFixed(1)],
+    handAtTake: [
+      takes.length,
+      +(pct(takes, 0.5) * 100).toFixed(1),
+      +(pct(takes, 0.95) * 100).toFixed(1),
+      +((100 * takes.filter((x) => x > 0.03).length) / Math.max(1, takes.length)).toFixed(1),
+    ],
+    handAtRelease: [
+      releases.length,
+      +(pct(releases, 0.5) * 100).toFixed(1),
+      +(pct(releases, 0.95) * 100).toFixed(1),
+      +((100 * releases.filter((x) => x > 0.03).length) / Math.max(1, releases.length)).toFixed(1),
+    ],
     touch: (() => {
       const xs = all.flatMap((m) => m.touchSlides);
-      return [xs.length, +(pct(xs, 0.5) * 100).toFixed(2), +(pct(xs, 0.95) * 100).toFixed(2), +((100 * xs.filter((x) => x > 0.02).length) / Math.max(1, xs.length)).toFixed(1)] as [number, number, number, number];
+      return [
+        xs.length,
+        +(pct(xs, 0.5) * 100).toFixed(2),
+        +(pct(xs, 0.95) * 100).toFixed(2),
+        +((100 * xs.filter((x) => x > 0.02).length) / Math.max(1, xs.length)).toFixed(1),
+      ] as [number, number, number, number];
     })(),
     byKind: Object.fromEntries(
       (['gait', 'hold', 'shot'] as const).map((k) => {
         const xs = all.flatMap((m) => m.slides.filter((_, i) => m.slideKinds[i] === k));
-        return [k, [xs.length, +(pct(xs, 0.5) * 100).toFixed(2), +(pct(xs, 0.95) * 100).toFixed(2), +((100 * xs.filter((x) => x > 0.02).length) / Math.max(1, xs.length)).toFixed(1)]];
+        return [
+          k,
+          [
+            xs.length,
+            +(pct(xs, 0.5) * 100).toFixed(2),
+            +(pct(xs, 0.95) * 100).toFixed(2),
+            +((100 * xs.filter((x) => x > 0.02).length) / Math.max(1, xs.length)).toFixed(1),
+          ],
+        ];
       }),
     ) as Summary['byKind'],
-    movingShareMean: +(all.reduce((s, m) => s + m.movingS / Math.max(1e-9, m.afterS), 0) / Math.max(1, all.length)).toFixed(3),
+    movingShareMean: +(
+      all.reduce((s, m) => s + m.movingS / Math.max(1e-9, m.afterS), 0) / Math.max(1, all.length)
+    ).toFixed(3),
     movingShareMin: +Math.min(...all.map((m) => m.movingS / Math.max(1e-9, m.afterS))).toFixed(3),
     slideSpeedMaxMps: +Math.max(0, ...all.map((m) => m.slideSpeedMax)).toFixed(2),
     bodyAngMax: +Math.max(...all.map((m) => m.bodyAngMax)).toFixed(1),

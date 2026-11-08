@@ -14,7 +14,14 @@ import { SURFACES, bearingDiff, play } from './fixtures';
 
 function swingOf<C extends string>(g: CorpusGesture<C>): NormalizedSwing | null {
   if (!g.samples) return null;
-  return play(g.samples, { surface: g.surface, pointer: g.pointer, delivery: g.delivery, lifted: g.lifted, armAtMs: g.armAtMs, footwork: g.footwork }).swing;
+  return play(g.samples, {
+    surface: g.surface,
+    pointer: g.pointer,
+    delivery: g.delivery,
+    lifted: g.lifted,
+    armAtMs: g.armAtMs,
+    footwork: g.footwork,
+  }).swing;
 }
 
 function tally<C extends string>(rows: Array<{ cls: C; ok: boolean; note: string }>) {
@@ -27,7 +34,14 @@ function tally<C extends string>(rows: Array<{ cls: C; ok: boolean; note: string
   }
   const total = rows.length;
   const ok = rows.filter((r) => r.ok).length;
-  return { by, overall: ok / total, total, line: `${ok}/${total} (${((100 * ok) / total).toFixed(1)}%); ${Object.entries(by).map(([k, c]) => `${k} ${c.ok}/${c.n}`).join(', ')}` };
+  return {
+    by,
+    overall: ok / total,
+    total,
+    line: `${ok}/${total} (${((100 * ok) / total).toFixed(1)}%); ${Object.entries(by)
+      .map(([k, c]) => `${k} ${c.ok}/${c.n}`)
+      .join(', ')}`,
+  };
 }
 
 describe('RK3: novice tap, swipe and leave are recognised (≥ 95% of ≥ 300 jittered gestures)', () => {
@@ -49,9 +63,20 @@ describe('RK3: novice tap, swipe and leave are recognised (≥ 95% of ≥ 300 ji
       return { cls: expected, ok: read === expected, note };
     });
     const t = tally(rows);
-    console.info(`RK3 original auto-hold labels (historical contract, not the active gate): ${tally(oldRows).line}; relabelled waiting presses: ${rows.filter((r, i) => r.cls !== corpus[i].cls).length}; all ${corpus.length} traces retained`);
-    console.info(`RK3 novice corpus: ${t.line}${Object.values(t.by).some((c) => c.misses.length) ? `; misses: ${Object.values(t.by).flatMap((c) => c.misses).join(' | ')}` : ''}`);
-    for (const [cls, c] of Object.entries(t.by)) expect(c.ok / c.n, `${cls}: ${c.ok}/${c.n}; ${c.misses.join(' | ')}`).toBeGreaterThanOrEqual(0.95);
+    console.info(
+      `RK3 original auto-hold labels (historical contract, not the active gate): ${tally(oldRows).line}; relabelled waiting presses: ${rows.filter((r, i) => r.cls !== corpus[i].cls).length}; all ${corpus.length} traces retained`,
+    );
+    console.info(
+      `RK3 novice corpus: ${t.line}${
+        Object.values(t.by).some((c) => c.misses.length)
+          ? `; misses: ${Object.values(t.by)
+              .flatMap((c) => c.misses)
+              .join(' | ')}`
+          : ''
+      }`,
+    );
+    for (const [cls, c] of Object.entries(t.by))
+      expect(c.ok / c.n, `${cls}: ${c.ok}/${c.n}; ${c.misses.join(' | ')}`).toBeGreaterThanOrEqual(0.95);
     expect(t.overall).toBeGreaterThanOrEqual(0.95);
   });
 
@@ -65,12 +90,24 @@ describe('RK3: novice tap, swipe and leave are recognised (≥ 95% of ≥ 300 ji
 /** The stroke class the game plays for a swing (src/physics/shot.ts), plus loft and the defences. */
 function classOf(sw: NormalizedSwing | null): ExpertClass | 'other' {
   if (!sw) return 'leave';
-  if (sw.kind === 'defend') return sw.footwork === 'forward' || sw.footwork === 'down_track' ? 'forward_defence' : sw.footwork === 'back' || sw.footwork === 'across' ? 'back_defence' : 'other';
+  if (sw.kind === 'defend')
+    return sw.footwork === 'forward' || sw.footwork === 'down_track'
+      ? 'forward_defence'
+      : sw.footwork === 'back' || sw.footwork === 'across'
+        ? 'back_defence'
+        : 'other';
   if (sw.elevation >= 0.45) return 'lofted';
   if (sw.elevation > 0.05) return 'other';
   const played = sw.footwork === 'auto' ? 'forward' : sw.footwork;
   const fam = shotFamily('attack', sw.directionDeg, played);
-  if (fam === 'straight_drive' || fam === 'off_drive' || fam === 'cover_drive' || fam === 'on_drive' || fam === 'back_drive') return 'drive';
+  if (
+    fam === 'straight_drive' ||
+    fam === 'off_drive' ||
+    fam === 'cover_drive' ||
+    fam === 'on_drive' ||
+    fam === 'back_drive'
+  )
+    return 'drive';
   if (fam === 'cut') return 'cut';
   if (fam === 'pull') return 'pull';
   if (fam === 'flick') return 'flick';
@@ -84,12 +121,17 @@ describe('EX1: an expert’s eight intended classes are recognised (≥ 90%)', (
       const sw = swingOf(g);
       const read = classOf(sw);
       const aimOk = g.aimDeg === undefined || (sw !== null && Math.abs(bearingDiff(sw.directionDeg, g.aimDeg)) <= 15);
-      return { cls: g.cls, ok: read === g.cls && aimOk, note: `${g.id} ${g.note} ${g.surfaceName}/${g.pointer} ${g.delivery.name} → ${read} ${sw ? `${sw.directionDeg}° e${sw.elevation}` : ''}` };
+      return {
+        cls: g.cls,
+        ok: read === g.cls && aimOk,
+        note: `${g.id} ${g.note} ${g.surfaceName}/${g.pointer} ${g.delivery.name} → ${read} ${sw ? `${sw.directionDeg}° e${sw.elevation}` : ''}`,
+      };
     });
     const t = tally(rows);
     console.info(`EX1 expert corpus: ${t.line}`);
     expect(Object.keys(t.by)).toHaveLength(8);
-    for (const [cls, c] of Object.entries(t.by)) expect(c.ok / c.n, `${cls}: ${c.ok}/${c.n}; ${c.misses.join(' | ')}`).toBeGreaterThanOrEqual(0.9);
+    for (const [cls, c] of Object.entries(t.by))
+      expect(c.ok / c.n, `${cls}: ${c.ok}/${c.n}; ${c.misses.join(' | ')}`).toBeGreaterThanOrEqual(0.9);
     expect(t.overall).toBeGreaterThanOrEqual(0.9);
   });
 
@@ -97,7 +139,18 @@ describe('EX1: an expert’s eight intended classes are recognised (≥ 90%)', (
     const run = (keys: Array<[string, number, boolean?]>) => {
       let now = 0;
       const timers: Array<{ at: number; fn: () => void }> = [];
-      const sched: TrackerScheduler = { now: () => now, setTimer: (fn, ms) => { const t = { at: now + ms, fn }; timers.push(t); return t; }, clearTimer: (id) => { const i = timers.indexOf(id as (typeof timers)[number]); if (i >= 0) timers.splice(i, 1); } };
+      const sched: TrackerScheduler = {
+        now: () => now,
+        setTimer: (fn, ms) => {
+          const t = { at: now + ms, fn };
+          timers.push(t);
+          return t;
+        },
+        clearTimer: (id) => {
+          const i = timers.indexOf(id as (typeof timers)[number]);
+          if (i >= 0) timers.splice(i, 1);
+        },
+      };
       let g: GestureInput | null = null;
       const tr = new GestureTracker({ swingStart: () => undefined, gesture: (x) => (g = x) }, sched);
       tr.setSurface(SURFACES.desktop.width, SURFACES.desktop.height);
@@ -112,13 +165,57 @@ describe('EX1: an expert’s eight intended classes are recognised (≥ 90%)', (
     };
     const cases: Array<[ExpertClass, Array<[string, number, boolean?]>]> = [
       ['leave', []],
-      ['forward_defence', [['KeyW', 1000], ['Space', 1100]]],
-      ['back_defence', [['KeyS', 1000], ['Space', 1100]]],
-      ['drive', [['KeyW', 1000], ['ArrowUp', 1100], ['ArrowRight', 1110]]],
-      ['cut', [['KeyS', 1000], ['ArrowRight', 1100]]],
-      ['pull', [['KeyS', 1000], ['ArrowLeft', 1100]]],
-      ['flick', [['KeyW', 1000], ['ArrowUp', 1100], ['ArrowLeft', 1105]]],
-      ['lofted', [['KeyW', 1000], ['ArrowUp', 1100, true]]],
+      [
+        'forward_defence',
+        [
+          ['KeyW', 1000],
+          ['Space', 1100],
+        ],
+      ],
+      [
+        'back_defence',
+        [
+          ['KeyS', 1000],
+          ['Space', 1100],
+        ],
+      ],
+      [
+        'drive',
+        [
+          ['KeyW', 1000],
+          ['ArrowUp', 1100],
+          ['ArrowRight', 1110],
+        ],
+      ],
+      [
+        'cut',
+        [
+          ['KeyS', 1000],
+          ['ArrowRight', 1100],
+        ],
+      ],
+      [
+        'pull',
+        [
+          ['KeyS', 1000],
+          ['ArrowLeft', 1100],
+        ],
+      ],
+      [
+        'flick',
+        [
+          ['KeyW', 1000],
+          ['ArrowUp', 1100],
+          ['ArrowLeft', 1105],
+        ],
+      ],
+      [
+        'lofted',
+        [
+          ['KeyW', 1000],
+          ['ArrowUp', 1100, true],
+        ],
+      ],
     ];
     for (const [cls, keys] of cases) expect(classOf(keys.length ? run(keys) : null), cls).toBe(cls);
   });
@@ -151,7 +248,12 @@ describe('EX1: an expert’s eight intended classes are recognised (≥ 90%)', (
 function examinerRng(seed: string) {
   // The examiner seeds sfc32 with the first four little-endian words of SHA-256(seed) (Node's readUInt32LE).
   const hex = sha256Hex(seed);
-  const le = (i: number) => (parseInt(hex.slice(2 * i, 2 * i + 2), 16) | (parseInt(hex.slice(2 * i + 2, 2 * i + 4), 16) << 8) | (parseInt(hex.slice(2 * i + 4, 2 * i + 6), 16) << 16) | (parseInt(hex.slice(2 * i + 6, 2 * i + 8), 16) << 24)) >>> 0;
+  const le = (i: number) =>
+    (parseInt(hex.slice(2 * i, 2 * i + 2), 16) |
+      (parseInt(hex.slice(2 * i + 2, 2 * i + 4), 16) << 8) |
+      (parseInt(hex.slice(2 * i + 4, 2 * i + 6), 16) << 16) |
+      (parseInt(hex.slice(2 * i + 6, 2 * i + 8), 16) << 24)) >>>
+    0;
   let a = le(0);
   let b = le(4);
   let c = le(8);
@@ -226,7 +328,25 @@ function examinerRun(samples: GestureSample[], pressFootwork = false): Normalize
 function examinerCorpus(loftSpec: 'examiner' | 'documented') {
   const R = examinerRng('xx-gestures-v1');
   const U = (a: number, b: number) => a + (b - a) * R();
-  const stroke = ({ L, ang, dur, lift = true, hold = 0, rate = 8, x0 = 450, y0 = 130 }: { L: number; ang: number; dur: number; lift?: boolean; hold?: number; rate?: number; x0?: number; y0?: number }) => {
+  const stroke = ({
+    L,
+    ang,
+    dur,
+    lift = true,
+    hold = 0,
+    rate = 8,
+    x0 = 450,
+    y0 = 130,
+  }: {
+    L: number;
+    ang: number;
+    dur: number;
+    lift?: boolean;
+    hold?: number;
+    rate?: number;
+    x0?: number;
+    y0?: number;
+  }) => {
     const s: GestureSample[] = [];
     const t0 = 1000;
     const n = Math.max(1, Math.round(dur / rate));
@@ -235,7 +355,11 @@ function examinerCorpus(loftSpec: 'examiner' | 'documented') {
     for (let i = 1; i <= n; i++) {
       const u = i / n;
       const e = 1 - (1 - u) * (1 - u);
-      s.push({ t: t0 + u * dur, x: x0 + Math.sin(rad) * L * e + U(-0.6, 0.6), y: y0 - Math.cos(rad) * L * e + U(-0.6, 0.6) });
+      s.push({
+        t: t0 + u * dur,
+        x: x0 + Math.sin(rad) * L * e + U(-0.6, 0.6),
+        y: y0 - Math.cos(rad) * L * e + U(-0.6, 0.6),
+      });
     }
     if (!lift && hold) {
       const last = s[s.length - 1];
@@ -251,10 +375,26 @@ function examinerCorpus(loftSpec: 'examiner' | 'documented') {
       ? (ang: number) => stroke({ L: U(130, 220), ang, dur: U(90, 160), lift: true })
       : (ang: number) => stroke({ L: U(1.65, 2.0) * ref, ang, dur: U(90, 140), lift: true, y0: 170 });
   const CLASSES: Record<string, () => { ang: number; gen: (ang: number) => GestureSample[]; ground: boolean }> = {
-    drive: () => ({ ang: U(0, 30), gen: (ang) => stroke({ L: U(40, 100), ang, dur: U(50, 120), lift: R() < 0.5, hold: 60 }), ground: true }),
-    cut: () => ({ ang: U(90, 105), gen: (ang) => stroke({ L: U(40, 80), ang, dur: U(40, 80), lift: R() < 0.5, hold: 60 }), ground: true }),
-    pull: () => ({ ang: U(-100, -80), gen: (ang) => stroke({ L: U(50, 100), ang, dur: U(50, 110), lift: R() < 0.5, hold: 60 }), ground: true }),
-    flick: () => ({ ang: U(-50, -30), gen: (ang) => stroke({ L: U(30, 70), ang, dur: U(40, 90), lift: R() < 0.5, hold: 60 }), ground: true }),
+    drive: () => ({
+      ang: U(0, 30),
+      gen: (ang) => stroke({ L: U(40, 100), ang, dur: U(50, 120), lift: R() < 0.5, hold: 60 }),
+      ground: true,
+    }),
+    cut: () => ({
+      ang: U(90, 105),
+      gen: (ang) => stroke({ L: U(40, 80), ang, dur: U(40, 80), lift: R() < 0.5, hold: 60 }),
+      ground: true,
+    }),
+    pull: () => ({
+      ang: U(-100, -80),
+      gen: (ang) => stroke({ L: U(50, 100), ang, dur: U(50, 110), lift: R() < 0.5, hold: 60 }),
+      ground: true,
+    }),
+    flick: () => ({
+      ang: U(-50, -30),
+      gen: (ang) => stroke({ L: U(30, 70), ang, dur: U(40, 90), lift: R() < 0.5, hold: 60 }),
+      ground: true,
+    }),
     lofted: () => ({ ang: U(-30, 30), gen: lofted, ground: false }),
   };
   const results: Record<string, { n: number; ok: number; worst: string[] }> = {};
@@ -263,10 +403,15 @@ function examinerCorpus(loftSpec: 'examiner' | 'documented') {
     for (let i = 0; i < 60; i++) {
       const c = mk();
       const sw = examinerRun(c.gen(c.ang));
-      const good = sw !== null && sw.kind === 'attack' && Math.abs(bearingDiff(sw.directionDeg, c.ang)) <= 15 && (c.ground ? sw.elevation <= 0.3 : sw.elevation >= 0.45);
+      const good =
+        sw !== null &&
+        sw.kind === 'attack' &&
+        Math.abs(bearingDiff(sw.directionDeg, c.ang)) <= 15 &&
+        (c.ground ? sw.elevation <= 0.3 : sw.elevation >= 0.45);
       r.n++;
       if (good) r.ok++;
-      else if (r.worst.length < 4) r.worst.push(`${c.ang.toFixed(0)}° → ${sw?.kind} ${sw?.directionDeg}° e${sw?.elevation} p${sw?.power}`);
+      else if (r.worst.length < 4)
+        r.worst.push(`${c.ang.toFixed(0)}° → ${sw?.kind} ${sw?.directionDeg}° e${sw?.elevation} p${sw?.power}`);
     }
   }
   // Defences: keyboard (W or S, then Space), and touch taps; the examiner's taps press at y 130 of 190 (the low band).
@@ -321,7 +466,11 @@ describe('E-EXP-014 (Expert Examiner’s corpus, rebuilt as an acceptance fixtur
 
   it('grounded drive, cut, pull and flick, and the defences, are recognised; lofted with the documented loft gesture', () => {
     const { results, defences } = examinerCorpus('documented');
-    console.info(`E-EXP-014 rebuilt (documented loft): ${Object.entries(results).map(([k, r]) => `${k} ${r.ok}/${r.n}`).join(', ')}; defences ${JSON.stringify(defences)}`);
+    console.info(
+      `E-EXP-014 rebuilt (documented loft): ${Object.entries(results)
+        .map(([k, r]) => `${k} ${r.ok}/${r.n}`)
+        .join(', ')}; defences ${JSON.stringify(defences)}`,
+    );
     for (const cls of ['drive', 'cut', 'pull', 'flick', 'lofted']) {
       const r = results[cls];
       expect(r.ok / r.n, `${cls}: ${r.ok}/${r.n} ${r.worst.join(' | ')}`).toBeGreaterThanOrEqual(0.95);
@@ -331,17 +480,26 @@ describe('E-EXP-014 (Expert Examiner’s corpus, rebuilt as an acceptance fixtur
       expect(d.touchDefend).toBe(60);
       expect(d.touchFootworkByPress).toBe(60);
     }
-    const ok = Object.values(results).reduce((s, r) => s + r.ok, 0) + defences.forward_defence.keyboard + defences.back_defence.keyboard + 60;
+    const ok =
+      Object.values(results).reduce((s, r) => s + r.ok, 0) +
+      defences.forward_defence.keyboard +
+      defences.back_defence.keyboard +
+      60;
     expect(ok / (5 * 60 + 3 * 60)).toBeGreaterThanOrEqual(0.9);
   });
 
   it('the examiner’s own lofted class (130–220 px) is an ordinary swipe under decision 1, so it stays (nearly) grounded', () => {
     const { results } = examinerCorpus('examiner');
-    console.info(`E-EXP-014 rebuilt (examiner's lofted class): ${Object.entries(results).map(([k, r]) => `${k} ${r.ok}/${r.n}`).join(', ')}`);
+    console.info(
+      `E-EXP-014 rebuilt (examiner's lofted class): ${Object.entries(results)
+        .map(([k, r]) => `${k} ${r.ok}/${r.n}`)
+        .join(', ')}`,
+    );
     // 220 px on this surface is 1.16 reference lengths: at most just past the start of the loft ramp.
     const maxElevation = (220 / referenceLength(EX_SURF) - LOFT_REACH.from) / (LOFT_REACH.full - LOFT_REACH.from);
     expect(maxElevation).toBeLessThan(0.15);
     expect(results.lofted.ok).toBe(0);
-    for (const cls of ['drive', 'cut', 'pull', 'flick']) expect(results[cls].ok / results[cls].n).toBeGreaterThanOrEqual(0.95);
+    for (const cls of ['drive', 'cut', 'pull', 'flick'])
+      expect(results[cls].ok / results[cls].n).toBeGreaterThanOrEqual(0.95);
   });
 });

@@ -48,7 +48,12 @@ export type InningsAction =
   | { type: 'restartOver' }
   | { type: 'abandon' };
 
-export function newInnings(opts: { id: string; conditions: PitchCondition; assist: AssistLevel; handedness: Handedness }): PracticeInningsState {
+export function newInnings(opts: {
+  id: string;
+  conditions: PitchCondition;
+  assist: AssistLevel;
+  handedness: Handedness;
+}): PracticeInningsState {
   return {
     version: PRACTICE_SIM_VERSION,
     id: opts.id,
@@ -106,7 +111,8 @@ export function inningsError(state: PracticeInningsState, action: InningsAction)
   if (state.version !== PRACTICE_SIM_VERSION) return 'wrong_version';
   switch (action.type) {
     case 'chooseOver': {
-      if (state.status !== 'choosing_over') return state.status === 'batting' ? 'finish_the_over_first' : 'not_choosing';
+      if (state.status !== 'choosing_over')
+        return state.status === 'batting' ? 'finish_the_over_first' : 'not_choosing';
       if (state.overs.length >= PRACTICE_MAX_OVERS) return 'innings_complete';
       const v = validateOver(action.plan);
       if (!v.ok) return `illegal_over:${v.errors.join(',')}`;
@@ -123,13 +129,16 @@ export function inningsError(state: PracticeInningsState, action: InningsAction)
       if (!next) return 'not_batting';
       if (!state.inFlight) return 'delivery_not_started';
       const r = action.record;
-      if (state.inFlight.overIndex !== next.overIndex || state.inFlight.ballIndex !== next.ballIndex) return 'in_flight_mismatch';
+      if (state.inFlight.overIndex !== next.overIndex || state.inFlight.ballIndex !== next.ballIndex)
+        return 'in_flight_mismatch';
       if (!r || r.version !== PRACTICE_SIM_VERSION) return 'record_version';
       if (r.overIndex !== next.overIndex || r.ballIndex !== next.ballIndex) return 'wrong_ball';
-      if (r.seed !== next.seed || !sameJson(r.plan, next.plan) || !sameJson(r.bowler, next.bowler)) return 'not_this_delivery';
+      if (r.seed !== next.seed || !sameJson(r.plan, next.plan) || !sameJson(r.bowler, next.bowler))
+        return 'not_this_delivery';
       if (!sameJson(r.field, next.field)) return 'wrong_field';
       if (!sameJson(ballOf(r.ball), next.ball)) return 'wrong_ball_condition';
-      if (r.conditions !== state.conditions || r.assist !== state.assist || r.handedness !== state.handedness) return 'wrong_settings';
+      if (r.conditions !== state.conditions || r.assist !== state.assist || r.handedness !== state.handedness)
+        return 'wrong_settings';
       if (!RUNS.has(r.runs)) return 'bad_runs';
       if (r.dismissal !== null && (!DISMISSALS.has(r.dismissal) || r.runs !== 0)) return 'bad_dismissal';
       if (!Number.isFinite(r.tierToleranceMs) || r.tierToleranceMs < 0) return 'bad_tolerance';
@@ -152,7 +161,12 @@ export function inningsReducer(state: PracticeInningsState, action: InningsActio
   if (inningsError(state, action) !== null) return state;
   switch (action.type) {
     case 'chooseOver':
-      return { ...state, status: 'batting', current: { plan: action.plan, field: action.field, deliveries: [] }, inFlight: null };
+      return {
+        ...state,
+        status: 'batting',
+        current: { plan: action.plan, field: action.field, deliveries: [] },
+        inFlight: null,
+      };
     case 'deliveryStarted': {
       const next = nextDelivery(state)!;
       return { ...state, inFlight: { overIndex: next.overIndex, ballIndex: next.ballIndex } };
@@ -167,7 +181,12 @@ export function inningsReducer(state: PracticeInningsState, action: InningsActio
       const current = overDone ? null : { ...cur, deliveries };
       if (r.dismissal) return { ...base, overs, current, status: 'out', dismissal: { record: r } };
       if (!overDone) return { ...base, current };
-      return { ...base, overs, current: null, status: overs.length >= PRACTICE_MAX_OVERS ? 'complete' : 'over_complete' };
+      return {
+        ...base,
+        overs,
+        current: null,
+        status: overs.length >= PRACTICE_MAX_OVERS ? 'complete' : 'over_complete',
+      };
     }
     case 'nextOver':
       return { ...state, status: 'choosing_over' };
@@ -176,7 +195,13 @@ export function inningsReducer(state: PracticeInningsState, action: InningsActio
       // completed over leaves 'batting', so neither can be undone.
       const cur = state.current!;
       const runs = cur.deliveries.reduce((n, d) => n + d.runs, 0);
-      return { ...state, runs: state.runs - runs, balls: state.balls - cur.deliveries.length, current: { ...cur, deliveries: [] }, inFlight: null };
+      return {
+        ...state,
+        runs: state.runs - runs,
+        balls: state.balls - cur.deliveries.length,
+        current: { ...cur, deliveries: [] },
+        inFlight: null,
+      };
     }
     case 'abandon':
       return { ...state, status: 'complete', inFlight: null };
@@ -185,7 +210,14 @@ export function inningsReducer(state: PracticeInningsState, action: InningsActio
 
 /** The record of a delivery resolved as a leave (no swing): what a resumed in-flight delivery becomes. */
 export function leaveRecord(next: NextDelivery): DeliveryRecord {
-  const base: DeliveryRecord = { version: PRACTICE_SIM_VERSION, ...next, tierToleranceMs: 0, swing: null, runs: 0, dismissal: null };
+  const base: DeliveryRecord = {
+    version: PRACTICE_SIM_VERSION,
+    ...next,
+    tierToleranceMs: 0,
+    swing: null,
+    runs: 0,
+    dismissal: null,
+  };
   const result = replayDelivery(base);
   return { ...base, runs: result.outcome.runs, dismissal: result.outcome.dismissal };
 }
@@ -198,7 +230,8 @@ export function leaveRecord(next: NextDelivery): DeliveryRecord {
 export function resumeInnings(state: PracticeInningsState): PracticeInningsState {
   if (!state.inFlight) return state;
   const next = nextDelivery(state);
-  if (!next || next.overIndex !== state.inFlight.overIndex || next.ballIndex !== state.inFlight.ballIndex) return { ...state, inFlight: null };
+  if (!next || next.overIndex !== state.inFlight.overIndex || next.ballIndex !== state.inFlight.ballIndex)
+    return { ...state, inFlight: null };
   return inningsReducer(state, { type: 'deliveryResolved', record: leaveRecord(next) });
 }
 
@@ -273,7 +306,10 @@ export interface InningsSummary {
 
 export const oversNotation = (balls: number): string => `${Math.floor(balls / 6)}.${balls % 6}`;
 
-function resultsFor(deliveries: readonly DeliveryRecord[], results?: readonly (DeliveryResult | undefined)[]): DeliveryResult[] {
+function resultsFor(
+  deliveries: readonly DeliveryRecord[],
+  results?: readonly (DeliveryResult | undefined)[],
+): DeliveryResult[] {
   return deliveries.map((r, i) => results?.[i] ?? replayDelivery(r));
 }
 
@@ -286,13 +322,17 @@ function addAreas(areas: Map<Region, ScoringArea>, result: DeliveryResult): void
   areas.set(region, a);
 }
 
-const sortAreas = (m: Map<Region, ScoringArea>) => [...m.values()].sort((a, b) => b.runs - a.runs || b.balls - a.balls || (a.region < b.region ? -1 : 1));
+const sortAreas = (m: Map<Region, ScoringArea>) =>
+  [...m.values()].sort((a, b) => b.runs - a.runs || b.balls - a.balls || (a.region < b.region ? -1 : 1));
 
 /**
  * Summary of one over (finished, or the one the batter was out in). `results` may supply already-resolved results
  * (aligned with `over.deliveries`); missing ones are re-simulated from the records.
  */
-export function overSummary(over: { plan: PracticeOverPlan; deliveries: readonly DeliveryRecord[] }, results?: readonly (DeliveryResult | undefined)[]): OverSummary {
+export function overSummary(
+  over: { plan: PracticeOverPlan; deliveries: readonly DeliveryRecord[] },
+  results?: readonly (DeliveryResult | undefined)[],
+): OverSummary {
   const rs = resultsFor(over.deliveries, results);
   const timing = emptyTiming();
   const areas = new Map<Region, ScoringArea>();
@@ -317,7 +357,14 @@ export function overSummary(over: { plan: PracticeOverPlan; deliveries: readonly
     if (q < weakestQ) {
       const rec = over.deliveries[i];
       weakestQ = q;
-      weakest = { ballIndex: rec.ballIndex, variation: rec.plan.variation, reason: res.coaching.reason, timing: res.contact.timing, runs: o.runs, dismissal: o.dismissal };
+      weakest = {
+        ballIndex: rec.ballIndex,
+        variation: rec.plan.variation,
+        reason: res.coaching.reason,
+        timing: res.contact.timing,
+        runs: o.runs,
+        dismissal: o.dismissal,
+      };
     }
   }
   return {
@@ -340,7 +387,10 @@ export function overSummary(over: { plan: PracticeOverPlan; deliveries: readonly
  * Summary of the whole innings so far (completed overs plus the over in progress or the over of the dismissal).
  * `results` may supply resolved results keyed by "overIndex:ballIndex"; missing ones are re-simulated.
  */
-export function inningsSummary(state: PracticeInningsState, results?: ReadonlyMap<string, DeliveryResult> | Readonly<Record<string, DeliveryResult>>): InningsSummary {
+export function inningsSummary(
+  state: PracticeInningsState,
+  results?: ReadonlyMap<string, DeliveryResult> | Readonly<Record<string, DeliveryResult>>,
+): InningsSummary {
   const get = (r: DeliveryRecord): DeliveryResult | undefined => {
     const k = `${r.overIndex}:${r.ballIndex}`;
     if (!results) return undefined;
@@ -370,9 +420,18 @@ export function inningsSummary(state: PracticeInningsState, results?: ReadonlyMa
   if (state.dismissal) {
     const rec = state.dismissal.record;
     const res = get(rec) ?? replayDelivery(rec);
-    const role = res.outcome.fielderId ? (rec.field.fielders.find((f) => f.id === res.outcome.fielderId)?.role ?? null) : null;
+    const role = res.outcome.fielderId
+      ? (rec.field.fielders.find((f) => f.id === res.outcome.fielderId)?.role ?? null)
+      : null;
     const ballNumber = rec.overIndex * 6 + rec.ballIndex + 1;
-    dismissal = { record: rec, how: rec.dismissal ?? res.outcome.dismissal!, reason: res.coaching.reason, fielderRole: role, ballNumber, at: `${rec.overIndex}.${rec.ballIndex + 1}` };
+    dismissal = {
+      record: rec,
+      how: rec.dismissal ?? res.outcome.dismissal!,
+      reason: res.coaching.reason,
+      fielderRole: role,
+      ballNumber,
+      at: `${rec.overIndex}.${rec.ballIndex + 1}`,
+    };
   }
   return {
     id: state.id,

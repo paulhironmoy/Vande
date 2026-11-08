@@ -33,8 +33,23 @@ async function why(hand: Handedness, timing: SwingTiming, contact: ContactKind) 
   const last = value.flow.getState().last as LastBall;
   const record = { ...last.record, handedness: hand };
   const base = value.coach!.analyzeBall(record, last.result);
-  const analysis: CoachAnalysis = { ...base, attempted: { ...base.attempted, decision: 'attack', timing, timingErrorMs: timing === 'perfect' ? 0 : timing === 'solid' ? 12 : 60, contact } };
-  const kit = { engine: value.engine, coach: value.coach, createStage: value.createStage, input: { GestureSurface: GestureProbe }, build: { lengthBand: () => 'good', lineBand: () => 'outside_off' } } as unknown as PracticeKit;
+  const analysis: CoachAnalysis = {
+    ...base,
+    attempted: {
+      ...base.attempted,
+      decision: 'attack',
+      timing,
+      timingErrorMs: timing === 'perfect' ? 0 : timing === 'solid' ? 12 : 60,
+      contact,
+    },
+  };
+  const kit = {
+    engine: value.engine,
+    coach: value.coach,
+    createStage: value.createStage,
+    input: { GestureSurface: GestureProbe },
+    build: { lengthBand: () => 'good', lineBand: () => 'outside_off' },
+  } as unknown as PracticeKit;
   render(
     <PracticeKitContext.Provider value={kit}>
       <WhyDetails analysis={analysis} result={last.result} record={record} />

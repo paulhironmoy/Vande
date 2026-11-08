@@ -26,7 +26,8 @@ function recordingContext(): { ctx: CanvasRenderingContext2D; texts: string[] } 
     createRadialGradient: () => gradient,
   };
   const ctx = new Proxy(state, {
-    get: (target, prop) => (prop in methods ? methods[prop as string] : prop in target ? target[prop] : () => undefined),
+    get: (target, prop) =>
+      prop in methods ? methods[prop as string] : prop in target ? target[prop] : () => undefined,
     set: (target, prop, value) => {
       target[prop] = value;
       return true;
@@ -50,11 +51,30 @@ beforeAll(async () => {
 const log = fixtureMatchLog();
 const tl = buildTimeline(log, 'full');
 const plan = planHighlight(log, tl, { standings: false, timelineTimeOf });
-const input = (aliases: [string, string]): HighlightRenderInput => ({ jobId: 'job-test', log, aliases, locale: 'en', fixtureLabel: 'Friend Duel', day: '2026-10-25', ranks: [7, null], standings: null, cta: { url: 'https://vande.example/h/abc123' } });
+const input = (aliases: [string, string]): HighlightRenderInput => ({
+  jobId: 'job-test',
+  log,
+  aliases,
+  locale: 'en',
+  fixtureLabel: 'Friend Duel',
+  day: '2026-10-25',
+  ranks: [7, null],
+  standings: null,
+  cta: { url: 'https://vande.example/h/abc123' },
+});
 
 /** Every string drawn across the cut: each scene once its names have faded in, and each ball while its caption shows. */
 function drawnTexts(aliases: [string, string]): string[] {
-  const assets: OverlayAssets = { t, log, tl, input: input(aliases), plan, avatars: [null, null], qr: null, day: '25 Oct 2026' };
+  const assets: OverlayAssets = {
+    t,
+    log,
+    tl,
+    input: input(aliases),
+    plan,
+    avatars: [null, null],
+    qr: null,
+    day: '25 Oct 2026',
+  };
   const { ctx, texts } = recordingContext();
   plan.scenes.forEach((scene, index) => {
     const local = Math.min(scene.kind === 'ball' ? 1200 : 1700, scene.t1 - scene.t0 - 1);
