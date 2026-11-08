@@ -28,6 +28,7 @@ import { buildDiagnostics, type Diagnostics } from './diagnostics';
 import { PITCH_HALF } from '../core/ground';
 import { perfAtScene, perfToSim, releasePerf, sceneAtPerf, simToPerf, simToScene, type Timebase } from './frame';
 import { buildPracticeScript, practiceReleaseScene } from './script';
+import { applyChaseMoment, type ChaseMoment } from './resultMoments';
 import { createPracticeAudio, soundLeadMs, type PracticeAudio } from './audio';
 import { emotionAt } from './emotion';
 import type {
@@ -225,6 +226,8 @@ interface ReplayRun {
 
 /** Coach Mode's demonstration plays slower than a replay through the bat (it is watched to be copied). */
 const DEMO_SPEED = 0.25;
+/** A live Chase moment starts this long after it is presented (ms of scene time): the frame being drawn is never rewritten. */
+const CHASE_MOMENT_LEAD_MS = 120;
 /** The close-up: a moment in the hand before release, then the ball leaving it at CLOSE_UP_RATE of real time. */
 export const CLOSE_UP_MS = 3200;
 const CLOSE_UP_LEAD_MS = 260;
@@ -668,6 +671,24 @@ export abstract class PracticeSessionBase implements PracticeStage {
     return promise;
   }
 
+  /**
+   * A Target Chase was decided by the live ball and its dead ball is shown (flow `presentChaseMoment`): the striker's and the
+   * bowler's result clips are put into the script on screen, from now (never before the physics event that earns them or before
+   * their own business is over: practice/resultMoments.ts). Presentation only and best effort: it never touches the ball, the
+   * bat, the fielders or the result, and a stage with no live result ignores it. A replay of the ball takes the same moment
+   * through `replay(..., { chaseMoment })` and starts it at the physics events.
+   */
+  presentChaseMoment(moment: ChaseMoment): void {
+    const live = this.live;
+    if (this.mode !== 'live' || !live || !live.result || !live.script?.practice?.result) return;
+    const now = sceneAtPerf(live.tb, this.clock.now());
+    try {
+      applyChaseMoment(live.script, moment, now + CHASE_MOMENT_LEAD_MS, this.reducedMotion);
+    } catch {
+      /* a moment never breaks a delivery: the scene stays as it was */
+    }
+  }
+
   private settlePlay(live: LiveDelivery) {
     if (live.playTimer !== null) this.clock.clearTimer(live.playTimer);
     live.playTimer = null;
@@ -719,7 +740,14 @@ export abstract class PracticeSessionBase implements PracticeStage {
     this.endLive();
     this.endReplay();
     this.applyPending();
-    const script = buildPracticeScript({ setup, flight: result.flight, result, releaseHand: this.releaseHand(setup) });
+    const script = buildPracticeScript({
+      setup,
+      flight: result.flight,
+      result,
+      releaseHand: this.releaseHand(setup),
+      // The deciding ball of a chase (flow `chaseMoment` option): the striker's and the bowler's moments, from the physics events.
+      ...(options.chaseMoment ? { chaseMoment: options.chaseMoment, reducedMotion: this.reducedMotion } : {}),
+    });
     this.onScript(script, 'replay', null);
     const warp = replayWarp(script, options.speed ?? 0.3);
     const shot = replayShot(options.camera ?? 'side');

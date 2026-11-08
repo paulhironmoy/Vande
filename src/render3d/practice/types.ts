@@ -22,6 +22,7 @@ import type { OneGestureState } from '@/input';
 import type { CrowdEmotion } from '@/audio/emotion';
 import type { PresentationSink } from '../types';
 import type { EmotionState, StageMoment } from './emotion';
+import type { ChaseMoment } from './resultMoments';
 
 export type { EmotionState, StageMoment, StageMomentKind, EmotionPhase, EmotionOutcome } from './emotion';
 
@@ -64,6 +65,9 @@ export interface DeliveryContext {
   wicketEndsInnings?: boolean;
   /** The striker's runs before this ball (a milestone is recognised when a ball takes them past 50 or 100). */
   runs?: number;
+  /** In a Target Chase: the runs to win and the legal balls left including this ball (src/audio/situation.ts), for the crowd only. */
+  target?: number | null;
+  ballsLeft?: number | null;
 }
 
 /**
@@ -101,6 +105,12 @@ export interface ReplayOptions {
   /** The delivery's assistance level and tier tolerance: draws the timing window it was judged by (physics activeBands). */
   assist?: AssistLevel;
   tierToleranceMs?: number;
+  /**
+   * A Target Chase was decided by this ball (flow ChaseDecided: 'won' | 'lost_wicket' | 'lost_balls'): the replay draws the striker's
+   * and the bowler's result moments, from the physics events, as the live ball did (practice/resultMoments.ts). Leave it out for
+   * every other replay, and for a practice-only replay of the deciding ball.
+   */
+  chaseMoment?: ChaseMoment | null;
 }
 
 /** What `benchmark` returns: raw measurements only (src/perf classifies them). Matches src/perf's BenchmarkRun. */

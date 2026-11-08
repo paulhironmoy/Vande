@@ -57,6 +57,7 @@ import { createOverlays, type PracticeOverlays } from './overlays';
 import { ballInHand, setRigGhost } from './players';
 import type { BallStyle } from './ball';
 import { StageScene, type ScriptDrawOptions } from './stageScene';
+import { createVenueController, type VenueController, type VenueInspect } from './venue';
 import { practiceProtectedRegions } from './protectedRegions';
 
 const FIRST_PERSON_HIDDEN: ReadonlySet<string> = new Set(['striker']);
@@ -200,6 +201,8 @@ export class ThreePracticeStage extends PracticeSessionBase {
   readonly director = new DirectorRuntime();
   /** The geometry/camera below belong to this actually rendered frame, never a guessed future layout. */
   private drawnPractice: PracticeInfo | null = null;
+  /** The baked venue (venue.ts): loads between deliveries and replaces the stand-in's stands; absent until mount. */
+  private venue: VenueController | null = null;
 
   async mount(canvas: HTMLCanvasElement, options: PracticeMountOptions): Promise<void> {
     this.canvas = canvas;
@@ -268,6 +271,26 @@ export class ThreePracticeStage extends PracticeSessionBase {
     // Preparing unused profiles here blocked cold startup on software GPUs. A later profile is warmed between balls
     // by applyProfile, before its first run-up. The device check measures the entire active-profile warm-up.
     this.shaderCompileMs = stage.prewarmPractice(profile.preset);
+    // The baked venue is part of the web build and of the sideload Android build (VITE_VENUE_BAKED=1), not of the default Android
+    // build: written inline so the bundler drops the controller there as well.
+    if (
+      (import.meta.env.VITE_BUILD_TARGET !== 'android' || import.meta.env.VITE_VENUE_BAKED === '1') &&
+      import.meta.env.VITE_VENUE_OFF !== '1'
+    ) {
+      this.venue = createVenueController(
+        {
+          stadiumGroup: stage.stadium.group,
+          scene: stage.scene,
+          camera: stage.camera,
+          renderer: stage.renderer,
+          isDelivery: () => this.quiet(),
+          reducedMotion: () => this.reducedMotion,
+        },
+        // Test builds mirror the venue's state on the canvas so a harness can wait for it (never in a production build).
+        import.meta.env.VITE_PRACTICE_TEST_HOOKS === '1' ? { onState: (v) => (canvas.dataset.venue = v) } : {},
+      );
+      this.venue.setProfile(options.profile);
+    }
     this.overlays.hideAll();
     for (const g of this.extGhosts) g.visible = false;
     this.fp.update(null, shoulders(false));
@@ -295,8 +318,14 @@ export class ThreePracticeStage extends PracticeSessionBase {
     return super.bowl(flight, context);
   }
 
+  /** The baked venue's state (for tests and the dev harness; null before mount or when the build has none). */
+  inspectVenue(): VenueInspect | null {
+    return this.venue?.inspect() ?? null;
+  }
+
   protected onQuiet(on: boolean): void {
     this.stage?.stadium.setQuiet(on);
+    this.venue?.setDelivery(on);
   }
 
   setFocusAid(on: boolean): void {
@@ -341,6 +370,7 @@ export class ThreePracticeStage extends PracticeSessionBase {
     // no separate "already warm" flag can survive context loss or miss newly created materials. Context restoration
     // takes this same path before announcing readiness.
     if (this.mounted) this.stage.prewarmPractice(p.preset);
+    this.venue?.setProfile(id);
   }
 
   protected rendererName(): string {
@@ -482,6 +512,7 @@ export class ThreePracticeStage extends PracticeSessionBase {
    * a result, what is left goes to the dry run of the result path.
    */
   protected idleWork(frame: StageFrame, budgetMs: number): void {
+    this.venue?.tick();
     const p = frame.script.practice;
     const result = frame.mode === 'live' && Boolean(p?.result);
     let left = budgetMs;
@@ -812,6 +843,8 @@ export class ThreePracticeStage extends PracticeSessionBase {
     this.extGhosts = [];
     this.fp?.dispose();
     this.overlays?.dispose();
+    this.venue?.dispose();
+    this.venue = null;
     this.stage?.dispose();
     this.stage = null;
     this.drawnPractice = null;

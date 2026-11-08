@@ -22,6 +22,7 @@ import {
 } from '../core/ground';
 import { type Vec3, clamp } from '../core/math';
 import { glovesOf } from '../practice/bat';
+import { ClassicVenue } from './venuePaint';
 import type { BatPose } from '../practice/frame';
 import {
   ballDiameterPx,
@@ -69,12 +70,23 @@ export class BatterViewPainter {
   private u: Vec3 = { x: 0, y: 1, z: 0 };
   private focal = 1;
 
-  constructor(readonly ctx: CanvasRenderingContext2D) {}
+  /** The painted bowl behind the bowler (venuePaint.ts); painted once, here, never inside a delivery. */
+  constructor(
+    readonly ctx: CanvasRenderingContext2D,
+    private readonly venue = new ClassicVenue(),
+  ) {
+    this.venue.prepare(ctx);
+  }
 
   resize(w: number, h: number, dpr: number) {
     this.w = w;
     this.h = h;
     this.dpr = dpr;
+  }
+
+  /** Points the pinhole at a pose without painting (the frame's own paint does this first; tests use it to project). */
+  useCamera(cam: CameraPose) {
+    this.setCamera(cam);
   }
 
   private setCamera(cam: CameraPose) {
@@ -240,10 +252,14 @@ export class BatterViewPainter {
     grass.addColorStop(1, '#1f7a43');
     g.fillStyle = grass;
     g.fillRect(0, horizon, this.w, this.h - horizon);
-    // Stands: a dark band just above the horizon with a light speckle.
-    g.fillStyle = '#120f3a';
-    g.fillRect(0, horizon - this.h * 0.09, this.w, this.h * 0.09);
-    this.calls += 3;
+    // Stands, roof, pavilion and boards, painted from the batter's eye (venuePaint.ts); where there is no picture (a host
+    // without a real canvas, the close-up training view) the plain dark band just above the horizon stays.
+    const venueCalls = o.closeUp ? -1 : this.venue.paint(this, cam);
+    if (venueCalls < 0) {
+      g.fillStyle = '#120f3a';
+      g.fillRect(0, horizon - this.h * 0.09, this.w, this.h * 0.09);
+    }
+    this.calls += 3 + Math.max(0, venueCalls);
     // Sight screen behind the bowler: dark, so the white ball reads against it.
     const sz = -(BOUNDARY_R + 6.5);
     this.poly(

@@ -24,6 +24,7 @@ import { flight as physicsFlight } from '@/physics/delivery';
 import { autoField } from '@/physics/field';
 import { buildPracticeScript } from '../practice/script';
 import { createFirstPerson } from '../three/firstPerson';
+import { createVenueController, type VenueController } from '../three/venue';
 import { createBat, placeBatSpan } from '../three/props';
 import type { Stadium } from '../three/stadium';
 import { StageScene } from '../three/stageScene';
@@ -56,6 +57,8 @@ declare global {
       errors: string[];
       views: string[];
       view(name: string, o?: ViewOptions): Promise<void>;
+      /** The baked venue's state (`?venue=baked`), or null. */
+      venue?(): ReturnType<VenueController['inspect']> | null;
       stage?: StageScene;
       bench?(frames: number): number;
     };
@@ -229,6 +232,13 @@ const VIEWS: Record<string, View> = {
   'stadium-scoreboard': { cam: { pos: [0, 6, -30], target: [0, 14, 84], fov: 40 } },
   'stadium-side': { cam: { pos: [-20, 3, 0], target: [70, 12, 0], fov: 55 } },
   crowd: { cam: { pos: [40, 4, 10], target: [72, 6, 22], fov: 40 } },
+  // The venue (ASSETS-VENUE): the hero frame behind the first screens (no players), the batter's eye as it looks down the
+  // pitch before release on a 20:9 phone (pitched down 12.63 degrees), and a low view from the rope towards the stands.
+  'venue-hero': { cam: { pos: [0, 12, 40], target: [0, 12, -80], fov: 40 } },
+  'venue-eye': {
+    cam: { pos: [-BATTER_EYE.lateral, BATTER_EYE.height, BATTER_EYE.z], target: [-0.2, -20.7, -88.6], fov: 38 },
+  },
+  'venue-rope': { cam: { pos: [-8, 1.7, -56], target: [-4, 6, -90], fov: 55 } },
 };
 
 async function main() {
@@ -365,6 +375,28 @@ async function main() {
     await new Promise((r) => requestAnimationFrame(() => r(null)));
   };
   stage.prewarm();
+  // `?venue=baked`: swap the baked venue in (instantly, as under Reduced Motion) before any view is rendered.
+  let venue: VenueController | null = null;
+  if (q.get('venue') === 'baked') {
+    venue = createVenueController(
+      {
+        stadiumGroup: stadium.group,
+        scene: stage.scene,
+        camera: stage.camera,
+        renderer,
+        isDelivery: () => false,
+        reducedMotion: () => true,
+      },
+      { override: null },
+    );
+    venue.setProfile(profileId);
+    const t0 = performance.now();
+    while (!['shown', 'failed', 'off'].includes(venue.inspect().state) && performance.now() - t0 < 30000) {
+      venue.tick();
+      await new Promise((r) => setTimeout(r, 30));
+    }
+    venue.tick();
+  }
   /** Renders the current view `frames` times and returns the mean ms per frame; a 1-pixel read after each frame waits for it. */
   const bench = (frames: number) => {
     const gl = renderer.getContext();
@@ -378,7 +410,15 @@ async function main() {
     }
     return (performance.now() - t0) / frames;
   };
-  window.__a = { ready: true, errors, views: Object.keys(VIEWS), view, stage, bench };
+  window.__a = {
+    ready: true,
+    errors,
+    views: Object.keys(VIEWS),
+    view,
+    stage,
+    bench,
+    venue: () => venue?.inspect() ?? null,
+  };
 }
 
 main().catch((e) => {

@@ -57,6 +57,7 @@ import { ballAt, ballVelocityAt, simToScene, toWorld } from './frame';
 import { buildEmotion, crowdKeys, type EmotionPlan } from './emotion';
 import { chasedBall, fieldingMoves, type FieldingContext } from './fielding';
 import { nonStrikerMoves, nonStrikerStand, runTimes, runningMoves, setOffT } from './nonStriker';
+import { bowlerMoment, strikerMoment, type ChaseMoment } from './resultMoments';
 import { fieldClips, matchedRate } from '../core/fieldClips';
 import { avatarTraits } from '@/ui/avatar/traits';
 import { releaseSurfaceTangent } from './ballLook';
@@ -1466,6 +1467,14 @@ export interface PracticeBuildInput {
    * waits, advancing the stride decision's planted-feet plan a stretch at a time. Never changes the script.
    */
   sliced?: boolean;
+  /**
+   * Chase (ASSETS-MOTION): set ONLY on the deciding ball of a chase (its live result and its replay). After the physics event
+   * that decides it, the striker celebrates or walks off and the bowler celebrates or is disappointed (practice/resultMoments.ts).
+   * Never changes the ball, the bat, the fielders or the result; the same result and moment give the same script.
+   */
+  chaseMoment?: ChaseMoment | null;
+  /** Reduced Motion: the Chase moment's clips are held on their marker frame instead of played (only `chaseMoment` reads it). */
+  reducedMotion?: boolean;
 }
 
 const HALF_PI = Math.PI / 2;
@@ -1681,7 +1690,21 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
       }
     }
   }
-  if (!idle && !input.runUp) addWalkBack(bowlerTrack, run.track.start, duration);
+  // The deciding ball of a chase: his moment replaces the walk back (the chase is over); no moment fits, the walk back as ever.
+  const chaseMoment = result && !idle ? (input.chaseMoment ?? null) : null;
+  const bowlerEnd = chaseMoment
+    ? bowlerMoment({
+        track: bowlerTrack,
+        result: result!,
+        releaseScene,
+        duration,
+        moment: chaseMoment,
+        reducedMotion: Boolean(input.reducedMotion),
+        followEnd: run.followDone,
+      })
+    : null;
+  if (bowlerEnd) bowlerTrack.moves = bowlerEnd.moves;
+  else if (!idle && !input.runUp) addWalkBack(bowlerTrack, run.track.start, duration);
   yield;
 
   // The keeper takes the ball when the physics says so (unless its own path already covers it).
@@ -1972,6 +1995,27 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
           nsTrack.moves = [...truncateMoves(nsTrack, running.start), ...running.nonStriker];
         }
       }
+      // The deciding ball of a chase: the striker's moment, after his stroke or his run is over (practice/resultMoments.ts).
+      const withMoment = (moves: Move[], physicsBody: PhysicsBodyPlan, base: ActorTrack) => {
+        const m = chaseMoment
+          ? strikerMoment({
+              track: { ...base, moves, physicsBody },
+              result,
+              releaseScene,
+              duration,
+              moment: chaseMoment,
+              reducedMotion: Boolean(input.reducedMotion),
+            })
+          : null;
+        return m
+          ? { moves: m.moves, physicsBody: { ...physicsBody, releaseAt: Math.min(physicsBody.releaseAt, m.start) } }
+          : { moves, physicsBody };
+      };
+      if (!waits && chaseMoment) {
+        const w = withMoment(strikerTrack.moves, strikerTrack.physicsBody!, strikerTrack);
+        strikerTrack.moves = w.moves;
+        strikerTrack.physicsBody = w.physicsBody;
+      }
       if (waits) {
         const runs = running;
         const own = { ...strikerTrack };
@@ -2001,7 +2045,7 @@ export function* buildPracticeScriptSteps(input: PracticeBuildInput): Generator<
               moves = [...truncateMoves({ ...own, moves }, runs.start), ...runs.striker];
               physicsBody = { ...physicsBody, releaseAt: Math.min(physicsBody.releaseAt, runs.start) };
             }
-            return { moves, physicsBody };
+            return withMoment(moves, physicsBody, own);
           },
         });
       }

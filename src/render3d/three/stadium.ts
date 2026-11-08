@@ -64,6 +64,7 @@ import {
   RING_R,
 } from '../core/ground';
 import { clamp, seededStream } from '../core/math';
+import { STAND_ROWS, STAND_TIERS } from '../core/venueGeometry';
 import type { QualityPreset } from '../core/quality';
 import { PLAYER_CLOCK, PLAYER_FILL } from './players';
 import { canvasArt, rng } from './props';
@@ -2214,8 +2215,8 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
     [-gapHalf, gapHalf],
     [Math.PI - gapHalf, Math.PI + gapHalf],
   ];
-  const lowerT: Tier = { r0: BOUNDARY_R + 8, r1: BOUNDARY_R + 27, y0: 1.2, y1: 10.5, rows: detail ? 14 : 8 };
-  const upperT: Tier = { r0: BOUNDARY_R + 30, r1: BOUNDARY_R + 47, y0: 13.5, y1: 27, rows: detail ? 13 : 8 };
+  const lowerT: Tier = { ...STAND_TIERS.lower, rows: detail ? STAND_ROWS.lower : 8 };
+  const upperT: Tier = { ...STAND_TIERS.upper, rows: detail ? STAND_ROWS.upper : 8 };
   const su = {
     uTime: { value: 0 },
     uExcite: { value: 0.3 },
@@ -2255,6 +2256,7 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
   const roofMat = track(new MeshBasicMaterial({ color: '#7d8590', side: DoubleSide, fog: true }));
   const roof = new Mesh(track(new CylinderGeometry(BOUNDARY_R + 37, BOUNDARY_R + 48.5, 5.5, 160, 1, true)), roofMat);
   roof.position.y = 30.6;
+  roof.name = 'roof';
   group.add(roof);
 
   // The instanced crowd: front rows of the lower tier first (shuffled within a row, so any count is spread evenly).
@@ -2682,5 +2684,7 @@ export function createStadium(scene: Scene, preset: QualityPreset, signage: Stad
   applyLook();
   stadium.setQuality(preset);
   group.userData.glows = st.glows;
+  // What the baked venue (three/venue.ts) reads: the stands' uniform objects and the stand-in parts its wedges replace.
+  group.userData.venue = { uniforms: su, replaces: [lowerStand, upperStand, wall, roof] as Object3D[] };
   return stadium;
 }

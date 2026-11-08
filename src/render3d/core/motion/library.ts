@@ -21,7 +21,14 @@ export const MOTION_PACKS = [
   'bowler',
   'nonstriker',
   'batter_strokes',
+  'result_moments',
 ] as const;
+/**
+ * Batter clips drawn with the bat in the bottom hand only, the top hand free (the celebration's fist pump, the walk-off's
+ * trailing bat). Every other pack clip with a bat key has both hands on the handle. Unity keeps the same two names
+ * (`BatterOneHandCarry`); MOTION-SPEC section 11.
+ */
+export const ONE_HAND_BAT_CLIPS: ReadonlySet<string> = new Set(['bat_celebrate_win', 'bat_walk_off']);
 /** Packs the field hook (WEB-FIELD) draws from. */
 const FIELD_PACKS = new Set(['locomotion', 'fielder', 'fielder_actions', 'keeper']);
 
@@ -43,6 +50,7 @@ function source(clip: MotionClip): MotionSource {
     loop: clip.loop,
     speedMps: clip.speedMps,
     markers: clip.markers,
+    ...(ONE_HAND_BAT_CLIPS.has(clip.name) ? { oneHand: true } : {}),
     sample: (t: number, out: SampledPose) => {
       sampleMotion(clip, t, out);
     },

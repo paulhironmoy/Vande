@@ -49,6 +49,12 @@ export interface Move {
   /** 'linear': heading → headingTo at a constant rate over the move (default: eased in and out). */
   headingEase?: 'linear';
   /**
+   * Set by `truncateMoves(..., { keepHeading: true })` on a move it cut short: the span (ms) of the WHOLE move, over which `heading` →
+   * `headingTo` turns, so the cut move faces exactly as the whole move did and the frames before the cut are not drawn any
+   * differently (without it the turn would run over the shorter span and end sooner). Absent: the move's own span.
+   */
+  headingSpan?: number;
+  /**
    * Inertialized transition (ms) instead of a cross-fade: the pose difference and its velocity at the switch are
    * decayed by a critically damped curve over this long, so the new clip plays at full weight from the first frame and
    * nothing pops (pack ↔ procedural switches).
@@ -279,6 +285,19 @@ export function clipStateAt(m: Move, t: number): ClipState {
     : { clip: m.clip, time };
 }
 
+/**
+ * The heading at the END of a move that has a `headingTo`, given the heading it started from: `headingTo`, unless `truncateMoves` cut
+ * the move short (`headingSpan`), when it is where its turn had got to by then.
+ */
+function headingAtEnd(m: Move, headingTo: number, before: number): number {
+  if (m.headingSpan === undefined) return headingTo;
+  const u = clamp((m.t1 - m.t0) / Math.max(1, m.headingSpan), 0, 1);
+  const turn = (x: number) => (m.headingEase === 'linear' ? x : easeInOut(x));
+  return m.heading !== undefined
+    ? lerpAngle(m.heading, headingTo, turn(u))
+    : lerpAngle(before, headingTo, turn(clamp(u * 2.5, 0, 1)));
+}
+
 /** Position and heading at the end of move `i` (resolving inherited values). */
 function resolveUpTo(track: ActorTrack, i: number): { pos: Vec3; heading: number } {
   let pos = track.start;
@@ -287,7 +306,7 @@ function resolveUpTo(track: ActorTrack, i: number): { pos: Vec3; heading: number
     const m = track.moves[k];
     const from = m.from ?? pos;
     const to = m.to ?? from;
-    if (m.headingTo !== undefined) heading = m.headingTo;
+    if (m.headingTo !== undefined) heading = headingAtEnd(m, m.headingTo, heading);
     else if (m.heading !== undefined) heading = m.heading;
     else if (Math.hypot(to.x - from.x, to.z - from.z) > 0.05) heading = headingOf(to.x - from.x, to.z - from.z);
     pos = to;
@@ -324,8 +343,10 @@ export function evaluateActor(track: ActorTrack, t: number): ActorState {
   const moving = Math.hypot(to.x - from.x, to.z - from.z) > 0.05;
   let heading: number;
   const turn = (x: number) => (m.headingEase === 'linear' ? x : easeInOut(x));
-  if (m.heading !== undefined && m.headingTo !== undefined) heading = lerpAngle(m.heading, m.headingTo, turn(u));
-  else if (m.headingTo !== undefined) heading = lerpAngle(before.heading, m.headingTo, turn(clamp(u * 2.5, 0, 1)));
+  // A move cut short keeps the turn of the whole move (`headingSpan`).
+  const uh = m.headingSpan === undefined ? u : clamp((t - m.t0) / Math.max(1, m.headingSpan), 0, 1);
+  if (m.heading !== undefined && m.headingTo !== undefined) heading = lerpAngle(m.heading, m.headingTo, turn(uh));
+  else if (m.headingTo !== undefined) heading = lerpAngle(before.heading, m.headingTo, turn(clamp(uh * 2.5, 0, 1)));
   else if (m.heading !== undefined) heading = m.heading;
   else if (moving) {
     const target = headingOf(to.x - from.x, to.z - from.z);
@@ -387,8 +408,11 @@ export function evaluateActor(track: ActorTrack, t: number): ActorState {
  * The moves of a track cut at `cut` (scene ms) without changing anything drawn before it: a move still running at
  * `cut` ends there at the position, and (for a `speed` move) the speed, it had reached, so the move that follows can
  * take over from exactly that state.
+ *
+ * `keepHeading`: a cut move that turns its heading over its own span (`headingTo`) keeps the span of the whole move
+ * (`Move.headingSpan`) and so faces as it did, instead of finishing its turn sooner. Off by default (the scripts built so far).
  */
-export function truncateMoves(track: ActorTrack, cut: number): Move[] {
+export function truncateMoves(track: ActorTrack, cut: number, opts: { keepHeading?: boolean } = {}): Move[] {
   const out: Move[] = [];
   for (let i = 0; i < track.moves.length; i++) {
     const m = track.moves[i];
@@ -403,13 +427,14 @@ export function truncateMoves(track: ActorTrack, cut: number): Move[] {
     const to = m.to ?? from;
     const at = evaluateActor(track, cut).pos;
     const moved = Math.hypot(to.x - from.x, to.z - from.z) > 1e-6;
+    const keep = opts.keepHeading && m.headingTo !== undefined ? { headingSpan: m.headingSpan ?? span } : {};
     if (!moved) {
-      out.push({ ...m, t1: cut });
+      out.push({ ...m, t1: cut, ...keep });
       continue;
     }
     const len = Math.hypot(to.x - from.x, to.y - from.y, to.z - from.z);
     const u = clamp((cut - m.t0) / span, 0, 1);
-    const cutMove: Move = { ...m, t1: cut, from, to: at };
+    const cutMove: Move = { ...m, t1: cut, from, to: at, ...keep };
     if (m.speed) cutMove.speed = [m.speed[0], hermiteSpeed(u, m.speed[0], m.speed[1], len, span)];
     else if (m.ease && m.ease !== 'linear') {
       // Re-express the eased stretch as a Hermite with the same end speeds (eases are not closed under cutting).

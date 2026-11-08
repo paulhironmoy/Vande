@@ -41,7 +41,7 @@ export const WEB_DIR = join(REPO_ROOT, 'public', 'practice', 'motion');
 export const UNITY_DIR = join(REPO_ROOT, 'unity', 'VandePractice', 'Assets', 'VandePractice', 'Runtime', 'Presentation', 'Resources', 'Motion');
 
 /** Per-pack raw byte budgets (MOTION-SPEC §10). */
-export const BUDGETS = Object.freeze({ locomotion: 40 * 1024, fielder: 72 * 1024, keeper: 40 * 1024, bowler: 72 * 1024, nonstriker: 48 * 1024, batter: 48 * 1024, batter_strokes: 48 * 1024, fielder_actions: 48 * 1024 });
+export const BUDGETS = Object.freeze({ locomotion: 40 * 1024, fielder: 72 * 1024, keeper: 40 * 1024, bowler: 72 * 1024, nonstriker: 48 * 1024, batter: 48 * 1024, batter_strokes: 48 * 1024, fielder_actions: 48 * 1024, result_moments: 72 * 1024 });
 export const RATES = Object.freeze([15, 20, 30, 60]);
 /** Packs temporarily exempt from the naturalness gates while their owner fixes them (lead ruling, 2026-11-04). */
 export const PENDING_FIX = Object.freeze([]);

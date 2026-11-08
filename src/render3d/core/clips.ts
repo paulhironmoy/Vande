@@ -2653,6 +2653,8 @@ export interface MotionSource {
   contacts?(t: number): number;
   /** The clip's ground track at t (m, deg; MOTION-SPEC §5.3), loops accumulating their travel. */
   ground?(t: number): { x: number; z: number; yawDeg: number };
+  /** The bat is held in the bottom hand only: the top hand is free (a celebration, a walk-off; core/motion/library ONE_HAND_BAT_CLIPS). */
+  oneHand?: boolean;
 }
 
 /** Clips composed at run time from pack clips (a fitted run-up), by id; they live as long as the packs they use. */
@@ -2886,7 +2888,7 @@ export function sampleClip(id: ClipId, t: number, out: SampledPose): SampledPose
   const m = motionSource(id);
   if (m) {
     m.sample(t, out);
-    out.topHand = out.bat ? 1 : 0;
+    out.topHand = out.bat && !m.oneHand ? 1 : 0;
     return out;
   }
   const c = getClip(id);
