@@ -57,6 +57,7 @@ A path may also be written relative to the folder of the document that cites it.
 | [VANDE-EXPERIENCE-CONSTITUTION.md](VANDE-EXPERIENCE-CONSTITUTION.md) | The ten experience laws, proportional feedback and the prohibited patterns. | Active |
 | [prompts/VANDE-INTERFACE-ASSET-CONSTITUTION.md](prompts/VANDE-INTERFACE-ASSET-CONSTITUTION.md) | Binding rules for every Practice screen, component, animation and visual asset. | Active |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Module map, the Practice data flow, the work thread, the Unity transition and exclusive file ownership. | Active |
+| [HISTORY.md](HISTORY.md) | How `cricket-clean` was rebuilt from one checkpoint commit, and why each commit above 5,000 changed lines is large (imports, one mechanical Prettier commit, generated data). | Active |
 | [REPO_HYGIENE.md](REPO_HYGIENE.md) | What may sit in the repository: the large and pretty-printed data files, the ceiling for unused exports, the files production never reaches, and the lint, formatting and pin policies. | Active |
 | [ANDROID_SIZE_AND_REACH.md](ANDROID_SIZE_AND_REACH.md) | The measurement contract for the Android size goal (50,000,000 B fresh-installed through the first playable ball) and the India reach goal (90.0%). | Active |
 | [decisions/UNITY-PRACTICE-INTEGRATION.md](decisions/UNITY-PRACTICE-INTEGRATION.md) | Architecture decision record: Unity as the Practice presentation behind gates, with TypeScript as the authority. | Active |
