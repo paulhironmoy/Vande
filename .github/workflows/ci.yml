@@ -51,6 +51,10 @@ jobs:
       # ESLint (eslint.config.js); --max-warnings 0, so a warning fails the step as well.
       - run: npm run lint
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      # Prettier (.prettierrc.json, .prettierignore) over src/ and tests/. The commit that applied it is listed in
+      # .git-blame-ignore-revs.
+      - run: npm run format:check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
       # The motion packs (assets-src/motion -> public/practice/motion/*.vmp and the Unity *.bytes twins) equal what their
       # sources build, and the frozen Practice golden fixtures equal what the production engine produces.
       - run: npm run motion:check
