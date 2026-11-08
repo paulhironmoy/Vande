@@ -1,0 +1,27 @@
+{
+ "format": "VANDE-NOISEMODEL1",
+ "measuredFrom": "10 rendered clips, @mediapipe/tasks-vision 0.10.35, CPU, model width 384",
+ "note": "Synthetic renders only. Jitter is the frame-to-frame error noise on the ready stance in shoulder widths (u); real cameras and people will differ.",
+ "stanceJitterU": {
+  "shoulderL": 0.0007,
+  "shoulderR": 0.0005,
+  "elbowL": 0.001,
+  "elbowR": 0.001,
+  "wristL": 0.0025,
+  "wristR": 0.0042
+ },
+ "validRate": 1,
+ "longestGapFrames": 0,
+ "lagMs": {
+  "rh_drive": 10,
+  "rh_pull": 3.3,
+  "rh_loft": 6.7,
+  "rh_leave": 16.7,
+  "rh_defence": 33.3,
+  "lh_drive": 10,
+  "lh_pull": 0,
+  "lh_loft": 6.7,
+  "lh_leave": 10,
+  "lh_defence": 13.3
+ }
+}

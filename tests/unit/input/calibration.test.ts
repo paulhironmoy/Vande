@@ -58,8 +58,8 @@ describe('per modality', () => {
     expect(calibrationFor(set, 'keyboard')).toBe(0);
     expect(calibrationFor({ ...set, pen: { offsetMs: 40, attempts: 3 } }, 'pen')).toBe(40);
     expect(calibrationFor(null, 'touch')).toBe(0);
-    expect(resolveCalibrations(set)).toEqual({ touch: 65, mouse: 0, pen: 65, keyboard: 0 });
-    expect(MODALITIES).toEqual(['touch', 'mouse', 'pen', 'keyboard']);
+    expect(resolveCalibrations(set)).toEqual({ touch: 65, mouse: 0, pen: 65, keyboard: 0, camera: 0 });
+    expect(MODALITIES).toEqual(['touch', 'mouse', 'pen', 'keyboard', 'camera']);
   });
 
   it('normalizeGesture applies the swing’s own modality: a touch calibration never moves a mouse or key swing', () => {

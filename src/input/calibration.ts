@@ -7,7 +7,9 @@
  * modality (CTL9): touch, mouse, pen and keyboard each have their own offset, measured with that input, and a swing
  * is corrected only by the offset of the input that made it (normalizeGesture's `calibrations`). A modality never
  * borrows another's offset, except a pen, which shares the touch screen's digitizer and uses the touch offset until it
- * has its own. The caller stores the set locally (src/practice/store/calibration.ts); nothing here is persisted.
+ * has its own. The camera is its own modality: its swings are stamped with the camera frame's capture time, and what remains
+ * (the sensor's own delay, the player's habit) is measured with the camera and never guessed (0 until measured).
+ * A camera attempt's error is the swing's implied contact time minus the line crossing: calibrationError(contactPerfMs, crossPerfMs). The caller stores the set locally (src/practice/store/calibration.ts); nothing here is persisted.
  */
 import type { Calibration, CalibrationSet, InputModality } from '@/contracts/practice';
 import { CALIBRATION } from './constants';
@@ -15,7 +17,7 @@ import { CALIBRATION } from './constants';
 export type { CalibrationSet };
 
 /** Every modality that can be calibrated, in a fixed order. */
-export const MODALITIES: readonly InputModality[] = ['touch', 'mouse', 'pen', 'keyboard'];
+export const MODALITIES: readonly InputModality[] = ['touch', 'mouse', 'pen', 'keyboard', 'camera'];
 
 /** The error of one attempt: tap timestamp minus the line-crossing time (both performance.now() ms). */
 export function calibrationError(tapPerfMs: number, crossPerfMs: number): number {
@@ -72,6 +74,7 @@ export function resolveCalibrations(set: CalibrationSet | null | undefined): Rec
     mouse: calibrationFor(set, 'mouse'),
     pen: calibrationFor(set, 'pen'),
     keyboard: calibrationFor(set, 'keyboard'),
+    camera: calibrationFor(set, 'camera'),
   };
 }
 

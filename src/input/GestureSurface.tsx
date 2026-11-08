@@ -153,16 +153,23 @@ export function GestureSurface(props: GestureSurfaceProps) {
       const r = tracker.key(e.code, eventTime(e), e.repeat, { shift: e.shiftKey });
       if (r !== 'ignored') e.preventDefault();
     };
+    // A right click (or a long press, or Ctrl-click on a Mac) must not open the browser's menu over a delivery: the menu
+    // would take the pointer from the stroke. Between balls the surface leaves the browser's own behaviour alone.
+    const menu = (e: Event) => {
+      if (latest.current.enabled) e.preventDefault();
+    };
     el.addEventListener('pointerdown', down);
     el.addEventListener('pointermove', move);
     el.addEventListener('pointerup', up);
     el.addEventListener('pointercancel', cancel);
+    el.addEventListener('contextmenu', menu);
     window.addEventListener('keydown', key, true);
     return () => {
       el.removeEventListener('pointerdown', down);
       el.removeEventListener('pointermove', move);
       el.removeEventListener('pointerup', up);
       el.removeEventListener('pointercancel', cancel);
+      el.removeEventListener('contextmenu', menu);
       window.removeEventListener('keydown', key, true);
       ro?.disconnect();
       measureRef.current = () => undefined;

@@ -1,0 +1,727 @@
+{
+ "format": "VANDE-CAMFIX-MANIFEST1",
+ "readme": "Synthetic camera videos rendered by VANDE from its own owner-made character (MPFB body on the VC17-driven rig), for the camera end-to-end tests. They exercise the camera pipeline; they are not player results and do not prove accuracy for real people. The video files are generated into an ignored folder and are not in git: node scripts/camera-fixtures/generate.mjs all.",
+ "generated": {
+  "utc": "2026-11-08T11:20:51.781Z",
+  "buildId": "b12356b+a5d7ea2b9244",
+  "blender": "5.2.3 LTS",
+  "engine": "BLENDER_EEVEE",
+  "samples": 24,
+  "ffmpeg": "ffmpeg version 9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
+  "python": "Python 3.11.15",
+  "mpfb": "2.0.18",
+  "randomNumbers": "none: poses and renders are deterministic for these tool versions"
+ },
+ "scripts": {
+  "scripts/blender/camera/swing_clips.py": "ddef5e970fda34bd4c90ff6328fe6f5999954e550162c5bb306c6d45328a420e",
+  "scripts/blender/camera/build_actor.py": "a482aba779f3439ef1f1a61e5c772ddfb1d5ef9f9bd17abbae1ffe6b21c8f616",
+  "scripts/blender/camera/render_clips.py": "11dab9ae7b09e05ae4bbd853d7e013ed06d5952894366735636c06733d150fba",
+  "scripts/blender/camera/fixture_scene.py": "70a427ccdc7c66c41997ffc0c3f1e33d94159691d8127d0fce5e3cd3cbf201c4",
+  "scripts/blender/motion/vc17.py": "2edb2d1fbc19aa2a49426b1a2999649a07076e1e4edbd9a9b6f11fc8f71182fb"
+ },
+ "camera": {
+  "width": 640,
+  "height": 480,
+  "fps": 30,
+  "hfovDeg": 62,
+  "heightM": 1.1,
+  "container": "MJPEG (concatenated JPEG pictures), 4:2:0, ffmpeg -q:v 3",
+  "loops": "the file repeats; every stroke clip is built to loop without a jump"
+ },
+ "clips": [
+  {
+   "id": "rh_drive",
+   "file": "videos/rh_drive.mjpeg",
+   "set": "core",
+   "handed": "right",
+   "stroke": "drive",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2680699,
+   "sha256": "55d1a954d9bc7e75ff77364ac779c6d65215ab00fbe75bbafe794c364fb9ef0c",
+   "meanLuma": 189.3,
+   "view": "mid",
+   "markers": {
+    "backliftEnd": 1.85,
+    "contact": 2.35,
+    "followEnd": 2.75,
+    "holdEnd": 2.15,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.2056,
+    "lateralU": 0.2463,
+    "meanDescentUPerS": 3.2733,
+    "peakAtS": 2.1333,
+    "peakRiseU": 0.9014,
+    "strikeDropU": 0.6547,
+    "strikeSeconds": 0.2
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "swing": "attack",
+    "direction": "off",
+    "power": "mid"
+   }
+  },
+  {
+   "id": "rh_pull",
+   "file": "videos/rh_pull.mjpeg",
+   "set": "core",
+   "handed": "right",
+   "stroke": "pull",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2628166,
+   "sha256": "5ab69a1574bbe9b2b2ac9e112e3e57a8cf251a77b6c4d76e80bab4e1b298798d",
+   "meanLuma": 189.5,
+   "view": "mid",
+   "markers": {
+    "backliftEnd": 1.85,
+    "contact": 2.27,
+    "followEnd": 2.62,
+    "holdEnd": 2.1,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.6324,
+    "lateralU": -0.9868,
+    "meanDescentUPerS": 4.9991,
+    "peakAtS": 2.1,
+    "peakRiseU": 1.0002,
+    "strikeDropU": 0.8332,
+    "strikeSeconds": 0.1667
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "swing": "attack",
+    "direction": "leg",
+    "power": "high"
+   }
+  },
+  {
+   "id": "rh_loft",
+   "file": "videos/rh_loft.mjpeg",
+   "set": "core",
+   "handed": "right",
+   "stroke": "loft",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2664852,
+   "sha256": "a28943fa1772d02d8f55c7b1651fa0b5d555cac9e9a1b422dfd4e9f1c3d6ae07",
+   "meanLuma": 188.9,
+   "view": "mid",
+   "markers": {
+    "backliftEnd": 1.9,
+    "contact": 2.3,
+    "followEnd": 2.6999999999999997,
+    "holdEnd": 2.15,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.5543,
+    "lateralU": -0.026,
+    "meanDescentUPerS": 7.5772,
+    "peakAtS": 2.1333,
+    "peakRiseU": 1.4481,
+    "strikeDropU": 1.2629,
+    "strikeSeconds": 0.1667
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "swing": "attack",
+    "direction": "straight",
+    "power": "highest",
+    "loft": true
+   }
+  },
+  {
+   "id": "rh_leave",
+   "file": "videos/rh_leave.mjpeg",
+   "set": "core",
+   "handed": "right",
+   "stroke": "leave",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2627843,
+   "sha256": "83c15d584875266c1ef7c30835672c7e7a831a932a1359ed25eeba406a08fc2d",
+   "meanLuma": 189.4,
+   "view": "mid",
+   "markers": {
+    "backliftEnd": 1.5,
+    "holdEnd": 2.3,
+    "returnEnd": 3.9,
+    "stanceEnd": 1
+   },
+   "metrics": {
+    "lateralU": 0,
+    "meanDescentUPerS": 0.3238,
+    "peakAtS": 1.5,
+    "peakRiseU": 0.853,
+    "strikeDropU": 0
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "swing": "leave"
+   }
+  },
+  {
+   "id": "rh_defence",
+   "file": "videos/rh_defence.mjpeg",
+   "set": "core",
+   "handed": "right",
+   "stroke": "defence",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2633314,
+   "sha256": "32c27314fa271b9b3e2f024284525fd994a5b17630cb295188107b3dd94299be",
+   "meanLuma": 189.3,
+   "view": "mid",
+   "markers": {
+    "backliftEnd": 1.7000000000000002,
+    "contact": 2.2,
+    "followEnd": 2.45,
+    "holdEnd": 1.9000000000000001,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.4294,
+    "lateralU": -0.0239,
+    "meanDescentUPerS": 0.6575,
+    "peakAtS": 1.7,
+    "peakRiseU": 0.2561,
+    "strikeDropU": 0.1973,
+    "strikeSeconds": 0.3
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "swing": "defend"
+   }
+  },
+  {
+   "id": "lh_drive",
+   "file": "videos/lh_drive.mjpeg",
+   "set": "core",
+   "handed": "left",
+   "stroke": "drive",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2642585,
+   "sha256": "fdb444c475c06812090ae2a06664198db7302c4eccc273fbe6b012eda181d429",
+   "meanLuma": 189.6,
+   "view": "mid",
+   "markers": {
+    "backliftEnd": 1.85,
+    "contact": 2.35,
+    "followEnd": 2.75,
+    "holdEnd": 2.15,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.2056,
+    "lateralU": 0.2463,
+    "meanDescentUPerS": 3.2733,
+    "peakAtS": 2.1333,
+    "peakRiseU": 0.9014,
+    "strikeDropU": 0.6547,
+    "strikeSeconds": 0.2
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "swing": "attack",
+    "direction": "off",
+    "power": "mid"
+   }
+  },
+  {
+   "id": "lh_pull",
+   "file": "videos/lh_pull.mjpeg",
+   "set": "core",
+   "handed": "left",
+   "stroke": "pull",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2671551,
+   "sha256": "8a7cdc333df13a1847092f1d849d388ff8e50a7aa5b8c93579c7ae8c27eb3d9f",
+   "meanLuma": 189.3,
+   "view": "mid",
+   "markers": {
+    "backliftEnd": 1.85,
+    "contact": 2.27,
+    "followEnd": 2.62,
+    "holdEnd": 2.1,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.6324,
+    "lateralU": -0.9868,
+    "meanDescentUPerS": 4.9991,
+    "peakAtS": 2.1,
+    "peakRiseU": 1.0002,
+    "strikeDropU": 0.8332,
+    "strikeSeconds": 0.1667
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "swing": "attack",
+    "direction": "leg",
+    "power": "high"
+   }
+  },
+  {
+   "id": "lh_loft",
+   "file": "videos/lh_loft.mjpeg",
+   "set": "core",
+   "handed": "left",
+   "stroke": "loft",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2660268,
+   "sha256": "d24bc0fc18888b2fc51017d72300f42d6f48354406a709cce7ca0d96c2b6583c",
+   "meanLuma": 189.3,
+   "view": "mid",
+   "markers": {
+    "backliftEnd": 1.9,
+    "contact": 2.3,
+    "followEnd": 2.6999999999999997,
+    "holdEnd": 2.15,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.5543,
+    "lateralU": -0.026,
+    "meanDescentUPerS": 7.5772,
+    "peakAtS": 2.1333,
+    "peakRiseU": 1.4481,
+    "strikeDropU": 1.2629,
+    "strikeSeconds": 0.1667
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "swing": "attack",
+    "direction": "straight",
+    "power": "highest",
+    "loft": true
+   }
+  },
+  {
+   "id": "lh_leave",
+   "file": "videos/lh_leave.mjpeg",
+   "set": "core",
+   "handed": "left",
+   "stroke": "leave",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2641796,
+   "sha256": "56165207df08e44b27a524f6b69742ec2eca641262f3ba801d5e25ea605f8c50",
+   "meanLuma": 189.6,
+   "view": "mid",
+   "markers": {
+    "backliftEnd": 1.5,
+    "holdEnd": 2.3,
+    "returnEnd": 3.9,
+    "stanceEnd": 1
+   },
+   "metrics": {
+    "lateralU": 0,
+    "meanDescentUPerS": 0.3238,
+    "peakAtS": 1.5,
+    "peakRiseU": 0.853,
+    "strikeDropU": 0
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "swing": "leave"
+   }
+  },
+  {
+   "id": "lh_defence",
+   "file": "videos/lh_defence.mjpeg",
+   "set": "core",
+   "handed": "left",
+   "stroke": "defence",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2613385,
+   "sha256": "1516d47ead6402ca770a225dc75fda986bd85bf4898bfc7aee5af91251147d1b",
+   "meanLuma": 189.6,
+   "view": "mid",
+   "markers": {
+    "backliftEnd": 1.7000000000000002,
+    "contact": 2.2,
+    "followEnd": 2.45,
+    "holdEnd": 1.9000000000000001,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.4294,
+    "lateralU": -0.0239,
+    "meanDescentUPerS": 0.6575,
+    "peakAtS": 1.7,
+    "peakRiseU": 0.2561,
+    "strikeDropU": 0.1973,
+    "strikeSeconds": 0.3
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "swing": "defend"
+   }
+  },
+  {
+   "id": "rh_defence_035",
+   "file": "videos/rh_defence_035.mjpeg",
+   "set": "extra",
+   "handed": "right",
+   "stroke": "defence",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2632285,
+   "sha256": "0f8c4939edb2936f2de0fd5fa8cc46ed3f229dd50cb5bf8152b0292f88942418",
+   "meanLuma": 189.3,
+   "view": "mid",
+   "markers": {
+    "backliftEnd": 1.7000000000000002,
+    "contact": 2.3000000000000003,
+    "followEnd": 2.5500000000000003,
+    "holdEnd": 1.9000000000000001,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.4298,
+    "lateralU": -0.0241,
+    "meanDescentUPerS": 0.7146,
+    "peakAtS": 1.7,
+    "peakRiseU": 0.3461,
+    "strikeDropU": 0.2859,
+    "strikeSeconds": 0.4
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "swing": "defend",
+    "note": "the first defence render: 0.35 u backlift, 0.40 s push"
+   }
+  },
+  {
+   "id": "lh_defence_035",
+   "file": "videos/lh_defence_035.mjpeg",
+   "set": "extra",
+   "handed": "left",
+   "stroke": "defence",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2612693,
+   "sha256": "1bc18fd74b19a143394328db5bce6b3ff0be0f4414070cda24b805deffe9e855",
+   "meanLuma": 189.6,
+   "view": "mid",
+   "markers": {
+    "backliftEnd": 1.7000000000000002,
+    "contact": 2.3000000000000003,
+    "followEnd": 2.5500000000000003,
+    "holdEnd": 1.9000000000000001,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.4298,
+    "lateralU": -0.0241,
+    "meanDescentUPerS": 0.7146,
+    "peakAtS": 1.7,
+    "peakRiseU": 0.3461,
+    "strikeDropU": 0.2859,
+    "strikeSeconds": 0.4
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "swing": "defend",
+    "note": "the first defence render: 0.35 u backlift, 0.40 s push"
+   }
+  },
+  {
+   "id": "rh_drive_near",
+   "file": "videos/rh_drive_near.mjpeg",
+   "set": "core",
+   "handed": "right",
+   "stroke": "drive",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2870659,
+   "sha256": "8dc99bbb0508e3ab9faf989582edcf04fb719b633a3e8c05519b42c603794a56",
+   "meanLuma": 193.7,
+   "view": "near",
+   "markers": {
+    "backliftEnd": 1.85,
+    "contact": 2.35,
+    "followEnd": 2.75,
+    "holdEnd": 2.15,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.2056,
+    "lateralU": 0.2463,
+    "meanDescentUPerS": 3.2733,
+    "peakAtS": 2.1333,
+    "peakRiseU": 0.9014,
+    "strikeDropU": 0.6547,
+    "strikeSeconds": 0.2
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "sameSwingAs": "rh_drive"
+   }
+  },
+  {
+   "id": "rh_drive_far",
+   "file": "videos/rh_drive_far.mjpeg",
+   "set": "core",
+   "handed": "right",
+   "stroke": "drive",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 1930083,
+   "sha256": "447294fa8f9652c673f51fb1b0871f790b473a1ad85115233b1401952713c387",
+   "meanLuma": 176.6,
+   "view": "far",
+   "markers": {
+    "backliftEnd": 1.85,
+    "contact": 2.35,
+    "followEnd": 2.75,
+    "holdEnd": 2.15,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.2056,
+    "lateralU": 0.2463,
+    "meanDescentUPerS": 3.2733,
+    "peakAtS": 2.1333,
+    "peakRiseU": 0.9014,
+    "strikeDropU": 0.6547,
+    "strikeSeconds": 0.2
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "sameSwingAs": "rh_drive"
+   }
+  },
+  {
+   "id": "still",
+   "file": "videos/still.mjpeg",
+   "set": "core",
+   "handed": "right",
+   "stroke": null,
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 180,
+   "seconds": 6,
+   "bytes": 3946350,
+   "sha256": "938c26fe9818e976382c6518972ed32807c6b67c652dabc5759854149528d1f6",
+   "meanLuma": 189.5,
+   "view": "mid",
+   "markers": {},
+   "metrics": {
+    "lateralU": 0,
+    "meanDescentUPerS": 0,
+    "peakRiseU": 0.0084,
+    "strikeDropU": 0
+   },
+   "authoredFrames": 180,
+   "expect": {
+    "swing": "none",
+    "inFrame": true,
+    "ready": true
+   }
+  },
+  {
+   "id": "empty_room",
+   "file": "videos/empty_room.mjpeg",
+   "set": "core",
+   "handed": null,
+   "stroke": null,
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 90,
+   "seconds": 3,
+   "bytes": 335634,
+   "sha256": "aad015651ef93e2fc03f50fdbe00ad3255dff4b8e5b068ab746060ddef038573",
+   "meanLuma": 200.2,
+   "expect": {
+    "inFrame": false
+   }
+  },
+  {
+   "id": "black",
+   "file": "videos/black.mjpeg",
+   "set": "core",
+   "handed": null,
+   "stroke": null,
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 90,
+   "seconds": 3,
+   "bytes": 180270,
+   "sha256": "65759c8f5f38415340b1cb92a736393c8ed92a121fd2e289d6bbb696bba37f56",
+   "meanLuma": 0,
+   "expect": {
+    "inFrame": false,
+    "problem": "black"
+   }
+  },
+  {
+   "id": "rh_drive_portrait",
+   "file": "videos/rh_drive_portrait.mjpeg",
+   "set": "extra",
+   "handed": "right",
+   "stroke": "drive",
+   "width": 480,
+   "height": 640,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2616799,
+   "sha256": "b32d042d42e66a8664f6d67a0465a2b0242b777f1ebeaab9e4bbb85ff5017561",
+   "meanLuma": 176.9,
+   "view": "portrait",
+   "markers": {
+    "backliftEnd": 1.85,
+    "contact": 2.35,
+    "followEnd": 2.75,
+    "holdEnd": 2.15,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.2056,
+    "lateralU": 0.2463,
+    "meanDescentUPerS": 3.2733,
+    "peakAtS": 2.1333,
+    "peakRiseU": 0.9014,
+    "strikeDropU": 0.6547,
+    "strikeSeconds": 0.2
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "sameSwingAs": "rh_drive"
+   }
+  },
+  {
+   "id": "rh_exit_mid",
+   "file": "videos/rh_exit_mid.mjpeg",
+   "set": "extra",
+   "handed": "right",
+   "stroke": "drive",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 180,
+   "seconds": 6,
+   "bytes": 1765288,
+   "sha256": "803d7a84e79b4fefbe96bef5795862d66d1b2fa16edb541f4e71257691aa272a",
+   "meanLuma": 196.6,
+   "markers": {
+    "cutS": 2
+   },
+   "expect": {
+    "inFrame": false,
+    "problem": "lost_tracking",
+    "note": "the person is in the picture for 2.0 s (the backlift), then gone: a hard cut to the empty room"
+   }
+  },
+  {
+   "id": "rh_drive_noisy",
+   "file": "videos/rh_drive_noisy.mjpeg",
+   "set": "extra",
+   "handed": "right",
+   "stroke": "drive",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 4077551,
+   "sha256": "fb7e68c7a6dc3d54eaf363e07ea438117cd67e9f178ff482a5cb2530719dfb12",
+   "meanLuma": 189.3,
+   "expect": {
+    "sameSwingAs": "rh_drive",
+    "note": "sensor noise and a little blur: a stress case, not the base set"
+   }
+  },
+  {
+   "id": "rh_drive_dim",
+   "file": "videos/rh_drive_dim.mjpeg",
+   "set": "extra",
+   "handed": "right",
+   "stroke": "drive",
+   "width": 640,
+   "height": 480,
+   "fps": 30,
+   "frames": 120,
+   "seconds": 4,
+   "bytes": 2430009,
+   "sha256": "0f2038b081d434c282c5e3aeb6bab959155f0d18c8c15cca875e3b103f9d2162",
+   "meanLuma": 24,
+   "view": "mid",
+   "markers": {
+    "backliftEnd": 1.85,
+    "contact": 2.35,
+    "followEnd": 2.75,
+    "holdEnd": 2.15,
+    "stanceEnd": 1.3
+   },
+   "metrics": {
+    "forwardU": 0.2056,
+    "lateralU": 0.2463,
+    "meanDescentUPerS": 3.2733,
+    "peakAtS": 2.1333,
+    "peakRiseU": 0.9014,
+    "strikeDropU": 0.6547,
+    "strikeSeconds": 0.2
+   },
+   "authoredFrames": 120,
+   "expect": {
+    "problem": "poor_light"
+   }
+  }
+ ]
+}
