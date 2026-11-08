@@ -1,0 +1,54 @@
+{
+  "_": "Units follow each key's suffix: Ms ms, S s, Deg deg, DegS deg/s, Hz Hz, Mm mm, Cycles wave cycles, P probability, X multiplier. [lo, hi] is drawn per person (constant for the over) or per ball. Angles: yaw + left, pitch + down, roll + right. Engineering values, not human-validated.",
+  "blink": {
+    "meanS": [4.2, 5.7], "cv": [0.5, 0.7], "attendX": {"bowler": 1.25, "striker": 1.45}, "afterX": 0.85,
+    "firstMeanMs": 1800, "minGapMs": 900, "closeMs": [78, 118], "holdMs": [10, 40], "openRatio": [2.0, 2.8],
+    "partialP": 0.18, "partialDepth": [0.6, 0.9], "doubleP": 0.08, "doubleGapMs": [60, 220], "skewMs": 12,
+    "reliefMs": [120, 600], "shiftP": 0.4, "shiftMinDeg": 15, "shiftGapMs": 450,
+    "windowMs": {"bowler": [120, 150], "striker": [150, 150]}, "idleEndMs": 1100, "seamMarginMs": 300
+  },
+  "gaze": {
+    "saccBaseMs": 22, "saccMsPerDeg": 2.7, "saccShape": 0.82, "saccMinDeg": 0.8, "saccMaxDegS": 700,
+    "pursuitMaxDegS": 110, "catchUpDeg": 5, "refractoryMs": 120, "lagMs": [125, 165], "leadX": 1,
+    "microHz": 1.1, "microMeanDeg": 0.3, "microCv": 0.4, "microHorizP": 0.65, "microRiseMs": 16, "microRelaxMs": 700,
+    "driftDeg": [0.04, 0.11], "driftHz": [0.7, 2.3],
+    "eyeYawDeg": 35, "eyePitchDeg": 28, "eyeRmDeg": 10, "vergenceDeg": 0.3, "groundPitchDeg": [26, 31]
+  },
+  "fix": {
+    "bowlerDwellMs": [350, 800], "bowlerGroundP": 0.3, "strikerDwellMs": [1000, 2200], "strikerHandP": 0.35,
+    "idleDwellMs": {"bowler": [1000, 3000], "striker": [1200, 3500]}, "idleGroundP": 0.2,
+    "gatherMs": [-640, -560], "lockOnMs": [-140, -60], "afterBallMs": [130, 190], "afterOpponentMs": [520, 720],
+    "afterGroundMs": [1500, 2100], "deadGroundMs": [300, 900], "reactionMs": [180, 380], "idleSeamMs": 4000
+  },
+  "head": {
+    "tauMs": {"bowler": 170, "striker": 60}, "neckLagMs": [20, 45], "maxDegS": 360, "comfortDeg": 6,
+    "yawShare": 0.6, "pitchShare": 0.45, "ffX": 1, "ffTauMs": 25, "ffMaxDeg": 25, "limitDeg": [40, 25, 12], "spaceLimitDeg": [62, 40], "neckShare": 0.35,
+    "driftDeg": [0.6, 0.4, 0.3], "driftS": [2.3, 0.9],
+    "rollPerYaw": -0.12, "rmGainX": 0.5, "rmTauX": 1.5, "rmSpeedX": 0.6
+  },
+  "life": {
+    "rampInMs": 400, "striker": {"offFromMs": 900, "offToMs": 600, "afterStrokeMs": 800, "backMs": 600},
+    "bowler": {"rampOutMs": 300, "afterReleaseMs": 150, "backMs": 450},
+    "breath": {"hz": [0.215, 0.31], "depthDeg": [0.9, 1.5], "skew": [0.35, 0.7], "modDev": [0.16, 0.24], "modHz": [0.04, 0.06], "ampMod": 0.22, "ampModHz": [0.02, 0.05], "rateX": 1.6, "depthX": 1.0, "modDamp": 0.6},
+    "sway": {"spacingS": [4.5, 2.2, 1.1], "amp": [0.55, 0.75, 0.65], "norm": 1.72, "rootMm": {"bowler": [3.8, 4.7], "striker": [2.8, 3.5]}, "rollDeg": [0.5, 1.1]},
+    "exert": {"riseS": 0.25, "tauS": [6, 10], "bowler": 1.0, "stroke": 0.3, "perRun": 0.25, "cap": 1.5}
+  },
+  "fidget": {
+    "gapS": {"striker": [4.5, 0.6], "bowler": [6, 0.6]}, "firstMs": [1800, 5200], "roleX": {"striker": 1, "bowler": 0.8}, "personX": [0.7, 1.3],
+    "kindCum": [0.35, 0.55, 0.75, 1], "endBeforeReleaseMs": 1000, "idleEndMs": 4600, "sideGlanceP": 0.14, "sideYawDeg": [18, 34], "sidePitchDeg": 3,
+    "durMs": {"weight": [900, 1500], "stance": [600, 1000], "shoulder": [950, 1350], "breath": [1800, 2600]},
+    "weight": {"swayMm": [8, 18], "rollDeg": [1, 2]}, "stance": {"swayZMm": [4, 9], "twistDeg": [1.5, 3], "postureDeg": [0.5, 1.5]},
+    "shoulder": {"twistDeg": [2, 3.5], "postureDeg": [0.8, 1.5], "cycles": 1.5}, "breath": {"postureDeg": [1.5, 3]}
+  },
+  "react": {
+    "table": {"six": [1, 1, 0.15, 0.3, 0], "four": [0.8, 0.75, 0.3, 0.3, 0], "runs": [0.4, 0.4, 0.5, 0.35, 0], "dot": [-0.15, 0.25, 0.65, 0, 0.4], "leave": [0, 0.15, 0.5, 0, 0.2], "close_call": [-0.25, 0.55, 0.7, 0.5, 0.2], "wicket": [-1, 1, 0.95, 0, 0]},
+    "bowlerValenceX": -0.8, "bowlerStrengthX": 0.6, "riseMs": [450, 750], "holdMs": [900, 1600], "decayMs": [1800, 3200],
+    "postureLiftDeg": 4.5, "postureSlumpDeg": 5, "headUpDeg": -6, "headDownDeg": 6, "shakeDeg": 5.5, "shakeHz": [2.2, 2.8], "shakeMs": 900, "shakeFrom": 0.2, "exhale": 0.5, "exhaleTauS": 3
+  },
+  "expr": {
+    "gain": 0.7, "slowRm": 1.5, "effort": [0.6, 120, 500],
+    "conc": {"striker": [0.5, 1500, 200, 500], "bowler": [0.35, 1200, 100, 400], "riseS": 0.9, "afterMs": 150},
+    "mix": {"concentration": [-0.6, -0.1, 0, 0.35], "effort": [-0.9, -0.5, 0.45, 0.6], "frustration": [-1, -0.8, 0.15, 0.2], "relief": [0.7, 0.6, 0.25, 0], "celebration": [0.9, 1, 0.9, 0.25]}
+  },
+  "detail": {"px": [12, 38], "hyst": 0.15}
+}
