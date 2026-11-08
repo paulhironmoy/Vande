@@ -68,6 +68,7 @@ A path may also be written relative to the folder of the document that cites it.
 | [PRACTICE.md](PRACTICE.md) | Product, flows, tiers, Android, privacy, accessibility and the device test plan for offline first-person batting. | Active |
 | [PRACTICE_RULES.md](PRACTICE_RULES.md) | Overs, field, fielding, running, scoring, dismissals and replay. | Active |
 | [PRACTICE_PHYSICS.md](PRACTICE_PHYSICS.md) | Delivery and contact physics, timing windows, LBW, and the simulation v3 freeze. | Active |
+| [FROZEN-5f.sha256](FROZEN-5f.sha256) | The SHA-256 of the 25 files of the physics freeze 5f (a byte-for-byte copy of the list in the ignored release folder); `npm run frozen:check` verifies it. | Active |
 | [PRACTICE_PRESENTATION.md](PRACTICE_PRESENTATION.md) | The first-person stage, camera, humans, motion and result moments, and how a swing is read. | Active |
 | [MOTION-SPEC.md](MOTION-SPEC.md) | The shared motion format: the VC17 skeleton, VMP1 packs, the canonical mirror and the naturalness caps (section 9) every motion pack must pass. | Active |
 | [DIRECTOR-UNITY-PORT.md](DIRECTOR-UNITY-PORT.md) | The face-and-life Director's porting contract (director/3): keys and draws, channels, plan, bake, sampler, the runtime and where it plugs into the Unity rig; frozen on the web by a golden fixture. | Active |

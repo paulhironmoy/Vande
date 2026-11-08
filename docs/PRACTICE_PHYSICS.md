@@ -29,7 +29,8 @@ constants and timing windows (`src/physics/constants.ts`).
 
 **Status: simulation v3 is frozen at 2026-11-04T06:30Z, after freeze amendment 5f.** The authoritative set is
 `phase5/FROZEN-5f.repo.sha256`: every `src/physics/*.ts` and `src/render3d/practice/frame.ts`, with repo-relative
-paths, so `shasum -a 256 -c` checks it from the repo root. The lead verified it, 25/25, on build
+paths, so `shasum -a 256 -c` checks it from the repo root. A byte-for-byte copy is tracked as `docs/FROZEN-5f.sha256`;
+`npm run frozen:check` (`scripts/check-frozen.mjs`) verifies it from a clone, and the static job of CI runs it. The lead verified it, 25/25, on build
 `38924bd+c64d60881c28`. `contact.ts`, `resolve.ts`, `fielding.ts` and `collision.ts` differ from 5e. The matching
 Unity inputs are `reach-proxies-v3.json` `f78959b2…` and `practice-v3.json` `56f580ab…` (payload `4f1e2bb5…`). Any
 physics change after the freeze needs a new lead decision, and it invalidates any evaluator verdict that cites this

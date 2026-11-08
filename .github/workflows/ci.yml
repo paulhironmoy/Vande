@@ -36,8 +36,11 @@ jobs:
           # Keep in step with .nvmrc. `22` resolves to the latest 22.x; package.json "engines" needs 22.22.2 or later.
           node-version: 22
           cache: npm
-      # These three need no installed packages. Every check in this job runs even when an earlier one failed.
+      # These need no installed packages. Every check in this job runs even when an earlier one failed.
       - run: node scripts/scan-secrets.mjs
+      # The 25 files of the physics freeze 5f still have the SHA-256 recorded in docs/FROZEN-5f.sha256 (Node only).
+      - run: npm run frozen:check
+        if: ${{ !cancelled() }}
       - run: npm audit --omit=dev --audit-level=high
         if: ${{ !cancelled() }}
       # The build id tool works in a bare checkout: the short commit hash, plus "+" and 12 hex digits for a dirty tree.

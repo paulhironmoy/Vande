@@ -33,6 +33,7 @@
     "motion:check": "node scripts/motion/export.mjs --check",
     "motion:test:py": "python3 -B -m unittest discover -s scripts/blender/motion -p '*_test.py'",
     "practice:goldens:check": "node scripts/practice-unity-goldens.mjs --check",
+    "frozen:check": "node scripts/check-frozen.mjs",
     "audio:tools:test": "node --test scripts/audio/dsp.test.mjs scripts/audio/sidecar.test.mjs scripts/audio/freesound-search.test.mjs scripts/audio/placeholders.test.mjs scripts/audio/ingest-recordings.test.mjs",
     "audio:tools:test:portable": "node --test scripts/audio/dsp.test.mjs scripts/audio/sidecar.test.mjs",
     "test:capture-compare": "vitest run tests/unit/evaluation/capture-compare.test.ts tests/unit/evaluation/capture-compare-adversarial.test.ts tests/unit/evaluation/capture-compare-normalize.test.ts",

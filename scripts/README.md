@@ -18,6 +18,7 @@ publishes anything except `deploy-pages.mjs`, and publishing needs the owner's a
 | `build-id.sh` | Prints the build id of the working tree: the short HEAD sha, plus `+<12 hex>` when the tree is dirty. `vite.config.ts` and the evidence scripts call it. |
 | `check-bundle-size.mjs` | Reports gzip sizes of the production build and fails when the initial transfer is over 450 kB. CI runs it. |
 | `scan-secrets.mjs` | Scans every file Git would commit for keys and credentials. CI runs it. |
+| `check-frozen.mjs` | Checks that the 25 physics files of freeze 5f still have the SHA-256 in `docs/FROZEN-5f.sha256` (`npm run frozen:check`). CI runs it. |
 | `generate-notices.mjs` | Writes `public/third-party-notices.txt` (`npm run notices`). |
 | `run-script-tests.mjs` | The runner behind `npm run scripts:test`. |
 | `deploy-pages.mjs` | Builds with `BASE_PATH=/Vande/` and pushes the `gh-pages` branch (`npm run deploy:pages`). Owner approval required. |

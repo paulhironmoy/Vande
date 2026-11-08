@@ -100,7 +100,9 @@ generated files: change a source, then rebuild.
 **Other checks that CI runs:** `npm run scripts:test` runs every tooling test that can pass on a checkout (the Android policy
 and evidence tools, the motion pipeline, the textures and the portable audio tools; `npm run scripts:test -- --list` names the
 files it leaves out, with the reason), `npm run practice:goldens:check` (the frozen Practice golden fixtures still equal what
-the engine produces) and `npm run motion:test:py`. The full audio tool tests (`npm run audio:tools:test`) are not run by CI,
+the engine produces) and `npm run motion:test:py`. `npm run frozen:check` verifies that the 25 files of the physics freeze 5f (`src/physics` and
+`src/render3d/practice/frame.ts`) still have the SHA-256 recorded in [docs/FROZEN-5f.sha256](docs/FROZEN-5f.sha256), with Node
+alone. The full audio tool tests (`npm run audio:tools:test`) are not run by CI,
 and 5 of their 21 tests fail in a plain clone (ffmpeg 9.0.1, Node 22.23.4), because they need the ignored sound folder
 `release/product-sequence/stage-1-practice/wedge/sound/`: four read its REGISTER.md or FREESOUND-SEARCH.md, and the placeholder
 render test falls back to a default level without its `placeholders/synth-levels.json`, so its MP3s differ from the shipped
