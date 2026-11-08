@@ -105,6 +105,18 @@ export async function pathToFirstBall(page, { mode = 'quick', touch = false, con
       await sleep(250);
       continue;
     }
+    // The first-ball lesson (a new player's first ball only): nothing starts by itself; its one forward act is "Bowl the first ball".
+    if (st && st.screen === 'live' && st.phase === 'lesson') {
+      const loc = page.getByTestId('lesson-bowl');
+      if (await loc.isVisible().catch(() => false)) {
+        const alt = await alternatives(page);
+        if (dwellMs && alt.forward.length >= 2) await sleep(dwellMs);
+        const at = await press(page, { loc }, touch).catch(() => null);
+        if (at !== null) steps.push({ step: 'lesson', how: 'testid=lesson-bowl', label: 'Bowl the first ball', atMs: at - t0, alternatives: alt.forward.map((c) => c.name).slice(0, 12), controls: alt.controls.length, decision: alt.forward.length >= 2 });
+      }
+      await sleep(250);
+      continue;
+    }
     // The mode is not offered at all (e.g. no Random Over before the rebuild): say so instead of waiting.
     const modeDone = steps.some((s) => s.step === 'mode') || (st && ['live', 'compat', 'preparing', 'error'].includes(st.screen));
     if (practiceAt === null && modeOnScreenAtStart === null) modeOnScreenAtStart = Date.now();

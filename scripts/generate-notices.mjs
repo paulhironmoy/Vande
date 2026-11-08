@@ -47,6 +47,17 @@ line('  (https://commons.wikimedia.org/wiki/File:Sound_Effects_-_Applause_after_
 line('CC0 needs no attribution; the credit is given anyway.');
 line();
 rule();
+line('Camera batting (downloaded only when a player chooses Camera; registered in docs/ASSET_REGISTER.md)');
+rule();
+line('- Pose Landmarker Lite model (BlazePose GHUM 3D, pose_landmarker_lite.task), by Google, licensed under the Apache License,');
+line('  Version 2.0 (full text at the end of this file). Model card:');
+line('  https://storage.googleapis.com/mediapipe-assets/Model%20Card%20BlazePose%20GHUM%203D.pdf');
+line('- MediaPipe Tasks Vision 0.10.35 (the JavaScript and WebAssembly engine), by Google, licensed under the Apache License,');
+line('  Version 2.0 (https://github.com/google-ai-edge/mediapipe). The compiled engine statically links other open-source');
+line('  components (for example TensorFlow Lite and XNNPACK) that the MediaPipe project publishes under permissive licences.');
+line('Camera pictures are processed on the device only: they are never stored or sent.');
+line();
+rule();
 line(`Web and app components (${prod.length} npm packages)`);
 rule();
 const missing = [];

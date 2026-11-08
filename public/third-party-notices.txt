@@ -16,7 +16,18 @@ VANDE Practice crowd applause: excerpts, shaped, loudness-normalised, mono, MP3-
 CC0 needs no attribution; the credit is given anyway.
 
 ==============================================================================
-Web and app components (28 npm packages)
+Camera batting (downloaded only when a player chooses Camera; registered in docs/ASSET_REGISTER.md)
+==============================================================================
+- Pose Landmarker Lite model (BlazePose GHUM 3D, pose_landmarker_lite.task), by Google, licensed under the Apache License,
+  Version 2.0 (full text at the end of this file). Model card:
+  https://storage.googleapis.com/mediapipe-assets/Model%20Card%20BlazePose%20GHUM%203D.pdf
+- MediaPipe Tasks Vision 0.10.35 (the JavaScript and WebAssembly engine), by Google, licensed under the Apache License,
+  Version 2.0 (https://github.com/google-ai-edge/mediapipe). The compiled engine statically links other open-source
+  components (for example TensorFlow Lite and XNNPACK) that the MediaPipe project publishes under permissive licences.
+Camera pictures are processed on the device only: they are never stored or sent.
+
+==============================================================================
+Web and app components (29 npm packages)
 ==============================================================================
 
 @capacitor/app 8.1.2  —  MIT
@@ -464,6 +475,10 @@ INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
+
+@mediapipe/tasks-vision 0.10.35  —  Apache-2.0  —  http://mediapipe.dev
+------------------------------------------------------------------------------
+(No licence file in the package; licence: Apache-2.0.)
 
 @types/react 19.3.0  —  MIT  —  https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react
 ------------------------------------------------------------------------------

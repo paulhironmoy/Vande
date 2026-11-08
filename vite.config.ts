@@ -7,6 +7,7 @@ import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import type { Plugin } from 'vite';
+import { cameraPack } from './scripts/camera/vite-plugin.mjs';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 const base = process.env.BASE_PATH || '/';
@@ -69,7 +70,12 @@ function dropWebOnlyAssets(): Plugin {
     },
     closeBundle() {
       if (!ANDROID) return;
-      for (const rel of ['og', 'unity']) rmSync(resolve(outDir, rel), { recursive: true, force: true });
+      // The camera pack (models/pose) stays only in the owner's sideload build (VITE_CAMERA_BUNDLED=1), never in a default one.
+      const camera = process.env.VITE_CAMERA_BUNDLED === '1' ? [] : ['models/pose'];
+      // The 2048 px hero plates are web-only (the 1280 px ones serve phones); the baked venue's packs are not in public/ at all (see venue.ts).
+      // The shell follows the web stage's evening light, so no code uses the day plate (Unity's light): it does not ship either.
+      const venue = ['practice/venue/wide', 'practice/venue/hero-day-1280.webp'];
+      for (const rel of ['og', 'unity', ...camera, ...venue]) rmSync(resolve(outDir, rel), { recursive: true, force: true });
     },
   };
 }
@@ -184,7 +190,8 @@ function contentSecurityPolicy(): Plugin {
         const api = env.VITE_API_URL ? origin(env.VITE_API_URL) : env.VITE_API_LOCAL === '1' ? 'http://127.0.0.1:8787' : '';
         const posthog = env.VITE_ANALYTICS_PROVIDER === 'posthog' ? origin(env.VITE_POSTHOG_HOST) : '';
         const google = env.VITE_GOOGLE_CLIENT_ID ? 'https://accounts.google.com' : '';
-        const connect = ["'self'", api, posthog, google].filter(Boolean).join(' ');
+        const camera = origin(env.VITE_CAMERA_MODEL_BASE_URL);
+        const connect = ["'self'", api, posthog, google, camera].filter(Boolean).join(' ');
         const policy = [
           "default-src 'self'",
           `script-src 'self' 'wasm-unsafe-eval'${google ? ` ${google}` : ''}`,
@@ -224,6 +231,7 @@ export default defineConfig({
     contentSecurityPolicy(),
     legalPlaceholders(),
     dropWebOnlyAssets(),
+    cameraPack({ android: ANDROID }),
     VitePWA({
       strategies: 'injectManifest',
       srcDir: 'src/pwa',
@@ -256,7 +264,7 @@ export default defineConfig({
       },
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2,webmanifest,mp3}'],
-        globIgnores: ['admin.html', 'render.html', 'assets/admin-*', 'assets/render-*', 'og/**', 'unity/**'],
+        globIgnores: ['admin.html', 'render.html', 'assets/admin-*', 'assets/render-*', 'og/**', 'unity/**', 'models/**'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
       devOptions: { enabled: false },

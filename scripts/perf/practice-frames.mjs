@@ -115,7 +115,8 @@ try {
   // Console errors are counted for the Stage 0 baseline ("crash and error count"); they do not stop a run.
   page.on('console', (m) => m.type() === 'error' && result.consoleErrors.push(m.text().slice(0, 200)));
   if (opt.cpu > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: opt.cpu });
-  await page.goto(`${server.url}/practice`, { waitUntil: 'load' });
+  // PERF_QUERY (for example `?venue=off`, honoured by test builds only) lets one build be compared with itself.
+  await page.goto(`${server.url}/practice${process.env.PERF_QUERY ?? ''}`, { waitUntil: 'load' });
   let blockedFrom = null;
   try {
     for (let i = 0; i < opt.n; i++) {

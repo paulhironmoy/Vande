@@ -54,9 +54,16 @@ for (const r of rows) {
   console.log(`  ${r.initial ? '●' : ' '}    ${kb(r.gz)}  ${kb(r.raw)}   ${r.rel}`);
 }
 const initial = rows.filter((r) => r.initial).reduce((s, r) => s + r.gz, 0);
-const total = rows.reduce((s, r) => s + r.gz, 0);
+// On-demand packs (models/: the camera pack) are downloaded only when a player chooses them: never precached, never in the
+// first load (vite.config.ts globIgnores), so they are reported on their own line and left out of the precache total.
+const onDemand = rows.filter((r) => r.rel.startsWith('models/'));
+const total = rows.filter((r) => !r.rel.startsWith('models/')).reduce((s, r) => s + r.gz, 0);
 console.log(`\nInitial transfer (gzip): ${(initial / 1024).toFixed(1)} kB  (budget ${budgetKb} kB)`);
 console.log(`Total precache (gzip/raw-for-binaries): ${(total / 1024).toFixed(1)} kB`);
+if (onDemand.length)
+  console.log(
+    `On-demand packs, not precached (${onDemand.length} files): ${(onDemand.reduce((s, r) => s + r.gz, 0) / 1024).toFixed(1)} kB downloaded`,
+  );
 if (initial > budgetKb * 1024) {
   console.error(`✗ Initial transfer exceeds the ${budgetKb} kB budget.`);
   process.exit(1);
