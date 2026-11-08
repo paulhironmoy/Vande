@@ -75,6 +75,7 @@ A path may also be written relative to the folder of the document that cites it.
 | [PRACTICE_COACH.md](PRACTICE_COACH.md) | Coach Mode, the exact-ball engine: diagnosis, recommendation, demonstration and retry. | Active |
 | [PRACTICE_FIDELITY.md](PRACTICE_FIDELITY.md) | The Real-Match Fidelity Score and the study protocol that validate Practice. | Active |
 | [AUDIO.md](AUDIO.md) | Sound, crowd emotion, mix, haptics and captions. | Active |
+| [LOCALIZATION.md](LOCALIZATION.md) | The languages (en, hi, hi-Latn complete; eight drafts), where the text and the Android notification strings live, how to add a string, and the player-facing word checks (F8). | Active |
 | [PERFORMANCE.md](PERFORMANCE.md) | Device tiers, frame and startup budgets, accessibility verification, and every measured number with its command. | Active |
 | [VISUAL_SYSTEM.md](VISUAL_SYSTEM.md) | The design system, the renderer decision record and the screens. The Sealed Six screens in it are Legacy. | Active |
 
