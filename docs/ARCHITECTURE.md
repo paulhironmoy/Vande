@@ -218,9 +218,9 @@ cricket constants each exist once. Retained on purpose, each with its active con
 | `tests/e2e/flow-*.spec.ts`, `docs/TEST_REPORT.md`, `docs/ANDROID_RELEASE.md`, `docs/STORE_LISTING.md`, `docs/LAUNCH_BLOCKERS.md`, `README.md`, `docs/decisions/REBUILD_DECISIONS.md`, this file | root | Cross-workstream tests, release, docs |
 | `unity/VandePractice/Assets/VandePractice/Runtime/Bridge/**`, `unity/VandePractice/{Packages,ProjectSettings}/**` | Unity foundation | Unity project, protocol endpoint, lifecycle host, build configuration and EditMode tests; root reviews shared-boundary changes |
 | `unity/VandePractice/Assets/VandePractice/Runtime/Trace/**` | Unity physics adapter | Canonical trace playback, coordinate conversion and deterministic presentation checks; no second scoring authority |
-| `unity/VandePractice/Assets/VandePractice/Presentation/**` | Unity presentation | Batter Eye, characters, equipment, field, stadium, animation and visual feedback |
-| `unity/VandePractice/Assets/VandePractice/Audio/**` | Unity audio | Physics-event audio, crowd, captions and haptics; every source requires provenance |
-| `unity/VandePractice/Assets/VandePractice/UI/**` | Unity UX | Quiet live HUD, setup rail, PIP, Coach and accessible runtime presentation |
+| `unity/VandePractice/Assets/VandePractice/Runtime/Presentation/**` | Unity presentation | Batter Eye, characters, equipment, field, stadium, animation and visual feedback |
+| `unity/VandePractice/Assets/VandePractice/Runtime/Audio/**` | Unity audio | Physics-event audio, crowd, captions and haptics; every source requires provenance |
+| `unity/VandePractice/Assets/VandePractice/Runtime/UI/**` | Unity UX | Quiet live HUD, setup rail, PIP, Coach and accessible runtime presentation |
 | `unity/VandePractice/Assets/VandePractice/Tests/**` | Unity QA | EditMode/PlayMode contract, lifecycle, replay, causality and performance tests; `Tests/EditMode/BridgeEquivalence/` pins the bridge's decisions on 5,471 recorded cases of the pre-UNITY-6 implementation |
 
 Rules for every agent: never commit, push, deploy or run destructive git commands; never run two Playwright runs or

@@ -28,11 +28,26 @@ here in the same change.
 - **Build ids.** Evidence cites the id printed by `scripts/build-id.sh` (the short commit, plus `+` and 12 hex digits when
   the tree has uncommitted changes). `release/player-experience/tools/build-id.sh`, the path `AGENTS.md` names, is a local
   wrapper that runs it and prints the same id.
-- **Paths that do not exist.** Documents marked Closed-stage name files that were never built (for example
-  a `sim` folder under `src`). A few other paths are ignored on purpose, such as the Firebase client config and the Worker's local dev
-  variables.
+- **Paths a clone cannot resolve.** Some citations name files that are not in a fresh clone, on purpose; the next
+  section lists the classes.
 - **Test counts go stale.** `TEST_REPORT.md` and `UNITY_PRACTICE_STATUS.md` quote the counts of a named build and date.
   Run the suite for the current number.
+
+## Citations a clone cannot resolve
+
+A repository path in backticks, and a relative Markdown link, should resolve in a fresh clone. These classes are exempt
+by design, so the several hundred citations in them are not edited; a citation in none of them is a defect to fix.
+
+| Class | What it covers | Examples |
+| --- | --- | --- |
+| Ignored evidence | Everything under `release/` (reports, captures, logs, the locked rubrics, the original of the physics freeze list; it is gitignored and local). The shorthand unity/REPORT.md (and the other unity/ report names) means the same folders under `release/product-sequence/stage-1-practice/wedge/`. Relative links into `release/` are in this class too; `ui-baselines/` records are immutable, so their links stay. | `release/player-experience/`, `release/competitive-experience/` |
+| Ignored on purpose | A path that `.gitignore` names: secrets, local configuration, build output. | the keystore and its properties file, `local.properties`, the Firebase client config, the Worker's local dev variables, the Unity build folders |
+| Closed stages | Every path in `docs/growth/`: design for Stages 4 to 6, whose files open with a banner saying the code is not built. | a `sim` folder under `src` |
+| History | A sentence that names a path in order to say it was removed or withdrawn. | the removed brand folder and old generators in VISUAL_SYSTEM.md, the removed screens and sounds in REBUILD_DECISIONS.md, the `WITHDRAWN` rows of ASSET_REGISTER.md, the decision log in VANDE-PRODUCT-SEQUENCE.md |
+| Verbatim upstream | A SHA-256-pinned upstream text is not edited. | the link to `LICENSE.CODE.md` inside `licenses/makehuman-v1.3.0/LICENSE.md` (upstream's file, not vendored) |
+| Another tool's files | The Gate A documents under `evaluation/gate-a/` cite captures (`*.png`) and the GoldenScreen prototype (a folder under the Unity Runtime folder) that belong to Codex's work and are not in this branch. | the `golden-screen-*.png` and `photoreal-live-scene-v1.png` captures |
+
+A path may also be written relative to the folder of the document that cites it.
 
 ## Rules and architecture
 
