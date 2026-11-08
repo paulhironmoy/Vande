@@ -1,0 +1,5 @@
+﻿<Solution>
+  <Project Path="Vande.Practice.Runtime.csproj" />
+  <Project Path="Vande.Practice.EditMode.Tests.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+</Solution>

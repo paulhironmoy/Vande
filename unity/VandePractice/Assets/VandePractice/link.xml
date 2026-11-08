@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  VANDE Practice runtime under Managed Stripping Level High (Android). Only members that are reached by name or by
+  Unity's native serializer are listed; UnityLinker sees everything else through ordinary code references, and it
+  already keeps [RuntimeInitializeOnLoadMethod] entry points, Unity messages on kept MonoBehaviours and enum fields.
+  Editor and test reflection is not part of a player build. AndroidSizeSettingsTests checks every entry resolves.
+-->
+<linker>
+  <assembly fullname="Vande.Practice.Runtime">
+    <!-- UnitySendMessage targets: android UnityPracticeHost and the WebGL host call these methods by name. -->
+    <type fullname="Vande.Practice.Bridge.VandeBridgeBehaviour" preserve="all" />
+
+    <!-- JsonUtility.FromJson<T> DTOs (PracticePresentationContractAdapter.Parse<T>): the native serializer constructs
+         them and writes their fields by name. -->
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/InitializePayload" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/ScenePayload" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/SceneField" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/SceneFielder" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/SceneBowler" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/SceneBall" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/SceneBatterPosition" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/DeliveryPayload" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/DeliveryPlan" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/DeliveryPresentation" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/DeliveryCoachGuide" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/DeliveryFlight" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/DeliveryBounce" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/DeliveryRelease" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/DeliverySpin" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/DeliverySeam" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/ProvisionalSwingPayload" preserve="all" />
+    <type fullname="Vande.Practice.Presentation.PracticePresentationContractAdapter/SwingPayload" preserve="all" />
+
+    <!-- Serializable trace and wire models nested inside those DTOs. -->
+    <type fullname="Vande.Practice.Trace.TraceVector3" preserve="all" />
+    <type fullname="Vande.Practice.Trace.TraceVector2" preserve="all" />
+    <type fullname="Vande.Practice.Trace.TraceBatterPosture" preserve="all" />
+    <type fullname="Vande.Practice.Trace.TraceBatterMotion" preserve="all" />
+    <type fullname="Vande.Practice.Trace.BallTraceSample" preserve="all" />
+    <type fullname="Vande.Practice.Trace.BatTraceSample" preserve="all" />
+    <type fullname="Vande.Practice.Trace.FielderTraceSample" preserve="all" />
+    <type fullname="Vande.Practice.Trace.FielderTracePath" preserve="all" />
+    <type fullname="Vande.Practice.Trace.CanonicalTraceEvent" preserve="all" />
+    <type fullname="Vande.Practice.Trace.CanonicalDeliveryTrace" preserve="all" />
+    <type fullname="Vande.Practice.Bridge.UnityPracticePacket" preserve="all" />
+  </assembly>
+</linker>
