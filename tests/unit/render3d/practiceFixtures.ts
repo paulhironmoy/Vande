@@ -19,6 +19,8 @@ import type {
   SwingTiming,
   Vec3,
 } from '@/contracts/practice';
+import { seamCue } from '@/physics';
+import { PRACTICE_SIM_VERSION } from '@/contracts/practice';
 
 const G = 9.81;
 const BALL_R = 0.036;
@@ -39,6 +41,9 @@ export interface FlightFixture {
   seed?: string;
   spinRps?: number;
   seamDeg?: number;
+  /** Signed swing coefficient (+ towards the off side) and seam presentation, for the seam cue only. */
+  swingCs?: number;
+  presentation?: 'upright' | 'scrambled' | 'spin';
 }
 
 export function fixtureFlight(o: FlightFixture = {}): BallFlight {
@@ -74,14 +79,17 @@ export function fixtureFlight(o: FlightFixture = {}): BallFlight {
   const timeAtZ = (z: number) => samples.find((s) => s.p.z >= z)?.t ?? samples[samples.length - 1].t;
   const stumpsT = timeAtZ(PITCH_HALF);
   const at = samples.find((s) => s.t >= stumpsT) ?? samples[samples.length - 1];
+  const spinRelease = v(-2 * Math.PI * (o.spinRps ?? 13), 0, 0);
   return {
-    version: 1,
+    version: PRACTICE_SIM_VERSION,
     plan: { variation: o.variation ?? 'stock', lengthM, lineM, speedKph },
     seed: o.seed ?? `fixture:${speedKph}:${lengthM}:${lineM}`,
     release: { p: rel, v: v(vx, vy, vz), spinRps: o.spinRps ?? 13, seamDeg: o.seamDeg ?? 0, speedKph },
     bounce,
     // Back-spin about −x (rad/s), a little less after the pitch.
-    spin: { release: v(-2 * Math.PI * (o.spinRps ?? 13), 0, 0), afterBounce: bounce ? v(-2 * Math.PI * (o.spinRps ?? 13) * 0.8, 0, 0) : null },
+    spin: { release: spinRelease, afterBounce: bounce ? v(-2 * Math.PI * (o.spinRps ?? 13) * 0.8, 0, 0) : null },
+    // The seam as the physics derives it (src/physics seamCue): upright, angled by seamDeg, the shine away from the swing.
+    seam: seamCue({ v: v(vx, vy, vz), spin: spinRelease, seamDeg: o.seamDeg ?? 0, swingCs: o.swingCs ?? 0, presentation: o.presentation ?? 'upright' }),
     idealContactT: timeAtZ(PITCH_HALF - 1.5),
     stumpsT,
     wouldHitStumps: Math.abs(at.p.x) <= 0.1143 + BALL_R && at.p.y <= 0.724 + BALL_R,
@@ -139,10 +147,9 @@ function flightAt(f: BallFlight, t: number): Vec3 {
 
 /** A bat swinging down a vertical-ish plane so its sweet spot passes `through` at time `tc`. */
 function batTrack(startT: number, tc: number, through: Vec3, bearingDeg: number): BatSample[] {
-  const out: BatSample[] = [];
   const a = (bearingDeg * Math.PI) / 180;
   const fwd = v(Math.sin(a), 0, -Math.cos(a));
-  for (let t = startT; t <= tc + 0.3 + 1e-9; t += 0.005) {
+  const sample = (t: number): BatSample => {
     // Swing angle: −110° (backlift) → 0° (vertical, at contact) → +100° (follow-through).
     const u = (t - tc) / (tc - startT);
     const ang = Math.max(-1.9, Math.min(1.75, u * 1.9));
@@ -152,9 +159,27 @@ function batTrack(startT: number, tc: number, through: Vec3, bearingDeg: number)
     const d = v(dir.x / l, dir.y / l, dir.z / l);
     const grip = v(through.x - d.x * sweet, through.y - d.y * sweet, through.z - d.z * sweet);
     const toe = v(grip.x + d.x * 0.86, grip.y + d.y * 0.86, grip.z + d.z * 0.86);
-    out.push({ t: Math.round(t * 1e6) / 1e6, grip, toe, face: v(fwd.x, 0.05, fwd.z) });
-  }
-  return out;
+    // The bridge carries a rigid bat: face is a unit vector exactly
+    // orthogonal to the grip-to-toe axis, not merely a visual hint.
+    const hint = v(fwd.x, 0.05, fwd.z);
+    const projection = hint.x * d.x + hint.y * d.y + hint.z * d.z;
+    let face = v(hint.x - d.x * projection, hint.y - d.y * projection, hint.z - d.z * projection);
+    let faceLength = Math.hypot(face.x, face.y, face.z);
+    if (faceLength < 1e-9) {
+      face = Math.hypot(d.x, d.z) > 1e-9 ? v(d.z, 0, -d.x) : v(1, 0, 0);
+      faceLength = Math.hypot(face.x, face.y, face.z);
+    }
+    face = v(face.x / faceLength, face.y / faceLength, face.z / faceLength);
+    return { t, grip, toe, face };
+  };
+  const endT = tc + 0.3;
+  const times = [startT, tc, endT];
+  const count = Math.ceil((endT - startT) / 0.005);
+  for (let index = 0; index <= count; index++) times.push(Math.min(endT, startT + index * 0.005));
+  return times
+    .sort((left, right) => left - right)
+    .filter((time, index, values) => index === 0 || Math.abs(time - values[index - 1]) > 1e-12)
+    .map(sample);
 }
 
 /** A hit: a straight launch along the bearing with bounces and a roll, until it stops or reaches `untilR`. */
@@ -270,9 +295,17 @@ export function fixtureResult(flight: BallFlight, o: ResultFixture): DeliveryRes
   events.push({ t: deadT, kind: 'dead' });
   events.sort((a, b) => a.t - b.t);
   return {
-    version: 1,
+    version: PRACTICE_SIM_VERSION,
     flight,
     swing,
+    batterRootOffset: { x: 0, z: 0 },
+    batterBodyFrame: {
+      stance: { x: -0.15, z: 8.96 },
+      torsoTop: { x: -0.3, y: 1.42, z: 8.94 },
+      headCentre: { x: -0.2, y: 1.62, z: 8.86 },
+    },
+    batterPosture: { crouchM: 0 },
+    batterMotion: bat.length ? { startT: bat[0].t, contactT: tc, endT: bat[bat.length - 1].t } : null,
     footwork: flight.plan.lengthM > 6.5 ? 'back' : 'forward',
     lbw: null,
     contact: {

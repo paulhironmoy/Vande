@@ -56,6 +56,16 @@ describe('SessionMonitor (thermal throttling)', () => {
     for (let i = 0; i < 6; i++) expect(play(m, 30, 0.5)).toBeNull();
   });
 
+  it('judges native renderer delivery summaries without WebView frame samples', () => {
+    const m = new SessionMonitor({ tier: 'full', profile: 'standard', stage: '3d' });
+    for (let i = 0; i < 2; i++) {
+      m.sampleDeliverySummary(25, 120);
+      expect(m.checkpoint()).toBeNull();
+    }
+    m.sampleDeliverySummary(25, 120);
+    expect(m.checkpoint()).toMatchObject({ tier: 'assisted', reason: 'session_fps_drop', fps: 40 });
+  });
+
   it('repeated context loss goes straight to Classic between balls', () => {
     const m = new SessionMonitor({ tier: 'full', profile: 'standard', stage: '3d' });
     m.noteContextLoss();

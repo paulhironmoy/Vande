@@ -28,10 +28,11 @@ export function isDeviceAssessment(x: unknown): x is DeviceAssessment {
   if (!x || typeof x !== 'object') return false;
   const a = x as Record<string, unknown>;
   return (
+    (a.backend === undefined || a.backend === 'webgl2' || a.backend === 'unity') &&
     typeof a.webgl2 === 'boolean' &&
     typeof a.hardware === 'boolean' &&
     typeof a.renderer === 'string' &&
-    num(a.shaderCompileMs) &&
+    (a.shaderCompileMs === null || num(a.shaderCompileMs)) &&
     num(a.avgFps) &&
     num(a.p95FrameMs) &&
     num(a.spikes) &&

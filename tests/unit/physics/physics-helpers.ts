@@ -1,5 +1,5 @@
 import type { AssistLevel, BallFlight, BowlerProfile, Footwork, NormalizedSwing, PitchCondition, PracticeDeliveryPlan } from '@/contracts/practice';
-import { batTravelMs } from '@/physics/bat';
+import { batTravelMs, idealTimeFor } from '@/physics/bat';
 import { strike } from '@/physics/contact';
 import { flight } from '@/physics/delivery';
 
@@ -11,8 +11,13 @@ export function plan(p: Partial<PracticeDeliveryPlan> = {}): PracticeDeliveryPla
   return { variation: 'stock', lengthM: 6.5, lineM: 0.05, speedKph: 136, ...p };
 }
 
+/** Who bowled each flight made by fly(), so play() reads the ball as resolveDelivery does (playing for the stock ball). */
+const BOWLED = new WeakMap<BallFlight, { bowler: BowlerProfile; conditions: PitchCondition; handedness: 'right' | 'left' }>();
+
 export function fly(p: Partial<PracticeDeliveryPlan> = {}, bowler: BowlerProfile = PACE, conditions: PitchCondition = 'balanced', seed = 't1', handedness: 'right' | 'left' = 'right'): BallFlight {
-  return flight({ plan: plan(p), bowler, conditions, seed, handedness });
+  const f = flight({ plan: plan(p), bowler, conditions, seed, handedness });
+  BOWLED.set(f, { bowler, conditions, handedness });
+  return f;
 }
 
 /** A swing timed `errorMs` late (− early) against the ideal contact for its footwork. */
@@ -20,12 +25,13 @@ export function timedSwing(f: BallFlight, errorMs: number, s: Partial<Normalized
   const kind = s.kind ?? 'attack';
   const power = s.power ?? 0.6;
   const base = { kind, power, directionDeg: s.directionDeg ?? 0, elevation: s.elevation ?? 0.1, footwork, startT: 0 };
-  const ideal = strike(f, base, { assist: 'learn' }).idealT;
+  const ideal = idealTimeFor(f, footwork);
   return { ...base, startT: ideal - batTravelMs(kind, power) / 1000 + errorMs / 1000 };
 }
 
 export function play(f: BallFlight, errorMs: number, s: Partial<NormalizedSwing> = {}, assist: AssistLevel = 'real', footwork: Footwork = 'auto') {
-  return strike(f, timedSwing(f, errorMs, s, footwork), { assist });
+  const by = BOWLED.get(f);
+  return strike(f, timedSwing(f, errorMs, s, footwork), { assist, ...(by ? { expect: by } : {}) });
 }
 
 export const EDGES = new Set(['inside_edge', 'outside_edge', 'top_edge', 'leading_edge']);

@@ -1,6 +1,7 @@
 /** Hand-built Practice data for the store tests (structure only; the rules belong to src/practice/game). */
 import {
   PRACTICE_SIM_VERSION,
+  type BallCondition,
   type BowlerProfile,
   type DeliveryRecord,
   type DeliveryResult,
@@ -11,6 +12,9 @@ import {
 } from '@/contracts';
 
 export const bowler: BowlerProfile = { family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'b1' };
+
+/** The over's ball (the default: a new white ball). */
+export const ball: BallCondition = { colour: 'white', age: 'new' };
 
 export const field: FieldLayout = {
   id: 'balanced-pace',
@@ -34,7 +38,7 @@ export function plan(i = 0): PracticeDeliveryPlan {
 }
 
 export function overPlan(seed = 'over-1'): PracticeOverPlan {
-  return { version: PRACTICE_SIM_VERSION, bowler, balls: [plan(0), plan(1), plan(2), plan(3), plan(4), plan(5)], seed, source: 'random' };
+  return { version: PRACTICE_SIM_VERSION, bowler, ball: { ...ball }, balls: [plan(0), plan(1), plan(2), plan(3), plan(4), plan(5)], seed, source: 'random' };
 }
 
 export function record(overIndex: number, ballIndex: number, runs: DeliveryRecord['runs'] = 1, dismissal: DeliveryRecord['dismissal'] = null): DeliveryRecord {
@@ -46,6 +50,7 @@ export function record(overIndex: number, ballIndex: number, runs: DeliveryRecor
     plan: plan(ballIndex),
     seed: `over-${overIndex}:${ballIndex}`,
     conditions: 'balanced',
+    ball: { ...ball },
     field,
     handedness: 'right',
     assist: 'learn',
@@ -80,6 +85,14 @@ export function result(over: { timing?: DeliveryResult['contact']['timing']; err
   return {
     version: PRACTICE_SIM_VERSION,
     flight: {} as DeliveryResult['flight'],
+    batterRootOffset: { x: 0, z: 0 },
+    batterBodyFrame: {
+      stance: { x: -0.15, z: 8.96 },
+      torsoTop: { x: -0.3, y: 1.42, z: 8.94 },
+      headCentre: { x: -0.2, y: 1.62, z: 8.86 },
+    },
+    batterPosture: { crouchM: 0 },
+    batterMotion: null,
     footwork: 'forward',
     lbw: null,
     swing: swingKind ? { kind: swingKind, startT: 0.4, directionDeg: over.intended ?? 30, power: 0.7, elevation: 0, footwork: 'auto' } : null,

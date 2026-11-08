@@ -63,8 +63,9 @@ function carryBall(
   return { post: { t0: start.t, samples, bounces: r.bounces.map((b) => ({ t: b.t, p: b.p })), boundary: r.boundary }, stumps: r.stumps };
 }
 
-function practiceFlightFor(r: Pick<DeliveryRecord, 'plan' | 'bowler' | 'conditions' | 'seed' | 'handedness'>): BallFlight {
-  return deliveryFlight({ plan: r.plan, bowler: r.bowler, conditions: r.conditions, seed: r.seed, handedness: r.handedness });
+/** A record's flight: its ball too (a record saved before balls had a condition has none, and flies a new ball). */
+function practiceFlightFor(r: Pick<DeliveryRecord, 'plan' | 'bowler' | 'conditions' | 'seed' | 'handedness'> & { ball?: DeliveryRecord['ball'] }): BallFlight {
+  return deliveryFlight({ plan: r.plan, bowler: r.bowler, conditions: r.conditions, seed: r.seed, handedness: r.handedness, ...(r.ball ? { ball: r.ball } : {}) });
 }
 
 export interface ResolveArgs {
@@ -124,6 +125,10 @@ function result(
     version: PRACTICE_SIM_VERSION,
     flight: args.flight,
     swing: args.swing,
+    batterRootOffset: strike.batterRootOffset,
+    batterBodyFrame: strike.batterBodyFrame,
+    batterPosture: strike.batterPosture,
+    batterMotion: strike.batterMotion,
     footwork: strike.footwork,
     lbw: lbwDecision,
     contact: strike.contact,
@@ -135,6 +140,30 @@ function result(
     coaching: j.coaching,
     deadT,
   };
+}
+
+/**
+ * The pitch bounce is an event only if the ball reaches it before it leaves the delivery's flight (PHYS2 phase 5e,
+ * COH4, evaluator eval-phys §3.2): a ball met by the bat, the pad or the body, taken by the keeper or hitting the
+ * stumps on the full never pitches, so the planned bounce of the unimpeded flight is dropped. Before, the ref-6 yorker
+ * driven on the full kept a `bounce` event at t 0.4851 s, after the contact at 0.4593 s, 0.33 m or more from the ball.
+ */
+function dropUnreachedBounce(events: SimEvent[], flight: BallFlight, leftFlightT: number): void {
+  if (!flight.bounce || flight.bounce.t <= leftFlightT + 1e-9) return;
+  const k = events.findIndex((e) => e.kind === 'bounce');
+  if (k >= 0) events.splice(k, 1);
+}
+
+/**
+ * The path the keeper watches on a ball nobody touched: the flight, carried on to him with the spin it has after
+ * pitching, sampled every step like the flight (the keeper branch of resolveDelivery; exported for its tests).
+ */
+export function keeperPath(flight: BallFlight, field: FieldLayout, conditions: PitchCondition): BallSample[] {
+  const last = flight.samples[flight.samples.length - 1];
+  const keeper = field.fielders.find((f) => f.role === 'keeper');
+  const carrySpin = flight.spin.afterBounce ?? flight.spin.release;
+  const beyond = keeper && last.p.z < keeper.z ? carryBall({ t: last.t, p: last.p, v: last.v, spin: carrySpin }, conditions, { untilZ: keeper.z + 1, sampleEvery: 1 }).post.samples.slice(1) : [];
+  return [...flight.samples, ...beyond];
 }
 
 /** Resolve one delivery: the whole authoritative pipeline. */
@@ -149,6 +178,7 @@ export function resolveDelivery(args: ResolveArgs): DeliveryResult {
   // The bat met the ball: it goes into the field (or onto the stumps).
   if (strike.exit) {
     const ex = strike.exit;
+    dropUnreachedBounce(events, flight, ex.t);
     events.push({ t: ex.t, kind: 'contact', contact: strike.contact.kind, p: ex.p });
     const { post, stumps } = carryBall(ex, args.conditions, { detectStumps: true });
     const pre = samplesBefore(flight, ex.t);
@@ -158,7 +188,7 @@ export function resolveDelivery(args: ResolveArgs): DeliveryResult {
       const ball = [...pre, ...post.samples.filter((x) => x.t <= stumps.t + 1e-9)];
       return result(args, strike, ball, standingPaths(field, stumps.t + 1, new Set(), true), events, { ...base, playedOn: stumps }, stumps.t);
     }
-    const fielding = simulateFielding(field, post);
+    const fielding = simulateFielding(field, post, { seed: flight.seed });
     events.push(...fielding.events);
     const running = fielding.play.kind === 'fielded' ? autoRuns(ex.t, fielding.play.returnT) : null;
     if (running) events.push(...runEvents(running));
@@ -168,8 +198,10 @@ export function resolveDelivery(args: ResolveArgs): DeliveryResult {
   // Pad or body first: off the pad onto the stumps (bowled), LBW, or a dead ball. The rebound is the integrator's.
   if (strike.impact) {
     const im = strike.impact;
+    dropUnreachedBounce(events, flight, im.t);
     events.push(im.part === 'pad' ? { t: im.t, kind: 'pad', p: im.p } : { t: im.t, kind: 'contact', contact: 'body', p: im.p });
-    const verdict = lbw(flight, { t: im.t, p: im.p }, { shotOffered: swing !== null });
+    // A swing begun after the ball met the batter offered no shot at the impact (PHYS2 5f: resolved as the leave).
+    const verdict = lbw(flight, { t: im.t, p: im.p }, { shotOffered: swing !== null && !strike.lateSwing });
     const decision: LbwDecision = { out: verdict.out, reason: verdict.reason, impact: im.p, projected: verdict.projected };
     const { post, stumps } = carryBall({ t: im.t, p: im.p, v: im.vOut, spin: im.spinOut }, args.conditions, { detectStumps: true, untilT: im.t + PAD_DEAD_S });
     const pre = samplesBefore(flight, im.t);
@@ -187,6 +219,7 @@ export function resolveDelivery(args: ResolveArgs): DeliveryResult {
   // Missed (or left) and on target: bowled.
   if (flight.wouldHitStumps) {
     const at = flightAt(flight, flight.stumpsT);
+    dropUnreachedBounce(events, flight, flight.stumpsT);
     events.push({ t: flight.stumpsT, kind: 'stumps', p: at.p });
     const ball = [...samplesBefore(flight, flight.stumpsT), at];
     const facts: PlayFacts = { ...base, bowled: { t: flight.stumpsT, p: at.p } };
@@ -195,28 +228,27 @@ export function resolveDelivery(args: ResolveArgs): DeliveryResult {
 
   // Missed (or left) and off target: the keeper takes it. No byes.
   const last = flight.samples[flight.samples.length - 1];
-  const keeper = field.fielders.find((f) => f.role === 'keeper');
-  // Carry the delivery on to the keeper with the spin it has after pitching, sampled every step like the flight.
-  const carrySpin = flight.spin.afterBounce ?? flight.spin.release;
-  const beyond = keeper && last.p.z < keeper.z ? carryBall({ t: last.t, p: last.p, v: last.v, spin: carrySpin }, args.conditions, { untilZ: keeper.z + 1, sampleEvery: 1 }).post.samples.slice(1) : [];
-  const path = [...flight.samples, ...beyond];
+  const path = keeperPath(flight, field, args.conditions);
   const take = keeperTake(field, path.filter((s) => s.p.z >= PITCH_HALF), 0);
   const takeT = take ? take.t : last.t;
-  if (take) events.push({ t: take.t, kind: 'keeper_take', p: take.p });
+  dropUnreachedBounce(events, flight, takeT);
+  // shortM (lead ruling 2026-11-04, contract v6 additive): present only when the ball passed beyond the keeper's
+  // reach, so a clean take serializes byte-identically to before.
+  if (take) events.push(take.shortM > 0 ? { t: take.t, kind: 'keeper_take', p: take.p, shortM: take.shortM } : { t: take.t, kind: 'keeper_take', p: take.p });
   const deadT = takeT + 0.2;
   const ball = path.filter((s) => s.t <= takeT + 1e-9);
   const fielders = take ? [take.path, ...standingPaths(field, deadT + 1, new Set(['keeper']))] : standingPaths(field, deadT + 1);
   return result(args, strike, ball, fielders, events, base, deadT);
 }
 
-/** The flight of a recorded delivery (the same call the live delivery used). */
-export function practiceFlight(record: Pick<DeliveryRecord, 'plan' | 'bowler' | 'conditions' | 'seed' | 'handedness'>): BallFlight {
+/** The flight of a recorded delivery (the same call the live delivery used), with the record's ball. */
+export function practiceFlight(record: Pick<DeliveryRecord, 'plan' | 'bowler' | 'conditions' | 'seed' | 'handedness'> & { ball?: DeliveryRecord['ball'] }): BallFlight {
   return practiceFlightFor(record);
 }
 
 /** What the bat (or the batter) did to the delivery (contact.ts `strike`, with the swept collision inside it). */
 function strikeOf(flight: BallFlight, swing: NormalizedSwing | null, args: ResolveArgs): StrikeResult {
-  return strike(flight, swing, { assist: args.assist, tierToleranceMs: args.tierToleranceMs });
+  return strike(flight, swing, { assist: args.assist, tierToleranceMs: args.tierToleranceMs, expect: { bowler: args.bowler, conditions: args.conditions, handedness: args.handedness } });
 }
 
 /** Re-simulate a recorded delivery: reproduces the original DeliveryResult exactly. */

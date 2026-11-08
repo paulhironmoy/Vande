@@ -6,16 +6,21 @@
  * Randomness comes only from the shared seeded generator (src/engine/prng.ts, SHA-256 keyed), so a seed always gives
  * the same over, and each ball's physics seed is derived from the over seed (`ballSeed`).
  *
- * Speeds are honest: the km/h stored here is the release speed the physics bowls and the screen shows. Learn bowls
- * genuinely slower (pace about 100–114 km/h, spin at the bottom of the physics' spin range) rather than relabelling a
- * slow ball as fast.
+ * Every over carries its ball (BallCondition): a new white ball unless the setup chooses another (DEFAULT_BALL). The
+ * ball's age changes the swing and seam (src/physics/constants.ts BALL_AGE_FACTORS), so it is part of the exact ball.
+ *
+ * Speeds are honest: the km/h stored here is the release speed the physics bowls and the screen shows. Difficulty, not
+ * the assistance level, sets the bowling (assistance changes only the timing bands): Beginner bowls genuinely slower
+ * (pace about 100–114 km/h, spin at the bottom of the physics' spin range) rather than relabelling a slow ball as fast.
  */
 import {
   PRACTICE_SIM_VERSION,
   type AssistLevel,
+  type BallCondition,
   type BowlerFamily,
   type BowlerProfile,
   type DeliveryVariation,
+  type Difficulty,
   type PaceBand,
   type PaceVariation,
   type PitchCondition,
@@ -26,7 +31,7 @@ import {
 } from '@/contracts/practice';
 import { rngFromKey, type Sfc32 } from '@/engine/prng';
 import { sha256Hex } from '@/engine/sha256';
-import { BODY, PACE_BANDS_KPH, PACE_KPH, SPIN_KPH, YORKER_MAX_LENGTH } from '@/physics/constants';
+import { BODY, DEFAULT_BALL, PACE_BANDS_KPH, PACE_KPH, SPIN_KPH, YORKER_MAX_LENGTH } from '@/physics/constants';
 import { flight, flightMovement } from '@/physics/delivery';
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -37,11 +42,13 @@ import { flight, flightMovement } from '@/physics/delivery';
 // physics' own (src/physics/constants.ts PACE_BANDS_KPH, PACE_KPH, SPIN_KPH): a plan never asks for a speed the
 // physics does not model.
 
-/** Learn assistance: a genuinely slower pace bowler (shown at its true speed). */
+/** Beginner difficulty: a genuinely slower pace bowler (shown at its true speed). The name is kept for its users. */
 export const LEARN_PACE_KPH = [100, 114] as const;
-/** Stock speeds of the two kinds of spinner (inside SPIN_KPH), and Learn's slower spinner (its bottom). */
+export const BEGINNER_PACE_KPH = LEARN_PACE_KPH;
+/** Stock speeds of the two kinds of spinner (inside SPIN_KPH), and Beginner's slower spinner (its bottom). */
 export const SPIN_STOCK_KPH: Readonly<Record<SpinType, readonly [number, number]>> = { finger: [80, 90], wrist: [76, 86] };
 export const LEARN_SPIN_KPH = [SPIN_KPH[0], SPIN_KPH[0] + 3] as const;
+export const BEGINNER_SPIN_KPH = LEARN_SPIN_KPH;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Variations
@@ -132,9 +139,23 @@ export const BOUNCER_ARRIVAL_M = [BODY.torsoTop, BODY.headY + BODY.headR] as con
 export const BOUNCER_TARGET_M = [BOUNCER_ARRIVAL_M[0] + 0.06, BOUNCER_ARRIVAL_M[1] - 0.08] as const;
 export const BOUNCER_BUILT_TARGET_M = (BOUNCER_TARGET_M[0] + BOUNCER_TARGET_M[1]) / 2;
 
-/** Height at the batter of a delivery (from the one flight model). */
-export function arrivalHeight(plan: PracticeDeliveryPlan, bowler: BowlerProfile, conditions: PitchCondition, seed: string): number {
-  return flightMovement(flight({ plan, bowler, conditions, seed })).heightAtBatM;
+/** Height at the batter of a delivery (from the one flight model), with the over's ball (default new). */
+export function arrivalHeight(plan: PracticeDeliveryPlan, bowler: BowlerProfile, conditions: PitchCondition, seed: string, ball?: BallCondition): number {
+  return flightMovement(flight({ plan, bowler, conditions, seed, ...(ball ? { ball } : {}) })).heightAtBatM;
+}
+
+/** A copy of a ball condition (the default when none is given), so plans never share one object. */
+export function ballOf(ball?: BallCondition): BallCondition {
+  return { colour: ball?.colour ?? DEFAULT_BALL.colour, age: ball?.age ?? DEFAULT_BALL.age };
+}
+
+const BALL_COLOURS: ReadonlySet<string> = new Set(['red', 'white']);
+const BALL_AGES: ReadonlySet<string> = new Set(['new', 'worn']);
+/** Whether a value is a legal BallCondition. */
+export function isBallCondition(b: unknown): b is BallCondition {
+  if (!b || typeof b !== 'object') return false;
+  const o = b as Record<string, unknown>;
+  return typeof o.colour === 'string' && BALL_COLOURS.has(o.colour) && typeof o.age === 'string' && BALL_AGES.has(o.age);
 }
 
 /**
@@ -142,10 +163,10 @@ export function arrivalHeight(plan: PracticeDeliveryPlan, bowler: BowlerProfile,
  * batter at `targetM`: a bracketed secant (Illinois) solve on the real flight, where arrival height rises smoothly
  * with the length. About six flights; to within a few millimetres of the target height.
  */
-export function bouncerLength(plan: PracticeDeliveryPlan, bowler: BowlerProfile, conditions: PitchCondition, seed: string, targetM: number): number {
+export function bouncerLength(plan: PracticeDeliveryPlan, bowler: BowlerProfile, conditions: PitchCondition, seed: string, targetM: number, ball?: BallCondition): number {
   const lo = BOUNCER_MIN_LENGTH_M;
   const hi = BUILD_LIMITS.pace.lengthM[1];
-  const f = (L: number) => arrivalHeight({ ...plan, variation: 'bouncer', lengthM: L }, bowler, conditions, seed) - targetM;
+  const f = (L: number) => arrivalHeight({ ...plan, variation: 'bouncer', lengthM: L }, bowler, conditions, seed, ball) - targetM;
   let a = 9.5;
   let b = 11.5;
   let fa = f(a);
@@ -195,9 +216,22 @@ function lengthRange(family: BowlerFamily, variation: DeliveryVariation): readon
   return PACE_OTHER_LENGTH_M;
 }
 
-/** The bowler's stock speed for a band (or spin type) at an assistance level: the middle of its honest range. */
-export function stockKph(family: BowlerFamily, opts: { paceBand?: PaceBand; spinType?: SpinType; assist?: AssistLevel }): number {
-  const r = family === 'pace' ? (opts.assist === 'learn' ? LEARN_PACE_KPH : PACE_BANDS_KPH[opts.paceBand ?? 'fast']) : opts.assist === 'learn' ? LEARN_SPIN_KPH : SPIN_STOCK_KPH[opts.spinType ?? 'finger'];
+/**
+ * The honest stock-speed range (km/h) of a bowler at a difficulty: Beginner bowls the slower ranges, Club and Expert
+ * the band's (pace) or the spin type's. The assistance level never changes the bowling.
+ */
+export function stockRangeFor(family: BowlerFamily, opts: { paceBand?: PaceBand; spinType?: SpinType; difficulty?: Difficulty }): readonly [number, number] {
+  const beginner = opts.difficulty === 'beginner';
+  if (family === 'pace') return beginner ? BEGINNER_PACE_KPH : PACE_BANDS_KPH[opts.paceBand ?? 'fast'];
+  return beginner ? BEGINNER_SPIN_KPH : SPIN_STOCK_KPH[opts.spinType ?? 'finger'];
+}
+
+/**
+ * The bowler's stock speed for a band (or spin type) at a difficulty: the middle of its honest range. `assist` is
+ * accepted for old callers and ignored (assistance changes only the timing bands).
+ */
+export function stockKph(family: BowlerFamily, opts: { paceBand?: PaceBand; spinType?: SpinType; assist?: AssistLevel; difficulty?: Difficulty }): number {
+  const r = stockRangeFor(family, opts);
   return (r[0] + r[1]) / 2;
 }
 
@@ -224,6 +258,7 @@ export function buildBall(opts: {
   paceBand?: PaceBand;
   spinType?: SpinType;
   assist?: AssistLevel;
+  difficulty?: Difficulty;
 }): PracticeDeliveryPlan {
   const { family, target, variation } = opts;
   if (!variationsFor(family, opts.spinType).includes(variation)) throw new Error(`practice: ${variation} is not a ${family}${opts.spinType ? ` (${opts.spinType})` : ''} delivery`);
@@ -259,19 +294,21 @@ function shuffleWith<T>(rng: Sfc32, items: readonly T[]): T[] {
 /**
  * Lock a built over: six legal balls for one bowler, optionally shuffled once (seeded, so the same build and seed
  * shuffle the same way). Each bouncer's length is then solved against the flight on the innings' pitch so it arrives
- * between shoulder and head height (its tapped line is kept). Throws with the validation errors when the over is not
- * legal.
+ * between shoulder and head height (its tapped line is kept). The over's ball defaults to a new white ball. Throws
+ * with the validation errors when the over is not legal.
  */
-export function buildOver(opts: { bowler: BowlerProfile; balls: readonly PracticeDeliveryPlan[]; shuffle: boolean; seed: string; conditions?: PitchCondition }): PracticeOverPlan {
+export function buildOver(opts: { bowler: BowlerProfile; balls: readonly PracticeDeliveryPlan[]; shuffle: boolean; seed: string; conditions?: PitchCondition; ball?: BallCondition }): PracticeOverPlan {
   if (opts.balls.length !== 6) throw new Error(`practice: a built over needs six balls, got ${opts.balls.length}`);
   const shuffled = opts.shuffle ? shuffleWith(rngFromKey(`vande-practice-shuffle|${opts.seed}`), opts.balls) : [...opts.balls];
   const conditions = opts.conditions ?? 'balanced';
+  const ball = ballOf(opts.ball);
   const order = shuffled.map((b, i) =>
-    b.variation === 'bouncer' && opts.bowler.family === 'pace' ? { ...b, lengthM: bouncerLength(b, opts.bowler, conditions, ballSeed({ seed: opts.seed }, i), BOUNCER_BUILT_TARGET_M) } : b,
+    b.variation === 'bouncer' && opts.bowler.family === 'pace' ? { ...b, lengthM: bouncerLength(b, opts.bowler, conditions, ballSeed({ seed: opts.seed }, i), BOUNCER_BUILT_TARGET_M, ball) } : b,
   );
   const plan: PracticeOverPlan = {
     version: PRACTICE_SIM_VERSION,
     bowler: opts.bowler,
+    ball,
     balls: order.map((b) => ({ ...b })) as PracticeOverPlan['balls'],
     seed: opts.seed,
     source: 'built',
@@ -349,7 +386,8 @@ export function validateOver(over: PracticeOverPlan): OverValidation {
   if (!over || typeof over !== 'object') return { ok: false, errors: ['not_an_over'] };
   if (over.version !== PRACTICE_SIM_VERSION) errors.push('version');
   if (typeof over.seed !== 'string' || over.seed.length === 0) errors.push('seed');
-  if (over.source !== 'random' && over.source !== 'built' && over.source !== 'guided') errors.push('source');
+  if (over.source !== 'random' && over.source !== 'built' && over.source !== 'guided' && over.source !== 'reference') errors.push('source');
+  if (!isBallCondition(over.ball)) errors.push('ball');
   const b = over.bowler;
   const family = b?.family;
   if (family !== 'pace' && family !== 'spin') return { ok: false, errors: [...errors, 'bowler_family'] };
@@ -404,7 +442,54 @@ function weighted<T extends string>(rng: Sfc32, weights: Partial<Record<T, numbe
   return items[items.length - 1];
 }
 
-type Level = 'guided' | 'beginner' | 'open';
+/** Generation level: the guided over, then the three difficulties (Beginner, Club = 'open', Expert). */
+type Level = 'guided' | 'beginner' | 'open' | 'expert';
+
+const LEVEL_OF: Readonly<Record<Difficulty, Level>> = { beginner: 'beginner', club: 'open', expert: 'expert' };
+
+/**
+ * Bowling quality by difficulty (never hidden randomness: the same seed and difficulty give the same over).
+ *  - loose: the share of stock and movement balls that are bad balls (a half-volley, short and wide, on the pads,
+ *    full and wide): Beginner bowls plenty to score from, Club some, Expert very few;
+ *  - spread: the part of each variation's line and length range the bowler uses (Expert hits the channel);
+ *  - bands: the pace bands (weights of controlled, fast, express) outside Learn, which is genuinely slower.
+ */
+export const DIFFICULTY_BOWLING: Readonly<Record<Difficulty, { loose: number; spread: number; bands: readonly [number, number, number] }>> = {
+  beginner: { loose: 0.25, spread: 1, bands: [1, 0, 0] },
+  club: { loose: 0.15, spread: 1, bands: [0.3, 0.5, 0.2] },
+  expert: { loose: 0.04, spread: 0.6, bands: [0, 0.45, 0.55] },
+};
+const DIFFICULTY_OF: Readonly<Record<Level, Difficulty>> = { guided: 'beginner', beginner: 'beginner', open: 'club', expert: 'expert' };
+
+/**
+ * Where an Expert bowler pitches each variation (m from the striker's stumps): the corridor, a length too short to be
+ * driven off a stride and too full to be punched off the back foot, with the swing ball a little fuller and the
+ * slower ball dipping onto a full length. The spread (DIFFICULTY_BOWLING) is then the part of this range he uses.
+ */
+export const EXPERT_LENGTH_M: Readonly<Partial<Record<DeliveryVariation, readonly [number, number]>>> = {
+  stock: [5.3, 6.6],
+  outswing: [4.8, 5.8],
+  inswing: [4.8, 5.8],
+  seam: [5.4, 6.6],
+  cutter: [5.6, 7],
+  slower: [4.6, 5.6],
+};
+
+/** Bad balls, by family: where each kind pitches (m) and finishes (line at the stumps, m). All are legal. */
+export const LOOSE_BALLS: Readonly<Record<BowlerFamily, ReadonlyArray<{ kind: 'half_volley' | 'short_wide' | 'on_pads' | 'wide_full'; lengthM: readonly [number, number]; lineM: readonly [number, number] }>>> = {
+  pace: [
+    { kind: 'half_volley', lengthM: [2.4, 3.4], lineM: [0, 0.22] },
+    { kind: 'short_wide', lengthM: [7.4, 8], lineM: [0.36, 0.5] },
+    { kind: 'on_pads', lengthM: [4.5, 6.5], lineM: [-0.28, -0.16] },
+    { kind: 'wide_full', lengthM: [3, 4.5], lineM: [0.38, 0.5] },
+  ],
+  spin: [
+    { kind: 'half_volley', lengthM: [1.6, 2.4], lineM: [0, 0.22] },
+    { kind: 'short_wide', lengthM: [6, 7], lineM: [0.3, 0.5] },
+    { kind: 'on_pads', lengthM: [3.5, 5], lineM: [-0.28, -0.16] },
+    { kind: 'wide_full', lengthM: [2.6, 4], lineM: [0.38, 0.5] },
+  ],
+};
 
 /** Constraints on the order of a generated over (all levels: at most one bouncer; beginners: a readable sequence). */
 export function fairSequence(vs: readonly DeliveryVariation[], family: BowlerFamily, beginner: boolean): boolean {
@@ -417,12 +502,12 @@ export function fairSequence(vs: readonly DeliveryVariation[], family: BowlerFam
   return true;
 }
 
-function composition(rng: Sfc32, family: BowlerFamily, spinType: SpinType | undefined, conditions: PitchCondition, assist: AssistLevel, level: Level): DeliveryVariation[] {
+function composition(rng: Sfc32, family: BowlerFamily, spinType: SpinType | undefined, conditions: PitchCondition, level: Level): DeliveryVariation[] {
   const out: DeliveryVariation[] = [];
   if (family === 'pace') {
     const natural: PaceVariation = rng.float() < 0.55 ? 'outswing' : 'inswing';
-    const nChange = level === 'guided' ? 0 : level === 'beginner' ? 1 : rng.float() < 0.5 ? 2 : 1;
-    const nMove = level === 'guided' ? 1 : conditions === 'green' ? 2 : rng.float() < 0.4 ? 2 : 1;
+    const nChange = level === 'guided' ? 0 : level === 'beginner' ? 1 : level === 'expert' ? 2 : rng.float() < 0.5 ? 2 : 1;
+    const nMove = level === 'guided' ? 1 : conditions === 'green' || level === 'expert' ? 2 : rng.float() < 0.4 ? 2 : 1;
     const used = new Set<PaceVariation>();
     for (let i = 0; i < nChange; i++) {
       const exclude = new Set<PaceVariation>(used);
@@ -430,8 +515,8 @@ function composition(rng: Sfc32, family: BowlerFamily, spinType: SpinType | unde
         exclude.add('bouncer');
         exclude.add('yorker');
       }
-      // A complete beginner in Learn is not bounced.
-      if (level !== 'open' && assist === 'learn') exclude.add('bouncer');
+      // A beginner is never bounced.
+      if (level === 'guided' || level === 'beginner') exclude.add('bouncer');
       const v = weighted(rng, PACE_CHANGE_WEIGHTS[conditions], exclude);
       if (!v) break;
       used.add(v);
@@ -442,10 +527,10 @@ function composition(rng: Sfc32, family: BowlerFamily, spinType: SpinType | unde
   } else {
     const type = spinType ?? 'finger';
     const changes: SpinVariation[] = type === 'finger' ? ['arm_ball', 'wrong_un'] : ['topspinner', 'wrong_un'];
-    // A complete beginner in Learn is not shown the ball that turns the other way.
-    const pool = level !== 'open' && assist === 'learn' ? changes.filter((v) => v !== 'wrong_un') : changes;
-    const nChange = level === 'guided' ? 0 : level === 'beginner' ? 1 : rng.float() < 0.4 ? 2 : 1;
-    const nMove = level === 'guided' ? 1 : rng.float() < 0.5 ? 2 : 1;
+    // A beginner is not shown the ball that turns the other way.
+    const pool = level === 'guided' || level === 'beginner' ? changes.filter((v) => v !== 'wrong_un') : changes;
+    const nChange = level === 'guided' ? 0 : level === 'beginner' ? 1 : level === 'expert' ? 2 : rng.float() < 0.4 ? 2 : 1;
+    const nMove = level === 'guided' ? 1 : level === 'expert' || rng.float() < 0.5 ? 2 : 1;
     const used = new Set<SpinVariation>();
     for (let i = 0; i < nChange; i++) {
       const left = pool.filter((v) => !used.has(v));
@@ -479,35 +564,48 @@ function lerp(r: readonly [number, number], u: number): number {
   return r[0] + (r[1] - r[0]) * u;
 }
 
-function generateOver(opts: { seed: string; conditions: PitchCondition; assist: AssistLevel; family?: BowlerFamily; level: Level; source: PracticeOverPlan['source'] }): PracticeOverPlan {
-  const { seed, conditions, assist, level } = opts;
+/** One over at a generation level. The assistance level is not an input: it changes only the timing bands. */
+function generateOver(opts: { seed: string; conditions: PitchCondition; family?: BowlerFamily; level: Level; source: PracticeOverPlan['source']; ball?: BallCondition }): PracticeOverPlan {
+  const { seed, conditions, level } = opts;
+  const ball = ballOf(opts.ball);
   const rng = rngFromKey(`vande-practice-over|${PRACTICE_SIM_VERSION}|${level}|${seed}`);
   const familyDraw = rng.float();
   const family: BowlerFamily = opts.family ?? (familyDraw < SPIN_SHARE[conditions] ? 'spin' : 'pace');
-  const beginner = level !== 'open';
+  const beginner = level === 'guided' || level === 'beginner';
+  const quality = DIFFICULTY_BOWLING[DIFFICULTY_OF[level]];
   const armDraw = rng.float();
   const arm: 'right' | 'left' = beginner || armDraw < 0.8 ? 'right' : 'left';
   let bowler: BowlerProfile;
   let stockRange: readonly [number, number];
   if (family === 'pace') {
     const u = rng.float();
-    const paceBand: PaceBand =
-      assist === 'learn' ? 'controlled' : assist === 'play' ? (beginner ? (u < 0.55 ? 'controlled' : 'fast') : u < 0.3 ? 'controlled' : u < 0.8 ? 'fast' : 'express') : u < 0.15 ? 'controlled' : u < 0.6 ? 'fast' : 'express';
+    const w = quality.bands;
+    const paceBand: PaceBand = u < w[0] ? 'controlled' : u < w[0] + w[1] ? 'fast' : 'express';
     bowler = { family, paceBand, arm, lookSeed: lookSeed(seed) };
-    stockRange = assist === 'learn' ? LEARN_PACE_KPH : PACE_BANDS_KPH[paceBand];
+    stockRange = stockRangeFor('pace', { paceBand, difficulty: DIFFICULTY_OF[level] });
   } else {
     const spinType: SpinType = rng.float() < 0.55 ? 'finger' : 'wrist';
     bowler = { family, spinType, arm, lookSeed: lookSeed(seed) };
-    stockRange = assist === 'learn' ? LEARN_SPIN_KPH : SPIN_STOCK_KPH[spinType];
+    stockRange = stockRangeFor('spin', { spinType, difficulty: DIFFICULTY_OF[level] });
   }
   const stock = lerp(stockRange, rng.float());
-  const vs = arrange(rng, composition(rng, family, bowler.spinType, conditions, assist, level), family, beginner);
+  const vs = arrange(rng, composition(rng, family, bowler.spinType, conditions, level), family, beginner);
   const lim = BUILD_LIMITS[family];
+  const looseKinds = LOOSE_BALLS[family];
   const balls = vs.map((variation, i): PracticeDeliveryPlan => {
     const spec = variationSpec(family, variation)!;
     const len = lengthRange(family, variation);
-    const lengthM = round2(clamp(lerp(spec.lengthM, rng.float()), len[0], len[1]));
-    const lineM = round2(clamp(lerp(spec.lineM, rng.float()), lim.lineM[0], lim.lineM[1]));
+    // The bowler's accuracy: Expert uses the middle of each range (the channel), the others all of it.
+    const within = (u: number) => 0.5 + (u - 0.5) * quality.spread;
+    const lengths = (level === 'expert' && family === 'pace' ? EXPERT_LENGTH_M[variation] : undefined) ?? spec.lengthM;
+    let lengthM = round2(clamp(lerp(lengths, within(rng.float())), len[0], len[1]));
+    let lineM = round2(clamp(lerp(spec.lineM, within(rng.float())), lim.lineM[0], lim.lineM[1]));
+    // A bad ball now and then (stock and movement balls only): where it pitches and finishes, still legal.
+    if (spec.kind !== 'change' && level !== 'guided' && rng.float() < quality.loose) {
+      const lb = looseKinds[Math.min(looseKinds.length - 1, Math.floor(rng.float() * looseKinds.length))];
+      lengthM = round2(clamp(lerp(lb.lengthM, rng.float()), len[0], len[1]));
+      lineM = round2(clamp(lerp(lb.lineM, rng.float()), lim.lineM[0], lim.lineM[1]));
+    }
     const jitter = (rng.float() - 0.5) * 2;
     const speeds = SPEED_LIMITS_KPH[family];
     const speedKph = round1(clamp(stock * spec.kphScale + spec.kphDelta + jitter, speeds[0], speeds[1]));
@@ -515,9 +613,9 @@ function generateOver(opts: { seed: string; conditions: PitchCondition; assist: 
     if (variation !== 'bouncer') return { variation, lengthM, lineM, speedKph };
     // A real bouncer: its length is whatever makes it arrive between shoulder and head on this pitch.
     const target = lerp(BOUNCER_TARGET_M, heightU);
-    return { variation, lengthM: bouncerLength({ variation, lengthM, lineM, speedKph }, bowler, conditions, ballSeed({ seed }, i), target), lineM, speedKph };
+    return { variation, lengthM: bouncerLength({ variation, lengthM, lineM, speedKph }, bowler, conditions, ballSeed({ seed }, i), target, ball), lineM, speedKph };
   }) as PracticeOverPlan['balls'];
-  return { version: PRACTICE_SIM_VERSION, bowler, balls, seed, source: opts.source };
+  return { version: PRACTICE_SIM_VERSION, bowler, ball, balls, seed, source: opts.source };
 }
 
 /**
@@ -525,10 +623,17 @@ function generateOver(opts: { seed: string; conditions: PitchCondition; assist: 
  * stock ball and the bowler's natural movement, with one or two change-ups) rather than six extremes. A beginner's
  * over opens with a stock ball, never puts two change-ups back to back, bowls at most one bouncer or yorker, and (in
  * Learn) leaves out the spinner's wrong'un and the bouncer. A bouncer's length is solved against the flight so it
- * really arrives between shoulder and head height on the pitch. Deterministic in its inputs.
+ * really arrives between shoulder and head height on the pitch. The ball is a new white one unless the setup chooses
+ * another.
+ *
+ * Difficulty (DIFFICULTY_BOWLING) is better bowling, never hidden randomness: Beginner bowls more bad balls to score
+ * from and the readable sequence above; Club a realistic mix; Expert hits the channel, bowls two change-ups and two
+ * movement balls, rarely a bad ball, and quicker. Without `difficulty`, `beginner` chooses Beginner or Club.
+ * Deterministic in its inputs.
  */
-export function randomOver(opts: { seed: string; conditions: PitchCondition; assist: AssistLevel; family?: BowlerFamily; beginner: boolean }): PracticeOverPlan {
-  return generateOver({ ...opts, level: opts.beginner ? 'beginner' : 'open', source: 'random' });
+export function randomOver(opts: { seed: string; conditions: PitchCondition; assist: AssistLevel; family?: BowlerFamily; beginner?: boolean; difficulty?: Difficulty; ball?: BallCondition }): PracticeOverPlan {
+  const level: Level = opts.difficulty ? LEVEL_OF[opts.difficulty] : opts.beginner ? 'beginner' : 'open';
+  return generateOver({ seed: opts.seed, conditions: opts.conditions, family: opts.family, level, source: 'random', ball: opts.ball });
 }
 
 /**
@@ -536,8 +641,8 @@ export function randomOver(opts: { seed: string; conditions: PitchCondition; ass
  * good length, at Learn pace), then the guided six-ball over that counts (Learn pace bowler, balanced pitch, stock
  * balls and his natural swing only, source 'guided').
  */
-export function guidedStart(seed: string): { warmup: { bowler: BowlerProfile; plan: PracticeDeliveryPlan; seed: string }; over: PracticeOverPlan } {
-  const over = generateOver({ seed, conditions: 'balanced', assist: 'learn', family: 'pace', level: 'guided', source: 'guided' });
-  const plan: PracticeDeliveryPlan = { variation: 'stock', lengthM: 5.8, lineM: 0.15, speedKph: variationKph('pace', 'stock', stockKph('pace', { assist: 'learn' })) };
+export function guidedStart(seed: string, ball?: BallCondition): { warmup: { bowler: BowlerProfile; plan: PracticeDeliveryPlan; seed: string }; over: PracticeOverPlan } {
+  const over = generateOver({ seed, conditions: 'balanced', family: 'pace', level: 'guided', source: 'guided', ball });
+  const plan: PracticeDeliveryPlan = { variation: 'stock', lengthM: 5.8, lineM: 0.15, speedKph: variationKph('pace', 'stock', stockKph('pace', { difficulty: 'beginner' })) };
   return { warmup: { bowler: over.bowler, plan, seed: sha256Hex(`vande-practice-warmup|${seed}`).slice(0, 32) }, over };
 }

@@ -153,14 +153,12 @@ export function dtanh(x: number): number {
 // ---------------------------------------------------------------------------------------------------------------
 
 export const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
-export const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 export const smooth01 = (t: number): number => {
   const c = clamp(t, 0, 1);
   return c * c * (3 - 2 * c);
 };
 
 export const v3 = (x = 0, y = 0, z = 0): Vec3 => ({ x, y, z });
-export const add = (a: Vec3, b: Vec3): Vec3 => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z });
 export const sub = (a: Vec3, b: Vec3): Vec3 => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z });
 export const scale = (a: Vec3, s: number): Vec3 => ({ x: a.x * s, y: a.y * s, z: a.z * s });
 export const dot = (a: Vec3, b: Vec3): number => a.x * b.x + a.y * b.y + a.z * b.z;
@@ -171,7 +169,6 @@ export const norm = (a: Vec3): Vec3 => {
   const l = len(a);
   return l > 0 ? { x: a.x / l, y: a.y / l, z: a.z / l } : { x: 0, y: 0, z: 0 };
 };
-export const lerpV = (a: Vec3, b: Vec3, t: number): Vec3 => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t });
 export const UP: Vec3 = { x: 0, y: 1, z: 0 };
 
 /** Rotate v about the unit axis k by angle a (Rodrigues). */

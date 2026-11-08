@@ -104,3 +104,6 @@ export { createDisabledAds, createDisabledBilling, createMockAds, createMockBill
 export { buildShareMessage, canShare, claimMoment, istWhen, localShareLedger, memoryShareLedger, reminderFor, setMomentClaimer, shareMoment } from './shareMoments';
 export type { MomentClaimer, ShareContext, ShareLedger, ShareMoment } from './shareMoments';
 export { isNativePlatform } from './capacitor';
+export { createUnityPracticeBridge, nativeUnityPracticeBridge } from './unityPractice';
+export type { NativeUnityPracticePlugin, UnityPracticeAvailability, UnityPracticeBridge, UnityPracticeNativeError } from './unityPractice';
+export { createWebUnityPracticeBridge } from './unityPracticeWeb';

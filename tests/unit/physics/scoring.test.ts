@@ -9,9 +9,12 @@ import { flightMovement } from '@/physics/delivery';
 import { BEAT_THE_FIELD_M, diagnoseBeaten, judge, regionOf, zoneOf, type PlayFacts } from '@/physics/scoring';
 import { stubFlight } from '../practice/game/stubTrajectory';
 
+/** These tests check the Test (red-ball) templates; the white-ball ones are checked separately. */
+const RED_BALL = { colour: 'red', age: 'new' } as const;
+
 const PACE: BowlerProfile = { family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 's' };
 const SPIN: BowlerProfile = { family: 'spin', spinType: 'finger', arm: 'right', lookSeed: 's' };
-const FIELD = autoField(PACE, 'balanced');
+const FIELD = autoField(PACE, 'balanced', 'right', RED_BALL);
 const at = (b: number, d: number): Vec3 => ({ ...pointFromStriker(b, d), y: 1 });
 
 const contact = (o: Partial<ContactReport> = {}): ContactReport => ({
@@ -144,6 +147,23 @@ describe('judge: dismissals', () => {
     expect(j.outcome).toMatchObject({ dismissal: 'bowled', region: 'behind' });
   });
 
+  it('played on off the middle is `played_on`, never a "beaten" reason; an edge played on keeps its edge diagnosis', () => {
+    // Added 2026-11-03 (PHYS phase 3; contract v6 `played_on`, COACH rerun report §3 item 5): before, judge named
+    // diagnoseBeaten's movement for every ball played on, and 25 of 26 balls played on off the middle claimed the bat
+    // was beaten (ref-4 Real −24 ms, inside the perfect band, read "beaten by the seam").
+    const onStumps = { t: 0.62, p: { x: 0.05, y: 0.3, z: PITCH_HALF - 0.05 } };
+    const middle = judge(facts({ contact: contact({ kind: 'middle', timing: 'perfect', timingErrorMs: -24 }), playedOn: onStumps }));
+    expect(middle.outcome).toMatchObject({ dismissal: 'bowled', region: 'behind' });
+    expect(middle.coaching).toMatchObject({ reason: 'played_on', timing: 'on_time' });
+    const early = judge(facts({ contact: contact({ kind: 'middle', timing: 'mistimed', timingErrorMs: -60 }), playedOn: onStumps }));
+    expect(early.coaching).toMatchObject({ reason: 'played_on', timing: 'early' });
+    const edgeContact = contact({ kind: 'inside_edge', timing: 'mistimed', timingErrorMs: 90 });
+    const edge = judge(facts({ contact: edgeContact, playedOn: onStumps }));
+    expect(edge.outcome.dismissal).toBe('bowled');
+    expect(edge.coaching.reason).not.toBe('played_on');
+    expect(edge.coaching.reason).toBe(diagnoseBeaten(facts({ contact: edgeContact })));
+  });
+
   it('lbw when the physics gives the pad out; a dead ball when not', () => {
     const impact = { t: 0.57, p: { x: 0, y: 0.4, z: PITCH_HALF - 1.1 }, part: 'pad' as const };
     const out = judge(facts({ contact: contact({ kind: 'pad', timing: 'missed', timingErrorMs: 150 }), impact: { ...impact, lbw: { out: true, reason: 'out' } } }));
@@ -172,6 +192,12 @@ describe('judge: dismissals', () => {
     expect(deep.coaching.reason).toBe('caught_in_the_deep');
     const skied = judge(facts({ swing: swing({ elevation: 0.8 }), contact: contact({ timing: 'mistimed', timingErrorMs: -90 }), fielding: fielding({ kind: 'caught', fielderId: 'mid_off', t: 3, p: at(21, 25), dive: false, speed: 15 }) }));
     expect(skied.coaching).toMatchObject({ reason: 'mistimed_lofted', timing: 'early' });
+    const raised = judge(facts({ swing: swing({ elevation: 0.44 }), contact: contact({ timing: 'mistimed', timingErrorMs: -90 }), fielding: fielding({ kind: 'caught', fielderId: 'mid_off', t: 3, p: at(21, 25), dive: false, speed: 15 }) }));
+    expect(raised.coaching).toMatchObject({ reason: 'caught_in_the_ring', timing: 'early' });
+    const groundedTopEdge = judge(facts({ swing: swing({ elevation: 0.05 }), contact: contact({ kind: 'top_edge', timing: 'mistimed', timingErrorMs: -90 }), fielding: fielding({ kind: 'caught', fielderId: 'mid_off', t: 3, p: at(21, 25), dive: false, speed: 15 }) }));
+    expect(groundedTopEdge.coaching).toMatchObject({ reason: 'caught_in_the_ring', timing: 'early' });
+    const shortTopEdge = judge(facts({ flight: stubFlight({ lengthM: 9 }), swing: swing({ elevation: 0.05 }), contact: contact({ kind: 'top_edge', timing: 'mistimed', timingErrorMs: -90 }), fielding: fielding({ kind: 'caught', fielderId: 'mid_off', t: 3, p: at(21, 25), dive: false, speed: 15 }) }));
+    expect(shortTopEdge.coaching).toMatchObject({ reason: 'beaten_by_bounce', timing: 'early' });
   });
 });
 

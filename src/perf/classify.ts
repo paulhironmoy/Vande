@@ -70,11 +70,13 @@ export const PERF_REASONS: readonly PerfReason[] = [
 
 /** What one benchmark run measured. */
 export interface PerfMeasurements {
+  /** Omitted means the established WebGL renderer. */
+  backend?: 'webgl2' | 'unity';
   webgl2: boolean;
   /** The stage's own judgement; combined with isSoftwareRenderer(renderer). */
   hardware: boolean;
   renderer: string;
-  shaderCompileMs: number;
+  shaderCompileMs: number | null;
   /** Intervals between presented frames (ms) while the benchmark scene played. */
   frameMs: readonly number[];
   contextLosses: number;
@@ -121,7 +123,7 @@ export function profileFor(tier: PerfTier, _stats: FrameStats, m: Pick<PerfMeasu
 
 /** Vsync-locked with no spikes, plenty of memory and quick shaders: worth measuring again at High. */
 export function hasHighHeadroom(stats: FrameStats, m: Pick<PerfMeasurements, 'memoryGb' | 'shaderCompileMs'>): boolean {
-  return stats.avgFps >= 58 && stats.p95FrameMs <= 18.5 && stats.spikes === 0 && (m.memoryGb ?? 0) >= 8 && m.shaderCompileMs <= 800;
+  return stats.avgFps >= 58 && stats.p95FrameMs <= 18.5 && stats.spikes === 0 && (m.memoryGb ?? 0) >= 8 && (m.shaderCompileMs ?? Number.POSITIVE_INFINITY) <= 800;
 }
 
 export function classifyDevice(m: PerfMeasurements): DeviceAssessment {
@@ -137,8 +139,9 @@ export function classifyDevice(m: PerfMeasurements): DeviceAssessment {
     tier = lowerTier(tier, 'assisted');
   };
   const software = !m.hardware || isSoftwareRenderer(m.renderer);
+  const graphicsAvailable = m.backend === 'unity' || m.webgl2;
 
-  if (!m.webgl2) below('no_webgl2');
+  if (!graphicsAvailable) below('no_webgl2');
   else {
     if (software) below('software_renderer');
     if (m.contextLosses >= PERF_REPEATED_CONTEXT_LOSSES) below('context_lost_repeated');
@@ -157,15 +160,16 @@ export function classifyDevice(m: PerfMeasurements): DeviceAssessment {
     // Under 2 GB reported is under the 3 GB floor whatever the rounding: Lite and the Assisted readability help.
     if (m.memoryGb !== null && m.memoryGb < 2) assisted('low_memory');
   }
-  if (m.shaderCompileMs > PERF_SLOW_SHADER_MS) reasons.push('shader_compile_slow');
+  if (m.shaderCompileMs !== null && m.shaderCompileMs > PERF_SLOW_SHADER_MS) reasons.push('shader_compile_slow');
 
   const profile = profileFor(tier, stats, m);
   if (!reasons.length) reasons.push('ok');
   return {
+    ...(m.backend ? { backend: m.backend } : {}),
     webgl2: m.webgl2,
-    hardware: m.webgl2 && !software,
+    hardware: graphicsAvailable && !software,
     renderer: m.renderer,
-    shaderCompileMs: round(m.shaderCompileMs),
+    shaderCompileMs: m.shaderCompileMs === null ? null : round(m.shaderCompileMs),
     avgFps: round(stats.avgFps, 1),
     p95FrameMs: round(stats.p95FrameMs, 1),
     spikes: stats.spikes,

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import type { AssistLevel, BowlerFamily, DeliveryVariation, PitchCondition, PracticeOverPlan } from '@/contracts/practice';
+import type { AssistLevel, BowlerFamily, DeliveryVariation, Difficulty, PitchCondition, PracticeOverPlan } from '@/contracts/practice';
 import { PACE_BANDS_KPH, PACE_KPH, SPIN_KPH, YORKER_MAX_LENGTH } from '@/physics/constants';
 import {
   BOUNCER_ARRIVAL_M,
@@ -89,17 +89,18 @@ describe('Quick Random Over', () => {
     expect(share('balanced')).toBeGreaterThan(share('green'));
   }, 120_000);
 
-  it('bowls honest speeds: pace bands at Play and Real, genuinely slower at Learn', () => {
+  it('bowls honest speeds: pace bands at Club and Expert, genuinely slower at Beginner, whatever the assistance', () => {
     for (let i = 0; i < 600; i++) {
       const assist = ASSISTS[i % 3];
-      const over = randomOver({ seed: `kph-${i}`, conditions: 'balanced', assist, beginner: false });
+      const beginner = i % 4 === 0;
+      const over = randomOver({ seed: `kph-${i}`, conditions: 'balanced', assist, beginner });
       const stock = over.balls.filter((b) => b.variation === 'stock').map((b) => b.speedKph);
-      const range = over.bowler.family === 'pace' ? (assist === 'learn' ? LEARN_PACE_KPH : PACE_BANDS_KPH[over.bowler.paceBand!]) : assist === 'learn' ? LEARN_SPIN_KPH : SPIN_STOCK_KPH[over.bowler.spinType!];
+      const range = over.bowler.family === 'pace' ? (beginner ? LEARN_PACE_KPH : PACE_BANDS_KPH[over.bowler.paceBand!]) : beginner ? LEARN_SPIN_KPH : SPIN_STOCK_KPH[over.bowler.spinType!];
       for (const s of stock) {
         expect(s).toBeGreaterThanOrEqual(range[0] - 1.01);
         expect(s).toBeLessThanOrEqual(range[1] + 1.01);
       }
-      if (assist === 'learn' && over.bowler.family === 'pace') {
+      if (beginner && over.bowler.family === 'pace') {
         expect(over.bowler.paceBand).toBe('controlled');
         for (const b of over.balls) expect(b.speedKph).toBeLessThan(120);
       }
@@ -212,8 +213,11 @@ describe('Build an Over', () => {
     expect(yorker.lengthM).toBeLessThanOrEqual(YORKER_MAX_LENGTH);
     const slower = buildBall({ family: 'pace', target: { lineM: 0.1, lengthM: 5 }, variation: 'slower', paceBand: 'fast' });
     expect(slower.speedKph).toBeLessThan(buildBall({ family: 'pace', target: { lineM: 0.1, lengthM: 5 }, variation: 'stock', paceBand: 'fast' }).speedKph - 15);
+    // Beginner bowls slower; the assistance level never changes the bowling.
+    const beginnerBall = buildBall({ family: 'pace', target: { lineM: 0.1, lengthM: 5 }, variation: 'stock', paceBand: 'fast', difficulty: 'beginner' });
+    expect(beginnerBall.speedKph).toBeLessThan(PACE_BANDS_KPH.controlled[0]);
     const learn = buildBall({ family: 'pace', target: { lineM: 0.1, lengthM: 5 }, variation: 'stock', paceBand: 'fast', assist: 'learn' });
-    expect(learn.speedKph).toBeLessThan(PACE_BANDS_KPH.controlled[0]);
+    expect(learn.speedKph).toBe(buildBall({ family: 'pace', target: { lineM: 0.1, lengthM: 5 }, variation: 'stock', paceBand: 'fast', assist: 'real' }).speedKph);
     expect(() => buildBall({ family: 'pace', target: { lineM: 0, lengthM: 5 }, variation: 'googly' as DeliveryVariation })).toThrow();
     expect(() => buildBall({ family: 'spin', spinType: 'finger', target: { lineM: 0, lengthM: 4 }, variation: 'bouncer' })).toThrow();
     expect(buildBall({ family: 'spin', spinType: 'wrist', target: { lineM: 0.1, lengthM: 4 }, variation: 'wrong_un' }).speedKph).toBeLessThan(100);
@@ -282,5 +286,55 @@ describe('Build an Over', () => {
     expect(validateOver({ ...ok, balls: [{ ...ok.balls[0], lineM: 1.5 }, ...ok.balls.slice(1)] as PracticeOverPlan['balls'] }).errors).toContain('ball0:line');
     expect(validateOver({ ...ok, balls: ok.balls.slice(0, 5) as unknown as PracticeOverPlan['balls'] }).ok).toBe(false);
     expect(validateOver({ ...ok, bowler: { ...ok.bowler, spinType: 'finger' } }).errors).toContain('pace_bowler_profile');
+  });
+});
+
+describe('Random Over difficulty (F-013, EX9): better bowling, never hidden randomness', () => {
+  const DIFFS: Difficulty[] = ['beginner', 'club', 'expert'];
+  const sample = (difficulty: Difficulty, n = 300) => Array.from({ length: n }, (_, i) => randomOver({ seed: `diff-${i}`, conditions: CONDITIONS[i % 4], assist: ASSISTS[i % 3], difficulty }));
+  const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length);
+  const looseShare = (overs: PracticeOverPlan[]) => {
+    let n = 0;
+    let loose = 0;
+    for (const o of overs)
+      for (const b of o.balls) {
+        n++;
+        const L = b.lengthM;
+        const pace = o.bowler.family === 'pace';
+        if (b.lineM > 0.35 || b.lineM < -0.15 || (pace ? L < 3.5 && b.variation !== 'yorker' : L < 2.5) || (pace && b.variation !== 'bouncer' && L > 7.3)) loose++;
+      }
+    return loose / n;
+  };
+
+  it('is deterministic in seed and difficulty, and independent of the assistance level', () => {
+    for (const difficulty of DIFFS)
+      for (let i = 0; i < 40; i++) {
+        const a = randomOver({ seed: `d-${i}`, conditions: CONDITIONS[i % 4], assist: 'learn', difficulty });
+        expect(randomOver({ seed: `d-${i}`, conditions: CONDITIONS[i % 4], assist: 'learn', difficulty })).toEqual(a);
+        expect(randomOver({ seed: `d-${i}`, conditions: CONDITIONS[i % 4], assist: 'real', difficulty })).toEqual(a);
+      }
+  });
+
+  it('Beginner never bowls a bouncer or a wrong\'un and bowls one change-up at most', () => {
+    for (const o of sample('beginner', 400)) {
+      expect(o.balls.some((b) => b.variation === 'bouncer' || b.variation === 'wrong_un')).toBe(false);
+      expect(o.balls.filter((b) => variationSpec(o.bowler.family, b.variation)!.kind === 'change').length).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('is monotonic: Expert is quicker, varies more and bowls fewer bad balls than Club, Club than Beginner', () => {
+    const by = Object.fromEntries(DIFFS.map((d) => [d, sample(d)])) as Record<Difficulty, PracticeOverPlan[]>;
+    const paceStock = (d: Difficulty) => mean(by[d].filter((o) => o.bowler.family === 'pace').flatMap((o) => o.balls.filter((b) => b.variation === 'stock').map((b) => b.speedKph)));
+    const changes = (d: Difficulty) => mean(by[d].map((o) => o.balls.filter((b) => variationSpec(o.bowler.family, b.variation)!.kind === 'change').length));
+    expect(paceStock('expert')).toBeGreaterThan(paceStock('club') + 2);
+    expect(paceStock('club')).toBeGreaterThan(paceStock('beginner') + 10);
+    expect(changes('expert')).toBeGreaterThan(changes('club'));
+    expect(changes('club')).toBeGreaterThan(changes('beginner'));
+    expect(looseShare(by.expert)).toBeLessThan(looseShare(by.club));
+    expect(looseShare(by.club)).toBeLessThan(looseShare(by.beginner));
+    // Club is not mostly full balls (EX9): most balls are at a good length or shorter.
+    const full = by.club.flatMap((o) => o.balls.filter((b) => o.bowler.family === 'pace' && b.lengthM < 4.5 && b.variation !== 'yorker')).length;
+    const paceBalls = by.club.filter((o) => o.bowler.family === 'pace').length * 6;
+    expect(full / paceBalls).toBeLessThan(0.3);
   });
 });

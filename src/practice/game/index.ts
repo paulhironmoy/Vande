@@ -1,5 +1,7 @@
 /** Practice rules: overs, the one-wicket innings, replay and the coaching evidence (docs/PRACTICE_RULES.md). */
 export {
+  BEGINNER_PACE_KPH,
+  BEGINNER_SPIN_KPH,
   BOUNCER_ARRIVAL_M,
   BOUNCER_BUILT_TARGET_M,
   BOUNCER_MIN_LENGTH_M,
@@ -15,6 +17,7 @@ export {
   SPIN_STOCK_KPH,
   SPIN_VARIATIONS,
   arrivalHeight,
+  ballOf,
   ballSeed,
   bouncerLength,
   bowlerFor,
@@ -22,10 +25,15 @@ export {
   buildOver,
   fairSequence,
   guidedStart,
+  isBallCondition,
   lengthBand,
   lineBand,
   randomOver,
+  DIFFICULTY_BOWLING,
+  EXPERT_LENGTH_M,
+  LOOSE_BALLS,
   stockKph,
+  stockRangeFor,
   tapFromTarget,
   targetFromTap,
   validateOver,
@@ -57,3 +65,17 @@ export {
 } from './innings';
 export { makeRecord, nextFlight, playBall, replayDelivery, replayOver, repeatDelivery, resolveNext, verifyRecord } from './replay';
 export { coachingFacts, deliveryQuality, emptyTiming, type CoachingFacts } from './coaching';
+export {
+  REFERENCE_BALL,
+  REFERENCE_BALLS,
+  REFERENCE_CONDITIONS,
+  REFERENCE_OVER,
+  overPattern,
+  referenceBall,
+  type OverPattern,
+  type PatternLine,
+  type PatternMovement,
+  type ReferenceBall,
+  type ReferenceBallId,
+  type ReferenceObjective,
+} from './reference';

@@ -13,8 +13,8 @@ export const PITCH_WIDTH = 3.05;
 export const POPPING = 1.22;
 /** Return creases, 4 ft 4 in either side of the middle stump (Law 7.4). */
 export const RETURN_CREASE_X = 1.32;
-/** Stump height above the ground, 28 in (Law 8.2). Bails excluded. */
-export const STUMP_H = 0.711;
+/** Stump height above the ground, 28 in = 71.12 cm exactly (Law 8.2; was 0.711, 0.2 mm short). Bails excluded. */
+export const STUMP_H = 0.7112;
 /** Bails may stand at most 0.5 in above the stumps (Law 8.3). */
 export const BAIL_RISE = 0.0127;
 /** Top of the wicket including the bails. */

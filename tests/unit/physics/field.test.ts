@@ -14,12 +14,15 @@ import {
   validateField,
 } from '@/physics/field';
 
+/** These tests check the Test (red-ball) templates; the white-ball ones are checked separately. */
+const RED_BALL = { colour: 'red', age: 'new' } as const;
+
 const CONDITIONS: PitchCondition[] = ['balanced', 'green', 'hard', 'turning'];
 const HANDS: Handedness[] = ['right', 'left'];
 const pace = (paceBand: 'controlled' | 'fast' | 'express', arm: 'right' | 'left' = 'right'): BowlerProfile => ({ family: 'pace', paceBand, arm, lookSeed: 'a' });
 const spin = (spinType: 'finger' | 'wrist', arm: 'right' | 'left' = 'right'): BowlerProfile => ({ family: 'spin', spinType, arm, lookSeed: 'a' });
 const ALL_BOWLERS: BowlerProfile[] = [pace('controlled'), pace('fast'), pace('express'), pace('fast', 'left'), spin('finger'), spin('wrist'), spin('finger', 'left'), spin('wrist', 'left')];
-const roles = (b: BowlerProfile, c: PitchCondition, h: Handedness = 'right') => autoField(b, c, h).fielders.map((f) => f.role);
+const roles = (b: BowlerProfile, c: PitchCondition, h: Handedness = 'right') => autoField(b, c, h, RED_BALL).fielders.map((f) => f.role);
 const count = (rs: FielderRole[], r: FielderRole) => rs.filter((x) => x === r).length;
 
 describe('ground geometry', () => {
@@ -51,7 +54,7 @@ describe('autoField', () => {
     for (const b of ALL_BOWLERS)
       for (const c of CONDITIONS)
         for (const h of HANDS) {
-          const f = autoField(b, c, h);
+          const f = autoField(b, c, h, RED_BALL);
           expect(validateField(f), `${f.id} ${h}`).toEqual([]);
           expect(f.fielders).toHaveLength(11);
           for (const x of f.fielders) expect(Math.hypot(x.x, x.z)).toBeLessThan(BOUNDARY_R);
@@ -59,11 +62,11 @@ describe('autoField', () => {
   });
 
   it('is deterministic', () => {
-    for (const b of ALL_BOWLERS) for (const c of CONDITIONS) expect(autoField(b, c)).toEqual(autoField({ ...b }, c));
+    for (const b of ALL_BOWLERS) for (const c of CONDITIONS) expect(autoField(b, c, 'right', RED_BALL)).toEqual(autoField({ ...b }, c, 'right', RED_BALL));
   });
 
   it('keeps the keeper back for pace (further for quicker bowlers and bouncy pitches) and up to the stumps for spin', () => {
-    const keeperZ = (b: BowlerProfile, c: PitchCondition = 'balanced') => autoField(b, c).fielders.find((f) => f.role === 'keeper')!.z - PITCH_HALF;
+    const keeperZ = (b: BowlerProfile, c: PitchCondition = 'balanced') => autoField(b, c, 'right', RED_BALL).fielders.find((f) => f.role === 'keeper')!.z - PITCH_HALF;
     expect(keeperZ(spin('finger'))).toBeLessThan(1.5);
     expect(keeperZ(pace('controlled'))).toBeGreaterThan(8);
     expect(keeperZ(pace('fast'))).toBeGreaterThan(keeperZ(pace('controlled')));
@@ -105,13 +108,13 @@ describe('autoField', () => {
     expect(physicsBowler(spin('finger'), 'right').arm).toBe('right');
     // A right-arm off-spinner turns away from a left-hander: he gets the "away" field.
     expect(roles(spin('finger'), 'turning', 'left')).toEqual(expect.arrayContaining(['silly_point', 'deep_cover']));
-    expect(autoField(spin('finger'), 'balanced', 'left')).toEqual(autoField(spin('finger', 'left'), 'balanced', 'right'));
+    expect(autoField(spin('finger'), 'balanced', 'left', RED_BALL)).toEqual(autoField(spin('finger', 'left'), 'balanced', 'right', RED_BALL));
   });
 
   it('places a readable ring and boundary riders', () => {
     for (const b of ALL_BOWLERS)
       for (const c of CONDITIONS) {
-        const f = autoField(b, c);
+        const f = autoField(b, c, 'right', RED_BALL);
         const deep = f.fielders.filter((x) => distanceFromStriker(x.x, x.z) > 38);
         expect(deep.length).toBeGreaterThanOrEqual(1);
         expect(deep.length).toBeLessThanOrEqual(3);
@@ -126,7 +129,7 @@ describe('autoField', () => {
   });
 
   it('validateField rejects broken layouts', () => {
-    const good = autoField(pace('fast'), 'balanced');
+    const good = autoField(pace('fast'), 'balanced', 'right', RED_BALL);
     expect(validateField({ ...good, fielders: good.fielders.slice(0, 10) })).toContain('need_eleven_fielders');
     expect(validateField({ ...good, fielders: good.fielders.map((f) => (f.role === 'cover' ? { ...f, x: 70 } : f)) })).toContain('outside_rope:cover');
     expect(validateField({ ...good, fielders: good.fielders.map((f) => (f.role === 'keeper' ? { ...f, role: 'slip' as const } : f)) })).toContain('need_one_keeper');

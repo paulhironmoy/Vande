@@ -26,12 +26,17 @@ from a probability table: every one is read off the simulated ball, bat and fiel
 - A full over must be finished before another is chosen, unless the batter is out.
 - One wicket ends the innings at once: no second batter. After ten completed overs the innings is complete.
 - A player may abandon an unfinished innings; it ends with the score so far.
+- Restart over (`restartOver`): between balls of the over being batted, after at least one ball, the same fixed six
+  balls (plan and field) are bowled again from the first; the over's runs and balls are taken off. It is refused
+  mid-ball (`delivery_in_flight`), before the first ball (`nothing_to_restart`) and outside batting (`not_batting`), so a
+  wicket or a completed over can never be undone.
 - State machine (`inningsReducer`, pure): `choosing_over` → `chooseOver` → `batting` → six balls → `over_complete`
   → `nextOver` → `choosing_over`; a wicket on any ball → `out`; the tenth over completed → `complete`; `abandon` from
-  any unfinished state → `complete`. An action that is not allowed leaves the state unchanged; `inningsError` says why
-  (for example `finish_the_over_first`, `delivery_not_started`, `not_this_delivery`).
+  any unfinished state → `complete`; `restartOver` keeps `batting`. An action that is not allowed leaves the state
+  unchanged; `inningsError` says why (for example `finish_the_over_first`, `delivery_not_started`, `not_this_delivery`).
 - A resolved delivery is accepted only if it is the next ball of the current over, it was started, and its record
-  matches the over (plan, seed, bowler, field, pitch, assistance, handedness).
+  matches the over (plan, seed, bowler, field, ball, pitch, assistance, handedness; `wrong_ball_condition` for the
+  ball).
 
 ## Wides and no-balls
 
@@ -54,24 +59,36 @@ stumpings and no run-outs (running is automatic and always safe, see below).
 
 ### Quick Random Over (`randomOver`)
 
-Seeded and deterministic: the same seed, pitch, assistance level and beginner flag always give the same over. One
-bowler bowls all six balls.
+`randomOver({ seed, conditions, assist, difficulty, family?, ball? })`. Seeded and deterministic: the same seed, pitch
+and difficulty always give the same over, and the assistance level never changes it (assistance changes only the
+timing bands). Without `difficulty`, `beginner: true` means Beginner and otherwise Club. One bowler bowls all six balls,
+with the over's ball (a new white ball unless the setup chooses another).
+
+Difficulty is better bowling, never hidden randomness (`DIFFICULTY_BOWLING`), and it is monotonic:
+
+| Difficulty | Pace bands (controlled / fast / express) | Change-ups | Movement balls | Bad balls | Lines and lengths |
+| --- | --- | --- | --- | --- | --- |
+| Beginner | slower: pace 100–114, spin 75–78 km/h | one, never a bouncer or a wrong'un | one or two | 25% of stock and movement balls | each variation's full range |
+| Club | 30% / 50% / 20% | one or two | one or two (two on green) | 15% | each variation's full range |
+| Expert | 0% / 45% / 55% | two | two | 4% | the middle 60% of each range: the channel, and for pace the corridor lengths of `EXPERT_LENGTH_M` (stock 5.3–6.6 m, swing 4.8–5.8 m, too short to drive off a stride and too full to punch off the back foot) |
+
+A bad ball (`LOOSE_BALLS`) is a half-volley, short and wide, on the pads or full and wide, still legal.
 
 - Bowler: a spinner with probability 0.40 on a balanced pitch, 0.25 on green and hard pitches and 0.65 on a turner,
-  unless the family is given. Pace bands at Play are controlled, fast or express (beginners: controlled or fast); at
-  Real mostly fast or express; at Learn the bowler is genuinely slower. Spinners are finger (off-break; the wrong'un
-  is the carrom ball) or wrist (leg-break; the wrong'un is the googly). Beginners always face a right-arm bowler.
+  unless the family is given. Spinners are finger (off-break; the wrong'un is the carrom ball) or wrist (leg-break;
+  the wrong'un is the googly). Beginners always face a right-arm bowler.
 - A balanced over, not six extremes: two or more stock balls, the bowler's natural movement (outswing or inswing, the
   seam ball, or for a spinner flight and a quicker ball) once or twice, and one or two change-ups (cutter, slower ball,
   bouncer, yorker; arm ball, top-spinner, wrong'un). Change-ups are chosen without repeats and weighted by the pitch
   (bouncers on hard pitches, cutters on green and turning ones). A bouncer aims to arrive between 1.48 m and 1.66 m
   (seeded), its length solved for this bowler, speed, line, seed and pitch.
 - Beginners: the first ball is a stock ball, two change-ups are never bowled back to back, at most one bouncer or
-  yorker is bowled, only one change-up is bowled, and at Learn the spinner's wrong'un and the bouncer are left out.
+  yorker is bowled, only one change-up is bowled, and the bouncer and the spinner's wrong'un are never bowled.
 - Honest speeds (km/h, the number the screen shows is the speed the physics bowls): pace stock balls controlled
-  120–130, fast 131–141, express 142–152 (`PACE_BANDS_KPH`); spin stock balls finger 80–90, wrist 76–86. Learn bowls
-  genuinely slower: pace 100–114, spin 75–78 (the bottom of `SPIN_KPH`). Variations are relative to the stock ball
-  (cutter ×0.91, slower ball ×0.80, flighted −7, quicker +8, arm ball +5 …), each with a jitter of up to ±1 km/h.
+  120–130, fast 131–141, express 142–152 (`PACE_BANDS_KPH`); spin stock balls finger 80–90, wrist 76–86. Beginner bowls
+  genuinely slower: pace 100–114, spin 75–78 (the bottom of `SPIN_KPH`; `stockRangeFor`). Variations are relative to
+  the stock ball (cutter ×0.91, slower ball ×0.80, flighted −7, quicker +8, arm ball +5 …), each with a jitter of up to
+  ±1 km/h.
 - Each ball's physics seed is `ballSeed(over, i)`, the first 128 bits (hex) of SHA-256 of the over seed and the index.
 
 ### The guided first over (`guidedStart`)
@@ -92,11 +109,27 @@ over that counts: a Learn-pace right-arm bowler on a balanced pitch bowling stoc
 
 ## Field layouts (`autoField`)
 
-The automatic field depends on the bowler (mirrored into the striker's frame for a left-hander) and the pitch, and is
-deliberately classic: a ring that saves singles with clear gaps, one or two boundary riders, and close catchers only
-where the conditions bring edges or bat-pad chances. Bearings are from the striker (0 = straight, + = off side) and
-distances in metres from the physics' `STRIKER_REF` (the front of his popping crease, the renderer's reference too);
-boundary riders stand 4 m inside the 62 m rope.
+`autoField(bowler, conditions, handedness, ball)`: the field depends on the bowler (mirrored into the striker's frame
+for a left-hander), the pitch and the ball, which sets the format. Bearings are from the striker (0 = straight, + =
+off side) and distances in metres from the physics' `STRIKER_REF` (the front of his popping crease, the renderer's
+reference too); boundary riders stand 4 m inside the 62 m rope.
+
+**White ball (limited overs; the default, the stage under lights).** Five fielders inside the ring and four on the
+rope, as the fielding restrictions of the middle overs allow and as captains set them: the ring saves the single and
+the boundary riders stand where the ball is bowled to be hit. A white ball under lights keeps four or five out.
+
+| Field | Close | Ring | Deep |
+| --- | --- | --- | --- |
+| Pace, balanced (and turning) | keeper back | point 98°/21, cover 62°/23, mid-off 20°/25, mid-on −20°/25, midwicket −60°/23 | deep cover 45°, deep point 85°, third man 130°, fine leg −145° |
+| Pace, green | keeper back, 1 slip | point, cover, mid-off, mid-on | deep cover, deep point, third man, fine leg |
+| Pace, hard and bouncy | keeper further back | point, cover, mid-off, mid-on, midwicket | deep point 80°, third man 130°, deep square leg −95°, fine leg −150° |
+| Spin turning in (off-break), balanced | keeper up | point 90°/18, cover 55°/20, mid-off 22°/21, mid-on −22°/21, midwicket −60°/20 | long-off 8°, deep cover 40°, long-on −12°, deep midwicket −50° |
+| Spin turning in, turning pitch | keeper up, short leg −100°/5 | point, cover, mid-off, mid-on | as above |
+| Spin turning away (leg-break), balanced | keeper up | point 95°/18, cover 60°/20, mid-off 22°/21, mid-on −22°/21, midwicket −60°/20 | long-off 10°, deep cover 45°, long-on −10°, deep midwicket −55° |
+| Spin turning away, turning pitch | keeper up, 1 slip | point, cover, mid-off, mid-on | as above |
+
+**Red ball (Test cricket).** Deliberately classic: a ring that saves singles with clear gaps, one or two boundary
+riders, and close catchers only where the conditions bring edges or bat-pad chances.
 
 | Field | Close | Ring | Deep |
 | --- | --- | --- | --- |
@@ -114,10 +147,102 @@ ball in to the striker (off-break) when he is a right-arm finger or left-arm wri
 `validateField` checks eleven fielders with one keeper and one bowler, unique ids, contract roles, everyone inside the
 rope and nobody but the keeper and bowler on the pitch.
 
+## Field intelligence (`fieldIntent`)
+
+`fieldIntent(layout, bowler, conditions, handedness = 'right'): FieldIntent` (src/physics/field.ts) tells the batter
+what a field is set to do, before the over and on the radar. It is read off the fielding model, never hand-drawn.
+Bearings are from the striker in the batter's (physics) frame (+ = off side, ±180 = behind), rounded to 0.1° and split
+at ±180° so every arc has `fromDeg < toDeg`. The bowler is the real one, mirrored into the striker's frame as autoField
+does.
+
+- **attacking**: the ids of the fielders in catching positions (keeper, slips, gully, short leg, silly point, leg
+  slip), in layout order.
+- **protected**: where a fielder stops a well-hit ground stroke. The stroke (`INTENT_STROKE_KPH` = 150 km/h) is the
+  exit speed of a perfectly timed power-0.75 drive (148–155 km/h measured), rolling away from the striker with the
+  outfield's own law, a = 0.5 + 0.35·v, in closed form. It reaches 25 m in 0.68 s, 40 m in 1.18 s and 55 m in 1.80 s;
+  the integrator's real drives take 0.64–0.69, 1.11–1.19 and 1.68–1.82 s.
+  - A fielder covers a bearing when, at some point on that path inside the rope (sampled every 0.25 m), his ground
+    distance to the ball is within his stop reach plus the ground he has covered by then. That is the fielding model's
+    own stop rule: his class's reaction, sprint and stop reach, on his feet before he has reacted and diving after.
+  - Each fielder's arc is found by scanning out from his own bearing in 0.25° steps, with its edges refined by
+    bisection.
+  - The arcs are merged per depth: `ring` for everyone within 38 m (close catchers, keeper and bowler included),
+    `deep` for the boundary riders. Protected arcs are listed ring first, then deep, each sorted by bearing.
+- **gaps**: the bearings the ring does not protect, which tile the circle exactly with the ring's arcs.
+  - `deep` gaps: no boundary rider protects them either, so the stroke runs to the rope.
+  - `ring` gaps: it beats the ring, but a boundary rider cuts it off.
+  - Each gap carries `regionOf` of its middle bearing.
+  - The arcs depend on the fielders alone, since the outfield is the same on every pitch. The bowler and the pitch
+    only read the intention.
+- **intention**: the first rule that applies (`fieldIntention`, from `fieldFeatures`):
+  1. `spin_close_catchers`: a short leg, leg slip or silly point, for a spinner or with the keeper up (within 3 m of
+     the stumps);
+  2. `attack_outside_off`: three or more slips and gullies;
+  3. `short_ball_trap`: pace with two boundary riders at or behind square on the leg side (bearing ≤ −80°), or a
+     leg-side catcher with one of them;
+  4. `attack_outside_off`: pace on a green pitch with two slips and gullies;
+  5. `yorker_and_boundaries`: pace with no slip or gully and two or more boundary riders in front of square
+     (|bearing| < 80°);
+  6. `protect_boundaries`: two or more boundary riders in front of square;
+  7. `attack_the_stumps`: pace with a short leg or leg slip, or a silly point with at most one slip;
+  8. `save_singles`: otherwise (a ring saving the single, a slip or two, men back only behind square).
+
+Measured against a ball this hard, a ring fielder protects about ±5–6° and a boundary rider about ±8°. A real cover
+drive between cover and mid-off goes for four, and the gaps say so. Every gap middle and protected arc of the autoField
+templates agrees with `simulateFielding` on the integrator's own roll, and arc edges agree within 0.3°
+(tests/unit/physics/fieldIntent.test.ts). A call takes about 0.5 ms.
+
+The intentions and gaps of the automatic fields are below: a right-arm bowler to a right-hander, the fast band for
+pace, and gaps of 1° and wider.
+- Quicker bowlers narrow the arc behind the bat, as the keeper stands deeper.
+- A left-arm bowler (or a left-hander) moves the bowler's small straight arc to the other side.
+
+| Field | Intention | Attacking | Gaps to the rope (`deep`) | Gaps cut off in the deep (`ring`) |
+| --- | --- | --- | --- | --- |
+| Pace, balanced (and turning) | `save_singles` | keeper, slip1 | −171.2…−155.6 fine leg; −140.4…−102.8 fine leg; −91.2…−67.5 midwicket; −56.5…−26.3 midwicket; −15.7…−3.7 mid-on; 11…15.7 mid-off; 26.3…57.5 cover; 68.5…91.2 cover; 102.8…124 point; 140…161.6 third man | −155.6…−140.4 fine leg; 124…140 third man |
+| Pace, green | `attack_outside_off` | keeper, slip1, slip2, gully | −171.2…−155.6 fine leg; −140.4…−100.8 fine leg; −89.2…−26.3 midwicket; −15.7…−3.7 mid-on; 11…15.7 mid-off; 26.3…56.5 cover; 67.5…89.2 cover; 100.8…113.9 point; 130.1…153 third man | −155.6…−140.4 fine leg |
+| Pace, hard | `short_ball_trap` | keeper, slip1, gully | −172.1…−157.6 fine leg; −142.4…−109 fine leg; −90.9…−67.5 midwicket; −56.5…−26.3 midwicket; −15.7…−3.7 mid-on; 11…15.7 mid-off; 26.3…56.5 cover; 67.5…89.2 cover; 100.8…111.9 point; 128.1…163.8 third man | −157.6…−142.4 fine leg; −109…−90.9 square leg |
+| Off-break, balanced | `protect_boundaries` | keeper, slip1 | −163.2…−101.1 fine leg; −88.9…−65.8 midwicket; −41…−25.6 mid-on; −14.4…−4.3 mid-on; 25.6…56.2 cover; 67.8…88.9 cover; 101.1…142.4 third man | −54.2…−41 midwicket; 8.6…14.4 mid-off |
+| Off-break, turning | `spin_close_catchers` | keeper, slip1, short_leg | −163.2…−118.1 fine leg; −91.4…−65.8 midwicket; −41…−25.6 mid-on; −14.4…−4.3 mid-on; 8.6…14.4 mid-off; 25.6…56.2 cover; 67.8…88.9 cover; 101.1…142.4 third man | −54.2…−41 midwicket |
+| Leg-break, balanced | `protect_boundaries` | keeper, slip1 | −163.2…−101.1 fine leg; −88.9…−65.8 midwicket; −54.2…−25.6 mid-on; 8.6…14.4 mid-off; 25.6…55.6 cover; 76.2…90.9 point; 103.1…142.4 third man | −14.4…−4.3 mid-on; 67.8…76.2 cover |
+| Leg-break, turning | `spin_close_catchers` | keeper, slip1, silly_point | −163.2…−101.1 fine leg; −88.9…−65.8 midwicket; −54.2…−25.6 mid-on; −14.4…−4.3 mid-on; 8.6…14.4 mid-off; 25.6…55.6 cover; 87.5…93.9 point; 106.1…142.4 third man | none |
+
+Limitations:
+- The stroke is one speed, along the ground. A softer push is reached more easily, and a lofted shot is a question for
+  the catching rules, not these arcs.
+- The rules read roles and positions, not the captain's mind: a hand-set field is classified by the same rules.
+
 ## Fielding model (`simulateFielding`)
 
-Deterministic, with no random numbers: a pure function of the field and the struck ball's trajectory (sampled at the
-integrator's fixed step until the ball stops or reaches the rope).
+Deterministic: a pure function of the field, the struck ball's trajectory (sampled at the integrator's fixed step until it stops or reaches the rope) and the delivery's seed, which seeds only the misfield draws (below).
+
+**The FIELD rebuild (2026-11-03; builder-measured, nothing certified).** Source:
+`release/product-sequence/stage-1-practice/wedge/fielding/REPORT.md` §1 and addendum 2. Where the details below
+conflict with this block, this block is current. Contract v6, the wire shapes and `PRACTICE_SIM_VERSION` 3 are
+unchanged.
+
+- **A physical budget.** Each fielder class gains braking (`decel`, 5–6.5 m/s²) and a minimum dive time (`diveMinS`:
+  0.15 s for the keeper, 0.2 s for everyone else); the other values in the table are unchanged. A full dive takes
+  0.4 s, the hands reach 1.1 m beyond the hips, and he is on his feet again 0.8 s later (`DIVE`). The hips travel no
+  further than a launch from standing allows, or than his run carries him.
+- **Runs** accelerate, cruise, then brake to the slowest arrival that is still in time (`planRun`). A take on his feet
+  needs room to pull up inside the rope. Bounded-acceleration steering to a moving target makes the paths curve.
+- **The keeper** fields ground balls only within 6 m of where he stands (`KEEPER_RANGE_M`).
+- **The loose ball.** After a drop, fumble or parry, the ball is carried on by the one integrator (`ball.ts`
+  `simulate`), and the fumbler (once he is up) races his back-up for it. The fixed pickup delays after a drop, a parry
+  and a misfield are gone; those times are now kinematic. A loose ball that reaches the rope scores under the boundary
+  rule.
+- **Throws** carry an error that grows with length, and long throws come in on one bounce. The error and the bounce
+  point are drawn once, from the fielder's existing seeded stream. A receiver still chasing the ball cannot take a
+  throw, and an off-line throw arrives no sooner than the receiver can reach it. The thrower releases from where he
+  actually is.
+- **Events.** `ball_bounce` now also marks loose-ball and throw bounces, and the `throw` event's `fielderId` can be the
+  back-up who gathered the ball.
+- **A carried return** (the keeper or bowler running the ball in himself) no longer produces NaN ball heights
+  (addendum 2): 27 struck balls with a non-finite sample before, 0 after, over 2,782.
+- **Effects, for the evaluators.** On the A/B corpus, catches fall 23% and diving catches from 163 to 38; some dots
+  become singles because the keeper is set later. The old dive implied the hips moving at about 15 m/s. Whether the new
+  rates are credible is for the evaluators (§4, R1–R2).
 
 Each fielder reacts, then runs straight to where he can take the ball, accelerating to his top speed:
 
@@ -143,6 +268,14 @@ Each fielder reacts, then runs straight to where he can take the ball, accelerat
 - **Ground fielding.** After the first bounce, the earliest fielder to reach the ball's path stops it, on his feet if
   he can (taking balls bouncing up to 2 m) or with a dive (balls below 0.7 m) if that is at least 0.25 s sooner. A ball
   that comes to rest is collected by whoever gets there first. Nobody reaching it before the rope means a boundary.
+- **Partial stops (honest and deterministic).** A fielder who cannot stop the ball may still get a hand or a boot to
+  it: a ball passing within 0.5 m beyond his diving stop reach (`PARRY_M`), no higher than 0.9 m, is parried, slowed
+  and deflected, and gathered after 2 s (one or two runs, not four). A clean or diving stop is now and then fumbled
+  (a misfield, gathered after 1.6 s, 2.1 s after a dive): the chance is `MISFIELD_P` by class (keeper 1%, close 2%,
+  ring 2.5%, deep and bowler 3.5%) × (1 + the ball's speed / 30 m/s) × 2 for a dive, against a draw seeded by the
+  delivery and the fielder (`simulateFielding(field, ball, { seed })`), so it depends on the batter's input only
+  through where and how hard the ball arrives. Runs off a parry or a misfield are coached as `beat_the_field`, the
+  fielder named. fieldIntent's protected arcs include the parry reach.
 - **The return.** Ball in hand after 0.55 s (clean stop), 1.1 s (diving stop) or 0.7 s (collecting a still ball); it
   then goes to whichever set of stumps it reaches first with the keeper or bowler there to take it (each needs to run
   to his stumps and be set, 0.2 s). A keeper or bowler who fields it himself can run it to his own stumps. The throw
@@ -197,7 +330,7 @@ air and off the pitch measured by the delivery physics (`flightMovement`), the f
 | --- | --- |
 | `cleared_the_rope` | Six (zone = where it went) |
 | `found_the_gap` | Four with no fielder within 2.5 m of stopping it, or 1–3 runs (zone) |
-| `beat_the_field` | Four that a fielder got within 2.5 m of stopping, or runs after a dropped chance (fielder named) |
+| `beat_the_field` | Four that a fielder got within 2.5 m of stopping, or runs after a dropped chance, a parry or a misfield (fielder named) |
 | `hit_to_fielder` | Good contact, fielded, no run (fielder named) |
 | `solid_defence` | A defensive stroke met on time, no run |
 | `caught_in_the_ring` / `caught_in_the_deep` | Caught from a good stroke, inside / beyond 38 m |
@@ -213,9 +346,12 @@ air and off the pitch measured by the delivery physics (`flightMovement`), the f
 | `left_well` | Left a ball that missed the stumps (or hit the pad not out) |
 | `left_and_bowled` | Left a ball that hit the stumps |
 | `pad_in_line` | Out LBW |
+| `played_on` | Bowled by a ball played onto the stumps off the middle of the bat (since 2026-11-03; an edge played on keeps its old diagnosis). Contract v6's closed `CoachingReason` list carries it |
 
 Coaching `timing` is `on_time` for perfect or solid contact, otherwise `early` or `late` by the sign of the timing
-error, and `null` for a leave. "The way it beat the bat" uses the strike's miss geometry (`miss.delta`, ball minus bat
+error, and `null` for a leave. The timing labels come from the bands of 2026-11-03 (Real 14/29/55, Play 20/40/86,
+Learn 31/58/117 ms) and the label rule: a bat contact is never `missed`, and a block met on the face is at least
+`solid` (`docs/PRACTICE_PHYSICS.md`, "Timing bands"). "The way it beat the bat" uses the strike's miss geometry (`miss.delta`, ball minus bat
 at the closest approach: over it, or past the off or the leg side of it) or the edge it took (outside edge = off side,
 inside edge = leg side): a ball that seamed away but beat the inside of the bat was not beaten by the seam.
 
@@ -277,6 +413,8 @@ evidence check fails.
 ## Known limitations
 
 - No byes, leg byes, wides, no-balls, stumpings or run-outs (by design for this slice).
-- Fielders run in straight lines and never collide; a dropped catch always falls at the fielder's feet.
-- Throws are always accurate; the batters' running assumes a perfect return to the stumps (hence the safety margin).
+- Fielders never collide. Since 2026-11-03 their paths curve, a dropped or fumbled ball rolls on, and throws carry an
+  error (see "Fielding model"). The receiver still always gets to the throw, so no throw gets past him and there are no
+  overthrows; whether to specify overthrows is an owner decision (`release/product-sequence/stage-1-practice/wedge/fielding/REPORT.md` §5).
+- The batters' running is judged against the honest return, with the safety margin.
 - The fielding constants are calibrated to first-class standards, not measured from players.

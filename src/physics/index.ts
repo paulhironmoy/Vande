@@ -14,25 +14,31 @@
 export * from './constants';
 export type { LbwDecision, LbwReason, PlayedFootwork } from '@/contracts/practice';
 export { bearingDeg, bearingDelta, dirFromBearing, elevationDeg } from './vec';
-export { batTravelMs } from './bat';
+export { batTravelMs, idealTimeFor, resolveFootwork } from './bat';
+export { shotFamily, type ShotFamily } from './shot';
 export { activeBands, classifyTiming } from './timing';
-export { flight, flightMovement, sampleAt, type FlightMovement } from './delivery';
+export { ballRotation, flight, flightMovement, sampleAt, seamCue, type FlightArgs, type FlightMovement, type SeamPresentation } from './delivery';
 export { simulate, type SimResult, type SimStart, type SimulateOptions } from './ball';
 export { CONDITIONS_FOR_PITCH, flightFromPath, type FromPathOptions, type PathFit } from './matchPath';
 export { aimShot, defaultElevationDeg, type AimMode, type AimOptions, type AimResult, type AimTarget } from './aim';
 export { practiceFlight, replayDelivery, resolveDelivery, type ResolveArgs } from './resolve';
 export {
   DEEP_INSET_M,
+  INTENT_STROKE_KPH,
   KEEPER_BACK_M,
   autoField,
   bearingFromStriker,
   distanceFromStriker,
+  fieldFeatures,
+  fieldIntent,
+  fieldIntention,
   groundRadius,
   physicsBowler,
   pointFromStriker,
   ropeDistance,
   turnsAway,
   validateField,
+  type FieldFeatures,
 } from './field';
 export {
   BEATEN_BY,

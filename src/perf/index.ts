@@ -1,7 +1,8 @@
 /**
- * src/perf: the one device benchmark and quality classifier (docs/PRACTICE.md, "Quality tiers"). Small and stable:
- * thresholds, the GPU checks, frame statistics, the classifier, the benchmark, the per-version cache and the
- * in-session monitor. No rendering code lives here; the stage supplies the benchmark scene.
+ * src/perf: the one device benchmark and quality classifier (docs/PRACTICE.md, "Quality tiers"; docs/PERFORMANCE.md).
+ * Small and stable: thresholds, the GPU checks, frame statistics, the classifier, the benchmark, the per-version cache,
+ * the in-session monitor, and the one mapping to the player-facing tiers (Premium, Balanced, Classic: tiers.ts). No
+ * rendering code lives here; the stage supplies the benchmark scene.
  */
 export * from './thresholds';
 export { SOFTWARE_RENDERER_RE, isSoftwareRenderer, readGpuRenderer, probeGpu, type GpuProbe } from './gpu';
@@ -25,3 +26,18 @@ export {
 export { runDeviceBenchmark, measureEventToFrame, deviceMemoryGb, BENCHMARK_MS, CONFIRM_MS, type BenchmarkRun, type BenchmarkTarget, type BenchmarkOptions } from './benchmark';
 export { loadCachedAssessment, saveCachedAssessment, clearCachedAssessment, isDeviceAssessment, PERF_CACHE_KEY } from './cache';
 export { SessionMonitor, createFrameSampler, MONITOR_DELIVERIES, MONITOR_MIN_WINDOW_MS, type MonitorDecision, type MonitorState, type FrameSampler } from './monitor';
+export {
+  QUALITY_TIERS,
+  TIER_RENDERING,
+  INVARIANTS,
+  DEGRADATION_STEPS,
+  tierForQuality,
+  tierForAssessment,
+  tierChoiceFor,
+  qualityChoiceForTier,
+  tierChoices,
+  effectiveTier,
+  tierChanged,
+  type QualityTier,
+  type QualityTierChoice,
+} from './tiers';

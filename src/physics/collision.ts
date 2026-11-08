@@ -9,68 +9,42 @@
  * sample spacing; the first time of impact is found to within 10 µm of separation.
  */
 import type { BallSample } from '@/contracts/practice';
-import { BALL_R, BLADE_HALF_W, BLADE_L, BLADE_T, GLOVE_R, HANDLE_L } from './constants';
-import { type BatPose, type BatTrack, type BatterBody, type Capsule, batPose } from './bat';
-import { type Vec3, cross, dot, norm, v3 } from './vec';
+import { batPoseGapReach } from './admissibility';
+import { BALL_R, BLADE_HALF_W, BLADE_L, BLADE_T } from './constants';
+import { BAT_POINT_SPEED_LIMIT_MPS, type BatPose, type BatTrack, type BatterBody, type Capsule, batPose, trackEndT } from './bat';
+import {
+  type BladeContact,
+  type BladeFrame,
+  bladeContact,
+  bladeFrame,
+  handleCapsule,
+} from './batGeometry';
+import { type Vec3, norm, v3 } from './vec';
+
+export { bladeContact, bladeFrame, handleCapsule } from './batGeometry';
+export type { BladeContact, BladeFrame } from './batGeometry';
 
 export type BladeRegion = 'face' | 'edge' | 'back' | 'toe' | 'shoulder';
 
-export interface BladeFrame {
-  centre: Vec3;
-  /** Blade axis toe → grip, face normal, width axis (a × n). */
-  a: Vec3;
-  n: Vec3;
-  w: Vec3;
-}
-
-export function bladeFrame(p: BatPose): BladeFrame {
-  const a = norm(v3(p.grip.x - p.toe.x, p.grip.y - p.toe.y, p.grip.z - p.toe.z));
-  const k = dot(p.n, a);
-  const n = norm(v3(p.n.x - k * a.x, p.n.y - k * a.y, p.n.z - k * a.z));
-  const w = cross(a, n);
-  const h = BLADE_L / 2;
-  return { centre: v3(p.toe.x + a.x * h, p.toe.y + a.y * h, p.toe.z + a.z * h), a, n, w };
-}
-
-export interface BladeContact {
-  /** Closest point on the blade box, the distance from it to the ball centre, and the ball centre in the frame. */
-  q: Vec3;
-  dist: number;
-  lu: number;
-  lw: number;
-  ln: number;
-}
-
-export function bladeContact(f: BladeFrame, p: Vec3): BladeContact {
-  const dx = p.x - f.centre.x;
-  const dy = p.y - f.centre.y;
-  const dz = p.z - f.centre.z;
-  const lu = dx * f.a.x + dy * f.a.y + dz * f.a.z;
-  const lw = dx * f.w.x + dy * f.w.y + dz * f.w.z;
-  const ln = dx * f.n.x + dy * f.n.y + dz * f.n.z;
-  const hu = BLADE_L / 2;
-  const ht = BLADE_T / 2;
-  const cu = lu < -hu ? -hu : lu > hu ? hu : lu;
-  const cw = lw < -BLADE_HALF_W ? -BLADE_HALF_W : lw > BLADE_HALF_W ? BLADE_HALF_W : lw;
-  const cn = ln < -ht ? -ht : ln > ht ? ht : ln;
-  const q = v3(
-    f.centre.x + f.a.x * cu + f.w.x * cw + f.n.x * cn,
-    f.centre.y + f.a.y * cu + f.w.y * cw + f.n.y * cn,
-    f.centre.z + f.a.z * cu + f.w.z * cw + f.n.z * cn,
-  );
-  const ex = p.x - q.x;
-  const ey = p.y - q.y;
-  const ez = p.z - q.z;
-  return { q, dist: Math.sqrt(ex * ex + ey * ey + ez * ez), lu, lw, ln };
-}
-
-/** Region of the blade the ball touches, from the ball centre in the blade frame. */
+/**
+ * Region of the blade the ball touches, from the ball centre in the blade frame.
+ *
+ * At an edge/corner the centre can be microscopically outside more than one box extent. Classify by the dominant
+ * component of the sphere-to-box closest-point vector instead of giving the blade's long axis arbitrary priority:
+ * a ball a few micrometres beyond the toe but a full radius in front of the face is a face hit, while a true toe or
+ * side-edge arrival remains a toe/edge hit. Exact ties deterministically prefer face/back, then the side edge.
+ */
 export function bladeRegion(c: BladeContact): BladeRegion {
   const hu = BLADE_L / 2;
-  if (c.lu > hu) return 'shoulder';
-  if (c.lu < -hu) return 'toe';
-  if (c.lw > BLADE_HALF_W || c.lw < -BLADE_HALF_W) return 'edge';
-  return c.ln >= 0 ? 'face' : 'back';
+  const ht = BLADE_T / 2;
+  const alongOutside = Math.max(Math.abs(c.lu) - hu, 0);
+  const widthOutside = Math.max(Math.abs(c.lw) - BLADE_HALF_W, 0);
+  const normalOutside = Math.max(Math.abs(c.ln) - ht, 0);
+  const largest = Math.max(alongOutside, widthOutside, normalOutside);
+  const numericTie = Number.EPSILON * Math.max(1, largest) * 8;
+  if (normalOutside >= largest - numericTie) return c.ln >= 0 ? 'face' : 'back';
+  if (widthOutside >= largest - numericTie) return 'edge';
+  return c.lu >= 0 ? 'shoulder' : 'toe';
 }
 
 function segPoint(a: Vec3, b: Vec3, p: Vec3): Vec3 {
@@ -91,14 +65,6 @@ function capsuleDist(c: Capsule, p: Vec3): { q: Vec3; d: number } {
   const l = Math.sqrt(dx * dx + dy * dy + dz * dz);
   const k = l > 0 ? c.r / l : 0;
   return { q: v3(s.x + dx * k, s.y + dy * k, s.z + dz * k), d: l - c.r };
-}
-
-/** Handle and gloves: a capsule from the top of the blade to just below the grip. */
-export function handleCapsule(f: BladeFrame): Capsule {
-  const h = BLADE_L / 2;
-  const a = v3(f.centre.x + f.a.x * h, f.centre.y + f.a.y * h, f.centre.z + f.a.z * h);
-  const top = h + HANDLE_L - 0.04;
-  return { a, b: v3(f.centre.x + f.a.x * top, f.centre.y + f.a.y * top, f.centre.z + f.a.z * top), r: GLOVE_R };
 }
 
 export type Part = 'blade' | 'handle' | 'front_pad' | 'back_pad' | 'torso' | 'head';
@@ -126,20 +92,32 @@ interface Probe {
   d: number;
   part: Part;
   q: Vec3;
+  /** Minimum separation to either rigid bat surface after any anatomy gate. */
+  batD: number;
   bladeD: number;
   bladeQ: Vec3;
 }
 
-function probe(p: Vec3, pose: BatPose | null, body: BatterBody): Probe {
-  let best: Probe = { d: Infinity, part: 'torso', q: p, bladeD: Infinity, bladeQ: p };
+function probe(
+  p: Vec3,
+  pose: BatPose | null,
+  body: BatterBody,
+  enforceAnatomy: boolean,
+  includeBody: boolean,
+): Probe {
+  let best: Probe = { d: Infinity, part: 'torso', q: p, batD: Infinity, bladeD: Infinity, bladeQ: p };
   if (pose) {
+    const anatomyGate = enforceAnatomy ? HIT_EPS - batPoseGapReach(pose, body).gap : -Infinity;
     const f = bladeFrame(pose);
     const c = bladeContact(f, p);
-    const bd = c.dist - BALL_R;
-    best = { d: bd, part: 'blade', q: c.q, bladeD: bd, bladeQ: c.q };
+    const bd = Math.max(c.dist - BALL_R, anatomyGate);
+    best = { d: bd, part: 'blade', q: c.q, batD: bd, bladeD: bd, bladeQ: c.q };
     const h = capsuleDist(handleCapsule(f), p);
-    if (h.d - BALL_R < best.d) best = { ...best, d: h.d - BALL_R, part: 'handle', q: h.q };
+    const handleD = Math.max(h.d - BALL_R, anatomyGate);
+    best.batD = Math.min(bd, handleD);
+    if (handleD < best.d) best = { ...best, d: handleD, part: 'handle', q: h.q };
   }
+  if (!includeBody) return best;
   const parts: Array<[Part, Capsule]> = [
     ['front_pad', body.pads[0]],
     ['back_pad', body.pads[1]],
@@ -168,23 +146,29 @@ function dist3(a: Vec3, b: Vec3): number {
   return Math.sqrt(x * x + y * y + z * z);
 }
 
-function poseSpeed(track: BatTrack, t: number): number {
-  const h = 0.0005;
-  const a = batPose(track, t - h);
-  const b = batPose(track, t + h);
-  const vg = dist3(a.grip, b.grip) / (2 * h);
-  const vt = dist3(a.toe, b.toe) / (2 * h);
-  return vg > vt ? vg : vt;
-}
-
 const HIT_EPS = 1e-5;
 
 /**
  * Sweep the ball path (fixed-step samples) against the bat track (or none, for a leave) and the body, from t0 to t1.
  * Returns the first contact, and the closest approach to the blade.
  */
-export function sweep(samples: BallSample[], track: BatTrack | null, body: BatterBody, t0: number, t1: number): SweepResult {
+function sweepInternal(
+  samples: BallSample[],
+  track: BatTrack | null,
+  body: BatterBody,
+  t0: number,
+  t1: number,
+  batOnly: boolean,
+  bodyFromT = -Infinity,
+): SweepResult {
   let closest: SweepResult['closest'] = null;
+  // A bat already penetrating the ball when the swing activates is not a contact. It must separate first, then make
+  // a future entry. The armed state persists across flight-sample intervals.
+  let batArmed = false;
+  // The footwork body takes its place at bodyFromT (PHYS2 5f: the swing's own start); before that it does not collide.
+  // Like the bat, a body already around the ball when it takes its place is not a contact until they separate.
+  const bodyGated = bodyFromT > -Infinity;
+  let bodyArmed = !bodyGated;
   for (let i = 1; i < samples.length; i++) {
     const A = samples[i - 1];
     const B = samples[i];
@@ -193,21 +177,35 @@ export function sweep(samples: BallSample[], track: BatTrack | null, body: Batte
     const tb = B.t;
     const span = tb - ta;
     const vb = dist3(A.p, B.p) / span;
-    let vBat = 0;
-    if (track) {
-      const s1 = poseSpeed(track, ta);
-      const s2 = poseSpeed(track, (ta + tb) / 2);
-      const s3 = poseSpeed(track, tb);
-      vBat = Math.max(s1, s2, s3) * 1.3 + 4;
-    }
+    // buildBatTrack analytically rejects any rigid stroke whose farthest bat point can exceed this global bound.
+    // Distance to a moving rigid surface and every anatomy gap are 1-Lipschitz in that point motion, so ball speed
+    // plus this bound is a true closing-speed ceiling (not an endpoint finite-difference heuristic).
+    const vBat = track ? BAT_POINT_SPEED_LIMIT_MPS : 0;
     const vmax = vb + vBat + 1e-3;
     let t = ta;
     for (let guard = 0; guard < 4000 && t <= tb; guard++) {
       const g = (t - ta) / span;
       const p = v3(A.p.x + (B.p.x - A.p.x) * g, A.p.y + (B.p.y - A.p.y) * g, A.p.z + (B.p.z - A.p.z) * g);
-      const pose = track ? batPose(track, t) : null;
-      const pr = probe(p, pose, body);
-      if (track && (!closest || pr.bladeD < closest.dist)) closest = { t, ball: p, bat: pr.bladeQ, dist: pr.bladeD };
+      // The waiting stance is presentation only: a bat cannot collide before the player has activated the swing.
+      // Every emitted visible track is geometry-admitted and collidable, including a completed mistimed whiff.
+      const candidatePose = track?.geometryAdmitted && t >= track.startT && t <= trackEndT(track) ? batPose(track, t) : null;
+      let activationStep = Infinity;
+      if (candidatePose && !batArmed) {
+        const candidate = probe(p, candidatePose, body, !batOnly, !batOnly);
+        if (candidate.batD > HIT_EPS) batArmed = true;
+        else activationStep = Math.max((HIT_EPS - candidate.batD) / vmax, 1e-6);
+      }
+      const pose = candidatePose && batArmed ? candidatePose : null;
+      let bodyStep = Infinity;
+      if (bodyGated && !bodyArmed && t >= bodyFromT) {
+        const bd = probe(p, null, body, false, true).d;
+        if (bd > HIT_EPS) bodyArmed = true;
+        else bodyStep = Math.max((HIT_EPS - bd) / vmax, 1e-6);
+      }
+      const pr = probe(p, pose, body, !batOnly, !batOnly && bodyArmed);
+      if (pose && Number.isFinite(pr.bladeD) && (!closest || pr.bladeD < closest.dist)) {
+        closest = { t, ball: p, bat: pr.bladeQ, dist: pr.bladeD };
+      }
       if (pr.d <= HIT_EPS) {
         const ballV = v3((B.p.x - A.p.x) / span, (B.p.y - A.p.y) / span, (B.p.z - A.p.z) / span);
         const nx = p.x - pr.q.x;
@@ -225,9 +223,36 @@ export function sweep(samples: BallSample[], track: BatTrack | null, body: Batte
         if (normal.x === 0 && normal.y === 0 && normal.z === 0) normal = v3(0, 0, -1);
         return { hit: { part: pr.part, t, ball: p, ballV, point: pr.q, normal, blade }, closest };
       }
-      const step = pr.d / vmax;
-      t += step > 1e-6 ? step : 1e-6;
+      // While an initially overlapping bat is unarmed, advance no farther than its Lipschitz distance to separation.
+      // This observes a separation/re-entry even when both flight-sample endpoints overlap the moving bat.
+      const step = Math.min(pr.d / vmax, activationStep, bodyStep);
+      let nextT = t + (step > 1e-6 ? step : 1e-6);
+      // Conservative advancement must land exactly on activation instead of stepping over the bat's appearance.
+      if (track && t < track.startT && nextT > track.startT) nextT = track.startT;
+      if (bodyGated && t < bodyFromT && nextT > bodyFromT) nextT = bodyFromT;
+      t = nextT;
     }
   }
   return { hit: null, closest };
+}
+
+/** Authoritative combined body + anatomy-gated bat sweep. */
+export function sweep(samples: BallSample[], track: BatTrack | null, body: BatterBody, t0: number, t1: number): SweepResult {
+  return sweepInternal(samples, track, body, t0, t1, false);
+}
+
+/**
+ * The combined sweep with the batter's footwork body colliding only from bodyFromT (PHYS2 5f: a swing's footwork
+ * cannot act before the swing starts). Used only when the plain sweep's first touch came before that time.
+ */
+export function sweepFrom(samples: BallSample[], track: BatTrack | null, body: BatterBody, t0: number, t1: number, bodyFromT: number): SweepResult {
+  return sweepInternal(samples, track, body, t0, t1, false, bodyFromT);
+}
+
+/**
+ * Earliest purely geometric blade/handle candidate. Body contacts and anatomical eligibility are intentionally absent:
+ * strike uses this deterministic first pass only to choose one static whole-batter root offset, then runs `sweep` once.
+ */
+export function sweepRawBat(samples: BallSample[], track: BatTrack, t0: number, t1: number): SweepResult {
+  return sweepInternal(samples, track, track.body, t0, t1, true);
 }

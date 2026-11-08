@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   PRACTICE_MAX_OVERS,
+  PRACTICE_SIM_VERSION,
   type Coaching,
   type ContactReport,
   type DeliveryOutcome,
@@ -43,7 +44,7 @@ const bowlOver = (s: PracticeInningsState, runs: DeliveryOutcome['runs'][] = [0,
 describe('the one-wicket innings', () => {
   it('starts at 0 for 0, choosing an over', () => {
     const s = newInnings(OPTS);
-    expect(s).toMatchObject({ status: 'choosing_over', runs: 0, balls: 0, overs: [], current: null, inFlight: null, dismissal: null, version: 1 });
+    expect(s).toMatchObject({ status: 'choosing_over', runs: 0, balls: 0, overs: [], current: null, inFlight: null, dismissal: null, version: PRACTICE_SIM_VERSION });
   });
 
   it('bats a full over, accumulates runs, then offers the next over', () => {
@@ -108,7 +109,10 @@ describe('the one-wicket innings', () => {
     expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, seed: 'other' } })).toBe('not_this_delivery');
     expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, plan: { ...record.plan, speedKph: 99 } } })).toBe('not_this_delivery');
     expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, assist: 'learn' } })).toBe('wrong_settings');
-    expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, field: autoField(over(0).bowler, 'green') } })).toBe('wrong_field');
+    // A different pitch can legitimately select the same field (especially for spin). Alter the actual field
+    // explicitly so this invariant is independent of which bowler a versioned random seed chooses.
+    const changedField = { ...record.field, fielders: record.field.fielders.map((f, i) => i === 0 ? { ...f, x: f.x + 1 } : f) };
+    expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, field: changedField } })).toBe('wrong_field');
     expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, runs: 5 as DeliveryOutcome['runs'] } })).toBe('bad_runs');
     expect(inningsError(s, { type: 'deliveryResolved', record: { ...record, runs: 4, dismissal: 'bowled' } })).toBe('bad_dismissal');
     s = inningsReducer(s, { type: 'deliveryResolved', record });
@@ -121,6 +125,48 @@ describe('the one-wicket innings', () => {
     const plan = over(0);
     expect(inningsError(s, { type: 'chooseOver', plan: { ...plan, balls: plan.balls.slice(0, 5) as unknown as typeof plan.balls }, field: fieldFor(0) })).toMatch(/^illegal_over/);
     expect(inningsError(s, { type: 'chooseOver', plan, field: { ...fieldFor(0), fielders: fieldFor(0).fielders.slice(1) } })).toMatch(/^illegal_field/);
+  });
+
+  it('restarts the over between balls: the same six balls from the first, its runs and balls taken off', () => {
+    let s = bowl(choose(newInnings(OPTS)), 4);
+    s = bowl(s, 2);
+    expect(s.runs).toBe(6);
+    expect(s.balls).toBe(2);
+    const plan = s.current!.plan;
+    const field = s.current!.field;
+    const restarted = inningsReducer(s, { type: 'restartOver' });
+    expect(restarted.runs).toBe(0);
+    expect(restarted.balls).toBe(0);
+    expect(restarted.current!.deliveries).toEqual([]);
+    expect(restarted.current!.plan).toBe(plan);
+    expect(restarted.current!.field).toBe(field);
+    expect(nextDelivery(restarted)!.ballIndex).toBe(0);
+    expect(nextDelivery(restarted)!.seed).toBe(nextDelivery(choose(newInnings(OPTS)))!.seed);
+    // Runs from completed overs stay: only the current over's are taken off.
+    let t = choose(newInnings(OPTS));
+    for (let i = 0; i < 6; i++) t = bowl(t, 1);
+    t = choose(inningsReducer(t, { type: 'nextOver' }));
+    t = bowl(t, 4);
+    const r = inningsReducer(t, { type: 'restartOver' });
+    expect(r.runs).toBe(6);
+    expect(r.balls).toBe(6);
+    expect(r.overs).toHaveLength(1);
+  });
+
+  it('never restarts mid-ball, before the first ball, after a wicket or after the over is complete', () => {
+    const fresh = choose(newInnings(OPTS));
+    expect(inningsError(fresh, { type: 'restartOver' })).toBe('nothing_to_restart');
+    const one = bowl(fresh, 1);
+    expect(inningsError(inningsReducer(one, { type: 'deliveryStarted' }), { type: 'restartOver' })).toBe('delivery_in_flight');
+    const out = bowl(one, 0, 'bowled');
+    expect(out.status).toBe('out');
+    expect(inningsError(out, { type: 'restartOver' })).toBe('not_batting');
+    expect(inningsReducer(out, { type: 'restartOver' })).toBe(out);
+    let done = fresh;
+    for (let i = 0; i < 6; i++) done = bowl(done, 0);
+    expect(done.status).toBe('over_complete');
+    expect(inningsError(done, { type: 'restartOver' })).toBe('not_batting');
+    expect(inningsError(newInnings(OPTS), { type: 'restartOver' })).toBe('not_batting');
   });
 
   it('abandoning ends the innings with the score so far', () => {

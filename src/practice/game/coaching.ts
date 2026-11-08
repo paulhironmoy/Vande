@@ -4,8 +4,8 @@
  * (timing error, where the shot was aimed against where it went, how the ball moved, which fielder and how quickly the
  * ball came back) and never has to invent an explanation. It also ranks deliveries for the over summary.
  */
-import type { BowlerFamily, CoachingReason, DeliveryRecord, DeliveryResult, DeliveryVariation, Dismissal, FielderRole, LbwDecision, PlayedFootwork, SwingTiming } from '@/contracts/practice';
-import { bearingDelta, flightMovement, regionOf, type FlightMovement, type Region } from '@/physics';
+import type { BowlerFamily, CoachingReason, DeliveryRecord, DeliveryResult, DeliveryVariation, Dismissal, FielderRole, Footwork, LbwDecision, PlayedFootwork, SwingKind, SwingTiming } from '@/contracts/practice';
+import { BLADE_L, SWEET_ALONG_M, SWEET_U, bearingDelta, flightMovement, regionOf, type FlightMovement, type Region } from '@/physics';
 import { lengthBand, lineBand, type LengthBand, type LineBand } from './overs';
 
 export const emptyTiming = (): Record<SwingTiming, number> => ({ perfect: 0, solid: 0, mistimed: 0, missed: 0, none: 0 });
@@ -20,6 +20,30 @@ export interface CoachingFacts {
   contact: DeliveryResult['contact']['kind'];
   /** The footwork played (forward, back, across, down the track). */
   footwork: PlayedFootwork;
+  /** The continuous intent the one gesture produced. Null means the player left the ball. */
+  intent: {
+    kind: SwingKind;
+    directionDeg: number;
+    power: number;
+    elevation: number;
+    requestedFootwork: Footwork;
+  } | null;
+  /** Measured bat facts at contact. They remain null when the collision did not provide that measurement. */
+  bat: {
+    faceBearingDeg: number | null;
+    /** face bearing − intended bearing (deg, + = further towards the off side). */
+    faceToIntentDeg: number | null;
+    speedKph: number | null;
+    /** Position along the blade (0 = toe … 1 = shoulder). */
+    bladeU: number | null;
+    /** Signed distance along the blade from its sweet-spot centre (+ = towards the shoulder). */
+    sweetSpotAlongOffsetM: number | null;
+    /**
+     * Whether the hit was inside the sweet spot's along-blade band. This deliberately does not claim a complete
+     * sweet-spot hit: DeliveryResult does not expose the across-face offset needed to prove that.
+     */
+    withinSweetSpotAlongBand: boolean | null;
+  };
   /** When the ball hit pad or body first: the LBW decision with the impact and the projected point at the stumps. */
   lbw: LbwDecision | null;
   /** Where the player aimed (the flick) and where the ball actually went off the bat, with their regions. */
@@ -63,6 +87,17 @@ export function coachingFacts(result: DeliveryResult, record?: Pick<DeliveryReco
   const contactT = c.t;
   const dead = result.events.find((e) => e.kind === 'dead');
   const fielded = result.events.some((e) => e.kind === 'field');
+  const intent = result.swing
+    ? {
+        kind: result.swing.kind,
+        directionDeg: result.swing.directionDeg,
+        power: result.swing.power,
+        elevation: result.swing.elevation,
+        requestedFootwork: result.swing.footwork,
+      }
+    : null;
+  const rawSweetSpotAlongOffsetM = c.bladeU === null ? null : (c.bladeU - SWEET_U) * BLADE_L;
+  const sweetSpotAlongOffsetM = rawSweetSpotAlongOffsetM === null ? null : Math.round(rawSweetSpotAlongOffsetM * 10_000) / 10_000;
   return {
     reason: result.coaching.reason,
     timing: result.coaching.timing,
@@ -70,6 +105,15 @@ export function coachingFacts(result: DeliveryResult, record?: Pick<DeliveryReco
     timingErrorMs: c.timingErrorMs,
     contact: c.kind,
     footwork: result.footwork,
+    intent,
+    bat: {
+      faceBearingDeg: c.faceBearingDeg,
+      faceToIntentDeg: c.faceBearingDeg === null || c.intendedBearingDeg === null ? null : Math.round(bearingDelta(c.faceBearingDeg, c.intendedBearingDeg) * 10) / 10,
+      speedKph: c.batSpeedKph,
+      bladeU: c.bladeU,
+      sweetSpotAlongOffsetM,
+      withinSweetSpotAlongBand: rawSweetSpotAlongOffsetM === null ? null : Math.abs(rawSweetSpotAlongOffsetM) <= SWEET_ALONG_M,
+    },
     lbw: result.lbw,
     intendedBearingDeg: c.intendedBearingDeg,
     intendedRegion: c.intendedBearingDeg === null ? null : regionOf(c.intendedBearingDeg),

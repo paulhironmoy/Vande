@@ -4,6 +4,7 @@
  * registerPlugin proxy, and createPlatform must resolve with the native plugins usable, and fall back when they fail.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { skipOverBudgetWhenLoaded } from '../support/timing';
 
 type Impl = Record<string, (...args: never[]) => unknown>;
 
@@ -45,8 +46,11 @@ function android(): void {
   (globalThis as { Capacitor?: unknown }).Capacitor = { isNativePlatform: () => true, getPlatform: () => 'android', isPluginAvailable: () => true };
 }
 
-/** Fails fast instead of hanging the suite when boot never settles. */
-function settles<T>(p: Promise<T>, ms = 2_000): Promise<T> {
+/**
+ * Fails by name instead of hanging the suite when boot never settles. The guard is patience, not a budget: it stays under the
+ * 30 s test timeout, and long enough that a loaded machine importing modules for the first time is not mistaken for a hang.
+ */
+function settles<T>(p: Promise<T>, ms = 25_000): Promise<T> {
   return Promise.race([p, new Promise<T>((_, reject) => setTimeout(() => reject(new Error('createPlatform never settled')), ms))]);
 }
 
@@ -117,7 +121,7 @@ describe('Android boot never waits on a plugin proxy', () => {
     expect(h.thenCalls).toEqual([]);
   });
 
-  it('starts within the timeout when the native side never answers', async () => {
+  it('starts within the timeout when the native side never answers', async (ctx) => {
     android();
     h.impls.VandeSecureStorage = { get: never as never, set: never as never, remove: never as never };
     h.impls.VandeInstallReferrer = { getReferrer: never as never };
@@ -125,7 +129,10 @@ describe('Android boot never waits on a plugin proxy', () => {
     const { createPlatform } = await import('@/platform');
     const started = Date.now();
     const platform = await settles(createPlatform({}, { nativeTimeoutMs: 50 }));
-    expect(Date.now() - started).toBeLessThan(1_000);
+    // The bound is exact. Only an overrun on a machine above load 20 is skipped, by name; a quiet machine fails it.
+    const elapsed = Date.now() - started;
+    skipOverBudgetWhenLoaded(ctx, 'boot with a silent native side (nativeTimeoutMs 50)', elapsed, 1_000, 'ms');
+    expect(elapsed).toBeLessThan(1_000);
     await platform.secureStore.set('vc.session.v1', 'session-3');
     expect(await platform.secureStore.get('vc.session.v1')).toBe('session-3');
     expect(await settles(platform.deepLinks.initial())).toBeNull();

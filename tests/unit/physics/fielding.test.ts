@@ -5,6 +5,7 @@ import { BALL_R, BOUNDARY_R, PITCH_HALF } from '@/physics/constants';
 import { autoField, distanceFromStriker, pointFromStriker, ropeDistance } from '@/physics/field';
 import {
   ATHLETICS,
+  DIVE,
   PICKUP_S,
   athleticsOf,
   coverable,
@@ -20,7 +21,10 @@ import {
 } from '@/physics/fielding';
 import { stubShot, stubThrough } from '../practice/game/stubTrajectory';
 
-const FIELD = autoField({ family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'f' }, 'balanced');
+/** These tests check the Test (red-ball) templates; the white-ball ones are checked separately. */
+const RED_BALL = { colour: 'red', age: 'new' } as const;
+
+const FIELD = autoField({ family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'f' }, 'balanced', 'right', RED_BALL);
 const byId = (f: FieldLayout, id: string) => f.fielders.find((x) => x.id === id)!;
 const COVER = byId(FIELD, 'cover');
 const BAT = { x: 0, z: 8.3 };
@@ -149,12 +153,17 @@ describe('catches', () => {
       const p = besideCover(lat);
       return simulateFielding(FIELD, stubThrough(p.x, p.z, 1, 0.9));
     };
+    // FIELD track (2026-11-03): the distances changed with the dive budget. Before, a dive added the full 2.3 m dive
+    // reach on top of a full-effort run to the same instant (1.06 m in 0.9 s), so 2.4 m was held and 3.0 m was a
+    // full-stretch drop, with the hips implied to travel about 15 m/s. Now the dive replaces the run for its duration
+    // (take-off after the reaction, hips at most 1.2 m in 0.4 s, hands 1.1 m beyond): 2.2 m is a held dive, 2.4 m is
+    // at full stretch and put down, 3.0 m is out of reach.
     expect(at(1.5).play).toMatchObject({ kind: 'caught', fielderId: 'cover', dive: false });
-    expect(at(2.4).play).toMatchObject({ kind: 'caught', fielderId: 'cover', dive: true });
-    const stretched = at(3).play;
+    expect(at(2.2).play).toMatchObject({ kind: 'caught', fielderId: 'cover', dive: true });
+    const stretched = at(2.4).play;
     expect(stretched).toMatchObject({ kind: 'fielded', fielderId: 'cover', how: 'dropped' });
     expect(stretched.kind === 'fielded' && stretched.drop?.reason).toBe('full_stretch');
-    const beyond = at(3.6).play;
+    const beyond = at(3).play;
     expect(beyond.kind).not.toBe('caught');
     expect(beyond.kind === 'fielded' && beyond.how === 'dropped').toBe(false);
   });
@@ -243,6 +252,24 @@ describe('the keeper', () => {
     expect(keeperTake(FIELD, wide, 0)!.dive).toBe(false);
   });
 
+  it('a ball above his gloves passed him too: shortM is the shortfall; the take and his path are unchanged (5f)', () => {
+    // PHYS2 5f (WEB-FIELD finding, lead ruling 2026-11-04). keeperTake checked only the lateral reach, so a dive under a
+    // ball 2.19 m up (above his 1.8 m full-stretch glove height) read as a clean take. Now the vertical excess over
+    // catchMaxH standing or catchDiveMaxH diving joins the lateral shortfall; nothing else about the take changes.
+    const keeper = byId(FIELD, 'keeper');
+    const at = (dx: number, y: number) => Array.from({ length: 200 }, (_, i) => ({ t: 0.55 + i / 240, p: { x: keeper.x + dx, y, z: PITCH_HALF + i * 0.15 }, v: { x: 0, y: 0, z: 36 } }));
+    for (const [dx, watch, cap, dives] of [[0.4, 0, ATHLETICS.keeper.catchMaxH, false], [2.2, 0.7, ATHLETICS.keeper.catchDiveMaxH, true]] as const) {
+      const low = keeperTake(FIELD, at(dx, 1.0), watch)!;
+      const high = keeperTake(FIELD, at(dx, cap + 0.39), watch)!;
+      expect(low.dive).toBe(dives);
+      expect(high.dive).toBe(low.dive);
+      expect(high.t).toBe(low.t);
+      expect(high.path).toEqual(low.path);
+      expect(high.shortM).toBeCloseTo(Math.hypot(low.shortM, 0.39), 9);
+      expect(keeperTake(FIELD, at(dx, cap - 0.01), watch)!.shortM).toBe(low.shortM);
+    }
+  });
+
   it('everyone else stays set, and celebrates a wicket', () => {
     const paths = standingPaths(FIELD, 2, new Set(['keeper']), true);
     expect(paths).toHaveLength(10);
@@ -270,11 +297,15 @@ describe('determinism and the drop rule', () => {
   });
 
   it('a dropped ball is picked up after the fielder recovers, then thrown', () => {
-    const c = besideCover(3);
+    // FIELD track (2026-11-03): 2.4 m is the full-stretch drop under the dive budget (3.0 m before; see above). Before,
+    // the pickup came at a fixed PICKUP_S.dropped_dive (1.4 s) with the ball lying still at his feet; now the ball
+    // runs on off his hands, and he is up (DIVE.recoverS), reaches it and has it ready (PICKUP_S.stop) at the soonest.
+    const c = besideCover(2.4);
     const r = simulateFielding(FIELD, stubThrough(c.x, c.z, 1, 0.9));
     expect(r.play.kind).toBe('fielded');
     if (r.play.kind !== 'fielded') return;
-    expect(r.play.releaseT).toBeGreaterThanOrEqual(r.play.t + PICKUP_S.dropped_dive - 1e-9);
+    expect(r.play.how).toBe('dropped');
+    expect(r.play.releaseT).toBeGreaterThanOrEqual(r.play.t + DIVE.recoverS + PICKUP_S.stop - 1e-9);
     expect(r.play.returnT).toBeGreaterThan(r.play.releaseT);
     const cover = r.paths.find((p) => p.fielderId === 'cover')!;
     expect(cover.samples.map((s) => s.action)).toEqual(expect.arrayContaining(['dive', 'drop', 'pickup', 'throw']));

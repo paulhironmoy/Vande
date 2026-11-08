@@ -1,204 +1,280 @@
 import { describe, expect, it } from 'vitest';
 import type { GestureInput, GestureSample } from '@/contracts/practice';
-import { calibrationFromTaps, calibrationError, elevationOf, moveThreshold, normalizeGesture, powerOf, readGesture } from '@/input';
-import { ATTACK_MIN_POWER, CALIBRATION, DEFEND_POWER, ELEVATION, READ_WINDOW_MS, TAP_DECIDE_MS } from '@/input/constants';
+import { canPlay, elevationOf, minPowerForElevation, moveThreshold, normalizeGesture, powerOf, readGesture, referenceLength, speedForPower } from '@/input';
+import { DEPARTURE, DEFEND_POWER, KEYBOARD, LOFT_REACH, MIN_READ_MS, MOVE_THRESHOLD, POWER_CURVE, READ_MAX_MS, REFERENCE_PX, STILL, TAP_HOLD_MS } from '@/input/constants';
+import { OPTS, RELEASE, SURFACES, strokeSamples, tapSamples } from './fixtures';
 
-const PHONE = { width: 844, height: 180 };
-const DESKTOP = { width: 1366, height: 330 };
-const RELEASE = 10_000;
+const PHONE = SURFACES.phone;
+const REF = referenceLength(PHONE);
+const input = (samples: GestureSample[], surface: { width: number; height: number } = PHONE, pointer: GestureInput['pointer'] = 'touch'): GestureInput => ({ pointer, samples, surface });
+/** A straight, lifted swipe from a press at `t0`: `lengthPx` along `bearingDeg` in `ms` (ease-out unless given). */
+const swipe = (t0: number, bearingDeg: number, lengthPx: number, ms: number, extra: Partial<Parameters<typeof strokeSamples>[0]> = {}) => strokeSamples({ lengthPx, bearingDeg, durationMs: ms, ...extra }, t0);
 
-/** A straight flick from (x0, y0): `speed` px/ms along `bearingDeg` (0 = up the screen, + = right) for `ms`, sampled every 4 ms. */
-function flick(t0: number, bearingDeg: number, speed: number, ms: number, opts: { x0?: number; y0?: number; step?: number; restMs?: number } = {}): GestureSample[] {
-  const step = opts.step ?? 4;
-  const a = (bearingDeg * Math.PI) / 180;
-  const x0 = opts.x0 ?? 400;
-  const y0 = opts.y0 ?? 120;
-  const out: GestureSample[] = [{ t: t0, x: x0, y: y0 }];
-  const rest = opts.restMs ?? 0;
-  for (let t = step; t <= rest; t += step) out.push({ t: t0 + t, x: x0, y: y0 });
-  for (let t = step; t <= ms; t += step) out.push({ t: t0 + rest + t, x: x0 + Math.sin(a) * speed * t, y: y0 - Math.cos(a) * speed * t });
-  return out;
-}
-const input = (samples: GestureSample[], surface = PHONE, pointer: GestureInput['pointer'] = 'touch'): GestureInput => ({ pointer, samples, surface });
-const opts = { releasePerfMs: RELEASE, calibrationMs: 0, handedness: 'right' as const };
-
-describe('direction mapping (batter frame, + = off side)', () => {
-  it('maps screen directions to bearings for a right-hander', () => {
-    const cases: Array<[number, number]> = [
-      [0, 0],
-      [45, 45],
-      [90, 90],
-      [135, 135],
-      [-45, -45],
-      [-90, -90],
-      [-135, -135],
-      [180, 180],
-    ];
-    for (const [screen, bearing] of cases) {
-      const s = normalizeGesture(input(flick(RELEASE + 300, screen, 1.2, 60)), opts)!;
+describe('direction: the swipe’s own bearing (batter frame, + = off side)', () => {
+  it('maps screen directions to bearings for a right-hander, all the way round', () => {
+    for (let screen = -175; screen <= 180; screen += 5) {
+      const s = normalizeGesture(input(swipe(RELEASE + 300, screen, 90, 90)), OPTS)!;
       expect(s.kind).toBe('attack');
-      expect(s.directionDeg).toBeCloseTo(bearing, 0);
+      expect(Math.abs(((s.directionDeg - screen + 540) % 360) - 180)).toBeLessThanOrEqual(0.06);
     }
   });
 
   it('mirrors left-handers: the screen right is their leg side', () => {
-    const lh = { ...opts, handedness: 'left' as const };
-    expect(normalizeGesture(input(flick(RELEASE + 300, 90, 1.2, 60)), lh)!.directionDeg).toBeCloseTo(-90, 0);
-    expect(normalizeGesture(input(flick(RELEASE + 300, -60, 1.2, 60)), lh)!.directionDeg).toBeCloseTo(60, 0);
-    const straight = normalizeGesture(input(flick(RELEASE + 300, 0, 1.2, 60)), lh)!;
+    const lh = { ...OPTS, handedness: 'left' as const };
+    expect(normalizeGesture(input(swipe(RELEASE + 300, 90, 90, 90)), lh)!.directionDeg).toBeCloseTo(-90, 1);
+    expect(normalizeGesture(input(swipe(RELEASE + 300, -60, 90, 90)), lh)!.directionDeg).toBeCloseTo(60, 1);
+    const straight = normalizeGesture(input(swipe(RELEASE + 300, 0, 90, 90)), lh)!;
     expect(Object.is(straight.directionDeg, -0)).toBe(false);
     expect(straight.directionDeg).toBe(0);
+    expect(normalizeGesture(input(swipe(RELEASE + 300, 180, 90, 90)), lh)!.directionDeg).toBe(180);
   });
 
-  it('reads direction from the first READ_WINDOW_MS of movement, not where the finger ends up', () => {
-    // Up for 60 ms, then a hard turn to the right: the window only sees the first part.
-    const s = flick(RELEASE + 300, 0, 1.2, 60);
-    const end = s[s.length - 1];
-    for (let t = 4; t <= 80; t += 4) s.push({ t: end.t + t, x: end.x + 2 * t, y: end.y });
-    expect(normalizeGesture(input(s), opts)!.directionDeg).toBeCloseTo(0, 0);
+  it('reads the line from the press to where the stroke ends, so a thumb’s arc keeps its overall direction', () => {
+    for (const curveDeg of [-30, -15, 15, 30]) {
+      const s = normalizeGesture(input(strokeSamples({ lengthPx: 110, bearingDeg: 40, durationMs: 100, curveDeg }, RELEASE + 300)), OPTS)!;
+      expect(s.directionDeg).toBeCloseTo(40, 0);
+    }
   });
 });
 
-describe('tap versus flick', () => {
+describe('tap or swipe', () => {
   it('a press without movement is the defensive straight bat', () => {
-    const s = normalizeGesture(input([{ t: RELEASE + 400, x: 300, y: 100 }, { t: RELEASE + 450, x: 300, y: 100 }]), opts)!;
+    const s = normalizeGesture(input(tapSamples(RELEASE + 400, 60)), OPTS)!;
     expect(s).toEqual({ kind: 'defend', startT: 0.4, directionDeg: 0, power: DEFEND_POWER, elevation: 0, footwork: 'auto' });
   });
 
-  it('jitter inside the threshold is still a tap; movement beyond it is a flick', () => {
+  it('jitter and drift inside the threshold stay a tap; movement beyond it is a swipe', () => {
     const thr = moveThreshold(PHONE);
-    const jitter = [
+    const jitter: GestureSample[] = [
       { t: RELEASE + 400, x: 300, y: 100 },
       { t: RELEASE + 410, x: 300 + thr * 0.6, y: 100 - thr * 0.5 },
       { t: RELEASE + 430, x: 300 - thr * 0.4, y: 100 },
+      { t: RELEASE + 480, x: 300 + thr * 0.7, y: 100 + thr * 0.6 },
     ];
-    expect(normalizeGesture(input(jitter), opts)!.kind).toBe('defend');
-    const moved = [...jitter, { t: RELEASE + 440, x: 300, y: 100 - thr * 1.5 }];
-    expect(normalizeGesture(input(moved), opts)!.kind).toBe('attack');
+    expect(normalizeGesture(input(jitter), OPTS)!.kind).toBe('defend');
+    const moved = [...jitter, { t: RELEASE + 490, x: 300, y: 100 - thr * 1.5 }];
+    expect(normalizeGesture(input(moved), OPTS)!.kind).toBe('attack');
   });
 
-  it('the threshold scales with the surface and is clamped', () => {
-    expect(moveThreshold({ width: 2000, height: 1000 })).toBe(18);
-    expect(moveThreshold({ width: 100, height: 80 })).toBe(7);
-    expect(moveThreshold(PHONE)).toBeCloseTo(7.2, 5);
+  it('the threshold is a share of the reference length, clamped', () => {
+    expect(REF).toBeCloseTo(412 * 0.46, 6);
+    expect(moveThreshold(PHONE)).toBeCloseTo(MOVE_THRESHOLD.frac * 412 * 0.46, 6);
+    expect(referenceLength({ width: 640, height: 100 })).toBe(REFERENCE_PX.min);
+    expect(referenceLength({ width: 1920, height: 497 })).toBe(REFERENCE_PX.max);
+    expect(moveThreshold({ width: 300, height: 50 })).toBe(Math.max(MOVE_THRESHOLD.minPx, MOVE_THRESHOLD.frac * REFERENCE_PX.min));
+    expect(moveThreshold({ width: 4000, height: 3000 })).toBe(Math.min(MOVE_THRESHOLD.maxPx, MOVE_THRESHOLD.frac * REFERENCE_PX.max));
+  });
+
+  it('a finger that rests and then swipes is an attack (any rest inside TAP_HOLD_MS)', () => {
+    for (const restMs of [20, 50, 70, 100, 120]) {
+      const s = normalizeGesture(input(swipe(RELEASE + 300, 20, 100, 100, { restMs })), OPTS)!;
+      expect(s.kind, `rest ${restMs} ms`).toBe('attack');
+      expect(s.directionDeg).toBeCloseTo(20, 0);
+    }
+  });
+
+  it('waiting past TAP_HOLD_MS does not consume the later swipe', () => {
+    const s = normalizeGesture(input(swipe(RELEASE + 300, 0, 100, 100, { restMs: TAP_HOLD_MS + 10 })), OPTS)!;
+    expect(s.kind).toBe('attack');
+    expect(s.startT).toBeGreaterThan(0.3 + TAP_HOLD_MS / 1000);
+    // Crossing the hold boundary cannot change a later movement into a defence.
+    const thr = moveThreshold(PHONE);
+    const late: GestureSample[] = [
+      { t: RELEASE + 300, x: 300, y: 100 },
+      { t: RELEASE + 300 + TAP_HOLD_MS - 10, x: 300, y: 100 },
+      { t: RELEASE + 300 + TAP_HOLD_MS + 10, x: 300, y: 100 - thr * 1.8 },
+    ];
+    expect(normalizeGesture(input(late), OPTS)!.kind).toBe('attack');
+    late[2] = { ...late[2], y: 100 - thr * 2.2 };
+    expect(normalizeGesture(input(late), OPTS)!.kind).toBe('attack');
   });
 });
 
-describe('timing comes from the samples’ own timestamps', () => {
-  it('swing start is the pointer-down minus calibration, on the simulation clock', () => {
+describe('timing: the tap’s press or swipe’s departure, never the handler clock', () => {
+  it('uses an analytically known departure time for a linear swipe, with or without a rest', () => {
     const down = RELEASE + 512.3;
-    const s = normalizeGesture(input(flick(down, 30, 1, 60)), { ...opts, calibrationMs: 62 })!;
-    expect(s.startT).toBeCloseTo((512.3 - 62) / 1000, 4);
-    const tap = normalizeGesture(input([{ t: down, x: 10, y: 10 }]), { ...opts, calibrationMs: 62 })!;
-    expect(tap.startT).toBeCloseTo(s.startT, 6);
+    const o = { ...OPTS, calibrationMs: 62 };
+    const expected = (512.3 - 62) / 1000;
+    expect(normalizeGesture(input(tapSamples(down, 90)), o)!.startT).toBeCloseTo(expected, 4);
+    for (const restMs of [0, 80, 300]) {
+      // 1.5 px/ms crosses the 2.5 px departure circle after exactly 5/3 ms.
+      const s = normalizeGesture(input(swipe(down, 30, 120, 80, { restMs, profile: 'linear' })), o)!;
+      expect(s.startT).toBeCloseTo(expected + (restMs + DEPARTURE.radiusPx / 1.5) / 1000, 4);
+    }
   });
 
   it('is independent of when the gesture is normalized (no clock is read)', () => {
-    const samples = flick(RELEASE + 450, -20, 0.9, 52);
-    const a = normalizeGesture(input(samples), opts);
-    const b = normalizeGesture(input(samples.map((x) => ({ ...x }))), opts);
-    expect(a).toEqual(b);
+    const samples = swipe(RELEASE + 450, -20, 120, 110);
+    expect(normalizeGesture(input(samples), OPTS)).toEqual(normalizeGesture(input(samples.map((x) => ({ ...x }))), OPTS));
   });
 
-  it('a resting finger starts its swing at its first intentional movement', () => {
-    const down = RELEASE - 800; // already on the glass before the ball was bowled
-    const s = flick(down, 10, 1.1, 60, { restMs: 1100 });
-    const read = readGesture(input(s))!;
-    expect(read.kind).toBe('flick');
-    expect(read.startMs).toBeCloseTo(down + 1100, 0);
-    expect(normalizeGesture(input(s), opts)!.startT).toBeCloseTo(0.3, 2);
-  });
-
-  it('an armed press that hesitates briefly still starts at the pointer-down', () => {
-    const down = RELEASE + 380;
-    const s = flick(down, 10, 1.1, 60, { restMs: TAP_DECIDE_MS - 20 });
-    expect(normalizeGesture(input(s), opts)!.startT).toBeCloseTo(0.38, 4);
+  it('uses the calibration of the gesture’s own modality when one is given', () => {
+    const down = RELEASE + 400;
+    const calibrations = { touch: 70, mouse: 15, keyboard: 5 };
+    const o = { ...OPTS, calibrationMs: 40, calibrations };
+    expect(normalizeGesture(input(tapSamples(down, 60)), o)!.startT).toBeCloseTo(0.33, 6);
+    expect(normalizeGesture(input(tapSamples(down, 60), SURFACES.desktop, 'mouse'), o)!.startT).toBeCloseTo(0.385, 6);
+    expect(normalizeGesture({ pointer: 'keyboard', samples: [{ t: down, x: 0, y: 0 }], surface: PHONE }, o)!.startT).toBeCloseTo(0.395, 6);
+    // No offset of its own: the general one.
+    expect(normalizeGesture(input(tapSamples(down, 60), PHONE, 'pen'), o)!.startT).toBeCloseTo(0.36, 6);
   });
 
   it('applies the time scale hook to the simulation clock', () => {
-    const s = normalizeGesture(input([{ t: RELEASE + 600, x: 1, y: 1 }]), { ...opts, timeScale: 0.5 })!;
+    const s = normalizeGesture(input([{ t: RELEASE + 600, x: 1, y: 1 }]), { ...OPTS, timeScale: 0.5 })!;
     expect(s.startT).toBeCloseTo(0.3, 6);
   });
 });
 
-describe('power and elevation', () => {
-  it('power grows with flick speed, normalized by the surface size', () => {
-    const slow = normalizeGesture(input(flick(RELEASE + 300, 0, 0.4, 60)), opts)!.power;
-    const fast = normalizeGesture(input(flick(RELEASE + 300, 0, 1.4, 60)), opts)!.power;
-    expect(fast).toBeGreaterThan(slow);
-    expect(slow).toBeGreaterThanOrEqual(ATTACK_MIN_POWER);
-    expect(normalizeGesture(input(flick(RELEASE + 300, 0, 9, 60)), opts)!.power).toBe(1);
-    // The same flick in surface lengths gives the same power on a phone and a desktop.
-    const k = Math.min(DESKTOP.width, DESKTOP.height) / Math.min(PHONE.width, PHONE.height);
-    const phone = normalizeGesture(input(flick(RELEASE + 300, 0, 0.8, 60)), opts)!.power;
-    const desk = normalizeGesture(input(flick(RELEASE + 300, 0, 0.8 * k, 60), DESKTOP, 'mouse'), opts)!.power;
-    expect(desk).toBeCloseTo(phone, 2);
+describe('power: the stroke’s speed, continuous and log-linear', () => {
+  it('the documented curve', () => {
+    expect(powerOf(POWER_CURVE.lowSpeed)).toBeCloseTo(POWER_CURVE.lowPower, 9);
+    expect(powerOf(POWER_CURVE.fullSpeed)).toBe(1);
+    expect(powerOf(1000)).toBe(1);
+    expect(powerOf(0)).toBe(POWER_CURVE.min);
+    expect(powerOf(0.5)).toBe(POWER_CURVE.min);
+    for (const p of [0.2, 0.35, 0.5, 0.75, 0.9, 1]) expect(powerOf(speedForPower(p))).toBeCloseTo(p, 9);
+    // Equal ratios of speed are equal steps of power: 10% faster is always the same small step.
+    const step = (1 - POWER_CURVE.lowPower) * (Math.log(1.1) / Math.log(POWER_CURVE.fullSpeed / POWER_CURVE.lowSpeed));
+    for (const v of [2.5, 4, 7, 11, 16]) expect(powerOf(v * 1.1) - powerOf(v)).toBeCloseTo(step, 9);
+    expect(step).toBeLessThan(0.04);
   });
 
-  it('a short flick stays along the ground and a long one is lofted', () => {
-    const short = normalizeGesture(input(flick(RELEASE + 300, 0, 1.2, READ_WINDOW_MS - 15)), opts)!;
-    const long = normalizeGesture(input(flick(RELEASE + 300, 0, 1.2, READ_WINDOW_MS + 30)), opts)!;
-    expect(short.elevation).toBeLessThanOrEqual(ELEVATION.groundMax);
-    expect(long.elevation).toBeGreaterThanOrEqual(ELEVATION.loftFrom);
-    const longer = normalizeGesture(input(flick(RELEASE + 300, 0, 2, READ_WINDOW_MS + 30)), opts)!;
-    expect(longer.elevation).toBeGreaterThanOrEqual(long.elevation);
+  it('is the reach over the time from movement departure, in reference lengths per second', () => {
+    const r = readGesture(input(swipe(RELEASE + 300, 0, 120, 100, { profile: 'linear' })))!;
+    const readMs = 100 - DEPARTURE.radiusPx / 1.2;
+    expect(r.readMs).toBeCloseTo(readMs, 6);
+    expect(r.reach).toBeCloseTo(120 / REF, 6);
+    expect(r.speed).toBeCloseTo(((120 / REF) / readMs) * 1000, 6);
+    expect(normalizeGesture(input(swipe(RELEASE + 300, 0, 120, 100, { profile: 'linear' })), OPTS)!.power).toBeCloseTo(powerOf(r.speed), 3);
   });
 
-  it('a flick that stops inside the window is short even if the finger stays down', () => {
-    const s = flick(RELEASE + 300, 0, 1.4, 20);
-    const end = s[s.length - 1];
-    for (let t = 4; t <= 40; t += 4) s.push({ t: end.t + t, x: end.x, y: end.y });
-    expect(normalizeGesture(input(s), opts)!.elevation).toBeLessThanOrEqual(ELEVATION.groundMax);
+  it('reference-scaled motion differs only by the analytically bounded fixed departure radius', () => {
+    const k = referenceLength(SURFACES.desktop) / REF;
+    const phone = normalizeGesture(input(swipe(RELEASE + 300, 10, 100, 90, { profile: 'linear' })), OPTS)!;
+    const desk = normalizeGesture(input(swipe(RELEASE + 300, 10, 100 * k, 90, { profile: 'linear' }), SURFACES.desktop, 'mouse'), OPTS)!;
+    const expected = (lengthPx: number, ref: number) => powerOf((lengthPx / ref) / ((90 - DEPARTURE.radiusPx / (lengthPx / 90)) / 1000));
+    expect(phone.power).toBeCloseTo(expected(100, REF), 3);
+    expect(desk.power).toBeCloseTo(expected(100 * k, REF * k), 3);
+    expect(Math.abs(desk.power - phone.power)).toBeLessThan(0.01);
+    expect(desk.elevation).toBe(phone.elevation);
   });
 
-  it('the documented curves', () => {
-    expect(powerOf(0)).toBe(ATTACK_MIN_POWER);
-    expect(powerOf(100)).toBe(1);
-    expect(elevationOf(0, false)).toBe(0);
-    expect(elevationOf(1, false)).toBe(ELEVATION.groundMax);
-    expect(elevationOf(0, true)).toBe(ELEVATION.loftFrom);
-    expect(elevationOf(1, true)).toBe(1);
+  it('a quick flick lifted at once is timed over at least MIN_READ_MS', () => {
+    const r = readGesture(input(swipe(RELEASE + 300, 0, 40, 8)))!;
+    expect(r.readMs).toBe(MIN_READ_MS);
   });
 });
 
-describe('keyboard parity', () => {
-  it('Space at time t is the same defence as a tap at t: same start rule, same values', () => {
+describe('elevation: along the ground, unless the swipe is long', () => {
+  it('the documented curve: zero up to LOFT_REACH.from, then linear to 1', () => {
+    expect(elevationOf(0)).toBe(0);
+    expect(elevationOf(LOFT_REACH.from)).toBe(0);
+    expect(elevationOf((LOFT_REACH.from + LOFT_REACH.full) / 2)).toBeCloseTo(0.5, 9);
+    expect(elevationOf(LOFT_REACH.full)).toBe(1);
+    expect(elevationOf(5)).toBe(1);
+  });
+
+  it('ordinary phone swipes, up to 200 px, stay along the ground', () => {
+    for (const [len, ms] of [[30, 80], [60, 60], [80, 90], [120, 120], [150, 60], [150, 150], [200, 120]]) {
+      const s = normalizeGesture(input(swipe(RELEASE + 300, 25, len, ms)), OPTS)!;
+      expect(s.kind).toBe('attack');
+      expect(s.elevation, `${len} px over ${ms} ms`).toBe(0);
+    }
+  });
+
+  it('a long, quick swipe is lofted, and longer is higher', () => {
+    const e = (len: number) => normalizeGesture(input(swipe(RELEASE + 300, 0, len, 120)), OPTS)!.elevation;
+    expect(e(LOFT_REACH.full * REF * 1.05)).toBe(1);
+    expect(e(1.35 * REF)).toBeCloseTo(0.5, 2);
+    expect(e(1.25 * REF)).toBeLessThan(e(1.35 * REF));
+    expect(e(1.35 * REF)).toBeLessThan(e(1.45 * REF));
+  });
+
+  it('a long but slow swipe is read when the read closes, so it stays low: the loft is a quick stroke', () => {
+    const r = readGesture(input(swipe(RELEASE + 300, 0, 2 * REF, 400, { profile: 'linear' })))!;
+    expect(r.closedBy).toBe('cap');
+    expect(r.travelling).toBe(true);
+    expect(r.endMs! - r.startMs).toBeCloseTo(READ_MAX_MS, 6);
+    expect(normalizeGesture(input(swipe(RELEASE + 300, 0, 2 * REF, 400, { profile: 'linear' })), OPTS)!.elevation).toBe(0);
+  });
+});
+
+describe('where the read ends', () => {
+  it('at the lift: the exact lift sample', () => {
+    const s = swipe(RELEASE + 300, 0, 90, 70);
+    const r = readGesture(input(s))!;
+    expect(r.closedBy).toBe('end');
+    expect(r.endMs).toBe(s[s.length - 1].t);
+  });
+
+  it('when the finger stops and stays: the moment it arrived, so holding reads like lifting', () => {
+    const held = readGesture(input(swipe(RELEASE + 300, 0, 60, 50, { holdMs: 100, profile: 'linear' })))!;
+    const lifted = readGesture(input(swipe(RELEASE + 300, 0, 60, 50, { profile: 'linear' })))!;
+    expect(held.closedBy).toBe('stop');
+    expect(held.reach).toBeCloseTo(lifted.reach, 6);
+    expect(Math.abs(held.readMs - lifted.readMs)).toBeLessThanOrEqual(3);
+    expect(Math.abs(powerOf(held.speed) - powerOf(lifted.speed))).toBeLessThan(0.02);
+  });
+
+  it('a brief pause before the lift is part of the stroke; a still finger is not', () => {
+    const r = readGesture(input(swipe(RELEASE + 300, 0, 60, 50, { holdMs: STILL.ms - 10, profile: 'linear' })))!;
+    expect(r.closedBy).toBe('end');
+  });
+
+  it('a stroke that comes back is read at its farthest point', () => {
+    const out = swipe(RELEASE + 300, 30, 80, 60, { profile: 'linear' });
+    const tip = out[out.length - 1];
+    const back: GestureSample[] = [...out];
+    for (let t = 4; t <= 40; t += 4) back.push({ t: tip.t + t, x: tip.x - (tip.x - out[0].x) * (t / 40) * 0.8, y: tip.y - (tip.y - out[0].y) * (t / 40) * 0.8 });
+    const r = readGesture(input(back))!;
+    expect(r.closedBy).toBe('turn');
+    expect(r.screenBearingDeg).toBeCloseTo(30, 0);
+    expect(r.reach).toBeCloseTo(80 / REF, 2);
+  });
+});
+
+describe('keyboard', () => {
+  it('a key with no stroke is the defence, exactly a tap at the same moment', () => {
     const t = RELEASE + 488.8;
-    const key = normalizeGesture({ pointer: 'keyboard', samples: [{ t, x: 0, y: 0 }], surface: PHONE }, { ...opts, calibrationMs: 40 })!;
-    const tap = normalizeGesture(input([{ t, x: 200, y: 90 }]), { ...opts, calibrationMs: 40 })!;
+    const key = normalizeGesture({ pointer: 'keyboard', samples: [{ t, x: 0, y: 0 }], surface: PHONE }, { ...OPTS, calibrationMs: 40 })!;
+    const tap = normalizeGesture(input([{ t, x: 200, y: 90 }]), { ...OPTS, calibrationMs: 40 })!;
     expect(key).toEqual(tap);
   });
 
-  it('keyboard samples can never become a flick', () => {
-    const key = normalizeGesture({ pointer: 'keyboard', samples: flick(RELEASE + 300, 45, 3, 60), surface: PHONE }, opts)!;
-    expect(key.kind).toBe('defend');
+  it('keyboard samples alone never make a swipe', () => {
+    expect(normalizeGesture({ pointer: 'keyboard', samples: swipe(RELEASE + 300, 45, 300, 60), surface: PHONE }, OPTS)!.kind).toBe('defend');
   });
 
-  it('carries footwork through unchanged', () => {
-    expect(normalizeGesture({ pointer: 'keyboard', samples: [{ t: RELEASE, x: 0, y: 0 }], surface: PHONE, footwork: 'back' }, opts)!.footwork).toBe('back');
+  it('a key attack: its direction (mirrored for a left-hander), and fixed power and elevation; Shift lofts', () => {
+    const at = (screenBearingDeg: number, loft: boolean) => ({ pointer: 'keyboard' as const, samples: [{ t: RELEASE + 500, x: 0, y: 0 }], surface: PHONE, key: { kind: 'attack' as const, screenBearingDeg, loft } });
+    expect(normalizeGesture(at(45, false), OPTS)).toEqual({ kind: 'attack', startT: 0.5, directionDeg: 45, power: KEYBOARD.power, elevation: 0, footwork: 'auto' });
+    expect(normalizeGesture(at(-90, true), OPTS)).toEqual({ kind: 'attack', startT: 0.5, directionDeg: -90, power: KEYBOARD.loftPower, elevation: KEYBOARD.loftElevation, footwork: 'auto' });
+    expect(normalizeGesture(at(-90, false), { ...OPTS, handedness: 'left' })!.directionDeg).toBe(90);
+    expect(normalizeGesture({ ...at(0, false), footwork: 'back' }, OPTS)!.footwork).toBe('back');
+  });
+});
+
+describe('what a player can play (for the coach’s demonstrations)', () => {
+  it('along the ground any power; a lofted swipe needs the speed its reach takes', () => {
+    expect(canPlay({ kind: 'attack', power: 0.3, elevation: 0 })).toBe(true);
+    expect(canPlay({ kind: 'attack', power: 1, elevation: 1 })).toBe(true);
+    expect(minPowerForElevation(0)).toBe(POWER_CURVE.min);
+    expect(minPowerForElevation(1)).toBeCloseTo(powerOf((LOFT_REACH.full / READ_MAX_MS) * 1000), 9);
+    expect(canPlay({ kind: 'attack', power: 0.6, elevation: 0.55 })).toBe(false);
+    expect(canPlay({ kind: 'attack', power: minPowerForElevation(0.55), elevation: 0.55 })).toBe(true);
+    expect(canPlay({ kind: 'attack', power: KEYBOARD.loftPower, elevation: KEYBOARD.loftElevation }, 'keyboard')).toBe(true);
+    expect(canPlay({ kind: 'attack', power: 0.9, elevation: 0 }, 'keyboard')).toBe(false);
+    expect(canPlay({ kind: 'defend', power: DEFEND_POWER, elevation: 0 }, 'keyboard')).toBe(true);
   });
 });
 
 describe('unusable input', () => {
   it('returns null rather than guessing', () => {
-    expect(normalizeGesture(input([]), opts)).toBeNull();
-    expect(normalizeGesture(input([{ t: 2, x: 0, y: 0 }, { t: 1, x: 50, y: 0 }]), opts)).toBeNull();
-    expect(normalizeGesture(input([{ t: Number.NaN, x: 0, y: 0 }]), opts)).toBeNull();
-    expect(normalizeGesture(input([{ t: 1, x: 0, y: 0 }], { width: 0, height: 10 }), opts)).toBeNull();
-    expect(normalizeGesture(input([{ t: 1, x: 0, y: 0 }]), { ...opts, releasePerfMs: Number.NaN })).toBeNull();
-  });
-});
-
-describe('calibration', () => {
-  it('is the median of plausible attempts', () => {
-    expect(calibrationFromTaps([40, 70, 55])).toEqual({ offsetMs: 55, attempts: 3 });
-    expect(calibrationFromTaps([40, 70, 55, 61])).toEqual({ offsetMs: 58, attempts: 4 });
-    expect(calibrationError(1062, 1000)).toBe(62);
-  });
-  it('rejects wild taps and clamps the result', () => {
-    expect(calibrationFromTaps([60, 2000, -900, 64, Number.NaN])).toEqual({ offsetMs: 62, attempts: 2 });
-    expect(calibrationFromTaps([280, 290, 299]).offsetMs).toBe(CALIBRATION.maxMs);
-    expect(calibrationFromTaps([-200, -250]).offsetMs).toBe(CALIBRATION.minMs);
-    expect(calibrationFromTaps([])).toEqual({ offsetMs: 0, attempts: 0 });
+    expect(normalizeGesture(input([]), OPTS)).toBeNull();
+    expect(normalizeGesture(input([{ t: 2, x: 0, y: 0 }, { t: 1, x: 50, y: 0 }]), OPTS)).toBeNull();
+    expect(normalizeGesture(input([{ t: Number.NaN, x: 0, y: 0 }]), OPTS)).toBeNull();
+    expect(normalizeGesture(input([{ t: 1, x: 0, y: 0 }], { width: 0, height: 10 }), OPTS)).toBeNull();
+    expect(normalizeGesture(input([{ t: 1, x: 0, y: 0 }]), { ...OPTS, releasePerfMs: Number.NaN })).toBeNull();
+    expect(normalizeGesture(input([{ t: 1, x: 0, y: 0 }]), { ...OPTS, calibrationMs: Number.NaN })).toBeNull();
   });
 });

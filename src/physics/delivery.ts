@@ -6,6 +6,10 @@
  * ball (two angles, Newton's method on the full integrator) so it pitches at plan.lengthM and passes the striker's
  * stumps plane at plan.lineM, with all movement included. flight() returns the contract's BallFlight.
  *
+ * The ball's age (BallCondition) scales the swing and the seam deviation (constants.ts BALL_AGE_FACTORS); a new ball,
+ * the default, is the calibration. `seamCue()` derives the batter's seam cue (BallFlight.seam) from the same values the
+ * physics flies, so the seam, the shine and the wobble on screen always agree with how the ball moves.
+ *
  * Everything runs in the striker's own right-handed frame. BowlerProfile.arm is the real bowling arm; for a
  * left-handed striker it is mirrored (a right-arm bowler becomes left-arm in that frame), so release side, angle,
  * swing and turn all follow. Variations are batter-relative: an outswinger leaves THIS batter, an off-cutter comes
@@ -13,6 +17,7 @@
  * spinner or a left-arm wrist spinner; the wrong'un (googly or carrom ball) turns the other way.
  */
 import type {
+  BallCondition,
   BallFlight,
   BowlerProfile,
   Footwork,
@@ -25,8 +30,10 @@ import { rngFromKey } from '@/engine/prng';
 import { integrateBall, type SimResult } from './ball';
 import {
   AUTO_FORWARD_MAX_LENGTH,
+  BALL_AGE_FACTORS,
   BALL_R,
   CONTACT_PLANE_M,
+  DEFAULT_BALL,
   G,
   PITCHES,
   PITCH_HALF,
@@ -35,10 +42,9 @@ import {
   STUMPS_HALF_W,
   STUMPS_TOP,
   SWING_CS,
-  YORKER_MAX_LENGTH,
   type PitchParams,
 } from './constants';
-import { type Vec3, RAD, dasin, datan2, dcos, dsin, len, v3 } from './vec';
+import { type Vec3, DEG, HALF_PI, RAD, dacos, dasin, datan2, dcos, dot, dsin, len, v3 } from './vec';
 
 /** Spin split into the delivery's own frame (rad/s): about the line of travel, the vertical, and the side axis. */
 export interface SpinParts {
@@ -50,6 +56,14 @@ export interface SpinParts {
   top: number;
 }
 
+/**
+ * How the bowler presents the seam. `upright`: a seam-up pace ball, spinning (back-spin) about the seam's own normal,
+ * so the seam holds its angle all the way. `scrambled`: the cutter's fingers and the slower ball's hand spin the ball
+ * about another axis, so the seam wobbles about it (and the ball does not swing). `spin`: a spinner's ball, spinning
+ * about the normal of its seam.
+ */
+export type SeamPresentation = 'upright' | 'scrambled' | 'spin';
+
 /** Everything about the release except its direction, which solveRelease() finds. */
 export interface ReleaseSpec {
   p: Vec3;
@@ -60,6 +74,8 @@ export interface ReleaseSpec {
   swingCs: number;
   /** Seam deflection at the first bounce (rad, + towards the off side). */
   seamDev: number;
+  /** How the seam is presented (the seam cue, see seamCue). */
+  presentation: SeamPresentation;
   /**
    * Presentation only. Pace: the seam's angle to the line of travel about the vertical (deg, + towards the off side;
    * ±18 for swing, 0 upright). Spin: the spin axis's angle from the line of travel towards the top-spin axis (deg).
@@ -80,6 +96,8 @@ export interface FlightArgs {
   seed: string;
   /** The striker's handedness (default right). The plan's line is batter-relative. */
   handedness?: Handedness;
+  /** The over's ball (default DEFAULT_BALL, a new white ball): a worn ball swings and seams less. */
+  ball?: BallCondition;
 }
 
 function u01(r: { float(): number }): number {
@@ -109,6 +127,7 @@ export function releaseFor(
   conditions: PitchCondition,
   seed: string,
   handedness: Handedness = 'right',
+  ball: BallCondition = DEFAULT_BALL,
 ): ReleaseSpec {
   const pitch = PITCHES[conditions];
   const arm = frameArm(bowler.arm, handedness);
@@ -133,6 +152,7 @@ export function releaseFor(
   let seamDev = 0;
   let seamDeg = 0;
   let stockTurn: -1 | 0 | 1 = 0;
+  let presentation: SeamPresentation = bowler.family === 'pace' ? 'upright' : 'spin';
   if (bowler.family === 'pace') {
     rps = SPIN_RPS.paceBackspin * (1 + 0.08 * wobble);
     spin = { rifle: 0, side: 0, top: -2 * Math.PI * rps };
@@ -165,6 +185,7 @@ export function releaseFor(
         swingCs = 0;
         seamDev = pitch.seamGrip * landing * 0.4;
         seamDeg = off ? -25 : 25;
+        presentation = 'scrambled';
         break;
       }
       case 'slower': {
@@ -175,6 +196,7 @@ export function releaseFor(
         swingCs = 0;
         seamDev = pitch.seamGrip * landing * 0.5;
         seamDeg = 40 * sideOf;
+        presentation = 'scrambled';
         break;
       }
       case 'bouncer':
@@ -247,7 +269,11 @@ export function releaseFor(
     seamDev = pitch.seamGrip * landing * 0.3;
     seamDeg = datan2(spin.top, spin.rifle) * RAD;
   }
-  return { p, speed, spin, spinRps: rps, swingCs, seamDev, seamDeg, pitch, arm, stockTurn };
+  // A worn ball: less swing and seam, the same way (a new ball is exactly the calibration above).
+  const age = BALL_AGE_FACTORS[ball?.age] ?? BALL_AGE_FACTORS.new;
+  if (age.swing !== 1) swingCs *= age.swing;
+  if (age.seam !== 1) seamDev *= age.seam;
+  return { p, speed, spin, spinRps: rps, swingCs, seamDev, presentation, seamDeg, pitch, arm, stockTurn };
 }
 
 /** World spin vector for a ball released with horizontal direction (dx, dz) and the given parts. */
@@ -257,6 +283,83 @@ export function spinVector(parts: SpinParts, v: Vec3): Vec3 {
   const fz = v.z / h;
   // top axis = up × f = (fz, 0, −fx); side axis = up; rifle axis = f.
   return v3(parts.top * fz + parts.rifle * fx, parts.side, -parts.top * fx + parts.rifle * fz);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// The seam cue: what the batter can see in the hand and in the air, from the values the physics flies
+// ---------------------------------------------------------------------------------------------------------------
+
+/**
+ * BallFlight.seam at release, derived from the same values the physics flies (unit vectors, striker frame):
+ *
+ *   axis    the seam plane's normal, signed so that axis · spin ≥ 0. Upright (seam-up pace): the back-spin axis
+ *           (horizontal, square to the line of travel) turned about the vertical by the seam angle `seamDeg` (+ the
+ *           seam points towards slip, − towards fine leg); the ball spins about it, so the seam holds that angle.
+ *           Scrambled (cutter, slower ball): the same presented seam, while the fingers or the hand spin the ball
+ *           about the physics' spin vector instead. Spin: the spin axis itself (the seam spins about its normal).
+ *   shine   the polished half's pole: ±axis, on the side away from the swing, because conventional swing goes towards
+ *           the rough side (shine · (up × v̂) has the sign opposite to swingCs). A ball with no swing: +axis.
+ *   wobble  the angle between the seam's normal and the axis the ball spins about, over 90°: 0 when the seam spins
+ *           about its own normal (upright and spin), the measured angle when it is scrambled (rigidly spinning about
+ *           the spin vector, the seam then sweeps a cone of that half-angle), 1 if it tumbled end over end.
+ *
+ * For an upright seam the tilt follows the swing: if the presentation angle and the swing ever disagreed in sign, the
+ * tilt is mirrored to the side the ball actually swings (never the case for Practice deliveries, which agree by
+ * construction). A worn ball keeps the same seam, shine and wobble: it moves the same way, only less.
+ */
+export function seamCue(o: { v: Vec3; spin: Vec3; seamDeg: number; swingCs: number; presentation: SeamPresentation }): BallFlight['seam'] {
+  const h = Math.sqrt(o.v.x * o.v.x + o.v.z * o.v.z) || 1;
+  const fx = o.v.x / h;
+  const fz = o.v.z / h;
+  // Lateral direction l = up × f = (fz, 0, −fx): the off side for a ball travelling towards the striker.
+  const lx = fz;
+  const lz = -fx;
+  const w = len(o.spin);
+  let axis: Vec3;
+  let wobble = 0;
+  if (o.presentation === 'spin' && w > 1e-12) {
+    axis = v3(o.spin.x / w, o.spin.y / w, o.spin.z / w);
+  } else {
+    let deg = o.seamDeg;
+    if (o.presentation === 'upright' && o.swingCs !== 0 && deg !== 0 && deg > 0 !== o.swingCs > 0) deg = -deg;
+    // The presented seam: −l turned about +y by the seam angle, −cos θ·l + sin θ·f (horizontal, unit length).
+    const c = dcos(deg * DEG);
+    const sn = dsin(deg * DEG);
+    const ax = -c * lx + sn * fx;
+    const az = -c * lz + sn * fz;
+    const al = Math.sqrt(ax * ax + az * az) || 1;
+    axis = v3(ax / al, 0, az / al);
+    const d = w > 1e-12 ? dot(axis, o.spin) / w : 1;
+    if (d < 0) axis = v3(-axis.x, -axis.y, -axis.z);
+    if (o.presentation === 'scrambled') wobble = dacos(Math.min(1, Math.abs(d))) / HALF_PI;
+  }
+  const side = axis.x * lx + axis.z * lz;
+  const k = o.swingCs !== 0 && side !== 0 && o.swingCs > 0 !== side < 0 ? -1 : 1;
+  return { axis, shine: v3(k * axis.x, k * axis.y, k * axis.z), wobble };
+}
+
+/**
+ * The ball's rotation as it should be drawn (rad/s vectors, striker frame), before and after the bounce. An upright
+ * pace seam angled by the bowler spins about its own normal (`seam.axis`), so the seam holds its angle and the shine
+ * stays on one side all the way: that spin is drawn about the seam's normal at the physics' rate, keeping the sense
+ * of the physics' spin. (The physics flies it as pure back-spin at that rate: the angled seam's rifle part, rate ×
+ * sin(seam angle), adds no Magnus force, and the model gives a seam-up ball no grip from it.) Every other ball is drawn
+ * spinning exactly as the physics spins it, so a scrambled seam wobbles by exactly `seam.wobble` × 90°.
+ */
+export function ballRotation(f: Pick<BallFlight, 'seam' | 'spin'>): { release: Vec3; afterBounce: Vec3 | null } {
+  const a = f.seam.axis;
+  const w = f.spin.release;
+  const m = len(w);
+  const cx = a.y * w.z - a.z * w.y;
+  const cy = a.z * w.x - a.x * w.z;
+  const cz = a.x * w.y - a.y * w.x;
+  const tilted = f.seam.wobble === 0 && m > 1e-12 && Math.sqrt(cx * cx + cy * cy + cz * cz) > 1e-9 * m;
+  if (!tilted) return { release: f.spin.release, afterBounce: f.spin.afterBounce };
+  const about = (s: Vec3): Vec3 => {
+    const r = dot(s, a) < 0 ? -len(s) : len(s);
+    return v3(a.x * r, a.y * r, a.z * r);
+  };
+  return { release: about(w), afterBounce: f.spin.afterBounce ? about(f.spin.afterBounce) : null };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -341,7 +444,9 @@ export function solveRelease(spec: ReleaseSpec, plan: PracticeDeliveryPlan): Sol
 
 /** Automatic footwork from the length: forward to full and good lengths, back to short ones; yorkers dug out. */
 export function autoFootwork(plan: PracticeDeliveryPlan, family: BowlerProfile['family']): 'forward' | 'back' {
-  if (plan.lengthM <= YORKER_MAX_LENGTH) return 'back';
+  // Yorker lengths take the same forward stride as every full ball (PHYS phase 4, 2026-11-03): the batter smothers the
+  // yorker on the stride. Before, they were dug out from the back plane, where the planted body model (contract crouch
+  // cap 0.18 m, no hip flexion) cannot get a straight bat down to a ball at the crease (constants.ts YORKER_MAX_LENGTH).
   return plan.lengthM < AUTO_FORWARD_MAX_LENGTH[family] ? 'forward' : 'back';
 }
 
@@ -392,7 +497,7 @@ export function hitsStumpsAt(x: number, y: number): boolean {
 export function flight(args: FlightArgs): BallFlight {
   const { plan, bowler, conditions, seed } = args;
   const handedness = args.handedness ?? 'right';
-  const spec = releaseFor(plan, bowler, conditions, seed, handedness);
+  const spec = releaseFor(plan, bowler, conditions, seed, handedness, args.ball ?? DEFAULT_BALL);
   const solved = solveRelease(spec, plan);
   const sim = integrateBall(
     { t: 0, p: spec.p, v: solved.v, spin: solved.spin },
@@ -424,6 +529,7 @@ export function flight(args: FlightArgs): BallFlight {
     wouldHitStumps: hitsStumpsAt(plane.p.x, plane.p.y),
     samples: sim.samples,
     spin: { release: solved.spin, afterBounce },
+    seam: seamCue({ v: solved.v, spin: solved.spin, seamDeg: spec.seamDeg, swingCs: spec.swingCs, presentation: spec.presentation }),
   };
 }
 

@@ -7,7 +7,10 @@ import { simulateFielding } from '@/physics/fielding';
 import { RUNNING, autoRuns, runCompletionS, runEvents, sprintS } from '@/physics/running';
 import { stubShot, type StubShot } from '../practice/game/stubTrajectory';
 
-const FIELD = autoField({ family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'r' }, 'balanced');
+/** These tests check the Test (red-ball) templates; the white-ball ones are checked separately. */
+const RED_BALL = { colour: 'red', age: 'new' } as const;
+
+const FIELD = autoField({ family: 'pace', paceBand: 'fast', arm: 'right', lookSeed: 'r' }, 'balanced', 'right', RED_BALL);
 /** Keeper, bowler and nine fielders all on the off side: a leg-side ball has to be chased a long way. */
 const OFF_SIDE: FieldLayout = {
   id: 'test/off-side',

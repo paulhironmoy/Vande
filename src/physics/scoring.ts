@@ -31,6 +31,7 @@ import type {
   Vec3,
 } from '@/contracts/practice';
 import type { FieldZone } from '@/contracts/cricket';
+import { SHOT_LOFT_FULL } from './constants';
 import { flightMovement } from './delivery';
 import { bearingFromStriker, distanceFromStriker } from './field';
 import { DEEP_FROM_M, type FieldingResult } from './fielding';
@@ -189,11 +190,12 @@ export function judge(f: PlayFacts): Judgement {
     return { outcome: { ...none, runs: 0, dismissal: null }, coaching: coach(swing ? diagnoseBeaten(f) : 'left_well') };
   }
 
-  // 3. Played on.
+  // 3. Played on. Off the middle of the face the bat met the ball: nothing "beat" it, so the reason is that the batter
+  // played it onto the stumps (contract v6 `played_on`). An edge played on keeps the edge's own beaten diagnosis.
   if (f.playedOn) {
     const p = f.playedOn.p;
     const at = { endBearingDeg: round1(bearingFromStriker(p.x, p.z)), endDistanceM: round2(distanceFromStriker(p.x, p.z)), region: 'behind' as const };
-    return out('bowled', diagnoseBeaten(f), at);
+    return out('bowled', contact.kind === 'middle' ? 'played_on' : diagnoseBeaten(f), at);
   }
 
   // 4. Never touched the bat: left or missed, the keeper takes it.
@@ -209,7 +211,7 @@ export function judge(f: PlayFacts): Judgement {
     return { endBearingDeg: round1(b), endDistanceM: round2(distanceFromStriker(p.x, p.z)), region: regionOf(b) };
   };
   const edged = isEdge(contact.kind);
-  const lofted = (swing?.elevation ?? 0) >= 0.4;
+  const lofted = (swing?.elevation ?? 0) >= SHOT_LOFT_FULL;
 
   if (play.kind === 'caught') {
     const role = roleOf(field, play.fielderId);
@@ -219,7 +221,7 @@ export function judge(f: PlayFacts): Judgement {
     let reason: CoachingReason;
     if (role === 'keeper') reason = 'edged_behind';
     else if (edged && (role === 'slip' || role === 'gully' || role === 'leg_slip')) reason = 'edged_to_slip';
-    else if (contact.kind === 'top_edge') reason = f.flight.plan.lengthM >= BEATEN_BY.shortLengthM ? 'beaten_by_bounce' : 'mistimed_lofted';
+    else if (contact.kind === 'top_edge' && f.flight.plan.lengthM >= BEATEN_BY.shortLengthM) reason = 'beaten_by_bounce';
     else if (contact.kind === 'leading_edge') reason = 'played_across_the_line';
     else if (lofted && timing !== 'on_time') reason = 'mistimed_lofted';
     else reason = where.endDistanceM >= DEEP_FROM_M ? 'caught_in_the_deep' : 'caught_in_the_ring';
@@ -245,7 +247,7 @@ export function judge(f: PlayFacts): Judgement {
   const outcome: DeliveryOutcome = { runs, boundary: null, dismissal: null, fielderId: play.fielderId, ...where };
   if (edged) return { outcome, coaching: coach(diagnoseBeaten(f), { zone: z, fielderRole: role }) };
   if (runs > 0) {
-    if (play.how === 'dropped') return { outcome, coaching: coach('beat_the_field', { zone: z, fielderRole: role }) };
+    if (play.how === 'dropped' || play.how === 'parried' || play.how === 'misfield') return { outcome, coaching: coach('beat_the_field', { zone: z, fielderRole: role }) };
     return { outcome, coaching: coach('found_the_gap', { zone: z }) };
   }
   if (timing === 'early' || timing === 'late') {

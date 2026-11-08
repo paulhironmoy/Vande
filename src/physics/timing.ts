@@ -2,21 +2,26 @@
  * Timing windows in play: the active bands for an assistance level (plus the Assisted performance tier's tolerance),
  * the SwingTiming classification, and the forgiveness map that makes Learn and Play swings more forgiving.
  *
- * The virtual bat is calibrated physically against the Real bands (PHYSICAL_BANDS): timing error moves it across
- * the line and rotates its face at fixed rates, so its geometry produces "middle on the sweet spot" inside ±25 ms,
- * "middle" inside ±55 ms, an edge up to ±90 ms and a miss beyond. Learn and Play keep that geometry and instead
+ * The labels follow the physics (lead decision 2026-11-03): the Real bands are the measured windows of the virtual
+ * bat on the reference over (constants.ts TIMING_BANDS), while the bat's own rates, how timing error moves it across
+ * the line and rotates its face, are fixed by BAT_TIMING_CALIBRATION. Learn and Play keep that geometry and instead
  * move the bat's arrival in time: a player error e (ms) is replaced by forgive(e), a piecewise-linear map through
- * the band edges (active perfect → physical perfect, solid → solid, edge → edge, slope 1 beyond the edge), so the bat
+ * the band edges (active perfect → Real perfect, solid → solid, edge → edge, slope 1 beyond the edge), so the bat
  * reaches the zone at idealContactT + forgive(e). The report always keeps the raw error e and the player's intended
- * direction; the outcome is pure physics of the (forgiven) bat. Real with no tier tolerance maps e to itself.
+ * direction; the outcome is pure physics of the (forgiven) bat. Real maps e to itself on every device: it applies
+ * no forgiveness at all, so the Assisted performance tier's tolerance widens Learn and Play only. A bat that met the
+ * ball is never labelled "missed", and a block met on the face is at least "solid" (contact.ts metTiming).
  */
 import type { AssistLevel, SwingTiming, TimingBands } from '@/contracts/practice';
 import { PHYSICAL_BANDS, TIMING_BANDS } from './constants';
 
-/** Bands for a level, each edge widened by the Assisted tier's tolerance (ms). */
+/**
+ * Bands for a level. Learn and Play widen each edge by the Assisted tier's tolerance (ms), the declared device
+ * allowance; Real ignores it: zero forgiveness on every tier (the record still keeps the raw tolerance).
+ */
 export function activeBands(assist: AssistLevel, tierToleranceMs = 0): TimingBands {
   const b = TIMING_BANDS[assist];
-  const tol = tierToleranceMs > 0 ? tierToleranceMs : 0;
+  const tol = assist !== 'real' && tierToleranceMs > 0 ? tierToleranceMs : 0;
   return { perfectMs: b.perfectMs + tol, solidMs: b.solidMs + tol, edgeMs: b.edgeMs + tol };
 }
 

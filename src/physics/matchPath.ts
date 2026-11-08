@@ -11,7 +11,9 @@
  * MATCH_RESTITUTION): the server's heightAtBatM is authoritative in multiplayer, so the bounce is fitted to it rather
  * than predicted. Swing is the air side force (also the spinner's drift); turn is a bounce deflection (pace seam or
  * spin turn; the surface's turn grip is off so spin cannot add to it); the spin vector (rifle and over-spin from
- * spinRpm, back-spin for pace) is the real spin the integrator flies and the renderer draws. Pure and deterministic.
+ * spinRpm, back-spin for pace) is the real spin the integrator flies and the renderer draws. The seam cue
+ * (BallFlight.seam) comes from the same fitted swing and spin through delivery.ts `seamCue`: match balls are new white
+ * balls, and the server's path already contains any wear or weather. Pure and deterministic.
  */
 import type { BallPath, DeliveryFamily, PitchId } from '@/contracts';
 import type { BallFlight, Handedness, PitchCondition, PracticeDeliveryPlan } from '@/contracts/practice';
@@ -30,7 +32,7 @@ import {
   PITCH_HALF,
   type PitchParams,
 } from './constants';
-import { hitsStumpsAt, spinVector, timeAtZ } from './delivery';
+import { hitsStumpsAt, seamCue, spinVector, timeAtZ } from './delivery';
 import { probe } from './probe';
 
 /** Probe step for the fit's iterations (s): RK4 at 8 ms is within ≈ 0.2 mm and 1 µs of the delivered 1 ms flight. */
@@ -372,6 +374,7 @@ export function flightFromPath(path: BallPath, opts: FromPathOptions): BallFligh
   const speed = len(v0);
   // Report what the delivered (1 ms) flight achieves, not the last probe.
   const me = measure(sim);
+  const seamDeg = spin ? datan2(spinParts.top, spinParts.rifle) * RAD : path.seamUpright ? (family === 'swing' ? (path.swingM >= 0 ? 18 : -18) : 0) : 40;
   return {
     version: PRACTICE_SIM_VERSION,
     plan: { variation: variationFor(path, family), lengthM: PITCH_HALF - zb, lineM: plane.p.x, speedKph: speed * 3.6 },
@@ -380,7 +383,7 @@ export function flightFromPath(path: BallPath, opts: FromPathOptions): BallFligh
       p: p0,
       v: v0,
       spinRps: w / (2 * Math.PI),
-      seamDeg: spin ? datan2(spinParts.top, spinParts.rifle) * RAD : path.seamUpright ? (family === 'swing' ? (path.swingM >= 0 ? 18 : -18) : 0) : 40,
+      seamDeg,
       speedKph: speed * 3.6,
     },
     bounce,
@@ -389,6 +392,7 @@ export function flightFromPath(path: BallPath, opts: FromPathOptions): BallFligh
     wouldHitStumps: hitsStumpsAt(plane.p.x, plane.p.y),
     samples,
     spin: { release: spin0, afterBounce },
+    seam: seamCue({ v: v0, spin: spin0, seamDeg, swingCs: model.swingCs, presentation: spin ? 'spin' : path.seamUpright ? 'upright' : 'scrambled' }),
     fit: {
       speedKph: speed * 3.6,
       heightAtBatM: me.yc,

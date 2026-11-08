@@ -14,8 +14,10 @@ import { probeGpu, type GpuProbe } from './gpu';
 
 /** The stage's benchmark scene, as src/render3d's PracticeStage provides it. */
 export interface BenchmarkRun {
+  /** Unity measurements are native renderer evidence; webgl2 remains false for those runs. */
+  backend?: 'webgl2' | 'unity';
   frameMs: number[];
-  shaderCompileMs: number;
+  shaderCompileMs: number | null;
   contextLosses: number;
   renderer: string;
   webgl2: boolean;
@@ -38,6 +40,8 @@ export interface BenchmarkOptions {
   measureInput?: () => Promise<number | null>;
   /** WebGL 2 probe used when there is no stage. */
   probe?: () => GpuProbe;
+  /** Native stages must fail closed instead of being classified from the unrelated WebView GPU. */
+  allowProbeFallback?: boolean;
 }
 
 export const BENCHMARK_MS = 1400;
@@ -105,6 +109,7 @@ async function measure(stage: BenchmarkTarget, profile: QualityProfileId, ms: nu
   const input = o.measureInput ?? (() => measureEventToFrame());
   const [run, inputToFrameMs] = await Promise.all([stage.benchmark(ms), input().catch(() => null)]);
   return {
+    ...(run.backend ? { backend: run.backend } : {}),
     webgl2: run.webgl2,
     hardware: run.hardware,
     renderer: run.renderer,
@@ -145,7 +150,8 @@ async function benchmarkRuns(stage: BenchmarkTarget | null, o: BenchmarkOptions)
   let first: PerfMeasurements;
   try {
     first = await measure(stage, 'standard', o.durationMs ?? BENCHMARK_MS, o, memoryGb);
-  } catch {
+  } catch (error) {
+    if (o.allowProbeFallback === false) throw error;
     return none();
   }
   const a = classifyDevice(first);

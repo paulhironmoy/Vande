@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { QualityProfileId } from '@/contracts';
 import { measureEventToFrame, runDeviceBenchmark, type BenchmarkRun, type BenchmarkTarget } from '@/perf';
 import { steady } from './fixtures';
@@ -96,6 +96,19 @@ describe('runDeviceBenchmark', () => {
     const a = await runDeviceBenchmark(stage, { probe: () => ({ webgl2: true, renderer: 'Adreno (TM) 610', hardware: true }) });
     expect(a.tier).toBe('below');
     expect(a.reasons).toContain('no_frames');
+  });
+
+  it('a native benchmark failure fails closed without consulting the WebView GPU probe', async () => {
+    const probe = vi.fn(() => ({ webgl2: true, renderer: 'Adreno (TM) 610', hardware: true }));
+    const stage: BenchmarkTarget = {
+      setProfile() {},
+      benchmark: async () => {
+        throw new Error('native benchmark failed');
+      },
+    };
+
+    await expect(runDeviceBenchmark(stage, { ...fast, allowProbeFallback: false, probe })).rejects.toThrow('native benchmark failed');
+    expect(probe).not.toHaveBeenCalled();
   });
 });
 

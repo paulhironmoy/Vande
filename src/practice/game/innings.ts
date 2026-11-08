@@ -6,6 +6,7 @@
  *                                    │                         (after the tenth over: complete)
  *                                    └──(a wicket on any ball)──▶ out
  *   abandon (from any unfinished state) ──▶ complete
+ *   restartOver (between balls of the over being batted) ──▶ batting, the same six balls from the first
  *
  * Rules (docs/PRACTICE_RULES.md, "Innings rules"): a full over must be finished before another is chosen unless the
  * batter is out; one wicket ends the innings at once; all six balls of every over are legal. Save-scumming is closed
@@ -17,6 +18,7 @@ import {
   PRACTICE_MAX_OVERS,
   PRACTICE_SIM_VERSION,
   type AssistLevel,
+  type BallCondition,
   type BowlerProfile,
   type CoachingReason,
   type DeliveryRecord,
@@ -35,13 +37,15 @@ import {
 } from '@/contracts/practice';
 import { replayDelivery, validateField, type Region } from '@/physics';
 import { deliveryQuality, emptyTiming } from './coaching';
-import { ballSeed, validateOver } from './overs';
+import { ballOf, ballSeed, validateOver } from './overs';
 
 export type InningsAction =
   | { type: 'chooseOver'; plan: PracticeOverPlan; field: FieldLayout }
   | { type: 'deliveryStarted' }
   | { type: 'deliveryResolved'; record: DeliveryRecord }
   | { type: 'nextOver' }
+  /** Bat the current over again from its first ball (between balls only): its runs and balls are taken off. */
+  | { type: 'restartOver' }
   | { type: 'abandon' };
 
 export function newInnings(opts: { id: string; conditions: PitchCondition; assist: AssistLevel; handedness: Handedness }): PracticeInningsState {
@@ -72,6 +76,8 @@ export interface NextDelivery {
   conditions: PitchCondition;
   handedness: Handedness;
   assist: AssistLevel;
+  /** The over's ball (an over saved before balls had a condition bowls a new white ball). */
+  ball: BallCondition;
 }
 
 export function nextDelivery(state: PracticeInningsState): NextDelivery | null {
@@ -87,6 +93,7 @@ export function nextDelivery(state: PracticeInningsState): NextDelivery | null {
     conditions: state.conditions,
     handedness: state.handedness,
     assist: state.assist,
+    ball: ballOf(state.current.plan.ball),
   };
 }
 
@@ -121,6 +128,7 @@ export function inningsError(state: PracticeInningsState, action: InningsAction)
       if (r.overIndex !== next.overIndex || r.ballIndex !== next.ballIndex) return 'wrong_ball';
       if (r.seed !== next.seed || !sameJson(r.plan, next.plan) || !sameJson(r.bowler, next.bowler)) return 'not_this_delivery';
       if (!sameJson(r.field, next.field)) return 'wrong_field';
+      if (!sameJson(ballOf(r.ball), next.ball)) return 'wrong_ball_condition';
       if (r.conditions !== state.conditions || r.assist !== state.assist || r.handedness !== state.handedness) return 'wrong_settings';
       if (!RUNS.has(r.runs)) return 'bad_runs';
       if (r.dismissal !== null && (!DISMISSALS.has(r.dismissal) || r.runs !== 0)) return 'bad_dismissal';
@@ -129,6 +137,11 @@ export function inningsError(state: PracticeInningsState, action: InningsAction)
     }
     case 'nextOver':
       return state.status === 'over_complete' ? null : 'over_not_complete';
+    case 'restartOver':
+      if (state.status !== 'batting' || !state.current) return 'not_batting';
+      if (state.inFlight) return 'delivery_in_flight';
+      if (state.current.deliveries.length === 0) return 'nothing_to_restart';
+      return null;
     case 'abandon':
       return state.status === 'out' || state.status === 'complete' ? 'innings_over' : null;
   }
@@ -158,6 +171,13 @@ export function inningsReducer(state: PracticeInningsState, action: InningsActio
     }
     case 'nextOver':
       return { ...state, status: 'choosing_over' };
+    case 'restartOver': {
+      // The over's plan and field are fixed: the same six balls are bowled again from the first. A dismissal or a
+      // completed over leaves 'batting', so neither can be undone.
+      const cur = state.current!;
+      const runs = cur.deliveries.reduce((n, d) => n + d.runs, 0);
+      return { ...state, runs: state.runs - runs, balls: state.balls - cur.deliveries.length, current: { ...cur, deliveries: [] }, inFlight: null };
+    }
     case 'abandon':
       return { ...state, status: 'complete', inFlight: null };
   }

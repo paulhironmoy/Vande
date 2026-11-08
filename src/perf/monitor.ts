@@ -50,6 +50,18 @@ export class SessionMonitor {
     if (Number.isFinite(intervalMs) && intervalMs > 0 && intervalMs < 1000) this.current.push(intervalMs);
   }
 
+  /**
+   * One renderer-local delivery summary. Native Unity frames do not share the WebView's animation clock, so their
+   * measured mean and count enter as a completed window rather than fabricated requestAnimationFrame samples.
+   */
+  sampleDeliverySummary(avgFrameMs: number, sampleCount: number): void {
+    this.current = [];
+    if (!Number.isFinite(avgFrameMs) || avgFrameMs <= 0 || avgFrameMs >= 1000 || !Number.isInteger(sampleCount) || sampleCount <= 0) return;
+    if (avgFrameMs * sampleCount < MONITOR_MIN_WINDOW_MS) return;
+    this.windows.push(1000 / avgFrameMs);
+    if (this.windows.length > MONITOR_DELIVERIES) this.windows.shift();
+  }
+
   noteContextLoss(): void {
     this.losses++;
   }

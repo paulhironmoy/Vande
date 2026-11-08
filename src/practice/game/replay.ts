@@ -1,6 +1,6 @@
 /**
  * The one Practice replay representation is the contract's DeliveryRecord: the delivery (plan, seed, bowler,
- * conditions, field), the settings that change the physics (handedness, assistance, the performance tier's extra
+ * conditions, the over's ball, field), the settings that change the physics (handedness, assistance, the performance tier's extra
  * tolerance) and the player's NormalizedSwing. Re-simulating a record (`replayDelivery`, src/physics/resolve.ts)
  * reproduces the original DeliveryResult exactly: same contact, same trajectory, same fielding, same score.
  *
@@ -23,6 +23,7 @@ export function makeRecord(next: NextDelivery, swing: NormalizedSwing | null, ti
     plan: next.plan,
     seed: next.seed,
     conditions: next.conditions,
+    ball: next.ball,
     field: next.field,
     handedness: next.handedness,
     assist: next.assist,
@@ -35,7 +36,7 @@ export function makeRecord(next: NextDelivery, swing: NormalizedSwing | null, ti
 
 /** The flight of the next ball (fixed before the batter acts). */
 export function nextFlight(next: NextDelivery) {
-  return flight({ plan: next.plan, bowler: next.bowler, conditions: next.conditions, seed: next.seed, handedness: next.handedness });
+  return flight({ plan: next.plan, bowler: next.bowler, conditions: next.conditions, seed: next.seed, handedness: next.handedness, ball: next.ball });
 }
 
 /** Resolve the next ball with a swing (null = leave): the result and its record. Does not change the innings. */

@@ -4,8 +4,9 @@
  * the real integrator (src/physics/ball.ts) so the fielding rules can be tested against controlled, known shots; it
  * is never used by production code.
  */
-import type { BallFlight, BallSample, DeliveryVariation, Vec3 } from '@/contracts/practice';
+import { PRACTICE_SIM_VERSION, type BallFlight, type BallSample, type DeliveryVariation, type Vec3 } from '@/contracts/practice';
 import { BALL_R, BOUNDARY_R, G, PITCH_HALF } from '@/physics/constants';
+import { seamCue } from '@/physics/delivery';
 import type { PostContactBall } from '@/physics/fielding';
 
 export interface StubShot {
@@ -124,16 +125,18 @@ export function stubFlight(o: {
   const atStumps = state(stumpsT);
   const plan = { variation: o.variation ?? 'stock', lengthM, lineM: atStumps.p.x, speedKph: o.speedKph ?? 130 };
   return {
-    version: 1,
+    version: PRACTICE_SIM_VERSION,
     plan,
     seed: o.seed ?? 'stub',
     release: { p: p0, v: { x: vx0, y: vy0, z: vz }, spinRps: 0, seamDeg: 0, speedKph: o.speedKph ?? 130 },
     bounce: { t: tb, p: { x: xb, y: BALL_R, z: zb } },
     idealContactT: (PITCH_HALF - 1.6 - p0.z) / vz,
     stumpsT,
-    wouldHitStumps: Math.abs(atStumps.p.x) <= 0.1143 + BALL_R && atStumps.p.y <= 0.711 + 0.013 + BALL_R,
+    wouldHitStumps: Math.abs(atStumps.p.x) <= 0.1143 + BALL_R && atStumps.p.y <= 0.7112 + 0.013 + BALL_R,
     samples,
     // A synthetic flight without spin (its movement is prescribed above, not produced by spin).
     spin: { release: { x: 0, y: 0, z: 0 }, afterBounce: null },
+    // An upright seam with its shine away from the prescribed swing, as the physics would present it.
+    seam: seamCue({ v: { x: vx0, y: vy0, z: vz }, spin: { x: 0, y: 0, z: 0 }, seamDeg: 0, swingCs: o.airSwingM ?? 0, presentation: 'upright' }),
   };
 }
