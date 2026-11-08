@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vande.invalid/schemas/capture-metrics-v1.json",
+  "title": "VANDE capture measurements",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "analysisVersion",
+    "captureId",
+    "manifestSha256",
+    "generatedAtUtc",
+    "lane",
+    "evidenceClass",
+    "scenario",
+    "evaluator",
+    "integrity",
+    "measurements",
+    "ceriEvidence"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "analysisVersion": { "const": "1.2.0" },
+    "captureId": { "type": "string", "minLength": 8, "maxLength": 128 },
+    "manifestSha256": { "$ref": "#/$defs/sha256" },
+    "generatedAtUtc": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "lane": { "enum": ["vande_engine_truth", "controlled_competitor", "public_reference"] },
+    "evidenceClass": { "enum": ["raw", "diagnostic", "derived"] },
+    "scenario": { "type": "string", "minLength": 1, "maxLength": 1024 },
+    "evaluator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "authoredTooling", "independentOfSubject"],
+      "properties": {
+        "id": { "type": "string", "minLength": 2, "maxLength": 128 },
+        "authoredTooling": { "type": "boolean" },
+        "independentOfSubject": { "type": "boolean" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "authoredTooling": { "const": true } }, "required": ["authoredTooling"] },
+          "then": { "properties": { "independentOfSubject": { "const": false } } }
+        }
+      ]
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "rejections"],
+      "properties": {
+        "status": { "enum": ["passed", "rejected", "incomplete"] },
+        "rejections": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 2048 }
+        }
+      }
+    },
+    "measurements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "value", "unit", "sampleSize", "uncertainty", "timecodesMs", "sources", "limitations"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9._-]{0,127}$" },
+          "status": { "enum": ["measured", "diagnostic_only", "not_available", "not_comparable"] },
+          "value": { "type": ["number", "string", "boolean", "null"] },
+          "unit": { "type": ["string", "null"], "minLength": 1, "maxLength": 64 },
+          "sampleSize": { "type": "integer", "minimum": 0 },
+          "uncertainty": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["kind", "value", "unit", "confidence"],
+                "properties": {
+                  "kind": { "type": "string", "minLength": 1, "maxLength": 128 },
+                  "value": { "type": "number", "minimum": 0 },
+                  "unit": { "type": "string", "minLength": 1, "maxLength": 64 },
+                  "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+                }
+              }
+            ]
+          },
+          "timecodesMs": { "type": "array", "items": { "type": "number", "minimum": 0 } },
+          "sources": { "type": "array", "items": { "$ref": "#/$defs/relativePath" } },
+          "limitations": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1, "maxLength": 1024 }
+          }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "status": { "enum": ["measured", "diagnostic_only"] } }, "required": ["status"] },
+            "then": { "properties": { "sources": { "type": "array", "minItems": 1 } } }
+          }
+        ]
+      }
+    },
+    "ceriEvidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["dimension", "status", "measurementIds", "humanRequired", "notes"],
+        "properties": {
+          "dimension": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "status": { "enum": ["evidence_available", "partial", "not_available"] },
+          "measurementIds": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 128 } },
+          "humanRequired": { "type": "boolean" },
+          "notes": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1, "maxLength": 1024 }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+    }
+  }
+}

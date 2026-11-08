@@ -1,0 +1,402 @@
+{
+  "schemaVersion": 1,
+  "methodId": "vande.capture-compare.visual-defects",
+  "methodVersion": "1.0.0",
+  "status": "frozen",
+  "registeredBeforeQualifyingMeasurement": true,
+  "purpose": "Frozen review and threshold contract for artifact_material_defect_count and text_legibility_defect_count. It does not award a quality score or replace human-player evidence.",
+  "evidenceScope": {
+    "requiredSequence": "The complete retained provenance-bound sequence, including misses, wickets, waits, errors, restarts and contradictory outcomes; success-only excerpts are insufficient.",
+    "framePolicy": "Review every source frame. A transcoded or sampled sequence is insufficient unless its provenance-bound parent is also retained and the registration explicitly permits that transform.",
+    "captureArtifacts": "Recorder, scaling, decode and compression defects are excluded unless independent evidence proves that the defect exists in the rendered subject before recording.",
+    "missingEvidence": "Any missing required frame, checklist disposition, reviewer record, threshold input or adjudication makes the affected metric NOT_AVAILABLE; absence is never imputed as zero."
+  },
+  "normalization": {
+    "referenceShortSidePx": 412,
+    "rule": "Preserve aspect ratio and orientation, scale the decoded frame so its short side is exactly 412 normalized pixels, and do not crop, stretch, sharpen or denoise.",
+    "interpolation": "lanczos",
+    "measurementUnit": "normalized_video_px",
+    "rounding": "Retain measurements to three decimal places and compare unrounded values to thresholds."
+  },
+  "reviewContract": {
+    "requiredRoles": [
+      "primary",
+      "secondary",
+      "adjudicator"
+    ],
+    "independence": "Primary, secondary and adjudicator are three distinct reviewer identities, all independent of the subject builder. Primary and secondary work independently. The adjudicator must inspect both hash-bound reviews and resolve every checklist, episode or threshold disagreement.",
+    "checklistDispositionValues": [
+      "reviewed_visible",
+      "not_visible"
+    ],
+    "notVisibleRule": "not_visible is valid only when both independent reviewers inspected the complete retained sequence and found no visible instance of the checklist item; a disagreement requires adjudication.",
+    "visibleRule": "reviewed_visible requires review of every visible instance of the item, not one representative instance.",
+    "defectClassResultValues": [
+      "pass",
+      "episode",
+      "not_applicable"
+    ],
+    "notApplicableRule": "not_applicable is allowed only when the defect class cannot logically occur for the named checklist item, includes a written reason, and is accepted by both independent reviewers or the adjudicator.",
+    "completionRule": "Every required checklist item and text class must have one adjudicated disposition. Every reviewed_visible item must have every defect class marked pass, linked to one or more counted episodes, or explicitly resolved under the notApplicableRule.",
+    "zeroRule": "A numeric zero is permitted only after the completion rule passes and the adjudicated episode inventory is empty.",
+    "retentionRule": "Retain the primary, secondary and adjudicated review files, their SHA-256 hashes, all episode frame ranges and the exact visual-method artifact path and SHA-256."
+  },
+  "artifactMaterialDefects": {
+    "metricId": "artifact_material_defect_count",
+    "definition": "Count adjudicated visible player, cricket-artifact and environment defect episodes using the required checklist and defect classes below.",
+    "requiredChecklist": [
+      {
+        "id": "player.batter",
+        "group": "player",
+        "label": "Batter",
+        "reviewAspects": [
+          "anatomy and body proportion",
+          "face, eyes, skin and hair",
+          "hands, fingers and bat grip",
+          "stance, foot contact and weight-bearing deformation",
+          "kit, cloth and protective-equipment fit",
+          "rigging, skinning and joint deformation",
+          "material, texture, shading and lighting response"
+        ]
+      },
+      {
+        "id": "player.bowler",
+        "group": "player",
+        "label": "Bowler",
+        "reviewAspects": [
+          "anatomy and body proportion",
+          "face, eyes, skin and hair",
+          "bowling-hand and ball placement",
+          "foot contact and weight-bearing deformation",
+          "kit and equipment fit",
+          "rigging, skinning and joint deformation",
+          "material, texture, shading and lighting response"
+        ]
+      },
+      {
+        "id": "player.wicketkeeper",
+        "group": "player",
+        "label": "Wicketkeeper",
+        "reviewAspects": [
+          "anatomy and body proportion",
+          "face, eyes, skin and hair",
+          "glove, hand and catching placement",
+          "crouch, foot contact and weight-bearing deformation",
+          "keeper kit and protective-equipment fit",
+          "rigging, skinning and joint deformation",
+          "material, texture, shading and lighting response"
+        ]
+      },
+      {
+        "id": "player.fielders",
+        "group": "player",
+        "label": "All visible fielders",
+        "reviewAspects": [
+          "anatomy and body proportion",
+          "face, eyes, skin and hair where resolvable",
+          "hand and ball placement",
+          "foot contact and weight-bearing deformation",
+          "kit and equipment fit",
+          "rigging, skinning and joint deformation",
+          "material, texture, shading and lighting response",
+          "unexplained duplicate player appearance"
+        ]
+      },
+      {
+        "id": "player.umpires",
+        "group": "player",
+        "label": "All visible umpires",
+        "reviewAspects": [
+          "anatomy and body proportion",
+          "face, eyes, skin and hair where resolvable",
+          "hand and body pose",
+          "foot contact and weight-bearing deformation",
+          "clothing and accessory fit",
+          "rigging, skinning and joint deformation",
+          "material, texture, shading and lighting response"
+        ]
+      },
+      {
+        "id": "artifact.ball",
+        "group": "cricket_artifact",
+        "label": "Cricket ball",
+        "reviewAspects": [
+          "legal scale and spherical silhouette",
+          "leather grain and color",
+          "raised seam and stitching",
+          "shiny and rough side distinction",
+          "rotation-consistent texture, material and lighting response"
+        ]
+      },
+      {
+        "id": "artifact.bat",
+        "group": "cricket_artifact",
+        "label": "Cricket bat",
+        "reviewAspects": [
+          "legal scale and silhouette",
+          "willow grain",
+          "face, edges, spine, shoulders and toe",
+          "handle and grip",
+          "wear, texture, material and lighting response"
+        ]
+      },
+      {
+        "id": "artifact.stumps_bails",
+        "group": "cricket_artifact",
+        "label": "Stumps and bails",
+        "reviewAspects": [
+          "legal scale and spacing",
+          "three-stump and two-bail topology",
+          "grooves and bail seating",
+          "wood, paint, texture, material and lighting response"
+        ]
+      },
+      {
+        "id": "artifact.helmet_grille",
+        "group": "cricket_artifact",
+        "label": "Helmet, grille, padding and chin strap",
+        "reviewAspects": [
+          "scale and head fit",
+          "shell and ventilation topology",
+          "grille spacing and attachment",
+          "padding and chin-strap placement",
+          "material, texture, shading and lighting response"
+        ]
+      },
+      {
+        "id": "artifact.batting_gloves",
+        "group": "cricket_artifact",
+        "label": "Batting gloves",
+        "reviewAspects": [
+          "finger segmentation and hand fit",
+          "palm and protection topology",
+          "bat-grip contact",
+          "material, texture, shading and lighting response"
+        ]
+      },
+      {
+        "id": "artifact.batting_pads_guards",
+        "group": "cricket_artifact",
+        "label": "Batting pads and body guards",
+        "reviewAspects": [
+          "pad rolls, knee protection and rear straps",
+          "thigh, arm and chest guard placement when visible",
+          "body fit and attachment",
+          "material, texture, shading and lighting response"
+        ]
+      },
+      {
+        "id": "artifact.keeper_gloves_pads",
+        "group": "cricket_artifact",
+        "label": "Wicketkeeper gloves and pads",
+        "reviewAspects": [
+          "keeper-specific glove topology",
+          "inner glove and hand fit when visible",
+          "keeper-pad scale, fit and straps",
+          "material, texture, shading and lighting response"
+        ]
+      },
+      {
+        "id": "artifact.kit_clothing",
+        "group": "cricket_artifact",
+        "label": "Player and umpire kit",
+        "reviewAspects": [
+          "jersey, trousers, collar and undershirt",
+          "fabric weave, stitching, creases and dirt or sweat variation",
+          "body fit and cloth deformation",
+          "original, non-placeholder markings",
+          "material, texture, shading and lighting response"
+        ]
+      },
+      {
+        "id": "artifact.shoes_headwear",
+        "group": "cricket_artifact",
+        "label": "Shoes, caps, hats and eyewear",
+        "reviewAspects": [
+          "cricket-shoe sole and spike topology",
+          "foot fit and ground contact",
+          "cap, hat or eyewear fit when visible",
+          "material, texture, shading and lighting response"
+        ]
+      },
+      {
+        "id": "environment.pitch_creases",
+        "group": "environment",
+        "label": "Pitch, wickets and crease markings",
+        "reviewAspects": [
+          "legal scale and placement",
+          "surface type, wear, cracks and footmarks",
+          "crease line geometry and paint",
+          "texture, material, shading and lighting response"
+        ]
+      },
+      {
+        "id": "environment.outfield",
+        "group": "environment",
+        "label": "Outfield and grass",
+        "reviewAspects": [
+          "field scale and continuity",
+          "grass density, mowing variation and wear",
+          "ground contact and shadow reception",
+          "texture, material, shading and lighting response"
+        ]
+      },
+      {
+        "id": "environment.boundary",
+        "group": "environment",
+        "label": "Boundary rope, markers and advertising surfaces",
+        "reviewAspects": [
+          "continuous legal placement",
+          "rope and marker topology",
+          "ground contact and scale",
+          "original, licensed or neutral surface content",
+          "texture, material, shading and lighting response"
+        ]
+      },
+      {
+        "id": "environment.stadium",
+        "group": "environment",
+        "label": "Stadium, stands, sightscreens, scoreboard and floodlights",
+        "reviewAspects": [
+          "architectural scale and continuity",
+          "sightscreen and scoreboard placement",
+          "floodlight and fixture topology",
+          "texture repetition, material, shading and lighting response",
+          "visible placeholder or incomplete geometry"
+        ]
+      },
+      {
+        "id": "environment.crowd",
+        "group": "environment",
+        "label": "Crowd",
+        "reviewAspects": [
+          "human silhouette and scale",
+          "density and seating placement",
+          "unexplained clones, frozen billboards or repeated textures",
+          "material, texture, shading and lighting response"
+        ]
+      }
+    ],
+    "defectClasses": [
+      {
+        "id": "topology_geometry",
+        "definition": "Missing, malformed, faceted, disconnected or visibly placeholder geometry or silhouette."
+      },
+      {
+        "id": "scale_proportion",
+        "definition": "Visible scale, anatomy, spacing or proportion inconsistent with the named player or cricket artifact."
+      },
+      {
+        "id": "texture_uv_detail",
+        "definition": "Missing, blurred, stretched, mirrored, repetitive, seamed or implausibly low-detail texture or surface detail."
+      },
+      {
+        "id": "material_shading",
+        "definition": "Incorrect color, roughness, reflectance, normal response, transparency or plastic-looking material inconsistent with the named surface."
+      },
+      {
+        "id": "lighting_shadow",
+        "definition": "Visible subject-side lighting, shadow direction, shadow contact or light-leak inconsistency."
+      },
+      {
+        "id": "rig_skin_deformation",
+        "definition": "Visible joint collapse, skin stretch, anatomy distortion or cloth deformation attributable to the rendered player or equipment rig."
+      },
+      {
+        "id": "attachment_alignment",
+        "definition": "Visible floating, detached, misaligned or incorrectly fitted equipment, clothing, ball or bat contact that is not geometry penetration."
+      },
+      {
+        "id": "temporal_appearance_instability",
+        "definition": "Visible material flicker, z-fighting, texture swap, LOD pop or unexplained appearance change across frames."
+      }
+    ],
+    "episodeRule": "The same concrete visible instance, checklist item and defect class across consecutive source frames is one episode. A different instance, checklist item or defect class is a separate episode. Recurrence after at least one clear source frame is a new episode.",
+    "noDoubleCount": [
+      "Geometry penetration or clipping is counted only by visible_clipping_count.",
+      "Bat-path teleport, pose pop, one-frame reversal or disconnected bat/hand motion is counted only by bat_arc_discontinuity_count.",
+      "Planted-foot displacement is counted only by foot_slide_px.",
+      "Bowler or bat motion jerk is counted only by its registered jerk metric.",
+      "Physics, outcome causality, control feel and human preference are outside this metric."
+    ]
+  },
+  "textLegibilityDefects": {
+    "metricId": "text_legibility_defect_count",
+    "definition": "Count adjudicated visible text-instance defect episodes using the fixed checklist, pixel normalization and thresholds below. A title may not declare a weaker threshold.",
+    "requiredTextClasses": [
+      {
+        "id": "text.score_status",
+        "label": "Score, wickets, over, target and live outcome status"
+      },
+      {
+        "id": "text.delivery_setup",
+        "label": "Pitch, bowler style, pace, field preset, assistance and Practice or Coach status"
+      },
+      {
+        "id": "text.controls_navigation",
+        "label": "Buttons, control labels, navigation, pause and recovery actions"
+      },
+      {
+        "id": "text.coach_instruction",
+        "label": "Teaching, Coach guidance, timing, shot and physics explanation"
+      },
+      {
+        "id": "text.result_replay",
+        "label": "Result, replay, summary, next-ball and end-of-over text"
+      },
+      {
+        "id": "text.error_warning_loading",
+        "label": "Errors, warnings, loading, interruption and fallback text"
+      },
+      {
+        "id": "text.captions_accessibility",
+        "label": "Captions and visible non-audio alternatives"
+      },
+      {
+        "id": "text.localized_scripts",
+        "label": "Every displayed localized script, including Hindi and Hinglish when present"
+      }
+    ],
+    "thresholds": {
+      "thresholdContract": "fixed_visual_method_v1",
+      "foregroundBackgroundColorSpace": "decoded_sRGB_converted_to_linear_sRGB",
+      "contrastFormula": "(Llighter + 0.05) / (Ldarker + 0.05), where L is relative linear-sRGB luminance",
+      "normalTextMinimumContrastRatio": 4.5,
+      "largeTextMinimumContrastRatio": 3,
+      "largeTextMinimumInkHeightNormalizedPx": 24,
+      "minimumRenderedInkHeightNormalizedPx": 10,
+      "largeTextRule": "A text instance is large only when the median tight ink-bounding-box height of its non-space grapheme clusters is at least 24 normalized pixels. Weight or a title-supplied font label cannot make smaller text large.",
+      "renderedSizeRule": "For each text instance, measure tight ink-bounding-box height for every resolvable non-space grapheme cluster, including attached marks, in the normalized frame. Use the median; for one or two clusters use the median of those available clusters. A value below 10 normalized pixels is a defect.",
+      "contrastSamplingRule": "In every source frame where a text instance is visible, sample at least three unoccluded glyph-core regions and their immediately adjacent rendered backgrounds, excluding outline and shadow pixels. If fewer than three glyphs are resolvable, sample every resolvable glyph. Compute each ratio with the fixed formula and use the minimum valid ratio. An unresolved foreground/background sample makes the metric NOT_AVAILABLE rather than a pass.",
+      "movingBackgroundRule": "For text over a moving or spatially varying background, evaluate every visible source frame and use the lowest valid contrast ratio.",
+      "outlineRule": "An outline or shadow may improve separation but does not replace the foreground-to-adjacent-background contrast test."
+    },
+    "defectClasses": [
+      {
+        "id": "clipping_truncation",
+        "definition": "Any intended glyph or word is cropped, ellipsized, truncated or outside its visible container."
+      },
+      {
+        "id": "overlap_occlusion",
+        "definition": "Text overlaps or is obscured by other text, controls, artwork, the decision corridor or the viewport edge."
+      },
+      {
+        "id": "contrast_below_fixed_threshold",
+        "definition": "Measured contrast is below 4.5:1, or below 3:1 only when the fixed large-text rule is satisfied."
+      },
+      {
+        "id": "rendered_size_below_fixed_threshold",
+        "definition": "Median rendered ink height is below 10 normalized pixels."
+      }
+    ],
+    "episodeRule": "The same text instance and defect class across consecutive source frames is one episode. A different text instance or defect class is a separate episode. Recurrence after at least one clear source frame is a new episode.",
+    "instanceIdentityRule": "A text instance is the same semantic text in the same interface role and spatial container. A content, role or container change creates a new instance.",
+    "notComparableRule": "If a pair was not captured at compatible viewport, display, orientation and recorder settings, comparison remains NOT_COMPARABLE even when both packages separately satisfy this method."
+  },
+  "bindingRequirements": {
+    "registration": "A qualifying registration must identify this exact relative path, SHA-256, methodId and methodVersion.",
+    "receipt": "A qualifying metrics receipt must bind the exact registration and this exact method artifact by path and SHA-256.",
+    "comparison": "The comparison implementation must allowlist the registered method SHA-256 and reject a missing, changed, custom or package-declared method or threshold.",
+    "historicalVersions": "Never edit this file after a qualifying registration references its SHA-256. Create visual-method.v2.json and a new analysis/registration version for any amendment."
+  }
+}

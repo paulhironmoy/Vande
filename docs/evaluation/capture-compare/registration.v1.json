@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "analysisVersion": "1.0.0",
+  "registeredBeforeComparison": true,
+  "scenarioClasses": [
+    { "id": "leave", "intent": "leave", "matchingRule": "closest observable delivery class; disclose line/length/pace mismatch" },
+    { "id": "defence", "intent": "defensive shot", "matchingRule": "grounded defensive intent; disclose control-system mismatch" },
+    { "id": "grounded_drive", "intent": "grounded straight or cover drive", "matchingRule": "grounded attack into the straight/cover sector" },
+    { "id": "square_response", "intent": "square cut or pull response", "matchingRule": "square attack appropriate to the closest observable delivery class" },
+    { "id": "lofted_attack", "intent": "lofted attacking shot", "matchingRule": "deliberate elevation; disclose assistance and target mismatch" },
+    { "id": "mistime_or_miss", "intent": "deliberate mistime or miss", "matchingRule": "retain the failed outcome; never substitute a success" }
+  ],
+  "sampling": {
+    "minimumUninterruptedSequence": "one six-ball sequence per title/configuration when the game mode permits",
+    "successOnlyReels": "excluded",
+    "requiredRetention": ["misses", "wickets", "waits", "errors", "restarts", "contradictory outcomes"],
+    "sameDeviceRule": "controlled Android competitors use the same owned phone, display mode, orientation, refresh, thermal window, network class and recording settings",
+    "vandeOwnedTelemetry": "may supplement video only for VANDE and must be provenance-linked",
+    "publicReference": "qualitative/timecoded only"
+  },
+  "metrics": [
+    { "id": "time_to_first_playable_ball_ms", "unit": "ms", "definition": "first launch/start marker to first playable release", "lowerIsBetter": true },
+    { "id": "taps_to_first_playable_ball", "unit": "count", "definition": "deliberate actions before first playable release", "lowerIsBetter": true },
+    { "id": "ball_diameter_release_px", "unit": "px", "definition": "annotated ball bounding-box mean diameter at release", "lowerIsBetter": null },
+    { "id": "ball_diameter_bounce_px", "unit": "px", "definition": "annotated ball bounding-box mean diameter at bounce", "lowerIsBetter": null },
+    { "id": "ball_diameter_contact_px", "unit": "px", "definition": "annotated ball bounding-box mean diameter near contact", "lowerIsBetter": null },
+    { "id": "ball_track_continuity_percent", "unit": "percent", "definition": "annotated visible-ball samples divided by required tracking samples", "lowerIsBetter": false },
+    { "id": "decision_corridor_occlusion_percent", "unit": "percent", "definition": "axis-aligned annotated occlusion area intersecting the declared decision corridor divided by corridor area", "lowerIsBetter": true },
+    { "id": "camera_cut_count", "unit": "count", "definition": "annotated cuts from approach through dead ball", "lowerIsBetter": true },
+    { "id": "contact_to_impact_audio_ms", "unit": "ms", "definition": "impact-audio onset minus physical contact; only synchronized audio/event evidence", "lowerIsBetter": true },
+    { "id": "physical_event_to_score_ms", "unit": "ms", "definition": "authoritative/annotated physical result to visible score response", "lowerIsBetter": true },
+    { "id": "physical_event_to_crowd_ms", "unit": "ms", "definition": "authoritative/annotated physical result to crowd response", "lowerIsBetter": true },
+    { "id": "result_to_next_playable_ms", "unit": "ms", "definition": "result-visible marker to next playable state", "lowerIsBetter": true },
+    { "id": "dead_time_ratio_percent", "unit": "percent", "definition": "non-interactive dead time divided by setup-to-next-playable duration", "lowerIsBetter": true },
+    { "id": "hud_occupancy_percent", "unit": "percent", "definition": "union/declared HUD area divided by viewport area", "lowerIsBetter": true },
+    { "id": "persistent_control_count", "unit": "count", "definition": "visible persistent interactive controls during the decision corridor", "lowerIsBetter": true },
+    { "id": "duplicate_frame_rate_percent", "unit": "percent", "definition": "consecutive byte-identical decoded video frames divided by adjacent frame pairs; recording property only", "lowerIsBetter": true },
+    { "id": "outcome_replay_contradiction_count", "unit": "count", "definition": "independently reviewed visible contradictions between live result, replay, score, audio or Coach", "lowerIsBetter": true }
+  ],
+  "uncertainty": {
+    "frameTime": "half one frame interval at the declared capture frame rate unless a more precise synchronized clock is proven",
+    "manualRegion": "report annotator confidence and preserve independent annotations/adjudication",
+    "missing": "NOT_AVAILABLE or NOT_COMPARABLE; never impute zero",
+    "diagnostic": "label DIAGNOSTIC_ONLY; exclude from human control, preference, fun and commercial-success claims"
+  },
+  "exclusions": [
+    "cross-game SSIM, PSNR, LPIPS or VMAF as a quality ranking",
+    "engine FPS, input latency, physics correctness or control feel inferred from public/compressed video",
+    "competitor hidden telemetry",
+    "AI persona, owner opinion or machine input counted as a player",
+    "builder self-certification",
+    "incomparable scenarios called identical",
+    "competitor media redistribution"
+  ],
+  "scoring": {
+    "automaticQualityScore": false,
+    "missingValue": "not scored",
+    "ceri": "map evidence availability only; CERI dimension scores require the evidence specified by docs/evaluation/CRICKET-EXPERIENCE-SUCCESS-METRIC.md",
+    "directionality": "display raw values and uncertainty; do not aggregate unlike scenario classes"
+  },
+  "deviationPolicy": "A later change creates a new registration version and states the reason; never edit this file after viewing comparison results."
+}

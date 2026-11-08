@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "policy": {
+    "publicReferenceUse": "URL, publisher metadata and timecoded qualitative observation only unless explicit rights say more",
+    "downloadsPermitted": false,
+    "redistributionPermitted": false,
+    "engineClaimsPermitted": false,
+    "notes": [
+      "An encoded public upload cannot establish engine FPS, input latency, physics correctness, control feel or player preference.",
+      "A null title, publisher, access time or timecode means it has not been re-verified for this evidence cycle; it must not be guessed."
+    ]
+  },
+  "ownerSupplied": [
+    {
+      "id": "owner-youtube-pnmmoiu8zik",
+      "url": "https://www.youtube.com/watch?v=pNMmOIu8Zik",
+      "title": null,
+      "publisher": null,
+      "accessedAtUtc": null,
+      "relevantTimecodes": [],
+      "accessStatus": "pending_current_cycle_verification",
+      "mayEstablish": ["observable cricket-game presentation hypotheses after timecoded review"],
+      "mayNotEstablish": ["device performance", "input latency", "physics correctness", "control feel", "human preference"]
+    },
+    {
+      "id": "owner-youtube-xkayuecqsxi",
+      "url": "https://www.youtube.com/watch?v=xkaYueCqsXI",
+      "title": null,
+      "publisher": null,
+      "accessedAtUtc": null,
+      "relevantTimecodes": [],
+      "accessStatus": "pending_current_cycle_verification",
+      "mayEstablish": ["observable cricket-game presentation hypotheses after timecoded review"],
+      "mayNotEstablish": ["device performance", "input latency", "physics correctness", "control feel", "human preference"]
+    },
+    {
+      "id": "owner-youtube-short-ryo1dabrtwa",
+      "url": "https://youtube.com/shorts/RYO1DaBRtwA",
+      "title": null,
+      "publisher": null,
+      "accessedAtUtc": null,
+      "relevantTimecodes": [],
+      "accessStatus": "pending_current_cycle_verification",
+      "mayEstablish": ["observable short-form presentation hypotheses after timecoded review"],
+      "mayNotEstablish": ["device performance", "input latency", "physics correctness", "control feel", "human preference"]
+    },
+    {
+      "id": "owner-youtube-short-5pqmiw1ytnq",
+      "url": "https://youtube.com/shorts/5PqmIW1YTnQ",
+      "title": null,
+      "publisher": null,
+      "accessedAtUtc": null,
+      "relevantTimecodes": [],
+      "accessStatus": "pending_current_cycle_verification",
+      "mayEstablish": ["observable short-form presentation hypotheses after timecoded review"],
+      "mayNotEstablish": ["device performance", "input latency", "physics correctness", "control feel", "human preference"]
+    },
+    {
+      "id": "owner-youtube-f61qqtwkveq",
+      "url": "https://www.youtube.com/watch?v=F61qQtwkVeQ",
+      "title": null,
+      "publisher": null,
+      "accessedAtUtc": null,
+      "relevantTimecodes": [],
+      "accessStatus": "pending_current_cycle_verification",
+      "mayEstablish": ["real-match anticipation, release, consequence and emotion hypotheses after timecoded review"],
+      "mayNotEstablish": ["mobile-game device performance", "mobile-game input latency", "VANDE player preference"]
+    }
+  ],
+  "controlledTitles": [
+    {
+      "id": "cricket-league",
+      "title": "Cricket League",
+      "publisher": "Miniclip",
+      "packageId": "com.miniclip.cricketleague",
+      "version": null,
+      "store": "Google Play",
+      "status": "requires_lawful_owned_install_and_terms_review"
+    },
+    {
+      "id": "real-cricket",
+      "title": "Real Cricket",
+      "publisher": "Nautilus Mobile",
+      "packageId": "com.nautilus.realcricket",
+      "version": null,
+      "store": "Google Play",
+      "status": "requires_lawful_owned_install_and_terms_review"
+    },
+    {
+      "id": "wcc3",
+      "title": "World Cricket Championship 3",
+      "publisher": "Nextwave Multimedia",
+      "packageId": null,
+      "version": null,
+      "store": "Google Play",
+      "status": "requires_lawful_owned_install_and_terms_review"
+    }
+  ]
+}

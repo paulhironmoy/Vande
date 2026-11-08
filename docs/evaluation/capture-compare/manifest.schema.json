@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vande.invalid/schemas/capture-manifest-v1.json",
+  "title": "VANDE capture evidence manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "captureId",
+    "lane",
+    "evidenceClass",
+    "status",
+    "evaluator",
+    "rights",
+    "identity",
+    "timing",
+    "environment",
+    "gameplay",
+    "capture",
+    "files",
+    "sidecars",
+    "transformations",
+    "applicability",
+    "expectedScenario",
+    "observedDeviations",
+    "errors",
+    "tools"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "captureId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{7,127}$" },
+    "lane": {
+      "enum": ["vande_engine_truth", "controlled_competitor", "public_reference"]
+    },
+    "evidenceClass": { "enum": ["raw", "diagnostic", "derived"] },
+    "status": { "enum": ["captured", "not_available", "failed"] },
+    "evaluator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "role", "authoredSubject", "independent"],
+      "properties": {
+        "id": { "type": "string", "minLength": 2, "maxLength": 128 },
+        "role": { "type": "string", "minLength": 2, "maxLength": 128 },
+        "authoredSubject": { "type": "boolean" },
+        "independent": { "type": "boolean" }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["basis", "sourceUrl", "redistribution", "notes"],
+      "properties": {
+        "basis": { "type": "string", "minLength": 2, "maxLength": 512 },
+        "sourceUrl": { "type": ["string", "null"], "maxLength": 2048 },
+        "redistribution": { "enum": ["owned", "internal_only", "prohibited"] },
+        "notes": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repositorySourceId", "embeddedBuildId", "artifact", "application", "renderer"],
+      "properties": {
+        "repositorySourceId": { "$ref": "#/$defs/nullableBuildId" },
+        "embeddedBuildId": { "$ref": "#/$defs/nullableBuildId" },
+        "artifact": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "sha256"],
+              "properties": {
+                "path": { "$ref": "#/$defs/relativePath" },
+                "sha256": { "$ref": "#/$defs/sha256" }
+              }
+            }
+          ]
+        },
+        "application": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["title", "packageId", "version", "store"],
+          "properties": {
+            "title": { "$ref": "#/$defs/nullableShortString" },
+            "packageId": { "$ref": "#/$defs/nullableShortString" },
+            "version": { "$ref": "#/$defs/nullableShortString" },
+            "store": { "$ref": "#/$defs/nullableShortString" }
+          }
+        },
+        "renderer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["claimed", "observed", "admission", "proof"],
+          "properties": {
+            "claimed": { "$ref": "#/$defs/nullableShortString" },
+            "observed": { "$ref": "#/$defs/nullableShortString" },
+            "admission": { "$ref": "#/$defs/nullableShortString" },
+            "proof": { "type": ["string", "null"], "maxLength": 512 }
+          }
+        }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capturedAtUtc", "hostUptime", "durationMs"],
+      "properties": {
+        "capturedAtUtc": { "type": "string", "format": "date-time", "pattern": "Z$" },
+        "hostUptime": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "durationMs": { "type": ["number", "null"], "minimum": 0, "maximum": 3600000 }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "platform",
+        "device",
+        "os",
+        "soc",
+        "gpu",
+        "ramMb",
+        "viewport",
+        "orientation",
+        "refreshHz",
+        "qualityTier",
+        "thermal",
+        "battery",
+        "power",
+        "network",
+        "backgroundLoad"
+      ],
+      "properties": {
+        "platform": { "$ref": "#/$defs/nullableMediumString" },
+        "device": { "$ref": "#/$defs/nullableMediumString" },
+        "os": { "$ref": "#/$defs/nullableMediumString" },
+        "soc": { "$ref": "#/$defs/nullableMediumString" },
+        "gpu": { "$ref": "#/$defs/nullableMediumString" },
+        "ramMb": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "viewport": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["width", "height", "deviceScaleFactor"],
+              "properties": {
+                "width": { "type": "integer", "minimum": 1, "maximum": 20000 },
+                "height": { "type": "integer", "minimum": 1, "maximum": 20000 },
+                "deviceScaleFactor": { "type": "number", "minimum": 0.1, "maximum": 10 }
+              }
+            }
+          ]
+        },
+        "orientation": { "$ref": "#/$defs/nullableMediumString" },
+        "refreshHz": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "qualityTier": { "$ref": "#/$defs/nullableMediumString" },
+        "thermal": { "$ref": "#/$defs/nullableMediumString" },
+        "battery": { "$ref": "#/$defs/nullableMediumString" },
+        "power": { "$ref": "#/$defs/nullableMediumString" },
+        "network": { "$ref": "#/$defs/nullableMediumString" },
+        "backgroundLoad": { "$ref": "#/$defs/nullableMediumString" }
+      }
+    },
+    "gameplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario",
+        "seed",
+        "controls",
+        "inputMethod",
+        "assistance",
+        "handedness",
+        "pitch",
+        "field",
+        "timeScale",
+        "wholeSequence"
+      ],
+      "properties": {
+        "scenario": { "$ref": "#/$defs/nullableMediumString" },
+        "seed": { "$ref": "#/$defs/nullableMediumString" },
+        "controls": { "$ref": "#/$defs/nullableMediumString" },
+        "inputMethod": { "$ref": "#/$defs/nullableMediumString" },
+        "assistance": { "$ref": "#/$defs/nullableMediumString" },
+        "handedness": { "$ref": "#/$defs/nullableMediumString" },
+        "pitch": { "$ref": "#/$defs/nullableMediumString" },
+        "field": { "$ref": "#/$defs/nullableMediumString" },
+        "timeScale": { "type": ["number", "null"], "minimum": 0.01, "maximum": 16 },
+        "wholeSequence": { "type": "boolean" }
+      }
+    },
+    "capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "resolution", "frameRate", "codec", "audio", "perturbations", "limitations"],
+      "properties": {
+        "method": { "type": "string", "minLength": 2, "maxLength": 512 },
+        "resolution": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["width", "height"],
+              "properties": {
+                "width": { "type": "integer", "minimum": 1, "maximum": 20000 },
+                "height": { "type": "integer", "minimum": 1, "maximum": 20000 }
+              }
+            }
+          ]
+        },
+        "frameRate": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "codec": { "type": ["string", "null"], "maxLength": 128 },
+        "recorder": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["class", "bitRateBps"],
+          "properties": {
+            "class": { "type": "string", "minLength": 1, "maxLength": 128 },
+            "bitRateBps": { "type": ["integer", "null"], "minimum": 1, "maximum": 1000000000 }
+          }
+        },
+        "audio": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "synchronized", "limitations"],
+          "properties": {
+            "method": { "type": "string", "minLength": 1, "maxLength": 256 },
+            "synchronized": { "type": "boolean" },
+            "limitations": { "$ref": "#/$defs/stringArray" }
+          }
+        },
+        "perturbations": { "$ref": "#/$defs/stringArray" },
+        "limitations": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "path", "bytes", "sha256", "mimeType", "raw", "durationMs"],
+        "properties": {
+          "role": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "path": { "$ref": "#/$defs/relativePath" },
+          "bytes": { "type": "integer", "minimum": 0 },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "mimeType": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "raw": { "type": "boolean" },
+          "durationMs": { "type": ["number", "null"], "minimum": 0, "maximum": 3600000 }
+        }
+      }
+    },
+    "sidecars": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["events", "physics", "replay", "frames", "annotations"],
+      "properties": {
+        "events": { "$ref": "#/$defs/pathArray" },
+        "physics": { "$ref": "#/$defs/pathArray" },
+        "replay": { "$ref": "#/$defs/pathArray" },
+        "frames": { "$ref": "#/$defs/pathArray" },
+        "annotations": { "$ref": "#/$defs/pathArray" }
+      }
+    },
+    "transformations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["operation", "parameters", "parentSha256", "childSha256"],
+        "properties": {
+          "operation": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "parameters": { "type": "object" },
+          "parentSha256": { "$ref": "#/$defs/sha256" },
+          "childSha256": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    },
+    "applicability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metrics", "excludedClaims"],
+      "properties": {
+        "metrics": {
+          "type": "object",
+          "additionalProperties": { "enum": ["eligible", "diagnostic_only", "not_available"] }
+        },
+        "excludedClaims": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "expectedScenario": { "type": "string", "minLength": 1, "maxLength": 1024 },
+    "observedDeviations": { "$ref": "#/$defs/stringArrayLong" },
+    "errors": { "$ref": "#/$defs/stringArrayLong" },
+    "tools": {
+      "type": "object",
+      "additionalProperties": { "type": ["string", "null"], "maxLength": 512 }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "buildId": { "type": "string", "pattern": "^[0-9a-f]{7,40}(\\+[0-9a-f]{12})?$" },
+    "nullableBuildId": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/buildId" }] },
+    "nullableShortString": { "type": ["string", "null"], "minLength": 1, "maxLength": 256 },
+    "nullableMediumString": { "type": ["string", "null"], "minLength": 1, "maxLength": 512 },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+    },
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 1024 }
+    },
+    "stringArrayLong": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 2048 }
+    },
+    "pathArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/relativePath" }
+    }
+  }
+}

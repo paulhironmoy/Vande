@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "auditId": "capture-compare-independent-2026-10-29",
+  "scope": "VANDE Stage 1 master prompt sections 9 and 14; machine foundation only",
+  "evaluator": {
+    "id": "capture_tool_independent_audit",
+    "authoredAuditedImplementation": false,
+    "authoredAuditHarness": true
+  },
+  "auditWindowUtc": {
+    "start": "2026-10-29T00:33:58Z",
+    "snapshot": "2026-10-29T00:35:51Z"
+  },
+  "repositorySourceIdAtSnapshot": "38924bd+63c3790874bf",
+  "verdict": "NOT_PASSED",
+  "claimApplicability": "experimental_diagnostic_only",
+  "counts": {
+    "critical": 4,
+    "high": 7,
+    "medium": 2
+  },
+  "focusedChecks": {
+    "nodeSyntax": { "status": "passed", "files": 8 },
+    "vitest": { "status": "passed", "testFiles": 1, "tests": 16 },
+    "schemaCompileDraft202012": { "status": "passed", "schemas": 2 },
+    "staleUnityWebglRejection": {
+      "status": "passed",
+      "exitCode": 3,
+      "expectedBuildId": "38924bd+63c3790874bf",
+      "observedExportBuildId": "38924bd+6bedc0236562",
+      "receipt": "/private/tmp/vande-audit-webgl-not-available-20261029T0036Z/manifest.json"
+    },
+    "adversarial": {
+      "status": "failed_as_expected_for_audit",
+      "callerForgedAndroidIdentityAccepted": true,
+      "unityNativeWithoutProofAccepted": true,
+      "missingDeclaredSidecarAccepted": true,
+      "adjudicatorWithoutAdjudicationAccepted": true,
+      "undeclaredMetricApplicabilityStatus": "measured",
+      "crossPlatformDifferentDeviceDirection": "favourable_to_candidate",
+      "arbitraryRegistrationChangedDirection": true,
+      "fabricatedMetricsWithoutAnnotationReceiptAccepted": true,
+      "fabricatedMetricsReportedSourceFilesVerified": true,
+      "fabricatedMetricsFindings": [],
+      "scratch": "/var/folders/l5/_njrnd_93616m0sdn6h16s_w0000gn/T/vande-capture-audit-EKq5b9"
+    }
+  },
+  "findings": [
+    { "id": "AUD-C01", "severity": "Critical", "impactClass": "FALSE_EVIDENCE", "title": "Android runtime and renderer identity can be caller-forged" },
+    { "id": "AUD-C02", "severity": "Critical", "impactClass": "FALSE_EVIDENCE", "title": "Android video is not bound to the claimed foreground application" },
+    { "id": "AUD-C03", "severity": "Critical", "impactClass": "FALSE_EVIDENCE", "title": "Fabricated metrics pass comparison without annotations or a receipt" },
+    { "id": "AUD-C04", "severity": "Critical", "impactClass": "FALSE_METHOD_AND_MISLEADING_COMPARISON", "title": "The frozen registration is replaceable at comparison time" },
+    { "id": "AUD-H01", "severity": "High", "impactClass": "MISLEADING_COMPARISON", "title": "Explicitly incomparable platforms/devices receive a directional result" },
+    { "id": "AUD-H02", "severity": "High", "impactClass": "FALSE_EVIDENCE", "title": "Declared sidecars need not exist or be hash-declared" },
+    { "id": "AUD-H03", "severity": "High", "impactClass": "FALSE_EVIDENCE", "title": "Adjudication can be asserted without reviewing anything" },
+    { "id": "AUD-H04", "severity": "High", "impactClass": "FALSE_MEASUREMENT", "title": "An undeclared metric becomes measured" },
+    { "id": "AUD-H05", "severity": "High", "impactClass": "FALSE_EVIDENCE", "title": "Production web/WebGL evidence is not artifact-bound" },
+    { "id": "AUD-H06", "severity": "High", "impactClass": "STALE_EVIDENCE", "title": "Android source identity is not rechecked after capture" },
+    { "id": "AUD-H07", "severity": "High", "impactClass": "INCOMPLETE_AND_MISLEADING_COMPARISON", "title": "Required section 9.5 measures and report fields are incomplete" },
+    { "id": "AUD-M01", "severity": "Medium", "impactClass": "FALSE_METADATA", "title": "One-axis normalization records the wrong output dimensions" },
+    { "id": "AUD-M02", "severity": "Medium", "impactClass": "FALSE_MEASUREMENT", "title": "Ball diameter does not match the registered definition" }
+  ],
+  "evidence": {
+    "humanPlayers": "NOT_RUN",
+    "physicalDevices": "NOT_RUN",
+    "competitorMedia": "NOT_ACCESSED",
+    "browser": "NOT_LAUNCHED",
+    "androidApp": "NOT_LAUNCHED",
+    "builds": "NOT_RUN"
+  }
+}

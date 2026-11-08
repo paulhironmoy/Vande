@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "policyId": "vande-unity-webgl-export-ed25519-v1",
+  "approvedKeys": [],
+  "status": "NO_TRUSTED_EXPORTER_KEY_PROVISIONED",
+  "note": "Direct Unity WebGL capture remains NOT_AVAILABLE until an independent owner or CI key is approved here and its private key remains outside this repository."
+}

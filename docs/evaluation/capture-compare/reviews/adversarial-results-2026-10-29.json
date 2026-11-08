@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "command": "node docs/evaluation/capture-compare/reviews/adversarial-audit.mjs",
+  "executedAtUtcWindow": "2026-10-29T00:33:58Z/2026-10-29T00:35:51Z",
+  "exitCode": 0,
+  "harnessSha256": "4cffc714645fcc45acc9ba6c7104092e0397d0f89167fe8473a8e0cdfc5b29b2",
+  "results": {
+    "adjudicatorWithoutAdjudicationAccepted": true,
+    "adjudicatorWithoutAdjudicationErrors": [],
+    "arbitraryRegistrationInvertsDirection": {
+      "checkedIn": "favourable_to_candidate",
+      "supplied": "unfavourable_to_candidate"
+    },
+    "callerForgedAndroidIdentityAccepted": true,
+    "callerForgedAndroidIdentityErrors": [],
+    "crossPlatformDifferentDeviceComparison": {
+      "delta": -300,
+      "direction": "favourable_to_candidate",
+      "reason": "No quality score; direction follows frozen metric registration only.",
+      "status": "raw_delta_only"
+    },
+    "fabricatedMetricsWithoutAnnotationReceiptAccepted": true,
+    "integratedFindings": [],
+    "integratedSourceFilesVerifiedClaim": true,
+    "missingDeclaredSidecarAccepted": true,
+    "missingDeclaredSidecarErrors": [],
+    "undeclaredMetricApplicabilityStatus": "measured",
+    "unityNativeWithoutProofAccepted": true,
+    "unityNativeWithoutProofErrors": []
+  },
+  "scratch": "/var/folders/l5/_njrnd_93616m0sdn6h16s_w0000gn/T/vande-capture-audit-EKq5b9",
+  "interpretation": "A true Accepted field is an audit failure: the implementation accepted evidence or a comparison it was required to reject."
+}

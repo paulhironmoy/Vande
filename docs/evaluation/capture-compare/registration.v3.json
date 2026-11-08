@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 3,
+  "analysisVersion": "1.2.0",
+  "registeredBeforeComparison": true,
+  "scenarioClasses": [
+    { "id": "leave", "intent": "leave", "matchingRule": "closest observable delivery class; disclose line/length/pace mismatch" },
+    { "id": "defence", "intent": "defensive shot", "matchingRule": "grounded defensive intent; disclose control-system mismatch" },
+    { "id": "grounded_drive", "intent": "grounded straight or cover drive", "matchingRule": "grounded attack into the straight/cover sector" },
+    { "id": "square_response", "intent": "square cut or pull response", "matchingRule": "square attack appropriate to the closest observable delivery class" },
+    { "id": "lofted_attack", "intent": "lofted attacking shot", "matchingRule": "deliberate elevation; disclose assistance and target mismatch" },
+    { "id": "mistime_or_miss", "intent": "deliberate mistime or miss", "matchingRule": "retain the failed outcome; never substitute a success" }
+  ],
+  "sampling": {
+    "minimumUninterruptedSequence": "one six-ball sequence per title/configuration when the game mode permits",
+    "successOnlyReels": "excluded",
+    "requiredRetention": ["misses", "wickets", "waits", "errors", "restarts", "contradictory outcomes"],
+    "sameDeviceRule": "controlled Android competitors use the same owned phone, exact Android build fingerprint, security patch and build ID, display mode, orientation, refresh, thermal window, network class, recorder method, recorder class, recorder bit rate and canonical perturbation declaration",
+    "vandeOwnedTelemetry": "may supplement video only for VANDE and must be provenance-linked",
+    "publicReference": "qualitative/timecoded only; never receives a directional cross-title comparison"
+  },
+  "methodArtifacts": [
+    {
+      "methodId": "vande.capture-compare.visual-defects",
+      "methodVersion": "1.0.0",
+      "path": "docs/evaluation/capture-compare/visual-method.v1.json",
+      "sha256": "8a9f86be086096c8e8ed7ca1b6975d0bad1890ccc83e27b36a37d6f73135111f",
+      "metricIds": ["artifact_material_defect_count", "text_legibility_defect_count"]
+    }
+  ],
+  "metrics": [
+    { "id": "time_to_first_playable_ball_ms", "unit": "ms", "definition": "first launch/start marker to first playable release", "lowerIsBetter": true },
+    { "id": "taps_to_first_playable_ball", "unit": "count", "definition": "deliberate actions before first playable release", "lowerIsBetter": true },
+    { "id": "ball_diameter_release_px", "unit": "px", "definition": "annotated ball bounding-box mean diameter at release", "lowerIsBetter": null },
+    { "id": "ball_diameter_bounce_px", "unit": "px", "definition": "annotated ball bounding-box mean diameter at bounce", "lowerIsBetter": null },
+    { "id": "ball_diameter_contact_px", "unit": "px", "definition": "annotated ball bounding-box mean diameter near contact", "lowerIsBetter": null },
+    { "id": "ball_track_continuity_percent", "unit": "percent", "definition": "annotated visible-ball samples divided by required tracking samples", "lowerIsBetter": false },
+    { "id": "decision_corridor_occlusion_percent", "unit": "percent", "definition": "axis-aligned annotated occlusion area intersecting the declared decision corridor divided by corridor area", "lowerIsBetter": true },
+    { "id": "camera_cut_count", "unit": "count", "definition": "annotated cuts from approach through dead ball", "lowerIsBetter": true },
+    { "id": "contact_to_impact_audio_ms", "unit": "ms", "definition": "impact-audio onset minus physical contact; only synchronized audio/event evidence", "lowerIsBetter": true },
+    { "id": "physical_event_to_score_ms", "unit": "ms", "definition": "authoritative/annotated physical result to visible score response", "lowerIsBetter": true },
+    { "id": "physical_event_to_crowd_ms", "unit": "ms", "definition": "authoritative/annotated physical result to crowd response", "lowerIsBetter": true },
+    { "id": "result_to_next_playable_ms", "unit": "ms", "definition": "result-visible marker to next playable state", "lowerIsBetter": true },
+    { "id": "dead_time_ratio_percent", "unit": "percent", "definition": "non-interactive dead time divided by setup-to-next-playable duration", "lowerIsBetter": true },
+    { "id": "hud_occupancy_percent", "unit": "percent", "definition": "union/declared HUD area divided by viewport area", "lowerIsBetter": true },
+    { "id": "persistent_control_count", "unit": "count", "definition": "visible persistent interactive controls during the decision corridor", "lowerIsBetter": true },
+    { "id": "duplicate_frame_rate_percent", "unit": "percent", "definition": "consecutive byte-identical decoded video frames divided by adjacent frame pairs; recording property only", "lowerIsBetter": true },
+    { "id": "outcome_replay_contradiction_count", "unit": "count", "definition": "independently reviewed visible contradictions between live result, replay, score, audio or Coach", "lowerIsBetter": true },
+    { "id": "ball_local_luminance_contrast_ratio", "unit": "ratio", "definition": "For each required release, bounce and near-contact frame, compute (Lmax + 0.05) / (Lmin + 0.05) from median linear-sRGB luminance of the annotated ball pixels and the visible local annulus from 1.5 to 2.5 ball bounding-box radii after excluding the ball and occlusions; report the minimum of all three frames; all three frames are required.", "lowerIsBetter": false, "applicability": "Provenance-bound normalized video with release, bounce and near-contact ball masks and a declared color/decode path; otherwise NOT_AVAILABLE. Public/compressed reference video is non-directional." },
+    { "id": "camera_shake_rms_px", "unit": "px", "definition": "Root-mean-square two-dimensional residual displacement, in normalized-video pixels, of at least three independently annotated static-scene tracks from release through contact after subtracting each track's centered 250 ms moving-average intended camera path; all retained decision-corridor frames are sampled.", "lowerIsBetter": true, "applicability": "Provenance-bound normalized video with release/contact markers and three or more continuously visible static tracks; otherwise NOT_AVAILABLE." },
+    { "id": "camera_roll_peak_degrees", "unit": "degrees", "definition": "Peak absolute unintended roll from release through contact: per-frame registered horizon angle minus its centered 250 ms moving-average intended camera path, measured in degrees; every retained decision-corridor frame requires a reviewable horizon or equivalent static-scene roll estimate.", "lowerIsBetter": true, "applicability": "Provenance-bound normalized video with a reviewable horizon/roll track through the complete decision corridor; otherwise NOT_AVAILABLE." },
+    { "id": "horizon_movement_rms_px", "unit": "px", "definition": "Root-mean-square residual vertical displacement at viewport center of the registered horizon from release through contact after subtracting its centered 250 ms moving-average intended camera path, in normalized-video pixels.", "lowerIsBetter": true, "applicability": "Provenance-bound normalized video with a reviewable horizon track through the complete decision corridor; otherwise NOT_AVAILABLE." },
+    { "id": "bowler_motion_jerk_score", "unit": "body_heights_per_s3", "definition": "Root-mean-square magnitude of the third central finite difference of the camera-registered bowler torso-center track over the final run-up through release, divided by annotated standing body height and the cubed source-frame interval; the complete interval and body-height scale are required.", "lowerIsBetter": true, "applicability": "Provenance-bound normalized video with continuous torso, body-height, camera-registration and final-run-up/release annotations; otherwise NOT_AVAILABLE." },
+    { "id": "bat_motion_jerk_score", "unit": "bat_lengths_per_s3", "definition": "Root-mean-square magnitude of the third central finite difference of the camera-registered bat sweet-spot track from committed swing through follow-through, divided by annotated bat length and the cubed source-frame interval; the complete interval and bat-length scale are required.", "lowerIsBetter": true, "applicability": "Provenance-bound normalized video with continuous bat, bat-length, camera-registration, committed-swing and follow-through annotations; otherwise NOT_AVAILABLE." },
+    { "id": "foot_slide_px", "unit": "px", "definition": "Maximum Euclidean displacement, in normalized-video pixels, of the camera-registered planted-foot anchor from the independently annotated plant frame through contact; report the larger valid foot value when both feet are planted.", "lowerIsBetter": true, "applicability": "Provenance-bound normalized video with an unoccluded planted-foot track, plant/contact markers and camera registration; otherwise NOT_AVAILABLE." },
+    { "id": "bat_arc_discontinuity_count", "unit": "count", "definition": "Count independently reviewed visible bat-arc discontinuity episodes from committed swing through follow-through using the completed checklist for teleport, pose pop, one-frame reversal and disconnected bat/hand motion; consecutive frames of the same defect are one episode and distinct defect classes are separate episodes.", "lowerIsBetter": true, "applicability": "Complete provenance-bound swing interval plus independent primary and secondary checklist review and adjudication of disagreement; otherwise NOT_AVAILABLE." },
+    { "id": "visible_clipping_count", "unit": "count", "definition": "Count independently reviewed visible geometry penetration or clipping episodes over the retained sequence; consecutive frames involving the same object pair and defect are one episode, while a new object pair or a recurrence after at least one clear frame is a new episode.", "lowerIsBetter": true, "applicability": "Complete retained provenance-bound sequence plus independent primary and secondary checklist review and adjudication of disagreement; otherwise NOT_AVAILABLE." },
+    { "id": "artifact_material_defect_count", "unit": "count", "definition": "Count adjudicated visible player, cricket-artifact and environment defect episodes using every required player, artifact, environment and defect-class row in frozen method vande.capture-compare.visual-defects 1.0.0; the method's episode and no-double-count rules are mandatory.", "lowerIsBetter": true, "applicability": "Complete retained provenance-bound sequence plus all three independent review roles and every completion rule in the exact allowlisted visual-method.v1.json; otherwise NOT_AVAILABLE.", "methodId": "vande.capture-compare.visual-defects", "methodVersion": "1.0.0" },
+    { "id": "physical_event_to_camera_ms", "unit": "ms", "definition": "Elapsed source-video milliseconds from the annotated authoritative physical-result frame to the first frame of an unambiguous proportional camera response; a response must persist for at least two source frames and exclude the already registered intended delivery camera path.", "lowerIsBetter": true, "applicability": "Synchronized provenance-bound evidence with authoritative or independently adjudicated physical-result and camera-response markers; otherwise NOT_AVAILABLE." },
+    { "id": "physical_event_to_result_ms", "unit": "ms", "definition": "Elapsed source-video milliseconds from the annotated authoritative physical-result frame to the first frame of an unambiguous visible result presentation that persists for at least two source frames, including a score/outcome state rather than an anticipatory animation.", "lowerIsBetter": true, "applicability": "Synchronized provenance-bound evidence with authoritative or independently adjudicated physical-result and visible-result markers; otherwise NOT_AVAILABLE." },
+    { "id": "touch_target_burden_count", "unit": "count", "definition": "Maximum number of simultaneously visible discrete interactive touch targets competing for shot intent or occluding the declared decision corridor from release through contact; the primary full-surface gesture receiver counts as one target and decorative/non-interactive elements do not count.", "lowerIsBetter": true, "applicability": "Complete provenance-bound decision corridor with a completed interactive-target inventory and independent review; otherwise NOT_AVAILABLE." },
+    { "id": "text_legibility_defect_count", "unit": "count", "definition": "Count adjudicated text-instance defect episodes using every required text class and defect class in frozen method vande.capture-compare.visual-defects 1.0.0. Normalize the short side to 412 px; minimum rendered ink height is 10 normalized px; large text starts at 24 normalized px; minimum contrast is 4.5:1 normally and 3:1 only for large text. Title-declared thresholds cannot replace these values.", "lowerIsBetter": true, "applicability": "Complete retained provenance-bound sequence plus all three independent review roles, every source frame and all fixed threshold inputs in the exact allowlisted visual-method.v1.json; otherwise NOT_AVAILABLE.", "methodId": "vande.capture-compare.visual-defects", "methodVersion": "1.0.0" }
+  ],
+  "uncertainty": {
+    "frameTime": "half one frame interval at the declared capture frame rate unless a metric-specific rule below requires a full source-frame interval or a more precise synchronized clock is proven",
+    "manualRegion": "report annotator confidence and preserve independent annotations/adjudication",
+    "missing": "NOT_AVAILABLE or NOT_COMPARABLE; never impute zero",
+    "diagnostic": "label DIAGNOSTIC_ONLY; exclude from human control, preference, fun and commercial-success claims",
+    "measurementRules": {
+      "contrast_mask_and_decode": "Report the maximum absolute ratio change from a one-normalized-pixel mask erosion/dilation sensitivity run and disclose color-space, transfer-function and compression limitations; no mask or decode disclosure means NOT_AVAILABLE.",
+      "tracked_motion": "Report tracker residual plus the absolute difference between independent track annotations in the metric unit; incomplete tracks or unresolved disagreement mean NOT_AVAILABLE.",
+      "normalized_jerk": "Propagate the independent track-position disagreement through the same finite-difference calculation and report the resulting metric-unit uncertainty; missing scale, timestamps or complete tracks mean NOT_AVAILABLE.",
+      "frame_timing": "Use one full source-frame interval in milliseconds as uncertainty unless a tighter synchronized-clock bound is proven; missing synchronization or endpoint adjudication means NOT_AVAILABLE.",
+      "reviewed_count": "Primary and secondary reviewers must complete the exact registered checklist independently; an independent adjudicator resolves every count/episode disagreement and the selected adjudicated count has no invented numeric error bar; incomplete review means NOT_AVAILABLE."
+    },
+    "metricRules": {
+      "ball_local_luminance_contrast_ratio": "contrast_mask_and_decode",
+      "camera_shake_rms_px": "tracked_motion",
+      "camera_roll_peak_degrees": "tracked_motion",
+      "horizon_movement_rms_px": "tracked_motion",
+      "bowler_motion_jerk_score": "normalized_jerk",
+      "bat_motion_jerk_score": "normalized_jerk",
+      "foot_slide_px": "tracked_motion",
+      "bat_arc_discontinuity_count": "reviewed_count",
+      "visible_clipping_count": "reviewed_count",
+      "artifact_material_defect_count": "reviewed_count",
+      "physical_event_to_camera_ms": "frame_timing",
+      "physical_event_to_result_ms": "frame_timing",
+      "touch_target_burden_count": "reviewed_count",
+      "text_legibility_defect_count": "reviewed_count"
+    }
+  },
+  "exclusions": [
+    "cross-game SSIM, PSNR, LPIPS or VMAF as a quality ranking",
+    "engine FPS, input latency, physics correctness or control feel inferred from public/compressed video",
+    "competitor hidden telemetry",
+    "AI persona, owner opinion or machine input counted as a player",
+    "builder self-certification",
+    "incomparable scenarios called identical",
+    "competitor media redistribution"
+  ],
+  "scoring": {
+    "automaticQualityScore": false,
+    "missingValue": "not scored",
+    "ceri": "map evidence availability only; CERI dimension scores require the evidence specified by docs/evaluation/CRICKET-EXPERIENCE-SUCCESS-METRIC.md",
+    "directionality": "display raw values and uncertainty only for exact scenario/platform/device/OS/gameplay/recorder compatibility; do not aggregate unlike scenario classes"
+  },
+  "deviationPolicy": "Registration v3 preserves all 31 v2 measures and adds an exact allowlisted visual-method artifact before any qualifying artifact/material or text-legibility value is collected. It freezes the complete player/artifact checklist and fixed text thresholds. Any later method change creates a new registration version; never edit this file after viewing comparison results. Registrations v1 and v2 remain byte-preserved historical evidence."
+}

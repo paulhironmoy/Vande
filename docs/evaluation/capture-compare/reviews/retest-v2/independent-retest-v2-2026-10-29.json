@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "audit": "capture-compare independent retest v2",
+  "auditUtcStart": "2026-10-29T02:00:14Z",
+  "auditUtcEnd": "2026-10-29T02:04:17Z",
+  "evaluator": "capture_tool_reaudit_v2",
+  "authoredImplementation": false,
+  "scope": "VANDE Stage 1 master prompt sections 9 and 14; capture/compare hardened machine foundation",
+  "verdict": "NOT PASSED",
+  "sourceBuildIdAtStart": "38924bd+38db72176834",
+  "sourceBuildIdAfterHarness": "38924bd+89866bf0ab17",
+  "binding": "The dirty-tree build ID changed when this independent harness was added. implementationHashes bind the verdict to the exact audited subject bytes.",
+  "host": {
+    "startUptime": "19:00  1 user, load averages: 41.57 30.51 31.29",
+    "endUptime": "19:04  1 user, load averages: 37.07 34.05 32.74",
+    "timingEvidenceStatus": "INDICATIVE_ONLY; no performance claim"
+  },
+  "verification": {
+    "nodeSyntax": { "passed": 8, "total": 8 },
+    "cliHelp": { "passed": 8, "total": 8, "note": "lib.mjs is import-only and exited cleanly with no output" },
+    "strictDraft202012Schemas": { "passed": 3, "total": 3 },
+    "focusedVitest": { "passed": 59, "total": 59, "filesPassed": 3, "filesTotal": 3 },
+    "typecheck": "PASS",
+    "independentAdversarial": { "passed": 52, "total": 56, "criticalOrHighFailures": 4 },
+    "realOneAxisNormalization": "PASS: 320x180 input became ffprobe-observed 160x90; manifest/file duration both 1000 ms"
+  },
+  "residualDisposition": {
+    "originalCritical": "PASS: Android identity/runtime/APK binding, foreground rejection, metrics provenance and registration replacement were rejected adversarially",
+    "originalHigh": "NOT PASSED: duration is not independently probed at evidence load, and Unity WebGL export provenance remains self-attested",
+    "RET-H01-OS": "NOT PASSED: different release/API strings are rejected, but capture omits Android build fingerprint/security patch even though v2 requires the same Android OS build",
+    "RET-H01-RECORDER": "PASS: capture method, recorder class, bit rate, missing structured recorder and perturbation mismatch return NOT_COMPARABLE",
+    "RET-H05-DIRECT-WEBGL": "NOT PASSED: direct capture invokes a verifier, but a self-authored schema-2 manifest with current IDs and hashes for arbitrary payload bytes passes that verifier",
+    "RET-H05-DYNAMIC-PAYLOAD": "PASS: complete inventory includes dynamic chunks and Unity loader/data/framework/WASM; runtime response bytes, redirects, partials and origin are verified/rejected",
+    "RET-H07-REGISTRATION": "NOT PASSED: immutable v1 and 31-ID v2 allowlisting pass, but the artifact/material definition omits player defects and depends on an unfrozen checklist; text-legibility thresholds are not frozen"
+  },
+  "blockingFindings": [
+    {
+      "id": "RET2-C01-DURATION",
+      "severity": "Critical",
+      "finding": "A hash/byte-valid one-second MP4 was accepted with caller-declared durationMs=10000. A 9000 ms annotation, metrics receipt and comparison then passed with sourceFilesVerified=true and a favourable directional delta.",
+      "actualDurationMs": 1000,
+      "declaredDurationMs": 10000,
+      "acceptedMeasurementMs": 9000,
+      "comparisonDeltaMs": -8500,
+      "evidence": "/private/tmp/vande-capture-retest-v2-independent-duration/"
+    },
+    {
+      "id": "RET2-H02-WEBGL-PROVENANCE",
+      "severity": "High",
+      "finding": "verifyUnityWebGlRoot accepts arbitrary loader/data/framework/WASM and index bytes when a caller-authored manifest copies the current build ID and Unity-source digest and self-hashes those payloads. captureWeb passes this provenance gate and stops only later at served-byte fetch.",
+      "evidenceScript": "/private/tmp/vande-webgl-binding-adversary.mjs",
+      "evidenceTree": "/private/tmp/vande-webgl-adversary-DR9AUt/fake-export"
+    },
+    {
+      "id": "RET2-H03-ANDROID-OS-BUILD",
+      "severity": "High",
+      "finding": "Android capture serializes only ro.build.version.release and SDK. Different fingerprints/security-patch builds can therefore have identical environment.os values and receive direction despite v2 requiring the same Android OS build.",
+      "source": "scripts/eval/compare/capture-android.mjs:191-201,300,443"
+    },
+    {
+      "id": "RET2-H04-FROZEN-MEASURE-METHOD",
+      "severity": "High",
+      "finding": "The v2 artifact/material defect method omits the master prompt's visible-player category and refers to a completed checklist that is not frozen. Text-legibility uses per-package declared thresholds rather than one frozen threshold contract.",
+      "source": "docs/evaluation/capture-compare/registration.v2.json"
+    }
+  ],
+  "constraints": {
+    "browserLaunched": false,
+    "androidDeviceUsed": false,
+    "sharedBuildRun": false,
+    "competitorMediaUsed": false,
+    "competitorTitleLaunched": false
+  },
+  "limitations": [
+    "Android validators and source flow passed synthetic adversarial checks; fresh device execution remains unverified.",
+    "Web/WebGL binding primitives and the pre-browser provenance gate passed; a real served runtime was not launched in this audit.",
+    "The fourteen newly registered measures are emitted fail-closed as NOT_AVAILABLE until their registered calculation implementations and qualifying evidence exist.",
+    "Android OS identity records release/API rather than an exact build fingerprint/security patch; the active preregistration requires the same Android OS build.",
+    "This PASS does not certify Gate A/B/C, CERI, player experience, competitor superiority, physical-device behavior or human results."
+  ],
+  "implementationHashes": {
+    "docs/evaluation/capture-compare/README.md": "d79cf48cc0f5818fc10ebf5ddaf22acc0d8f0e3a76ee896d96c4155ce4f98c29",
+    "docs/evaluation/capture-compare/manifest.schema.json": "63aba20ca3a780fa8edc1611848a74ac03aa8c493b83d7b0bc217a83af0b25f6",
+    "docs/evaluation/capture-compare/metrics.schema.json": "dcf4ea600e6c3f006b0dd0ac27ea93b6c6f07878b9116818fe442a2a17461c39",
+    "docs/evaluation/capture-compare/metrics-receipt.schema.json": "e71cf4902cb1078ab53a885e12e72aba34c0d09233a68b118eeca30401f0e734",
+    "docs/evaluation/capture-compare/registration.v1.json": "09d600346e28523248573b0d42d3cde1492e86dfe95da8d70cb0886d7ecabc8a",
+    "docs/evaluation/capture-compare/registration.v2.json": "79d2b8e7ee9ae521a49986980676579b4bb03f43150d65be812e127040a07178",
+    "docs/evaluation/capture-compare/sources.json": "4cc8f8e48aac9f8707e1d6e28b871b83ef80cad13dbc4f52c13bb89985a059b2",
+    "scripts/eval/compare/annotate.mjs": "0a8287c1f974b647ce1d3f791b140528ae45e31dbeada9452f1ad888cd57ca4a",
+    "scripts/eval/compare/capture-android.mjs": "ee9c75f2ba91537b8b2264c0dee3651ee55b5b63a9b37b448f8c21ebaf1600e4",
+    "scripts/eval/compare/capture-web.mjs": "ab5a6a881956872cebc0785680633e30bc4bf1a1dd61fc537c8aa0f3a935f148",
+    "scripts/eval/compare/capture-webgl.mjs": "50842ed0bffe7d42f1b8c7ac89016c9974df8d947893bbf6effcc063055ad9ff",
+    "scripts/eval/compare/compare.mjs": "50f658e93165fbefda919cda8866e7ab82293c75742972d8c4050bb004f712e6",
+    "scripts/eval/compare/lib.mjs": "14f548dad1cf2dc156bff89bd1f77d37b3b2ef00f8a9dd58b5df3fbd7db63866",
+    "scripts/eval/compare/metrics.mjs": "47b949c1fb5de50613c73201a9f8f00d348083ab877d5380fcab91502b043224",
+    "scripts/eval/compare/normalize.mjs": "b174e36cf720e0caf7c1eb60aa353ae89b497bafaa71ce225c9a7308e8fdf990",
+    "tests/unit/evaluation/capture-compare.test.ts": "0fbca397697eedf31a03c567d66f757b2525d927711890a9a81ff9f20214f2fd",
+    "tests/unit/evaluation/capture-compare-adversarial.test.ts": "2ed20bb33d4217b1ab15fd12d9efc034b281f9e22c0a7a1e34dc97a1feead974",
+    "tests/unit/evaluation/capture-compare-normalize.test.ts": "ae4f94672a193714bcd3d9b410352568661241a4787221c1703360c951a1c310",
+    "docs/evaluation/capture-compare/reviews/retest-v2/retest-v2.mjs": "5faf706d0964300824a5b9bd7a0b62c9f99996fbc3f279ef5a1379508691a59e"
+  },
+  "scratch": "/var/folders/l5/_njrnd_93616m0sdn6h16s_w0000gn/T/vande-capture-retest-v2-ZSeuZO",
+  "durationReproScratch": "/private/tmp/vande-capture-duration-adversary.0tEW7q/integrated",
+  "webGlReproScript": "/private/tmp/vande-webgl-binding-adversary.mjs"
+}

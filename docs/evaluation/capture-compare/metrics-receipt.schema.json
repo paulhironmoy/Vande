@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vande.invalid/schemas/capture-metrics-receipt-v3.json",
+  "title": "VANDE metrics provenance receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "analysisVersion", "captureId", "manifest", "media", "mediaProbes", "methods", "annotations", "selectedAnnotation", "metrics", "registration", "derivation"],
+  "properties": {
+    "schemaVersion": { "const": 3 },
+    "analysisVersion": { "const": "1.2.0" },
+    "captureId": { "type": "string", "minLength": 8, "maxLength": 128 },
+    "manifest": { "$ref": "#/$defs/hashOnly" },
+    "media": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "bytes"],
+        "properties": {
+          "path": { "$ref": "#/$defs/relativePath" },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "bytes": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "mediaProbes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "bytes", "probe", "decoder", "observation"],
+        "properties": {
+          "path": { "$ref": "#/$defs/relativePath" },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "bytes": { "type": "integer", "minimum": 1 },
+          "probe": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["tool", "version", "executableSha256", "arguments"],
+            "properties": {
+              "tool": { "const": "ffprobe" },
+              "version": { "type": "string", "minLength": 1, "maxLength": 512 },
+              "executableSha256": { "$ref": "#/$defs/sha256" },
+              "arguments": {
+                "const": ["-v", "error", "-count_frames", "-show_entries", "stream=index,codec_type,width,height,avg_frame_rate,r_frame_rate,codec_name,start_time,start_pts,duration,duration_ts,time_base,nb_read_frames:format=duration", "-of", "json", "$MEDIA"]
+              }
+            }
+          },
+          "decoder": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["tool", "version", "executableSha256", "arguments"],
+            "properties": {
+              "tool": { "const": "ffmpeg" },
+              "version": { "type": "string", "minLength": 1, "maxLength": 512 },
+              "executableSha256": { "$ref": "#/$defs/sha256" },
+              "arguments": {
+                "const": ["-hide_banner", "-loglevel", "error", "-nostdin", "-i", "$MEDIA", "-map", "0:v:0", "-an", "-f", "null", "-", "-progress", "pipe:1", "-nostats"]
+              }
+            }
+          },
+          "observation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["width", "height", "frameRate", "codec", "audioStreamCount", "decodedAudioStreamCount", "audioCoverage", "decodedFrameCount", "durationUs", "durationMs", "frameRateSource", "durationSource"],
+            "properties": {
+              "width": { "type": "integer", "minimum": 1, "maximum": 20000 },
+              "height": { "type": "integer", "minimum": 1, "maximum": 20000 },
+              "frameRate": { "type": "number", "exclusiveMinimum": 0, "maximum": 1000 },
+              "codec": { "type": "string", "pattern": "^[a-zA-Z0-9._-]+$", "maxLength": 128 },
+              "audioStreamCount": { "type": "integer", "minimum": 0 },
+              "decodedAudioStreamCount": { "type": "integer", "minimum": 0 },
+              "audioCoverage": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["index", "decodedFrameCount", "startUs", "durationUs", "endUs"],
+                  "properties": {
+                    "index": { "type": "integer", "minimum": 0 },
+                    "decodedFrameCount": { "type": "integer", "minimum": 1 },
+                    "startUs": { "type": ["integer", "null"] },
+                    "durationUs": { "type": ["integer", "null"], "minimum": 1 },
+                    "endUs": { "type": ["integer", "null"] }
+                  }
+                }
+              },
+              "decodedFrameCount": { "type": "integer", "minimum": 1 },
+              "durationUs": { "type": "integer", "minimum": 1, "maximum": 3600000000 },
+              "durationMs": { "type": "number", "exclusiveMinimum": 0, "maximum": 3600000 },
+              "frameRateSource": { "enum": ["stream.avg_frame_rate", "stream.r_frame_rate"] },
+              "durationSource": { "const": "ffmpeg.decoded_video_progress" }
+            }
+          }
+        }
+      }
+    },
+    "methods": {
+      "const": [
+        {
+          "methodId": "vande.capture-compare.visual-defects",
+          "methodVersion": "1.0.0",
+          "path": "docs/evaluation/capture-compare/visual-method.v1.json",
+          "sha256": "8a9f86be086096c8e8ed7ca1b6975d0bad1890ccc83e27b36a37d6f73135111f"
+        }
+      ]
+    },
+    "annotations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "role"],
+        "properties": {
+          "path": { "$ref": "#/$defs/relativePath" },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "role": { "enum": ["primary", "secondary", "adjudicator"] }
+        }
+      }
+    },
+    "selectedAnnotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/relativePath" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/relativePath" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "registration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "analysisVersion"],
+      "properties": {
+        "path": { "const": "docs/evaluation/capture-compare/registration.v3.json" },
+        "sha256": { "const": "c2f08f63bfe4d3fe65ef26ec3a9a9273eb4f785fdac96bc6ff75c52895c31949" },
+        "analysisVersion": { "const": "1.2.0" }
+      }
+    },
+    "derivation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["script", "sha256", "decodeFrames"],
+      "properties": {
+        "script": { "const": "scripts/eval/compare/metrics.mjs" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "decodeFrames": { "type": "boolean" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "relativePath": { "type": "string", "minLength": 1, "maxLength": 512, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$" },
+    "hashOnly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256"],
+      "properties": { "sha256": { "$ref": "#/$defs/sha256" } }
+    }
+  }
+}

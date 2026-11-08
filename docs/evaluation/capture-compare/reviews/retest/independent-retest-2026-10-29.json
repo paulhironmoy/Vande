@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "audit": "capture-compare hardened independent retest",
+  "verdict": "NOT PASSED",
+  "auditWindowUtc": {
+    "started": "2026-10-29T01:45:21Z",
+    "adversarialRunCompleted": "2026-10-29T01:45:26.599Z",
+    "finalSuiteStarted": "2026-10-29T01:45:59Z"
+  },
+  "identity": {
+    "preReportRepositoryBuildId": "38924bd+9fad66e12a3e",
+    "bindingNote": "Adding this independent report changes the working-tree build ID. The per-file SHA-256 inventory below binds the implementation bytes that were audited.",
+    "hostUptime": "18:45  1 user, load averages: 24.42 34.87 37.22",
+    "timingUse": "indicative_only_no_performance_claim"
+  },
+  "constraints": {
+    "browserLaunched": false,
+    "androidDeviceUsed": false,
+    "sharedBuildRun": false,
+    "sourceImplementationEditedByEvaluator": false,
+    "reviewFilesAddedOnlyUnder": "docs/evaluation/capture-compare/reviews/retest/"
+  },
+  "implementationHashes": {
+    "docs/evaluation/capture-compare/README.md": "0625e0063cf3caa124ca26fb015a5d311fdd0c34b2723a2fca52116650e14651",
+    "docs/evaluation/capture-compare/manifest.schema.json": "166e1ccb5eb6527d12eb4b22d112f4285197edae40142690c929398736fa9dec",
+    "docs/evaluation/capture-compare/metrics.schema.json": "e9ccf6515d6e57445844a5c43bcd8f304c531d260da37afbdad973073fffe448",
+    "docs/evaluation/capture-compare/metrics-receipt.schema.json": "cd972b4339ae699231e7f901582ceda387e49ea485e842e319cfecc8e67d07ea",
+    "docs/evaluation/capture-compare/registration.v1.json": "09d600346e28523248573b0d42d3cde1492e86dfe95da8d70cb0886d7ecabc8a",
+    "docs/evaluation/capture-compare/sources.json": "4cc8f8e48aac9f8707e1d6e28b871b83ef80cad13dbc4f52c13bb89985a059b2",
+    "scripts/eval/compare/annotate.mjs": "0a8287c1f974b647ce1d3f791b140528ae45e31dbeada9452f1ad888cd57ca4a",
+    "scripts/eval/compare/capture-android.mjs": "ba926143f7a131668608db6baa7e911544f9a52ef4bd773ddcd8eadba86ab661",
+    "scripts/eval/compare/capture-web.mjs": "6bd7d741539243f0d0bea422f9eb1bc40dcb81f86d8ce8a8646c37b12904a229",
+    "scripts/eval/compare/capture-webgl.mjs": "408162d90f7a6fa23cdd99d4b3611af7b65480aebfceff7f6ec011b3b0d2cc4f",
+    "scripts/eval/compare/compare.mjs": "99437b3cadec49f138752256a507421dac3d27cb7436542bb4b2daad234af55d",
+    "scripts/eval/compare/lib.mjs": "14a84117fcf1a2f0087f43041de35e04c8b24dc06c685a05dd445089d982abdf",
+    "scripts/eval/compare/metrics.mjs": "f031e84aed9010a4b4bc31db88775344fdbcb40de434b7fdf2ac26f0e437e325",
+    "scripts/eval/compare/normalize.mjs": "b174e36cf720e0caf7c1eb60aa353ae89b497bafaa71ce225c9a7308e8fdf990",
+    "tests/unit/evaluation/capture-compare.test.ts": "9bdfc85649f39872f37b8a04f81e1c305235ba61f4836a029785705cf626ac51",
+    "tests/unit/evaluation/capture-compare-adversarial.test.ts": "252ffe23dd675423dd71b0323e96adbf4b5aca67b0d755c1ebed680b98d34e19",
+    "tests/unit/evaluation/capture-compare-normalize.test.ts": "ae4f94672a193714bcd3d9b410352568661241a4787221c1703360c951a1c310"
+  },
+  "baselineChecks": {
+    "nodeSyntax": { "status": "PASS", "files": 8 },
+    "cliHelp": { "status": "PASS", "files": 8 },
+    "draft202012SchemaCompile": {
+      "status": "PASS",
+      "files": [
+        "manifest.schema.json",
+        "metrics.schema.json",
+        "metrics-receipt.schema.json"
+      ]
+    },
+    "focusedTests": { "status": "PASS", "files": 3, "testsPassed": 49, "testsFailed": 0 }
+  },
+  "adversarialSummary": {
+    "checks": 35,
+    "passed": 30,
+    "failed": 5,
+    "failedCheckIds": [
+      "comparability-os-version",
+      "comparability-recorder-settings",
+      "AUD-H05-webgl-wrapper-provenance",
+      "AUD-H05-runtime-payload-binding",
+      "AUD-H07-preregistration-inventory"
+    ]
+  },
+  "priorFindingDisposition": {
+    "AUD-C01": "REJECTED_IN_MACHINE_RETEST_DEVICE_NOT_RUN",
+    "AUD-C02": "REJECTED_IN_VALIDATOR_AND_STATIC_FLOW_DEVICE_NOT_RUN",
+    "AUD-C03": "REJECTED_END_TO_END_WITH_RECEIPT_REDERIVATION",
+    "AUD-C04": "REJECTED_BY_REGISTRATION_ALLOWLIST",
+    "AUD-H01": "PARTIAL_REMEDIATION_HIGH_RESIDUALS",
+    "AUD-H02": "REJECTED",
+    "AUD-H03": "REJECTED",
+    "AUD-H04": "REJECTED",
+    "AUD-H05": "PARTIAL_REMEDIATION_HIGH_RESIDUALS",
+    "AUD-H06": "SOURCE_AFTER_GATE_PRESENT_DEVICE_NOT_RUN",
+    "AUD-H07": "PARTIAL_REMEDIATION_HIGH_RESIDUAL",
+    "AUD-M01": "PASS_REAL_FFMPEG_FFPROBE_160X90_1000MS",
+    "AUD-M02": "PASS_ARITHMETIC_MEAN_15PX"
+  },
+  "verifiedRejections": [
+    "caller-only Android identity without tool-derived binding",
+    "wrong APK-derived embedded build identity",
+    "missing Unity admission and installed native runtime proof",
+    "wrong or obscured foreground package",
+    "changed or locally mismatched APK split hashes",
+    "undeclared sidecars",
+    "empty or hash-unbound adjudication",
+    "observed but undeclared metrics",
+    "post-result registration direction flip",
+    "different device or platform",
+    "incomplete sequence",
+    "diagnostic/raw directionality",
+    "assistance mismatch",
+    "uncertainty mismatch",
+    "missing metrics receipt",
+    "tampered media",
+    "tampered annotation",
+    "metric value not reproducible from the receipt-selected chain",
+    "annotation time outside the hash-bound video duration",
+    "timecoded annotation without a positive probed media duration"
+  ],
+  "verifiedPositivePaths": [
+    "complete manifest/media/annotation/metrics/receipt chain sets sourceFilesVerified true",
+    "direct packages without verified provenance set sourceFilesVerified false and create a Critical finding",
+    "one-axis normalization recorded ffprobe-observed 160x90 h264 24fps and 1000ms in file, manifest and transform",
+    "ball diameter uses the registered arithmetic mean, producing 15px for a 20px by 10px box",
+    "all fourteen previously omitted section 9.5 metric IDs are now emitted explicitly as NOT AVAILABLE when evidence is absent"
+  ],
+  "remainingFindings": [
+    {
+      "id": "RET-H01-OS",
+      "severity": "High",
+      "expected": "NOT_COMPARABLE",
+      "fixture": "same controlled Android comparison except reference os=Android 14 and candidate os=Android 15",
+      "observed": { "status": "raw_delta_only", "delta": -300, "direction": "favourable_to_candidate" },
+      "impact": "a changed runtime environment can receive a directional result"
+    },
+    {
+      "id": "RET-H01-RECORDER",
+      "severity": "High",
+      "expected": "NOT_COMPARABLE",
+      "fixture": "same controlled Android comparison except candidate declares adb screenrecord --bit-rate 6000000",
+      "observed": { "status": "raw_delta_only", "delta": -300, "direction": "favourable_to_candidate" },
+      "impact": "different encoding conditions can influence visible-video measures while still receiving directionality; bit rate is not a structured manifest field"
+    },
+    {
+      "id": "RET-H05-DIRECT-WEBGL",
+      "severity": "High",
+      "expected": "every unity-webgl route performs verified Unity export provenance checks",
+      "observed": "capture-web.mjs directly accepts unity-webgl but does not call verifyUnityWebGlRoot; only capture-webgl.mjs does",
+      "impact": "the wrapper can be bypassed and a DOM-labelled/artifact-bound non-qualifying page can be presented as Unity WebGL"
+    },
+    {
+      "id": "RET-H05-DYNAMIC-PAYLOAD",
+      "severity": "High",
+      "expected": "the served runtime bytes are fully bound to the local artifact set",
+      "observed": "bindServedArtifact verifies index.html and direct script/link references only; it does not traverse dynamic JavaScript imports or Unity loader data/framework/WASM requests",
+      "impact": "the captured runtime may load unverified payload bytes even though the direct entry files match"
+    },
+    {
+      "id": "RET-H07-REGISTRATION",
+      "severity": "High",
+      "expected": "every required section 9.5 measure is preregistered with a definition, unit, uncertainty and directionality policy or an explicit frozen non-directional policy",
+      "observed": "fourteen IDs are emitted as unimplemented NOT AVAILABLE placeholders but are absent from registration.v1.json",
+      "missingMetricIds": [
+        "ball_local_luminance_contrast_ratio",
+        "camera_shake_rms_px",
+        "camera_roll_peak_degrees",
+        "horizon_movement_rms_px",
+        "bowler_motion_jerk_score",
+        "bat_motion_jerk_score",
+        "foot_slide_px",
+        "bat_arc_discontinuity_count",
+        "visible_clipping_count",
+        "artifact_material_defect_count",
+        "physical_event_to_camera_ms",
+        "physical_event_to_result_ms",
+        "touch_target_burden_count",
+        "text_legibility_defect_count"
+      ],
+      "impact": "the method inventory is not fully frozen before future results"
+    }
+  ],
+  "commands": [
+    "for f in scripts/eval/compare/*.mjs; do node --check \"$f\"; done",
+    "for f in scripts/eval/compare/*.mjs; do node \"$f\" --help; done",
+    "AJV 2020-12 strict compile of all three schemas with allowUnionTypes=true and validateFormats=false",
+    "npx vitest run tests/unit/evaluation/capture-compare.test.ts tests/unit/evaluation/capture-compare-adversarial.test.ts tests/unit/evaluation/capture-compare-normalize.test.ts",
+    "node docs/evaluation/capture-compare/reviews/retest/retest.mjs"
+  ],
+  "reproduction": {
+    "script": "docs/evaluation/capture-compare/reviews/retest/retest.mjs",
+    "scriptSha256": "af48cc0117527a751f34bac2cec3b76484321e7cc5180b7b6f379fbfcba85865",
+    "scratchFromRecordedRun": "/var/folders/l5/_njrnd_93616m0sdn6h16s_w0000gn/T/vande-capture-retest-LsHoZS"
+  },
+  "limitations": [
+    "No browser or Android device was used, as required by the assigned scope.",
+    "Android capture flow findings are validator and source-control-flow evidence, not device verification.",
+    "Web/WebGL dynamic-payload findings are structural evidence, not a launched-browser demonstration.",
+    "The host load exceeded the repository threshold; no elapsed time is used as product evidence."
+  ],
+  "smallestNextAction": "Close RET-H05-DIRECT-WEBGL and RET-H05-DYNAMIC-PAYLOAD first by making Unity WebGL provenance non-bypassable and binding every runtime-loaded export payload, then rerun this preserved audit with a fresh evaluator."
+}
