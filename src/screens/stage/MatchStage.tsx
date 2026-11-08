@@ -140,7 +140,7 @@ export function MatchStage({
       renderer?.dispose();
     };
     // Recreate only when the content or the presentation kind changes; settings are applied below.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- replayKey and liveKey stand for replay and live; quality and reducedMotion are applied by the effects below
   }, [replayKey, liveKey, fallback]);
 
   useEffect(() => {

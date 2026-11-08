@@ -65,7 +65,7 @@ export function HighlightPreview({ input, autoplay = true, className }: Highligh
       h.dispose();
       host.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the host is rebuilt only when the input changes; autoplay is read once, when the load resolves
   }, [input]);
 
   useEffect(() => {

@@ -36,7 +36,7 @@ export default function StartRoute(_props: { route: RouteOf<'onboarding'> }) {
   useEffect(() => {
     if (player && !finishing.current) navigate(takeAfterStart() ?? { name: 'home' }, { replace: true });
     // Only on arrival: an existing player has nothing to do here.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once on arrival; player and navigate are read as they are then
   }, []);
 
   const onComplete = async (r: OnboardingResult) => {

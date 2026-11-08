@@ -321,7 +321,7 @@ function DailyBat({
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the innings starts per innings and per retry; a new onDone callback must not restart it
   }, [innings, tries]);
   if (!innings || !field)
     return (

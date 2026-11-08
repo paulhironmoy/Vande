@@ -89,7 +89,7 @@ export function PracticeApp({ appVersion, analytics, hooks, openedAt, onFlow }: 
       f.dispose();
       void unlockOrientation();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the flow is created once on mount and disposed on unmount; it closes over the values of the first render
   }, []);
 
   // The stage is intentionally mounted once per visit. Refresh its native cue and the flow's future announcements

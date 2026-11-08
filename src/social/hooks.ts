@@ -130,7 +130,7 @@ export function useAccount(net: Net | null, player: LocalPlayer | null): { state
         setState('ok');
       } else setState(r.error);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the account is ensured when the client, the alias, connectivity or the retry tick changes; player is read as it is then
   }, [net, player?.alias, online, tick]);
   return { state, retry: useCallback(() => setTick((n) => n + 1), []) };
 }
@@ -197,12 +197,12 @@ export function useResource<T>(
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the caller's own deps list (spread) plus the retry tick and enabled is the trigger; the fetcher is read from fnRef
   }, [...deps, tick, enabled]);
 
   useEffect(() => {
     if (online && error) reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when connectivity changes and retries if there is an error; error and reload are read as they are then
   }, [online]);
 
   useEffect(() => {

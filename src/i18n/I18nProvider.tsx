@@ -38,7 +38,7 @@ export function I18nProvider({ locale, children }: I18nProviderProps) {
     // Until the locale's own app catalog arrives, keep English (never a mix of raw keys).
     if (!c.app) return english;
     return createTranslator(active, c.catalog, c.english);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- version is not read in the body: it changes when a catalog finishes loading, which is when the translator must be rebuilt
   }, [active, version]);
 
   useEffect(() => {

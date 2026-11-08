@@ -189,13 +189,13 @@ export function useLoad<T>(
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the caller's own deps list (spread) plus the retry tick and whether a fetcher exists is the trigger; the fetcher is read from fnRef
   }, [...deps, tick, Boolean(fn)]);
 
   // Back online after a failure: try again.
   useEffect(() => {
     if (online && error) reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when connectivity changes and retries if there is an error; error and reload are read as they are then
   }, [online]);
 
   const hasFn = Boolean(fn);

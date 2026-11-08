@@ -75,7 +75,7 @@ export default function MatchRoute({ route }: { route: RouteOf<'match'> }) {
     }, slotIn);
     return () => clearTimeout(id);
     // Scheduled once per reveal time; a new view with the same time keeps the timer.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load.data and slotIn are read when the timer fires; a new view with the same reveal time keeps the timer
   }, [revealAt, reload]);
 
   const profile = useLoad<Profile>(

@@ -136,7 +136,7 @@ export function RevealScreen({
     () => ({ innings: log.kind === 'daily' ? (1 as const) : (2 as const), superBall: log.kind !== 'daily' }),
     [log.kind],
   );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- version is not read in the body: it changes when a later ball is added to the timeline, which is when the track is rebuilt
   const track = useMemo(() => neutralTrack(timeline, trackOpts), [timeline, trackOpts, version]);
   const ix = useMemo(() => indexLog(log), [log]);
   const auto = useMemo(() => autoBalls(log), [log]);
@@ -165,7 +165,7 @@ export function RevealScreen({
         setPlaying(true);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- startAt and speed are read when the renderer reports ready; a change of either must not rebuild the callback
     [autoplay],
   );
 

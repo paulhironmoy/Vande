@@ -177,7 +177,7 @@ export function useTester(flow: PracticeFlow, state: FlowState, appVersion: stri
       }
       ask(asks, { over: r.overIndex + 1, ball: r.ballIndex + 1, variation: r.plan.variation });
     } else if (state.phase === 'runup' && flushBall.current) flushBall.current();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when the tester's active flag, the phase or the last ball changes; everything else is read as it is at that moment
   }, [active, state.phase, state.last]);
 
   // Coach Mode: each retry; "why" when it closes after an attempt; the ratings after a five-attempt run.
@@ -215,7 +215,7 @@ export function useTester(flow: PracticeFlow, state: FlowState, appVersion: stri
           was.ctx,
         );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when the tester's active flag or the coach state changes; ask and rec are read as they are at that moment
   }, [active, state.coach]);
 
   // The end-of-over screen opens the continuation window.

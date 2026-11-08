@@ -76,7 +76,7 @@ export function InvitePanel({
       alive = false;
       if (url) URL.revokeObjectURL(url);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the card is rebuilt when the link, the inviter's alias, the language, the kind or the cup changes; tr, inviter and conditions are read then
   }, [inviteUrl, inviter.alias, tr.locale, kind, cup]);
 
   const share = async (via: ShareChannel) => {

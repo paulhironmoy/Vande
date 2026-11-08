@@ -76,6 +76,6 @@ export function useCupMilestones(
     // Not sending now (no consent, Do Not Track, not configured): nothing is marked, so it can be sent later.
     if (!analytics || (typeof analytics.active === 'function' && !analytics.active())) return;
     for (const m of cupMilestones(view, myId)) analytics.track(m.event, m.props);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- milestones are sent per cup, status, player and analytics client; a new view object alone must not resend them
   }, [cupId, status, myId, analytics]);
 }

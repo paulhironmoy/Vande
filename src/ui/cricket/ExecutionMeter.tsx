@@ -50,7 +50,7 @@ export function ExecutionMeter({ onComplete, result, disabled, size = 200, hint 
       return;
     }
     p.raf = requestAnimationFrame(tick);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tick is created once and re-arms itself every frame; at the end of the dial it calls the finish of the render that created it
   }, []);
 
   const start = (hold: () => Hold) => {
