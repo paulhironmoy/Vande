@@ -17,6 +17,7 @@ blob-report/
 android/app/build/
 android/build/
 android/.gradle/
+android/.vande-unity-import/
 android/.idea/
 android/local.properties
 android/keystore.properties
@@ -46,3 +47,36 @@ dist-*/
 *.pfx
 *service-account*.json
 *.dev.vars
+
+# Unity Practice project: keep authored source/settings, never generated Editor/build state.
+unity/**/[Ll]ibrary/
+unity/**/[Tt]emp/
+unity/**/[Oo]bj/
+unity/**/[Bb]uild/
+unity/**/[Bb]uilds/
+unity/**/[Ll]ogs/
+unity/**/[Uu]ser[Ss]ettings/
+unity/**/[Mm]emoryCaptures/
+unity/**/*.csproj
+unity/**/*.sln
+unity/**/*.suo
+unity/**/*.user
+unity/**/*.pidb
+unity/**/*.booproj
+unity/**/*.svd
+unity/**/*.pdb
+unity/**/*.mdb
+unity/**/*.opendb
+unity/**/*.VC.db
+# Generated Unity WebGL player copied here only for local preview.
+public/unity/
+
+# Python bytecode and tool caches (Blender and motion tooling write these next to the sources)
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Editor and merge leftovers
+*.swp
+*.orig
+*.rej

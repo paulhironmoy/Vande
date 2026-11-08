@@ -1,0 +1,29 @@
+# EditorConfig: https://editorconfig.org
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# C#, Python, Java, Gradle, XML and shaders are 4 spaces in this repository.
+[*.{cs,py,java,gradle,xml,shader}]
+indent_size = 4
+
+# A trailing double space is a Markdown line break.
+[*.md]
+trim_trailing_whitespace = false
+
+# Windows batch files must keep CRLF line endings (android/gradlew.bat).
+[*.{bat,cmd}]
+end_of_line = crlf
+
+# Unity writes these files itself; leave their whitespace, line endings, BOM and final newline alone.
+[*.{meta,asset,mixer,slnx}]
+charset = unset
+end_of_line = unset
+trim_trailing_whitespace = false
+insert_final_newline = unset
