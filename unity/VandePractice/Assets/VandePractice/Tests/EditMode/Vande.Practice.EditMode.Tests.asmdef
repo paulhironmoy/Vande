@@ -1,0 +1,21 @@
+{
+  "name": "Vande.Practice.EditMode.Tests",
+  "rootNamespace": "Vande.Practice.Tests",
+  "references": [
+    "Vande.Practice.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

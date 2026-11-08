@@ -1,0 +1,19 @@
+{
+  "name": "Vande.Practice.PlayMode.Tests",
+  "rootNamespace": "Vande.Practice.Tests",
+  "references": [
+    "Vande.Practice.Runtime"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}
