@@ -1,5 +1,923 @@
+import java.nio.charset.StandardCharsets
+import java.nio.channels.FileChannel
+import java.nio.channels.Channels
+import java.nio.channels.OverlappingFileLockException
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.attribute.PosixFilePermission
+import java.security.MessageDigest
+import java.util.Base64
+import java.util.Comparator
+import java.util.Locale
+import java.util.Properties
+import groovy.json.JsonSlurper
+
 include ':app'
 include ':capacitor-cordova-android-plugins'
 project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')
 
 apply from: 'capacitor.settings.gradle'
+
+// Unity is an opt-in local export. Default Capacitor builds do not need Unity, its NDK, or its Gradle toolchain.
+// Export from unity/VandePractice only after the exact approved Unity 6.3 LTS patch is installed and validated.
+def vandeUnityFlag = providers.gradleProperty('vandeUnity').getOrElse('0').trim()
+if (!(vandeUnityFlag in ['0', '1'])) {
+    throw new GradleException("-PvandeUnity must be exactly 0 or 1 (received '${vandeUnityFlag}')")
+}
+def vandeUnityEnabled = vandeUnityFlag == '1'
+def vandeUnityBindingFlag = providers.gradleProperty('vandeUnityBinding').getOrElse('0').trim()
+if (!(vandeUnityBindingFlag in ['0', '1'])) {
+    throw new GradleException("-PvandeUnityBinding must be exactly 0 or 1 (received '${vandeUnityBindingFlag}')")
+}
+def vandeUnityBindingEnabled = vandeUnityBindingFlag == '1'
+if (vandeUnityBindingEnabled && !vandeUnityEnabled) {
+    throw new GradleException('-PvandeUnityBinding=1 requires -PvandeUnity=1')
+}
+def vandeUnityProject = file('../unity/VandePractice')
+def vandeUnityExport = new File(vandeUnityProject, 'Builds/Android')
+def vandeUnityLibrary = new File(vandeUnityExport, 'unityLibrary')
+def vandeUnityReceipt = new File(vandeUnityExport, '.vande-export.properties')
+def vandeUnityProjectVersion = new File(vandeUnityProject, 'ProjectSettings/ProjectVersion.txt')
+def vandeUnityEditorVersion = 'unlinked'
+def vandeUnityReceiptDigest = 'unlinked'
+def vandeUnitySourceTreeDigest = 'unlinked'
+def vandeUnityExportTreeDigest = 'unlinked'
+def vandeUnityDeclaredExportEntries = []
+def vandeUnityInvocationId = 'unlinked'
+def vandeUnityInvocationContract = null
+def vandeUnityInvocationContractDigest = 'unlinked'
+def vandeUnitySourceBuildId = 'unlinked'
+def vandeUnityNativeProvenancePolicy = [:]
+if (vandeUnityEnabled) {
+    def sha256Bytes = { byte[] bytes ->
+        MessageDigest.getInstance('SHA-256').digest(bytes).encodeHex().toString()
+    }
+    def sha256File = { File candidate ->
+        def digest = MessageDigest.getInstance('SHA-256')
+        candidate.withInputStream { stream ->
+            def buffer = new byte[64 * 1024]
+            for (int count = stream.read(buffer); count != -1; count = stream.read(buffer)) {
+                digest.update(buffer, 0, count)
+            }
+        }
+        digest.digest().encodeHex().toString()
+    }
+    def encodePath = { String value ->
+        Base64.getUrlEncoder().withoutPadding().encodeToString(value.getBytes(StandardCharsets.UTF_8))
+    }
+    def executableFlag = { File candidate ->
+        try {
+            def permissions = Files.getPosixFilePermissions(
+                candidate.toPath(), LinkOption.NOFOLLOW_LINKS)
+            (permissions.contains(PosixFilePermission.OWNER_EXECUTE) ||
+             permissions.contains(PosixFilePermission.GROUP_EXECUTE) ||
+             permissions.contains(PosixFilePermission.OTHERS_EXECUTE)) ? '1' : '0'
+        } catch (UnsupportedOperationException ignored) {
+            // The exporter also binds xflag=0 on filesystems without POSIX mode bits.
+            '0'
+        }
+    }
+    def validateRelativePath = { String value ->
+        def segments = value.split('/', -1)
+        if (value.isEmpty() || value.startsWith('/') || value.contains('\\') ||
+            segments.any { it.isEmpty() || it == '.' || it == '..' } ||
+            value.codePoints().anyMatch { point -> Character.isISOControl(point) }) {
+            throw new GradleException(
+                'Unity manifest contains a non-canonical relative path; re-export instead of editing the receipt.')
+        }
+    }
+    def relativePath = { File base, File candidate ->
+        def basePath = base.toPath().toAbsolutePath().normalize()
+        def candidatePath = candidate.toPath().toAbsolutePath().normalize()
+        if (!candidatePath.startsWith(basePath) || candidatePath == basePath) {
+            throw new GradleException("Unity manifest entry escapes its root: ${candidate}")
+        }
+        def value = basePath.relativize(candidatePath).toString().replace(File.separatorChar, '/' as char)
+        validateRelativePath(value)
+        value
+    }
+    def collectRegularFiles = { File root, String label ->
+        def rootPath = root.toPath()
+        if (!Files.exists(rootPath, LinkOption.NOFOLLOW_LINKS)) {
+            throw new GradleException("${label} is missing: ${root}")
+        }
+        def rootAttributes = Files.readAttributes(
+            rootPath, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS)
+        if (rootAttributes.isSymbolicLink()) {
+            throw new GradleException("The Unity export gate rejects symbolic links: ${root}")
+        }
+        if (!rootAttributes.isDirectory()) {
+            throw new GradleException("${label} is not a directory: ${root}")
+        }
+
+        def pending = new ArrayDeque<File>()
+        def files = []
+        pending.add(root)
+        while (!pending.isEmpty()) {
+            def directory = pending.removeLast()
+            def children = directory.listFiles()
+            if (children == null) {
+                throw new GradleException("Cannot enumerate ${label}: ${directory}")
+            }
+            children.each { child ->
+                def attributes = Files.readAttributes(
+                    child.toPath(), BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS)
+                if (attributes.isSymbolicLink()) {
+                    throw new GradleException("The Unity export gate rejects symbolic links: ${child}")
+                }
+                if (attributes.isDirectory()) {
+                    pending.add(child)
+                } else if (attributes.isRegularFile()) {
+                    files << child
+                } else {
+                    throw new GradleException(
+                        "The Unity export gate rejects non-regular filesystem entries: ${child}")
+                }
+            }
+        }
+        files
+    }
+    def buildManifest = { File base, List<File> files ->
+        def entries = files.collect { candidate ->
+            def relative = relativePath(base, candidate)
+            [
+                relative: relative,
+                encoded: encodePath(relative),
+                executable: executableFlag(candidate),
+                digest: sha256File(candidate),
+                file: candidate
+            ]
+        }
+        entries.sort { left, right -> left.relative.compareTo(right.relative) }
+        def canonical = new StringBuilder()
+        entries.eachWithIndex { entry, index ->
+            canonical.append(String.format(Locale.ROOT, '%06d', index)).append('\t')
+                .append(entry.executable).append('\t').append(entry.digest).append('\t')
+                .append(entry.encoded).append('\n')
+        }
+        [entries: entries, digest: sha256Bytes(canonical.toString().getBytes(StandardCharsets.UTF_8))]
+    }
+
+    def sourceFiles = []
+    ['Assets', 'Packages', 'ProjectSettings'].each { relative ->
+        sourceFiles.addAll(collectRegularFiles(
+            new File(vandeUnityProject, relative), "Unity source root ${relative}"))
+    }
+    // Inspect the complete export so a linked launcher/helper/root path cannot hide outside unityLibrary.
+    // The receipt is the only excluded file because a manifest cannot recursively contain its own digest.
+    def allExportFiles = collectRegularFiles(vandeUnityExport, 'Unity Android export')
+    def exportFiles = allExportFiles.findAll { candidate ->
+        relativePath(vandeUnityExport, candidate) != '.vande-export.properties'
+    }
+
+    def requiredFiles = [
+        vandeUnityProjectVersion,
+        vandeUnityReceipt,
+        new File(vandeUnityLibrary, 'build.gradle'),
+        new File(vandeUnityLibrary, 'src/main/AndroidManifest.xml')
+    ]
+    def missing = requiredFiles.findAll { !it.isFile() }
+    if (!missing.isEmpty()) {
+        throw new GradleException(
+            "-PvandeUnity=1 requires a complete verified export; missing: ${missing.join(', ')}. " +
+            'Export again with VANDE > Export Android unityLibrary using the approved Unity 6.3 LTS patch.')
+    }
+    def versionMatch = vandeUnityProjectVersion.getText('UTF-8') =~ /(?m)^m_EditorVersion:\s*(\S+)\s*$/
+    if (!versionMatch.find()) {
+        throw new GradleException("Cannot read m_EditorVersion from ${vandeUnityProjectVersion}")
+    }
+    vandeUnityEditorVersion = versionMatch.group(1)
+    if (!(vandeUnityEditorVersion ==~ /6000\.3\.\d+f\d+/)) {
+        throw new GradleException("VANDE requires an exact Unity 6.3 LTS final patch; found ${vandeUnityEditorVersion}")
+    }
+
+    def receiptBytesAtGate = Files.readAllBytes(vandeUnityReceipt.toPath())
+    def receiptDigestAtGate = sha256Bytes(receiptBytesAtGate)
+    def receiptLines = new String(receiptBytesAtGate, StandardCharsets.UTF_8).readLines()
+    def receipt = [:]
+    receiptLines.eachWithIndex { line, index ->
+        def entry = line =~ /^([A-Za-z][A-Za-z0-9]*)=(\S+)$/
+        if (!entry.matches()) {
+            throw new GradleException(
+                "Malformed Unity export receipt line ${index + 1}; re-export instead of editing the receipt.")
+        }
+        def key = entry.group(1)
+        if (receipt.containsKey(key)) {
+            throw new GradleException(
+                "Duplicate '${key}' in the Unity export receipt; re-export instead of editing the receipt.")
+        }
+        receipt[key] = entry.group(2)
+    }
+    def fixedReceiptKeys = [
+        'schema',
+        'editorVersion',
+        'target',
+        'scriptingBackend',
+        'architectures',
+        'minSdk',
+        'sourceFileCount',
+        'sourceTreeSha256',
+        'exportFileCount',
+        'exportTreeSha256'
+    ] as Set
+    def missingFixedKeys = fixedReceiptKeys - receipt.keySet()
+    if (!missingFixedKeys.isEmpty()) {
+        throw new GradleException(
+            "Unity export receipt schema mismatch (missing=${missingFixedKeys}); re-export with the current VANDE exporter.")
+    }
+    def parseReceiptCount = { String key ->
+        def value = receipt[key]
+        if (!(value ==~ /[1-9][0-9]{0,5}/)) {
+            throw new GradleException(
+                "Unity export receipt '${key}' is invalid; re-export instead of editing the receipt.")
+        }
+        def count = Integer.parseInt(value)
+        if (count > 100000) {
+            throw new GradleException(
+                "Unity export receipt '${key}' exceeds the 100000-file safety limit; re-export instead of editing the receipt.")
+        }
+        count
+    }
+    def sourceFileCount = parseReceiptCount('sourceFileCount')
+    def exportFileCount = parseReceiptCount('exportFileCount')
+    def fileReceiptKeys = new LinkedHashSet()
+    (0..<sourceFileCount).each { index ->
+        fileReceiptKeys.add('sourceFile' + String.format(Locale.ROOT, '%06d', index))
+    }
+    (0..<exportFileCount).each { index ->
+        fileReceiptKeys.add('exportFile' + String.format(Locale.ROOT, '%06d', index))
+    }
+    def receiptKeys = new LinkedHashSet(fixedReceiptKeys)
+    receiptKeys.addAll(fileReceiptKeys)
+    if (receipt.keySet() != receiptKeys) {
+        def missingKeys = receiptKeys - receipt.keySet()
+        def unknownKeys = receipt.keySet() - receiptKeys
+        throw new GradleException(
+            "Unity export receipt schema mismatch (missing=${missingKeys}, unknown=${unknownKeys}); " +
+            're-export with the current VANDE exporter.')
+    }
+    def expectedReceipt = [
+        schema: '3',
+        editorVersion: vandeUnityEditorVersion,
+        target: 'Android',
+        scriptingBackend: 'IL2CPP',
+        architectures: 'ARM64',
+        minSdk: '28'
+    ]
+    expectedReceipt.each { key, expected ->
+        if (receipt[key] != expected) {
+            throw new GradleException(
+                "Unity export receipt '${key}' must be '${expected}', found '${receipt[key]}'; " +
+                're-export with the approved settings.')
+        }
+    }
+    ['sourceTreeSha256', 'exportTreeSha256'].each { key ->
+        if (!(receipt[key] ==~ /[0-9a-f]{64}/)) {
+            throw new GradleException(
+                "Unity export receipt '${key}' is not a lowercase SHA-256 digest; " +
+                're-export instead of editing the receipt.')
+        }
+    }
+
+    def parseDeclaredEntries = { String prefix, int fileCount, String expectedTreeDigest ->
+        def declaredEntries = []
+        String previousPath = null
+        (0..<fileCount).each { index ->
+            def key = prefix + 'File' + String.format(Locale.ROOT, '%06d', index)
+            def entryMatch = receipt[key] =~ /^([01]):([0-9a-f]{64}):([A-Za-z0-9_-]+)$/
+            if (!entryMatch.matches()) {
+                throw new GradleException(
+                    "Unity export receipt '${key}' is malformed; re-export instead of editing the receipt.")
+            }
+            def encoded = entryMatch.group(3)
+            byte[] decoded
+            try {
+                decoded = Base64.getUrlDecoder().decode(encoded)
+            } catch (IllegalArgumentException ignored) {
+                throw new GradleException(
+                    "Unity export receipt '${key}' has an invalid encoded path; re-export instead of editing the receipt.")
+            }
+            def relative = new String(decoded, StandardCharsets.UTF_8)
+            if (!Arrays.equals(decoded, relative.getBytes(StandardCharsets.UTF_8)) ||
+                encodePath(relative) != encoded) {
+                throw new GradleException(
+                    "Unity export receipt '${key}' path is not canonical UTF-8; re-export instead of editing the receipt.")
+            }
+            validateRelativePath(relative)
+            if (prefix == 'source' &&
+                !(relative.startsWith('Assets/') || relative.startsWith('Packages/') ||
+                  relative.startsWith('ProjectSettings/'))) {
+                throw new GradleException(
+                    "Unity source receipt path is outside Assets, Packages and ProjectSettings: ${relative}")
+            }
+            if (prefix == 'export' && relative == '.vande-export.properties') {
+                throw new GradleException(
+                    'The Unity receipt cannot include itself in the export manifest; re-export it.')
+            }
+            if (previousPath != null && previousPath.compareTo(relative) >= 0) {
+                throw new GradleException(
+                    "Unity ${prefix} receipt file paths must be unique and ordinally sorted; " +
+                    're-export instead of editing the receipt.')
+            }
+            previousPath = relative
+            declaredEntries << [
+                relative: relative,
+                encoded: encoded,
+                executable: entryMatch.group(1),
+                digest: entryMatch.group(2)
+            ]
+        }
+        def declaredCanonical = new StringBuilder()
+        declaredEntries.eachWithIndex { entry, index ->
+            declaredCanonical.append(String.format(Locale.ROOT, '%06d', index)).append('\t')
+                .append(entry.executable).append('\t').append(entry.digest).append('\t')
+                .append(entry.encoded).append('\n')
+        }
+        def declaredTreeDigest = sha256Bytes(
+            declaredCanonical.toString().getBytes(StandardCharsets.UTF_8))
+        if (declaredTreeDigest != expectedTreeDigest) {
+            throw new GradleException(
+                "Unity ${prefix} receipt manifest digest is invalid; re-export instead of editing the receipt.")
+        }
+        declaredEntries
+    }
+
+    def compareManifest = { String label, List declaredEntries, Map actualManifest, String expectedTreeDigest ->
+        def declaredByPath = declaredEntries.collectEntries { entry -> [(entry.relative): entry] }
+        def actualByPath = actualManifest.entries.collectEntries { entry -> [(entry.relative): entry] }
+        def missingFiles = declaredByPath.keySet() - actualByPath.keySet()
+        def unexpectedFiles = actualByPath.keySet() - declaredByPath.keySet()
+        if (!missingFiles.isEmpty() || !unexpectedFiles.isEmpty()) {
+            def summarize = { values -> values.toList().sort().take(10) }
+            throw new GradleException(
+                "The verified Unity ${label} file set changed " +
+                "(missing=${summarize(missingFiles)}, unexpected=${summarize(unexpectedFiles)}). " +
+                'Re-export it; never hand-edit the receipt.')
+        }
+        def changedFiles = declaredByPath.keySet().findAll { relative ->
+            declaredByPath[relative].digest != actualByPath[relative].digest
+        }.toList().sort()
+        if (!changedFiles.isEmpty()) {
+            throw new GradleException(
+                "The verified Unity ${label} contains modified files (${changedFiles.take(10)}). " +
+                'Re-export it; never hand-edit the receipt.')
+        }
+        def changedModes = declaredByPath.keySet().findAll { relative ->
+            declaredByPath[relative].executable != actualByPath[relative].executable
+        }.toList().sort()
+        if (!changedModes.isEmpty()) {
+            throw new GradleException(
+                "The verified Unity ${label} contains modified executable flags (${changedModes.take(10)}). " +
+                'Re-export it; never hand-edit the receipt.')
+        }
+        if (actualManifest.digest != expectedTreeDigest) {
+            throw new GradleException(
+                "The verified Unity ${label} manifest is stale or modified. Re-export it; never hand-edit the receipt.")
+        }
+    }
+
+    def declaredSourceEntries = parseDeclaredEntries(
+        'source', sourceFileCount, receipt.sourceTreeSha256)
+    def declaredExportEntries = parseDeclaredEntries(
+        'export', exportFileCount, receipt.exportTreeSha256)
+    def sourceManifest = buildManifest(vandeUnityProject, sourceFiles)
+    def exportManifest = buildManifest(vandeUnityExport, exportFiles)
+    compareManifest('source', declaredSourceEntries, sourceManifest, receipt.sourceTreeSha256)
+    compareManifest('Android export', declaredExportEntries, exportManifest, receipt.exportTreeSha256)
+
+    vandeUnityReceiptDigest = receiptDigestAtGate
+    vandeUnitySourceTreeDigest = receipt.sourceTreeSha256
+    vandeUnityExportTreeDigest = receipt.exportTreeSha256
+    vandeUnityDeclaredExportEntries = declaredExportEntries.collect { entry ->
+        [
+            relative: entry.relative,
+            executable: entry.executable,
+            digest: entry.digest
+        ]
+    }
+
+    if (vandeUnityBindingEnabled) {
+        def requiredBindingProperty = { String name ->
+            def value = providers.gradleProperty(name).getOrElse('').trim()
+            if (value.isEmpty()) {
+                throw new GradleException("-PvandeUnityBinding=1 requires -P${name}=<value>")
+            }
+            value
+        }
+        vandeUnityInvocationId = requiredBindingProperty('vandeUnityInvocationId')
+        if (!(vandeUnityInvocationId ==~ /[0-9a-f]{32}/)) {
+            throw new GradleException('-PvandeUnityInvocationId must be 32 lowercase hexadecimal characters')
+        }
+        vandeUnitySourceBuildId = requiredBindingProperty('vandeUnitySourceBuildId')
+        if (!(vandeUnitySourceBuildId ==~ /[0-9a-f]{7,40}(\+[0-9a-f]{12})?/)) {
+            throw new GradleException('-PvandeUnitySourceBuildId is not a valid repository identity')
+        }
+        def contractValue = requiredBindingProperty('vandeUnityInvocationContract')
+        def contractPath = new File(contractValue).toPath().toAbsolutePath().normalize()
+        if (contractPath.toString() != contractValue) {
+            throw new GradleException('-PvandeUnityInvocationContract must be a normalized absolute path')
+        }
+        if (!Files.exists(contractPath, LinkOption.NOFOLLOW_LINKS)) {
+            throw new GradleException("Unity invocation contract is missing: ${contractPath}")
+        }
+        def contractAttributes = Files.readAttributes(
+            contractPath, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS)
+        if (contractAttributes.isSymbolicLink() || !contractAttributes.isRegularFile() ||
+            contractPath.toRealPath(LinkOption.NOFOLLOW_LINKS) != contractPath) {
+            throw new GradleException(
+                "Unity invocation contract must be a canonical regular non-symbolic-link file: ${contractPath}")
+        }
+        def contractBytes = Files.readAllBytes(contractPath)
+        def contractText = new String(contractBytes, StandardCharsets.UTF_8)
+        if (!java.util.Arrays.equals(
+            contractBytes, contractText.getBytes(StandardCharsets.UTF_8))) {
+            throw new GradleException('Unity invocation contract is not canonical UTF-8')
+        }
+        def contract
+        try {
+            contract = new JsonSlurper().parseText(contractText)
+        } catch (Exception parseFailure) {
+            throw new GradleException('Unity invocation contract is not valid JSON', parseFailure)
+        }
+        if (!(contract instanceof Map) || contract.schemaVersion != 2 ||
+            contract.kind != 'VANDE_UNITY_ANDROID_BUILD_INPUT' || contract.unity != true) {
+            throw new GradleException('Unity invocation contract has an unsupported schema or kind')
+        }
+        def expectedMode = providers.gradleProperty('previewRelease').isPresent() ? 'preview' : 'release'
+        if (contract.invocationId != vandeUnityInvocationId ||
+            contract.sourceBuildId != vandeUnitySourceBuildId ||
+            contract.mode != expectedMode) {
+            throw new GradleException(
+                'Unity invocation contract identity/mode does not match the exact Gradle properties')
+        }
+        if (!(contract.receipt instanceof Map) ||
+            contract.receipt.sha256 != receiptDigestAtGate ||
+            contract.receipt.sourceTreeSha256 != receipt.sourceTreeSha256 ||
+            contract.receipt.exportTreeSha256 != receipt.exportTreeSha256 ||
+            contract.receipt.editorVersion != vandeUnityEditorVersion ||
+            contract.receipt.sourceFileCount != sourceFileCount ||
+            contract.receipt.exportFileCount != exportFileCount) {
+            throw new GradleException(
+                'Unity invocation contract does not bind the exhaustive verified export receipt')
+        }
+        if (!(contract.pipeline instanceof Map) || !(contract.pipeline.gradle instanceof Map) ||
+            !(contract.pipeline.gradle.args instanceof List) || !(contract.gradleSeal instanceof Map)) {
+            throw new GradleException('Unity invocation contract lacks the exact Gradle argument vector')
+        }
+        def exactGradleArgs = contract.pipeline.gradle.args
+        def exactRequestedTasks = [
+            'assembleRelease',
+            'bundleRelease',
+            ':app:writeVandeUnityPayloadTransformManifest'
+        ]
+        if (contract.gradleSeal.requestedTaskNames != exactRequestedTasks ||
+            gradle.startParameter.taskNames != exactRequestedTasks) {
+            throw new GradleException(
+                "Actual Gradle task names differ from the signed invocation contract: ${gradle.startParameter.taskNames}")
+        }
+        def actualProjectProperties = new TreeMap<String, String>()
+        gradle.startParameter.projectProperties.each { key, value ->
+            actualProjectProperties[key as String] = value as String
+        }
+        def sealedProjectProperties = new TreeMap<String, String>()
+        if (!(contract.gradleSeal.projectProperties instanceof Map)) {
+            throw new GradleException('Signed Gradle project properties are malformed')
+        }
+        contract.gradleSeal.projectProperties.each { key, value ->
+            sealedProjectProperties[key as String] = value as String
+        }
+        if (actualProjectProperties != sealedProjectProperties) {
+            throw new GradleException(
+                "Actual Gradle project properties differ from the signed invocation contract: ${actualProjectProperties.keySet()}")
+        }
+        def actualSystemProperties = new TreeMap<String, String>()
+        gradle.startParameter.systemPropertiesArgs.each { key, value ->
+            actualSystemProperties[key as String] = value as String
+        }
+        def sealedSystemProperties = new TreeMap<String, String>()
+        if (!(contract.gradleSeal.systemProperties instanceof Map)) {
+            throw new GradleException('Signed Gradle system properties are malformed')
+        }
+        contract.gradleSeal.systemProperties.each { key, value ->
+            sealedSystemProperties[key as String] = value as String
+        }
+        if (actualSystemProperties != sealedSystemProperties) {
+            throw new GradleException('Actual Gradle system properties differ from the signed invocation contract')
+        }
+        if (gradle.startParameter.maxWorkerCount != 2) {
+            throw new GradleException(
+                "Actual Gradle max worker count differs from the signed invocation (found ${gradle.startParameter.maxWorkerCount})")
+        }
+        def actualInitScripts = gradle.startParameter.allInitScripts.collect { candidate ->
+            candidate.toPath().toAbsolutePath().normalize().toString()
+        }
+        if (contract.gradleSeal.initScripts != [] || !actualInitScripts.isEmpty()) {
+            throw new GradleException("Unity binding rejects every Gradle init script: ${actualInitScripts}")
+        }
+        def actualGradleUserHome = gradle.gradleUserHomeDir.toPath().toAbsolutePath().normalize().toString()
+        if (contract.gradleSeal.gradleUserHome != actualGradleUserHome) {
+            throw new GradleException(
+                'Actual GRADLE_USER_HOME differs from the isolated signed invocation contract')
+        }
+        def forbiddenEnvironment = [
+            'GRADLE_OPTS', 'GRADLE_USER_HOME', 'JAVA_OPTS', 'JAVA_TOOL_OPTIONS',
+            'JDK_JAVA_OPTIONS', '_JAVA_OPTIONS'
+        ]
+        if (contract.gradleSeal.rejectedEnvironment != forbiddenEnvironment ||
+            contract.gradleSeal.rejectOrgGradleProjectEnvironment != true) {
+            throw new GradleException('Signed Gradle environment rejection policy differs')
+        }
+        forbiddenEnvironment.findAll { name ->
+            name != 'GRADLE_USER_HOME' && System.getenv(name) != null && !System.getenv(name).isEmpty()
+        }.each { name ->
+            throw new GradleException("Unity binding rejects inherited environment variable ${name}")
+        }
+        System.getenv().keySet().findAll { name -> name.startsWith('ORG_GRADLE_PROJECT_') }.each { name ->
+            throw new GradleException("Unity binding rejects inherited environment variable ${name}")
+        }
+        if (System.getenv('GRADLE_USER_HOME') != actualGradleUserHome) {
+            throw new GradleException('Gradle process GRADLE_USER_HOME differs from the signed isolated home')
+        }
+        if (!(contract.toolchain instanceof Map) ||
+            !(contract.toolchain.javaHome instanceof String) ||
+            !(contract.toolchain.androidHome instanceof String)) {
+            throw new GradleException('Signed Gradle Java/Android toolchain paths are malformed')
+        }
+        def canonicalRuntimeDirectory = { Object value, String label ->
+            if (!(value instanceof String) || value.isEmpty()) {
+                throw new GradleException("${label} is missing")
+            }
+            def candidate = new File(value as String).toPath().toAbsolutePath().normalize()
+            if (!Files.isDirectory(candidate, LinkOption.NOFOLLOW_LINKS) ||
+                Files.isSymbolicLink(candidate)) {
+                throw new GradleException("${label} is not a regular directory: ${candidate}")
+            }
+            candidate.toRealPath().toString()
+        }
+        def actualJavaHome = canonicalRuntimeDirectory(
+            System.getProperty('java.home'), 'actual Gradle JVM home')
+        def sealedJavaHome = canonicalRuntimeDirectory(
+            contract.toolchain.javaHome, 'signed Gradle JVM home')
+        if (actualJavaHome != sealedJavaHome) {
+            throw new GradleException('Actual Gradle JVM home differs from the signed invocation contract')
+        }
+        def actualAndroidHome = canonicalRuntimeDirectory(
+            System.getenv('ANDROID_HOME'), 'actual ANDROID_HOME')
+        def sealedAndroidHome = canonicalRuntimeDirectory(
+            contract.toolchain.androidHome, 'signed ANDROID_HOME')
+        if (actualAndroidHome != sealedAndroidHome ||
+            System.getenv('ANDROID_SDK_ROOT') != System.getenv('ANDROID_HOME')) {
+            throw new GradleException(
+                'Actual Android SDK environment differs from the signed invocation contract')
+        }
+        // AGP gives android/local.properties sdk.dir precedence over the
+        // environment. Admit only a stable, no-follow regular file whose
+        // Java-Properties value resolves to the same sealed SDK directory.
+        def localPropertiesPath = settingsDir.toPath().toAbsolutePath().normalize()
+            .resolve('local.properties')
+        def localPropertiesBefore = Files.readAttributes(
+            localPropertiesPath, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS)
+        if (localPropertiesBefore.isSymbolicLink() || !localPropertiesBefore.isRegularFile() ||
+            localPropertiesPath.toRealPath(LinkOption.NOFOLLOW_LINKS) != localPropertiesPath) {
+            throw new GradleException(
+                "Android local.properties must be a canonical regular non-symbolic-link file: ${localPropertiesPath}")
+        }
+        def localProperties = new Properties()
+        FileChannel.open(
+            localPropertiesPath, StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS
+        ).withCloseable { localChannel ->
+            Channels.newInputStream(localChannel).withCloseable { localStream ->
+                localProperties.load(localStream)
+            }
+        }
+        def localPropertiesAfter = Files.readAttributes(
+            localPropertiesPath, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS)
+        if (localPropertiesBefore.fileKey() != localPropertiesAfter.fileKey() ||
+            localPropertiesBefore.size() != localPropertiesAfter.size() ||
+            localPropertiesBefore.lastModifiedTime() != localPropertiesAfter.lastModifiedTime() ||
+            localPropertiesBefore.creationTime() != localPropertiesAfter.creationTime()) {
+            throw new GradleException('Android local.properties changed while sealing the SDK directory')
+        }
+        if (localProperties.stringPropertyNames() != (['sdk.dir'] as Set)) {
+            throw new GradleException(
+                "Android local.properties may contain only sdk.dir (found ${localProperties.stringPropertyNames()})")
+        }
+        def localPropertiesAndroidHome = canonicalRuntimeDirectory(
+            localProperties.getProperty('sdk.dir'), 'android/local.properties sdk.dir')
+        if (localPropertiesAndroidHome != sealedAndroidHome) {
+            throw new GradleException(
+                'android/local.properties sdk.dir differs from the signed Android SDK directory')
+        }
+        def expectedGradleArgs = [
+            '--no-daemon', '--console=plain', '--max-workers=2'
+        ] + sealedSystemProperties.collect { key, value -> "-D${key}=${value}" } +
+            sealedProjectProperties.collect { key, value -> "-P${key}=${value}" } + exactRequestedTasks
+        // The contract's vector is allowlisted exactly. Gradle exposes tasks,
+        // project/system properties, init scripts and max workers, all checked
+        // above. It does not expose raw no-daemon/console spelling here, so no
+        // stronger runtime-observation claim is made for those two flags.
+        if (exactGradleArgs != expectedGradleArgs) {
+            throw new GradleException('Signed Gradle argument vector contains an unapproved flag or task')
+        }
+        vandeUnityInvocationContract = contractPath.toFile()
+        vandeUnityInvocationContractDigest = sha256Bytes(contractBytes)
+        if (!(contract.nativeProvenancePolicy instanceof Map)) {
+            throw new GradleException('Unity invocation contract lacks native provenance policy')
+        }
+        vandeUnityNativeProvenancePolicy = contract.nativeProvenancePolicy
+    }
+
+    // Unity's exported library is normally evaluated under the generated
+    // launcher root, whose gradle.properties supplies these values. VANDE
+    // deliberately consumes only unityLibrary from its existing Capacitor
+    // root, so bind the same immutable toolchain inputs explicitly without
+    // modifying the receipt-covered export.
+    def vandeUnityEditorRoot = new File(
+        "/Applications/Unity/Hub/Editor/${vandeUnityEditorVersion}")
+    def vandeUnityAndroidSdk = new File(
+        vandeUnityEditorRoot, 'PlaybackEngines/AndroidPlayer/SDK')
+    def vandeUnityAndroidNdk = new File(
+        vandeUnityEditorRoot, 'PlaybackEngines/AndroidPlayer/NDK')
+    [vandeUnityEditorRoot, vandeUnityAndroidSdk, vandeUnityAndroidNdk].each { directory ->
+        if (!directory.isDirectory()) {
+            throw new GradleException(
+                "Verified Unity Android toolchain directory is missing: ${directory}")
+        }
+    }
+
+    // Never evaluate the generated Unity project in place. Unity's generated
+    // buildIl2Cpp task writes native libraries, symbols, conversion caches and
+    // compile metadata below projectDir even when Gradle's buildDirectory and
+    // AGP's .cxx directory are redirected. Import the complete verified export
+    // into an isolated, generated working tree instead. The immutable export is
+    // still the only input to the receipt gate above.
+    def vandeUnityImportRoot = new File(settingsDir, '.vande-unity-import')
+    def vandeUnityImportedExport = new File(vandeUnityImportRoot, 'Android')
+    def vandeUnityImportedLibrary = new File(vandeUnityImportedExport, 'unityLibrary')
+    def settingsPath = settingsDir.toPath().toAbsolutePath().normalize()
+    def settingsAttributes = Files.readAttributes(
+        settingsPath, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS)
+    if (settingsAttributes.isSymbolicLink() || !settingsAttributes.isDirectory()) {
+        throw new GradleException(
+            "Refusing unsafe Android settings directory for Unity staging: ${settingsPath}")
+    }
+    def settingsRealPath = settingsPath.toRealPath()
+    def importRootPath = vandeUnityImportRoot.toPath().toAbsolutePath().normalize()
+    def importedExportPath = vandeUnityImportedExport.toPath().toAbsolutePath().normalize()
+    def expectedImportRootPath = settingsPath.resolve('.vande-unity-import').normalize()
+    if (importRootPath != expectedImportRootPath ||
+        importedExportPath != expectedImportRootPath.resolve('Android').normalize()) {
+        throw new GradleException(
+            "Refusing Unity working-copy path outside the exact Android staging directory: ${importedExportPath}")
+    }
+
+    def requireSafeDirectory = { java.nio.file.Path candidate, String label ->
+        def attributes = Files.readAttributes(
+            candidate, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS)
+        if (attributes.isSymbolicLink()) {
+            throw new GradleException(
+                "Refusing symbolic link in Unity staging ${label}: ${candidate}")
+        }
+        if (!attributes.isDirectory()) {
+            throw new GradleException(
+                "Refusing non-directory entry in Unity staging ${label}: ${candidate}")
+        }
+        candidate.toRealPath()
+    }
+    if (Files.exists(importRootPath, LinkOption.NOFOLLOW_LINKS)) {
+        requireSafeDirectory(importRootPath, 'ancestor')
+    } else {
+        Files.createDirectory(importRootPath)
+    }
+    def importRootRealPath = requireSafeDirectory(importRootPath, 'ancestor')
+    def expectedImportRootRealPath = settingsRealPath.resolve('.vande-unity-import').normalize()
+    if (importRootRealPath != expectedImportRootRealPath ||
+        !importRootRealPath.startsWith(settingsRealPath)) {
+        throw new GradleException(
+            "Refusing Unity staging ancestor outside the canonical Android directory: ${importRootRealPath}")
+    }
+
+    // One immutable export and one shared native-build root may be consumed by
+    // only one Gradle invocation at a time. Keep the lock beside, never inside,
+    // the staged Android tree so clean and restaging cannot remove it mid-build.
+    def buildLockPath = importRootPath.resolve('.build.lock').normalize()
+    def expectedBuildLockPath = settingsPath.resolve('.vande-unity-import/.build.lock').normalize()
+    if (buildLockPath != expectedBuildLockPath) {
+        throw new GradleException(
+            "Refusing Unity build lock outside the canonical staging ancestor: ${buildLockPath}")
+    }
+    if (Files.exists(buildLockPath, LinkOption.NOFOLLOW_LINKS)) {
+        def lockAttributes = Files.readAttributes(
+            buildLockPath, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS)
+        if (lockAttributes.isSymbolicLink() || !lockAttributes.isRegularFile()) {
+            throw new GradleException(
+                "Refusing unsafe Unity build lock entry: ${buildLockPath}")
+        }
+        def buildLockRealPath = buildLockPath.toRealPath(LinkOption.NOFOLLOW_LINKS)
+        if (buildLockRealPath != importRootRealPath.resolve('.build.lock').normalize()) {
+            throw new GradleException(
+                "Refusing Unity build lock outside the canonical staging ancestor: ${buildLockRealPath}")
+        }
+    }
+    FileChannel vandeUnityLockChannel = null
+    java.nio.channels.FileLock vandeUnityBuildLock = null
+    try {
+        vandeUnityLockChannel = FileChannel.open(
+            buildLockPath,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.WRITE,
+            LinkOption.NOFOLLOW_LINKS)
+        def lockAttributes = Files.readAttributes(
+            buildLockPath, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS)
+        if (lockAttributes.isSymbolicLink() || !lockAttributes.isRegularFile()) {
+            throw new GradleException(
+                "Refusing unsafe Unity build lock entry: ${buildLockPath}")
+        }
+        try {
+            vandeUnityBuildLock = vandeUnityLockChannel.tryLock()
+        } catch (OverlappingFileLockException ignored) {
+            vandeUnityBuildLock = null
+        }
+    } catch (Exception lockFailure) {
+        if (vandeUnityLockChannel != null) {
+            vandeUnityLockChannel.close()
+        }
+        throw new GradleException(
+            "Cannot acquire the exclusive Unity Android build lock: ${buildLockPath}", lockFailure)
+    }
+    if (vandeUnityBuildLock == null) {
+        vandeUnityLockChannel.close()
+        throw new GradleException(
+            'Another Unity Android Gradle invocation is already using the shared staged/native build roots. ' +
+            'Wait for it to finish and retry.')
+    }
+
+    // Register immediately after acquisition so every later settings, project
+    // or task failure still releases the process-wide lock. Revalidate the
+    // canonical source, export and receipt before releasing it.
+    gradle.buildFinished {
+        try {
+            def finalSourceFiles = []
+            ['Assets', 'Packages', 'ProjectSettings'].each { relative ->
+                finalSourceFiles.addAll(collectRegularFiles(
+                    new File(vandeUnityProject, relative), "post-build Unity source root ${relative}"))
+            }
+            def finalAllExportFiles = collectRegularFiles(
+                vandeUnityExport, 'post-build Unity Android export')
+            def finalExportFiles = finalAllExportFiles.findAll { candidate ->
+                relativePath(vandeUnityExport, candidate) != '.vande-export.properties'
+            }
+            def finalSourceManifest = buildManifest(vandeUnityProject, finalSourceFiles)
+            def finalExportManifest = buildManifest(vandeUnityExport, finalExportFiles)
+            def receiptUnchanged = vandeUnityReceipt.isFile() &&
+                sha256File(vandeUnityReceipt) == receiptDigestAtGate
+            try {
+                compareManifest(
+                    'post-build source', declaredSourceEntries, finalSourceManifest,
+                    receipt.sourceTreeSha256)
+                compareManifest(
+                    'post-build Android export', declaredExportEntries, finalExportManifest,
+                    receipt.exportTreeSha256)
+            } catch (GradleException mutation) {
+                throw new GradleException(
+                    'A Unity/Android build mutated receipt-covered Unity input. ' +
+                    'Discard the artifact and re-export; never repair the receipt by hand.', mutation)
+            }
+            if (!receiptUnchanged) {
+                throw new GradleException(
+                    'A Unity/Android build mutated the immutable Unity export receipt. ' +
+                    'Discard the artifact and re-export; never repair the receipt by hand.')
+            }
+        } finally {
+            try {
+                if (vandeUnityBuildLock.isValid()) {
+                    vandeUnityBuildLock.release()
+                }
+            } finally {
+                vandeUnityLockChannel.close()
+            }
+        }
+    }
+
+    def requireSafeImportedExport = {
+        def importedRealPath = requireSafeDirectory(importedExportPath, 'root')
+        def expectedImportedRealPath = importRootRealPath.resolve('Android').normalize()
+        if (importedRealPath != expectedImportedRealPath ||
+            !importedRealPath.startsWith(settingsRealPath)) {
+            throw new GradleException(
+                "Refusing Unity staging root outside the canonical Android directory: ${importedRealPath}")
+        }
+        importedRealPath
+    }
+
+    def verifiedExportByPath = exportManifest.entries.collectEntries { entry ->
+        [(entry.relative): entry]
+    }
+    def importedExportMatches = false
+    if (Files.exists(importedExportPath, LinkOption.NOFOLLOW_LINKS)) {
+        requireSafeImportedExport()
+        try {
+            def importedFiles = collectRegularFiles(
+                vandeUnityImportedExport, 'staged Unity Android working copy')
+            def importedManifest = buildManifest(vandeUnityImportedExport, importedFiles)
+            compareManifest(
+                'staged Android working copy', declaredExportEntries, importedManifest,
+                receipt.exportTreeSha256)
+            importedExportMatches = true
+        } catch (GradleException ignored) {
+            // This is a disposable generated tree. A symbolic link, partial
+            // prior copy or unexpected entry is replaced from the verified
+            // immutable export below; no export source is ever removed.
+            importedExportMatches = false
+        }
+    }
+    if (!importedExportMatches) {
+        if (Files.exists(importedExportPath, LinkOption.NOFOLLOW_LINKS)) {
+            // Resolve and compare the exact real staging root again immediately
+            // before recursive deletion. Never delete a link, special entry or
+            // path that resolves outside android/.vande-unity-import/Android.
+            def importedRealPath = requireSafeImportedExport()
+            def stream = Files.walk(importedRealPath)
+            try {
+                stream.sorted(Comparator.reverseOrder()).forEach { candidate ->
+                    Files.delete(candidate)
+                }
+            } finally {
+                stream.close()
+            }
+        }
+        Files.createDirectory(importedExportPath)
+        requireSafeImportedExport()
+        // Copy only paths declared by the receipt. The complete source/export
+        // comparison above proves that each declared input exists and that no
+        // undeclared input can be smuggled into this isolated working tree.
+        declaredExportEntries.each { declared ->
+            def verified = verifiedExportByPath[declared.relative]
+            if (verified == null) {
+                throw new GradleException(
+                    "Verified Unity export entry disappeared before staging: ${declared.relative}")
+            }
+            def source = verified.file as File
+            def destination = importedExportPath.resolve(declared.relative).normalize()
+            if (!destination.startsWith(importedExportPath) || destination == importedExportPath) {
+                throw new GradleException(
+                    "Refusing Unity staging path outside the isolated Android build tree: ${declared.relative}")
+            }
+            Files.createDirectories(destination.parent)
+            Files.copy(
+                source.toPath(),
+                destination,
+                StandardCopyOption.REPLACE_EXISTING,
+                StandardCopyOption.COPY_ATTRIBUTES)
+        }
+        def importedFiles = collectRegularFiles(
+            vandeUnityImportedExport, 'staged Unity Android working copy')
+        def importedManifest = buildManifest(vandeUnityImportedExport, importedFiles)
+        compareManifest(
+            'staged Android working copy', declaredExportEntries, importedManifest,
+            receipt.exportTreeSha256)
+    }
+
+    include ':unityLibrary'
+    project(':unityLibrary').projectDir = vandeUnityImportedLibrary
+    def vandeUnityModuleBuild = new File(settingsDir, 'build/unityLibrary')
+    def vandeUnityNativeBuild = new File(settingsDir, 'build/vande-unity-native/cxx')
+    // Keep every Gradle and AGP native intermediate outside the immutable,
+    // receipt-covered export so a successful build cannot make the next exact-
+    // export gate fail itself. AGP's CMake staging directory defaults to
+    // <projectDir>/.cxx and is independent of Project.buildDir, so redirect it
+    // explicitly through the supported Android DSL after Unity has declared its
+    // CMake path/version but before AGP creates any variants.
+    gradle.beforeProject { candidate ->
+        if (candidate.path == ':unityLibrary') {
+            candidate.layout.buildDirectory.set(vandeUnityModuleBuild)
+            candidate.ext.set('unityStreamingAssets', '')
+            candidate.ext.set('unity.androidSdkPath', vandeUnityAndroidSdk.absolutePath)
+            candidate.ext.set('unity.androidNdkPath', vandeUnityAndroidNdk.absolutePath)
+            candidate.ext.set('unity.installInBuildFolder', 'false')
+            candidate.pluginManager.withPlugin('com.android.library') {
+                candidate.extensions.getByName('androidComponents').finalizeDsl { androidExtension ->
+                    androidExtension.externalNativeBuild.cmake.buildStagingDirectory =
+                        vandeUnityNativeBuild
+                }
+            }
+        }
+    }
+}
+
+// One parsed source of truth for app/build.gradle and its generated BuildConfig runtime gate.
+gradle.ext.vandeUnityEnabled = vandeUnityEnabled
+gradle.ext.vandeUnityEditorVersion = vandeUnityEditorVersion
+gradle.ext.vandeUnityBindingEnabled = vandeUnityBindingEnabled
+gradle.ext.vandeUnityReceiptSha256 = vandeUnityReceiptDigest
+gradle.ext.vandeUnitySourceTreeSha256 = vandeUnitySourceTreeDigest
+gradle.ext.vandeUnityExportTreeSha256 = vandeUnityExportTreeDigest
+gradle.ext.vandeUnityDeclaredExportEntries = vandeUnityDeclaredExportEntries
+gradle.ext.vandeUnityInvocationId = vandeUnityInvocationId
+gradle.ext.vandeUnityInvocationContract = vandeUnityInvocationContract
+gradle.ext.vandeUnityInvocationContractSha256 = vandeUnityInvocationContractDigest
+gradle.ext.vandeUnitySourceBuildId = vandeUnitySourceBuildId
+gradle.ext.vandeUnityNativeProvenancePolicy = vandeUnityNativeProvenancePolicy

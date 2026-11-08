@@ -1,3 +1,14 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
+import java.nio.file.attribute.BasicFileAttributes
+import java.security.MessageDigest
+import java.util.Base64
+
 apply plugin: 'com.android.application'
 
 // ---------------------------------------------------------------------------
@@ -9,6 +20,9 @@ apply plugin: 'com.android.application'
 // are named *-PREVIEW-* by scripts/build-android.sh and must never be uploaded.
 // ---------------------------------------------------------------------------
 def previewRelease = project.hasProperty("previewRelease")
+def vandeUnityEnabled = gradle.ext.vandeUnityEnabled as boolean
+def vandeUnityEditorVersion = gradle.ext.vandeUnityEditorVersion as String
+def vandeUnityBindingEnabled = gradle.ext.vandeUnityBindingEnabled as boolean
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
 def hasReleaseKeystore = false
@@ -30,6 +44,9 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
+        // The linked export must prove this exact patch through unity.ready before native launch resolves.
+        buildConfigField "boolean", "VANDE_UNITY_LINKED", vandeUnityEnabled.toString()
+        buildConfigField "String", "VANDE_UNITY_EDITOR_VERSION", "\"${vandeUnityEditorVersion}\""
         // English, Hindi and the eight Indic locales the app ships catalogs for (AndroidX strings only).
         resourceConfigurations += ["en", "hi", "bn", "te", "mr", "ta", "gu", "kn", "ml", "pa"]
         // App Links: https://<appLinksHost><appLinksBasePath>/{i,m,c,h}/... must match the web origin the server puts in
@@ -60,8 +77,12 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-            shrinkResources false
+            // A Unity-linked release otherwise retains the standalone-player activity resources and a large amount
+            // of unreachable Java bytecode. Unity's library supplies its consumer keep rules; VANDE embeds the
+            // player reflectively and verifies the resulting artifact before release. Keep the established default
+            // build unchanged when the optional module is not linked.
+            minifyEnabled vandeUnityEnabled
+            shrinkResources vandeUnityEnabled
             signingConfig hasReleaseKeystore ? signingConfigs.release : (previewRelease ? signingConfigs.debug : null)
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -71,6 +92,9 @@ android {
             // Keep every locale's strings (push copy) in the base module: the in-app language is chosen in the web layer.
             enableSplit = false
         }
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 
@@ -96,6 +120,9 @@ dependencies {
     implementation "androidx.credentials:credentials:1.3.0"
     implementation "androidx.credentials:credentials-play-services-auth:1.3.0"
     implementation "com.google.android.libraries.identity.googleid:googleid:1.1.1"
+    if (vandeUnityEnabled) {
+        implementation project(':unityLibrary')
+    }
 }
 
 apply from: 'capacitor.build.gradle'
@@ -138,3 +165,522 @@ def verifyReleaseInputs = tasks.register("verifyReleaseInputs") {
 }
 tasks.matching { it.name in ["preReleaseBuild"] }.configureEach { dependsOn verifyReleaseInputs }
 
+// ---------------------------------------------------------------------------
+// Unity payload provenance. The signed APK contains the exact build-input
+// contract and the independently generated native-output provenance. The
+// exhaustive receipt -> Unity module -> final app transform map is emitted
+// separately and is bound to the APK/AAB by the release script.
+// This block is absent from ordinary/non-Unity builds.
+// ---------------------------------------------------------------------------
+if (vandeUnityBindingEnabled) {
+    if (!vandeUnityEnabled) {
+        throw new GradleException('Unity payload binding requires the verified Unity module')
+    }
+    def invocationId = gradle.ext.vandeUnityInvocationId as String
+    def sourceBuildId = gradle.ext.vandeUnitySourceBuildId as String
+    def contractFile = gradle.ext.vandeUnityInvocationContract as File
+    def contractSha256 = gradle.ext.vandeUnityInvocationContractSha256 as String
+    def receiptSha256 = gradle.ext.vandeUnityReceiptSha256 as String
+    def sourceTreeSha256 = gradle.ext.vandeUnitySourceTreeSha256 as String
+    def exportTreeSha256 = gradle.ext.vandeUnityExportTreeSha256 as String
+    def declaredExportEntries = gradle.ext.vandeUnityDeclaredExportEntries as List
+    def nativeProvenancePolicy = gradle.ext.vandeUnityNativeProvenancePolicy as Map
+    def exactTransformTaskOutputs = [
+        ':unityLibrary:mergeReleaseAssets',
+        ':unityLibrary:mergeReleaseNativeLibs',
+        ':app:mergeReleaseAssets',
+        ':app:stripReleaseDebugSymbols'
+    ]
+
+    def sha256File = { File candidate ->
+        def digest = MessageDigest.getInstance('SHA-256')
+        candidate.withInputStream { stream ->
+            def buffer = new byte[64 * 1024]
+            for (int count = stream.read(buffer); count != -1; count = stream.read(buffer)) {
+                digest.update(buffer, 0, count)
+            }
+        }
+        digest.digest().encodeHex().toString()
+    }
+    def canonicalTreeDigest = { List entries ->
+        def sorted = entries.sort { left, right -> left.path <=> right.path }
+        def seen = new LinkedHashSet<String>()
+        def canonical = new StringBuilder()
+        sorted.eachWithIndex { entry, index ->
+            if (!seen.add(entry.path as String)) {
+                throw new GradleException("Duplicate Unity payload path ${entry.path}")
+            }
+            def encoded = Base64.getUrlEncoder().withoutPadding().encodeToString(
+                (entry.path as String).getBytes(StandardCharsets.UTF_8))
+            canonical.append(String.format(Locale.ROOT, '%06d', index)).append('\t')
+                .append(entry.bytes).append('\t').append(entry.sha256).append('\t')
+                .append(encoded).append('\n')
+        }
+        MessageDigest.getInstance('SHA-256')
+            .digest(canonical.toString().getBytes(StandardCharsets.UTF_8))
+            .encodeHex().toString()
+    }
+    def collectTaskOutputFiles = { Task task, String label ->
+        def collected = new LinkedHashMap<String, Map>()
+        task.outputs.files.files.toList().sort { left, right -> left.absolutePath <=> right.absolutePath }.each { root ->
+            def rootPath = root.toPath().toAbsolutePath().normalize()
+            if (!Files.exists(rootPath, LinkOption.NOFOLLOW_LINKS)) {
+                throw new GradleException("${label} task output is missing: ${rootPath}")
+            }
+            def rootAttributes = Files.readAttributes(
+                rootPath, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS)
+            if (rootAttributes.isSymbolicLink()) {
+                throw new GradleException("${label} task output is a symbolic link: ${rootPath}")
+            }
+            def inspectFile = { java.nio.file.Path candidate, String relativePath ->
+                def attributes = Files.readAttributes(
+                    candidate, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS)
+                if (attributes.isSymbolicLink() || !attributes.isRegularFile()) {
+                    throw new GradleException("${label} contains a non-regular output: ${candidate}")
+                }
+                def canonical = candidate.toRealPath(LinkOption.NOFOLLOW_LINKS)
+                if (canonical != candidate.toAbsolutePath().normalize()) {
+                    throw new GradleException("${label} output does not resolve to itself: ${candidate}")
+                }
+                collected[canonical.toString()] = [file: canonical.toFile(), relative: relativePath.replace('\\', '/')]
+            }
+            if (rootAttributes.isRegularFile()) {
+                inspectFile(rootPath, root.fileName.toString())
+            } else if (rootAttributes.isDirectory()) {
+                def stream = Files.walk(rootPath)
+                try {
+                    stream.forEach { candidate ->
+                        if (candidate != rootPath) {
+                            def attributes = Files.readAttributes(
+                                candidate, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS)
+                            if (attributes.isSymbolicLink()) {
+                                throw new GradleException("${label} contains a symbolic link: ${candidate}")
+                            }
+                            if (attributes.isRegularFile()) {
+                                inspectFile(candidate, rootPath.relativize(candidate).toString())
+                            } else if (!attributes.isDirectory()) {
+                                throw new GradleException("${label} contains a special output: ${candidate}")
+                            }
+                        }
+                    }
+                } finally {
+                    stream.close()
+                }
+            } else {
+                throw new GradleException("${label} task output is not a file or directory: ${rootPath}")
+            }
+        }
+        collected.values().toList()
+    }
+    def uniqueSuffix = { List files, String suffix, String label ->
+        def normalizedSuffix = suffix.replace('\\', '/')
+        def matches = files.findAll { record ->
+            record.relative == normalizedSuffix || record.relative.endsWith('/' + normalizedSuffix)
+        }
+        if (matches.size() != 1) {
+            throw new GradleException(
+                "${label} must resolve exactly once in task outputs (found ${matches.size()}): ${suffix}")
+        }
+        matches[0].file as File
+    }
+    def unityNativeAbis = ['arm64-v8a'].asImmutable()
+    def appNativeAbis = [
+        'arm64-v8a',
+        'armeabi-v7a',
+        'x86',
+        'x86_64',
+    ].asImmutable()
+    def nativeOutputs = { List files, String label, List<String> allowedAbis ->
+        def records = new LinkedHashMap<String, File>()
+        files.findAll { record -> (record.relative as String).endsWith('.so') }.each { record ->
+            def segments = (record.relative as String).split('/')
+            if (segments.length < 2) {
+                throw new GradleException("${label} has an unclassifiable native path: ${record.relative}")
+            }
+            def abi = segments[segments.length - 2]
+            def name = segments[segments.length - 1]
+            if (!allowedAbis.contains(abi) || !(name ==~ /lib[^\/]+\.so/)) {
+                throw new GradleException("${label} has an unsafe native path: ${record.relative}")
+            }
+            String key = "${abi}/${name}"
+            if (records.containsKey(key)) {
+                throw new GradleException("${label} contains duplicate native output ${key}")
+            }
+            records[key] = record.file as File
+        }
+        if (records.isEmpty()) {
+            throw new GradleException("${label} contains no native libraries")
+        }
+        records
+    }
+
+    def generatedAssetRoot = layout.buildDirectory.dir(
+        "generated/vandeUnityBinding/release/${invocationId}/assets")
+    def generatedAttestation = generatedAssetRoot.map { directory ->
+        directory.file('vande/unity-build-input.json')
+    }
+    def generatedNativeProvenance = generatedAssetRoot.map { directory ->
+        directory.file('vande/unity-native-provenance.json')
+    }
+    def generateAttestation = tasks.register('generateVandeUnityBuildInputAttestation') {
+        inputs.file(contractFile)
+        inputs.property('contractSha256', contractSha256)
+        inputs.property('invocationId', invocationId)
+        outputs.file(generatedAttestation)
+        outputs.upToDateWhen { false }
+        doLast {
+            if (!contractFile.isFile() || Files.isSymbolicLink(contractFile.toPath()) ||
+                sha256File(contractFile) != contractSha256) {
+                throw new GradleException('Unity invocation contract changed before signed-asset generation')
+            }
+            def destination = generatedAttestation.get().asFile
+            Files.createDirectories(destination.parentFile.toPath())
+            if (Files.exists(destination.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+                throw new GradleException("Refusing existing signed input attestation: ${destination}")
+            }
+            def temporary = new File(
+                destination.parentFile, ".${destination.name}.${invocationId}.tmp")
+            if (Files.exists(temporary.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+                throw new GradleException("Refusing existing input-attestation staging file: ${temporary}")
+            }
+            try {
+                def stream = Files.newOutputStream(
+                    temporary.toPath(), StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
+                try {
+                    stream.write(Files.readAllBytes(contractFile.toPath()))
+                    stream.flush()
+                } finally {
+                    stream.close()
+                }
+                Files.move(temporary.toPath(), destination.toPath(), StandardCopyOption.ATOMIC_MOVE)
+                if (sha256File(destination) != contractSha256) {
+                    throw new GradleException(
+                        'Generated signed Unity input attestation differs from its contract')
+                }
+            } finally {
+                Files.deleteIfExists(temporary.toPath())
+            }
+        }
+    }
+    android.sourceSets.release.assets.srcDir(generatedAssetRoot.get().asFile)
+    tasks.matching { it.name == 'mergeReleaseAssets' }.configureEach {
+        dependsOn generateAttestation
+    }
+
+    def unityAssetsOutputs = providers.provider {
+        rootProject.project(':unityLibrary').tasks.named('mergeReleaseAssets').get().outputs.files
+    }
+    def unityNativeOutputs = providers.provider {
+        rootProject.project(':unityLibrary').tasks.named('mergeReleaseNativeLibs').get().outputs.files
+    }
+    def appAssetsOutputs = providers.provider {
+        tasks.named('mergeReleaseAssets').get().outputs.files
+    }
+    def appNativeOutputs = providers.provider {
+        tasks.named('stripReleaseDebugSymbols').get().outputs.files
+    }
+    def generateNativeProvenance = tasks.register('generateVandeUnityNativeProvenanceAttestation') {
+        dependsOn ':unityLibrary:mergeReleaseNativeLibs'
+        inputs.file(contractFile)
+        inputs.files(unityNativeOutputs)
+        inputs.property('receiptSha256', receiptSha256)
+        inputs.property('sourceTreeSha256', sourceTreeSha256)
+        inputs.property('exportTreeSha256', exportTreeSha256)
+        outputs.file(generatedNativeProvenance)
+        outputs.upToDateWhen { false }
+        doLast {
+            if (sha256File(contractFile) != contractSha256) {
+                throw new GradleException('Unity invocation contract changed before native provenance generation')
+            }
+            def unityNativeTask = rootProject.project(':unityLibrary').tasks.named('mergeReleaseNativeLibs').get()
+            def unityNatives = nativeOutputs(
+                collectTaskOutputFiles(unityNativeTask, unityNativeTask.path),
+                unityNativeTask.path,
+                unityNativeAbis)
+            ['libunity.so', 'libmain.so', 'libil2cpp.so'].each { required ->
+                String requiredPath = "arm64-v8a/${required}"
+                if (!unityNatives.containsKey(requiredPath)) {
+                    throw new GradleException("Unity merged native output omits ${requiredPath}")
+                }
+            }
+            def receiptDirectNatives = declaredExportEntries.findAll { entry ->
+                (entry.relative as String).startsWith('unityLibrary/src/main/jniLibs/')
+            }.collectEntries { entry ->
+                [((entry.relative as String).substring('unityLibrary/src/main/jniLibs/'.length())): [
+                    receiptExportPath: entry.relative as String,
+                    receiptSha256: entry.digest as String
+                ]]
+            }
+            def signedDirectNatives = (nativeProvenancePolicy.direct as List).collectEntries { entry ->
+                [(entry.path as String): [
+                    receiptExportPath: entry.receiptExportPath as String,
+                    receiptSha256: entry.receiptSha256 as String
+                ]]
+            }
+            if (receiptDirectNatives != signedDirectNatives ||
+                nativeProvenancePolicy.producerTask != unityNativeTask.path ||
+                !(nativeProvenancePolicy.generatedNames instanceof List) ||
+                !(nativeProvenancePolicy.generatedInputs instanceof Map) ||
+                !(nativeProvenancePolicy.generatedTools instanceof Map)) {
+                throw new GradleException('Signed native provenance policy differs from the verified export/task')
+            }
+            def generatedNames = new LinkedHashSet<String>(
+                (nativeProvenancePolicy.generatedNames as List).collect { it as String })
+            def natives = unityNatives.keySet().toList().sort().collect { path ->
+                def moduleFile = unityNatives[path]
+                def moduleDigest = sha256File(moduleFile)
+                def direct = receiptDirectNatives[path]
+                def origin
+                if (direct != null) {
+                    if (moduleDigest != direct.receiptSha256) {
+                        throw new GradleException(
+                            "Direct Unity native differs from exhaustive export receipt: ${path}")
+                    }
+                    origin = [kind: 'receipt', receiptExportPath: direct.receiptExportPath,
+                              receiptSha256: direct.receiptSha256]
+                } else {
+                    def nativeName = path.substring(path.lastIndexOf('/') + 1)
+                    if (!generatedNames.contains(nativeName)) {
+                        throw new GradleException(
+                            "Unity native has no signed generated-origin policy: ${path}")
+                    }
+                    origin = [kind: 'generated', producerTask: nativeProvenancePolicy.producerTask,
+                              inputs: nativeProvenancePolicy.generatedInputs,
+                              tools: nativeProvenancePolicy.generatedTools]
+                }
+                [path: path, module: [bytes: moduleFile.length(), sha256: moduleDigest], origin: origin]
+            }
+            receiptDirectNatives.keySet().each { path ->
+                if (!natives.any { record -> record.path == path }) {
+                    throw new GradleException("Native provenance omits receipt-declared direct native ${path}")
+                }
+            }
+            def provenance = [
+                schemaVersion: 1,
+                kind: 'VANDE_UNITY_ANDROID_NATIVE_PROVENANCE',
+                invocationId: invocationId,
+                sourceBuildId: sourceBuildId,
+                contractSha256: contractSha256,
+                receipt: [sha256: receiptSha256, sourceTreeSha256: sourceTreeSha256,
+                          exportTreeSha256: exportTreeSha256],
+                natives: natives,
+                treeSha256: canonicalTreeDigest(natives.collect { record ->
+                    [path: record.path, bytes: record.module.bytes, sha256: record.module.sha256]
+                })
+            ]
+            def output = generatedNativeProvenance.get().asFile
+            Files.createDirectories(output.parentFile.toPath())
+            if (Files.exists(output.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+                throw new GradleException("Refusing existing signed native provenance file: ${output}")
+            }
+            def bytes = (JsonOutput.prettyPrint(JsonOutput.toJson(provenance)) + '\n')
+                .getBytes(StandardCharsets.UTF_8)
+            def temporary = new File(output.parentFile, ".${output.name}.${invocationId}.tmp")
+            if (Files.exists(temporary.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+                throw new GradleException("Refusing existing native provenance staging file: ${temporary}")
+            }
+            try {
+                def stream = Files.newOutputStream(
+                    temporary.toPath(), StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
+                try { stream.write(bytes); stream.flush() } finally { stream.close() }
+                Files.move(temporary.toPath(), output.toPath(), StandardCopyOption.ATOMIC_MOVE)
+            } finally {
+                Files.deleteIfExists(temporary.toPath())
+            }
+        }
+    }
+    tasks.matching { it.name == 'mergeReleaseAssets' }.configureEach {
+        dependsOn generateNativeProvenance
+    }
+    // AGP's release-lint model writers and analysis tasks read every release
+    // asset source directly, independently of mergeReleaseAssets. Keep the exact
+    // release consumer set explicit so neither signed attestation can race or be
+    // omitted.
+    def releaseLintAssetConsumerNames = [
+        'generateReleaseLintModel',
+        'generateReleaseLintReportModel',
+        'generateReleaseLintVitalReportModel',
+        'lintAnalyzeRelease',
+        'lintVitalAnalyzeRelease',
+    ].asImmutable()
+    tasks.matching { releaseLintAssetConsumerNames.contains(it.name) }.configureEach {
+        dependsOn generateAttestation
+        dependsOn generateNativeProvenance
+    }
+    def transformManifest = layout.buildDirectory.file(
+        "outputs/vande-unity-binding/release/${invocationId}.json")
+    tasks.register('writeVandeUnityPayloadTransformManifest') {
+        dependsOn generateAttestation
+        dependsOn generateNativeProvenance
+        dependsOn ':unityLibrary:mergeReleaseAssets'
+        dependsOn ':unityLibrary:mergeReleaseNativeLibs'
+        dependsOn 'mergeReleaseAssets'
+        dependsOn 'stripReleaseDebugSymbols'
+        inputs.file(contractFile)
+        inputs.files(unityAssetsOutputs)
+        inputs.files(unityNativeOutputs)
+        inputs.files(appAssetsOutputs)
+        inputs.files(appNativeOutputs)
+        inputs.property('receiptSha256', receiptSha256)
+        inputs.property('sourceTreeSha256', sourceTreeSha256)
+        inputs.property('exportTreeSha256', exportTreeSha256)
+        outputs.file(transformManifest)
+        outputs.upToDateWhen { false }
+        doLast {
+            if (sha256File(contractFile) != contractSha256) {
+                throw new GradleException('Unity invocation contract changed during Android transforms')
+            }
+            def unityAssetTask = rootProject.project(':unityLibrary').tasks.named('mergeReleaseAssets').get()
+            def unityNativeTask = rootProject.project(':unityLibrary').tasks.named('mergeReleaseNativeLibs').get()
+            def appAssetTask = tasks.named('mergeReleaseAssets').get()
+            def appNativeTask = tasks.named('stripReleaseDebugSymbols').get()
+            def unityAssetFiles = collectTaskOutputFiles(unityAssetTask, unityAssetTask.path)
+            def appAssetFiles = collectTaskOutputFiles(appAssetTask, appAssetTask.path)
+            def expectedAssets = declaredExportEntries.findAll { entry ->
+                (entry.relative as String).startsWith('unityLibrary/src/main/assets/')
+            }.collect { entry ->
+                [
+                    path: (entry.relative as String).substring('unityLibrary/src/main/assets/'.length()),
+                    receiptExportPath: entry.relative as String,
+                    receiptSha256: entry.digest as String
+                ]
+            }.sort { left, right -> left.path <=> right.path }
+            if (expectedAssets.isEmpty()) {
+                throw new GradleException('Verified Unity export receipt declares no Android assets')
+            }
+            if (unityAssetFiles.size() != expectedAssets.size()) {
+                throw new GradleException(
+                    "Unity merged asset output is not exhaustive " +
+                    "(expected ${expectedAssets.size()}, found ${unityAssetFiles.size()})")
+            }
+            def assets = expectedAssets.collect { expected ->
+                def moduleFile = uniqueSuffix(
+                    unityAssetFiles, expected.path as String, unityAssetTask.path)
+                def appFile = uniqueSuffix(
+                    appAssetFiles, expected.path as String, appAssetTask.path)
+                def moduleDigest = sha256File(moduleFile)
+                def appDigest = sha256File(appFile)
+                if (moduleDigest != expected.receiptSha256) {
+                    throw new GradleException(
+                        "Unity merged asset differs from exhaustive export receipt: ${expected.path}")
+                }
+                if (appDigest != moduleDigest || appFile.length() != moduleFile.length()) {
+                    throw new GradleException(
+                        "Unrecognized Android asset mutation after Unity merge: ${expected.path}")
+                }
+                [
+                    path: expected.path,
+                    receiptExportPath: expected.receiptExportPath,
+                    receiptSha256: expected.receiptSha256,
+                    module: [bytes: moduleFile.length(), sha256: moduleDigest],
+                    app: [bytes: appFile.length(), sha256: appDigest]
+                ]
+            }
+            def appNatives = nativeOutputs(
+                collectTaskOutputFiles(appNativeTask, appNativeTask.path),
+                appNativeTask.path,
+                appNativeAbis)
+            def nativeProvenanceFile = generatedNativeProvenance.get().asFile
+            if (!nativeProvenanceFile.isFile() || Files.isSymbolicLink(nativeProvenanceFile.toPath())) {
+                throw new GradleException('Signed native provenance source is missing or unsafe')
+            }
+            def nativeProvenanceBytes = Files.readAllBytes(nativeProvenanceFile.toPath())
+            def nativeProvenance = new JsonSlurper().parseText(
+                new String(nativeProvenanceBytes, StandardCharsets.UTF_8))
+            if (!(nativeProvenance instanceof Map) ||
+                nativeProvenance.kind != 'VANDE_UNITY_ANDROID_NATIVE_PROVENANCE' ||
+                nativeProvenance.schemaVersion != 1 ||
+                nativeProvenance.invocationId != invocationId ||
+                nativeProvenance.sourceBuildId != sourceBuildId ||
+                nativeProvenance.contractSha256 != contractSha256 ||
+                !(nativeProvenance.natives instanceof List)) {
+                throw new GradleException('Signed native provenance identity/shape is invalid')
+            }
+            def natives = (nativeProvenance.natives as List).collect { record ->
+                def path = record.path as String
+                def appFile = appNatives[path]
+                if (appFile == null) {
+                    throw new GradleException(
+                        "Final app native transform omits Unity output ${path}")
+                }
+                [
+                    path: path,
+                    module: record.module,
+                    // Native bytes may legitimately differ here when AGP strips
+                    // symbols. The final archive must equal this exact output.
+                    app: [bytes: appFile.length(), sha256: sha256File(appFile)],
+                    origin: record.origin
+                ]
+            }
+            def output = transformManifest.get().asFile
+            if (Files.exists(output.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+                throw new GradleException(
+                    "Refusing to overwrite Unity transform manifest: ${output}")
+            }
+            Files.createDirectories(output.parentFile.toPath())
+            def manifest = [
+                schemaVersion: 1,
+                kind: 'VANDE_UNITY_ANDROID_TRANSFORM',
+                invocationId: invocationId,
+                sourceBuildId: sourceBuildId,
+                contractSha256: contractSha256,
+                variant: 'release',
+                generatedUtc: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", TimeZone.getTimeZone('UTC')),
+                receipt: [
+                    sha256: receiptSha256,
+                    sourceTreeSha256: sourceTreeSha256,
+                    exportTreeSha256: exportTreeSha256
+                ],
+                nativeProvenance: [
+                    entry: 'assets/vande/unity-native-provenance.json',
+                    bytes: nativeProvenanceBytes.length,
+                    sha256: MessageDigest.getInstance('SHA-256')
+                        .digest(nativeProvenanceBytes).encodeHex().toString()
+                ],
+                taskOutputs: [
+                    unityAssetTask.path,
+                    unityNativeTask.path,
+                    appAssetTask.path,
+                    appNativeTask.path
+                ],
+                assets: assets,
+                natives: natives,
+                trees: [
+                    assetAppSha256: canonicalTreeDigest(assets.collect { record ->
+                        [path: record.path, bytes: record.app.bytes, sha256: record.app.sha256]
+                    }),
+                    nativeModuleSha256: canonicalTreeDigest(natives.collect { record ->
+                        [path: record.path, bytes: record.module.bytes, sha256: record.module.sha256]
+                    }),
+                    nativeAppSha256: canonicalTreeDigest(natives.collect { record ->
+                        [path: record.path, bytes: record.app.bytes, sha256: record.app.sha256]
+                    })
+                ]
+            ]
+            if (manifest.taskOutputs != exactTransformTaskOutputs) {
+                throw new GradleException(
+                    "Unity transform tasks differ from the frozen producer contract: ${manifest.taskOutputs}")
+            }
+            def temporary = new File(output.parentFile, ".${output.name}.${invocationId}.tmp")
+            if (Files.exists(temporary.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+                throw new GradleException(
+                    "Refusing existing Unity transform staging file: ${temporary}")
+            }
+            try {
+                def bytes = (JsonOutput.prettyPrint(JsonOutput.toJson(manifest)) + '\n')
+                    .getBytes(StandardCharsets.UTF_8)
+                def stream = Files.newOutputStream(
+                    temporary.toPath(), StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
+                try {
+                    stream.write(bytes)
+                    stream.flush()
+                } finally {
+                    stream.close()
+                }
+                Files.move(temporary.toPath(), output.toPath(), StandardCopyOption.ATOMIC_MOVE)
+            } finally {
+                Files.deleteIfExists(temporary.toPath())
+            }
+        }
+    }
+}

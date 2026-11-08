@@ -1,14 +1,16 @@
 # Android release
 
-VANDE Cricket ships to Google Play as a Capacitor 8 app. The Android app is a native shell around the same web build
-as the PWA, plus three native plugins (Play Install Referrer, Keystore-backed secure storage, Google sign-in through
+VANDE Cricket ships to Google Play as a Capacitor 8 app. The default Android package uses the retained web renderers;
+an explicitly selected build may additionally link the verified Unity-as-a-Library export for Practice presentation.
+TypeScript remains authoritative for input, physics, scoring, replay and Coach in either package. The Android app also
+contains three native plugins (Play Install Referrer, Keystore-backed secure storage, Google sign-in through
 Credential Manager) and FCM push.
 
 | | |
 | --- | --- |
 | Application id | `in.vande.cricket` (new; the civic prototype's `in.vande.republic` was never published) |
 | Version | `versionName` in `android/app/build.gradle` (keep equal to `package.json` `version`), `versionCode` +1 per upload |
-| SDK levels | min 24, target 36, compile 36 (`android/variables.gradle`) |
+| SDK levels | min 28, target 36, compile 36 (`android/variables.gradle`) |
 | Toolchain | JDK 21 (Android Studio's bundled JBR), Android SDK at `~/Library/Android/sdk` |
 | Permissions (merged manifest) | `INTERNET`, `ACCESS_NETWORK_STATE`; `POST_NOTIFICATIONS` (asked only after a meaningful moment, never on first launch); `VIBRATE` (haptics); FCM's `WAKE_LOCK` and `c2dm.permission.RECEIVE`; the Play install referrer's `BIND_GET_INSTALL_REFERRER_SERVICE`; AndroidX's app-private `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. No location, contacts, camera, storage or advertising id |
 | Locales | `en`, `hi`, `bn`, `te`, `mr`, `ta`, `gu`, `kn`, `ml`, `pa` resources (push copy); all locales stay in the base module |
@@ -46,59 +48,125 @@ These are open launch blockers (`docs/LAUNCH_BLOCKERS.md`), and none of them can
 # Production configuration comes from the environment (never from committed files):
 export VITE_API_URL=https://api.<domain> VITE_PUBLIC_WEB_ORIGIN=https://<domain> VITE_PUSH_ENABLED=1 \
        VITE_GOOGLE_CLIENT_ID=<web client id> VITE_SUPPORT_EMAIL=<support address> VITE_OPERATOR_NAME="<legal name>"
-APP_LINKS_HOST=<domain> APP_LINKS_BASE_PATH= scripts/build-android.sh   # web build + cap sync + signed APK and AAB
-scripts/build-android.sh --preview                                         # local test release: never upload
+APP_LINKS_HOST=<domain> APP_LINKS_BASE_PATH= scripts/build-android.sh          # retained-renderer release
+APP_LINKS_HOST=<domain> APP_LINKS_BASE_PATH= scripts/build-android.sh --unity  # release with verified Unity export
+
+scripts/build-android.sh --preview            # local retained-renderer package: never upload
+scripts/build-android.sh --preview --unity    # local Unity-linked package: never upload
 ```
 
-The script is the only supported way to build a release:
+`--unity` does not create or repair a Unity export. It first asks Gradle to verify the existing immutable export,
+sets the Android web bridge and Gradle module to the same Unity choice, and then links it. The default build leaves
+Unity out and preserves the retained renderer package. A Unity-linked artifact proves only that the export was
+accepted and packaged; it does not prove that Unity was selected at runtime, passed its device qualification or met
+the player, performance, size or reach gates.
+
+The script is the only supported way to build a release candidate:
 
 * it clears the local-testing switches (`CAP_WEBVIEW_DEBUG`, `CAP_LOCAL_HTTP`);
+* it freezes the build id from `scripts/build-id.sh`, passes that id into the web build and
+  fails if the source identity changes before packaging finishes;
+* it always rebuilds the Android web payload from that source identity; `--skip-web` is rejected;
+* it rejects a duplicate WebGL Unity payload in the Android web bundle;
 * it syncs Capacitor;
 * it passes the App Links host to Gradle;
-* it names preview artifacts `*-PREVIEW-*`.
+* it names preview artifacts `*-PREVIEW-*` and Unity-linked artifacts `*-UNITY-*`;
+* it fails when the APK or AAB artifact preflight exceeds 50,000,000 bytes and warns above 45,000,000 bytes; and
+* it runs the static compatibility preflight for SDK/manifest filters, ARM64 plus ARMv7 packaging, APK/AAB native
+  consistency, 16 KB ZIP alignment and every packaged ELF `PT_LOAD` segment.
+
+That artifact check is deliberately conservative, but it is not an installed-size certificate. The binding Android
+gate is at most 50,000,000 bytes on device after a fresh install reaches the first playable ball. India working reach
+must independently be at least 90.0% on a current weighted snapshot. Definitions, commands and evidence requirements
+are in `docs/ANDROID_SIZE_AND_REACH.md`; both results remain UNPROVEN until the physical/Play evidence exists.
 
 Gradle's `verifyReleaseInputs` task (android/app/build.gradle) also refuses a release build that has no upload
 keystore, no explicit `-PappLinksHost`, WebView debugging or mixed content switched on, or a web bundle that talks to a
 local API. Preview builds (`-PpreviewRelease`) only warn.
 
-Artifacts land in `release/` (gitignored):
+Artifacts land in `release/` (gitignored). The filename contains the frozen build identity, not merely the version:
 
-* `vande-cricket-<version>-<code>-release.aab`: upload this.
-* `…-release.apk`: for device testing.
-* `SHA256SUMS-<version>-<code>.txt`.
+* retained release: `vande-cricket-<version>-<code>-<build-slug>-release.{apk,aab}`;
+* Unity-linked release: `vande-cricket-<version>-<code>-<build-slug>-UNITY-release.{apk,aab}`;
+* retained preview: `vande-cricket-<version>-<code>-<build-slug>-PREVIEW-release.{apk,aab}`;
+* Unity-linked preview: `vande-cricket-<version>-<code>-<build-slug>-PREVIEW-UNITY-release.{apk,aab}`; and
+* checksums: `SHA256SUMS-<version>-<code>-<build-slug>[-PREVIEW][-UNITY].txt`.
+
+`<build-slug>` is the build id with a dirty-tree `+` rendered as `-dirty-` so it is safe in a filename. Record both
+the exact build id printed by the script and the APK/AAB SHA-256 values in the evidence. Only the non-preview AAB is
+an upload candidate. Preview packages may use the debug key, use preview App Links and exist only for local
+inspection; passing their static checks is not release, installed-size or reach evidence.
 
 The script prints `apksigner` certificate details. Check that the signer is `CN=VANDE Upload Key`, not the debug key.
 
 `VITE_BUILD_TARGET=android` (set by the script) leaves the web-only pages (admin console, highlight render page) and
 the web-only social card images out of the app bundle. The privacy and account-deletion pages ship in every build.
 
-R8 and resource shrinking are off for 1.0.0, because Capacitor plugins load through reflection and most of the
-size is the web bundle. Enabling them needs a full pass of `scripts/android-lifecycle.sh` on a minified build.
+R8 and resource shrinking stay off for the retained-renderer package. They are enabled for a Unity-linked release to
+remove unreachable standalone-player resources and Java code; Unity supplies its consumer rules and VANDE's
+reflective host rules remain in `android/app/proguard-rules.pro`. Any keep-rule or shrinker change requires the full
+Practice lifecycle, renderer-selection and physical-device matrix again.
 
 Firebase is configured not to create an installation id or token until the player turns notifications on (manifest
 `firebase_messaging_auto_init_enabled=false`; the push plugin enables it on `register()`).
 
 ## Verify before uploading
 
-1. `npm run typecheck:all`, `npm test`, `npm run test:render`, `npm run test:e2e` and `npm run test:flow` pass.
-2. Smoke on the emulator or a device: `scripts/android-smoke.sh release/vande-cricket-<version>-<code>-release.apk`.
-   It boots the AVD if no device is connected, installs, launches, taps, presses Back, captures screenshots in
-   `release/smoke/`, and fails on any crash or ANR in logcat.
-3. Lifecycle on the emulator or a device: `scripts/android-lifecycle.sh` builds a debug app wired to the local API over
-   `adb reverse` and drives the real WebView with Playwright. It signs up, plays Daily Six, presses Home mid-ball and
-   returns, kills the process mid-ball and relaunches (the same attempt resumes), then finishes with a verified result
-   and checks logcat. The Android tree is reset to a clean bundle afterwards.
-4. On a real mid-range phone, check:
-   * the first Training over
-   * a Friend Duel opened from a WhatsApp link, both with the app installed (App Link) and without it (web → install →
-     the install referrer restores the invite)
-   * locking and batting with flight mode toggled mid-innings (the outbox resends; the result stays sealed)
-   * push permission asked only after the first duel
-   * hardware Back on every screen
-   * the 2D fallback with Low quality
-   * TalkBack on the planner and the reveal
-5. Upload the AAB to an **internal testing** track first and read the Play pre-launch report (crashes, accessibility,
-   security warnings) before promoting.
+1. Freeze one source identity. Record the output of `scripts/build-id.sh`, UTC time and host
+   `uptime`; do not change source while producing or testing the candidate.
+2. `npm run typecheck:all`, `npm test`, `npm run test:render`, `npm run test:e2e` and `npm run test:flow` pass. For a
+   Unity candidate, its Unity tests/export verification must also pass on the same source identity.
+3. Build exactly one intended variant through `scripts/build-android.sh` (add `--unity` only for the Unity-linked
+   candidate). Do not use a preview artifact as the production candidate and do not reuse an older web bundle.
+4. Smoke the exact APK:
+   `scripts/android-smoke.sh release/vande-cricket-<version>-<code>-<build-slug>[-UNITY]-release.apk`. It boots the
+   AVD if no device is connected, installs, launches, taps, presses Back, captures screenshots in `release/smoke/`,
+   and fails on any crash or ANR in logcat. An emulator result is engineering evidence only.
+5. Run the Practice lifecycle harness on a selected Android target. It installs over the existing app without wiping
+   its data and drives the visible Stage 1 flow. For a Unity run use, for example:
+
+   ```sh
+   UNITY=1 ANDROID_SERIAL=<serial> scripts/android-practice.sh \
+     release/practice-android/<build-id>-unity --label unity-native --deliveries 6
+   ```
+
+   A normal harness build freezes the repository build ID and embeds it in the Android web payload. Before any
+   gameplay assertion, the harness reads the installed ID independently from the document root and its frozen
+   evidence surface and requires both to match. `SKIP_BUILD=1` therefore requires an explicit
+   `EXPECTED_BUILD_ID=<exact embedded id>`; the checkout identity is never substituted for an installed artifact.
+   The harness then records the native plugin's exact `{available, reason, unityVersion}` admission result before
+   gameplay. Its separate source-order check is labelled `STATIC_SOURCE_ONLY`: it cannot prove that a physical
+   process avoided class or native-library loading.
+
+   At every acquired live delivery `android-practice.mjs` writes a timestamped `rendererEvidence` row containing:
+
+   * `renderer`, read from root `data-vande-practice-renderer`; the accepted exact values are `unity-native`,
+     `unity-webgl`, `three-webgl` and `classic`, and a missing marker is recorded as `null`;
+   * `admission`, read from root `data-vande-unity-practice`; `engineering-preview-unqualified` means the run is an
+     explicitly unqualified engineering preview, while no such marker is recorded as `null`; and
+   * `admissionReason`, read from `#vande-unity-engineering-preview[data-reason]` when present: `explicit_preview`,
+     `benchmark_unavailable` or `qualification_incomplete`.
+
+   `UNITY=1` fails by default unless the observed renderer is exactly `unity-native`; linking Unity or seeing a
+   generic canvas is not accepted as renderer evidence. Use `--allow-unity-fallback` only for an intentionally named
+   fallback cohort. That flag preserves the observed renderer/admission row but cannot certify Unity. Any row marked
+   `engineering-preview-unqualified` is inspection evidence only and cannot qualify release admission.
+6. On the exact production AAB's Play-equivalent splits, run the complete physical-device matrix in
+   `docs/ANDROID_SIZE_AND_REACH.md`: Stage 1 Random and Predefined Practice, renderer admission before construction,
+   an uninterrupted over, one ten-over thermal/memory session, lifecycle and process replacement, offline play,
+   accessibility, display/safe-area behavior, 4 KB and 16 KB runtime compatibility, and the required per-tier frame
+   and touch-latency samples. Low-memory phones must enter complete Classic directly; unsupported-ABI phones must
+   enter a proven retained Three.js/Classic path. Both decisions must happen before any Unity class/native-library
+   load. Debug harness or emulator success cannot replace these production-split observations.
+7. Run `scripts/check-android-size.mjs` and `scripts/check-android-release-compat.mjs` on the exact APK/AAB (the build
+   script already runs both, so preserve their output). Then obtain the Play installed-size report or equivalent
+   fresh-device `StorageStats` measurement after reaching the first playable ball. APK, AAB, package-code and static
+   results alone do not pass SIZE-50, REACH-90 or the 16 KB runtime gate.
+8. Export a current India-weighted device snapshot, map the physical results to its complete cohorts, count unknown,
+   excluded, skipped and flaky cohorts as zero, and have an independent evaluator reproduce installable reach,
+   working reach and the maximum installed footprint. A Play catalogue model count is not REACH-90 evidence.
+9. Upload only the exact non-preview AAB to an **internal testing** track first. Reconcile Play-generated splits,
+   installed size, device-catalog exclusions, the pre-launch report and 16 KB findings before any promotion.
 
 ## Play Console checklist
 

@@ -19,3 +19,10 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# The Unity C# bridge resolves this class and these public static entrypoints by their literal JNI names through
+# AndroidJavaClass. They are not visible to R8's Java call graph, so a Unity-linked minified release must preserve
+# both the class name and every public static host endpoint. Debug builds do not exercise this boundary.
+-keep class in.vande.cricket.unity.UnityPracticeHost {
+    public static *;
+}
