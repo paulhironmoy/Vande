@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+  <title>VANDE Gate-A golden screen</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-variant-numeric: tabular-nums;
+      background: #02070d;
+      --ink: #f6f3e8;
+      --muted: #bdc4c2;
+      --panel: rgba(5, 12, 20, .82);
+      --panel-quiet: rgba(5, 12, 20, .68);
+      --accent: #2ec9c7;
+      --amber: #f5b033;
+    }
+    * { box-sizing: border-box; }
+    html, body, main { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    main { position: relative; isolation: isolate; background: #061017; user-select: none; }
+    .world { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; }
+    .vignette {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(180deg, rgba(0, 7, 14, .11), transparent 24%, transparent 78%, rgba(0, 4, 8, .10)),
+        linear-gradient(90deg, rgba(0, 6, 12, .10), transparent 22%, transparent 78%, rgba(0, 6, 12, .10));
+      pointer-events: none;
+    }
+    .panel {
+      position: absolute;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: 0 4px 18px rgba(0,0,0,.22);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+    }
+    .score {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: 1fr 9px;
+      padding: 4px 9px 3px 10px;
+      color: var(--ink);
+    }
+    .score strong { font-size: 25px; line-height: 1.05; letter-spacing: -.035em; }
+    .over { align-self: center; color: var(--muted); font-size: 12px; font-weight: 650; }
+    .balls { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; }
+    .balls i { width: 4px; height: 4px; border-radius: 999px; background: rgba(255,255,255,.26); }
+    .balls i.done { background: var(--accent); }
+    .balls i.current { width: 5px; height: 5px; background: var(--amber); box-shadow: 0 0 0 2px rgba(245,176,51,.20); }
+    .conditions {
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      border-radius: 9px;
+      background: var(--panel-quiet);
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 720;
+      letter-spacing: .025em;
+      white-space: nowrap;
+    }
+    .radar {
+      position: absolute;
+      overflow: hidden;
+      background: var(--panel-quiet);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 12px;
+      box-shadow: 0 4px 18px rgba(0,0,0,.22);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+    }
+    .pip-field { position: absolute; inset: 7.5%; border-radius: 50%; background: rgba(7, 36, 28, .90); }
+    .pip-field::after { content: ""; position: absolute; inset: 12%; border: 1px solid rgba(226,237,224,.20); border-radius: 50%; }
+    .pip-pitch { position: absolute; left: 47.4%; top: 28%; width: 5.2%; height: 44%; border-radius: 2px; background: #d1bd8a; opacity: .82; }
+    .marker {
+      position: absolute;
+      left: calc(var(--x) * 1%);
+      top: calc(var(--y) * 1%);
+      width: 4px;
+      height: 4px;
+      margin: -2px;
+      border-radius: 50%;
+      background: #f6f3e8;
+      z-index: 1;
+    }
+    .marker[data-highlight="active-bowler"] { background: var(--accent); }
+    .marker[data-side="batting"] { width: 5px; height: 5px; margin: -2.5px; background: var(--amber); }
+    .pause { display: grid; place-items: center; color: var(--ink); font-size: 20px; font-weight: 750; appearance: none; padding: 0; cursor: default; }
+    .evidence-layer { display: none; position: absolute; inset: 0; pointer-events: none; }
+    body.evidence .evidence-layer { display: block; }
+    .evidence-note {
+      position: absolute;
+      top: 6px;
+      left: 36.5%;
+      width: 38%;
+      color: #53f2f1;
+      text-align: center;
+      font: 700 9px/18px ui-monospace, SFMono-Regular, Menlo, monospace;
+      text-shadow: 0 1px 3px #000;
+    }
+    .reference-label {
+      position: absolute;
+      left: 10px;
+      bottom: 8px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(2,5,8,.88);
+      color: var(--amber);
+      font: 700 8px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .04em;
+    }
+  </style>
+</head>
+<body>
+  <main aria-label="VANDE Gate-A visual-direction prototype">
+    <img class="world" src="photoreal-live-scene-v1.png" alt="">
+    <div class="vignette"></div>
+    <section class="panel score" aria-label="Score, over and completed balls">
+      <strong>28/0</strong><span class="over">3.4</span>
+      <span class="balls" aria-hidden="true"><i class="done"></i><i class="done"></i><i class="done"></i><i class="current"></i><i></i><i></i></span>
+    </section>
+    <div class="panel conditions">BALANCED · NEW · R-ARM FAST · PLAY</div>
+    <div class="radar" aria-label="Compact field setting; bowler end at top, striker end at bottom">
+      <div class="pip-field"><span class="pip-pitch"></span></div>
+    </div>
+    <button class="panel pause" aria-label="Pause">Ⅱ</button>
+    <div class="evidence-layer" aria-hidden="true">
+      <svg width="100%" height="100%" viewBox="0 0 844 390" preserveAspectRatio="none">
+        <rect id="evidence-safe" fill="none" stroke="#53f2f1"/>
+        <rect id="evidence-touch" fill="rgba(245,176,51,.06)" stroke="#f5b033"/>
+        <polygon id="evidence-corridor" fill="rgba(255,71,194,.06)" stroke="#ff47c2" stroke-width="2"/>
+        <rect id="evidence-score" fill="none" stroke="#53f2f1"/>
+        <rect id="evidence-conditions" fill="none" stroke="#53f2f1"/>
+        <rect id="evidence-pip" fill="none" stroke="#53f2f1"/>
+        <rect id="evidence-pause" fill="none" stroke="#53f2f1"/>
+      </svg>
+      <div class="evidence-note"></div>
+      <div class="reference-label">VISUAL DIRECTION · NOT LIVE GAMEPLAY</div>
+    </div>
+  </main>
+  <script id="golden-target" type="application/json">
+  {
+    "viewport":{"width":844,"height":390,"deviceScaleFactor":1},
+    "camera":{"horizontalFovDegrees":58},
+    "referenceCrop":{"mode":"cover","anchorCoordinateSystem":"top-left-normalized","anchor":{"x":0.5,"y":1}},
+    "hud":{"maximumOccupancy":0.08,"score":{"x":10,"y":10,"width":126,"height":46},"conditions":{"x":10,"y":62,"width":146,"height":28},"fieldPip":{"x":750,"y":10,"width":84,"height":84},"pause":{"x":786,"y":100,"width":48,"height":48}},
+    "touch":{"fraction":0.46,"rect":{"x":0,"y":210.6,"width":844,"height":179.4}},
+    "deliveryCorridor":[{"x":337.6,"y":89.7},{"x":481.08,"y":89.7},{"x":616.12,"y":362.7},{"x":270.08,"y":362.7}],
+    "pip":{"orientation":"bowler-end-top-striker-end-bottom","activeBowlerId":"bowler","batter":{"id":"batter","role":"batter","x":0.5,"y":0.72},"defenders":[{"id":"keeper","role":"keeper","x":0.5,"y":0.84},{"id":"bowler","role":"bowler","x":0.5,"y":0.2},{"id":"fielder-01","role":"fielder","x":0.36,"y":0.3},{"id":"fielder-02","role":"fielder","x":0.64,"y":0.3},{"id":"fielder-03","role":"fielder","x":0.25,"y":0.46},{"id":"fielder-04","role":"fielder","x":0.75,"y":0.46},{"id":"fielder-05","role":"fielder","x":0.31,"y":0.66},{"id":"fielder-06","role":"fielder","x":0.69,"y":0.66},{"id":"fielder-07","role":"fielder","x":0.16,"y":0.77},{"id":"fielder-08","role":"fielder","x":0.84,"y":0.77},{"id":"fielder-09","role":"fielder","x":0.5,"y":0.52}]}
+  }
+  </script>
+  <script>
+    const target = JSON.parse(document.querySelector('#golden-target').textContent);
+    const rectStyle = (element, rect) => Object.assign(element.style, {
+      left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px`
+    });
+    const svgRect = (id, rect, inset = 0) => {
+      const element = document.querySelector(id);
+      element.setAttribute('x', rect.x + inset);
+      element.setAttribute('y', rect.y + inset);
+      element.setAttribute('width', rect.width - inset * 2);
+      element.setAttribute('height', rect.height - inset * 2);
+    };
+    const main = document.querySelector('main');
+    main.dataset.horizontalFovDegrees = String(target.camera.horizontalFovDegrees);
+    main.dataset.pipOrientation = target.pip.orientation;
+    const world = document.querySelector('.world');
+    world.style.objectFit = target.referenceCrop.mode;
+    world.style.objectPosition = `${target.referenceCrop.anchor.x * 100}% ${target.referenceCrop.anchor.y * 100}%`;
+    rectStyle(document.querySelector('.score'), target.hud.score);
+    rectStyle(document.querySelector('.conditions'), target.hud.conditions);
+    rectStyle(document.querySelector('.radar'), target.hud.fieldPip);
+    rectStyle(document.querySelector('.pause'), target.hud.pause);
+    const field = document.querySelector('.pip-field');
+    const addMarker = (marker, side) => {
+      const element = document.createElement('i');
+      element.className = 'marker';
+      element.dataset.id = marker.id;
+      element.dataset.role = marker.role;
+      element.dataset.side = side;
+      if (marker.id === target.pip.activeBowlerId) element.dataset.highlight = 'active-bowler';
+      element.style.setProperty('--x', marker.x * 100);
+      element.style.setProperty('--y', marker.y * 100);
+      field.appendChild(element);
+    };
+    addMarker(target.pip.batter, 'batting');
+    target.pip.defenders.forEach((marker) => addMarker(marker, 'defending'));
+    svgRect('#evidence-safe', { x: 0, y: 0, width: target.viewport.width, height: target.viewport.height }, 0.5);
+    svgRect('#evidence-touch', target.touch.rect);
+    svgRect('#evidence-score', target.hud.score);
+    svgRect('#evidence-conditions', target.hud.conditions);
+    svgRect('#evidence-pip', target.hud.fieldPip);
+    svgRect('#evidence-pause', target.hud.pause);
+    document.querySelector('#evidence-corridor').setAttribute('points', target.deliveryCorridor.map(({ x, y }) => `${x},${y}`).join(' '));
+    const occupied = ['score', 'conditions', 'fieldPip', 'pause'].map((key) => target.hud[key].width * target.hud[key].height).reduce((sum, value) => sum + value, 0);
+    document.querySelector('.evidence-note').textContent = `EVALUATOR OVERLAY · HUD ${(occupied / (target.viewport.width * target.viewport.height) * 100).toFixed(1)}% · TOUCH ${target.touch.fraction * 100}%`;
+    const params = new URLSearchParams(location.search);
+    document.body.classList.toggle('evidence', params.get('evidence') === '1');
+  </script>
+</body>
+</html>

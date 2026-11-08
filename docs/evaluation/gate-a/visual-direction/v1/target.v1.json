@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "status": "STATIC_TARGET_ONLY_NOT_GATE_A_EVIDENCE",
+  "composition": {
+    "viewport": {
+      "width": 844,
+      "height": 390,
+      "deviceScaleFactor": 1
+    },
+    "camera": {
+      "horizontalFovDegrees": 58
+    },
+    "referenceCrop": {
+      "mode": "cover",
+      "anchorCoordinateSystem": "top-left-normalized",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      }
+    },
+    "hud": {
+      "maximumOccupancy": 0.08,
+      "score": {
+        "x": 10,
+        "y": 10,
+        "width": 126,
+        "height": 46
+      },
+      "conditions": {
+        "x": 10,
+        "y": 62,
+        "width": 146,
+        "height": 28
+      },
+      "fieldPip": {
+        "x": 750,
+        "y": 10,
+        "width": 84,
+        "height": 84
+      },
+      "pause": {
+        "x": 786,
+        "y": 100,
+        "width": 48,
+        "height": 48
+      }
+    },
+    "touch": {
+      "fraction": 0.46,
+      "rect": {
+        "x": 0,
+        "y": 210.6,
+        "width": 844,
+        "height": 179.4
+      }
+    },
+    "deliveryCorridor": [
+      { "x": 337.6, "y": 89.7 },
+      { "x": 481.08, "y": 89.7 },
+      { "x": 616.12, "y": 362.7 },
+      { "x": 270.08, "y": 362.7 }
+    ],
+    "pip": {
+      "orientation": "bowler-end-top-striker-end-bottom",
+      "activeBowlerId": "bowler",
+      "batter": {
+        "id": "batter",
+        "role": "batter",
+        "x": 0.5,
+        "y": 0.72
+      },
+      "defenders": [
+        { "id": "keeper", "role": "keeper", "x": 0.5, "y": 0.84 },
+        { "id": "bowler", "role": "bowler", "x": 0.5, "y": 0.2 },
+        { "id": "fielder-01", "role": "fielder", "x": 0.36, "y": 0.3 },
+        { "id": "fielder-02", "role": "fielder", "x": 0.64, "y": 0.3 },
+        { "id": "fielder-03", "role": "fielder", "x": 0.25, "y": 0.46 },
+        { "id": "fielder-04", "role": "fielder", "x": 0.75, "y": 0.46 },
+        { "id": "fielder-05", "role": "fielder", "x": 0.31, "y": 0.66 },
+        { "id": "fielder-06", "role": "fielder", "x": 0.69, "y": 0.66 },
+        { "id": "fielder-07", "role": "fielder", "x": 0.16, "y": 0.77 },
+        { "id": "fielder-08", "role": "fielder", "x": 0.84, "y": 0.77 },
+        { "id": "fielder-09", "role": "fielder", "x": 0.5, "y": 0.52 }
+      ]
+    }
+  },
+  "artifacts": [
+    {
+      "path": "photoreal-live-scene-v1.png",
+      "status": "VISUAL_DIRECTION_REFERENCE_ONLY",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2877947,
+      "sha256": "7ad65fcbfa2574ff04964bbddc5010d62bdc89b49595aa954a7ce448f5336b22"
+    },
+    {
+      "path": "golden-screen-v2-844x390.png",
+      "status": "CURRENT_STATIC_TARGET_NOT_RUNTIME_EVIDENCE",
+      "width": 844,
+      "height": 390,
+      "bytes": 627457,
+      "sha256": "f7e70b281a7127ae0f2eead9f4f5e1fb4e60c220eec9ae0a94ec7c58b59a97e9"
+    },
+    {
+      "path": "golden-screen-v2-evidence-844x390.png",
+      "status": "CURRENT_STATIC_EVALUATOR_OVERLAY_NOT_RUNTIME_EVIDENCE",
+      "width": 844,
+      "height": 390,
+      "bytes": 620779,
+      "sha256": "9c8611e6a44b90b1eda2bc576de1138bd48858e6469c2690a49ec5055cedf099"
+    },
+    {
+      "path": "golden-screen-844x390.png",
+      "status": "SUPERSEDED_PIP_COUNT_AND_CROP_ANCHOR_DEFECT",
+      "width": 844,
+      "height": 390,
+      "bytes": 632909,
+      "sha256": "d75e208a0363a5905937ef795076b4ccabda90d6ab3eb6e43ae1c5d687caaa57"
+    },
+    {
+      "path": "golden-screen-evidence-844x390.png",
+      "status": "SUPERSEDED_PIP_COUNT_AND_CROP_ANCHOR_DEFECT",
+      "width": 844,
+      "height": 390,
+      "bytes": 626345,
+      "sha256": "d280e70a9dda6d14474ac2696d0bf3253b022c35806396af9db38bf874adc712"
+    },
+    {
+      "path": "superseded-radar-defect-844x390.png",
+      "status": "SUPERSEDED_RADAR_POSITIONING_DEFECT",
+      "width": 844,
+      "height": 390,
+      "bytes": 629501,
+      "sha256": "36b0ed8d151ad74766ab1d4437dc8aed8a7c7259756d773a5441f3c337d71558"
+    },
+    {
+      "path": "superseded-radar-defect-evidence-844x390.png",
+      "status": "SUPERSEDED_RADAR_POSITIONING_DEFECT",
+      "width": 844,
+      "height": 390,
+      "bytes": 623658,
+      "sha256": "421adb2384ecc46fe7cc2dbb77c05c174b1c1051fc33d97105ff76acc8bef593"
+    }
+  ]
+}

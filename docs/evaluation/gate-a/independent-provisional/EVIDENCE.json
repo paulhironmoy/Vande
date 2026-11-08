@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "recordedUtc": "2026-10-29T01:18:31Z",
+  "evaluator": "/root/gate_a_independent_review",
+  "evaluatorIndependence": {
+    "authoredGoldenReference": false,
+    "authoredExactViewportComposition": false,
+    "authoredUnityPrototype": false,
+    "authoredCaptureTooling": false,
+    "authoredAssetMap": false,
+    "ranBuild": false,
+    "modifiedRuntimeSource": false
+  },
+  "scope": "Stage 1 Gate A production-feasible golden screen",
+  "sourceObservation": {
+    "buildId": "38924bd+016337888b55",
+    "frozenCandidate": false,
+    "hostUptime": "18:18  1 user, load averages: 30.92 73.15 53.11",
+    "timingClaimAllowed": false
+  },
+  "verdict": "NOT_PASSED",
+  "provisionalGateAEvidenceScore": {
+    "points": 52,
+    "maximum": 100,
+    "scoreOutOf10": 5.2,
+    "lockedRubricScore": false,
+    "humanOrPlayerScore": false,
+    "hardRequirementsOverrideScore": true
+  },
+  "artifacts": [
+    {
+      "path": "docs/evaluation/gate-a/visual-direction/v1/photoreal-live-scene-v1.png",
+      "sha256": "7ad65fcbfa2574ff04964bbddc5010d62bdc89b49595aa954a7ce448f5336b22",
+      "classification": "ai_assisted_static_direction_only"
+    },
+    {
+      "path": "docs/evaluation/gate-a/visual-direction/v1/golden-screen-844x390.png",
+      "sha256": "d75e208a0363a5905937ef795076b4ccabda90d6ab3eb6e43ae1c5d687caaa57",
+      "classification": "corrected_exact_viewport_html_direction"
+    },
+    {
+      "path": "docs/evaluation/gate-a/visual-direction/v1/golden-screen-evidence-844x390.png",
+      "sha256": "d280e70a9dda6d14474ac2696d0bf3253b022c35806396af9db38bf874adc712",
+      "classification": "corrected_exact_viewport_html_evidence_overlay"
+    },
+    {
+      "path": "docs/evaluation/gate-a/visual-direction/v1/superseded-radar-defect-844x390.png",
+      "sha256": "36b0ed8d151ad74766ab1d4437dc8aed8a7c7259756d773a5441f3c337d71558",
+      "classification": "rejected_preserved_artifact"
+    },
+    {
+      "path": "docs/evaluation/gate-a/visual-direction/v1/superseded-radar-defect-evidence-844x390.png",
+      "sha256": "421adb2384ecc46fe7cc2dbb77c05c174b1c1051fc33d97105ff76acc8bef593",
+      "classification": "rejected_preserved_artifact"
+    }
+  ],
+  "requirements": {
+    "exactCurrentSourceAndroidScreen": "MISSING",
+    "exactTargetComposition": "PARTIAL_STATIC_DIRECTION",
+    "correctedStaticCorridorAndPip": "PASS_DIRECTION_ONLY",
+    "acceptedProductionUnityTarget": "MISSING",
+    "perVisibleItemImplementationMap": "PARTIAL",
+    "verifiedProductionSourcesAndLicences": "MISSING",
+    "measuredImportInstalledMemoryCost": "MISSING",
+    "currentTargetSideBySide": "MISSING",
+    "independentProvisionalReview": "PRESENT",
+    "ownerApproval": "NOT_RECORDED"
+  },
+  "resolvedFindings": [
+    {
+      "id": "GA-IP-001",
+      "originalFinding": "Field radar positioning spread pitch and markers across the protected corridor.",
+      "result": "CORRECTED_IN_844X390_STATIC_ARTIFACT",
+      "retest": "Independent visual inspection of corrected normal and evidence PNGs finds the populated PIP outside the corridor.",
+      "failedEvidencePreserved": true
+    }
+  ],
+  "openFindings": [
+    { "id": "GA-IP-002", "kind": "CRITICAL_PROMOTION_BLOCKER", "summary": "Production assets and accepted bindings are absent." },
+    { "id": "GA-IP-003", "kind": "GATE_BLOCKER", "summary": "Exact-current Android capture and side-by-side are absent." },
+    { "id": "GA-IP-004", "kind": "HIGH_PROMOTION_BLOCKER", "summary": "Displayed target is static HTML/reference compositing, not accepted Unity gameplay." },
+    { "id": "GA-IP-005", "kind": "MEDIUM_EVIDENCE_CONTRACT_WEAKNESS", "summary": "Readiness trusts declarations rather than immutable provenance/import/rig validation." },
+    { "id": "GA-IP-006", "kind": "MEDIUM_EVIDENCE_CONTRADICTION", "summary": "58-degree runtime versus 64-degree documentation conflict remains unresolved." },
+    { "id": "GA-IP-007", "kind": "GATE_BLOCKER", "summary": "Mobile cost, installed size, memory and reach are unmeasured." },
+    { "id": "GA-IP-008", "kind": "HIGH_PROMOTION_BLOCKER", "summary": "Accessibility, locale, handedness and cutout variants are unobserved." },
+    { "id": "GA-IP-009", "kind": "MEDIUM_EVIDENCE_CONTENT_GAP", "summary": "Static HTML PIP is not bound to a proven canonical 11-fielder field." }
+  ],
+  "notScored": [
+    "ball_readability_in_motion",
+    "player_control",
+    "physics_visual_coherence",
+    "animation_contact_fielding_crowd_audio",
+    "performance",
+    "physical_device_quality",
+    "rookie_expert_human_preference",
+    "CERI",
+    "competitor_superiority"
+  ],
+  "android": {
+    "freshInstalledThroughFirstBallBytes": null,
+    "size50": "UNPROVEN",
+    "indiaWeightedWorkingReachPercent": null,
+    "reach90": "UNPROVEN"
+  },
+  "smallestNextAction": "Bind the review to one frozen exact-current Android build/renderer capture and replace planning-only production asset rows with verified source, licence and measured import evidence."
+}
