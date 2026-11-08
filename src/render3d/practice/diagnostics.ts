@@ -7,11 +7,13 @@
  */
 import type { DeliveryResult, LbwReason, SwingTiming, Vec3 as PVec3 } from '@/contracts/practice';
 import { batterBody } from '@/physics/bat';
+import { applyBatterPosture, translateBatterBody } from '@/physics/admissibility';
 import type { Vec3 } from '../core/math';
 import { sweetSpot } from './bat';
+import { presentedBounce } from './feedback';
 import { ballAt, batAt, batToWorld, simToScene, toWorld, type BatPose } from './frame';
 
-export interface DiagnosticArrow {
+interface DiagnosticArrow {
   from: Vec3;
   /** Unit direction on the ground. */
   dir: Vec3;
@@ -57,7 +59,7 @@ const OUTGOING_MAX_S = 2.6;
 const GHOSTS = 5;
 
 /** Ground direction of a bearing (degrees from straight, + = off side) in the world. */
-export function bearingDir(bearingDeg: number, mirror: boolean): Vec3 {
+function bearingDir(bearingDeg: number, mirror: boolean): Vec3 {
   const a = (bearingDeg * Math.PI) / 180;
   return toWorld({ x: Math.sin(a), y: 0, z: -Math.cos(a) }, mirror);
 }
@@ -104,22 +106,24 @@ export function buildDiagnostics(result: DeliveryResult, releaseScene: number, m
   if (result.bat.length) {
     const t0 = result.bat[0].t;
     const tc = c.t ?? result.flight.idealContactT;
+    const batContactT = c.kind === 'middle' || c.kind.endsWith('_edge') ? c.t : null;
+    const velocityPeakT = result.batterMotion?.contactT ?? null;
     const t1 = Math.min(result.bat.at(-1)!.t, tc + 0.12);
     for (let t = t0; t <= t1 + 1e-9; t += 0.008) {
-      const pose = batAt(result.bat, t);
+      const pose = batAt(result.bat, t, batContactT, velocityPeakT);
       if (!pose) continue;
       batPath.push(w(sweetSpot(pose)));
       batPathT.push(simToScene(tb, t));
     }
     for (let k = 0; k < GHOSTS; k++) {
       const tk = t0 + ((tc - t0) * k) / GHOSTS;
-      const pose = batAt(result.bat, tk);
+      const pose = batAt(result.bat, tk, batContactT, velocityPeakT);
       if (pose) {
         ghosts.push(batToWorld(pose, mirror));
         ghostT.push(simToScene(tb, tk));
       }
     }
-    const atC = batAt(result.bat, tc);
+    const atC = batAt(result.bat, tc, batContactT, velocityPeakT);
     batAtContact = atC ? batToWorld(atC, mirror) : null;
   }
   const idealP = ballAt(result.ball, result.flight.idealContactT) ?? ballAt(result.flight.samples, result.flight.idealContactT);
@@ -142,8 +146,16 @@ export function buildDiagnostics(result: DeliveryResult, releaseScene: number, m
     lbw = { impact: w(result.lbw.impact), path, projected: w(result.lbw.projected), out: result.lbw.out, reason: result.lbw.reason, at: simToScene(tb, tHit) };
   }
   const padOrBody = c.kind === 'pad' || c.kind === 'body' || result.lbw !== null;
-  const bodyOf = padOrBody ? batterBody(result.footwork, result.flight) : null;
+  const bodyOf = padOrBody
+    ? translateBatterBody(
+        applyBatterPosture(batterBody(result.footwork, result.flight), result.batterPosture.crouchM),
+        result.batterRootOffset,
+      )
+    : null;
   const body = bodyOf ? [...bodyOf.pads, bodyOf.torso, { a: bodyOf.head.c, b: bodyOf.head.c, r: bodyOf.head.r }].map((k) => ({ a: w(k.a), b: w(k.b), r: k.r })) : null;
+  // Where it pitched: only a pitch the replayed ball makes (COH4). A ball met on the full, or bowled or taken before
+  // its planned pitch, has no pitch marker.
+  const pitch = result.flight.bounce && presentedBounce(result, result.flight.bounce) ? result.flight.bounce : null;
   return {
     lbw,
     body,
@@ -152,7 +164,7 @@ export function buildDiagnostics(result: DeliveryResult, releaseScene: number, m
     outgoing,
     outgoingT,
     release: w(result.flight.release.p),
-    bounce: result.flight.bounce ? w(result.flight.bounce.p) : null,
+    bounce: pitch ? w(pitch.p) : null,
     ideal: idealP ? w(idealP) : null,
     contact: contactP,
     batPath,
@@ -167,7 +179,7 @@ export function buildDiagnostics(result: DeliveryResult, releaseScene: number, m
     timing: c.timing,
     times: {
       release: releaseScene,
-      bounce: result.flight.bounce ? simToScene(tb, result.flight.bounce.t) : null,
+      bounce: pitch ? simToScene(tb, pitch.t) : null,
       ideal: simToScene(tb, result.flight.idealContactT),
       contact: c.t !== null ? simToScene(tb, c.t) : null,
       end: outgoingT.at(-1) ?? incomingT.at(-1) ?? releaseScene,

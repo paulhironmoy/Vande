@@ -124,8 +124,8 @@ async function main() {
     release: 0,
   };
   window.__p = api;
-  // A real press on the canvas starts the swing at the event's own timestamp (input-to-bat latency measurement).
-  canvas.addEventListener('pointerdown', (e) => stage.beginSwing(eventTime(e), 0));
+  // A real press acknowledges the grip, matching the app's raw-press route (input-to-visible-response measurement).
+  canvas.addEventListener('pointerdown', (e) => stage.prepareSwing(eventTime(e)));
   if (!manual) {
     setInterval(() => {
       const s = stage.stats();

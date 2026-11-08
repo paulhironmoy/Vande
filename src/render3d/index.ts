@@ -55,6 +55,26 @@ export async function createMatchRenderer(opts: CreateRendererOptions = {}): Pro
 }
 
 let practiceChunk: Promise<unknown> | null = null;
+let classicChunk: Promise<typeof import('./fallback2d/Fallback2DPracticeStage')> | null = null;
+
+/** Classic Practice's code, fetched once and kept (a failed fetch is forgotten, so a later call tries again). */
+function loadClassicStage(): Promise<typeof import('./fallback2d/Fallback2DPracticeStage')> {
+  classicChunk ??= import('./fallback2d/Fallback2DPracticeStage').catch((err: unknown) => {
+    classicChunk = null;
+    throw err;
+  });
+  return classicChunk;
+}
+
+/**
+ * Fetches Classic Practice's code now, while the network is there, so a later hand-over to Classic (a step down, a lost
+ * graphics context, a new innings on a device placed in Classic) never needs a request: F-025, where a session that
+ * went offline mid-over could not load it and stayed on "Getting the ground ready…". The first-person stage calls it
+ * as soon as it is created. Never throws.
+ */
+export function preloadClassicStage(): void {
+  loadClassicStage().catch(() => undefined);
+}
 
 /**
  * Starts fetching the Practice stage's code (the 3D stage, or Classic Practice without WebGL 2) so the first delivery
@@ -62,7 +82,7 @@ let practiceChunk: Promise<unknown> | null = null;
  */
 export function preloadPracticeStage(): void {
   if (practiceChunk) return;
-  practiceChunk = (webglAvailable() ? import('./three/ThreePracticeStage') : import('./fallback2d/Fallback2DPracticeStage')).catch(() => {
+  practiceChunk = (webglAvailable() ? import('./three/ThreePracticeStage') : loadClassicStage()).catch(() => {
     practiceChunk = null;
   });
 }
@@ -70,14 +90,16 @@ export function preloadPracticeStage(): void {
 /**
  * Creates the Practice stage: first-person 3D when WebGL 2 works, otherwise (or with `force2d`) Classic Practice on
  * Canvas 2D. Both implement PracticeStage and are code-split, so three.js loads only when the 3D stage is made. If the
- * 3D stage's mount throws or it emits 'fallback', dispose it and create one with { force2d: true }.
+ * 3D stage's mount throws or it emits 'fallback', dispose it and create one with { force2d: true }. Making the 3D stage
+ * also fetches Classic's code (preloadClassicStage), so falling back later works offline.
  */
 export async function createPracticeStage(opts: { force2d?: boolean } = {}): Promise<PracticeStage> {
   if (!opts.force2d && webglAvailable()) {
     const { ThreePracticeStage } = await import('./three/ThreePracticeStage');
+    preloadClassicStage();
     return new ThreePracticeStage();
   }
-  const { Fallback2DPracticeStage } = await import('./fallback2d/Fallback2DPracticeStage');
+  const { Fallback2DPracticeStage } = await loadClassicStage();
   return new Fallback2DPracticeStage();
 }
 

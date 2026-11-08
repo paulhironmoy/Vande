@@ -19,8 +19,11 @@ import type {
   TimingGrade,
   WicketKind,
 } from '@/contracts';
-import { type ActorTrack, type Look, type Move, evaluateActor } from './actors';
-import { type ClipId, clipDuration, clipMarker } from './clips';
+import { type ActorTrack, type Look, type Move, evaluateActor, lookScale } from './actors';
+import { type ClipId, type MotionSource, clipDuration, clipMarker, createPose, registerComposedMotion, sampleClip } from './clips';
+import { canComposeBouncer, canComposeRunup, composeRunup, planRunup, type ComposedRunup, type RunupAction } from './motion/bowlerRunup';
+import { createJoints, forwardKinematics, twoBoneIK } from './locomotion';
+import { BONE_INDEX } from './skeleton';
 import {
   BALL_R,
   BOUNDARY_R,
@@ -39,7 +42,7 @@ import {
   keeperPos,
   runUpLength,
 } from './ground';
-import { type Vec3, DEG, add, clamp, dist2D, headingOf, lerp, lerpV, seededStream, sub, v3 } from './math';
+import { type Vec3, DEG, add, angleDelta, clamp, dist2D, headingOf, lerp, lerpV, seededStream, sub, v3 } from './math';
 import { type AimPathOptions, type AimedPath, type BallPathSim, type DeliveryFlight, STUMPS_FRONT_Z, aimPath, buildFlight, familyOf, flyFrom } from './trajectory';
 import type { BallSample as PhysicsBallSample, PitchCondition } from '@/contracts/practice';
 import type { AimMode } from '@/physics/aim';
@@ -52,14 +55,43 @@ import { ballAt } from '../practice/frame';
 // ---------------------------------------------------------------------------------------------------------------
 
 export type BallSeg =
-  | { k: 'hand'; t0: number; t1: number; actor: string }
+  | {
+      k: 'hand';
+      t0: number;
+      t1: number;
+      actor: string;
+      /**
+       * A physics take → throw hold (Practice): the ball leaves the physics path at t0 for the hand, from exactly the
+       * physics take position (over `inMs`), and comes back onto the path at exactly the physics release point by t1
+       * (over `outMs`). The flight before and after is the physics'.
+       */
+      path?: { samples: readonly PhysicsBallSample[]; release: number; mirror: boolean; inMs: number; outMs: number };
+      /** Held for a throw: drawn at the throwing hand (`<actor>:throw`), also for the keeper. */
+      throwHand?: boolean;
+    }
   | { k: 'gone'; t0: number; t1: number }
   /**
    * The ball on a physics path (src/physics): `release` is the scene time of the simulation's t = 0; positions are in
    * the striker's own frame, mirrored back for a left-hander (Practice). The ball holds the last sample until the next
    * segment (at rest, at the rope, in the hands). Spin is the seam's rotation (radians per scene ms).
    */
-  | { k: 'path'; t0: number; t1: number; samples: readonly PhysicsBallSample[]; release: number; mirror: boolean; spinAxis?: Vec3; spinRate?: number };
+  | {
+      k: 'path';
+      t0: number;
+      t1: number;
+      samples: readonly PhysicsBallSample[];
+      release: number;
+      mirror: boolean;
+      /** Axis the rigid ball rotates around. */
+      spinAxis?: Vec3;
+      spinRate?: number;
+      /** Scene-time epoch for spin angle; legacy paths default to release. */
+      spinOrigin?: number;
+      /** Release orientation of the seam plane, polished pole and one non-collinear material tangent. */
+      seamAxis?: Vec3;
+      shineAxis?: Vec3;
+      surfaceTangent?: Vec3;
+    };
 
 export type SceneEventKind =
   | 'release'
@@ -91,14 +123,14 @@ export interface SceneEvent {
   at?: Vec3;
 }
 
-export interface StumpHit {
+interface StumpHit {
   t: number;
   dir: Vec3;
   strength: number;
 }
 
-export type OverlayKind = 'speed' | 'dot' | 'runs' | 'four' | 'six' | 'wicket' | 'sealed' | 'super_ball';
-export interface OverlayItem {
+type OverlayKind = 'speed' | 'dot' | 'runs' | 'four' | 'six' | 'wicket' | 'sealed' | 'super_ball';
+interface OverlayItem {
   t: number;
   kind: OverlayKind;
   value?: number;
@@ -171,7 +203,6 @@ const DELIVERY_CLIP: Record<BowlerAction, ClipId> = {
   spin_leg: 'bowl_leg_spin',
 };
 const STRIDE: Record<BowlerAction, number> = { pace_long: 3.3, pace_short: 2.8, swing_side_on: 3.1, spin_off: 1.5, spin_leg: 1.7 };
-const FOLLOW: Record<BowlerAction, number> = { pace_long: 7, pace_short: 6, swing_side_on: 6.5, spin_off: 2.4, spin_leg: 3 };
 const SPRINT = 7.4;
 const RUN_BETWEEN_MS = 2250;
 const CREASE_Z = PITCH_HALF - POPPING;
@@ -242,7 +273,7 @@ export function actionForFamily(family: DeliveryFamily, variant?: string, intens
 }
 
 /** Shot animation and footwork for a live shot (no outcome yet). */
-export function liveShotAnim(shot: ShotType, contact: Contact, zone: FieldZone | null, length: string): { anim: BatterAnim; footwork: BallOutcome['cues']['footwork'] } {
+function liveShotAnim(shot: ShotType, contact: Contact, zone: FieldZone | null, length: string): { anim: BatterAnim; footwork: BallOutcome['cues']['footwork'] } {
   const legSide = zone ? ZONE_BEARING[zone] < 0 : false;
   let anim: BatterAnim;
   let footwork: BallOutcome['cues']['footwork'];
@@ -451,7 +482,7 @@ function conditionsOf(pitch: PitchId | undefined): PitchCondition {
   return pitch ? CONDITIONS_FOR_PITCH[pitch] : 'balanced';
 }
 
-export function bearingOf(p: Vec3): number {
+function bearingOf(p: Vec3): number {
   return Math.atan2(p.x, CONTACT_Z - p.z) / DEG;
 }
 
@@ -481,6 +512,13 @@ export interface BowlerRunInput {
   maxRunMs?: number;
   /** Stand at the top of the mark this long first (ms). */
   preMs?: number;
+  /**
+   * Where the follow-through comes to rest (world; Practice: the physics bowler's spot). Default: straight on from the
+   * release, drifting off the pitch on the bowling side.
+   */
+  followTo?: Vec3;
+  /** A pace bouncer: MOTION-BOWL's bouncer delivery in place of the stock one (composed run-up only). */
+  variant?: 'bouncer';
 }
 
 export interface BowlerRun {
@@ -491,6 +529,180 @@ export interface BowlerRun {
   deliveryEnd: number;
   /** Clip seconds from the start of the delivery stride to the release. */
   releaseMarker: number;
+  /** Scene ms the follow-through comes to rest, and where. */
+  followDone: number;
+  followEnd: Vec3;
+}
+
+/**
+ * Root speed (m/s) through the action, as fractions of the run-up's top speed: arriving at the gather, and at the
+ * release (the front-foot landing has taken a good part of it). One continuous speed curve: it rises from a standstill
+ * (Hermite, no step), carries through the gather and the delivery stride, and the follow-through brakes it to rest.
+ */
+const GATHER_SPEED = 0.95;
+/** The run-up's mean speed as a share of its arrival speed (a smooth acceleration from a standstill). */
+const RUN_MEAN_SHARE = 1 / 1.6;
+/** Default follow-through: braked to rest over this long (s). */
+const FOLLOW_S: Record<BowlerAction, number> = { pace_long: 1.55, pace_short: 1.4, swing_side_on: 1.5, spin_off: 1.15, spin_leg: 1.2 };
+/** The walking pace of the clips' walk cycle (m/s at rate 1). */
+export const WALK_CLIP_MPS = 1.4;
+
+/** Composed run-ups, per action and release time (the composition is deterministic; registered once). */
+const composedRuns = new Map<string, ComposedRunup | null>();
+
+/**
+ * How the composed run-up opens (see composedBowlerRun). `launchMs`: the root's speed rises from rest to the clip's own
+ * over this long, as a smoothstep share of it (the root's peak acceleration is about 1.5·v/launchMs: 4-5 m/s² at 800 ms
+ * against 9-14 m/s² for the old fast-forward, and 0.3 m/s per frame is the most the root may step). `inertialMs`: the
+ * idle pose is handed over to the clip by an inertialized transition of this length (the owner's rolling start).
+ */
+const RUN_START = Object.freeze({ launchMs: 800, inertialMs: 300 });
+
+const standJoints = createJoints();
+/**
+ * The bowler at the top of his mark, as a composed clip the run-up opens from: the idle pose with its legs as the
+ * planted-feet plan holds them between balls (knees bent about 24° by the IK's soft reach: humansHook, locomotion
+ * plantFeet). That plan blends nothing by its weight, so a straight-legged first frame would snap both knees on frame 1
+ * (1339°/s against the 1200 cap) and again against the scene between balls it replaces.
+ */
+const STAND: MotionSource = {
+  duration: clipDuration('idle'),
+  loop: true,
+  speedMps: 0,
+  markers: {},
+  sample: (t, out) => {
+    sampleClip('idle', t, out);
+    forwardKinematics(out, standJoints);
+    for (const side of ['L', 'R'] as const) {
+      const f = BONE_INDEX[`foot${side}`] * 3;
+      twoBoneIK(out, standJoints, `thigh${side}`, `shin${side}`, `foot${side}`, [standJoints.p[f], standJoints.p[f + 1], standJoints.p[f + 2]], 1, [0, 0, 1], true);
+      forwardKinematics(out, standJoints);
+    }
+  },
+};
+
+/** The composer's action for a bowler action. */
+export const runupActionOf = (a: BowlerAction): RunupAction => (a === 'spin_off' ? 'off' : a === 'spin_leg' ? 'leg' : 'pace');
+
+/**
+ * The pace run-up from MOTION-BOWL's cleared clips (core/motion/bowlerRunup.ts), when they are loaded: the composed
+ * clip's ground placed rigidly so that the bowler's root is at `releaseRoot` at the release (the stage's measured
+ * release hand then puts the ball exactly on the physics release point), the release exactly at `release`. A plan that
+ * needs a rolling start (the run-up is shorter than the shortest standing one) opens mid-walk, `preRoll` seconds into
+ * `bowl_start`, and plays at the clips' own rate 1.0 from there: no fast-forward, so the cadence is the clips' (it was
+ * up to +51% over the MOTION-SPEC §9 band at 1.91×) and the steps shorten as the speed rises. The bowler's idle pose
+ * hands over to it by an inertial blend (RUN_START.inertialMs), and his root leaves rest by a smooth ramp over
+ * RUN_START.launchMs (it never steps in speed), arriving on the clip's own ground track at the end of it: he stands
+ * that much further on than the track's start. Followed by the procedural follow-through to `followTo`. Null when the
+ * clips are not loaded.
+ */
+function composedBowlerRun(input: BowlerRunInput, release: number, releaseRoot: Vec3, followTo: Vec3 | null): BowlerRun | null {
+  const ra = runupActionOf(input.action);
+  if (!canComposeRunup(ra)) return null;
+  const bouncer = input.variant === 'bouncer' && ra === 'pace' && canComposeBouncer();
+  const key = `${ra}_${Math.round(release)}${bouncer ? '_bouncer' : ''}`;
+  let c = composedRuns.get(key);
+  if (c === undefined) {
+    const plan = planRunup(release / 1000, ra);
+    c = plan ? composeRunup(plan, { a: createPose(), b: createPose() }, bouncer ? 'bouncer' : null) : null;
+    composedRuns.set(key, c);
+  }
+  if (!c) return null;
+  registerComposedMotion(`runup_${key}`, c.source);
+  const clip = `vmp:runup_${key}` as const;
+  const m = input.mirror ? -1 : 1;
+  const pre = c.plan.preRoll;
+  // Visible scene s (s) → composed time: the clips' own rate, the rolling start's lead-in skipped (not fast-forwarded).
+  const clock = (sec: number) => sec + pre;
+  const gRel = c.source.ground!(c.tRelease);
+  // The clip's ground track at the rig's own scale (its strides are drawn that long), placed on the release root.
+  const k = lookScale(input.look);
+  const at = (ct: number): Vec3 => {
+    const g = c!.source.ground!(ct);
+    return v3(releaseRoot.x + (g.x - gRel.x) * m * k, 0, releaseRoot.z + (g.z - gRel.z) * k);
+  };
+  const endScene = (c.tEnd - pre) * 1000;
+  const moves: Move[] = [];
+  const stepMs = 1000 / 30;
+  // The clip's ground speed (m/s) at a visible time, by a central difference.
+  const trackSpeed = (sec: number) => {
+    const a = at(clock(Math.max(0, sec - 0.006)));
+    const b = at(clock(sec + 0.006));
+    return Math.hypot(b.x - a.x, b.z - a.z) / (sec + 0.006 - Math.max(0, sec - 0.006));
+  };
+  // The root leaves rest by a smoothstep share of the clip's speed over the launch, then is the clip's: it stands
+  // `lag(0)` further on along the track, which is the distance the slower start gives up (zero from the launch's end).
+  const launchS = Math.min(RUN_START.launchMs, endScene - 1) / 1000;
+  const launchShare = (sec: number) => {
+    const u = clamp(sec / launchS, 0, 1);
+    return u * u * (3 - 2 * u);
+  };
+  const lag = (sec: number): number => {
+    if (sec >= launchS) return 0;
+    const n = 24;
+    const h = (launchS - sec) / n;
+    let sum = 0;
+    for (let i = 0; i <= n; i++) {
+      const tt = sec + i * h;
+      sum += trackSpeed(tt) * (1 - launchShare(tt)) * (i === 0 || i === n ? 1 : i % 2 ? 4 : 2);
+    }
+    return (sum * h) / 3;
+  };
+  /** The root (world) at a visible time: the clip's track, less the launch's lag, along the track's own direction. */
+  const rootAt = (sec: number): Vec3 => {
+    const e = lag(sec);
+    const p = at(clock(sec));
+    if (e < 1e-9) return p;
+    const q = at(clock(sec + 0.02));
+    const d = Math.hypot(q.x - p.x, q.z - p.z) || 1;
+    return v3(p.x + ((q.x - p.x) / d) * e, 0, p.z + ((q.z - p.z) / d) * e);
+  };
+  // Ground speed (m/s) at a visible time, by a central difference through rootAt: each segment's progress is a Hermite
+  // with these end speeds, so the root speed is continuous across the segments.
+  const speedAt = (ms: number) => {
+    const t0 = Math.max(0, ms - 4);
+    const t1 = Math.min(endScene, ms + 4);
+    const a = rootAt(t0 / 1000);
+    const b = rootAt(t1 / 1000);
+    return Math.hypot(b.x - a.x, b.z - a.z) / ((t1 - t0) / 1000);
+  };
+  const yawAt = (sec: number) => (c!.source.ground!(clock(sec)).yawDeg * DEG) * m;
+  const launchMs = launchS * 1000;
+  // At the top of the mark he stands as between balls (a composed `stand` clip of this run-up), then the run-up opens: an
+  // inertialized hand-over of the pose to the clip, at the clip's own phase, over RUN_START.inertialMs, in one move (the
+  // hand-over needs a long one) that is also the root's launch.
+  const standId = `runup_${key}_stand`;
+  registerComposedMotion(standId, STAND);
+  moves.push({ t0: 0, t1: 1, clip: `vmp:${standId}`, heading: yawAt(0), blend: 0 });
+  moves.push({ t0: 1, t1: launchMs, clip, clipStart: clock(0.001), rate: 1, from: rootAt(0.001), to: rootAt(launchS), speed: [0, speedAt(launchMs)], heading: yawAt(0.001), headingTo: yawAt(launchS), blend: 0, inertial: RUN_START.inertialMs });
+  // Then 1/30 s segments, with a boundary exactly on the release.
+  for (let t = launchMs; t < endScene - 1e-6; ) {
+    let t1 = Math.min(endScene, t + stepMs);
+    if (t < release - 1e-6 && t1 > release + 1e-6) t1 = release;
+    const c0 = clock(t / 1000);
+    const c1 = clock(t1 / 1000);
+    const g = c.source.ground!(c0);
+    moves.push({ t0: t, t1, clip, clipStart: c0, rate: (c1 - c0) / ((t1 - t) / 1000), from: rootAt(t / 1000), to: rootAt(t1 / 1000), speed: [speedAt(t), speedAt(t1)], heading: (g.yawDeg * DEG) * m, blend: 0 });
+    t = t1;
+  }
+  // The follow-through is MOTION-BOWL's own (in the composed clip). Then, if the physics bowler's spot is somewhere
+  // else, a few steps there at a walk (the spot is where the physics fields from).
+  const fromEnd = moves[moves.length - 1].to!;
+  const to = followTo ?? fromEnd;
+  const len = Math.hypot(to.x - fromEnd.x, to.z - fromEnd.z);
+  let done = endScene;
+  if (len > 0.1) {
+    const walkMs = (len / (0.66 * WALK_CLIP_MPS)) * 1000;
+    // He turns from where the follow-through leaves him to the way he walks: at most 180 degrees a second at the fastest (a half turn
+    // took 500 ms with the cubic ease, 1,000 degrees a second at the fastest: 17 degrees a frame).
+    const turn = Math.abs(angleDelta(moves[moves.length - 1].heading ?? 0, headingOf(to.x - fromEnd.x, to.z - fromEnd.z))) / DEG;
+    moves.push({ t0: endScene, t1: endScene + walkMs, clip: 'walk', from: fromEnd, to, speed: [0, 0], rateBySpeed: WALK_CLIP_MPS, rate: 1, turnMs: clamp(turn * 8.4, 500, 1700), turnEase: 'smooth', inertial: 240 });
+    done += walkMs;
+  }
+  const start = rootAt(0);
+  const deliveryEnd = ((c.source.markers.end ?? c.tEnd) - pre) * 1000;
+  const track: ActorTrack = { id: 'bowler', role: 'bowler', look: input.look, start, heading: moves[0].heading ?? 0, ...(input.mirror ? { mirror: true } : {}), moves };
+  return { track, runStart: 0, release, deliveryEnd, releaseMarker: c.tRelease - c.tEntry, followDone: done, followEnd: to };
 }
 
 /** The bowler's run-up, delivery stride and follow-through, released at a known scene time. */
@@ -506,17 +718,37 @@ export function bowlerRun(input: BowlerRunInput): BowlerRun {
     pre = Math.min(PRE_MS, Math.max(0, input.releaseAt - mRelease * 1000 - 400));
     runMs = Math.max(250, input.releaseAt - pre - mRelease * 1000);
   }
-  const runLen = (runMs / 1000) * RUN_SPEED[action];
+  const vGather = RUN_SPEED[action] * GATHER_SPEED;
+  const runLen = (runMs / 1000) * vGather * RUN_MEAN_SHARE;
   const releaseRoot = input.releaseRoot ?? v3(0.62, 0, RELEASE.z - 0.35);
   // The bowler runs in and follows through on the side of the stumps it bowls from.
   const side = releaseRoot.x >= 0 ? 1 : -1;
   const gather = v3(releaseRoot.x + 0.1 * side, 0, releaseRoot.z - STRIDE[action]);
   const start = v3(gather.x + side * Math.min(0.55, runLen * 0.035), 0, gather.z - runLen);
-  const followEnd = v3(releaseRoot.x + 1.68 * side, 0, releaseRoot.z + FOLLOW[action]);
   const runEnd = pre + runMs;
   const release = runEnd + mRelease * 1000;
   const deliveryEnd = runEnd + clipDuration(clip) * 1000;
+  // The delivery stride keeps the stride's mean speed: arriving at vGather, leaving the hand at vRelease.
+  const strideLen = Math.hypot(releaseRoot.x - gather.x, releaseRoot.z - gather.z);
+  const vRelease = clamp((2 * strideLen) / mRelease - vGather, 0.4 * vGather, vGather);
+  // The follow-through brakes at a constant rate to rest at followTo.
+  const followTo = input.followTo
+    ? v3(input.followTo.x, 0, input.followTo.z)
+    : add(releaseRoot, v3(Math.sin(0.12 * side) * (vRelease * FOLLOW_S[action]) / 2, 0, Math.cos(0.12 * side) * (vRelease * FOLLOW_S[action]) / 2));
+  const followLen = Math.hypot(followTo.x - releaseRoot.x, followTo.z - releaseRoot.z);
+  const remainder = deliveryEnd - release;
+  const followMs = Math.max(remainder + 250, ((2 * followLen) / vRelease) * 1000);
+  const followDone = release + followMs;
+  // Constant deceleration from vRelease to rest over followMs: where and how fast at the end of the delivery clip.
+  const tau = remainder / 1000;
+  const T = followMs / 1000;
+  const vEnd = vRelease * (1 - tau / T);
+  const sEnd = followLen > 1e-6 ? Math.min(1, (vRelease * (tau - (tau * tau) / (2 * T))) / ((vRelease * T) / 2)) : 1;
+  const clipOff = lerpV(releaseRoot, followTo, sEnd);
+  const followHeading = headingOf(followTo.x - releaseRoot.x, followTo.z - releaseRoot.z);
   const spin = action === 'spin_off' || action === 'spin_leg';
+  const composed = composedBowlerRun(input, release, releaseRoot, input.followTo ? followTo : null);
+  if (composed) return composed;
   const track: ActorTrack = {
     id: 'bowler',
     role: 'bowler',
@@ -526,12 +758,23 @@ export function bowlerRun(input: BowlerRunInput): BowlerRun {
     ...(input.mirror ? { mirror: true } : {}),
     moves: [
       { t0: 0, t1: Math.max(1, pre), clip: 'idle', heading: headingOf(gather.x - start.x, gather.z - start.z) },
-      { t0: Math.max(1, pre), t1: runEnd, clip: spin ? 'bowl_approach_spin' : 'bowl_runup', from: start, to: gather, blend: pre > 0 ? 200 : 0, rate: spin ? 1 : RUN_SPEED[action] / 6.6 },
-      { t0: runEnd, t1: release, clip, from: gather, to: releaseRoot, heading: 0, blend: 90 },
-      { t0: release, t1: deliveryEnd, clip, clipStart: mRelease, from: releaseRoot, to: followEnd, ease: 'out', heading: 0, headingTo: 0.25 * side, blend: 0 },
+      {
+        t0: Math.max(1, pre),
+        t1: runEnd,
+        clip: spin ? 'bowl_approach_spin' : 'bowl_runup',
+        from: start,
+        to: gather,
+        speed: [0, vGather],
+        rateBySpeed: vGather,
+        blend: pre > 0 ? 260 : 0,
+        rate: spin ? 1 : RUN_SPEED[action] / 6.6,
+      },
+      { t0: runEnd, t1: release, clip, from: gather, to: releaseRoot, speed: [vGather, vRelease], heading: 0, blend: 90 },
+      { t0: release, t1: deliveryEnd, clip, clipStart: mRelease, from: releaseRoot, to: clipOff, speed: [vRelease, vEnd], heading: 0, headingTo: Math.abs(followHeading) < 0.6 ? followHeading : 0.25 * side, blend: 0 },
+      { t0: deliveryEnd, t1: followDone, clip: 'walk', from: clipOff, to: followTo, speed: [vEnd, 0], rate: Math.max(0.35, vEnd / 2 / WALK_CLIP_MPS), blend: 220 },
     ],
   };
-  return { track, runStart: pre, release, deliveryEnd, releaseMarker: mRelease };
+  return { track, runStart: pre, release, deliveryEnd, releaseMarker: mRelease, followDone, followEnd: followTo };
 }
 
 function setUp(b: Builder, path: RevealedDelivery['path'] | BallOutcome['cues']['path'], releaseToContactMs?: number, releaseAt?: number) {
@@ -672,13 +915,11 @@ function batterRuns(b: Builder, t0: number, runs: number): number {
   const s0 = b.where('striker', t0).pos;
   const n0 = b.where('nonStriker', t0).pos;
   let t = t0;
-  let sz = s0.z;
-  let nz = n0.z;
   b.then('striker', { t0: t, t1: t + 380, clip: 'bat_run', from: s0, to: v3(laneS, 0, CREASE_Z - 0.6) });
   b.then('nonStriker', { t0: t, t1: t + 380, clip: 'bat_run', from: n0, to: v3(laneN, 0, -CREASE_Z + 1.4) });
   t += 380;
-  sz = CREASE_Z - 0.6;
-  nz = -CREASE_Z + 1.4;
+  let sz = CREASE_Z - 0.6;
+  let nz = -CREASE_Z + 1.4;
   for (let i = 0; i < runs; i++) {
     const sTo = i % 2 === 0 ? -CREASE_Z - 0.3 : CREASE_Z + 0.3;
     const nTo = i % 2 === 0 ? CREASE_Z + 0.3 : -CREASE_Z - 0.3;
@@ -944,7 +1185,7 @@ export function buildBallScript(input: BallScriptInput): BallScript {
     }
     case 'wicket': {
       const kind = fate.wicket;
-      let decisive = contact;
+      let decisive: number;
       const celebrants: string[] = [...b.spots.map((_, i) => `f${i}`), 'keeper'];
       if (kind === 'bowled') {
         const stumps = v3(0, 0.38, PITCH_HALF);
@@ -1246,6 +1487,11 @@ export interface BallSample {
   inFlight: boolean;
   /** Seam rotation axis when the segment carries its own (Practice); otherwise the flight's. */
   spinAxis?: Vec3;
+  /** Release seam-plane normal and polished pole, carried by Practice's exact BallFlight. */
+  seamAxis?: Vec3;
+  shineAxis?: Vec3;
+  /** Non-collinear material direction: completes the ball's rigid surface orientation. */
+  surfaceTangent?: Vec3;
 }
 
 /** Ball position at scene time t. `handOf` returns an actor's hand position (3D) or null (2D approximation). */
@@ -1259,13 +1505,26 @@ export function sampleBall(script: BallScript, t: number, handOf?: (actor: strin
   if (!seg) return { pos: v3(), visible: false, heldBy: null, spin: 0, inFlight: false };
   switch (seg.k) {
     case 'hand': {
-      const hp = handOf?.(seg.actor);
-      if (hp) return { pos: hp, visible: true, heldBy: seg.actor, spin: 0, inFlight: false };
-      const track = script.actors.find((a) => a.id === seg.actor);
-      const st = track ? evaluateActor(track, t) : null;
-      const base = st ? st.pos : v3();
-      const h = st ? st.heading : 0;
-      return { pos: v3(base.x - Math.cos(h) * 0.25, 1.2, base.z + Math.sin(h) * 0.25), visible: true, heldBy: seg.actor, spin: 0, inFlight: false };
+      let hp = (seg.throwHand ? (handOf?.(`${seg.actor}:throw`) ?? handOf?.(seg.actor)) : handOf?.(seg.actor)) ?? null;
+      if (!hp) {
+        const track = script.actors.find((a) => a.id === seg.actor);
+        const st = track ? evaluateActor(track, t) : null;
+        const base = st ? st.pos : v3();
+        const h = st ? st.heading : 0;
+        hp = v3(base.x - Math.cos(h) * 0.25, 1.2, base.z + Math.sin(h) * 0.25);
+      }
+      if (seg.path) {
+        // Off the physics path into the hand at the take, back onto it at the throw's release point.
+        const ph = seg.path;
+        const p = ballAt(ph.samples, (t - ph.release) / 1000);
+        if (p) {
+          const phys = v3(ph.mirror ? -p.x : p.x, p.y, p.z);
+          const s = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+          const w = Math.min(ph.inMs > 0 ? s((t - seg.t0) / ph.inMs) : 1, ph.outMs > 0 ? s((seg.t1 - t) / ph.outMs) : 1);
+          return { pos: lerpV(phys, hp, w), visible: true, heldBy: seg.actor, spin: 0, inFlight: false };
+        }
+      }
+      return { pos: hp, visible: true, heldBy: seg.actor, spin: 0, inFlight: false };
     }
     case 'path': {
       const st = (t - seg.release) / 1000;
@@ -1273,8 +1532,10 @@ export function sampleBall(script: BallScript, t: number, handOf?: (actor: strin
       if (!p) return { pos: v3(0, -10, 0), visible: false, heldBy: null, spin: 0, inFlight: false };
       // Past its last sample the ball has stopped (at rest, at the rope, in the stands) and holds there.
       const moving = st < seg.samples[seg.samples.length - 1].t;
-      const spin = (moving ? t - seg.release : seg.samples[seg.samples.length - 1].t * 1000) * (seg.spinRate ?? 0);
-      return { pos: v3(seg.mirror ? -p.x : p.x, p.y, p.z), visible: true, heldBy: null, spin, inFlight: moving, spinAxis: seg.spinAxis };
+      const spinOrigin = seg.spinOrigin ?? seg.release;
+      const stoppedAt = seg.release + seg.samples[seg.samples.length - 1].t * 1000;
+      const spin = (Math.max(0, (moving ? t : stoppedAt) - spinOrigin)) * (seg.spinRate ?? 0);
+      return { pos: v3(seg.mirror ? -p.x : p.x, p.y, p.z), visible: true, heldBy: null, spin, inFlight: moving, spinAxis: seg.spinAxis, seamAxis: seg.seamAxis, shineAxis: seg.shineAxis, surfaceTangent: seg.surfaceTangent };
     }
     default:
       return { pos: v3(0, -10, 0), visible: false, heldBy: null, spin: 0, inFlight: false };

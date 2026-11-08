@@ -4,9 +4,10 @@
  * moment. The contact itself also gets one distinct "feel" each for sweet spot, middle, edge, pad, miss, bowled,
  * catch and boundary (src/audio plays it: practice/audio.ts).
  */
-import type { ContactReport, DeliveryResult, SimEvent } from '@/contracts/practice';
+import type { ContactKind, ContactReport, DeliveryResult, SimEvent, SwingKind, SwingTiming, Vec3 } from '@/contracts/practice';
+import { BALL_R } from '@/physics/geometry';
 import type { SceneEvent, SceneEventKind } from '../core/choreo';
-import { simToScene, toWorld } from './frame';
+import { ballAt, simToScene, toWorld } from './frame';
 import type { ContactFeel } from './types';
 
 export interface FeedbackCue {
@@ -14,8 +15,8 @@ export interface FeedbackCue {
   t: number;
   /** Visual and sound cue for the existing effects and src/audio's match voices (null: feel only). */
   scene: SceneEvent | null;
-  /** The batter's contact feel, when this is the moment that decides it. */
-  feel: { kind: ContactFeel; intensity: number } | null;
+  /** The batter's contact feel, when this is the moment that decides it, with the contact it came from (src/audio picks the exact signature: a top edge, a mistimed middle). */
+  feel: { kind: ContactFeel; intensity: number; contact?: ContactKind; timing?: SwingTiming } | null;
 }
 
 /** Intensity of a middled contact by its timing (perfect is the sweet spot). */
@@ -23,10 +24,14 @@ function middleIntensity(c: ContactReport): number {
   return c.timing === 'perfect' ? 1 : c.timing === 'solid' ? 0.82 : 0.62;
 }
 
-/** The feel of the bat's contact (null for a leave or a body blow, which have their own events). */
-export function contactFeel(c: ContactReport): { kind: ContactFeel; intensity: number } | null {
+/**
+ * The feel of the bat's contact (null for a leave or a body blow, which have their own events). A defended middle is a
+ * block (F-022): the dead bat's damped thud, never the attacking sweet spot's crack and its 'double' haptic.
+ */
+export function contactFeel(c: ContactReport, swing?: SwingKind | null): { kind: ContactFeel; intensity: number } | null {
   switch (c.kind) {
     case 'middle':
+      if (swing === 'defend') return { kind: 'block', intensity: middleIntensity(c) };
       return c.timing === 'perfect' ? { kind: 'sweet', intensity: 1 } : { kind: 'middle', intensity: middleIntensity(c) };
     case 'inside_edge':
     case 'outside_edge':
@@ -38,6 +43,23 @@ export function contactFeel(c: ContactReport): { kind: ContactFeel; intensity: n
     default:
       return null;
   }
+}
+
+/** The drawn ball is at a bounce point when its centre is within one ball radius of it (a real bounce: within 5 mm). */
+const BOUNCE_REACH_M = BALL_R;
+
+/**
+ * Whether the presented ball makes this bounce (COH4). Nothing touched it first (bat, edge, pad or body), and the ball
+ * drawn on the result's own samples is at the bounce point at the bounce time. A ball met on the full still carries
+ * the unimpeded flight's bounce in the physics result, after the contact and where the ball never goes: that one is
+ * never sounded, marked or spun.
+ */
+export function presentedBounce(result: DeliveryResult, bounce: { t: number; p: Vec3 }): boolean {
+  for (const e of result.events) {
+    if (e.t < bounce.t && (e.kind === 'pad' || (e.kind === 'contact' && e.contact !== 'miss' && e.contact !== 'leave'))) return false;
+  }
+  const at = ballAt(result.ball, bounce.t);
+  return at !== null && Math.hypot(at.x - bounce.p.x, at.y - bounce.p.y, at.z - bounce.p.z) <= BOUNCE_REACH_M;
 }
 
 /**
@@ -58,12 +80,14 @@ export function feedbackCues(result: DeliveryResult, releaseScene: number, mirro
         push(e, 'release', Math.min(1.1, result.flight.release.speedKph / 150));
         break;
       case 'bounce':
-        push(e, 'bounce', 0.6);
+        // Only a bounce the drawn ball makes (never one after the bat met it on the full).
+        if (presentedBounce(result, e)) push(e, 'bounce', 0.6);
         break;
       case 'contact': {
-        const feel = contactFeel({ ...result.contact, kind: e.contact });
+        const base = contactFeel({ ...result.contact, kind: e.contact }, result.swing?.kind);
+        const feel = base ? { ...base, contact: e.contact, timing: result.contact.timing } : null;
         if (e.contact === 'middle') push(e, 'bat', middleIntensity(result.contact), feel);
-        else if (e.contact === 'pad' || e.contact === 'body') push(e, 'pad', 0.55, { kind: 'pad', intensity: 0.55 });
+        else if (e.contact === 'pad' || e.contact === 'body') push(e, 'pad', 0.55, { kind: 'pad', intensity: 0.55, contact: e.contact });
         else if (e.contact === 'miss' || e.contact === 'leave') {
           if (e.contact === 'miss') {
             push(e, null, 0, feel);
@@ -73,7 +97,7 @@ export function feedbackCues(result: DeliveryResult, releaseScene: number, mirro
         break;
       }
       case 'pad':
-        push(e, 'pad', 0.6, { kind: 'pad', intensity: 0.6 });
+        push(e, 'pad', 0.6, { kind: 'pad', intensity: 0.6, contact: 'pad' });
         break;
       case 'stumps':
         push(e, 'stumps', 1, { kind: 'bowled', intensity: 1 });

@@ -4,7 +4,8 @@ import type { Timeline } from './core/timeline';
 
 /** Receives timed presentation cues while playing (sound and haptics). Never called by renderAt or seek. */
 export interface PresentationSink {
-  cue(kind: SceneEventKind, intensity: number, rate: number): void;
+  /** `atPerfMs`: the performance time the cue belongs to (call ahead with it for sample-accurate sound). */
+  cue(kind: SceneEventKind, intensity: number, rate: number, atPerfMs?: number): void;
   crowd(level: number): void;
 }
 

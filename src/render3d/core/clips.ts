@@ -11,7 +11,7 @@ import { BONE_INDEX, BONE_NAMES, type BoneName, type Euler, type Pose } from './
 import { quatFromEulerDeg, quatSlerp, type Quat } from './quat';
 import { clamp, smoothstep } from './math';
 
-export type Vec3T = readonly [number, number, number];
+type Vec3T = readonly [number, number, number];
 export interface BatKey {
   grip: Vec3T;
   /** Unit-ish vector from the grip to the toe of the bat. */
@@ -252,6 +252,143 @@ const SQUAT: Pose = {
   forearmR: [-32, 0, 0],
 };
 
+/** Mirrors a whole one-shot clip left↔right (poses and root; markers kept): a dive to the right becomes one to the left. */
+function mirrorClip(def: ClipDef): ClipDef {
+  return { ...def, keys: def.keys.map((k) => ({ ...mirrorKey(k, k.t), ...(k.aimR ? { aimL: k.aimR } : {}), ...(k.aimL ? { aimR: k.aimL } : {}) })) };
+}
+
+// ---- Practice fielding (presentation only) -----------------------------------------------------------------
+// The physics FielderPath carries every fielder's ground position; these clips animate the body on that path. Their
+// root offsets are vertical only (|x|, |z| ≤ 8 cm), so the drawn hips stay on the physics position: a dive's travel
+// comes from the path, never from the clip. Markers name the instant the clip is aligned to a physics time.
+
+/** Accelerating from rest: shorter, quicker, lower strides with more forward lean (same 0.62 s period as `run`). */
+const DRIVE_A: ClipKey = {
+  t: 0,
+  root: [0, -0.07, 0],
+  pose: {
+    ...RUN_A.pose!,
+    thighL: [-52, 0, 2],
+    shinL: [22, 0, 0],
+    thighR: [22, 0, -2],
+    shinR: [70, 0, 0],
+    upperArmL: [54, 0, 8],
+    forearmL: [-84, 0, 0],
+    upperArmR: [-64, 0, -8],
+    forearmR: [-92, 0, 0],
+    spine: [32, -8, 0],
+    chest: [6, -6, 0],
+    neck: [-24, 7, 0],
+    head: [-8, 6, 0],
+  },
+};
+const DRIVE_B: ClipKey = {
+  t: 0,
+  root: [0, 0.0, 0],
+  pose: { ...RUN_B.pose!, thighR: [-40, 0, -2], shinR: [96, 0, 0], spine: [30, 0, 0], chest: [6, 0, 0], neck: [-22, 0, 0], head: [-8, 0, 0] },
+};
+
+/** A low, attacking gather: the hand meets the ball at `collect`, then the fielder rises side-on, ball hand back. */
+const FIELD_PICKUP: ClipDef = {
+  duration: 0.75,
+  markers: { collect: 0.3 },
+  keys: [
+    { t: 0, root: [0, -0.16, 0], pose: { ...READY, spine: [36, 0, 0] } },
+    { t: 0.3, root: [0, -0.42, 0], pose: { hips: [0, 0, 0], spine: [62, 0, 0], chest: [10, 0, 0], neck: [-34, 0, 0], head: [-8, 0, 0], upperArmR: [-64, 0, -6], forearmR: [-6, 0, 0], handR: [10, 0, 0], upperArmL: [-40, 0, 16], forearmL: [-22, 0, 0], thighL: [-78, 0, 10], shinL: [100, 0, 0], footL: [-20, 0, 0], thighR: [-26, 0, -8], shinR: [76, 0, 0], footR: [10, 0, 0] } },
+    { t: 0.52, root: [0, -0.2, 0], pose: { hips: [0, -40, 0], spine: [26, -20, 0], chest: [6, -14, 0], neck: [-12, 40, 0], head: [-4, 10, 0], upperArmR: [10, 0, -20], forearmR: [-70, 0, 0], handR: [0, 0, 0], thighL: [-40, 0, 12], shinL: [50, 0, 0], thighR: [-6, 0, -12], shinR: [30, 0, 0] } },
+    { t: 0.75, root: [0, -0.08, 0], pose: { hips: [0, -58, 0], spine: [10, -12, 0], chest: [2, -6, 0], neck: [0, 56, 0], head: [0, 10, 0], upperArmR: [30, 0, -16], forearmR: [-80, 0, 0], upperArmL: [-50, 0, 10], forearmL: [-30, 0, 0], thighL: [-22, 0, 14], shinL: [20, 0, 0], footL: [0, 0, 0], thighR: [8, 0, -14], shinR: [20, 0, 0], footR: [0, 0, 0] } },
+  ],
+};
+
+/** A throw with a wind-up: side-on, the ball arm back and up, the front arm at the target, release at `release`. */
+const FIELD_THROW: ClipDef = {
+  duration: 0.92,
+  markers: { release: 0.42 },
+  keys: [
+    { t: 0, root: [0, -0.06, 0], pose: { hips: [0, -62, 0], spine: [6, -10, 0], chest: [0, -6, 0], neck: [0, 60, 0], head: [0, 12, 0], thighL: [-22, 0, 14], shinL: [16, 0, 0], thighR: [10, 0, -14], shinR: [20, 0, 0], forearmR: [-30, 0, 0], forearmL: [-20, 0, 0] }, aimR: [96, 12], aimL: [262, 6] },
+    { t: 0.26, root: [0, -0.1, -0.05], pose: { hips: [0, -70, 0], spine: [-8, -14, 0], chest: [-2, -8, 0], forearmR: [-74, 0, 0], thighL: [-30, 0, 16], shinL: [26, 0, 0], thighR: [16, 0, -14], shinR: [34, 0, 0] }, aimR: [152, 16], aimL: [272, 4] },
+    { t: 0.42, root: [0, -0.08, 0.06], pose: { hips: [0, -10, 0], spine: [22, 26, 0], chest: [6, 16, 0], neck: [-6, 10, 0], head: [0, 0, 0], forearmR: [-8, 0, 0], thighL: [-38, 0, 8], shinL: [18, 0, 0], thighR: [24, 0, -8], shinR: [40, 0, 0] }, aimR: [238, 6], aimL: [330, 14] },
+    { t: 0.62, root: [0, -0.12, 0.08], pose: { spine: [38, 40, 0], chest: [10, 20, 0], forearmR: [-14, 0, 0], thighR: [40, 0, -6], shinR: [70, 0, 0] }, aimR: [314, -14], aimL: [20, 20] },
+    { t: 0.92, root: [0, -0.04, 0.06], pose: { hips: [0, 0, 0], spine: [14, 10, 0], chest: [3, 4, 0], neck: [-4, 0, 0], thighL: [-8, 0, 4], shinL: [10, 0, 0], thighR: [4, 0, -4], shinR: [12, 0, 0] }, aimR: [340, -8], aimL: [8, 10] },
+  ],
+};
+
+/** A ground misfield: hands meet the ball at `touch`, it squirts out, the fielder recoils, then lunges and scrambles low for it. */
+const FIELD_FUMBLE: ClipDef = {
+  duration: 1.3,
+  markers: { touch: 0.22 },
+  keys: [
+    { t: 0, root: [0, -0.16, 0], pose: { ...READY, spine: [40, 0, 0] } },
+    { t: 0.22, root: [0, -0.4, 0], pose: { spine: [64, 0, 0], chest: [10, 0, 0], neck: [-36, 0, 0], head: [-6, 0, 0], upperArmL: [-60, 0, 12], upperArmR: [-60, 0, -12], forearmL: [-6, 0, 0], forearmR: [-6, 0, 0], thighL: [-70, 0, 14], shinL: [96, 0, 0], thighR: [-40, 0, -12], shinR: [84, 0, 0], footL: [-18, 0, 0], footR: [-10, 0, 0] } },
+    { t: 0.36, root: [0, -0.32, 0], pose: { spine: [46, 0, 6], neck: [-18, 0, 0], head: [6, -10, 0], upperArmL: [-82, 0, 42], upperArmR: [-88, 0, -38], forearmL: [-30, 0, 0], forearmR: [-26, 0, 0] } },
+    { t: 0.62, root: [0, -0.46, 0], pose: { hips: [0, 20, 0], spine: [70, 18, 0], chest: [12, 10, 0], neck: [-30, -14, 0], head: [4, -10, 0], upperArmR: [-64, 0, -20], forearmR: [-4, 0, 0], upperArmL: [-30, 0, 26], forearmL: [-30, 0, 0], thighL: [-84, 0, 16], shinL: [110, 0, 0], thighR: [-20, 0, -16], shinR: [90, 0, 0] } },
+    { t: 0.95, root: [0, -0.44, 0], pose: { hips: [0, 10, 0], spine: [66, 8, 0], chest: [10, 4, 0], neck: [-34, -6, 0], head: [0, -4, 0], upperArmR: [-70, 0, -10], forearmR: [-8, 0, 0], upperArmL: [-40, 0, 20], forearmL: [-24, 0, 0], thighL: [-70, 0, 14], shinL: [104, 0, 0], thighR: [-36, 0, -14], shinR: [96, 0, 0] } },
+    { t: 1.3, root: [0, -0.42, 0], pose: { hips: [0, 0, 0], spine: [64, 0, 0], chest: [10, 0, 0], neck: [-36, 0, 0], head: [-6, 0, 0], upperArmR: [-66, 0, -6], forearmR: [-6, 0, 0], upperArmL: [-42, 0, 16], forearmL: [-20, 0, 0] } },
+  ],
+};
+
+/** A catch put down: from the catching pose the hands spread as the ball spills, then the fielder folds down to it. */
+const FIELD_SPILL: ClipDef = {
+  duration: 0.9,
+  keys: [
+    { t: 0, root: [0, -0.12, 0], pose: { ...READY, upperArmL: [-74, 0, 4], upperArmR: [-74, 0, -4], forearmL: [-62, 0, 0], forearmR: [-62, 0, 0], spine: [18, 0, 0], neck: [-12, 0, 0] } },
+    { t: 0.18, root: [0, -0.16, 0], pose: { upperArmL: [-58, 0, 32], upperArmR: [-58, 0, -32], forearmL: [-40, 0, 0], forearmR: [-40, 0, 0], spine: [26, 0, 0], neck: [8, 0, 0], head: [10, 0, 0] } },
+    { t: 0.5, root: [0, -0.36, 0], pose: { spine: [58, 0, 0], chest: [10, 0, 0], neck: [-24, 0, 0], head: [-4, 0, 0], upperArmL: [-46, 0, 14], upperArmR: [-56, 0, -10], forearmL: [-14, 0, 0], forearmR: [-10, 0, 0], thighL: [-62, 0, 12], shinL: [90, 0, 0], thighR: [-36, 0, -12], shinR: [80, 0, 0] } },
+    { t: 0.9, root: [0, -0.4, 0], pose: { spine: [62, 0, 0], neck: [-32, 0, 0], upperArmR: [-62, 0, -6], forearmR: [-6, 0, 0] } },
+  ],
+};
+
+/**
+ * A full-length dive to the fielder's right: launch, hands out at `reach`, land on the side, gather, up onto a knee and
+ * rising side-on to throw. The hips stay over the root, so the physics path alone carries him towards the ball.
+ */
+const FIELD_DIVE_R: ClipDef = {
+  duration: 0.98,
+  markers: { reach: 0.2 },
+  keys: [
+    { t: 0, root: [0, -0.16, 0], pose: READY },
+    { t: 0.08, root: [0, -0.3, 0], pose: { hips: [0, 0, 24], spine: [26, 0, 12], upperArmR: [-130, 0, -30], forearmR: [-10, 0, 0], upperArmL: [-110, 0, 10], forearmL: [-20, 0, 0], thighL: [-20, 0, 24], shinL: [30, 0, 0], thighR: [-40, 0, -10], shinR: [60, 0, 0] } },
+    { t: 0.2, root: [0, -0.56, 0], pose: { hips: [0, 0, 78], spine: [6, 0, 8], chest: [0, 0, 4], neck: [-14, 0, -6], head: [-6, 0, -6], upperArmR: [-172, 0, -6], forearmR: [-6, 0, 0], upperArmL: [-160, 0, 14], forearmL: [-16, 0, 0], thighL: [6, 0, 12], shinL: [16, 0, 0], thighR: [10, 0, -4], shinR: [14, 0, 0] } },
+    { t: 0.34, root: [0, -0.76, 0], pose: { hips: [0, 0, 88], spine: [4, 0, 4] } },
+    { t: 0.5, root: [0, -0.76, 0], pose: { hips: [0, 0, 86], upperArmR: [-150, 0, -10], forearmR: [-50, 0, 0], upperArmL: [-120, 0, 20], forearmL: [-60, 0, 0], thighL: [-34, 0, 10], shinL: [70, 0, 0] } },
+    { t: 0.74, root: [0, -0.5, 0], pose: { hips: [0, 0, 30], spine: [40, 0, 4], chest: [6, 0, 0], neck: [-20, 0, 0], head: [0, 0, 0], upperArmR: [-30, 0, -20], forearmR: [-70, 0, 0], upperArmL: [-40, 0, 20], forearmL: [-30, 0, 0], thighL: [-84, 0, 10], shinL: [118, 0, 0], thighR: [12, 0, -10], shinR: [110, 0, 0], footR: [30, 0, 0] } },
+    { t: 0.98, root: [0, -0.24, 0], pose: { hips: [0, -30, 6], spine: [28, -14, 0], chest: [6, -8, 0], neck: [-10, 30, 0], head: [0, 6, 0], upperArmR: [20, 0, -16], forearmR: [-70, 0, 0], upperArmL: [-46, 0, 12], forearmL: [-30, 0, 0], thighL: [-56, 0, 12], shinL: [70, 0, 0], thighR: [-10, 0, -12], shinR: [56, 0, 0], footR: [0, 0, 0] } },
+  ],
+};
+
+/** The keeper's dive to his right from the crouch: gloves out at `reach`, on his side with the ball, then up. */
+const KEEP_DIVE_R: ClipDef = {
+  duration: 1.1,
+  markers: { reach: 0.15 },
+  keys: [
+    { t: 0, root: [0, -0.48, 0], pose: SQUAT },
+    { t: 0.07, root: [0, -0.46, 0], pose: { hips: [0, 0, 26], spine: [26, 0, 14], upperArmR: [-120, 0, -34], forearmR: [-14, 0, 0], upperArmL: [-110, 0, 0], forearmL: [-20, 0, 0], thighL: [-60, 0, 30], shinL: [80, 0, 0], thighR: [-80, 0, -10], shinR: [110, 0, 0] } },
+    { t: 0.15, root: [0, -0.6, 0], pose: { hips: [0, 0, 74], spine: [8, 0, 8], neck: [-16, 0, -6], head: [-6, 0, -6], upperArmR: [-168, 0, -8], forearmR: [-10, 0, 0], upperArmL: [-156, 0, 18], forearmL: [-20, 0, 0], thighL: [-10, 0, 14], shinL: [30, 0, 0], thighR: [-6, 0, -6], shinR: [24, 0, 0] } },
+    { t: 0.3, root: [0, -0.76, 0], pose: { hips: [0, 0, 88], spine: [4, 0, 4] } },
+    { t: 0.6, root: [0, -0.74, 0], pose: { hips: [0, 0, 84], upperArmR: [-140, 0, -16], forearmR: [-70, 0, 0], upperArmL: [-130, 0, 10], forearmL: [-70, 0, 0], thighL: [-40, 0, 10], shinL: [80, 0, 0] } },
+    { t: 1.1, root: [0, -0.3, 0], pose: { hips: [0, 0, 10], spine: [30, 0, 0], neck: [-14, 0, 0], head: [0, 0, 0], upperArmR: [-60, 0, -12], forearmR: [-60, 0, 0], upperArmL: [-60, 0, 12], forearmL: [-60, 0, 0], thighL: [-70, 0, 16], shinL: [100, 0, 0], thighR: [-60, 0, -16], shinR: [100, 0, 0] } },
+  ],
+};
+
+/** The keeper's crouched side-step (a shuffle to the line, still facing the bowler). */
+const KEEP_SHUFFLE_A: ClipKey = {
+  t: 0,
+  root: [0, -0.4, 0],
+  pose: { ...SQUAT, thighL: [-80, 0, 36], thighR: [-80, 0, -12], shinL: [108, 0, 0], shinR: [108, 0, 0], spine: [30, 0, 0], upperArmL: [-62, 0, 10], upperArmR: [-62, 0, -10], forearmL: [-40, 0, 0], forearmR: [-40, 0, 0] },
+};
+const KEEP_SHUFFLE_B: ClipKey = { t: 0, root: [0, -0.36, 0], pose: { thighL: [-76, 0, 22], thighR: [-76, 0, -22], shinL: [100, 0, 0], shinR: [100, 0, 0] } };
+
+/** Hands on hips, head down: a chase that did not get there. */
+const HANDS_ON_HIPS: ClipDef = {
+  duration: 2.4,
+  loop: true,
+  keys: [
+    { t: 0, root: [0, -0.01, 0], pose: { ...STAND, spine: [8, 0, 0], neck: [18, 0, 0], head: [8, 0, 0], upperArmL: [-14, 0, 40], upperArmR: [-14, 0, -40], forearmL: [-92, 0, 0], forearmR: [-92, 0, 0] } },
+    { t: 1.2, root: [0, -0.015, 0], pose: { chest: [3, 4, 0], neck: [22, 6, 0] } },
+    { t: 2.4, root: [0, -0.01, 0], pose: { chest: [1, 0, 0], neck: [18, 0, 0] } },
+  ],
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // The library
 // ---------------------------------------------------------------------------------------------------------------
@@ -388,6 +525,19 @@ export const CLIPS = {
       { t: 2, pose: { neck: [24, 0, 0] } },
     ],
   },
+  hands_on_hips: HANDS_ON_HIPS,
+
+  // ---- Practice fielding on the physics path (see FIELD_* above) ----------------------------------------------
+  run_drive: { ...cycle(0.62, DRIVE_A, DRIVE_B), linear: true },
+  field_pickup: FIELD_PICKUP,
+  field_throw: FIELD_THROW,
+  field_fumble: FIELD_FUMBLE,
+  field_spill: FIELD_SPILL,
+  field_dive_r: FIELD_DIVE_R,
+  field_dive_l: mirrorClip(FIELD_DIVE_R),
+  keep_dive_r: KEEP_DIVE_R,
+  keep_dive_l: mirrorClip(KEEP_DIVE_R),
+  keep_shuffle: cycle(0.36, KEEP_SHUFFLE_A, KEEP_SHUFFLE_B),
 
   // ---- bowling ----------------------------------------------------------------------------------------------
   bowl_runup: {
@@ -723,6 +873,26 @@ export const CLIPS = {
     ),
     linear: true,
   },
+  // A batter at ease between deliveries and after a stroke: upright, knees soft, both hands resting on the handle of
+  // the grounded bat in front of him (a slow breath in the chest).
+  bat_rest: {
+    duration: 3.6,
+    loop: true,
+    keys: [
+      { t: 0, root: [0, -0.015, 0], pose: { ...STAND, spine: [6, 0, 0], chest: [3, 0, 0], neck: [-6, 0, 0], thighL: [-4, 0, 4], shinL: [8, 0, 0], thighR: [-2, 0, -4], shinR: [6, 0, 0] }, bat: { grip: [-0.06, 0.74, 0.34], dir: [0.06, -0.97, 0.22] } },
+      { t: 1.8, root: [0.008, -0.02, 0], pose: { chest: [4.5, 1, 0], neck: [-7, 2, 0] }, bat: { grip: [-0.06, 0.745, 0.34], dir: [0.06, -0.97, 0.22] } },
+      { t: 3.6, root: [0, -0.015, 0], pose: { ...STAND, spine: [6, 0, 0], chest: [3, 0, 0], neck: [-6, 0, 0], thighL: [-4, 0, 4], shinL: [8, 0, 0], thighR: [-2, 0, -4], shinR: [6, 0, 0] }, bat: { grip: [-0.06, 0.74, 0.34], dir: [0.06, -0.97, 0.22] } },
+    ],
+  },
+  // Running between the wickets, the last strides into the crease: leaning down, the bat stretched out in the bottom
+  // hand and slid along the turf over the line (the legs come from the run underneath).
+  bat_slide: {
+    duration: 0.5,
+    keys: [
+      { t: 0, pose: { spine: [40, 0, 0], chest: [10, 0, 0], neck: [-30, 0, 0], head: [-10, 0, 0], upperArmR: [-66, 0, -8], forearmR: [-10, 0, 0], handR: [0, 0, 0], upperArmL: [24, 0, 16], forearmL: [-46, 0, 0] }, bat: { grip: [-0.28, 0.5, 0.64], dir: [0.04, -0.6, 0.8] }, twoHands: false },
+      { t: 0.5, pose: { spine: [44, 0, 0], chest: [12, 0, 0], neck: [-32, 0, 0] }, bat: { grip: [-0.28, 0.47, 0.68], dir: [0.04, -0.58, 0.81] }, twoHands: false },
+    ],
+  },
   bat_raise: {
     duration: 1.8,
     keys: [
@@ -741,7 +911,76 @@ export const CLIPS = {
   },
 } satisfies Record<string, ClipDef>;
 
-export type ClipId = keyof typeof CLIPS;
+/** A clip authored in code (this file). */
+export type BuiltinClipId = keyof typeof CLIPS;
+/** A clip from a VMP1 motion pack (MOTION-SPEC), by its pack id: `vmp:loco_walk`. Loaded lazily (core/motion). */
+export type MotionClipId = `vmp:${string}`;
+export type ClipId = BuiltinClipId | MotionClipId;
+
+/** A pack clip as the sampler sees it (core/motion/library registers these from the decoded packs). */
+export interface MotionSource {
+  duration: number;
+  loop: boolean;
+  /** Mean ground speed of a gait loop at rate 1 (m/s, scale 1), else 0. */
+  speedMps: number;
+  markers: Readonly<Record<string, number>>;
+  /** Writes the clip's pose at t (s) into `out` (every bone, the hips offset, the bat key when it has one). */
+  sample(t: number, out: SampledPose): void;
+  /** The clip's contact bits at t (MOTION-SPEC §5.3: bit0 footL, bit1 footR, …). */
+  contacts?(t: number): number;
+  /** The clip's ground track at t (m, deg; MOTION-SPEC §5.3), loops accumulating their travel. */
+  ground?(t: number): { x: number; z: number; yawDeg: number };
+}
+
+/** Clips composed at run time from pack clips (a fitted run-up), by id; they live as long as the packs they use. */
+const composed = new Map<string, MotionSource>();
+
+/** Registers a composed clip under `vmp:<name>` (replacing one of the same name). */
+export function registerComposedMotion(name: string, src: MotionSource): void {
+  composed.set(name, src);
+}
+
+let motionSources: ReadonlyMap<string, MotionSource> = new Map();
+
+/**
+ * The pack clips scripts may name (`vmp:<id>`), replaced as a whole between deliveries (core/motion/library
+ * commitMotion), never during one. Null clears them.
+ */
+export function setMotionSources(sources: ReadonlyMap<string, MotionSource> | null): void {
+  motionSources = sources ?? new Map();
+  composed.clear();
+}
+
+/** The registered pack (or composed) clip of a motion clip id, if any. */
+export function motionSource(id: string): MotionSource | undefined {
+  if (!id.startsWith('vmp:')) return undefined;
+  const name = id.slice(4);
+  return motionSources.get(name) ?? composed.get(name);
+}
+
+/** True when a pack clip is registered (scripts choose it, else a built-in stand-in, when they are built). */
+export function hasMotionClip(name: string): boolean {
+  return motionSources.has(name);
+}
+
+/** The built-in clip that stands in for a pack clip that is not loaded (a script built with one keeps working). */
+const MOTION_STAND_IN: Readonly<Record<string, BuiltinClipId>> = {
+  loco_idle: 'idle',
+  loco_walk: 'walk',
+  loco_jog: 'jog',
+  loco_run: 'run',
+  loco_sprint: 'run',
+  loco_start: 'run_drive',
+  loco_stop: 'jog',
+  bat_stance_live: 'stance',
+  bat_trigger: 'stance',
+  bat_backlift: 'stance',
+  bat_ready_hold: 'stance',
+};
+
+function builtinOf(id: ClipId): BuiltinClipId {
+  return id.startsWith('vmp:') ? (MOTION_STAND_IN[id.slice(4)] ?? 'idle') : (id as BuiltinClipId);
+}
 
 // ---------------------------------------------------------------------------------------------------------------
 // Compilation and sampling
@@ -770,9 +1009,9 @@ interface CompiledClip {
   hasAimL: boolean;
 }
 
-const compiled = new Map<ClipId, CompiledClip>();
+const compiled = new Map<BuiltinClipId, CompiledClip>();
 
-function compile(id: ClipId): CompiledClip {
+function compile(id: BuiltinClipId): CompiledClip {
   const def = CLIPS[id] as ClipDef;
   const current: Record<string, Euler> = {};
   let root: [number, number, number] = [0, 0, 0];
@@ -810,7 +1049,8 @@ function compile(id: ClipId): CompiledClip {
   };
 }
 
-export function getClip(id: ClipId): CompiledClip {
+export function getClip(clipId: ClipId): CompiledClip {
+  const id = builtinOf(clipId);
   let c = compiled.get(id);
   if (!c) {
     c = compile(id);
@@ -820,21 +1060,48 @@ export function getClip(id: ClipId): CompiledClip {
 }
 
 export function clipDuration(id: ClipId): number {
-  return (CLIPS[id] as ClipDef).duration;
+  const m = motionSource(id);
+  return m ? m.duration : (CLIPS[builtinOf(id)] as ClipDef).duration;
 }
 export function clipMarker(id: ClipId, name: string, fallback = 0): number {
-  return (CLIPS[id] as ClipDef).markers?.[name] ?? fallback;
+  const m = motionSource(id);
+  return (m ? m.markers[name] : (CLIPS[builtinOf(id)] as ClipDef).markers?.[name]) ?? fallback;
 }
 
 /** A sampled pose: bone quaternions plus root offset, arm aims and bat key. */
 export interface SampledPose {
   q: Float32Array;
   root: [number, number, number];
+  /**
+   * The arm aims: [phi, lateral]. An aim that is only partly in force carries its weight 0..1 with it (`aimWeight`, absent: 1): a
+   * cross-fade between a clip that aims an arm and one that does not holds the aim at its share of the fade, so the arm swings from
+   * one to the other with it (players.applyAim turns the arm that part of the way); the aim used to switch whole at the half-way frame.
+   */
   aimR: [number, number] | null;
   aimL: [number, number] | null;
-  bat: { grip: [number, number, number]; dir: [number, number, number] } | null;
+  bat: { grip: [number, number, number]; dir: [number, number, number]; face?: [number, number, number] } | null;
   twoHands: boolean;
+  /**
+   * How much the top hand is on the handle (0..1; crossfades between one- and two-handed clips pass through it, so the
+   * free hand is let go of the bat, or takes it, smoothly). Absent: `twoHands` ? 1 : 0.
+   */
+  topHand?: number;
+  /**
+   * The scene time (ms) this pose is drawn for, set by the batters' pose hook just before the stage holds the bat, so an
+   * arm can carry its elbow over from the frame before (players.reachIK). Absent: a pose without a frame behind it.
+   */
+  stamp?: number;
 }
+
+/**
+ * A batter's bat when a clip has no bat key of its own (standing, walking): carried in the bottom hand, toe down and a
+ * little forward (actor frame, right-handed). Crossfades to and from a clip with a bat key blend through it, so the
+ * bat never jumps between the two.
+ */
+export const CARRY_BAT_KEY: Readonly<{ grip: readonly [number, number, number]; dir: readonly [number, number, number] }> = Object.freeze({
+  grip: [-0.25, 0.85, 0.08] as const,
+  dir: [0.12 / 0.9929, -0.98 / 0.9929, 0.0 / 0.9929] as const,
+});
 
 export function createPose(): SampledPose {
   const q = new Float32Array(NB * 4);
@@ -846,12 +1113,45 @@ function lerp3(a: readonly number[], b: readonly number[], u: number): [number, 
   return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
 }
 
-/** Samples a clip at `t` seconds into `out`. Looping clips wrap; others clamp. */
+/**
+ * A direction turned from `a` towards `b` (u 0..1) at a constant rate (slerp of unit vectors). Near-opposite
+ * directions (a bat going from toe-up to toe-down) turn through the actor's sagittal plane (about its x axis), never
+ * through a degenerate near-zero average.
+ */
+function slerpDir(a0: readonly number[], b0: readonly number[], u: number): [number, number, number] {
+  const la = Math.hypot(a0[0], a0[1], a0[2]) || 1;
+  const lb = Math.hypot(b0[0], b0[1], b0[2]) || 1;
+  const a = [a0[0] / la, a0[1] / la, a0[2] / la];
+  const b = [b0[0] / lb, b0[1] / lb, b0[2] / lb];
+  const d = Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]));
+  const th = Math.acos(d);
+  if (th < 1e-4) return lerp3(a, b, u);
+  let axis = [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  let n = Math.hypot(axis[0], axis[1], axis[2]);
+  if (n < 0.08) {
+    // Nearly opposite: turn about the actor's x axis (projected off a).
+    axis = [1 - a[0] * a[0], -a[0] * a[1], -a[0] * a[2]];
+    n = Math.hypot(axis[0], axis[1], axis[2]) || 1;
+  }
+  const k = [axis[0] / n, axis[1] / n, axis[2] / n];
+  const ang = th * u;
+  const c = Math.cos(ang);
+  const s = Math.sin(ang);
+  const kxa = [k[1] * a[2] - k[2] * a[1], k[2] * a[0] - k[0] * a[2], k[0] * a[1] - k[1] * a[0]];
+  const kd = k[0] * a[0] + k[1] * a[1] + k[2] * a[2];
+  return [a[0] * c + kxa[0] * s + k[0] * kd * (1 - c), a[1] * c + kxa[1] * s + k[1] * kd * (1 - c), a[2] * c + kxa[2] * s + k[2] * kd * (1 - c)];
+}
+
+/** Samples a clip at `t` seconds into `out`. Looping clips wrap; others clamp. A pack clip samples its pack. */
 export function sampleClip(id: ClipId, t: number, out: SampledPose): SampledPose {
+  const m = motionSource(id);
+  if (m) {
+    m.sample(t, out);
+    out.topHand = out.bat ? 1 : 0;
+    return out;
+  }
   const c = getClip(id);
-  let time = t;
-  if (c.loop) time = ((t % c.duration) + c.duration) % c.duration;
-  else time = clamp(t, 0, c.duration);
+  const time = c.loop ? ((t % c.duration) + c.duration) % c.duration : clamp(t, 0, c.duration);
   const keys = c.keys;
   let i = 0;
   while (i < keys.length - 2 && time > keys[i + 1].t) i++;
@@ -862,11 +1162,38 @@ export function sampleClip(id: ClipId, t: number, out: SampledPose): SampledPose
   if (!c.linear) u = smoothstep(0, 1, u);
   for (let b = 0; b < NB; b++) quatSlerp(k0.q.subarray(b * 4, b * 4 + 4), k1.q.subarray(b * 4, b * 4 + 4), u, out.q, b * 4);
   out.root = lerp3(k0.root, k1.root, u);
-  out.aimR = k0.aimR && k1.aimR ? [k0.aimR[0] + (k1.aimR[0] - k0.aimR[0]) * u, k0.aimR[1] + (k1.aimR[1] - k0.aimR[1]) * u] : (k0.aimR ?? k1.aimR);
-  out.aimL = k0.aimL && k1.aimL ? [k0.aimL[0] + (k1.aimL[0] - k0.aimL[0]) * u, k0.aimL[1] + (k1.aimL[1] - k0.aimL[1]) * u] : (k0.aimL ?? k1.aimL);
+  if (weightedAims) {
+    out.aimR = keyAim(k0.aimR, k1.aimR, u);
+    out.aimL = keyAim(k0.aimL, k1.aimL, u);
+  } else {
+    out.aimR = k0.aimR && k1.aimR ? [k0.aimR[0] + (k1.aimR[0] - k0.aimR[0]) * u, k0.aimR[1] + (k1.aimR[1] - k0.aimR[1]) * u] : (k0.aimR ?? k1.aimR);
+    out.aimL = k0.aimL && k1.aimL ? [k0.aimL[0] + (k1.aimL[0] - k0.aimL[0]) * u, k0.aimL[1] + (k1.aimL[1] - k0.aimL[1]) * u] : (k0.aimL ?? k1.aimL);
+  }
   out.bat = k0.bat && k1.bat ? { grip: lerp3(k0.bat.grip, k1.bat.grip, u), dir: lerp3(k0.bat.dir, k1.bat.dir, u) } : (k0.bat ?? k1.bat);
   out.twoHands = u < 0.5 ? k0.twoHands : k1.twoHands;
+  out.topHand = (k0.twoHands ? 1 : 0) + ((k1.twoHands ? 1 : 0) - (k0.twoHands ? 1 : 0)) * u;
   return out;
+}
+
+/**
+ * The face a bat key has when it carries none: the one square to the blade that points the way the actor faces the bowler (+x
+ * in the actor's frame, before the mirror), which is what holdBat gives such a key. A blade pointing along that axis has no such
+ * face (the blade is square to it nowhere); the actor's +z stands in.
+ */
+function hintFace(dir: readonly number[]): [number, number, number] {
+  const l = Math.hypot(dir[0], dir[1], dir[2]) || 1;
+  const d = [dir[0] / l, dir[1] / l, dir[2] / l];
+  const h = [1 - d[0] * d[0], -d[0] * d[1], -d[0] * d[2]];
+  const n = Math.hypot(h[0], h[1], h[2]);
+  return n < 1e-6 ? [0, 0, 1] : [h[0] / n, h[1] / n, h[2] / n];
+}
+
+/** A key's face: its own, else the hint (see hintFace). */
+function keyFace(k: { dir: readonly number[]; face?: readonly number[] }): [number, number, number] {
+  const f = k.face;
+  if (!f) return hintFace(k.dir);
+  const l = Math.hypot(f[0], f[1], f[2]) || 1;
+  return [f[0] / l, f[1] / l, f[2] / l];
 }
 
 /** Blends `b` into `a` by weight `w` (0 = a, 1 = b), in place on `a`. Aims and bat blend when both have them. */
@@ -878,13 +1205,66 @@ export function blendPose(a: SampledPose, b: SampledPose, w: number, mask?: Read
   }
   if (!mask || mask.has('hips')) a.root = lerp3(a.root, b.root, w);
   if (mask) return;
-  a.aimR = blendAim(a.aimR, b.aimR, w);
-  a.aimL = blendAim(a.aimL, b.aimL, w);
-  if (a.bat && b.bat) a.bat = { grip: lerp3(a.bat.grip, b.bat.grip, w), dir: lerp3(a.bat.dir, b.bat.dir, w) };
-  else if (w >= 0.5) a.bat = b.bat;
+  a.aimR = weightedAims ? keyAim(a.aimR, b.aimR, w) : blendAim(a.aimR, b.aimR, w);
+  a.aimL = weightedAims ? keyAim(a.aimL, b.aimL, w) : blendAim(a.aimL, b.aimL, w);
+  if (a.bat && b.bat) {
+    const fa = a.bat.face;
+    const fb = b.bat.face;
+    // Round 9: a face on one side only blends with the other side's hint (hintFace), never switches at half-way: the bat turned about
+    // its blade by up to 70° in the one frame where the weight crossed 0.5 (the crossfade of a clip with a face into one without).
+    const face = fa || fb ? slerpDir(fa ?? hintFace(a.bat.dir), fb ?? hintFace(b.bat.dir), w) : null;
+    a.bat = { grip: lerp3(a.bat.grip, b.bat.grip, w), dir: slerpDir(a.bat.dir, b.bat.dir, w), ...(face ? { face } : {}) };
+  }
+  else if (a.bat || b.bat) {
+    // One side carries the bat without a key of its own: blend through the carried key, never a jump.
+    const ka = a.bat ?? CARRY_BAT_KEY;
+    const kb = b.bat ?? CARRY_BAT_KEY;
+    a.bat = { grip: lerp3(ka.grip, kb.grip, w), dir: slerpDir(ka.dir, kb.dir, w) };
+  }
+  const ha = a.topHand ?? (a.bat ? (a.twoHands ? 1 : 0) : 0);
+  const hb = b.topHand ?? (b.bat ? (b.twoHands ? 1 : 0) : 0);
+  a.topHand = ha + (hb - ha) * w;
   a.twoHands = w < 0.5 ? a.twoHands : b.twoHands;
 }
 
+/** Where a partly weighted aim keeps its weight (a property of the aim itself, so a pose that copies or swaps its aims takes it along). */
+const AIM_WEIGHT = Symbol('aimWeight');
+
+/** How much of an arm aim is in force: 1 unless a cross-fade holds it back. */
+export function aimWeight(aim: readonly [number, number]): number {
+  return (aim as { [AIM_WEIGHT]?: number })[AIM_WEIGHT] ?? 1;
+}
+
+/** An aim at a weight; a whole one is the plain pair every clip's own aims are. */
+function aimOf(phi: number, lateral: number, weight: number): [number, number] {
+  const a: [number, number] = [phi, lateral];
+  if (weight < 1) (a as { [AIM_WEIGHT]?: number })[AIM_WEIGHT] = weight < 0 ? 0 : weight;
+  return a;
+}
+
+/**
+ * The aim between two keys (or two poses) at share `u`. Both aim: the angle goes the short way round (a key at 20 after one at 330 is
+ * 50 degrees on, not 310 back through straight up), and the weight between theirs. One aims: the aim is in force at its share, so the
+ * arm leaves (or comes to) the clip's own pose with it instead of being on the aim from the first frame of the segment.
+ */
+function keyAim(a: [number, number] | null, b: [number, number] | null, u: number): [number, number] | null {
+  if (a && b) {
+    let d = (b[0] - a[0]) % 360;
+    if (d > 180) d -= 360;
+    if (d < -180) d += 360;
+    const wa = aimWeight(a);
+    const wb = aimWeight(b);
+    return aimOf(a[0] + d * u, a[1] + (b[1] - a[1]) * u, wa + (wb - wa) * u);
+  }
+  if (b) return aimOf(b[0], b[1], aimWeight(b) * u);
+  if (a) return aimOf(a[0], a[1], aimWeight(a) * (1 - u));
+  return null;
+}
+
+/**
+ * Blends two poses' aims by `w` (0 = a, 1 = b) the way every actor but the bowler is drawn: a clip that aims an arm against one that does
+ * not switches the whole aim at the half-way frame.
+ */
 function blendAim(a: [number, number] | null, b: [number, number] | null, w: number): [number, number] | null {
   if (a && b) {
     let d = (b[0] - a[0]) % 360;
@@ -893,6 +1273,19 @@ function blendAim(a: [number, number] | null, b: [number, number] | null, w: num
     return [a[0] + d * w, a[1] + (b[1] - a[1]) * w];
   }
   return w >= 0.5 ? b : a;
+}
+
+let weightedAims = false;
+/**
+ * Turns the weighted, short-way arm aims (`keyAim`) on or off for the poses sampled from now on; returns what it was. The stage has
+ * them on for the bowler only, whose built-in fielding and celebration clips they were made for (a throw's front arm swung through
+ * straight up, a cross-fade to a clip that does not aim an arm put the arm down in one frame); the keeper and the fielders, whose
+ * arms the same clips draw, are left as they were until they are looked at.
+ */
+export function setWeightedAims(on: boolean): boolean {
+  const was = weightedAims;
+  weightedAims = on;
+  return was;
 }
 
 const MIRROR_PAIRS: ReadonlyArray<readonly [number, number]> = (
@@ -928,7 +1321,10 @@ export function mirrorSampledPose(pose: SampledPose): SampledPose {
   const aimR = pose.aimR;
   pose.aimR = pose.aimL;
   pose.aimL = aimR;
-  if (pose.bat) pose.bat = { grip: [-pose.bat.grip[0], pose.bat.grip[1], pose.bat.grip[2]], dir: [-pose.bat.dir[0], pose.bat.dir[1], pose.bat.dir[2]] };
+  if (pose.bat) {
+    const f = pose.bat.face;
+    pose.bat = { grip: [-pose.bat.grip[0], pose.bat.grip[1], pose.bat.grip[2]], dir: [-pose.bat.dir[0], pose.bat.dir[1], pose.bat.dir[2]], ...(f ? { face: [-f[0], f[1], f[2]] as [number, number, number] } : {}) };
+  }
   return pose;
 }
 
@@ -958,12 +1354,251 @@ export function addBoneRotation(pose: SampledPose, bone: BoneName, euler: readon
 }
 
 /** Copies the lower body (hips, legs and root offset) of `src` over `dst`. */
-export function overlayLower(dst: SampledPose, src: SampledPose, w = 1): void {
-  for (const name of ['hips', 'thighL', 'shinL', 'footL', 'thighR', 'shinR', 'footR'] as const) {
+const LEG_MASK = ['hips', 'thighL', 'shinL', 'footL', 'thighR', 'shinR', 'footR'] as const;
+/** TRACKB's stroke overlays (pack batter_strokes; SOURCE.md): hips, spine, chest, neck, head and both legs. */
+const BODY_MASK = ['hips', 'spine', 'chest', 'neck', 'head', 'thighL', 'shinL', 'footL', 'thighR', 'shinR', 'footR'] as const;
+/** Lower-layer clips that carry the trunk and head as well as the legs (the arms stay on the base clip). */
+const BODY_OVERLAYS: ReadonlySet<string> = new Set(['vmp:bat_drive', 'vmp:bat_fwd_defence', 'vmp:bat_backfoot_punch', 'vmp:bat_pull', 'vmp:bat_back_defence', 'vmp:bat_leave']);
+
+export function overlayLower(dst: SampledPose, src: SampledPose, w = 1, body = false): void {
+  for (const name of body ? BODY_MASK : LEG_MASK) {
     const i = BONE_INDEX[name];
     quatSlerp(dst.q.subarray(i * 4, i * 4 + 4), src.q.subarray(i * 4, i * 4 + 4), w, dst.q, i * 4);
   }
   dst.root = lerp3(dst.root, src.root, w);
 }
 
-export const ALL_CLIPS = Object.keys(CLIPS) as ClipId[];
+export const ALL_CLIPS = Object.keys(CLIPS) as BuiltinClipId[];
+
+/** The clip state an actor shows (structurally `ClipState` / `ActorState` from actors.ts). */
+interface PresentedClip {
+  clip: ClipId;
+  time: number;
+  lower?: ClipId;
+  lowerTime?: number;
+}
+interface PresentedState {
+  current: PresentedClip;
+  previous: PresentedClip | null;
+  weight: number;
+  stack?: ReadonlyArray<{ clip: PresentedClip; weight: number }>;
+  inertia?: {
+    from: ReadonlyArray<{ clip: PresentedClip; weight: number }>;
+    fromBefore: ReadonlyArray<{ clip: PresentedClip; weight: number }>;
+    to: PresentedClip;
+    toBefore: PresentedClip;
+    tau: number;
+    ms: number;
+  };
+}
+
+let inertiaScratch: SampledPose[] | null = null;
+
+function sampleStack(stack: ReadonlyArray<{ clip: PresentedClip; weight: number }>, out: SampledPose, tmp: SampledPose, lower: SampledPose): SampledPose {
+  sampleLayer(stack[0].clip, out, lower);
+  for (let k = 1; k < stack.length; k++) {
+    sampleLayer(stack[k].clip, tmp, lower);
+    blendPose(out, tmp, stack[k].weight);
+  }
+  return out;
+}
+
+/** q = a · b⁻¹ as a rotation vector (axis × angle), into r at offset o. */
+function logDelta(a: Float32Array, b: Float32Array, i: number, r: Float64Array, o: number) {
+  const ax = a[i], ay = a[i + 1], az = a[i + 2], aw = a[i + 3];
+  const bx = -b[i], by = -b[i + 1], bz = -b[i + 2], bw = b[i + 3];
+  let x = aw * bx + ax * bw + ay * bz - az * by;
+  let y = aw * by - ax * bz + ay * bw + az * bx;
+  let z = aw * bz + ax * by - ay * bx + az * bw;
+  let w = aw * bw - ax * bx - ay * by - az * bz;
+  if (w < 0) {
+    x = -x;
+    y = -y;
+    z = -z;
+    w = -w;
+  }
+  const s = Math.hypot(x, y, z);
+  const ang = 2 * Math.atan2(s, w);
+  const k = s > 1e-9 ? ang / s : 2;
+  r[o] = x * k;
+  r[o + 1] = y * k;
+  r[o + 2] = z * k;
+}
+
+/**
+ * Inertialization (Move.inertial): the difference between what was presented at the switch and the new clip there,
+ * with its velocity, decays by a critically damped curve x(τ) = (x0 + (v0 + ω x0) τ) e^(−ωτ) over the window, applied
+ * on top of the new clip (rotations as rotation vectors, the root offset as a vector). Pure in the state.
+ */
+function applyInertia(st: NonNullable<PresentedState['inertia']>, out: SampledPose, lower: SampledPose) {
+  const sc = (inertiaScratch ??= [createPose(), createPose(), createPose(), createPose(), createPose()]);
+  const a0 = sampleStack(st.from, sc[0], sc[4], lower);
+  const a1 = sampleStack(st.fromBefore, sc[1], sc[4], lower);
+  const b0 = sampleLayer(st.to, sc[2], lower);
+  const b1 = sampleLayer(st.toBefore, sc[3], lower);
+  const dt = 1 / 60;
+  const tau = st.tau / 1000;
+  const omega = 6.6 / (st.ms / 1000);
+  const e = Math.exp(-omega * tau);
+  const r0 = new Float64Array(3);
+  const r1 = new Float64Array(3);
+  for (let i = 0; i < NB * 4; i += 4) {
+    logDelta(a0.q, b0.q, i, r0, 0);
+    logDelta(a1.q, b1.q, i, r1, 0);
+    const rx = (r0[0] + ((r0[0] - r1[0]) / dt + omega * r0[0]) * tau) * e;
+    const ry = (r0[1] + ((r0[1] - r1[1]) / dt + omega * r0[1]) * tau) * e;
+    const rz = (r0[2] + ((r0[2] - r1[2]) / dt + omega * r0[2]) * tau) * e;
+    const ang = Math.hypot(rx, ry, rz);
+    if (ang < 1e-7) continue;
+    const s = Math.sin(ang / 2) / ang;
+    const dx = rx * s, dy = ry * s, dz = rz * s, dw = Math.cos(ang / 2);
+    const qx = out.q[i], qy = out.q[i + 1], qz = out.q[i + 2], qw = out.q[i + 3];
+    out.q[i] = dw * qx + dx * qw + dy * qz - dz * qy;
+    out.q[i + 1] = dw * qy - dx * qz + dy * qw + dz * qx;
+    out.q[i + 2] = dw * qz + dx * qy - dy * qx + dz * qw;
+    out.q[i + 3] = dw * qw - dx * qx - dy * qy - dz * qz;
+  }
+  const root = [0, 1, 2].map((k) => {
+    const x0 = a0.root[k] - b0.root[k];
+    const x1 = a1.root[k] - b1.root[k];
+    return (x0 + ((x0 - x1) / dt + omega * x0) * tau) * e;
+  });
+  out.root = [out.root[0] + root[0], out.root[1] + root[1], out.root[2] + root[2]];
+  // Into a run the bat key stays the clip's: the external bat hands over to it, and the top hand eases off (players.ts).
+  if (st.to.clip !== 'bat_run') inertiaBat(a0, a1, b0, b1, out, tau, omega, dt, e);
+}
+
+/** The bat key a pose holds (grip point and blade direction, actor frame), the carried key when it has none. */
+const batKey = (p: SampledPose): { grip: readonly number[]; dir: readonly number[] } => p.bat ?? CARRY_BAT_KEY;
+
+/** The rotation vector (axis × angle, actor frame) that turns the blade direction b onto a. Near-opposite turns about x. */
+function bladeDelta(a0: readonly number[], b0: readonly number[], r: Float64Array): void {
+  const la = Math.hypot(a0[0], a0[1], a0[2]) || 1;
+  const lb = Math.hypot(b0[0], b0[1], b0[2]) || 1;
+  const a = [a0[0] / la, a0[1] / la, a0[2] / la];
+  const b = [b0[0] / lb, b0[1] / lb, b0[2] / lb];
+  const d = Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]));
+  const c = [b[1] * a[2] - b[2] * a[1], b[2] * a[0] - b[0] * a[2], b[0] * a[1] - b[1] * a[0]];
+  let sn = Math.hypot(c[0], c[1], c[2]);
+  let axis = c;
+  if (sn < 0.08 && d < 0) {
+    // Nearly opposite (a bat going from toe-up to toe-down): through the actor's sagittal plane, as slerpDir does.
+    axis = [1 - b[0] * b[0], -b[0] * b[1], -b[0] * b[2]];
+    sn = Math.hypot(axis[0], axis[1], axis[2]) || 1;
+  }
+  const ang = Math.atan2(Math.hypot(c[0], c[1], c[2]), d);
+  const k = sn > 1e-9 ? ang / sn : 0;
+  r[0] = axis[0] * k;
+  r[1] = axis[1] * k;
+  r[2] = axis[2] * k;
+}
+
+/**
+ * The bat key and the top hand's hold decay with the bones (round 8): the key on screen at the switch minus the new
+ * clip's, with its velocity, on the same critically damped curve, so the gloves' targets carry on from where they were
+ * instead of jumping to the new clip's key with the first frame (the stroke's end into the rest moved the key 0.8 m in
+ * one frame and the arms with it). Without a key on either side nothing is changed.
+ */
+function inertiaBat(a0: SampledPose, a1: SampledPose, b0: SampledPose, b1: SampledPose, out: SampledPose, tau: number, omega: number, dt: number, e: number): void {
+  if (!a0.bat && !b0.bat && !out.bat) return;
+  const decay = (x0: number, x1: number) => (x0 + ((x0 - x1) / dt + omega * x0) * tau) * e;
+  const ka0 = batKey(a0), ka1 = batKey(a1), kb0 = batKey(b0), kb1 = batKey(b1), kn = batKey(out);
+  const grip: [number, number, number] = [0, 0, 0];
+  for (let k = 0; k < 3; k++) grip[k] = kn.grip[k] + decay(ka0.grip[k] - kb0.grip[k], ka1.grip[k] - kb1.grip[k]);
+  const r0 = new Float64Array(3);
+  const r1 = new Float64Array(3);
+  bladeDelta(ka0.dir, kb0.dir, r0);
+  bladeDelta(ka1.dir, kb1.dir, r1);
+  const rv = [decay(r0[0], r1[0]), decay(r0[1], r1[1]), decay(r0[2], r1[2])];
+  const dir = rotateAbout(kn.dir, rv);
+  // Round 9: the bat's face (MOTION-SPEC v1.2 bat.face) decays with the blade: it was dropped here, so a bat whose clip carries a face
+  // turned about its blade by up to 70° in the first frame of every inertial switch (the leave, the stroke's end) and back in the
+  // frame the offset ran out. A face that no clip of the four carries stays undefined, as before (holdBat then gives the hint).
+  const authored = Boolean(a0.bat?.face || a1.bat?.face || b0.bat?.face || b1.bat?.face || out.bat?.face);
+  let face: [number, number, number] | null = null;
+  let rollMoved = 0;
+  if (authored) {
+    const roll = (da: readonly number[], fa: readonly number[], db: readonly number[], fb: readonly number[]) => {
+      const r = new Float64Array(3);
+      bladeDelta(da, db, r);
+      const f = rotateAbout(fb, [r[0], r[1], r[2]]);
+      const l = Math.hypot(da[0], da[1], da[2]) || 1;
+      const u = [da[0] / l, da[1] / l, da[2] / l];
+      const cx = f[1] * fa[2] - f[2] * fa[1];
+      const cy = f[2] * fa[0] - f[0] * fa[2];
+      const cz = f[0] * fa[1] - f[1] * fa[0];
+      return Math.atan2(cx * u[0] + cy * u[1] + cz * u[2], f[0] * fa[0] + f[1] * fa[1] + f[2] * fa[2]);
+    };
+    const x0 = roll(ka0.dir, keyFace(ka0), kb0.dir, keyFace(kb0));
+    const x1 = roll(ka1.dir, keyFace(ka1), kb1.dir, keyFace(kb1));
+    rollMoved = decay(x0, x1);
+    const withBlade = rotateAbout(keyFace(kn), rv);
+    const l = Math.hypot(dir[0], dir[1], dir[2]) || 1;
+    face = rotateAbout(withBlade, [(dir[0] / l) * rollMoved, (dir[1] / l) * rollMoved, (dir[2] / l) * rollMoved]);
+  }
+  const hold = (p: SampledPose) => p.topHand ?? (p.bat ? (p.twoHands ? 1 : 0) : 0);
+  const top = hold(out) + decay(hold(a0) - hold(b0), hold(a1) - hold(b1));
+  const moved = Math.hypot(grip[0] - kn.grip[0], grip[1] - kn.grip[1], grip[2] - kn.grip[2]) + Math.hypot(rv[0], rv[1], rv[2]) + Math.abs(top - hold(out)) + Math.abs(rollMoved);
+  // The new clip's key is left as it is once the offset has gone (a clip with no key carries its own: see holdBat).
+  if (moved < 1e-3 && !out.bat) return;
+  out.bat = { grip, dir, ...(face ? { face } : {}) };
+  out.topHand = Math.max(0, Math.min(1, top));
+}
+
+/** `v` turned by the rotation vector r (axis × angle), unit length kept. */
+function rotateAbout(v: readonly number[], r: readonly number[]): [number, number, number] {
+  const ang = Math.hypot(r[0], r[1], r[2]);
+  const l = Math.hypot(v[0], v[1], v[2]) || 1;
+  const u = [v[0] / l, v[1] / l, v[2] / l];
+  if (ang < 1e-9) return [u[0], u[1], u[2]];
+  const k = [r[0] / ang, r[1] / ang, r[2] / ang];
+  const c = Math.cos(ang);
+  const s = Math.sin(ang);
+  const kd = k[0] * u[0] + k[1] * u[1] + k[2] * u[2];
+  return [u[0] * c + (k[1] * u[2] - k[2] * u[1]) * s + k[0] * kd * (1 - c), u[1] * c + (k[2] * u[0] - k[0] * u[2]) * s + k[1] * kd * (1 - c), u[2] * c + (k[0] * u[1] - k[1] * u[0]) * s + k[2] * kd * (1 - c)];
+}
+
+function sampleLayer(c: PresentedClip, out: SampledPose, lower: SampledPose): SampledPose {
+  sampleClip(c.clip, c.time, out);
+  if (c.lower) overlayLower(out, sampleClip(c.lower, c.lowerTime ?? 0, lower), 1, BODY_OVERLAYS.has(c.lower));
+  return out;
+}
+
+function copyPose(src: SampledPose, dst: SampledPose) {
+  dst.q.set(src.q);
+  dst.root = [src.root[0], src.root[1], src.root[2]];
+  dst.aimR = src.aimR;
+  dst.aimL = src.aimL;
+  dst.bat = src.bat;
+  dst.twoHands = src.twoHands;
+  dst.topHand = src.topHand;
+}
+
+/**
+ * The pose an actor presents at its evaluated state, into `out`: the current clip (with its footwork layer), crossfaded
+ * from the pose actually on screen when it began. A move that starts while an earlier crossfade is still running
+ * blends from that blended pose (`stack`), never from the bare previous clip, so nothing pops.
+ */
+export function samplePresented(st: PresentedState, out: SampledPose, scratch: SampledPose, lower: SampledPose): SampledPose {
+  if (st.inertia) {
+    sampleLayer(st.current, out, lower);
+    applyInertia(st.inertia, out, lower);
+    return out;
+  }
+  if (st.stack && st.stack.length > 1) {
+    sampleLayer(st.stack[0].clip, scratch, lower);
+    for (let k = 1; k < st.stack.length; k++) {
+      sampleLayer(st.stack[k].clip, out, lower);
+      blendPose(scratch, out, st.stack[k].weight);
+    }
+    copyPose(scratch, out);
+    return out;
+  }
+  sampleLayer(st.current, out, lower);
+  if (st.previous && st.weight < 1) {
+    sampleLayer(st.previous, scratch, lower);
+    blendPose(scratch, out, st.weight);
+    copyPose(scratch, out);
+  }
+  return out;
+}

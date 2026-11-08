@@ -23,6 +23,7 @@ import {
 import { type Vec3, clamp } from '../core/math';
 import { glovesOf } from '../practice/bat';
 import type { BatPose } from '../practice/frame';
+import { ballDiameterPx, closeUpBallDiameterPx, PRACTICE_BALL, projectBallSurface, shadeOpacity, traceAlpha, traceWidthPx, type ProjectedBallSurface } from '../practice/ballLook';
 
 interface Projected {
   x: number;
@@ -38,6 +39,12 @@ export interface BatterViewOptions {
   /** Actors not drawn (the batter's own body). */
   hidden: ReadonlySet<string>;
   visualScale: number;
+  focusAid?: boolean;
+  ballColour?: 'red' | 'white';
+  /** Coach demonstration: draw this complete actor as the translucent teaching body. */
+  coachActor?: string | null;
+  /** Training inspection: held and released ball fill the view and expose the complete surface. */
+  closeUp?: boolean;
 }
 
 const NEAR = 0.25;
@@ -116,6 +123,91 @@ export class BatterViewPainter {
     this.calls++;
   }
 
+  /** Polished/rough halves, scuffs and raised seam, all turned by the sampled physics spin. */
+  private detailedBall(x: number, y: number, r: number, colour: 'red' | 'white', surface: ProjectedBallSurface) {
+    const g = this.ctx;
+    const polished = colour === 'red' ? '#b52b34' : '#faf9f4';
+    const rough = colour === 'red' ? '#8d1f28' : '#dedbd2';
+    const seam = colour === 'red' ? '#e1c6a3' : '#1f5d3f';
+    const scuff = colour === 'red' ? '#51151b' : '#77716a';
+    g.save();
+    g.beginPath();
+    g.arc(x, y, r, 0, Math.PI * 2);
+    g.clip();
+    g.fillStyle = rough;
+    g.fillRect(x - r, y - r, r * 2, r * 2);
+    g.translate(x, y);
+    // Local +X points towards the projected polished pole. The near half of the great-circle seam is
+    // x = −facing·sqrt(r²−y²), from one limb intersection to the other. That same path divides polished from rough,
+    // draws the visible seam and clips scuffs to the rough side, so the three cues cannot contradict one another.
+    const surfacePath = () => {
+      for (let i = 0; i <= 24; i++) {
+        const yy = -r + (2 * r * i) / 24;
+        const xx = -surface.polishedFacing * Math.sqrt(Math.max(0, r * r - yy * yy));
+        if (i === 0) g.moveTo(xx, yy);
+        else g.lineTo(xx, yy);
+      }
+      for (let i = 0; i <= 24; i++) {
+        const a = Math.PI / 2 - (Math.PI * i) / 24;
+        g.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+      }
+      g.closePath();
+    };
+    g.save();
+    g.rotate(surface.polishedAngle);
+    g.beginPath();
+    surfacePath();
+    g.fillStyle = polished;
+    g.fill();
+    g.beginPath();
+    surfacePath();
+    g.clip();
+    const shine = g.createRadialGradient(r * 0.25, -r * 0.28, 0, r * 0.25, -r * 0.28, r * 0.9);
+    shine.addColorStop(0, 'rgba(255,255,255,0.5)');
+    shine.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = shine;
+    g.fillRect(-r, -r, r * 2, r * 2);
+    g.restore();
+    g.strokeStyle = scuff;
+    g.lineWidth = Math.max(1, r * 0.025);
+    // These are fixed rough-side points on the sphere, projected through the complete carried material basis. Hidden
+    // samples stop at the limb; no screen-space rotation can make a scuff jump or appear through the back of the ball.
+    for (const mark of surface.roughScuffs) {
+      g.beginPath();
+      let drawing = false;
+      for (const point of mark) {
+        if (!point.visible) {
+          drawing = false;
+          continue;
+        }
+        if (drawing) g.lineTo(point.x * r, point.y * r);
+        else g.moveTo(point.x * r, point.y * r);
+        drawing = true;
+      }
+      g.stroke();
+    }
+    g.strokeStyle = seam;
+    g.lineWidth = Math.max(2, r * 0.065);
+    g.save();
+    g.rotate(surface.polishedAngle);
+    g.beginPath();
+    for (let i = 0; i <= 24; i++) {
+      const yy = -r + (2 * r * i) / 24;
+      const xx = -surface.polishedFacing * Math.sqrt(Math.max(0, r * r - yy * yy));
+      if (i === 0) g.moveTo(xx, yy);
+      else g.lineTo(xx, yy);
+    }
+    g.stroke();
+    g.restore();
+    g.restore();
+    g.strokeStyle = 'rgba(5,6,15,0.72)';
+    g.lineWidth = Math.max(1, r * 0.025);
+    g.beginPath();
+    g.arc(x, y, r, 0, Math.PI * 2);
+    g.stroke();
+    this.calls++;
+  }
+
   paint(script: BallScript, t: number, cam: CameraPose, kits: [KitSpec, KitSpec], o: BatterViewOptions) {
     const g = this.ctx;
     this.calls = 0;
@@ -141,7 +233,7 @@ export class BatterViewPainter {
     this.calls += 3;
     // Sight screen behind the bowler: dark, so the white ball reads against it.
     const sz = -(BOUNDARY_R + 6.5);
-    this.poly([{ x: -5.5, y: 0, z: sz }, { x: 5.5, y: 0, z: sz }, { x: 5.5, y: 6.5, z: sz }, { x: -5.5, y: 6.5, z: sz }], '#07061c');
+    this.poly([{ x: -9, y: 0, z: sz }, { x: 9, y: 0, z: sz }, { x: 9, y: 7.5, z: sz }, { x: -9, y: 7.5, z: sz }], o.ballColour === 'red' ? '#e7e6de' : '#07061c');
     // The pitch (clipped short of the batter's feet) and the creases.
     const nearZ = Math.min(PITCH_HALF + 1.2, this.pos.z - 0.6);
     const hw = (PITCH_WIDTH + 0.4) / 2;
@@ -157,18 +249,24 @@ export class BatterViewPainter {
     // The bowler's stumps.
     for (const x of [-STUMP_SPACING, 0, STUMP_SPACING]) this.line({ x, y: 0, z: -PITCH_HALF }, { x, y: STUMP_H, z: -PITCH_HALF }, '#f1eee4', 2);
     // Players, far to near.
-    const actors = script.actors
+    const actors = (o.closeUp ? [] : script.actors)
       .filter((a) => !o.hidden.has(a.id))
       .map((a) => ({ a, st: evaluateActor(a, t) }))
       .map((x) => ({ ...x, p: this.project({ x: x.st.pos.x, y: 0, z: x.st.pos.z }) }))
       .filter((x) => x.p)
       .sort((p, q) => q.p!.d - p.p!.d);
     for (const { a, st, p } of actors) {
+      const ghost = a.id === o.coachActor;
+      g.save();
+      if (ghost) g.globalAlpha = 0.46;
       const kit = kits[a.look.team];
-      const fill = a.look.gear === 'umpire' ? '#9fb6d8' : kit.primary;
+      const fill = ghost ? '#7fe0ff' : a.look.gear === 'umpire' ? '#9fb6d8' : kit.primary;
       const head = this.project({ x: st.pos.x, y: 1.72, z: st.pos.z });
       const hip = this.project({ x: st.pos.x, y: 0.95, z: st.pos.z });
-      if (!head || !hip) continue;
+      if (!head || !hip) {
+        g.restore();
+        continue;
+      }
       const bw = Math.max(1.5, this.px(0.44, p!.d));
       g.strokeStyle = kit.secondary;
       g.lineWidth = Math.max(1, bw * 0.35);
@@ -186,6 +284,25 @@ export class BatterViewPainter {
       g.fill();
       this.calls += 3;
       if (a.id === 'bowler') this.bowlingArm(script, t, st.pos, bw);
+      // The Coach body remains a complete figure: both arms meet the exact physics bat's handle rather than ending
+      // as an icon. The feet/torso/head above still come from the same actor track and demo-side camera.
+      if (ghost && o.bat) {
+        const leftShoulder = this.project({ x: st.pos.x - 0.16, y: 1.42, z: st.pos.z });
+        const rightShoulder = this.project({ x: st.pos.x + 0.16, y: 1.42, z: st.pos.z });
+        const hand = this.project(o.bat.grip);
+        if (leftShoulder && rightShoulder && hand) {
+          g.strokeStyle = '#7fe0ff';
+          g.lineWidth = Math.max(2, bw * 0.28);
+          g.beginPath();
+          g.moveTo(leftShoulder.x, leftShoulder.y);
+          g.lineTo(hand.x - bw * 0.08, hand.y);
+          g.moveTo(rightShoulder.x, rightShoulder.y);
+          g.lineTo(hand.x + bw * 0.08, hand.y);
+          g.stroke();
+          this.calls++;
+        }
+      }
+      g.restore();
     }
     // Learn: where the ball will pitch.
     if (o.landing && t >= script.times.release && t < o.landingUntil) {
@@ -200,11 +317,14 @@ export class BatterViewPainter {
       }
     }
     // The ball: trace, shadow, then the ball itself.
-    const ball = sampleBall(script, t);
-    if (ball.visible && ball.inFlight) {
+    const sampled = sampleBall(script, t);
+    const ball = o.closeUp && t < (script.practice?.releaseScene ?? script.times.release) && script.practice
+      ? { ...sampled, pos: script.practice.releaseWorld }
+      : sampled;
+    if (ball.visible && (ball.inFlight || o.closeUp)) {
       const trail: Projected[] = [];
-      for (let i = 1; i <= 6; i++) {
-        const s = sampleBall(script, t - i * 14);
+      for (let i = 1; i < PRACTICE_BALL.trace.samples; i++) {
+        const s = sampleBall(script, t - i * PRACTICE_BALL.trace.stepMs);
         if (!s.visible || !s.inFlight) break;
         const q = this.project(s.pos);
         if (q) trail.push(q);
@@ -215,9 +335,8 @@ export class BatterViewPainter {
         g.lineCap = 'round';
         let prev = head;
         trail.forEach((q, i) => {
-          const k = 1 - i / trail.length;
-          g.strokeStyle = `rgba(82,226,255,${0.32 * k})`;
-          g.lineWidth = Math.min(4, Math.max(1, this.px(BALL_R * o.visualScale, head.d) * 0.8)) * (0.4 + 0.6 * k);
+          g.strokeStyle = `rgba(82,226,255,${traceAlpha(i, trail.length + 1)})`;
+          g.lineWidth = traceWidthPx(i, trail.length + 1, ballDiameterPx(head.d, this.focal));
           g.beginPath();
           g.moveTo(prev.x, prev.y);
           g.lineTo(q.x, q.y);
@@ -226,8 +345,8 @@ export class BatterViewPainter {
         });
         this.calls++;
       }
-      const sh = this.project({ x: ball.pos.x, y: 0.005, z: ball.pos.z });
-      if (sh) {
+      const sh = ball.inFlight ? this.project({ x: ball.pos.x, y: 0.005, z: ball.pos.z }) : null;
+      if (sh && !o.closeUp) {
         const rr = Math.max(2, this.px(BALL_R * o.visualScale * (1.5 + ball.pos.y * 0.4), sh.d));
         g.fillStyle = `rgba(0,0,0,${0.55 * (1 - clamp(ball.pos.y / 7, 0, 0.85))})`;
         g.beginPath();
@@ -236,14 +355,40 @@ export class BatterViewPainter {
         this.calls++;
       }
       if (head) {
-        const rr = Math.max(2.2, this.px(BALL_R * o.visualScale, head.d));
-        g.fillStyle = '#f6f4ee';
-        g.strokeStyle = '#07081a';
-        g.lineWidth = Math.max(1, rr * 0.25);
+        const rr = (o.closeUp ? closeUpBallDiameterPx(this.h) : ballDiameterPx(head.d, this.focal)) / 2;
+        const extent = rr + PRACTICE_BALL.shade.px;
+        const shade = g.createRadialGradient(head.x, head.y, rr, head.x, head.y, extent);
+        for (let px = 0; px <= PRACTICE_BALL.shade.px; px += 0.25) shade.addColorStop(px / PRACTICE_BALL.shade.px, `rgba(5,6,15,${shadeOpacity(px)})`);
+        g.fillStyle = shade;
         g.beginPath();
-        g.arc(head.x, head.y, rr, 0, Math.PI * 2);
+        g.arc(head.x, head.y, extent, 0, Math.PI * 2);
         g.fill();
-        g.stroke();
+        let releaseSurface: { spinAxis: Vec3; seamAxis: Vec3; shineAxis: Vec3; surfaceTangent?: Vec3 } | null = null;
+        if (o.closeUp) {
+          for (const segment of script.ball) {
+            if (segment.k === 'path' && segment.spinAxis && segment.seamAxis && segment.shineAxis) {
+              releaseSurface = { spinAxis: segment.spinAxis, seamAxis: segment.seamAxis, shineAxis: segment.shineAxis, surfaceTangent: segment.surfaceTangent };
+              break;
+            }
+          }
+        }
+        const surface = ball.spinAxis && ball.seamAxis && ball.shineAxis
+          ? { spinAxis: ball.spinAxis, seamAxis: ball.seamAxis, shineAxis: ball.shineAxis, surfaceTangent: ball.surfaceTangent }
+          : releaseSurface;
+        if (o.closeUp && surface) this.detailedBall(head.x, head.y, rr, o.ballColour === 'red' ? 'red' : 'white', projectBallSurface(ball.spin, surface, { forward: this.f, right: this.r, up: this.u }));
+        else {
+          g.fillStyle = o.ballColour === 'red' ? '#a8242b' : PRACTICE_BALL.color;
+          g.beginPath();
+          g.arc(head.x, head.y, rr, 0, Math.PI * 2);
+          g.fill();
+        }
+        if (o.focusAid) {
+          g.strokeStyle = `rgba(233,251,255,${PRACTICE_BALL.focus.opacity})`;
+          g.lineWidth = PRACTICE_BALL.focus.widthPx;
+          g.beginPath();
+          g.arc(head.x, head.y, rr + PRACTICE_BALL.focus.gapPx, 0, Math.PI * 2);
+          g.stroke();
+        }
         this.calls++;
       }
     }
@@ -262,6 +407,9 @@ export class BatterViewPainter {
     }
     // The batter's own bat and gloves.
     if (o.bat) {
+      const coachBat = Boolean(o.coachActor);
+      g.save();
+      if (coachBat) g.globalAlpha = 0.62;
       const gl = glovesOf(o.bat);
       this.line(o.bat.grip, gl.bottom, '#171a3d', 4);
       const a = this.project(gl.bottom);
@@ -276,7 +424,7 @@ export class BatterViewPainter {
         g.stroke();
         this.calls++;
       }
-      for (const p of [gl.top, gl.bottom]) {
+      for (const p of coachBat ? [] : [gl.top, gl.bottom]) {
         const q = this.project(p);
         if (!q) continue;
         g.fillStyle = '#f4f5f8';
@@ -285,6 +433,7 @@ export class BatterViewPainter {
         g.fill();
         this.calls++;
       }
+      g.restore();
     }
   }
 

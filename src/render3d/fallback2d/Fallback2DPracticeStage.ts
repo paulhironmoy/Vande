@@ -11,17 +11,32 @@ import { probeGpu, type GpuProbe } from '@/perf';
 import { KITS } from '@/ui/avatar/traits';
 import { cameraAt } from '../core/camera';
 import { PRACTICE_PROFILES } from '../core/quality';
-import { firstPersonBatPose } from '../practice/bat';
+import { batPoseAt, firstPersonBatPose } from '../practice/bat';
 import { revealed, type Diagnostics } from '../practice/diagnostics';
+import { presentedBounce } from '../practice/feedback';
 import { simToScene } from '../practice/frame';
 import { buildPracticeScript, practiceReleaseScene } from '../practice/script';
 import { PracticeSessionBase, type StageFrame } from '../practice/session';
 import type { PracticeBenchmarkRun, PracticeMountOptions } from '../practice/types';
 import { benchmarkSetup } from '../practice/setup';
 import { BatterViewPainter } from './batterView';
-import { TopDownPainter, type View } from './topDown';
+import { paintFieldInset, TopDownPainter, type View } from './topDown';
 
 const HIDDEN: ReadonlySet<string> = new Set(['striker']);
+const SHOW_ALL: ReadonlySet<string> = new Set();
+
+/**
+ * Until when Learn's landing ring is drawn (scene ms): just after the pitch, or at the contact when something meets the
+ * ball first and the presented ball never pitches there (feedback.ts presentedBounce, COH4): the ring never marks a
+ * bounce the player does not see.
+ */
+export function landingUntil(p: Pick<NonNullable<StageFrame['script']['practice']>, 'flight' | 'result' | 'contactScene' | 'releaseScene'>): number {
+  const bounce = p.flight?.bounce;
+  if (!bounce) return 0;
+  const after = simToScene(p, bounce.t) + 260;
+  if (p.result && p.contactScene !== null && !presentedBounce(p.result, bounce)) return Math.min(after, p.contactScene);
+  return after;
+}
 
 export class Fallback2DPracticeStage extends PracticeSessionBase {
   readonly kind = '2d' as const;
@@ -80,14 +95,27 @@ export class Fallback2DPracticeStage extends PracticeSessionBase {
     if (!this.top || !this.eye) return;
     const p = frame.script.practice ?? null;
     const cam = cameraAt(frame.script, frame.scene, frame.plan, { aspect: this.w / this.h, reducedMotion: this.reducedMotion });
-    if (cam.shot === 'batter_eye') {
-      const until = p?.flight?.bounce ? simToScene(p, p.flight.bounce.t) + 260 : 0;
+    const batterView = cam.shot === 'batter_eye' || frame.coachOption !== null || frame.closeUpFlight !== null;
+    // The field inset beside the stage (topDown.ts), stepping aside whenever this view already shows the field from
+    // above, and at the dead ball (the card's half). It can never cost the frame: whatever it throws, the stage draws.
+    try {
+      paintFieldInset(this.canvas, frame.script, frame.scene, { mode: frame.mode, fieldInView: !batterView, deadBall: false });
+    } catch {
+      /* the inset shows nothing this frame */
+    }
+    if (batterView) {
+      const until = p ? landingUntil(p) : 0;
+      const coach = frame.coachOption !== null;
       this.eye.paint(frame.script, frame.scene, cam, this.kits, {
-        bat: p ? firstPersonBatPose(p.bat, frame.scene) : null,
+        bat: p ? (coach ? batPoseAt(p.bat, frame.scene) : frame.closeUpFlight ? null : firstPersonBatPose(p.bat, frame.scene)) : null,
         landing: frame.mode === 'live' ? (p?.landing ?? null) : null,
         landingUntil: until,
-        hidden: HIDDEN,
+        hidden: coach ? SHOW_ALL : HIDDEN,
         visualScale: PRACTICE_PROFILES[this.profileId].ball.visualScale,
+        focusAid: this.focusAid,
+        ballColour: this.setup?.ball?.colour,
+        coachActor: coach ? 'striker' : null,
+        closeUp: frame.closeUpFlight !== null,
       });
       this.calls = this.eye.calls;
       return;

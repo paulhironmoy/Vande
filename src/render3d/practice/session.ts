@@ -4,20 +4,28 @@
  *
  * Timing never depends on frames. A delivery's timebase maps simulation time to performance.now(); every frame
  * draws the simulation at its own timestamp, and every sound and haptic is scheduled for its event's exact
- * performance time (a timer inside the frame it falls in), not "the next frame". Promises resolve on timers, so
- * they keep time even when no frame is drawn (a lost context, a background tab).
+ * performance time, not "the next frame". Sounds are handed to the sink one output latency ahead (audio.ts
+ * soundLeadMs), so the sink can start them on the audio clock to be heard at that moment (COH6); the sink holds their
+ * haptics and captions until it. Moments fire on a timer at their own time. Promises resolve on timers, so they keep
+ * time even when no frame is drawn (a lost context, a background tab).
  */
-import type { BallFlight, DeliveryResult, QualityProfileId, TimingBands, Vec3 } from '@/contracts/practice';
+import type { AssistanceStage, BallFlight, CoachOption, DeliveryResult, QualityProfileId, TimingBands, Vec3 } from '@/contracts/practice';
+import { TAP_HOLD_MS, type OneGestureState } from '@/input';
 import { activeBands } from '@/physics/timing';
 import { frameStats, PERF_WARMUP_FRAMES } from '@/perf';
-import { practicePlan, replayShot, type DirectorCue } from '../core/camera';
+import { practicePlan, prewarmPracticeGaze, replayShot, type DirectorCue } from '../core/camera';
 import { type BallScript, crowdAt } from '../core/choreo';
-import { batMoved } from './bat';
+import { batMoved, freezeBatTrace, TOUCHDOWN, type TouchStroke } from './bat';
 import { buildDiagnostics, type Diagnostics } from './diagnostics';
+import { PITCH_HALF } from '../core/ground';
 import { perfAtScene, perfToSim, releasePerf, sceneAtPerf, simToPerf, simToScene, type Timebase } from './frame';
 import { buildPracticeScript, practiceReleaseScene } from './script';
-import { createPracticeAudio, type PracticeAudio } from './audio';
+import { createPracticeAudio, soundLeadMs, type PracticeAudio } from './audio';
+import { emotionAt } from './emotion';
 import type {
+  AssistanceGuide,
+  CloseUpOptions,
+  DeliveryContext,
   PracticeBenchmarkRun,
   PracticeEventPayloads,
   PracticeMountOptions,
@@ -26,6 +34,7 @@ import type {
   PracticeStage,
   PracticeStageEvent,
   PracticeStageStats,
+  ProtectedRegion,
   ReplayOptions,
 } from './types';
 
@@ -45,7 +54,14 @@ export const defaultStageClock: StageClock = {
   clearTimer: (id) => clearTimeout(id as ReturnType<typeof setTimeout>),
 };
 
-export type StageMode = 'idle' | 'live' | 'replay' | 'benchmark';
+export type StageMode = 'idle' | 'live' | 'replay' | 'benchmark' | 'demo' | 'closeup';
+
+/**
+ * Why a script was just built (`onScript`): the scene between balls; a delivery before its result; the result's script
+ * taking over a live delivery (the previous script is handed over); a replay, a Coach demonstration or the ball
+ * close-up built from a result or a flight alone; the benchmark scene.
+ */
+export type ScriptKind = 'idle' | 'live' | 'result' | 'replay' | 'demo' | 'closeup' | 'bench';
 
 /** One frame to draw. */
 export interface StageFrame {
@@ -60,10 +76,17 @@ export interface StageFrame {
   diagnostics: Diagnostics | null;
   /** The replayed delivery's timing bands (its assistance level), when known. */
   bands: TimingBands | null;
+  /** The exact Coach option represented by this frame; non-null only during a demonstration. */
+  coachOption: CoachOption | null;
+  /** The exact flight whose surface is being inspected; non-null only during the training close-up. */
+  closeUpFlight: BallFlight | null;
 }
 
 /** Frame intervals kept for stats(). */
 const STATS_WINDOW = 120;
+/** A frame at 60 Hz has about this long (ms) for a draw and for idle work; idle work takes at most IDLE_SLICE_MAX_MS of it. */
+const FRAME_BUDGET_MS = 12;
+const IDLE_SLICE_MAX_MS = 4;
 /** A lost context that is not restored within this long asks for the 2D stage. */
 const LOST_FALLBACK_MS = 3500;
 /**
@@ -115,9 +138,32 @@ export function warpScene(w: ReplayWarp, ms: number): number {
 
 interface FiredCue {
   key: string;
+  /** Scene ms. */
   t: number;
   fire: () => void;
+  /** A sound the sink schedules on the audio clock: handed over SOUND_LEAD ahead of its time (COH6). */
+  ahead: boolean;
+  /** Not played once it is this late (ms): a held bounce whose result came too late to be heard with the ball. */
+  staleMs?: number;
 }
+
+/** A cue waiting on a timer for its own time. */
+interface PendingCue {
+  id: unknown;
+  due: number;
+  fire: () => void;
+  /** From the flight alone (before the result): the result re-decides it when it arrives. */
+  preResult: boolean;
+}
+
+/**
+ * Before the result, a flight that pitches within this distance of the striker's stumps (m) might be met on the full
+ * (COH4): the furthest contact plane is 2.9 m out (down the track) and the bat reaches about a metre beyond it. Its
+ * pitch is never handed to the sink ahead of time, and is held for the result once a swing has begun.
+ */
+const CONTESTED_BOUNCE_M = 4.5;
+/** A bounce sound more than this late (ms) is not played: the ball is long gone from the pitch. */
+const BOUNCE_STALE_MS = 90;
 
 interface LiveDelivery {
   flight: BallFlight;
@@ -125,6 +171,8 @@ interface LiveDelivery {
   script: BallScript;
   plan: DirectorCue[];
   provisionalStart: number | null;
+  /** The touch-down stroke (bat.ts TOUCHDOWN): from the press until the committed swing takes over. Live only. */
+  touch: TouchStroke | null;
   result: DeliveryResult | null;
   resultAt: number | null;
   resolveRelease: ((v: { releasePerfMs: number }) => void) | null;
@@ -133,7 +181,7 @@ interface LiveDelivery {
   playTimer: unknown;
   dead: boolean;
   fired: Set<string>;
-  timers: unknown[];
+  pending: Map<string, PendingCue>;
 }
 
 interface ReplayRun {
@@ -146,7 +194,19 @@ interface ReplayRun {
   resolve: (() => void) | null;
   timer: unknown;
   done: boolean;
+  /** Coach Mode's demonstration (mode 'demo'). */
+  demo: { option: CoachOption } | null;
+  /** The training close-up (mode 'closeup'). */
+  closeUp: { flight: BallFlight } | null;
 }
+
+/** Coach Mode's demonstration plays slower than a replay through the bat (it is watched to be copied). */
+const DEMO_SPEED = 0.25;
+/** The close-up: a moment in the hand before release, then the ball leaving it at CLOSE_UP_RATE of real time. */
+export const CLOSE_UP_MS = 3200;
+const CLOSE_UP_LEAD_MS = 260;
+const CLOSE_UP_HOLD_MS = 900;
+const CLOSE_UP_RATE = 0.06;
 
 export abstract class PracticeSessionBase implements PracticeStage {
   abstract readonly kind: '3d' | '2d';
@@ -179,6 +239,14 @@ export abstract class PracticeSessionBase implements PracticeStage {
   /** undefined: the default (src/audio) sink, created on first use; null: muted. */
   private sink: PracticeSink | null | undefined = undefined;
   private ownSink: PracticeAudio | null = null;
+  /** Coach Mode's assistance: set between balls, taken by the next bowl(). */
+  protected assistance: { stage: AssistanceStage | null; guide: AssistanceGuide | null } = { stage: null, guide: null };
+  private pendingAssistance: { stage: AssistanceStage | null; guide: AssistanceGuide | null } | null = null;
+  /** The assistance the live delivery was bowled with. */
+  protected liveAssistance: { stage: AssistanceStage | null; guide: AssistanceGuide | null } = { stage: null, guide: null };
+  protected focusAid = false;
+  private quietOn = false;
+  protected deliveryContext: DeliveryContext = {};
 
   constructor(clock: StageClock = defaultStageClock) {
     this.clock = clock;
@@ -186,6 +254,19 @@ export abstract class PracticeSessionBase implements PracticeStage {
 
   // ---- subclass hooks --------------------------------------------------------------------------------------------
   protected abstract drawFrame(frame: StageFrame): void;
+  /**
+   * Work that can wait for a spare moment of the frame just drawn, `budgetMs` of it (never more than the frame has
+   * left): a subclass builds what a later frame would otherwise build all at once. Optional: never stops a frame.
+   */
+  protected idleWork(_frame: StageFrame, _budgetMs: number): void {}
+  /**
+   * A script was just built for `kind` (`prev`: for a result, the live script it replaces). Subclasses prepare what each
+   * of the script's frames would otherwise build in the frame (the Director's plans); it runs where the script is built,
+   * outside any drawn frame, and must cost next to nothing for a result (that frame is already the busiest of a delivery).
+   */
+  protected onScript(_script: BallScript, _kind: ScriptKind, _prev: BallScript | null): void {}
+  /** Reduced Motion changed (the subclass rebuilds what it baked with the old setting). */
+  protected onReducedMotion(_on: boolean): void {}
   protected abstract applyProfile(id: QualityProfileId): void;
   protected abstract rendererName(): string;
   protected abstract drawCalls(): number;
@@ -248,7 +329,9 @@ export abstract class PracticeSessionBase implements PracticeStage {
     this.setup = setup;
     this.idleScript = buildPracticeScript({ setup, flight: null, releaseHand: this.releaseHand(setup) });
     this.idlePlan = practicePlan(this.idleScript, this.reducedMotion);
+    prewarmPracticeGaze(this.idleScript, this.reducedMotion);
     this.idleStart = this.clock.now();
+    this.onScript(this.idleScript, 'idle', null);
   }
 
   setSink(sink: PracticeSink | null): void {
@@ -257,15 +340,34 @@ export abstract class PracticeSessionBase implements PracticeStage {
   setReducedMotion(on: boolean): void {
     this.reducedMotion = on;
     if (this.idleScript) this.idlePlan = practicePlan(this.idleScript, on);
+    // The other motion setting has its own gaze: build it now, not in the next frame.
+    if (this.live?.script?.practice) prewarmPracticeGaze(this.live.script, on);
+    this.onReducedMotion(on);
   }
   setLearnCue(on: boolean): void {
     this.learnCue = on;
+  }
+  setAssistance(stage: AssistanceStage | null, guide: AssistanceGuide | null = null): void {
+    const next = { stage, guide: stage === null ? null : guide };
+    // Between deliveries it applies now (for the next bowl); during one it waits for that bowl.
+    if (this.live && !this.live.dead) this.pendingAssistance = next;
+    else {
+      this.pendingAssistance = null;
+      this.assistance = next;
+    }
+  }
+  setFocusAid(on: boolean): void {
+    this.focusAid = on;
+  }
+  /** Screen regions the HUD must not cover (subclasses project them through their camera). */
+  protectedRegions(): ProtectedRegion[] {
+    return [];
   }
   setTimeScale(k: number): void {
     if (Number.isFinite(k) && k > 0) this.timeScale = k;
   }
 
-  private activeSink(): PracticeSink | null {
+  protected activeSink(): PracticeSink | null {
     if (this.sink === undefined) {
       if (!this.ownSink) {
         try {
@@ -280,22 +382,34 @@ export abstract class PracticeSessionBase implements PracticeStage {
   }
 
   // ---- delivery --------------------------------------------------------------------------------------------------
-  bowl(flight: BallFlight): Promise<{ releasePerfMs: number }> {
+  bowl(flight: BallFlight, context: DeliveryContext = {}): Promise<{ releasePerfMs: number }> {
     const setup = this.setup;
     if (!setup) return Promise.reject(new Error('setScene must be called before bowl'));
     this.endLive();
     this.endReplay();
     this.applyPending();
+    if (this.pendingAssistance) {
+      this.assistance = this.pendingAssistance;
+      this.pendingAssistance = null;
+    }
+    this.liveAssistance = this.assistance;
+    this.deliveryContext = context;
+    this.activeSink()?.context?.({ ...context, conditions: setup.conditions });
+    this.setQuiet(true);
     const now = this.clock.now();
     const tb: Timebase = { startPerfMs: now, releaseScene: practiceReleaseScene(setup.bowler), timeScale: this.timeScale };
-    const script = buildPracticeScript({ setup, flight, learnCue: this.learnCue, releaseHand: this.releaseHand(setup) });
+    const script = buildPracticeScript({ setup, flight, learnCue: this.learnCue, releaseHand: this.releaseHand(setup), context });
     tb.releaseScene = script.practice!.releaseScene;
+    // The first-person gaze is built here, outside any animation frame (frames only read it).
+    prewarmPracticeGaze(script, this.reducedMotion);
+    this.onScript(script, 'live', null);
     const live: LiveDelivery = {
       flight,
       tb,
       script,
       plan: practicePlan(script, this.reducedMotion),
       provisionalStart: null,
+      touch: null,
       result: null,
       resultAt: null,
       resolveRelease: null,
@@ -304,7 +418,7 @@ export abstract class PracticeSessionBase implements PracticeStage {
       playTimer: null,
       dead: false,
       fired: new Set(),
-      timers: [],
+      pending: new Map(),
     };
     this.live = live;
     this.mode = 'live';
@@ -334,18 +448,81 @@ export abstract class PracticeSessionBase implements PracticeStage {
     return this.live ? perfToSim(this.live.tb, perfMs) : Number.NaN;
   }
 
+  /**
+   * Touch-down (owner decision 2026-11-04, CTL1): the bat's stroke starts at the press minus calibration, the instant a
+   * tap's physics swing starts (normalizeGesture), and CTL1's latency is measured from the press. The stroke stays
+   * short of the ball until beginSwing commits it (bat.ts TOUCHDOWN), and checks back at the tap window's end.
+   */
+  prepareSwing(atPerfMs: number, calibrationMs = 0): void {
+    const live = this.live;
+    if (this.mode !== 'live' || !live || live.provisionalStart !== null || live.result || !Number.isFinite(atPerfMs)) return;
+    const cal = Number.isFinite(calibrationMs) ? calibrationMs : 0;
+    live.touch = { start: sceneAtPerf(live.tb, atPerfMs - cal), end: sceneAtPerf(live.tb, atPerfMs + TAP_HOLD_MS), commitAt: null, state: null, ball: live.flight.samples };
+    live.script.practice!.bat = { ...live.script.practice!.bat, readyAt: null, touch: live.touch };
+    this.latencyPending = atPerfMs;
+  }
+
   beginSwing(atPerfMs: number, calibrationMs = 0): void {
     const live = this.live;
     if (this.mode !== 'live' || !live || live.provisionalStart !== null || live.result) return;
     if (!Number.isFinite(atPerfMs)) return;
     live.provisionalStart = sceneAtPerf(live.tb, atPerfMs - (Number.isFinite(calibrationMs) ? calibrationMs : 0));
-    live.script.practice!.bat = { ...live.script.practice!.bat, provisionalStart: live.provisionalStart };
-    this.latencyPending = atPerfMs;
+    const bat = live.script.practice!.bat;
+    const touch = live.touch;
+    const now = sceneAtPerf(live.tb, this.clock.now());
+    // The commitment continues the touch-down stroke (a tap: the very same start). Only a bat already back at rest
+    // (no touch, or a stroke that checked back: a held press, a pullback) starts afresh, so only then is CTL1's
+    // latency measured again, from this commitment's own input.
+    const fresh = !touch || touch.commitAt !== null || now >= touch.end + TOUCHDOWN.checkMs;
+    if (touch && touch.commitAt === null) live.touch = { ...touch, commitAt: Math.max(now, touch.start), state: bat.contactState ?? null };
+    live.script.practice!.bat = { ...bat, readyAt: null, provisionalStart: live.provisionalStart, touch: live.touch };
+    if (fresh) this.latencyPending = atPerfMs;
+  }
+
+  cancelSwing(): void {
+    const live = this.live;
+    if (this.mode !== 'live' || !live || live.result) return;
+    live.provisionalStart = null;
+    live.touch = this.checkBack(live);
+    live.script.practice!.bat = { ...live.script.practice!.bat, readyAt: null, contactState: null, provisionalStart: null, touch: live.touch };
+    this.latencyPending = null;
+  }
+
+  previewContact(state: OneGestureState): void {
+    const live = this.live;
+    if (this.mode !== 'live' || !live || live.result) return;
+    const uncommittedEnd = (state.phase === 'cancelled' || state.phase === 'intentional_leave') && !state.committed;
+    if (uncommittedEnd) {
+      live.provisionalStart = null;
+      live.touch = this.checkBack(live);
+      live.script.practice!.bat = { ...live.script.practice!.bat, readyAt: null, contactState: null, provisionalStart: null, touch: live.touch };
+      this.latencyPending = null;
+      return;
+    }
+    // A press that is no longer a tap (held past the window, or pulled back into a load): the stroke checks back.
+    if (state.phase === 'waiting' || state.phase === 'loading' || state.phase === 'tracking') live.touch = this.checkBack(live);
+    live.script.practice!.bat = {
+      ...live.script.practice!.bat,
+      readyAt: state.phase === 'ready' ? live.script.practice!.bat.readyAt : null,
+      contactState: { ...state },
+      touch: live.touch,
+    };
+  }
+
+  /** An uncommitted touch-down stroke checks back from now (never later than it would anyway); a committed one stays. */
+  private checkBack(live: LiveDelivery): TouchStroke | null {
+    const t = live.touch;
+    if (!t) return null;
+    if (t.commitAt !== null) return live.provisionalStart === null ? null : t;
+    const now = sceneAtPerf(live.tb, this.clock.now());
+    return now < t.end ? { ...t, end: Math.max(t.start, now) } : t;
   }
 
   play(result: DeliveryResult): Promise<void> {
     const setup = this.setup;
     if (!setup) return Promise.reject(new Error('setScene must be called before play'));
+    // A result from the physics worker is a thawed copy: freeze its bat trace so the frames share one prepared track.
+    freezeBatTrace(result.bat);
     this.endReplay();
     let live = this.live;
     const now = this.clock.now();
@@ -354,42 +531,87 @@ export abstract class PracticeSessionBase implements PracticeStage {
       this.endLive();
       const releaseScene = practiceReleaseScene(setup.bowler);
       const tb: Timebase = { startPerfMs: now - releaseScene / this.timeScale, releaseScene, timeScale: this.timeScale };
-      live = { flight: result.flight, tb, script: null as unknown as BallScript, plan: [], provisionalStart: null, result: null, resultAt: null, resolveRelease: null, releaseTimer: null, resolvePlay: null, playTimer: null, dead: false, fired: new Set(['release:' + Math.round(releaseScene)]), timers: [] };
+      live = { flight: result.flight, tb, script: null as unknown as BallScript, plan: [], provisionalStart: null, touch: null, result: null, resultAt: null, resolveRelease: null, releaseTimer: null, resolvePlay: null, playTimer: null, dead: false, fired: new Set(['release:' + Math.round(releaseScene)]), pending: new Map() };
       this.live = live;
       this.mode = 'live';
     }
     const l = live;
     l.result = result;
     l.resultAt = sceneAtPerf(l.tb, now);
-    l.script = buildPracticeScript({ setup, flight: l.flight, result, provisionalStart: l.provisionalStart, resultAt: l.provisionalStart !== null ? l.resultAt : null, learnCue: this.learnCue, releaseHand: this.releaseHand(setup) });
+    // Recovery can synthesize a live container before it has a script; only a real in-flight script can carry input.
+    const contactState = l.script?.practice?.bat.contactState ?? null;
+    // The script on screen hands over to the result's: the camera keeps its eye and its gaze carries on (no jump).
+    const handover = l.script?.practice ? { script: l.script, atScene: l.resultAt } : null;
+    const liveScript = l.script ?? null;
+    l.script = buildPracticeScript({ setup, flight: l.flight, result, provisionalStart: l.provisionalStart, contactState, resultAt: l.provisionalStart !== null ? l.resultAt : null, handover, learnCue: this.learnCue, releaseHand: this.releaseHand(setup), context: this.deliveryContext });
+    // The touch-down stroke stays on the drawn bat: it hands over to the committed swing (or has checked back).
+    if (l.touch) l.script.practice!.bat = { ...l.script.practice!.bat, touch: l.touch };
     l.tb.releaseScene = l.script.practice!.releaseScene;
+    prewarmPracticeGaze(l.script, this.reducedMotion);
     l.plan = practicePlan(l.script, this.reducedMotion);
+    this.onScript(l.script, 'result', handover ? liveScript : null);
+    // What the flight alone predicted and has not happened yet is re-decided by the result (a bounce the bat beat).
+    for (const [key, p] of l.pending) {
+      if (!p.preResult) continue;
+      this.clock.clearTimer(p.id);
+      l.pending.delete(key);
+      l.fired.delete(key);
+    }
     const deadAt = simToPerf(l.tb, result.deadT);
-    return new Promise((resolve) => {
+    const promise = new Promise<void>((resolve) => {
       l.resolvePlay = resolve;
-      l.playTimer = this.clock.setTimer(() => this.settlePlay(l), Math.max(0, deadAt - this.clock.now()));
+      // At dead ball, everything due by then fires first: what the dead ball wakes (the outcome screens) can hold the
+      // main thread, and the wicket's haptic and caption must not wait behind it (+381 ms on 2026-11-03).
+      l.playTimer = this.clock.setTimer(() => {
+        if (l === this.live && this.mode === 'live') this.flushDue(l);
+        this.settlePlay(l);
+      }, Math.max(0, deadAt - this.clock.now()));
     });
+    // The result's sounds go to the sink now, ahead of their time, not at the next frame.
+    if (this.mode === 'live' && this.live === l) this.dispatch(l, this.clock.now());
+    return promise;
   }
 
   private settlePlay(live: LiveDelivery) {
     if (live.playTimer !== null) this.clock.clearTimer(live.playTimer);
     live.playTimer = null;
+    const wasLive = !live.dead;
     live.dead = true;
     const r = live.resolvePlay;
     live.resolvePlay = null;
     this.applyPending();
+    if (wasLive && live === this.live) this.setQuiet(false);
     r?.();
+  }
+
+  /** Delivery Quiet Mode on or off: the event, the sink, and the subclass's own quiet (decorative motion). */
+  private setQuiet(on: boolean) {
+    if (this.quietOn === on) return;
+    this.quietOn = on;
+    this.onQuiet(on);
+    try {
+      this.activeSink()?.quiet?.(on);
+    } catch {
+      /* a sink never breaks the stage */
+    }
+    this.emit('quiet', { quiet: on });
+  }
+  /** Subclass hook: Delivery Quiet Mode began or ended. */
+  protected onQuiet(_on: boolean): void {}
+  quiet(): boolean {
+    return this.quietOn;
   }
 
   /** Ends the live delivery: every promise settles and pending sounds are cancelled. */
   private endLive() {
     const live = this.live;
     if (!live) return;
-    for (const t of live.timers) this.clock.clearTimer(t);
-    live.timers = [];
+    for (const p of live.pending.values()) this.clock.clearTimer(p.id);
+    live.pending.clear();
     this.settleRelease(live);
     this.settlePlay(live);
     this.live = null;
+    this.setQuiet(false);
     if (this.mode === 'live') this.mode = 'idle';
   }
 
@@ -397,12 +619,15 @@ export abstract class PracticeSessionBase implements PracticeStage {
   replay(result: DeliveryResult, options: ReplayOptions = {}): Promise<void> {
     const setup = this.setup;
     if (!setup) return Promise.reject(new Error('setScene must be called before replay'));
+    freezeBatTrace(result.bat);
     this.endLive();
     this.endReplay();
     this.applyPending();
     const script = buildPracticeScript({ setup, flight: result.flight, result, releaseHand: this.releaseHand(setup) });
+    this.onScript(script, 'replay', null);
     const warp = replayWarp(script, options.speed ?? 0.3);
     const shot = replayShot(options.camera ?? 'side');
+    if (shot === 'batter_eye') prewarmPracticeGaze(script, this.reducedMotion);
     const run: ReplayRun = {
       script,
       plan: [{ shot, atMs: 0, durationMs: script.duration }],
@@ -413,6 +638,8 @@ export abstract class PracticeSessionBase implements PracticeStage {
       resolve: null,
       timer: null,
       done: false,
+      demo: null,
+      closeUp: null,
     };
     this.rep = run;
     this.mode = 'replay';
@@ -422,10 +649,87 @@ export abstract class PracticeSessionBase implements PracticeStage {
     });
   }
 
+  /**
+   * Coach Mode's demonstration: the exact delivery played with the ghost batter performing the option (the subclass
+   * draws the ghost from frame.demo). Built like a replay: slow through the bat, then the ball into the field.
+   */
+  demonstrate(result: DeliveryResult, option: CoachOption): Promise<void> {
+    const setup = this.setup;
+    if (!setup) return Promise.reject(new Error('setScene must be called before demonstrate'));
+    freezeBatTrace(result.bat);
+    this.endLive();
+    this.endReplay();
+    this.applyPending();
+    // `result` is the option re-simulated by the engine on the exact delivery. Presentation changes its treatment,
+    // never the script or outcome: the same striker track, footwork and physics bat are drawn as a ghost below.
+    const script = buildPracticeScript({ setup, flight: result.flight, result, releaseHand: this.releaseHand(setup) });
+    this.onScript(script, 'demo', null);
+    const warp = replayWarp(script, DEMO_SPEED);
+    const run: ReplayRun = {
+      script,
+      plan: [{ shot: 'demo_side', atMs: 0, durationMs: script.duration }],
+      startPerf: this.clock.now(),
+      warp,
+      diagnostics: null,
+      bands: null,
+      resolve: null,
+      timer: null,
+      done: false,
+      demo: { option },
+      closeUp: null,
+    };
+    this.rep = run;
+    this.mode = 'demo';
+    return new Promise((resolve) => {
+      run.resolve = resolve;
+      run.timer = this.clock.setTimer(() => this.finishReplay(run), warp.duration);
+    });
+  }
+
+  /** The training close-up of the ball (the subclass draws it from frame.closeUp). */
+  closeUp(flight: BallFlight, options: CloseUpOptions = {}): Promise<void> {
+    const setup = this.setup;
+    if (!setup) return Promise.reject(new Error('setScene must be called before closeUp'));
+    this.endLive();
+    this.endReplay();
+    this.applyPending();
+    const script = buildPracticeScript({ setup, flight, releaseHand: this.releaseHand(setup) });
+    this.onScript(script, 'closeup', null);
+    const durationMs = Math.max(800, options.durationMs ?? CLOSE_UP_MS);
+    const release = script.practice!.releaseScene;
+    const warp: ReplayWarp = { anchors: [[0, release - CLOSE_UP_LEAD_MS], [durationMs, release + (durationMs - CLOSE_UP_HOLD_MS) * CLOSE_UP_RATE]], duration: durationMs, slow: [release - CLOSE_UP_LEAD_MS, release + durationMs] };
+    const run: ReplayRun = {
+      script,
+      plan: [{ shot: 'ball_close', atMs: 0, durationMs: script.duration }],
+      startPerf: this.clock.now(),
+      warp,
+      diagnostics: null,
+      bands: null,
+      resolve: null,
+      timer: null,
+      done: false,
+      demo: null,
+      closeUp: { flight },
+    };
+    this.rep = run;
+    this.mode = 'closeup';
+    return new Promise((resolve) => {
+      run.resolve = resolve;
+      run.timer = this.clock.setTimer(() => this.finishReplay(run), durationMs);
+    });
+  }
+
   private finishReplay(run: ReplayRun) {
     if (run.timer !== null) this.clock.clearTimer(run.timer);
     run.timer = null;
     run.done = true;
+    // Replays deliberately hold their last frame for ReplayBar. Coach demonstrations and ball close-ups have no
+    // transport: when their promise settles the normal between-ball scene must return, including removal of the
+    // demonstration ghost. Check identity so a superseded run cannot clear the presentation that replaced it.
+    if (this.rep === run && (this.mode === 'demo' || this.mode === 'closeup')) {
+      this.rep = null;
+      this.mode = 'idle';
+    }
     const r = run.resolve;
     run.resolve = null;
     r?.();
@@ -435,7 +739,7 @@ export abstract class PracticeSessionBase implements PracticeStage {
     if (!this.rep) return;
     this.finishReplay(this.rep);
     this.rep = null;
-    if (this.mode === 'replay') this.mode = 'idle';
+    if (this.mode === 'replay' || this.mode === 'demo' || this.mode === 'closeup') this.mode = 'idle';
   }
 
   // ---- profiles --------------------------------------------------------------------------------------------------
@@ -496,6 +800,8 @@ export abstract class PracticeSessionBase implements PracticeStage {
     this.endReplay();
     this.benchScript = script;
     this.benchPlan = practicePlan(script, this.reducedMotion);
+    prewarmPracticeGaze(script, this.reducedMotion);
+    this.onScript(script, 'bench', null);
     const start = this.clock.now();
     this.benchStart = start;
     this.benchFrames = [];
@@ -535,6 +841,7 @@ export abstract class PracticeSessionBase implements PracticeStage {
       this.benchFrames?.push(dt);
     }
     this.lastFrame = now;
+    const tickStart = this.clock.now();
     // Nothing in a frame may stop the loop: timing, sound and promises keep running whatever one frame does.
     try {
       const frame = this.frameAt(now);
@@ -542,6 +849,14 @@ export abstract class PracticeSessionBase implements PracticeStage {
         this.drawFrame(frame);
         this.drawErrors = 0;
         this.afterDraw(frame);
+        const spare = Math.min(IDLE_SLICE_MAX_MS, FRAME_BUDGET_MS - (this.clock.now() - tickStart));
+        if (spare >= 1) {
+          try {
+            this.idleWork(frame, spare);
+          } catch {
+            /* optional work: a failure in it is not a drawing error */
+          }
+        }
       }
     } catch (err) {
       this.drawErrors++;
@@ -556,23 +871,35 @@ export abstract class PracticeSessionBase implements PracticeStage {
     if (this.mode === 'live' && live) {
       const scene = sceneAtPerf(live.tb, now);
       this.dispatch(live, now);
+      this.activeSink()?.emotion?.(emotionAt(live.script.practice!.emotion, scene));
       this.activeSink()?.crowd(crowdAt(live.script, scene));
-      return { mode: 'live', script: live.script, scene, plan: live.plan, clockMs: now, slow: false, diagnostics: null, bands: null };
+      return { mode: 'live', script: live.script, scene, plan: live.plan, clockMs: now, slow: false, diagnostics: null, bands: null, coachOption: null, closeUpFlight: null };
     }
     const rep = this.rep;
-    if (this.mode === 'replay' && rep) {
+    if ((this.mode === 'replay' || this.mode === 'demo' || this.mode === 'closeup') && rep) {
       const ms = Math.min(rep.warp.duration, now - rep.startPerf);
       const scene = warpScene(rep.warp, ms);
       // The stadium's own clock (crowd, boards) runs on replay time too, so a replay frame depends on nothing else.
-      return { mode: 'replay', script: rep.script, scene, plan: rep.plan, clockMs: ms, slow: scene >= rep.warp.slow[0] && scene < rep.warp.slow[1], diagnostics: rep.diagnostics, bands: rep.bands };
+      return {
+        mode: this.mode,
+        script: rep.script,
+        scene,
+        plan: rep.plan,
+        clockMs: ms,
+        slow: scene >= rep.warp.slow[0] && scene < rep.warp.slow[1],
+        diagnostics: rep.diagnostics,
+        bands: rep.bands,
+        coachOption: rep.demo?.option ?? null,
+        closeUpFlight: rep.closeUp?.flight ?? null,
+      };
     }
     if (this.mode === 'benchmark' && this.benchScript) {
       const scene = ((now - this.benchStart) % Math.max(1, this.benchScript.duration)) * 1;
-      return { mode: 'benchmark', script: this.benchScript, scene, plan: this.benchPlan, clockMs: now, slow: false, diagnostics: null, bands: null };
+      return { mode: 'benchmark', script: this.benchScript, scene, plan: this.benchPlan, clockMs: now, slow: false, diagnostics: null, bands: null, coachOption: null, closeUpFlight: null };
     }
     if (this.idleScript) {
       const scene = (now - this.idleStart) % Math.max(1, this.idleScript.duration);
-      return { mode: 'idle', script: this.idleScript, scene, plan: this.idlePlan, clockMs: now, slow: false, diagnostics: null, bands: null };
+      return { mode: 'idle', script: this.idleScript, scene, plan: this.idlePlan, clockMs: now, slow: false, diagnostics: null, bands: null, coachOption: null, closeUpFlight: null };
     }
     return null;
   }
@@ -585,36 +912,92 @@ export abstract class PracticeSessionBase implements PracticeStage {
     this.latencyPending = null;
   }
 
-  /** Cues of the live delivery: each fires once, at its own performance time. */
+  /** The lead (ms) a sound is handed to the sink ahead of its time: the live audio context's output latency. */
+  protected soundLead(): number {
+    return soundLeadMs();
+  }
+
+  /**
+   * Cues of the live delivery: each fires once. A sound goes to the sink one output latency ahead of its time, with
+   * that time, so it is heard on it (COH6); a moment fires on a timer at its own time.
+   */
   private dispatch(live: LiveDelivery, now: number) {
     const sink = this.activeSink();
     const p = live.script.practice!;
     const list: FiredCue[] = [];
+    for (const moment of p.emotion.moments) {
+      list.push({ key: `moment:${moment.kind}:${Math.round(moment.scene)}`, t: moment.scene, ahead: false, fire: () => sink?.moment?.(moment, perfAtScene(live.tb, moment.scene)) });
+    }
     if (live.result) {
       for (const c of p.cues) {
         const key = `${c.scene?.kind ?? c.feel?.kind}:${Math.round(c.t)}`;
         list.push({
           key,
           t: c.t,
+          ahead: true,
+          ...(c.scene?.kind === 'bounce' ? { staleMs: BOUNCE_STALE_MS } : {}),
           fire: () => {
-            if (c.scene) sink?.cue(c.scene.kind, c.scene.intensity, 1);
-            if (c.feel) sink?.feel?.(c.feel.kind, c.feel.intensity);
+            const at = perfAtScene(live.tb, c.t);
+            if (c.scene) sink?.cue(c.scene.kind, c.scene.intensity, 1, at);
+            if (c.feel) sink?.feel?.(c.feel.kind, c.feel.intensity, c.feel.contact, c.feel.timing, at);
           },
         });
       }
     } else {
-      for (const e of live.script.events) list.push({ key: `${e.kind}:${Math.round(e.t)}`, t: e.t, fire: () => sink?.cue(e.kind, e.intensity, 1) });
+      // Before the result: the flight's own release and pitch. A pitch the swing might beat (COH4) is not handed over
+      // ahead, and once a swing has begun it waits for the result, which decides whether the ball pitched at all.
+      const contested = p.flight?.bounce ? PITCH_HALF - p.flight.bounce.p.z <= CONTESTED_BOUNCE_M : false;
+      for (const e of live.script.events) {
+        const hold = e.kind === 'bounce' && contested;
+        if (hold && live.provisionalStart !== null) continue;
+        const key = `${e.kind}:${Math.round(e.t)}`;
+        list.push({
+          key,
+          t: e.t,
+          ahead: !hold,
+          fire: () => {
+            if (hold && live.provisionalStart !== null && !live.result) {
+              // A swing began after this was queued: the result decides.
+              live.fired.delete(key);
+              return;
+            }
+            sink?.cue(e.kind, e.intensity, 1, perfAtScene(live.tb, e.t));
+          },
+        });
+      }
     }
     const last = this.intervals.length ? this.intervals[this.intervals.length - 1] : 16.7;
     const horizon = now + Math.min(40, Math.max(12, last * 1.5));
+    const lead = this.soundLead();
+    const clockNow = this.clock.now();
     for (const c of list) {
       if (live.fired.has(c.key)) continue;
       const due = perfAtScene(live.tb, c.t);
-      if (due > horizon) continue;
+      if (due > horizon + (c.ahead ? lead : 0)) continue;
       live.fired.add(c.key);
-      const wait = due - this.clock.now();
-      if (wait <= 0.5) c.fire();
-      else live.timers.push(this.clock.setTimer(c.fire, wait));
+      const wait = due - clockNow;
+      if (c.staleMs !== undefined && -wait > c.staleMs) continue;
+      if (c.ahead || wait <= 0.5) c.fire();
+      else {
+        const pending: PendingCue = { id: null, due, fire: c.fire, preResult: !live.result };
+        pending.id = this.clock.setTimer(() => {
+          live.pending.delete(c.key);
+          c.fire();
+        }, wait);
+        live.pending.set(c.key, pending);
+      }
+    }
+  }
+
+  /** Fires, now, every cue of the live delivery that is due (the dead ball's own moment among them). */
+  private flushDue(live: LiveDelivery) {
+    const now = this.clock.now();
+    this.dispatch(live, now);
+    for (const [key, p] of live.pending) {
+      if (p.due > now + 1) continue;
+      this.clock.clearTimer(p.id);
+      live.pending.delete(key);
+      p.fire();
     }
   }
 

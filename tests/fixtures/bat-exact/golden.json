@@ -1,0 +1,18 @@
+{
+  "note": "Bat corpus hashes (tests/unit/render3d/batExactCorpus.ts) written by the code before the FEEL-1 performance changes, build 4a376ae+e5dba9cdf3db, 2026-11-07.",
+  "evaluations": 64170,
+  "groups": {
+    "right:exact-pace:touch": "b1b9b9e0b7f8fa2c43d578e9da41cc00db1515b9d3489440f82607ecbb4507bc",
+    "right:exact-pace:committed": "972efdd5fab101359f8e4c3cf621576ae4f3d28e9ac2f9909cb96107ac6e37ae",
+    "right:exact-spin:touch": "f04639a60c1745adc9973a0ea4d9b6adb9f9a33ab132d77c1388cbd6e37fa8a9",
+    "right:exact-spin:committed": "ce2e4d9ee56ef10a7f8b2587bc9ecc3500f3828a294a111f95af28ccdfd87ef9",
+    "right:exact-left:touch": "3fd9f292cf9bbe1a57c6f0c12543c1840fe54ed3e19212283d55e5456ff26f40",
+    "right:exact-left:committed": "d0a9a1c8ab64e733a797759af0c07bc654090d8dbaa8e21310e718b6647d54fa",
+    "left:exact-pace:touch": "079af5f7befcdc8cd8a08f19a0ffbd4e68a921733534e62a015517b5fe1977b4",
+    "left:exact-pace:committed": "481de2560f6c14aa818f76860eea99b9e76b9f7fee4ea55c9b5748f80446a767",
+    "left:exact-spin:touch": "55c47513ec4689973348c307514522c98fabde35ead019d7aca53c43d9c57d3e",
+    "left:exact-spin:committed": "a3547cfc3aee42c0349b889389c8d9a1295f5345a6236bc4791e1ac80f99b31d",
+    "left:exact-left:touch": "c9b4f6fb87d28c7a2d956a2d1dfb5bdc4b0813ab3ed3294ecf98f6d0d7af77b9",
+    "left:exact-left:committed": "ff9f46a3c6d10bd1f7ede49ad47b403217cd77d503d2eef9b3c77791142bc342"
+  }
+}

@@ -1,62 +1,37 @@
 /**
- * Practice's sound and haptics through src/audio (synthesised, no recorded audio): the match voices for the
- * delivery and the field (release, pitch, pad, stumps, catch, boundary, crowd) and the batter's own contact feels.
- * One distinct sound and haptic each:
- *
- *   sweet   bat crack, bright ring, a firm pulse and a beat (feel 'double')
- *   middle  bat crack, ring, one medium pulse
- *   edge    a thin edge click, one short tick
- *   pad     the pad's thud, a light tap
- *   miss    the bat's swish, no vibration
- *   bowled  stumps and bails, the crowd's roar, a heavy pulse
- *   catch   the catch, the roar, a heavy pulse
- *   four    roar and drums, the success pattern (six: louder, longer)
- *
- * Every call arrives at the event's simulation timestamp (the stage schedules them); src/audio honours the Sound
- * and Vibration settings, the autoplay unlock and the background rule.
+ * The Practice stage's default sink: src/audio's Practice sink (docs/AUDIO.md). It plays the delivery's sound and
+ * haptics, captions the essential cues, and owns the session's one emotion machine, which the 3D crowd follows through
+ * emotionNow(). Owner: audio. This file keeps the stage's import path.
  */
-import { MatchAudio, haptic, playContactFeel, playSwingFeel } from '@/audio';
-import type { SceneEventKind } from '../core/choreo';
-import type { ContactFeel, PracticeSink } from './types';
+import { currentGraph } from '@/audio/engine';
 
-export interface PracticeAudio extends PracticeSink {
-  dispose(): void;
-}
+export { createPracticeSink as createPracticeAudio, type PracticeSoundscape as PracticeAudio } from '@/audio';
 
-export function createPracticeAudio(): PracticeAudio {
-  // liveContact: the scene's own bat and edge cues stay silent (the feel plays them, once).
-  const match = new MatchAudio({ liveContact: true });
-  return {
-    cue(kind: SceneEventKind, intensity: number, rate: number) {
-      match.cue(kind, intensity, rate);
-    },
-    crowd(level: number) {
-      match.crowd(level);
-    },
-    feel(feel: ContactFeel, intensity: number) {
-      switch (feel) {
-        case 'sweet':
-          playContactFeel('middle', 'perfect', 'none');
-          break;
-        case 'middle':
-          playContactFeel('middle', 'good', 'none');
-          break;
-        case 'edge':
-          playContactFeel(intensity >= 0.65 ? 'thick_edge' : 'thin_edge', 'early', 'none');
-          break;
-        case 'pad':
-          haptic('light');
-          break;
-        case 'miss':
-          playSwingFeel('miss');
-          break;
-        default:
-          // Bowled, catch and boundaries sound and buzz through their scene cue (stumps, catch, boundary, six).
-          break;
+/**
+ * How far ahead of its moment the stage hands a sound to the sink (COH6). The sink schedules it on the audio clock to
+ * be heard at that moment (src/audio/timingLog.ts perfToCtx), which works only if the call comes at least one output
+ * latency early: a call at the moment is heard that latency late (+31 to +37 ms in headless Chromium, 2026-11-03).
+ * The lead is the delay the live context reports for a sound started now, plus a margin for a render quantum and
+ * timer jitter; never less than `minMs` (a context that reports nothing) and never more than `maxMs`.
+ */
+export const SOUND_LEAD = { marginMs: 12, minMs: 50, maxMs: 400 } as const;
+
+/** The lead (ms) for the live audio context now; SOUND_LEAD.minMs when there is none. */
+export function soundLeadMs(): number {
+  const ctx = currentGraph()?.ctx ?? null;
+  let latencyMs = 0;
+  if (ctx) {
+    try {
+      latencyMs = ((ctx.baseLatency ?? 0) + (ctx.outputLatency ?? 0)) * 1000;
+      const ts = typeof ctx.getOutputTimestamp === 'function' ? ctx.getOutputTimestamp() : null;
+      if (ts && typeof ts.contextTime === 'number' && typeof ts.performanceTime === 'number' && ts.performanceTime > 0) {
+        // When a sound started at currentTime is heard, from now.
+        latencyMs = Math.max(latencyMs, ts.performanceTime + (ctx.currentTime - ts.contextTime) * 1000 - performance.now());
       }
-    },
-    dispose() {
-      match.dispose();
-    },
-  };
+    } catch {
+      /* a context that cannot report keeps the floor */
+    }
+  }
+  const ms = (Number.isFinite(latencyMs) ? latencyMs : 0) + SOUND_LEAD.marginMs;
+  return Math.min(SOUND_LEAD.maxMs, Math.max(SOUND_LEAD.minMs, ms));
 }

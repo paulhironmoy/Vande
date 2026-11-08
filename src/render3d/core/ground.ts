@@ -33,8 +33,6 @@ export {
   RETURN_CREASE_LENGTH,
 } from '@/physics/geometry';
 
-export const STRIKER_STUMPS: Vec3 = v3(0, 0, PITCH_HALF);
-export const BOWLER_STUMPS: Vec3 = v3(0, 0, -PITCH_HALF);
 /** Release point for a right-arm-over bowler (bowling arm next to the stumps, body on the off side). */
 export const RELEASE: Vec3 = v3(0.32, 2.1, -PITCH_HALF + POPPING + 0.15);
 
@@ -53,7 +51,7 @@ export const ZONES: readonly FieldZone[] = ['third_man', 'point', 'cover', 'mid_
 
 export const STRIKER_POS: Vec3 = v3(-0.34, 0, PITCH_HALF - 1.05);
 
-export function zoneDir(zone: FieldZone, offsetDeg = 0): Vec3 {
+function zoneDir(zone: FieldZone, offsetDeg = 0): Vec3 {
   const a = (ZONE_BEARING[zone] + offsetDeg) * DEG;
   return v3(Math.sin(a), 0, -Math.cos(a));
 }
@@ -75,7 +73,7 @@ export function zoneForBearing(bearingDeg: number): FieldZone {
   let best: FieldZone = 'mid_off';
   let bestD = Infinity;
   for (const z of ZONES) {
-    let d = Math.abs(((bearingDeg - ZONE_BEARING[z] + 540) % 360) - 180);
+    const d = Math.abs(((bearingDeg - ZONE_BEARING[z] + 540) % 360) - 180);
     if (d < bestD) {
       bestD = d;
       best = z;

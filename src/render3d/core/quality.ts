@@ -7,6 +7,7 @@
 import type { RenderQuality } from '@/contracts';
 import type { DeviceAssessment, QualityProfileId } from '@/contracts/practice';
 import { PERF_FULL_SUSTAINED_FPS, isSoftwareRenderer } from '@/perf';
+import { PRACTICE_BALL } from '../practice/ballLook';
 
 export interface QualityPreset {
   quality: RenderQuality;
@@ -150,7 +151,7 @@ export interface PracticeProfile {
   maxDpr: number;
   /**
    * Ball readability: drawn this much larger than its collision radius, with an outline and a ground shadow in
-   * every profile; only the trace's length varies. Readability is never traded for detail.
+   * every profile, with the same trace on every tier. Readability is never traded for detail.
    */
   ball: { visualScale: number; trailAlpha: number };
 }
@@ -159,26 +160,26 @@ export const PRACTICE_PROFILES: Readonly<Record<QualityProfileId, PracticeProfil
   // ≈540–720p, static crowd, no dynamic shadows (blob shadows only), low-detail fielders, minimal particles.
   lite: {
     id: 'lite',
-    preset: { ...PRESETS.low, maxFps: 60, shadowMap: 0, blobShadows: 1, crowd: 1400, crowdAnimated: false, particles: 0.25, trailPoints: 5, lodDistance: 9, lightShafts: false, antialias: false },
+    preset: { ...PRESETS.low, maxFps: 60, shadowMap: 0, blobShadows: 1, crowd: 1400, crowdAnimated: false, particles: 0.25, trailPoints: PRACTICE_BALL.trace.samples, lodDistance: 9, lightShafts: false, antialias: false },
     internal: { min: 540, max: 720 },
     maxDpr: 2,
-    ball: { visualScale: 1.22, trailAlpha: 0.3 },
+    ball: { visualScale: PRACTICE_BALL.visualScale, trailAlpha: PRACTICE_BALL.trace.alpha },
   },
   // ≈720–900p, limited shadows (the key light only), moderate crowd and effects, standard players.
   standard: {
     id: 'standard',
-    preset: { ...PRESETS.standard, shadowMap: 1024, blobShadows: 2, crowd: 3600, crowdAnimated: true, particles: 0.8, trailPoints: 5, lodDistance: 22, lightShafts: false, antialias: true },
+    preset: { ...PRESETS.standard, shadowMap: 1024, blobShadows: 2, crowd: 3600, crowdAnimated: true, particles: 0.8, trailPoints: PRACTICE_BALL.trace.samples, lodDistance: 22, lightShafts: false, antialias: true },
     internal: { min: 720, max: 900 },
     maxDpr: 2,
-    ball: { visualScale: 1.22, trailAlpha: 0.3 },
+    ball: { visualScale: PRACTICE_BALL.visualScale, trailAlpha: PRACTICE_BALL.trace.alpha },
   },
   // Capped high resolution, better shadows and effects, high-detail players.
   high: {
     id: 'high',
-    preset: { ...PRESETS.high, shadowMap: 2048, blobShadows: 4, crowd: 6500, crowdAnimated: true, particles: 1.2, trailPoints: 6, lodDistance: 40, lightShafts: true, antialias: true },
+    preset: { ...PRESETS.high, shadowMap: 2048, blobShadows: 4, crowd: 6500, crowdAnimated: true, particles: 1.2, trailPoints: PRACTICE_BALL.trace.samples, lodDistance: 40, lightShafts: true, antialias: true },
     internal: { min: 900, max: 1440 },
     maxDpr: 2.5,
-    ball: { visualScale: 1.22, trailAlpha: 0.32 },
+    ball: { visualScale: PRACTICE_BALL.visualScale, trailAlpha: PRACTICE_BALL.trace.alpha },
   },
 };
 
