@@ -46,6 +46,14 @@ over plan (fixed before ball 1)
   → the next ball (quality changes are applied here, never during a ball)
 ```
 
+**The work thread (2026-11-03).** `resolveDelivery` for the live ball and the coach's reading now run in a worker
+(`src/practice/worker/`, client `src/practice/ui/flow/offThread.ts`). The ball is prepared on the worker before the
+run-up, and only the swing crosses at the gesture. The result is identical, byte for byte, on either thread, and every
+failure (no `Worker`, another build, an error, a timeout) falls back to the same call on the main thread. If Practice is
+left or paused while the worker computes, the swing is resolved and committed synchronously, so a leave never replaces
+a swing that was made. Bounds, fallbacks and builder measurements: `docs/ARCHITECTURE.md`, "The work thread"
+(source: `release/product-sequence/stage-1-practice/wedge/worker/REPORT.md`).
+
 ## 2. Product rules (summary; the full rules are in docs/PRACTICE_RULES.md)
 
 - A one-wicket innings of up to ten six-ball overs, starting at 0. Runs accumulate across overs. One wicket ends the
@@ -104,8 +112,10 @@ device. Changing the bowler type asks before clearing the balls chosen for the o
 tap comes first, so the audio unlock (its first press creates the audio engine) never lands on a swing; the Practice,
 Quick random over and Continue taps normally carry it. Then the stage's canvas full screen; the GestureSurface across the lower part (the finger
 never covers the delivery); a minimal scoreboard (score, overs, this over's balls as shaped badges, the bowler and the
-pitch); Pause between balls (never during a delivery); the field radar before each over (about 2.4 s, or "Bat"); after
-each ball a concise card at the top right that does not cover play: **PERFECT · Found the cover gap · FOUR**, **LATE ·
+pitch), hidden from release to the dead ball so that no rail covers the pitch or the bat near contact (2026-11-03;
+`release/product-sequence/stage-1-practice/wedge/flow/REPORT.md` item 19); Pause between balls (never during a delivery); the field radar before each over (about 2.4 s, or "Bat"); after
+each ball a concise card that does not cover play (at the right edge in Classic and the left edge in Three.js and Unity,
+since 2026-11-03; see `docs/PRACTICE_PRESENTATION.md`, "The dead-ball result card"): **PERFECT · Found the cover gap · FOUR**, **LATE ·
 Outside edge · Caught behind**, **SOLID CONTACT · Hit directly to cover · DOT BALL** (timing in ms on a smaller line;
 a not-out pad hit says why, e.g. "Not out LBW: it pitched outside leg stump"), with **Next ball** and **Slow-motion
 replay**. The next ball follows by itself after 3 s. In portrait without a lock, "Turn your phone sideways" holds the
@@ -210,6 +220,7 @@ the test hooks, and performance must be measured on the devices in section 9.
 | Lifecycle | Android pause (Capacitor `pause` and `visibilitychange`) mid-delivery resolves the ball as a leave and pauses; a kill is resolved on the next start |
 | Web | The same build: Chrome and Edge lock in fullscreen; elsewhere the overlay asks for landscape; desktop browsers play in their window |
 | Offline | Practice needs no network after installation (the service worker precaches every chunk on the web; the Android bundle is local) |
+| Work thread | A classic (iife) worker, so no module-worker support is needed; it is precached with the other chunks. It adds one JavaScript isolate and keeps up to 4 results of about 300–400 KB each: memory on low-memory phones is UNPROVEN (`release/product-sequence/stage-1-practice/wedge/worker/REPORT.md` §4) |
 
 **Emulator evidence (2026-10-25, re-run on the final build; not a physical device).** `scripts/android-practice.sh` builds a debug APK (bundle in
 `dist-android`, WebView debugging only in that build), installs it with `adb install -r` (app data kept: it never clears
@@ -296,6 +307,7 @@ correctness.
 | Unit | `tests/unit/perf/*` | Software renderers, every tier rule and edge (55/50/45 fps, spikes, context loss, latency, memory, warm-up), frame statistics, the benchmark's High and Lite confirmation runs, the cache per app version, the session monitor's step-downs (never up), the frame sampler |
 | Unit | `tests/unit/practice/store/*` | Settings, calibration, innings persistence with in-flight round trip, tampered and corrupt data, other simulation versions discarded, the Build an Over draft, clearing everything, metric buckets and aggregates (no gestures or ids) |
 | Unit | `tests/unit/practice/ui/*` | The controller on fixtures: guided warm-up (not counted) then the guided over, the save-before-bowl and save-before-show ordering, the scoreboard waiting for the stage, one wicket ending the innings, ten overs, auto-advance, no pause mid-delivery, reload and leave mid-delivery as a leave, hiding mid-delivery, repeats never touching the innings, Replay This Over, the device check once per version, Below → Classic, WebGL failure, quality changes only between balls, the audio warm-up tap before the first delivery, an in-time swing never lost to a late release callback or a busy main thread, a ball settled as the app went away still explained after a kill, analytics vocabulary; the launch choice and its route rule; the coaching words (the brief's three cards, LBW not-outs, swing and seam for pace against drift and turn for spin); Practice copy completeness and placeholders |
+| Unit (2026-11-03) | `tests/unit/practice/ui/{offthread-equality,offthread-client,flow-offthread}.test.ts`, `result-edge.test.tsx`, `option-strokes.test.ts`, `praise-measured.test.tsx`, `mastery-measured.test.ts` | The worker against the main thread (540 deliveries, 12 readings, every fallback), live-ball priority and bounds, leave or pause mid-computation committing the swing, the renderer's card edge, stroke-family option words in three locales, and praise and mastery following the measured contact |
 | E2E (`practice` project) | `tests/e2e/practice-*.spec.ts` | `launch`: Practice vs Skip, the first ball with no account/age/settings and time to first delivery under 10 s, deep links, axe. `overs`: Random Over on the first-person stage, a full over and the next; Build an Over (spin, edit, shuffle); a dismissal with its replay, explanation and Practice This Delivery; Replay This Over and repeating a ball; ten overs. `resume`: reload mid-delivery → leave, never a fresh ball; background → leave + pause. `offline`: plays fully offline after install. `input-touch`: touch flick and tap through the GestureSurface, the one "Start batting" tap before the first swing when no press has warmed audio, the portrait overlay. `input-desktop`: mouse flick, click, Space. `layout`: no notice under a panel at 915×412 and 2400×1080. `webgl`: no WebGL 2 → compatibility message → Classic |
 
 Run: `npx vitest run tests/unit/perf tests/unit/practice` and `E2E_OUT=test-results-practice npx playwright test
@@ -318,3 +330,8 @@ thermal monitor). None of this is evidence about phones.
 - The calibration is one offset for all input types (touch usually has more latency than a keyboard).
 - Practice copy is complete in English, Hindi and Hinglish; the other eight app languages show Practice in English.
 - On Android 16 large-screen devices the orientation lock may be ignored by the platform; the overlay then asks.
+- A real swipe reaches the physics up to `READ_MAX_MS` (140 ms) after it starts, so a heavy stroke can finish computing
+  after the physical contact on either thread. Only hooked swings were measured; phones are UNPROVEN
+  (`release/product-sequence/stage-1-practice/wedge/worker/REPORT.md` §5).
+- A process killed outright while the worker computes makes that ball a leave on restart, as a kill just before the
+  swing already did.

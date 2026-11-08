@@ -427,7 +427,7 @@ Rules of thumb:
 
 ## 12. Balance and fairness simulation
 
-**Command** (Node 23.6 or newer runs the TypeScript engine directly; `scripts/simulate-loader.mjs` resolves `@/` and
+**Command** (Node 22.22.2 or newer, or 23.6 or newer, runs the TypeScript engine directly; `scripts/simulate-loader.mjs` resolves `@/` and
 extensionless imports):
 
 ```
