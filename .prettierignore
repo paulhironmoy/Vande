@@ -1,0 +1,33 @@
+# Prettier formats the TypeScript in src/ and tests/ and nothing else (npm run format, npm run format:check).
+# The first rules ignore everything at the top level and let src/ and tests/ back in, so an editor that formats on save
+# cannot touch the scripts, the native projects, the docs or the generated data.
+/*
+!/src/
+!/tests/
+
+# Inside them only .ts and .tsx are formatted: data, styles and text stay exactly as they are.
+*.json
+*.css
+*.md
+*.html
+*.svg
+
+# Fixtures are frozen data.
+/tests/fixtures/
+
+# Physics freeze 5f: the 25 files of release/product-sequence/stage-1-practice/wedge/physics/phase5/FROZEN-5f.repo.sha256
+# are pinned by SHA-256 (and cited by the fixtures), so reformatting any of them breaks the freeze.
+/src/physics/
+/src/render3d/practice/frame.ts
+
+# Hash-pinned in a record outside the file: the Unity character provenance.json (prng.ts, skeleton.ts) and the
+# 2026-10-29 independent retest reports (capture-compare-normalize.test.ts).
+/src/engine/prng.ts
+/src/render3d/core/skeleton.ts
+/tests/unit/evaluation/capture-compare-normalize.test.ts
+
+# Must stay byte-identical to its original (tests/unit/render3d/motionVendored.test.ts compares it with scripts/motion/vmp.ts).
+/src/render3d/core/motion/vmp.ts
+
+# Holds a block that scripts/audio/ingest-recordings.mjs writes (between the generated:contact-takes markers).
+/src/audio/recordedManifest.ts
