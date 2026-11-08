@@ -55,11 +55,13 @@ scripts/build-android.sh --preview            # local retained-renderer package:
 scripts/build-android.sh --preview --unity    # local Unity-linked package: never upload
 ```
 
-`--unity` does not create or repair a Unity export. It first asks Gradle to verify the existing immutable export,
-sets the Android web bridge and Gradle module to the same Unity choice, and then links it. The default build leaves
-Unity out and preserves the retained renderer package. A Unity-linked artifact proves only that the export was
-accepted and packaged; it does not prove that Unity was selected at runtime, passed its device qualification or met
-the player, performance, size or reach gates.
+`--unity` does not create or repair a Unity export. After syncing Capacitor (Gradle cannot configure the project on a
+fresh checkout before that) it asks Gradle to verify the existing immutable export, sets the Android web bridge and
+Gradle module to the same Unity choice, and then links it. The sealed Unity invocation needs
+`android/local.properties` holding exactly `sdk.dir`; when the file is absent the script writes it from `ANDROID_HOME`
+and never overwrites one. The default build leaves Unity out and preserves the retained renderer package. A
+Unity-linked artifact proves only that the export was accepted and packaged; it does not prove that Unity was selected
+at runtime, passed its device qualification or met the player, performance, size or reach gates.
 
 The script is the only supported way to build a release candidate:
 

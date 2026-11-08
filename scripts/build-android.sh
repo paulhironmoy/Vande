@@ -39,6 +39,12 @@ if [[ $SKIP_WEB == 1 ]]; then
   exit 2
 fi
 
+# The sealed Unity invocation (android/settings.gradle) admits only an android/local.properties that holds exactly `sdk.dir`
+# for the sealed SDK. That file is machine-local and gitignored, so a fresh checkout has none: create it, never overwrite one.
+if [[ $UNITY == 1 && ! -e $ROOT/android/local.properties ]]; then
+  printf 'sdk.dir=%s\n' "$ANDROID_HOME" > "$ROOT/android/local.properties"
+fi
+
 BUILD_ID_START="$("$ROOT/scripts/build-id.sh")"
 if [[ ! $BUILD_ID_START =~ ^[0-9a-f]{7,40}(\+[0-9a-f]{12})?$ ]]; then
   echo "✗ Invalid repository build ID: $BUILD_ID_START" >&2
@@ -207,10 +213,6 @@ echo "  JAVA_HOME=$JAVA_HOME"
 "$JAVA_HOME/bin/java" -version 2>&1 | sed -n '1p'
 
 cd "$ROOT"
-if [[ $UNITY == 1 ]]; then
-  echo "▶ Verifying the immutable Unity Android export"
-  ( cd android && nice -n 15 ./gradlew "${PREFLIGHT_ARGS[@]}" )
-fi
 echo "▶ Building sealed Android web bundle"
 # Game only: the admin console, render page and WebGL Unity payload are web-only (vite.config.ts).
 BUILD_ID="$BUILD_ID_START" VITE_BUILD_TARGET=android VITE_UNITY_PRACTICE="$UNITY" \
@@ -226,6 +228,14 @@ fi
 
 echo "▶ Syncing Capacitor"
 "${SYNC_ARGS[@]}"
+
+if [[ $UNITY == 1 ]]; then
+  # Runs after `cap sync` on purpose: android/app/capacitor.build.gradle applies the generated, gitignored
+  # android/capacitor-cordova-android-plugins/cordova.variables.gradle, and android/app/src/main/assets/ is also created by
+  # `cap sync`. On a fresh checkout Gradle cannot even configure the project before this point.
+  echo "▶ Verifying the immutable Unity Android export"
+  ( cd android && nice -n 15 ./gradlew "${PREFLIGHT_ARGS[@]}" )
+fi
 
 echo "▶ Gradle assembleRelease bundleRelease"
 ( cd android && nice -n 15 ./gradlew "${GRADLE_ARGS[@]}" )
