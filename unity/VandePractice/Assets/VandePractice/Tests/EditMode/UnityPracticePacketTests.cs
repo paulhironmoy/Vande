@@ -321,7 +321,7 @@ namespace Vande.Practice.Tests
             Assert.That(BridgeConstants.ContractVersion, Is.EqualTo(6));
             var root = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "..", "..", ".."));
             var typescript = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "src/contracts/unityPractice.ts"));
-            Assert.That(typescript, Does.Contain("'left_and_bowled', 'played_on', 'pad_in_line'"),
+            Assert.That(System.Text.RegularExpressions.Regex.IsMatch(typescript, @"'left_and_bowled',\s*'played_on',\s*'pad_in_line'"), Is.True,
                 "the TypeScript validator lists played_on in the same place");
 
             var playedOn = WithRecomputedReplayDigest(UnityPracticeContractTestFixture.ResultPayload()

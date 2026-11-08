@@ -270,7 +270,7 @@ namespace Vande.Practice.Tests
             Assert.That(geometry, Does.Contain("export const STRIKER_REF = { x: 0, z: CONTACT_Z }"));
             var presentation = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "src/render3d/practice/fielding.ts"));
             Assert.That(presentation, Does.Contain("export const CHASE_SPEED_SHARE = 0.7;"));
-            Assert.That(presentation, Does.Contain("export const CHASE_GAIN_M = 2;"));
+            Assert.That(presentation, Does.Contain("const CHASE_GAIN_M = 2;"));
         }
 
         [Test]
