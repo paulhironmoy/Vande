@@ -308,7 +308,7 @@ namespace Vande.Practice.Bridge
 
         public void ReportPointer(string phase, string pointer, double atUnityMs)
         {
-            Flush();
+            if (FlushAppliedResult()) return;
             RequirePlayingAndClock();
             Emit("unity.pointer", activeDeliveryId,
                 UnityPracticePacketCodec.PointerPayload(
@@ -322,7 +322,7 @@ namespace Vande.Practice.Bridge
         /// </summary>
         public void ReportGesture(string canonicalInputJson)
         {
-            Flush();
+            if (FlushAppliedResult()) return;
             RequirePlayingAndClock();
             StrictJsonObject.ParseCanonical(canonicalInputJson);
             var payload = CanonicalJson.Object(
@@ -330,6 +330,19 @@ namespace Vande.Practice.Bridge
                 "input", canonicalInputJson,
                 "retention", CanonicalJson.String("memory-until-resolution"));
             Emit("unity.gesture", activeDeliveryId, payload);
+        }
+
+        /// <summary>
+        /// Applies the pending host packets before a touch is reported. True when that applied this delivery's host.result: the
+        /// touch was polled between Unity receiving the result (large, still decoding) and applying it, so it arrives after the
+        /// delivery has ended. It is late input, ignored like every later touch (the host treats input after the result as
+        /// inert), not a protocol failure that would unload the runtime.
+        /// </summary>
+        private bool FlushAppliedResult()
+        {
+            var before = lifecycle.State;
+            Flush();
+            return before == BridgeLifecycleState.Delivery && lifecycle.State == BridgeLifecycleState.Resolved;
         }
 
         public void ReportDeliveryDead(double deadT, string replayDigest)
