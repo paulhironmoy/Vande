@@ -165,7 +165,7 @@ async function photo(page, origin, o) {
 const png = (svg, size) => sharp(Buffer.from(svg), { density: 300 }).resize(size, size).png({ compressionLevel: 9 }).toBuffer();
 
 async function writeVectorAndIcons(art) {
-  write('public/icons/favicon.svg', art.iconSvg(64, 0.84, { rx: 14, stitches: false }));
+  write('public/icons/favicon.svg', `${art.iconSvg(64, 0.84, { rx: 14, stitches: false })}\n`);
 
   // PWA and browser icons (drawn large, then downsampled).
   write('public/icons/favicon-32.png', await png(art.iconSvg(256, 0.86, { rx: 56, stitches: false }), 32));

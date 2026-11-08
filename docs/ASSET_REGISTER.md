@@ -384,7 +384,7 @@ this wave; reproduction from the current generator is unverified.
 
 | ID | File | Bytes | SHA-256 | Status |
 | --- | --- | --- | --- | --- |
-| `WEB-BRAND-FAVICON-SVG` | `public/icons/favicon.svg` | 1,702 | `78a96fa9d67814ed32c1ad918fb0122d63776570a05da5eae3a48b9e3aa5f124` | Shipped; VANDE original |
+| `WEB-BRAND-FAVICON-SVG` | `public/icons/favicon.svg` | 1,703 | `434790c5efa1364f9ceae98dfe8dcb073528df4ab7cab79fa6ae8bb6ec1245c7` | Shipped; VANDE original |
 | `WEB-BRAND-FAVICON-32` | `public/icons/favicon-32.png` | 2,680 | `ce8cbcd2bd57b50a42fe9461ceeb56557713dccaae9308096185ff7e250f2438` | Shipped; VANDE original |
 | `WEB-BRAND-ICON-192` | `public/icons/icon-192.png` | 30,201 | `291d9d467906678bbf61e732c857471da2b10737462f08fa734b80531697f068` | Shipped; VANDE original |
 | `WEB-BRAND-ICON-512` | `public/icons/icon-512.png` | 88,371 | `06f39df9c4c7bbd371142e6cb6b1a215c2fcf4855e054c91d52a68074f16c9ac` | Shipped; VANDE original |
