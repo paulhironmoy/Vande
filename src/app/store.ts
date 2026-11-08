@@ -5,13 +5,13 @@
 import { create } from 'zustand';
 import type { LocaleId } from '@/contracts';
 import { localeInfo, matchLocale } from '@/i18n/locales';
-import { DEFAULT_SETTINGS, type AppState, type LocalPlayer, type Settings } from './storeTypes';
+import { DEFAULT_SETTINGS, TEXT_SCALES, type AppState, type LocalPlayer, type Settings } from './storeTypes';
 
 const SETTINGS_KEY = 'vc:settings';
 const PLAYER_KEY = 'vc:player';
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
 
-export function systemPrefersReducedMotion(): boolean {
+function systemPrefersReducedMotion(): boolean {
   try {
     return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(REDUCED_QUERY).matches;
   } catch {
@@ -19,7 +19,7 @@ export function systemPrefersReducedMotion(): boolean {
   }
 }
 
-export function resolveReducedMotion(settings: Settings, systemReduced = systemPrefersReducedMotion()): boolean {
+function resolveReducedMotion(settings: Settings, systemReduced = systemPrefersReducedMotion()): boolean {
   if (settings.reducedMotion === 'on') return true;
   if (settings.reducedMotion === 'off') return false;
   return systemReduced;
@@ -35,10 +35,19 @@ export function deviceLocale(preferred: readonly string[] | undefined = typeof n
   return localeInfo(match).status === 'machine_draft' ? 'en' : match;
 }
 
+/** Keeps supported persisted settings while migrating unknown/legacy text-size values to the safe default. */
+export function normalizeSettings(value: unknown): Settings {
+  const saved = typeof value === 'object' && value !== null ? value as Partial<Settings> : {};
+  const textScale = TEXT_SCALES.some((choice) => choice === saved.textScale)
+    ? saved.textScale as Settings['textScale']
+    : DEFAULT_SETTINGS.textScale;
+  return { ...DEFAULT_SETTINGS, ...saved, textScale };
+}
+
 function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    if (raw) return { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<Settings>) };
+    if (raw) return normalizeSettings(JSON.parse(raw));
   } catch {
     /* storage unavailable or corrupt: defaults */
   }

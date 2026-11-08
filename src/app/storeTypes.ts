@@ -5,7 +5,7 @@
  */
 import type { AvatarSpec, KitSpec, LocaleId, PlayerRef } from '@/contracts';
 
-export type ToastKind = 'info' | 'success' | 'warning' | 'danger';
+type ToastKind = 'info' | 'success' | 'warning' | 'danger';
 export interface Toast {
   id: string;
   kind: ToastKind;
@@ -22,9 +22,13 @@ export interface Settings {
   haptics: boolean;
   /** 3D quality; 'auto' lets the renderer pick from device capability and measured frame time. */
   quality: 'auto' | 'low' | 'standard' | 'high';
-  textScale: 1 | 1.15 | 1.3;
+  textScale: TextScale;
   highContrast: boolean;
 }
+
+/** Explicit app text choices. Android's system font scale is combined separately at the Unity boundary. */
+export const TEXT_SCALES = [1, 1.15, 1.3, 2] as const;
+export type TextScale = (typeof TEXT_SCALES)[number];
 
 export const DEFAULT_SETTINGS: Settings = {
   locale: 'en',

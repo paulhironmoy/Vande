@@ -1,5 +1,6 @@
 import type { LocaleId } from '@/contracts';
 import { useApp } from '@/app/store';
+import { TEXT_SCALES } from '@/app/storeTypes';
 import { LOCALES, useT } from '@/i18n';
 import { Field, SegmentedControl, Switch } from '@/ui';
 import s from './SettingsPanel.module.css';
@@ -44,11 +45,10 @@ export function SettingsPanel() {
           value={settings.textScale}
           onChange={(textScale) => update({ textScale })}
           block
-          options={[
-            { value: 1, label: 'A' },
-            { value: 1.15, label: 'A+' },
-            { value: 1.3, label: 'A++' },
-          ]}
+          options={TEXT_SCALES.map((value, index) => ({
+            value,
+            label: value === 2 ? 'A 200%' : `A${'+'.repeat(index)}`,
+          }))}
         />
       </Field>
       <label className={s.lang}>
