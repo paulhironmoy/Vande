@@ -20,9 +20,9 @@ import {
   type KeyStore,
 } from './storage';
 
-export type CalibratedInput = 'touch' | 'mouse' | 'pen' | 'keyboard';
+export type CalibratedInput = 'touch' | 'mouse' | 'pen' | 'keyboard' | 'camera';
 export type StoredCalibrations = Partial<Record<CalibratedInput, Calibration>>;
-export const CALIBRATED_INPUTS: readonly CalibratedInput[] = ['touch', 'mouse', 'pen', 'keyboard'];
+export const CALIBRATED_INPUTS: readonly CalibratedInput[] = ['touch', 'mouse', 'pen', 'keyboard', 'camera'];
 
 /** Within what src/input can produce (its clamp is −60…220 ms); anything outside is corrupt. */
 const MIN_MS = -200;

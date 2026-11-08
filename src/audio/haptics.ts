@@ -9,6 +9,11 @@ import { logAudio } from './timingLog';
 export type HapticKind = 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error';
 
 let enabled = true;
+/**
+ * Whether the way the player bats feels haptics (src/practice/ui/controls): a finger does; the mouse and the camera get
+ * sound and picture instead (a phone propped up for the camera must not shake). The Vibration setting still applies.
+ */
+let inputAllows = true;
 let native = false;
 let hapticsModule: Promise<typeof import('@capacitor/haptics') | null> | null = null;
 
@@ -19,6 +24,13 @@ export function setHapticsEnabled(v: boolean): void {
 export function setHapticsNative(v: boolean): void {
   native = v;
 }
+
+export function setHapticsInputAllowed(v: boolean): void {
+  inputAllows = v;
+}
+
+/** Vibration is on in Settings and the player's chosen way of batting feels it. */
+const allowed = () => enabled && inputAllows;
 
 let nativeMod: typeof import('@capacitor/haptics') | null = null;
 
@@ -34,7 +46,7 @@ const hidden = () => typeof document !== 'undefined' && document.visibilityState
 /** One native step of a pattern (setTimeout passes the step: no closure per step). */
 function nativeStep(step: NativeStep): void {
   const mod = nativeMod;
-  if (!mod || !enabled || hidden()) return;
+  if (!mod || !allowed() || hidden()) return;
   try {
     if (step[1] === 'vibrate') void mod.Haptics.vibrate({ duration: step[2] });
     else
@@ -69,7 +81,7 @@ const WEB_PATTERNS: Record<HapticKind, number | number[]> = {
 
 export function haptic(kind: HapticKind): void {
   // Off in Settings, or the app is in the background: no vibration.
-  if (!enabled || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
+  if (!allowed() || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
   if (native) {
     void loadNative().then((mod) => {
       if (!mod) return;
@@ -97,7 +109,7 @@ export function haptic(kind: HapticKind): void {
 
 /** One of the batter's patterns (src/audio/feel.ts), as written: the web's vibrate pattern, or timed native impacts. */
 export function hapticPattern(pattern: FeelPattern): void {
-  if (!enabled || hidden()) return;
+  if (!allowed() || hidden()) return;
   logAudio('haptic', pattern, typeof performance !== 'undefined' ? performance.now() : Date.now());
   const spec = FEEL_PATTERNS[pattern];
   if (native) {
@@ -122,7 +134,7 @@ const scheduler = createFeelScheduler({
 
 /** Plays a pattern through the shared scheduler (nothing while Vibration is off). */
 export function playFeel(pattern: FeelPattern): void {
-  if (enabled) scheduler.play(pattern);
+  if (allowed()) scheduler.play(pattern);
 }
 
-export const hapticsEnabled = () => enabled;
+export const hapticsEnabled = () => allowed();

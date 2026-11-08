@@ -67,6 +67,7 @@ export const playHi: Record<string, string> = {
   // ---- calm notices (between balls, never during a delivery)
   'practice.notice.classic': 'बेहतर बल्लेबाज़ी के लिए यह डिवाइस क्लासिक ग्राफ़िक्स पर जा रहा है।',
   'practice.notice.balanced': 'बेहतर बल्लेबाज़ी के लिए यह डिवाइस बैलेंस्ड ग्राफ़िक्स पर जा रहा है।',
+  'practice.notice.camera_web': 'कैमरा बल्लेबाज़ी स्टैंडर्ड ग्राफ़िक्स पर चलती है।',
   'practice.notice.help_changed':
     'इस ओवर से यह डिवाइस निष्पक्ष बल्लेबाज़ी के लिए थोड़ी ज़्यादा टाइमिंग मदद देगा। रियल मोड में कोई मदद नहीं।',
   'practice.notice.help_less': 'इस ओवर से यह डिवाइस कम टाइमिंग मदद देगा। रियल मोड में कोई मदद नहीं।',

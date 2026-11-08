@@ -27,8 +27,13 @@ import {
   type Vec3,
 } from './practice';
 
-export const UNITY_PRACTICE_CONTRACT_VERSION = 6 as const;
-/** Canonical result trace carried by bridge contract v6 / Practice simulation v3. */
+/**
+ * v7 (2026-11-08) adds the optional `chase` block to host.scene and to the resolution (host.result, host.replay) and
+ * nothing else. Every receiver still tests the version for equality, so a stale v6 Unity export refuses a v7 host.
+ * Design and rationale: release/product-sequence/stage-3-chase/UNITY/BRIDGE-V7.md.
+ */
+export const UNITY_PRACTICE_CONTRACT_VERSION = 7 as const;
+/** Canonical result trace carried by bridge contract v7 / Practice simulation v3. */
 export const UNITY_PRACTICE_TRACE_VERSION = 2 as const;
 /** Inline ceiling; current authoritative result goldens are ~275–369 KiB. Reject before hashing or native forwarding. */
 export const UNITY_PRACTICE_MAX_PACKET_BYTES = 1024 * 1024;
@@ -47,6 +52,10 @@ export const UNITY_PRACTICE_MAX_BENCHMARK_INTERVALS = 1_200;
  */
 export const UNITY_PRACTICE_MAX_PRESENTATION_MAGNITUDE = 1_000_000;
 export const UNITY_PRACTICE_MAX_TRACE_DURATION_SECONDS = 30;
+/** The most a Practice innings can score (ten overs of sixes); a chase target is bounded by it, like `score.runs`. */
+export const UNITY_PRACTICE_MAX_CHASE_TARGET = 360;
+/** The balls of a full Practice innings (ten overs). A Target Chase is two overs, 12 balls. */
+export const UNITY_PRACTICE_MAX_CHASE_BALLS = 60;
 
 export type UnityPracticeContractVersion = typeof UNITY_PRACTICE_CONTRACT_VERSION;
 export type UnityPracticeMessageType =
@@ -137,6 +146,29 @@ export interface UnityPracticeInitialize {
   handednessPolicy: 'physics-right-handed-presentation-mirrors-once';
 }
 
+/** The host's verdict on a Target Chase. Unity never derives it; it only refuses a block that contradicts the score. */
+export type UnityPracticeChaseOutcome = 'in_progress' | 'won' | 'lost_wicket' | 'lost_balls';
+
+/**
+ * The Target Chase situation immediately AFTER the ball of the message that carries it (or at the start, in a scene).
+ * Text-free and float-free: Unity composes its own localized "Need X off Y". It is not covered by the replay digest, so
+ * replaying a ball can never change it. Optional on host.scene and on the resolution of host.result and host.replay;
+ * absent in ordinary Practice and always absent from a Coach demonstration. Build it with `makeUnityPracticeChase`.
+ */
+export interface UnityPracticeChase {
+  /** Runs that win, 1..UNITY_PRACTICE_MAX_CHASE_TARGET. The same in every message of one chase. */
+  target: number;
+  /** Balls in the chase, 1..UNITY_PRACTICE_MAX_CHASE_BALLS (12 for two overs). The same in every message of one chase. */
+  maxBalls: number;
+  /** Runs still needed: max(0, target - runs). Zero exactly when `outcome` is 'won'. */
+  runsNeeded: number;
+  /** Balls still to bowl: maxBalls - balls faced. Not zeroed when a wicket ends the chase early. */
+  ballsLeft: number;
+  outcome: UnityPracticeChaseOutcome;
+  /** Required runs per over in hundredths (see `unityPracticeRequiredRateX100`); null unless `outcome` is 'in_progress'. */
+  requiredRateX100: number | null;
+}
+
 export interface UnityPracticeScene {
   conditions: PitchCondition;
   field: FieldLayout;
@@ -152,6 +184,8 @@ export interface UnityPracticeScene {
     creaseOffsetM: number;
     guard: 'leg' | 'middle' | 'off' | 'custom';
   };
+  /** The chase situation when this scene is established, present for the whole session of a Target Chase and never otherwise. */
+  chase?: UnityPracticeChase;
 }
 
 /**
@@ -214,8 +248,10 @@ export interface UnityPracticeResolution {
     balls: number;
     maxOvers: 10;
   };
-  /** SHA-256 of the canonical record + result used by exact replay. */
+  /** SHA-256 of the canonical record + result used by exact replay. It does not cover `chase`. */
   replayDigest: string;
+  /** The chase situation after this ball. Present on every result and replay of a Target Chase session; see UnityPracticeChase. */
+  chase?: UnityPracticeChase;
 }
 
 export interface UnityPracticeReplay {
@@ -273,6 +309,15 @@ export interface UnityPracticeProtectedRegions {
   viewportWidth: number;
 }
 
+/**
+ * The input kinds Unity itself captures (its touch surface, and on WebGL its mouse, pen and keyboard). The camera is a
+ * fifth modality of the host (`GestureInput['pointer']`), but it is captured and normalized in the TypeScript/WebView
+ * layer only: a camera swing reaches Unity as an ordinary NormalizedSwing (`host.provisional_swing`, `record.swing`),
+ * which carries no modality. So Unity never sends 'camera', and a Unity message that claims it is refused, not accepted.
+ */
+export type UnityPracticeNativePointer = Exclude<GestureInput['pointer'], 'camera'>;
+const UNITY_NATIVE_POINTERS: readonly UnityPracticeNativePointer[] = ['touch', 'mouse', 'pen', 'keyboard'];
+
 export interface UnityPracticeGesture {
   /**
    * Local, ephemeral input only. The host must normalize it immediately and discard the raw samples after the
@@ -281,7 +326,9 @@ export interface UnityPracticeGesture {
   retention: 'memory-until-resolution';
   /** Identifies the accepted clock sample used to transform these Unity-runtime timestamps into performance.now(). */
   clockSampleId: string;
-  input: Omit<GestureInput, 'samples'> & {
+  input: Omit<GestureInput, 'samples' | 'pointer'> & {
+    /** What Unity captured; never 'camera' (see UnityPracticeNativePointer). */
+    pointer: UnityPracticeNativePointer;
     /** Time.realtimeSinceStartupAsDouble * 1000 in Unity's monotonic clock. */
     samples: GestureInput['samples'];
   };
@@ -380,7 +427,7 @@ export type UnityPracticePayloadByType = {
     phase: 'down' | 'cancel';
     atUnityMs: number;
     clockSampleId: string;
-    pointer: GestureInput['pointer'];
+    pointer: UnityPracticeNativePointer;
   };
   'unity.gesture': UnityPracticeGesture;
   'unity.dead': { deadT: number; replayDigest: string };
@@ -853,7 +900,7 @@ function gesture(value: unknown): boolean {
   if (
     !record(value) ||
     !exactKeys(value, ['pointer', 'samples', 'surface'], ['footwork', 'key']) ||
-    !oneOf(value.pointer, ['touch', 'mouse', 'pen', 'keyboard'])
+    !oneOf(value.pointer, UNITY_NATIVE_POINTERS)
   )
     return false;
   if (
@@ -1223,7 +1270,51 @@ function deliveryResult(value: unknown): boolean {
   return true;
 }
 
-function resolution(value: unknown): boolean {
+const CHASE_OUTCOMES: readonly UnityPracticeChaseOutcome[] = ['in_progress', 'won', 'lost_wicket', 'lost_balls'];
+
+/**
+ * One chase block, on its own (a scene) or against the score of the resolution that carries it. Self-consistency and the
+ * agreement with the score are checked here so a contradictory block never reaches Unity; which of `lost_wicket` and
+ * `lost_balls` a wicket on the last ball is called is the host's choice, so neither is forced. Exported so the shared
+ * vectors in tests/fixtures/unity-practice/chase-v7.json pin this rule table against the C# validator.
+ */
+export function isUnityPracticeChase(
+  value: unknown,
+  score?: UnityPracticeResolution['score'],
+): value is UnityPracticeChase {
+  if (
+    !record(value) ||
+    !exactKeys(value, ['ballsLeft', 'maxBalls', 'outcome', 'requiredRateX100', 'runsNeeded', 'target'])
+  )
+    return false;
+  const { target, maxBalls, runsNeeded, ballsLeft, outcome, requiredRateX100 } = value;
+  if (
+    !integer(target, 1) ||
+    target > UNITY_PRACTICE_MAX_CHASE_TARGET ||
+    !integer(maxBalls, 1) ||
+    maxBalls > UNITY_PRACTICE_MAX_CHASE_BALLS ||
+    !integer(runsNeeded) ||
+    runsNeeded > target ||
+    !integer(ballsLeft) ||
+    ballsLeft > maxBalls ||
+    !oneOf(outcome, CHASE_OUTCOMES)
+  )
+    return false;
+  if (outcome === 'in_progress') {
+    if (runsNeeded < 1 || ballsLeft < 1 || requiredRateX100 !== unityPracticeRequiredRateX100(runsNeeded, ballsLeft))
+      return false;
+  } else {
+    if (requiredRateX100 !== null) return false;
+    if (outcome === 'won' ? runsNeeded !== 0 : runsNeeded < 1) return false;
+    if (outcome === 'lost_balls' && ballsLeft !== 0) return false;
+  }
+  if (score === undefined) return true;
+  if (runsNeeded !== Math.max(0, target - score.runs) || ballsLeft !== maxBalls - score.balls) return false;
+  if (outcome === 'lost_wicket' && score.wickets !== 1) return false;
+  return outcome !== 'in_progress' || score.wickets === 0;
+}
+
+function resolution(value: unknown, allowChase = true): boolean {
   if (
     !record(value) ||
     !deliveryRecord(value.record) ||
@@ -1252,6 +1343,11 @@ function resolution(value: unknown): boolean {
   if (
     deliveryRecordValue.seed !== deliveryResultValue.flight.seed ||
     canonicalUnityPracticeJson(deliveryRecordValue.plan) !== canonicalUnityPracticeJson(deliveryResultValue.flight.plan)
+  )
+    return false;
+  if (
+    Object.hasOwn(value, 'chase') &&
+    (!allowChase || !isUnityPracticeChase(value.chase, value.score as UnityPracticeResolution['score']))
   )
     return false;
   return (
@@ -1294,7 +1390,8 @@ function unityDelivery(value: unknown): value is UnityPracticeDelivery {
 
 /** A demonstration may only present the exact delivery described by its canonical result. */
 function deliveryPayloadMatchesResolution(deliveryValue: unknown, resolutionValue: unknown): boolean {
-  if (!unityDelivery(deliveryValue) || !resolution(resolutionValue)) return false;
+  // A Coach demonstration is score-inert, so it can never carry a chase situation.
+  if (!unityDelivery(deliveryValue) || !resolution(resolutionValue, false)) return false;
   const checkedResolution = resolutionValue as UnityPracticeResolution;
   const recordValue = checkedResolution.record;
   const resultValue = checkedResolution.result;
@@ -1422,8 +1519,14 @@ const PAYLOAD_KEYS: Record<UnityPracticeMessageType, readonly string[]> = {
   'unity.error': ['code', 'recoverable', 'detail', 'fallback'],
 };
 
+/** The only optional payload keys of the contract: the Target Chase situation (v7). */
+const OPTIONAL_PAYLOAD_KEYS: Partial<Record<UnityPracticeMessageType, readonly string[]>> = {
+  'host.scene': ['chase'],
+  'host.result': ['chase'],
+};
+
 function payloadShape(type: UnityPracticeMessageType, payload: Record<string, unknown>): boolean {
-  if (!exactKeys(payload, PAYLOAD_KEYS[type])) return false;
+  if (!exactKeys(payload, PAYLOAD_KEYS[type], OPTIONAL_PAYLOAD_KEYS[type])) return false;
   switch (type) {
     case 'bridge.ack':
       return nonEmptyString(payload.acknowledgedMessageId);
@@ -1474,7 +1577,8 @@ function payloadShape(type: UnityPracticeMessageType, payload: Record<string, un
         Math.abs(payload.batterPosition.lateralM) <= 2 &&
         finite(payload.batterPosition.creaseOffsetM) &&
         Math.abs(payload.batterPosition.creaseOffsetM) <= 3 &&
-        oneOf(payload.batterPosition.guard, ['leg', 'middle', 'off', 'custom'])
+        oneOf(payload.batterPosition.guard, ['leg', 'middle', 'off', 'custom']) &&
+        (!Object.hasOwn(payload, 'chase') || isUnityPracticeChase(payload.chase))
       );
     case 'host.delivery':
       return unityDelivery(payload);
@@ -1552,7 +1656,7 @@ function payloadShape(type: UnityPracticeMessageType, payload: Record<string, un
         oneOf(payload.phase, ['down', 'cancel']) &&
         finite(payload.atUnityMs) &&
         nonEmptyString(payload.clockSampleId) &&
-        oneOf(payload.pointer, ['touch', 'mouse', 'pen', 'keyboard'])
+        oneOf(payload.pointer, UNITY_NATIVE_POINTERS)
       );
     case 'unity.gesture':
       return (
@@ -1978,13 +2082,49 @@ interface KnownResolution {
 let knownResolutions: WeakMap<UnityPracticeResolution, KnownResolution> | undefined;
 
 /**
+ * Required runs per over in hundredths: runsNeeded * 6 / ballsLeft * 100 rounded half up, in integers only, so the web
+ * HUD and Unity show one figure. Equal to `toFixed(2)` of the quotient on all 21,600 pairs of 1..360 runs and 1..60 balls.
+ */
+export function unityPracticeRequiredRateX100(runsNeeded: number, ballsLeft: number): number {
+  return Math.floor((runsNeeded * 1200 + ballsLeft) / (2 * ballsLeft));
+}
+
+/**
+ * The chase block for the situation after a ball (or at the start). The caller states the facts; the rate is derived
+ * here, once, and is null unless the chase is still in progress. `makeUnityPracticeChase` does not judge the figures:
+ * the contract validator rejects a block that contradicts itself or the score it travels with.
+ */
+export function makeUnityPracticeChase(situation: {
+  target: number;
+  maxBalls: number;
+  runsNeeded: number;
+  ballsLeft: number;
+  outcome: UnityPracticeChaseOutcome;
+}): UnityPracticeChase {
+  const { target, maxBalls, runsNeeded, ballsLeft, outcome } = situation;
+  return {
+    target,
+    maxBalls,
+    runsNeeded,
+    ballsLeft,
+    outcome,
+    requiredRateX100:
+      outcome === 'in_progress' && runsNeeded >= 1 && ballsLeft >= 1
+        ? unityPracticeRequiredRateX100(runsNeeded, ballsLeft)
+        : null,
+  };
+}
+
+/**
  * The only way the host makes a UnityPracticeResolution: it canonicalizes and digests the record and the result once,
- * and remembers that, so the identity checks and the packet that follow do not repeat it.
+ * and remembers that, so the identity checks and the packet that follow do not repeat it. `chase` (Target Chase only)
+ * is omitted, not undefined, when absent: canonical JSON refuses undefined.
  */
 export async function makeUnityPracticeResolution(
   record: DeliveryRecord,
   result: DeliveryResult,
   score: UnityPracticeResolution['score'],
+  chase?: UnityPracticeChase,
 ): Promise<UnityPracticeResolution> {
   const recordJson = canonicalUnityPracticeJson(record);
   const resultJson = canonicalUnityPracticeJson(result);
@@ -1995,7 +2135,13 @@ export async function makeUnityPracticeResolution(
     // A result of an unexpected shape is simply never remembered; it is verified by recomputation.
   }
   const canonical = await digestCanonicalResolution(recordJson, resultJson);
-  const resolution: UnityPracticeResolution = { record, result, score, replayDigest: canonical.replayDigest };
+  const resolution: UnityPracticeResolution = {
+    record,
+    result,
+    score,
+    replayDigest: canonical.replayDigest,
+    ...(chase === undefined ? {} : { chase }),
+  };
   if (fingerprint !== null)
     (knownResolutions ??= new WeakMap()).set(resolution, { record, result, canonical, fingerprint });
   return resolution;

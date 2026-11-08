@@ -8,17 +8,17 @@ are complete, and that every translation uses exactly its English placeholders.
 
 | Locale | Script | Coverage | Status | Before release |
 | --- | --- | --- | --- | --- |
-| `en` English | Latin | 958 / 958 | Source | Copy review |
-| `hi` हिन्दी Hindi | Devanagari | 958 / 958 | Complete, written in-house (AI-authored), आप register | Native-speaker review recommended |
-| `hi-Latn` Hinglish | Latin | 958 / 958 | Complete, written in-house (AI-authored), tum register (as the app and social catalogs) | Native-speaker review recommended |
-| `bn` Bengali | Bengali | 0 / 958 | **English fallback** | Translation, then human linguistic QA |
-| `te` Telugu | Telugu | 0 / 958 | **English fallback** | Translation, then human linguistic QA |
-| `mr` Marathi | Devanagari | 0 / 958 | **English fallback** | Translation, then human linguistic QA |
-| `ta` Tamil | Tamil | 0 / 958 | **English fallback** | Translation, then human linguistic QA |
-| `gu` Gujarati | Gujarati | 0 / 958 | **English fallback** | Translation, then human linguistic QA |
-| `kn` Kannada | Kannada | 0 / 958 | **English fallback** | Translation, then human linguistic QA |
-| `ml` Malayalam | Malayalam | 0 / 958 | **English fallback** | Translation, then human linguistic QA |
-| `pa` Punjabi | Gurmukhi | 0 / 958 | **English fallback** | Translation, then human linguistic QA |
+| `en` English | Latin | 1189 / 1189 | Source | Copy review |
+| `hi` हिन्दी Hindi | Devanagari | 1189 / 1189 | Complete, written in-house (AI-authored), आप register | Native-speaker review recommended |
+| `hi-Latn` Hinglish | Latin | 1189 / 1189 | Complete, written in-house (AI-authored), tum register (as the app and social catalogs) | Native-speaker review recommended |
+| `bn` Bengali | Bengali | 0 / 1189 | **English fallback** | Translation, then human linguistic QA |
+| `te` Telugu | Telugu | 0 / 1189 | **English fallback** | Translation, then human linguistic QA |
+| `mr` Marathi | Devanagari | 0 / 1189 | **English fallback** | Translation, then human linguistic QA |
+| `ta` Tamil | Tamil | 0 / 1189 | **English fallback** | Translation, then human linguistic QA |
+| `gu` Gujarati | Gujarati | 0 / 1189 | **English fallback** | Translation, then human linguistic QA |
+| `kn` Kannada | Kannada | 0 / 1189 | **English fallback** | Translation, then human linguistic QA |
+| `ml` Malayalam | Malayalam | 0 / 1189 | **English fallback** | Translation, then human linguistic QA |
+| `pa` Punjabi | Gurmukhi | 0 / 1189 | **English fallback** | Translation, then human linguistic QA |
 
 No Practice file exists yet for the eight locales above: Practice shows English there (the rest of the app keeps its
 own translations). Adding one is a partial of `en.ts` named `<locale>.ts` with a default export; nothing else changes.
@@ -59,3 +59,14 @@ Copy rules (all locales):
     met says so plainly, with why ("It was 12 cm wide of off stump, and the bat never reached it").
   - `practice.why.no_reach` ("On time, but the bat never reached the ball."), for Why? beside a perfect label on a miss,
     the pad or the body. WORKER wires it.
+- 2026-11-08 (Target Chase, first-ball lesson, camera and controls; COPY): **1189 keys** per locale, 231 new in en, hi and
+  hi-Latn, in four new parts under `en/`, `hi/` and `hi-Latn/` (`chase.ts` 49, `lesson.ts` 50, `camera.ts` 106, `controls.ts` 26).
+  Every new Hindi and Hinglish line is AI-written and **joins the owner's native-speaker review list**
+  (`S/chase/COPY-REVIEW.md`, copied to `release/product-sequence/stage-3-chase/COPY/`). The browser troubleshooting steps
+  (`practice.camera.trouble.blocked.*`) are written from general knowledge and have **not** been checked on real browsers.
+  `tests/unit/i18n/chase-copy.test.ts` checks the key sets, the placeholders, the layout caps (the builders' own numbers, in
+  all three languages, with the worst parameters), the plural forms, the fallback rule and the legacy chase commentary.
+  - **Fallback quirk, unchanged by this work:** a line shown in English for a locale with no file is formatted with that
+    locale's own number rules (`createPracticeT`), so `bn` and `mr` show their own digits inside the English line
+    (for example "Reach a target in ১২ balls"). It is the same for every existing Practice line; changing it is one line in
+    `index.ts` (format a fallback line with `en-IN`) and belongs to the Practice copy owner.

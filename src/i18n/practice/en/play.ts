@@ -67,6 +67,7 @@ export const playEn = {
   // ---- calm notices (between balls, never during a delivery)
   'practice.notice.classic': 'This device is switching to Classic graphics for smoother batting.',
   'practice.notice.balanced': 'This device is switching to Balanced graphics for smoother batting.',
+  'practice.notice.camera_web': 'Camera batting uses the standard graphics.',
   'practice.notice.help_changed':
     'From this over, this device gives a little more timing help, for fair batting. Real mode gives none.',
   'practice.notice.help_less': 'From this over, this device gives less timing help. Real mode gives none.',

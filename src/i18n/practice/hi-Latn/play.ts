@@ -67,6 +67,7 @@ export const playHiLatn: Record<string, string> = {
   // ---- calm notices (between balls, never during a delivery)
   'practice.notice.classic': 'Smooth batting ke liye yeh device Classic graphics pe ja raha hai.',
   'practice.notice.balanced': 'Smooth batting ke liye yeh device Balanced graphics pe ja raha hai.',
+  'practice.notice.camera_web': 'Camera batting standard graphics pe chalti hai.',
   'practice.notice.help_changed':
     'Is over se yeh device fair batting ke liye thodi zyada timing help dega. Real mode mein koi help nahi.',
   'practice.notice.help_less': 'Is over se yeh device kam timing help dega. Real mode mein koi help nahi.',

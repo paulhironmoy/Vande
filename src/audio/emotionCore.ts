@@ -89,6 +89,13 @@ export interface DeliveryContext {
   wicketEndsInnings?: boolean;
   /** The striker's runs before this ball (a milestone is recognised when a ball takes them past 50 or 100). */
   runs?: number;
+  /**
+   * In a chase: the runs that win it (with `runs`, the striker's runs before this ball, the scoreboard the crowd can
+   * read). Absent in every other innings. Public information before the ball, never a forecast of it.
+   */
+  target?: number | null;
+  /** In a chase: the legal balls left, this one included (1 on the last ball). */
+  ballsLeft?: number | null;
 }
 
 export interface CrowdEmotion {
@@ -121,6 +128,18 @@ export const CROWD = {
   /** Peaks at no pressure and no fatigue. The bands never overlap: six > four > single > dot ≥ leave, always. */
   four: 0.74,
   six: 0.92,
+  /**
+   * A chase ends on the ball: the runs that reach the target (a four 0.82, a six 0.90, a run or two 0.62, plus up to
+   * 0.10 / 0.10 / 0.25 as the finish gets closer: six > four > runs holds at every closeness), and, on the last ball
+   * when they fall short, the share of a routine reaction a hit gets (the crowd is polite, then quiet), the least a
+   * run is applauded (above the groan of a dot, so single > dot holds there too) and the groan of a dot.
+   */
+  winFour: 0.82,
+  winSix: 0.9,
+  winRuns: 0.62,
+  lostShare: 0.6,
+  lostRunsFloor: 0.24,
+  lostGroan: 0.2,
   /** After the reflection moment the crowd settles to its murmur over this long. */
   settleMs: 4200,
   /** Default relaxation from a held reaction back to the murmur. */
@@ -136,6 +155,11 @@ export interface EmotionState {
   milestone: 'fifty' | 'hundred' | null;
   wicketEndsInnings: boolean;
   runsBefore: number | null;
+  /** The chase this ball belongs to: the runs that win it and the legal balls left (null outside a chase). */
+  target: number | null;
+  ballsLeft: number | null;
+  /** What this ball did to the chase once the physics confirmed it: reached the target, or cannot (last ball short). */
+  verdict: 'won' | 'lost' | null;
   /** A context arrived for the coming delivery. */
   fresh: boolean;
   fatigue: number;
@@ -202,6 +226,9 @@ export function initialEmotion(): EmotionState {
     milestone: null,
     wicketEndsInnings: true,
     runsBefore: null,
+    target: null,
+    ballsLeft: null,
+    verdict: null,
     fresh: false,
     fatigue: 0,
     fatigueAt: 0,

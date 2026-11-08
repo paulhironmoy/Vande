@@ -7,8 +7,9 @@
  *   cue()      the physical sounds: release, pitch (by surface), pad, stumps, bails, gloves, fielding, the boards
  *   feel()     the contact, by quality: sweet spot, middle, mistimed, a defensive block, inside or outside or top
  *              edge, pad, the swish of a miss (no contact sound and no vibration on a miss); its caption
- *   moment()   the emotion machine: the crowd bed's curve, the crowd's reactions, the dhol after a four or a six,
- *              the §12 haptics of a close call, a four, a six and a wicket, and their captions
+ *   moment()   the emotion machine: the crowd bed's curve, the crowd's reactions, the dhol after a four or a six
+ *              (not after a last-ball boundary that cannot win a chase), the §12 haptics of a close call, a four, a six
+ *              and a wicket, and their captions
  *   quiet()    Delivery Quiet Mode (no interface sound from the approach to dead ball)
  *   context()  the match context for the coming delivery
  *
@@ -355,6 +356,8 @@ export function createPracticeSink(): PracticeSoundscape {
       const reactAt = reaction ? Math.max(due, s.rAt) : due;
       const crowdCaption = s.caption;
       const padded = s.padded;
+      // A last-ball boundary that cannot win the chase gets the crowd's polite applause, but no celebratory drums.
+      const celebrate = s.verdict !== 'lost';
       // Counted whether or not it is heard, so muting never shifts a later take.
       const reactionPick = reaction ? takeFor(`crowd:${reaction}`) : null;
       if (audioLogOn()) logAudio('moment', m.kind, due, { level: machine.sample(due).arousal });
@@ -372,13 +375,15 @@ export function createPracticeSink(): PracticeSoundscape {
         case 'four':
           captionAt('four', due);
           feelAt('confirm', due);
-          sound('dhol', 0.85, due + 250, 'music');
+          if (celebrate) sound('dhol', 0.85, due + 250, 'music');
           break;
         case 'six':
           captionAt('six', due);
           feelAt(reducedMotion() ? 'confirm' : 'confirm_strong', due);
-          sound('dhol', 1, due + 200, 'music');
-          sound('dhol', 0.9, due + 1640, 'music');
+          if (celebrate) {
+            sound('dhol', 1, due + 200, 'music');
+            sound('dhol', 0.9, due + 1640, 'music');
+          }
           break;
         case 'wicket':
           if (m.dismissal) captionAt(dismissalCaption(m.dismissal), due);

@@ -10,6 +10,14 @@ import { PRACTICE_KEYS, isObj, localStore, readJson, writeJson, type KeyStore } 
 /** The Random Over's optional bowling-type constraint. */
 export type BowlingChoice = BowlerFamily | 'any';
 
+/**
+ * How the player bats on this device ("How do you want to bat?", src/practice/ui/controls): the mouse (the web's
+ * default), a finger (the Android default) or the camera (never the default, never required). Every one of them ends as
+ * the same NormalizedSwing, so the choice decides what is taught, calibrated and felt, never a delivery or an outcome.
+ */
+export type BatControl = 'mouse' | 'touch' | 'camera';
+export const BAT_CONTROLS: readonly BatControl[] = ['mouse', 'touch', 'camera'];
+
 export interface PracticeSettings {
   v: 1;
   assist: AssistLevel;
@@ -32,6 +40,19 @@ export interface PracticeSettings {
   teach: boolean;
   /** The first-run demonstration has been watched or skipped. */
   demoSeen: boolean;
+  /**
+   * The first-ball lesson (src/practice/ui/lesson) has been done or skipped. A player stored before the lesson existed
+   * (no such key) has it exactly when the demonstration has been seen, so only a first run meets the lesson.
+   */
+  lessonSeen: boolean;
+  /** The control chosen on this device; null until the player has chosen (then the device's default is in force). */
+  control: BatControl | null;
+  /**
+   * "How do you want to bat?" has been answered, or accepted by batting on (the compact row on the setup screen asks
+   * until then). A player stored before the choice existed (no such key) has answered exactly when the demonstration has
+   * been seen, so only a first run meets the row, and every script that seeds `demoSeen` never does.
+   */
+  controlChosen: boolean;
 }
 
 export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
@@ -47,6 +68,9 @@ export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
   hintsShown: 0,
   teach: true,
   demoSeen: false,
+  lessonSeen: false,
+  control: null,
+  controlChosen: false,
 };
 
 const ASSISTS: readonly AssistLevel[] = ['learn', 'play', 'real'];
@@ -62,6 +86,7 @@ export function loadPracticeSettings(store: KeyStore | null = localStore()): Pra
   const d = DEFAULT_PRACTICE_SETTINGS;
   const pick = <T>(v: unknown, allowed: readonly T[], fallback: T): T =>
     allowed.includes(v as T) ? (v as T) : fallback;
+  const control = (BAT_CONTROLS as readonly unknown[]).includes(raw.control) ? (raw.control as BatControl) : null;
   return {
     v: 1,
     assist: pick(raw.assist, ASSISTS, d.assist),
@@ -76,6 +101,10 @@ export function loadPracticeSettings(store: KeyStore | null = localStore()): Pra
       Number.isInteger(raw.hintsShown) && (raw.hintsShown as number) >= 0 ? Math.min(99, raw.hintsShown as number) : 0,
     teach: raw.teach !== false,
     demoSeen: raw.demoSeen === true,
+    lessonSeen: typeof raw.lessonSeen === 'boolean' ? raw.lessonSeen : raw.demoSeen === true,
+    control,
+    controlChosen:
+      typeof raw.controlChosen === 'boolean' ? raw.controlChosen : control !== null || raw.demoSeen === true,
   };
 }
 

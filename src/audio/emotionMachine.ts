@@ -20,6 +20,12 @@
  *               restrained, the crowd quietly resettles
  *   runs        acknowledgement: applause; milestones bring an ovation
  *   reflection  the settle before the next ball, back to the murmur (subdued after a damaging wicket)
+ *
+ * A chase (the context carries `target` and `ballsLeft`) adds one thing, and only at the confirmed outcome: the ball that
+ * reaches the target is a release bigger the closer the finish (an ovation in the last over, a cheer before it), and on
+ * the last ball a hit that cannot win it gets polite applause and then a quiet crowd, never a celebration. Before the
+ * outcome nothing differs from any other ball, so the crowd cannot know the result early; a wicket ends a chase exactly
+ * as it ends a Practice innings (decisive silence, then dismay).
  */
 import {
   CROWD,
@@ -184,6 +190,24 @@ function milestone(o: EmotionState, runs: number): 'fifty' | 'hundred' | null {
 
 const milestoneCaption = (ms: 'fifty' | 'hundred') => (ms === 'fifty' ? 'milestone_fifty' : 'milestone_hundred');
 
+/**
+ * What a ball that scores `r` runs does to the chase it belongs to, read from the scoreboard the context gave before the
+ * ball: it reaches the target (`won`), or it is the last ball and cannot (`lost`). Only ever asked at a confirmed outcome.
+ */
+function chaseVerdict(o: Readonly<EmotionState>, r: number): 'won' | 'lost' | null {
+  if (o.target === null || o.runsBefore === null || o.ballsLeft === null) return null;
+  const need = o.target - o.runsBefore;
+  if (need <= 0) return null;
+  if (r >= need) return 'won';
+  return o.ballsLeft <= 1 ? 'lost' : null;
+}
+
+/** How close the finish is, 0 (a full chase left) … 1 (the last ball). The last over (6 balls or fewer) is 0.5 or more. */
+function finishCloseness(o: Readonly<EmotionState>): number {
+  const left = o.ballsLeft ?? 1;
+  return 1 - clamp01((left - 1) / 11);
+}
+
 /** The match context for the coming delivery. */
 function applyEmotionContext(
   s: Readonly<EmotionState>,
@@ -197,6 +221,17 @@ function applyEmotionContext(
   o.milestone = ctx.milestone ?? null;
   o.wicketEndsInnings = ctx.wicketEndsInnings ?? true;
   if (typeof ctx.runs === 'number' && Number.isFinite(ctx.runs)) o.runsBefore = ctx.runs;
+  // A chase needs the whole scoreboard; without the striker's runs it is not one (never a stale total from a past ball).
+  const chase =
+    typeof ctx.target === 'number' &&
+    Number.isFinite(ctx.target) &&
+    typeof ctx.ballsLeft === 'number' &&
+    Number.isFinite(ctx.ballsLeft) &&
+    typeof ctx.runs === 'number' &&
+    Number.isFinite(ctx.runs);
+  o.target = chase ? (ctx.target as number) : null;
+  o.ballsLeft = chase ? (ctx.ballsLeft as number) : null;
+  o.verdict = null;
   o.fresh = true;
   // Between balls the murmur follows the new context; a celebration or a silence is never cut short.
   if (o.phase === 'between' || (o.phase === 'reflection' && t >= o.settleAt)) base(o, t, restLevel(o), 1500);
@@ -224,6 +259,7 @@ function applyEmotionMoment(s: Readonly<EmotionState>, m: EmotionMoment, at: num
       p = o.pressure;
       k = 1 + 0.35 * p;
       o.outcome = null;
+      o.verdict = null;
       o.quality = 0;
       o.edged = false;
       o.padded = false;
@@ -335,6 +371,7 @@ function applyEmotionMoment(s: Readonly<EmotionState>, m: EmotionMoment, at: num
     case 'four':
     case 'six': {
       const six = m.kind === 'six';
+      const verdict = chaseVerdict(o, six ? 6 : 4);
       const ms = milestone(o, six ? 6 : 4);
       // Non-overlapping bands (constitution: proportional feedback): a six 0.84–1.0, a four 0.66–0.83.
       const f = o.fatigue;
@@ -343,23 +380,47 @@ function applyEmotionMoment(s: Readonly<EmotionState>, m: EmotionMoment, at: num
         : Math.min(0.83, CROWD.four + 0.08 * p - 0.08 * f + (ms ? 0.05 : 0));
       o.phase = 'outcome';
       o.outcome = six ? 'six' : 'four';
+      o.verdict = verdict;
       o.momentum = Math.min(1, o.momentum + (six ? 0.5 : 0.35));
       o.dots = 0;
-      if (six) base(o, t, 0.62, 300, ms ? 4800 : 3800, 3800);
-      else base(o, t, 0.48, 300, ms ? 4800 : 3400, 3400);
-      react(
-        o,
-        t,
-        ms ? 'ovation' : six ? 'eruption' : 'cheer',
-        Math.min(1, peak),
-        six ? 160 : 140,
-        ms ? 3800 : six ? 3800 : 3200,
-      );
-      valence(o, t, six ? 1 : 0.8, 200);
-      expect(o, t, 0, 400);
-      mood(o, t, ms ? 'ovation' : six ? 'eruption' : 'celebration', ms ? 6000 : six ? 4800 : 3500, 'murmur');
-      o.fatigue = Math.min(1, o.fatigue + (six ? 0.35 : 0.25));
-      o.caption = ms ? milestoneCaption(ms) : six ? 'crowd_erupts' : 'crowd_cheers';
+      if (verdict === 'won') {
+        // The boundary that wins the chase: the release of the whole innings, bigger the closer the finish.
+        const close = finishCloseness(o);
+        const grand = close >= 0.5;
+        const winPeak = Math.min(1, (six ? CROWD.winSix : CROWD.winFour) + 0.1 * close - 0.06 * f);
+        base(o, t, 0.66, 300, 5200, 3800);
+        react(o, t, grand ? 'ovation' : six ? 'eruption' : 'cheer', Math.max(peak, winPeak), six ? 160 : 140, 4200);
+        valence(o, t, 1, 200);
+        expect(o, t, 0, 400);
+        mood(o, t, grand ? 'ovation' : six ? 'eruption' : 'celebration', 6000, 'murmur');
+        o.fatigue = Math.min(1, o.fatigue + (six ? 0.35 : 0.25));
+        o.caption = grand ? 'crowd_ovation' : six ? 'crowd_erupts' : 'crowd_cheers';
+      } else if (verdict === 'lost') {
+        // The last ball, and not enough: polite applause for a good shot, then a quiet crowd. Nothing here celebrates.
+        o.subdued = true;
+        base(o, t, 0.34, 300, 1800);
+        react(o, t, 'applause', Math.min(0.6, peak * CROWD.lostShare), 150, 1300);
+        valence(o, t, -0.3, 600);
+        expect(o, t, 0, 400);
+        mood(o, t, 'applause', 1600, 'dismay');
+        o.caption = 'crowd_applauds';
+      } else {
+        if (six) base(o, t, 0.62, 300, ms ? 4800 : 3800, 3800);
+        else base(o, t, 0.48, 300, ms ? 4800 : 3400, 3400);
+        react(
+          o,
+          t,
+          ms ? 'ovation' : six ? 'eruption' : 'cheer',
+          Math.min(1, peak),
+          six ? 160 : 140,
+          ms ? 3800 : six ? 3800 : 3200,
+        );
+        valence(o, t, six ? 1 : 0.8, 200);
+        expect(o, t, 0, 400);
+        mood(o, t, ms ? 'ovation' : six ? 'eruption' : 'celebration', ms ? 6000 : six ? 4800 : 3500, 'murmur');
+        o.fatigue = Math.min(1, o.fatigue + (six ? 0.35 : 0.25));
+        o.caption = ms ? milestoneCaption(ms) : six ? 'crowd_erupts' : 'crowd_cheers';
+      }
       break;
     }
     case 'wicket': {
@@ -368,6 +429,7 @@ function applyEmotionMoment(s: Readonly<EmotionState>, m: EmotionMoment, at: num
       const damaging = o.wicketEndsInnings;
       o.phase = 'outcome';
       o.outcome = 'wicket';
+      o.verdict = o.target !== null ? 'lost' : null;
       o.momentum = -0.6;
       o.dots = 0;
       o.subdued = damaging;
@@ -386,6 +448,16 @@ function applyEmotionMoment(s: Readonly<EmotionState>, m: EmotionMoment, at: num
     case 'survived':
       o.phase = 'outcome';
       o.outcome = 'close_call';
+      o.verdict = chaseVerdict(o, 0);
+      if (o.verdict === 'lost') {
+        // Survived the last ball of a chase without scoring: the chase is over, so there is no relief to play.
+        o.subdued = true;
+        base(o, t, restLevel(o), 700, 1600);
+        valence(o, t, -0.4, 500);
+        expect(o, t, 0, 400);
+        mood(o, t, 'dismay');
+        break;
+      }
       base(o, t, restLevel(o) + 0.02, 700, 1600);
       react(o, t, 'relief', 0.42 * (1 - 0.1 * o.fatigue), 90, 1100);
       valence(o, t, 0.25, 400);
@@ -399,6 +471,20 @@ function applyEmotionMoment(s: Readonly<EmotionState>, m: EmotionMoment, at: num
       o.outcome = leave ? 'leave' : 'dot';
       o.dots += 1;
       o.momentum = Math.max(-1, o.momentum - (leave ? 0.06 : 0.12));
+      o.verdict = chaseVerdict(o, 0);
+      if (o.verdict === 'lost') {
+        // The last ball of a chase, and nothing scored: the chase is over. A quiet crowd; a groan only if it was an attempt.
+        o.subdued = true;
+        base(o, t, restLevel(o), 700, 1600);
+        if (!leave) {
+          react(o, t, 'groan', CROWD.lostGroan, 120, 900);
+          o.caption = 'crowd_groans';
+        }
+        valence(o, t, -0.5, 500);
+        expect(o, t, 0, 400);
+        mood(o, t, 'dismay');
+        break;
+      }
       if (leave) {
         // Restrained: the crowd quietly resettles.
         base(o, t, restLevel(o) - 0.04, 900, 1600);
@@ -425,12 +511,37 @@ function applyEmotionMoment(s: Readonly<EmotionState>, m: EmotionMoment, at: num
     }
     case 'runs': {
       const r = Math.max(1, Math.round(Number.isFinite(m.runs) ? (m.runs as number) : 1));
+      const verdict = chaseVerdict(o, r);
       const ms = milestone(o, r);
       o.phase = 'outcome';
       o.outcome = 'runs';
+      o.verdict = verdict;
       o.dots = 0;
       o.momentum = Math.min(1, o.momentum + 0.04 * r);
-      if (ms) {
+      if (verdict === 'won') {
+        // The runs that win the chase: a cheer, an ovation in the last over, by how close the finish was.
+        const close = finishCloseness(o);
+        const grand = close >= 0.5;
+        base(o, t, 0.55, 400, 4500, 2800);
+        react(
+          o,
+          t,
+          grand ? 'ovation' : 'cheer',
+          Math.min(1, CROWD.winRuns + 0.25 * close - 0.06 * o.fatigue),
+          200,
+          3500,
+        );
+        mood(o, t, grand ? 'ovation' : 'celebration', 6000, 'murmur');
+        o.caption = grand ? 'crowd_ovation' : 'crowd_cheers';
+      } else if (verdict === 'lost') {
+        // The last ball, and not enough: the same acknowledgement, a good deal quieter, then a quiet crowd.
+        const peak = Math.max(CROWD.lostRunsFloor, Math.min(0.6, 0.4 + 0.05 * r + 0.06 * p) * CROWD.lostShare);
+        o.subdued = true;
+        base(o, t, restLevel(o) + 0.03, 600, 1600);
+        react(o, t, 'applause', peak, 150, 1300);
+        mood(o, t, 'applause', 1400, 'dismay');
+        if (r >= 2) o.caption = 'crowd_applauds';
+      } else if (ms) {
         base(o, t, 0.55, 400, 4500, 2800);
         react(o, t, 'ovation', Math.min(1, 0.78 + 0.08 * p), 200, 3500);
         mood(o, t, 'ovation', 6000, 'murmur');
@@ -443,7 +554,7 @@ function applyEmotionMoment(s: Readonly<EmotionState>, m: EmotionMoment, at: num
         mood(o, t, 'applause', 2000, 'murmur');
         if (r >= 2) o.caption = 'crowd_applauds';
       }
-      valence(o, t, 0.3, 400);
+      valence(o, t, verdict === 'lost' ? -0.2 : verdict === 'won' ? 1 : 0.3, 400);
       expect(o, t, 0, 400);
       break;
     }

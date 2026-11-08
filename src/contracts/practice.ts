@@ -141,7 +141,7 @@ export interface GestureSample {
 }
 
 export interface GestureInput {
-  pointer: 'touch' | 'mouse' | 'pen' | 'keyboard';
+  pointer: 'touch' | 'mouse' | 'pen' | 'keyboard' | 'camera';
   samples: GestureSample[];
   surface: { width: number; height: number };
   /** Optional manual footwork (W / S / the side letters, where the press landed, or an on-screen control). */

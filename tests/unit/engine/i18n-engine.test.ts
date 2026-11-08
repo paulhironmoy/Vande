@@ -305,12 +305,12 @@ describe('engine copy catalogs', () => {
 
   it('renders numbers and plurals per locale', () => {
     const p = { runs: 1, balls: 1 };
-    expect(formatMessage(en['commentary.chase_needs'], p, 'en-IN')).toBe('The equation: 1 run from 1 ball.');
+    expect(formatMessage(en['commentary.chase_needs'], p, 'en-IN')).toBe('Need 1 run off 1 ball.');
     expect(formatMessage(en['commentary.chase_needs'], { runs: 7, balls: 3 }, 'en-IN')).toBe(
-      'The equation: 7 runs from 3 balls.',
+      'Need 7 runs off 3 balls.',
     );
     expect(formatMessage(en['commentary.chase_won'], { batter: 'Asha', ballsLeft: 0 }, 'en-IN')).toBe(
-      'Asha gets there off the very last ball!',
+      'Chase won: Asha gets there off the very last ball.',
     );
     expect(
       formatMessage(en['commentary.loose_punished'], { bowler: 'Ravi', zone: 'Cover', runs: 4 }, 'en-IN'),

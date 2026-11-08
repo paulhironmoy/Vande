@@ -21,6 +21,16 @@ here is a type error in the screens that use it.
 | `commentary.*` | 34 | Every `COMMENTARY_KEYS` entry (text commentary, original) |
 | `guide.*` | 20 | Tactics guide for a 12-year-old, exactly the sections the Settings guide shows: sealing, the match, energy, intent, timing, the three pitches and weather, Super Ball tie-breaks |
 
+## Chase commentary (rewritten 2026-11-08, English, Hindi and Hinglish)
+
+`commentary.chase_target`, `chase_needs`, `chase_won` and `chase_short` were rewritten to use the words of the new Target Chase
+screens (the rail's "Need X off Y balls", "balls to spare", "runs short of the target", "Chase won", "Chase lost"), with no
+exclamation marks. Keys and placeholders are unchanged, so the Sealed Six callers (`src/engine/v1/match.ts`) and the reveal
+screen are not affected; `tests/unit/engine/i18n-engine.test.ts` has the new English expectations for `chase_needs` and
+`chase_won`. The eight machine-drafted locales keep their earlier wording of these four keys (same placeholders, still
+parse); they need the same human QA as the rest of their engine files. The new Hindi and Hinglish lines are AI-written and
+await native-speaker review (`S/chase/COPY-REVIEW.md`).
+
 ## Rules every locale follows (enforced by `tests/unit/engine/i18n-engine.test.ts`)
 
 - ICU-lite syntax (`src/i18n/format.ts`). Every locale has exactly the English keys, every message parses, and every

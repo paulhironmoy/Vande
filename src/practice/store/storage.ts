@@ -24,6 +24,12 @@ export const PRACTICE_KEYS = {
   tester: 'vc:practice:tester',
   /** Practice sound: music, effects, crowd, haptics, captions (src/audio owns the content and resets its mix). */
   audio: 'vc:practice:audio',
+  /** The Target Chase being batted (its definition and innings, src/practice/chase SavedChase), kept like the innings. */
+  chase: 'vc:practice:chase',
+  /** The last finished Target Chase of each seed and difficulty (src/practice/chase ChaseHistory); local, never ranked. */
+  chaseHistory: 'vc:practice:chase-history',
+  /** Camera batting: chosen or not, consent seen, last delegate (src/input/camera owns the content; a tiny JSON). */
+  camera: 'vc:practice:camera',
 } as const;
 
 export function localStore(): KeyStore | null {
