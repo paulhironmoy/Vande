@@ -57,6 +57,11 @@ async function release(page: Page, ms = 790) {
   await page.keyboard.up('Space');
 }
 
+/** Stage 1 opens Practice at the root; the legacy journeys keep their home with the test-only vc:legacy-home switch. */
+async function legacyHome(page: Page) {
+  await page.addInitScript(() => localStorage.setItem('vc:legacy-home', '1'));
+}
+
 /** Plays one ball: waits for it to be live, then swings with the keyboard. */
 async function swing(page: Page) {
   await page.locator('[data-testid=bat-hit][data-live]').waitFor({ timeout: 30_000 });
@@ -69,9 +74,8 @@ async function swing(page: Page) {
 test('first run: the age question, alias, Training (bat, bowl, reveal) in under a minute, then home', async ({ page }) => {
   test.setTimeout(150_000);
   const errors = watchErrors(page);
+  await legacyHome(page);
   await page.goto('/');
-  // A normal start offers Practice or Skip; Skip continues to the existing first run.
-  await page.getByTestId('launch-skip').click();
   await expect(page).toHaveURL(/\/start$/);
   // The neutral age question comes first: empty, no example year.
   await expect(page.getByTestId('age-screen')).toBeVisible();
@@ -294,8 +298,8 @@ for (const scale of [1.3, 1.5]) {
 
 test('under 18: a kind stop that stays, and only the outcome is kept', async ({ page }) => {
   const errors = watchErrors(page);
+  await legacyHome(page);
   await page.goto('/');
-  await page.getByTestId('launch-skip').click();
   await expect(page.getByTestId('age-screen')).toBeVisible();
   const year = String(new Date().getFullYear() - 14);
   await page.getByTestId('age-year').fill(year);
@@ -318,8 +322,8 @@ test('under 18: a kind stop that stays, and only the outcome is kept', async ({ 
 test('keyboard focus is visible on ghost, link and icon buttons', async ({ page }) => {
   const errors = watchErrors(page);
   await seed(page, { player: true });
+  await legacyHome(page);
   await page.goto('/');
-  await page.getByTestId('launch-skip').click();
   await expect(page.getByTestId('home-screen')).toBeVisible();
   // Focus the settings icon button (ghost) the way a keyboard user does.
   const ring = async () =>

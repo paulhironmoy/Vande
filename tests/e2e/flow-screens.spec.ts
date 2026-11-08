@@ -117,8 +117,9 @@ test('store screenshots: first run, training, invite, planner, batting, reveal, 
   await shot(a.page, '11-result');
 
   // The hub, Daily Six and the Cricket Room.
+  // Stage 1 opens Practice at the root; the legacy hub keeps its home with the test-only vc:legacy-home switch.
+  await a.page.evaluate(() => localStorage.setItem('vc:legacy-home', '1'));
   await a.page.goto('/');
-  await a.page.getByTestId('launch-skip').click({ timeout: 20_000 });
   await expect(a.page.getByTestId('home-screen')).toBeVisible({ timeout: 20_000 });
   await a.page.waitForTimeout(1500);
   await shot(a.page, '12-home');
