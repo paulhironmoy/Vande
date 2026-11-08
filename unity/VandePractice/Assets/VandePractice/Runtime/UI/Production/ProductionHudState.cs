@@ -99,17 +99,20 @@ namespace Vande.Practice.UI.Production
             PracticeScenePresentation scene,
             string assistance,
             int? coachStage,
-            string locale)
+            string locale,
+            bool chase = false)
         {
             if (scene == null) return string.Empty;
             var language = Resolve(locale);
-            var status = coachStage.HasValue
-                ? language == Language.Hindi
-                    ? "कोच · चरण " + coachStage.Value
-                    : language == Language.Hinglish
-                        ? "Coach · stage " + coachStage.Value
-                        : "Coach · stage " + coachStage.Value
-                : language == Language.Hindi ? "अभ्यास" : "Practice";
+            var status = chase
+                ? ProductionHudChaseCopy.Status(locale)
+                : coachStage.HasValue
+                    ? language == Language.Hindi
+                        ? "कोच · चरण " + coachStage.Value
+                        : language == Language.Hinglish
+                            ? "Coach · stage " + coachStage.Value
+                            : "Coach · stage " + coachStage.Value
+                    : language == Language.Hindi ? "अभ्यास" : "Practice";
             var assist = Localize(assistance, locale);
             var pitch = Localize(scene.Conditions, locale);
             var ball = Localize(scene.BallAge, locale) + " " +

@@ -42,6 +42,8 @@ namespace Vande.Practice.UI.Production
 
         private PracticePresentationSettings settings;
         private PracticeScenePresentation scene;
+        // Contract v7: the Target Chase situation (null for ordinary Practice). Text only: the conditions rail speaks it in place of the pitch line.
+        private PracticeChasePresentation chase;
         private ProductionFieldState liveFieldState;
         private int renderedFieldStateVersion = -1;
         private GameObject generatedRoot;
@@ -162,7 +164,9 @@ namespace Vande.Practice.UI.Production
         public bool SetupBriefOpen => setupBriefOpen;
         public bool SetupBriefVisible => setupBriefOpen && SetupBriefCanOpen();
         public string SetupBriefText => ProductionHudCopy.SetupBrief(
-            scene, settings?.Assistance, coachStage, settings?.Locale);
+            scene, settings?.Assistance, coachStage, settings?.Locale, chase != null);
+        /// <summary>The chase situation the rail shows, or null in ordinary Practice.</summary>
+        public PracticeChasePresentation Chase => chase;
         public bool IsBuilt => generatedRoot != null && resources != null;
         public bool OutcomeVisible => outcomeVisible;
         public float OutcomeOpacity => outcomeOpacity;
@@ -390,10 +394,23 @@ namespace Vande.Practice.UI.Production
             scene = value ?? throw new ArgumentNullException(nameof(value));
             if (scene.Fielders == null || scene.Fielders.Length != 11)
                 throw new ArgumentException("A complete eleven-player field is required.", nameof(value));
+            chase = scene.Chase;
             EnsureBuilt();
             SetBetweenBallReady(true);
             ApplyConditions();
             ApplyField();
+        }
+
+        /// <summary>
+        /// Contract v7: the chase situation after a ball (or null to clear it). The controller calls it at the dead ball, with
+        /// the score, so the line never spoils a live ball. Presentation only: the figures are the host's, already validated
+        /// against the score they travelled with; nothing here derives a result.
+        /// </summary>
+        public void SetChase(PracticeChasePresentation value)
+        {
+            chase = value;
+            ApplyConditions();
+            ApplySetupBrief();
         }
 
         /// <summary>
@@ -1650,36 +1667,52 @@ namespace Vande.Practice.UI.Production
         private string FormatConditions()
         {
             if (scene == null || settings == null) return string.Empty;
-            var condition = ProductionHudCopy.Localize(scene.Conditions, settings.Locale);
-            var arm = ProductionHudCopy.Localize(scene.BowlerArm, settings.Locale);
-            var family = ProductionHudCopy.Localize(scene.BowlerFamily, settings.Locale);
-            var bowlerStyle = string.Equals(
-                scene.BowlerFamily,
-                "spin",
-                StringComparison.OrdinalIgnoreCase)
-                ? ProductionHudCopy.Localize(scene.BowlerSpinType, settings.Locale)
-                : ProductionHudCopy.Localize(scene.BowlerPaceBand, settings.Locale);
-            var age = ProductionHudCopy.Localize(scene.BallAge, settings.Locale);
-            var colour = ProductionHudCopy.Localize(scene.BallColour, settings.Locale);
-            var assistance = ProductionHudCopy.Localize(settings.Assistance, settings.Locale);
-            var first = condition + " · " + age + " " + colour.ToLowerInvariant();
-            var second = arm + " " + family.ToLowerInvariant();
-            if (!string.IsNullOrEmpty(bowlerStyle)) second += " · " + bowlerStyle;
-            second += " · " + assistance;
+            string first;
+            string second;
+            if (chase != null)
+            {
+                // Target Chase (contract v7): what is needed, then the rate (or the verdict, then the balls to spare). The pitch,
+                // ball and bowler stay in the setup brief. The words are the web COPY sheet's (ProductionHudChaseCopy).
+                first = ProductionHudChaseCopy.Headline(chase, settings.Locale);
+                second = ProductionHudChaseCopy.Detail(chase, settings.Locale);
+            }
+            else
+            {
+                var condition = ProductionHudCopy.Localize(scene.Conditions, settings.Locale);
+                var arm = ProductionHudCopy.Localize(scene.BowlerArm, settings.Locale);
+                var family = ProductionHudCopy.Localize(scene.BowlerFamily, settings.Locale);
+                var bowlerStyle = string.Equals(
+                    scene.BowlerFamily,
+                    "spin",
+                    StringComparison.OrdinalIgnoreCase)
+                    ? ProductionHudCopy.Localize(scene.BowlerSpinType, settings.Locale)
+                    : ProductionHudCopy.Localize(scene.BowlerPaceBand, settings.Locale);
+                var age = ProductionHudCopy.Localize(scene.BallAge, settings.Locale);
+                var colour = ProductionHudCopy.Localize(scene.BallColour, settings.Locale);
+                var assistance = ProductionHudCopy.Localize(settings.Assistance, settings.Locale);
+                first = condition + " · " + age + " " + colour.ToLowerInvariant();
+                second = arm + " " + family.ToLowerInvariant();
+                if (!string.IsNullOrEmpty(bowlerStyle)) second += " · " + bowlerStyle;
+                second += " · " + assistance;
+            }
+
+            // The affordance is a separate item on a line; on an empty line (a lost chase has no second line) it stands alone.
+            var trigger = ProductionHudCopy.SetupTrigger(settings.Locale) + " ›";
             if (SetupBriefCanOpen() && !setupBriefOpen && conditionsLabel == null)
-                second += " · " + ProductionHudCopy.SetupTrigger(settings.Locale) + " ›";
+                second += (second.Length == 0 ? string.Empty : " · ") + trigger;
             else if (SetupBriefCanOpen() && !setupBriefOpen)
             {
                 // The setup affordance joins whichever line stays narrower, measured with the rail's own shaped font
                 // (wedge phase 3: appended to the longer second line it pushed the copy below 10 px to fit).
-                var affordance = " · " + ProductionHudCopy.SetupTrigger(settings.Locale) + " ›";
+                var affordance = " · " + trigger;
+                var secondWith = second.Length == 0 ? trigger : second + affordance;
                 var size = ConditionsFontHeight();
                 var onFirst = Mathf.Max(conditionsLabel.MeasureUnwrapped(first + affordance, size).x,
                     conditionsLabel.MeasureUnwrapped(second, size).x);
                 var onSecond = Mathf.Max(conditionsLabel.MeasureUnwrapped(first, size).x,
-                    conditionsLabel.MeasureUnwrapped(second + affordance, size).x);
+                    conditionsLabel.MeasureUnwrapped(secondWith, size).x);
                 if (onFirst < onSecond) first += affordance;
-                else second += affordance;
+                else second = secondWith;
             }
             // The complete setup remains visible, but grouping surface/ball
             // above bowler/assistance keeps both lines short enough for the

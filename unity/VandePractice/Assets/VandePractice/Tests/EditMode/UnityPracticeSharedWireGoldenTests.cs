@@ -16,13 +16,15 @@ namespace Vande.Practice.Tests
     /// </summary>
     public sealed class UnityPracticeSharedWireGoldenTests
     {
-        // Contract v6 / simulation v3 corpus written by the supported TS generator
+        // Contract v7 / simulation v3 corpus written by the supported TS generator
         // (scripts/practice-unity-goldens.mjs) on the phase-5f physics freeze (FROZEN-5f, 2026-11-04T06:30Z,
         // release/product-sequence/stage-1-practice/wedge/physics/phase5/FROZEN-5f.repo.sha256; re-pinned by
         // UNITY-2 on the lead's relay), with the outside-edge thin-edge case (ref-1, 8 ms late). Its bat
         // probes come from the 5b quintic batAt, which Unity's bat presenter mirrors.
+        // Re-pinned 2026-11-08 for contract v7: the 28 packets differ from the v6 corpus (4f1e2bb5...) by the version
+        // digit alone and the SHA-256s that cover it (proof: release/product-sequence/stage-3-chase/UNITY/proof/golden-v6-to-v7.txt).
         private const string ExpectedPayloadSha =
-            "4f1e2bb513d459abcf994f764bfcb042e4b2796deeef9844b95c4c0ec14c084a";
+            "b3a1fa5560e306edeb84243818ce32397eab745e0f5e0dad50e82c0230b0433a";
 
         [Test]
         public void SevenTypeScriptGoldens_DecodeProjectAndReplayExactlyOnce()

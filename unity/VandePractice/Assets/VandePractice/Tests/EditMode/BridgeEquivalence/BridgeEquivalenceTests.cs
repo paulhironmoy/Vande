@@ -16,6 +16,14 @@ namespace Vande.Practice.Tests.Equivalence
     /// of the parsed model. These tests replay the same corpus and require every line to match.
     /// Re-record only on purpose: set VANDE_BRIDGE_RECORD_OUT to a file path and run these tests; they then write that file
     /// and skip the comparison.
+    ///
+    /// Re-recorded 2026-11-08 for bridge contract v7 (the optional Target Chase block; docs/ARCHITECTURE.md allows "change them with a
+    /// written reason"). The reason: the version digit is in every packet, so every accepted packet's hash changes, and the
+    /// presentation model gained a Chase property. The 5,471 decisions were compared with the v6 recording against a written
+    /// allow-list: every accept stays an accept (395), every reject keeps its exact reason (1,517), the JSON answers (1,478) and
+    /// the session states (2,080) are identical; the only differences are the bases digest, contractVersion~7 flipping to accepted
+    /// (7 is now the current version) and two new rejected cases, contractVersion~6 and simVersion~6. The comparison script and
+    /// both recordings are kept in release/product-sequence/stage-3-chase/UNITY/proof/.
     /// </summary>
     public sealed class BridgeEquivalenceTests
     {

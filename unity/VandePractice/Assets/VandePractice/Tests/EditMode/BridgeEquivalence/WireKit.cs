@@ -98,7 +98,7 @@ namespace Vande.Practice.Tests.Equivalence
             string buildId = "build-1",
             string sessionId = "session-1",
             string messageId = null,
-            string contractVersion = "6",
+            string contractVersion = "7",
             string simVersion = "3")
         {
             if (messageId == null) messageId = sender + "-" + sequence.ToString(CultureInfo.InvariantCulture);

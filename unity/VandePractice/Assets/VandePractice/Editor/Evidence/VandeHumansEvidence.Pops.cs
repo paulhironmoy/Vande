@@ -39,6 +39,9 @@ namespace Vande.Practice.Editor.Evidence
     /// VANDE_POP_SEAMS (name=value,... : internal seams of the world switched for a before/after run, see PopApplySeams),
     /// VANDE_POP_DUMP (regex on the run key `case|hand|on|late`: those runs also write dump-*.tsv with every bone's step per frame),
     /// VANDE_POP_STILLS (comma list of `key@frame@label`: stills of the rear-shoulder camera and the side view).
+    /// UNI-07 (the Target Chase result moments): VANDE_POP_CHASE_MAP (`case:outcome,...`, outcome won | lost_wicket | lost_balls: only those cases are played, each with that
+    /// verdict on its deciding ball and the scan window carried to VANDE_POP_TAIL s after the release, default 10, so the whole clip and its held end are inside it),
+    /// VANDE_POP_RM=1 (Reduced Motion: the clips hold their marker frame), VANDE_POP_DISMISSAL=bowled|caught|caught_behind|lbw (set on the result of every chase run).
     /// </summary>
     public static partial class VandeHumansEvidence
     {
@@ -63,6 +66,8 @@ namespace Vande.Practice.Editor.Evidence
             public string Kind;
             public GoldenCase Item;
             public bool Leave;
+            /// <summary>UNI-07: the host's verdict on the deciding ball (won, lost_wicket, lost_balls) the run plays out; null: ordinary Practice.</summary>
+            public string Chase;
         }
 
         private sealed class PopRun
@@ -80,6 +85,8 @@ namespace Vande.Practice.Editor.Evidence
             public int BeginFrame = -1, PressFrame = -1, CommitFrame = -1, AcceptFrame = -1, ReleaseFrame = -1, IdleAgainFrame = -1;
             public double StrokeEndT = double.NaN;
             public double SwingStart = double.NaN;
+            /// <summary>The end of the scan window against the release (s): 4.5 for a Practice ball, longer for a chase's result moment (VANDE_POP_TAIL).</summary>
+            public double WindowTo = PopWindowTo;
         }
 
         private sealed class PopHit
@@ -125,6 +132,29 @@ namespace Vande.Practice.Editor.Evidence
             result.Trace.batterPosture = new Vande.Practice.Trace.TraceBatterPosture { crouchM = 0.0 };
         }
 
+        /// <summary>UNI-07: the host's verdict on the deciding ball of a Target Chase (what chase.outcome carries on the wire).</summary>
+        private static void PopMakeChase(PracticeResultPresentation result, string outcome)
+        {
+            var won = outcome == "won";
+            result.Chase = new PracticeChasePresentation
+            {
+                Target = 20,
+                MaxBalls = 12,
+                RunsNeeded = won ? 0 : 6,
+                BallsLeft = 0,
+                Outcome = won ? PracticeChaseOutcome.Won : outcome == "lost_wicket" ? PracticeChaseOutcome.LostWicket : PracticeChaseOutcome.LostBalls
+            };
+        }
+
+        private static bool PopReduced() => PopEnv("VANDE_POP_RM", "0") == "1";
+
+        /// <summary>The baked venue add-on (VANDE_POP_VENUE=1): the ring is built from the project's own venue files for the whole Editor run, as an export that carries it would.</summary>
+        private static void PopVenue()
+        {
+            Vande.Practice.Presentation.Production.Environment.ProductionVenueRing.AddonOverride =
+                PopEnv("VANDE_POP_VENUE", "0") == "1" ? VandeVenueAddonTool.BuildInMemory() : null;
+        }
+
         private static List<PopCase> PopCases()
         {
             var regex = new Regex(PopEnv("VANDE_POP_CASES", ".*"));
@@ -146,6 +176,22 @@ namespace Vande.Practice.Editor.Evidence
                 foreach (var gc in corpus.cases)
                     if (wanted.Contains(gc.id) && regex.IsMatch(gc.id))
                         list.Add(new PopCase { Id = gc.id, Kind = "corpus-" + (gc.dismissal ?? "none"), Item = new GoldenCase { id = gc.id, wire = gc.wire } });
+            }
+
+            var chaseMap = PopEnv("VANDE_POP_CHASE_MAP", string.Empty);
+            if (chaseMap.Length > 0)
+            {
+                // Only the named cases, each with the verdict named for it (a result moment is the deciding ball's).
+                var chased = new List<PopCase>();
+                foreach (var pair in chaseMap.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var parts = pair.Split(':');
+                    var found = list.FirstOrDefault(c => c.Id == parts[0]);
+                    if (found == null || parts.Length < 2) continue;
+                    chased.Add(new PopCase { Id = found.Id + "+" + parts[1], Kind = found.Kind, Item = found.Item, Leave = found.Leave, Chase = parts[1] });
+                }
+
+                return chased;
             }
 
             return list;
@@ -195,6 +241,15 @@ namespace Vande.Practice.Editor.Evidence
                     case "BowlerHeadingFollower":
                         world.BowlerHeadingFollowerEnabled = !legacy;
                         break;
+                    case "MomentPlacedPose":
+                        world.ResultMomentPlacedPose = !legacy;
+                        break;
+                    case "MomentBat":
+                        world.ResultMomentBatFromKeys = parts.Length > 1 && parts[1] == "keys";
+                        break;
+                    case "MomentReach":
+                        world.ResultMomentReachFraction = parts.Length > 1 && !legacy ? float.Parse(parts[1], CultureInfo.InvariantCulture) : 0f;
+                        break;
                     case "ThrowReachStablePole":
                         world.ThrowReachStablePole = !legacy;
                         break;
@@ -207,9 +262,19 @@ namespace Vande.Practice.Editor.Evidence
         private static PopRun PopPlay(PopCase pc, string hand, bool director, int late, double commitDelay, Action<DirWorld, PopRun> onEnd = null, Action<DirWorld, PopRun, int> onFrame = null)
         {
             var run = new PopRun { Key = PopKey(pc.Id, hand, director, late), Case = pc.Id, Hand = hand, Director = director, Late = late, Kind = pc.Kind };
-            using (var w = new DirWorld(pc.Item, hand, director, false))
+            using (var w = new DirWorld(pc.Item, hand, director, PopReduced()))
             {
                 if (pc.Leave) PopMakeLeave(w.Result);
+                if (pc.Chase != null)
+                {
+                    // "none" is the control: the same ball, the same long window, no verdict on it.
+                    if (pc.Chase != "none") PopMakeChase(w.Result, pc.Chase);
+                    // the dismissal the verdict would carry (bowled, caught, caught_behind, lbw), for the control as well
+                    var dismissal = PopEnv("VANDE_POP_DISMISSAL", string.Empty);
+                    if (dismissal.Length > 0) w.Result.Dismissal = dismissal;
+                    run.WindowTo = double.Parse(PopEnv("VANDE_POP_TAIL", "10"), CultureInfo.InvariantCulture);
+                }
+
                 PopApplySeams(w.World);
                 var flightEnd = w.Delivery.Flight != null && w.Delivery.Flight.Length > 0 ? w.Delivery.Flight[w.Delivery.Flight.Length - 1].t : 0.0;
                 var swingStart = pc.Leave ? 0.15 : (w.Result.SwingStartT ?? 0.15);
@@ -279,8 +344,8 @@ namespace Vande.Practice.Editor.Evidence
                     }
 
                     tick();
-                    if (accepted && run.ReleaseFrame >= 0 && run.State.Count > run.ReleaseFrame + (int)(PopWindowTo * 60.0) + 12 &&
-                        (run.IdleAgainFrame >= 0 && run.State.Count > run.IdleAgainFrame + 30 || run.State.Count > run.ReleaseFrame + 900)) break;
+                    if (accepted && run.ReleaseFrame >= 0 && run.State.Count > run.ReleaseFrame + (int)(run.WindowTo * 60.0) + 12 &&
+                        (run.IdleAgainFrame >= 0 && run.State.Count > run.IdleAgainFrame + 30 || run.State.Count > run.ReleaseFrame + (int)(run.WindowTo * 60.0) + 900)) break;
                 }
 
                 if (onEnd != null) onEnd(w, run);
@@ -297,7 +362,7 @@ namespace Vande.Practice.Editor.Evidence
             if (run.BeginFrame >= 0 && frame >= run.BeginFrame && frame <= run.BeginFrame + 1) return "switch";
             var t = (frame - run.ReleaseFrame) / 60.0;
             if (t < PopWindowFrom) return "lead";
-            return t > PopWindowTo ? "tail" : "scan";
+            return t > run.WindowTo ? "tail" : "scan";
         }
 
         private static void PopAdd(List<PopHit> hits, PopRun run, string role, string kind, string bone, int frame, double size, string unit, double reference, double xcap)
@@ -466,7 +531,7 @@ namespace Vande.Practice.Editor.Evidence
         {
             var roles = new[] { "bowler", "striker" };
             var from = Math.Max(Math.Max(2, run.BeginFrame + 2), run.ReleaseFrame + (int)(PopWindowFrom * 60.0));
-            var to = Math.Min(run.State.Count - 1, run.ReleaseFrame + (int)(PopWindowTo * 60.0));
+            var to = Math.Min(run.State.Count - 1, run.ReleaseFrame + (int)(run.WindowTo * 60.0));
             Action<string, string, string, double, int> row = (role, metric, unit, value, frame) =>
                 sb.Append(run.Case).Append('\t').Append(run.Hand).Append('\t').Append(run.Director ? "on" : "off").Append('\t').Append(run.Late).Append('\t').Append(role).Append('\t')
                     .Append(metric).Append('\t').Append(F(value)).Append('\t').Append(unit).Append('\t').Append(frame < 0 ? "" : F((frame - run.ReleaseFrame) * 1000.0 / 60.0)).Append('\t')
@@ -571,6 +636,7 @@ namespace Vande.Practice.Editor.Evidence
 
         public static void PopScan()
         {
+            PopVenue();
             var output = DirOut();
             var hands = PopList("VANDE_POP_HANDS", "right,left");
             var directors = PopList("VANDE_POP_DIRECTOR", "on,off").Select(v => v == "on").ToArray();
@@ -786,6 +852,7 @@ namespace Vande.Practice.Editor.Evidence
         /// </summary>
         public static void PopStills()
         {
+            PopVenue();
             var output = DirOut();
             var hand = PopList("VANDE_POP_HANDS", "right")[0];
             var late = int.Parse(PopList("VANDE_POP_LATE", "6")[0], CultureInfo.InvariantCulture);

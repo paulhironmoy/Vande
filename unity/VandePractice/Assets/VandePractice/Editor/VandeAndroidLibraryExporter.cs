@@ -44,6 +44,8 @@ namespace Vande.Practice.Editor
                         "Refusing to overwrite a non-empty Unity export. Move or remove it explicitly: " + output);
             }
 
+            // The baked venue is a sideload add-on: only an export asked for it (VANDE_UNITY_VENUE=1) carries it; the default export holds none of its bytes.
+            var carryVenue = VandeVenueAddonTool.Requested;
             var previousTarget = EditorUserBuildSettings.activeBuildTarget;
             var previousExport = EditorUserBuildSettings.exportAsGoogleAndroidProject;
             var previousOrientation = PlayerSettings.defaultInterfaceOrientation;
@@ -62,6 +64,7 @@ namespace Vande.Practice.Editor
                     throw new InvalidOperationException("Unity could not create the temporary export scene.");
 
                 Directory.CreateDirectory(output);
+                if (carryVenue) VandeVenueAddonTool.CreateAsset();
                 EditorUserBuildSettings.exportAsGoogleAndroidProject = true;
                 PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
                 PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
@@ -86,6 +89,7 @@ namespace Vande.Practice.Editor
             }
             finally
             {
+                if (carryVenue) VandeVenueAddonTool.RemoveAsset();
                 PlayerSettings.SetScriptingBackend(androidTarget, previousBackend);
                 PlayerSettings.Android.minSdkVersion = previousMinSdk;
                 PlayerSettings.Android.targetArchitectures = previousArchitectures;
@@ -110,7 +114,9 @@ namespace Vande.Practice.Editor
                 throw new InvalidOperationException(
                     "Unity source/settings changed during Android export. Re-run from one frozen source tree.");
             WriteProvenanceAtomically(output, sourceManifestAfterBuild);
-            Debug.Log("VANDE unityLibrary export completed at " + output);
+            if (carryVenue)
+                File.WriteAllText(Path.Combine(output, VandeVenueAddonTool.ReceiptFile), VandeVenueAddonTool.Receipt());
+            Debug.Log("VANDE unityLibrary export completed at " + output + (carryVenue ? " (carrying the baked venue add-on)" : ""));
         }
 
         /// <summary>

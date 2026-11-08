@@ -52,6 +52,10 @@ namespace Vande.Practice.Bridge
         private string sceneBowlerJson;
         private string sceneFieldJson;
         private string sceneBallJson;
+        // Contract v7: the Target Chase of the latest scene (none for ordinary Practice). A result must agree with it.
+        private bool sceneHasChase;
+        private long sceneChaseTarget;
+        private long sceneChaseMaxBalls;
         private long activeOverIndex;
         private long activeBallIndex;
         private string activePlanJson;
@@ -321,6 +325,15 @@ namespace Vande.Practice.Bridge
                     sceneBowlerJson = scene.Raw("bowler");
                     sceneFieldJson = scene.Raw("field");
                     sceneBallJson = scene.Raw("ball");
+                    sceneHasChase = scene.Contains("chase");
+                    sceneChaseTarget = 0;
+                    sceneChaseMaxBalls = 0;
+                    if (sceneHasChase)
+                    {
+                        var sceneChase = scene.Object("chase");
+                        sceneChaseTarget = sceneChase.Integer("target");
+                        sceneChaseMaxBalls = sceneChase.Integer("maxBalls");
+                    }
                     State = BridgeLifecycleState.SceneReady;
                     return true;
                 case "host.delivery":
@@ -478,6 +491,15 @@ namespace Vande.Practice.Bridge
             if (sceneConditions == null || sceneHandedness == null || sceneBowlerJson == null ||
                 sceneFieldJson == null || sceneBallJson == null || activePlanJson == null ||
                 activeSeed == null || activeFlightJson == null) return false;
+
+            // A chase session's results all carry the situation of that chase; an ordinary Practice session's carry none.
+            if (resolution.Contains("chase") != sceneHasChase) return false;
+            if (sceneHasChase)
+            {
+                var chase = resolution.Object("chase");
+                if (chase.Integer("target") != sceneChaseTarget || chase.Integer("maxBalls") != sceneChaseMaxBalls)
+                    return false;
+            }
 
             var record = resolution.Object("record");
             var result = resolution.Object("result");

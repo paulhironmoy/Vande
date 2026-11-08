@@ -9,7 +9,7 @@ namespace Vande.Practice.Tests
     public sealed class UnityPracticePacketTests
     {
         private const string InitializeBody =
-            "{\"buildId\":\"build-1\",\"contractVersion\":6,\"deliveryId\":null," +
+            "{\"buildId\":\"build-1\",\"contractVersion\":7,\"deliveryId\":null," +
             "\"messageId\":\"host-0\",\"payload\":{\"assistance\":\"learn\",\"audio\":true," +
             "\"captions\":true,\"coordinateSystem\":\"vande-striker-frame-v1\",\"deviceTier\":\"full\"," +
             "\"handedness\":\"right\",\"handednessPolicy\":\"physics-right-handed-presentation-mirrors-once\"," +
@@ -108,7 +108,7 @@ namespace Vande.Practice.Tests
         [Test]
         public void Decode_RejectsChecksummedButNoncanonicalBody()
         {
-            var body = InitializeBody.Replace("\"contractVersion\":6", "\"contractVersion\": 6");
+            var body = InitializeBody.Replace("\"contractVersion\":7", "\"contractVersion\": 7");
 
             Assert.Throws<BridgeValidationException>(() => UnityPracticePacketCodec.Decode(Packet(body)));
         }
@@ -318,7 +318,7 @@ namespace Vande.Practice.Tests
         {
             // Contract v6 amendment (lead): `played_on`, bowled off the bat (the batter played the ball onto the
             // stumps), joins the closed CoachingReason list of src/contracts/practice.ts and unityPractice.ts.
-            Assert.That(BridgeConstants.ContractVersion, Is.EqualTo(6));
+            Assert.That(BridgeConstants.ContractVersion, Is.EqualTo(7));
             var root = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "..", "..", ".."));
             var typescript = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "src/contracts/unityPractice.ts"));
             Assert.That(System.Text.RegularExpressions.Regex.IsMatch(typescript, @"'left_and_bowled',\s*'played_on',\s*'pad_in_line'"), Is.True,
@@ -782,7 +782,7 @@ namespace Vande.Practice.Tests
                     false, null, "Vulkan", "GPU", null, null, null, "unknown"));
 
             const string body =
-                "{\"buildId\":\"build-1\",\"contractVersion\":6,\"deliveryId\":null," +
+                "{\"buildId\":\"build-1\",\"contractVersion\":7,\"deliveryId\":null," +
                 "\"messageId\":\"host-5\",\"payload\":{\"benchmarkId\":\"bench-1\"," +
                 "\"durationMs\":1000,\"extra\":true,\"quality\":\"standard\",\"sampleCap\":2," +
                 "\"warmupFrames\":0},\"sender\":\"host\",\"sequence\":5," +
@@ -893,12 +893,12 @@ namespace Vande.Practice.Tests
         }
 
         private const string GoldenReadyPacket =
-            "{\"body\":\"{\\\"buildId\\\":\\\"build-1\\\",\\\"contractVersion\\\":6," +
+            "{\"body\":\"{\\\"buildId\\\":\\\"build-1\\\",\\\"contractVersion\\\":7," +
             "\\\"deliveryId\\\":null,\\\"messageId\\\":\\\"session-1.unity.0\\\"," +
             "\\\"payload\\\":{\\\"renderer\\\":\\\"unity-practice-foundation\\\"," +
             "\\\"unityVersion\\\":\\\"6000.3.0f1\\\"},\\\"sender\\\":\\\"unity\\\"," +
             "\\\"sequence\\\":0,\\\"sessionId\\\":\\\"session-1\\\",\\\"simVersion\\\":3," +
             "\\\"type\\\":\\\"unity.ready\\\"}\",\"sha256\":" +
-            "\"60d55c52e6eff626ef93e313278810ec1290ae1f767f7e4076fd70589bc36cf0\"}";
+            "\"87020b2bcc5159c2f4f90233b1b835604c8071ac1bf966ec7793871cc41dd017\"}";
     }
 }

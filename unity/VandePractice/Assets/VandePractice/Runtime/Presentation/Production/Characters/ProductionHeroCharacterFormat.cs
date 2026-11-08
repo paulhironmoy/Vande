@@ -889,6 +889,18 @@ namespace Vande.Practice.Presentation.Production.Characters
         /// <summary>Builder seam: false solves every arm from its pole alone, as a seek would (A/B in one build).</summary>
         internal bool ArmMemoryEnabled { get; set; } = true;
 
+        /// <summary>
+        /// The arms stood still since their last solve (a pose held on screen, a stroke's follow-through): what they remember is what is displayed, so the next
+        /// solve starts from it as if its last solve were the frame before, however long the hold was. Without this a solve after a hold longer than MemorySeconds
+        /// has no memory, and the glove's turn about the handle goes to its fitting turn in one frame (UNI-07: 30 degrees, 45 on screen, at a clip's first frame).
+        /// </summary>
+        internal void HoldArmMemory(double clock, double frameSeconds)
+        {
+            if (double.IsNaN(clock) || double.IsInfinity(clock) || frameSeconds <= 0.0) return;
+            for (var i = 0; i < 2; i++)
+                if (armMemory[i].HasNow && armMemory[i].Stamp != clock) armMemory[i].Stamp = clock - Math.Min(frameSeconds, ProductionHeroArm.MemorySeconds);
+        }
+
         /// <summary>Forgets what both arms remember of their last frame (a new script or a seek).</summary>
         internal void ResetArmMemory()
         {

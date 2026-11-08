@@ -379,6 +379,27 @@ namespace Vande.Practice.Presentation.Production.Environment
             ApplyPitchCondition(spec.PitchCondition);
             SetSightScreensForBall(spec.BallColour);
             ConfigureLighting(spec, atmosphere);
+            AttachBakedVenue();
+        }
+
+        /// <summary>
+        /// The baked venue (ASSETS-VENUE; a sideload add-on, never in the first-ball install): its 60-wedge ring, when this build carries the add-on asset (an export that was asked
+        /// for it, ProductionVenueRing.Load), replaces the stand-in's seating tiers, painted backdrop and instanced crowd. None in a default build: the stand-in stays as it always was.
+        /// </summary>
+        public Transform BakedVenue { get; private set; }
+
+        private void AttachBakedVenue()
+        {
+            var addon = ProductionVenueRing.Load();
+            if (addon == null || Stadium == null) return;
+            BakedVenue = ProductionVenueRing.Build(Stadium, addon, this);
+            foreach (var replaced in new[] { "LowerSeatingTier", "UpperSeatingTier", "CrowdSection-0", "CrowdSection-1", "CrowdSection-2", "CrowdSection-3", "CrowdSection-4", "CrowdSection-5", "CrowdSection-6", "CrowdSection-7" })
+            {
+                var part = Stadium.Find(replaced);
+                if (part != null) part.gameObject.SetActive(false);
+            }
+
+            if (StadiumBackdrop != null) StadiumBackdrop.gameObject.SetActive(false);
         }
 
         private void BuildSky(ProductionEnvironmentSpec spec)

@@ -462,6 +462,8 @@ namespace Vande.Practice.Runtime
             pendingHudResult = null;
             if (result == null) return;
             hud.SetScore(result.TotalRuns, result.Wickets, result.Balls);
+            // Contract v7: the Target Chase situation after this ball arrives with the score, at the dead ball (never during a live ball).
+            if (result.Chase != null) hud.SetChase(result.Chase);
             if (UnityOwnsDeadBallPresentation)
                 hud.SetOutcome(result.DeliveryRuns, result.Dismissal);
         }

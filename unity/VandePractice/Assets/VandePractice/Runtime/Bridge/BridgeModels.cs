@@ -10,7 +10,7 @@ namespace Vande.Practice.Bridge
     }
 
     /// <summary>
-    /// Exact contract-v6 outer envelope from src/contracts/unityPractice.ts. PayloadJson
+    /// Exact contract-v7 outer envelope from src/contracts/unityPractice.ts. PayloadJson
     /// preserves the original payload object for a message-specific adapter.
     /// </summary>
     public sealed class UnityPracticeEnvelope

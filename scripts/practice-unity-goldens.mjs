@@ -11,6 +11,9 @@
  *
  *   node scripts/practice-unity-goldens.mjs --write
  *   node scripts/practice-unity-goldens.mjs --check
+ *
+ * Both modes cover TWO files: practice-v3.json (this corpus) and its compact companion chase-v7.json (bridge contract v7:
+ * recipes on packets of this corpus for the optional Target Chase block, plus a rule table; see buildChaseFixture).
  */
 import './simulate-loader.mjs';
 
@@ -23,6 +26,7 @@ import { fileURLToPath } from 'node:url';
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '..');
 const fixtureFile = path.join(repoRoot, 'tests/fixtures/unity-practice/practice-v3.json');
+const chaseFixtureFile = path.join(repoRoot, 'tests/fixtures/unity-practice/chase-v7.json');
 const reachEvidenceFile = path.join(repoRoot, 'tests/fixtures/unity-practice/reach-proxies-v3.json');
 
 const REACH_SOURCE_FILES = Object.freeze({
@@ -52,10 +56,14 @@ const {
   PRACTICE_SIM_VERSION,
 } = contracts;
 const {
+  UNITY_PRACTICE_CONTRACT_VERSION,
   UNITY_PRACTICE_TRACE_VERSION,
+  isUnityPracticeChase,
+  makeUnityPracticeChase,
   makeUnityPracticeMessage,
   packUnityPracticeMessage,
   unityPracticeReplayDigest,
+  unityPracticeSha256,
 } = unityContracts;
 const { batAt } = await import('../src/render3d/practice/frame.ts');
 const {
@@ -691,6 +699,169 @@ async function buildFixture() {
   return { ...payload, payloadSha256: digest(payload) };
 }
 
+/**
+ * Bridge contract v7, the Target Chase block: a COMPACT companion to the Practice fixture (tests/fixtures/unity-practice/
+ * chase-v7.json, a few KB). It stores no result packet. Each scenario is a RECIPE on a packet that practice-v3.json already
+ * holds: insert the chase block, replace the score, seal with SHA-256. The fixture records the size and SHA-256 of what the
+ * recipe makes, and TypeScript and C# each re-derive the packet by the same text recipe and must reproduce those bytes, so the
+ * canonical key order, the number text and the seal are pinned across runtimes without a second 300 KB packet. This script
+ * also proves the recipe equals the production packer's output (makeUnityPracticeMessage + packUnityPracticeMessage).
+ * The rule table (`vectors`) is hand-written truth, evaluated by both validators; the script checks that it agrees with the
+ * TypeScript validator before it writes anything.
+ */
+const CHASE_SCENARIOS = [
+  { id: 'in-progress', baseCase: 'early-attack', target: 22, score: { runs: 0, wickets: 0, balls: 1 }, outcome: 'in_progress' },
+  { id: 'won', baseCase: 'deliberate-loft', target: 6, score: { runs: 6, wickets: 0, balls: 3 }, outcome: 'won', replay: true },
+  { id: 'lost-balls', baseCase: 'complete-miss', target: 22, score: { runs: 17, wickets: 0, balls: 12 }, outcome: 'lost_balls' },
+];
+
+const CS = (target, maxBalls, runsNeeded, ballsLeft, outcome) =>
+  makeUnityPracticeChase({ target, maxBalls, runsNeeded, ballsLeft, outcome });
+const SC = (runs, wickets, balls) => ({ balls, maxOvers: 10, runs, wickets });
+const txt = (value) => JSON.stringify(canonicalValue(value));
+
+/** The rule table. [id, chase (block or raw JSON text), score or null, accept]. Hand-written truth, not generated. */
+function chaseVectors() {
+  const start = CS(22, 12, 22, 12, 'in_progress');
+  const raw = (o) => JSON.stringify(o); // keeps non-canonical values (22.5, "22", -1) exactly as written
+  const rows = [
+    ['start 22 off 12', start, null, true],
+    ['14 off 9 asks 9.33', CS(22, 12, 14, 9, 'in_progress'), null, true],
+    ['1 off 1 asks 6.00', CS(6, 12, 1, 1, 'in_progress'), null, true],
+    ['won with 3 balls left', CS(22, 12, 0, 3, 'won'), null, true],
+    ['won on the last ball', CS(22, 12, 0, 0, 'won'), null, true],
+    ['lost_wicket early', CS(22, 12, 9, 7, 'lost_wicket'), null, true],
+    ['lost_wicket on the last ball', CS(22, 12, 9, 0, 'lost_wicket'), null, true],
+    ['lost_balls', CS(22, 12, 9, 0, 'lost_balls'), null, true],
+    ['a wrong rate', { ...start, requiredRateX100: 1101 }, null, false],
+    ['no rate while in progress', { ...start, requiredRateX100: null }, null, false],
+    ['in progress with nothing needed', { ...start, runsNeeded: 0, requiredRateX100: 0 }, null, false],
+    ['in progress with no balls left', { ...start, ballsLeft: 0, requiredRateX100: 0 }, null, false],
+    ['a rate on a won chase', { ...CS(22, 12, 0, 3, 'won'), requiredRateX100: 0 }, null, false],
+    ['won while runs are needed', { ...CS(22, 12, 0, 3, 'won'), runsNeeded: 1 }, null, false],
+    ['lost needing nothing', { ...CS(22, 12, 9, 7, 'lost_wicket'), runsNeeded: 0 }, null, false],
+    ['lost on balls with balls left', { ...CS(22, 12, 9, 0, 'lost_balls'), ballsLeft: 1 }, null, false],
+    ['runs needed above the target', { ...start, runsNeeded: 23, requiredRateX100: 1 }, null, false],
+    ['balls left above the balls', { ...start, ballsLeft: 13 }, null, false],
+    ['target 0', { ...start, target: 0, runsNeeded: 0 }, null, false],
+    ['target 361', { ...start, target: 361, runsNeeded: 361 }, null, false],
+    ['zero balls', { ...start, maxBalls: 0, ballsLeft: 0 }, null, false],
+    ['61 balls', { ...start, maxBalls: 61, ballsLeft: 61 }, null, false],
+    ['an unknown outcome', { ...start, outcome: 'tied' }, null, false],
+    ['an extra key', { ...start, spare: 1 }, null, false],
+    ['a missing key', (({ target: _target, ...rest }) => rest)(start), null, false],
+    ['a fractional target', { ...start, target: 22.5 }, null, false],
+    ['a number written as a string', { ...start, target: '22' }, null, false],
+    ['a negative balls left', { ...start, ballsLeft: -1 }, null, false],
+    // Against the score of the resolution that carries it.
+    ['in progress agrees with its score', CS(22, 12, 22, 11, 'in_progress'), SC(0, 0, 1), true],
+    ['runs needed disagrees with the score', CS(22, 12, 22, 11, 'in_progress'), SC(1, 0, 1), false],
+    ['balls left disagrees with the score', CS(22, 12, 22, 11, 'in_progress'), SC(0, 0, 2), false],
+    ['in progress with a wicket in the score', CS(22, 12, 22, 11, 'in_progress'), SC(0, 1, 1), false],
+    ['lost_wicket agrees with its score', CS(22, 12, 22, 10, 'lost_wicket'), SC(0, 1, 2), true],
+    ['lost_wicket with no wicket in the score', CS(22, 12, 22, 10, 'lost_wicket'), SC(0, 0, 2), false],
+    ['lost_balls agrees with its score', CS(22, 12, 5, 0, 'lost_balls'), SC(17, 0, 12), true],
+    ['lost_balls on a wicket ball is allowed', CS(22, 12, 5, 0, 'lost_balls'), SC(17, 1, 12), true],
+    ['won agrees with its score', CS(6, 12, 0, 9, 'won'), SC(6, 0, 3), true],
+    ['won short of the target', CS(6, 12, 0, 9, 'won'), SC(5, 0, 3), false],
+    ['more balls faced than the chase has', CS(22, 12, 5, 0, 'lost_balls'), SC(17, 0, 13), false],
+  ];
+  return rows.map(([id, chase, score, accept]) => ({
+    id,
+    chase: typeof chase === 'string' ? chase : raw(chase),
+    score: score === null ? '' : raw(score),
+    accept,
+  }));
+}
+
+/** The recipe, on a canonical packet body: exact text edits, then the seal. */
+function chaseRecipe(baseBody, kind, scoreText, chaseText) {
+  const once = (haystack, needle, replacement) => {
+    const at = haystack.indexOf(needle);
+    if (at < 0 || haystack.indexOf(needle, at + 1) >= 0) throw new Error(`chase recipe: ${needle} must occur exactly once`);
+    return haystack.slice(0, at) + replacement + haystack.slice(at + needle.length);
+  };
+  const withScore = (body) => {
+    const matches = body.match(/"score":\{[^{}]*\}/g) ?? [];
+    if (matches.length !== 1) throw new Error('chase recipe: expected exactly one score object');
+    return body.replace(matches[0], `"score":${scoreText}`);
+  };
+  // `chase` sorts before `record` in a resolution and before `conditions` in a scene (canonical key order).
+  if (kind === 'scene') return once(baseBody, '"conditions":"', `"chase":${chaseText},"conditions":"`);
+  if (kind === 'result') return once(withScore(baseBody), '"payload":{', `"payload":{"chase":${chaseText},`);
+  if (kind === 'replay') return once(withScore(baseBody), '"resolution":{', `"resolution":{"chase":${chaseText},`);
+  throw new Error(`chase recipe: unknown kind ${kind}`);
+}
+
+async function sealOf(body) {
+  return { sha256: await unityPracticeSha256(body), bodyLength: body.length };
+}
+
+async function buildChaseFixture(main) {
+  const scenarios = [];
+  for (const scenario of CHASE_SCENARIOS) {
+    const base = main.cases.find((item) => item.id === scenario.baseCase);
+    if (!base) throw new Error(`chase scenario ${scenario.id}: no base case ${scenario.baseCase}`);
+    const score = { ...scenario.score, maxOvers: 10 };
+    const ballsLeft = 12 - score.balls;
+    const runsNeeded = Math.max(0, scenario.target - score.runs);
+    const start = CS(scenario.target, 12, scenario.target, 12, 'in_progress');
+    const after = CS(scenario.target, 12, runsNeeded, ballsLeft, scenario.outcome);
+    if (!isUnityPracticeChase(start) || !isUnityPracticeChase(after, score)) {
+      throw new Error(`chase scenario ${scenario.id} is not a valid block`);
+    }
+    const scoreText = txt(score);
+    const out = { id: scenario.id, baseCase: scenario.baseCase, target: scenario.target, score, start, after };
+    const kinds = scenario.replay ? ['scene', 'result', 'replay'] : ['scene', 'result'];
+    for (const kind of kinds) {
+      const baseBody = base.wire.packets[kind].body;
+      const body = chaseRecipe(baseBody, kind, scoreText, txt(kind === 'scene' ? start : after));
+      // The recipe must equal what the production packer writes for the same message.
+      const baseMessage = JSON.parse(baseBody);
+      const payload = baseMessage.payload;
+      const made = kind === 'scene'
+        ? { ...payload, chase: start }
+        : kind === 'result'
+          ? { ...payload, score, chase: after }
+          : { ...payload, resolution: { ...payload.resolution, score, chase: after } };
+      const packed = await packUnityPracticeMessage(makeUnityPracticeMessage({
+        buildId: baseMessage.buildId,
+        sessionId: baseMessage.sessionId,
+        deliveryId: baseMessage.deliveryId,
+        messageId: baseMessage.messageId,
+        sequence: baseMessage.sequence,
+        sender: baseMessage.sender,
+      }, baseMessage.type, made));
+      if (packed.body !== body) throw new Error(`chase scenario ${scenario.id} ${kind}: the text recipe differs from the production packer`);
+      out[kind] = await sealOf(body);
+    }
+    out.replay ??= null;
+    scenarios.push(out);
+  }
+  const vectors = chaseVectors();
+  for (const vector of vectors) {
+    const agrees = isUnityPracticeChase(JSON.parse(vector.chase), vector.score === '' ? undefined : JSON.parse(vector.score)) === vector.accept;
+    if (!agrees) throw new Error(`chase vector "${vector.id}": the TypeScript validator disagrees with the hand-written table`);
+  }
+  const payload = {
+    schema: 'vande.practice.unity-golden.chase',
+    fixtureVersion: 1,
+    contractVersion: UNITY_PRACTICE_CONTRACT_VERSION,
+    baseFixture: { file: 'practice-v3.json', payloadSha256: main.payloadSha256 },
+    note: 'Compact companion to practice-v3.json for the optional Target Chase block (bridge contract v7). No result packet is stored: each scenario is a text recipe on a base packet (insert the chase block, replace the score, seal with SHA-256) and the recorded size and SHA-256 of the packet it makes. Wire examples, not played chases. vectors is a hand-written rule table for the chase validator; chase and score are JSON texts.',
+    recipe: {
+      scene: 'insert "chase":<start>, immediately before "conditions":" in the base scene body',
+      result: 'replace the one "score":{...} object by the scenario score, then insert "chase":<after>, immediately after "payload":{',
+      replay: 'the same score replacement, then insert "chase":<after>, immediately after "resolution":{',
+      seal: 'sha256 of the UTF-8 body; bodyLength is the body length in UTF-16 code units (the bodies are ASCII)',
+      canonicalChase: 'sorted keys, no spaces: ballsLeft, maxBalls, outcome, requiredRateX100, runsNeeded, target',
+    },
+    scenarios,
+    vectors,
+  };
+  return { ...payload, payloadSha256: digest(payload) };
+}
+
 function fixtureText(value) {
   return `${JSON.stringify(canonicalValue(value), null, 2)}\n`;
 }
@@ -710,28 +881,35 @@ if (args.length === 3 && args[0] === '--freeze-reach-evidence') {
   usageError('choose exactly one mode');
 } else {
   const fixture = await buildFixture();
-  const next = fixtureText(fixture);
-  if (args[0] === '--write') {
-    mkdirSync(path.dirname(fixtureFile), { recursive: true });
-    writeFileSync(fixtureFile, next);
-    process.stdout.write(`wrote ${path.relative(repoRoot, fixtureFile)} (${fixture.cases.length} cases, payload sha256 ${fixture.payloadSha256})\n`);
-  } else if (!existsSync(fixtureFile)) {
-    process.stderr.write(`missing ${path.relative(repoRoot, fixtureFile)}; run with --write\n`);
-    process.exitCode = 1;
-  } else {
-    const current = readFileSync(fixtureFile, 'utf8');
-    if (current !== next) {
-      const committed = (() => {
-        try {
-          return JSON.parse(current).payloadSha256 ?? 'unreadable payload digest';
-        } catch {
-          return 'invalid JSON';
-        }
-      })();
-      process.stderr.write(`Practice Unity golden fixture differs (committed ${committed}, generated ${fixture.payloadSha256}); inspect the physics change, then regenerate deliberately with --write\n`);
+  const chaseFixture = await buildChaseFixture(fixture);
+  const outputs = [
+    { file: fixtureFile, text: fixtureText(fixture), label: 'Practice Unity golden fixture', detail: `${fixture.cases.length} cases, payload sha256 ${fixture.payloadSha256}` },
+    { file: chaseFixtureFile, text: fixtureText(chaseFixture), label: 'Practice Unity chase fixture', detail: `${chaseFixture.scenarios.length} scenarios, ${chaseFixture.vectors.length} vectors, payload sha256 ${chaseFixture.payloadSha256}` },
+  ];
+  for (const output of outputs) {
+    const relative = path.relative(repoRoot, output.file);
+    if (args[0] === '--write') {
+      mkdirSync(path.dirname(output.file), { recursive: true });
+      writeFileSync(output.file, output.text);
+      process.stdout.write(`wrote ${relative} (${output.detail})\n`);
+    } else if (!existsSync(output.file)) {
+      process.stderr.write(`missing ${relative}; run with --write\n`);
       process.exitCode = 1;
     } else {
-      process.stdout.write(`Practice Unity golden fixture matches (${fixture.cases.length} cases, payload sha256 ${fixture.payloadSha256})\n`);
+      const current = readFileSync(output.file, 'utf8');
+      if (current !== output.text) {
+        const committed = (() => {
+          try {
+            return JSON.parse(current).payloadSha256 ?? 'unreadable payload digest';
+          } catch {
+            return 'invalid JSON';
+          }
+        })();
+        process.stderr.write(`${output.label} differs (committed ${committed}, generated ${output.detail}); inspect the physics change, then regenerate deliberately with --write\n`);
+        process.exitCode = 1;
+      } else {
+        process.stdout.write(`${output.label} matches (${output.detail})\n`);
+      }
     }
   }
 }

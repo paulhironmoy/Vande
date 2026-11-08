@@ -220,6 +220,7 @@ namespace Vande.Practice.Bridge
                         Require(OneOf(batterPosition.String("guard"), "leg", "middle", "off", "custom"),
                             "batterPosition.guard is unsupported.");
                     }
+                    if (payload.Contains("chase")) ValidateChase(payload.Object("chase"), null);
                     return;
                 case "host.delivery":
                     ValidateDelivery(payload);
@@ -274,7 +275,8 @@ namespace Vande.Practice.Bridge
                         var demonstrationDelivery = payload.Object("delivery");
                         var demonstrationResolution = payload.Object("resolution");
                         ValidateDelivery(demonstrationDelivery);
-                        ValidateResolution(demonstrationResolution);
+                        // A Coach demonstration is score-inert: it can never carry a chase situation.
+                        ValidateResolution(demonstrationResolution, false);
                         UnityPracticeReplayDigest.VerifyValidatedResolutionPayload(demonstrationResolution);
                         var demonstrationSpeed = payload.Number("speed");
                         Require(demonstrationSpeed > 0.0 && demonstrationSpeed <= 4.0,
@@ -346,6 +348,8 @@ namespace Vande.Practice.Bridge
                         "pointer phase is unsupported.");
                     payload.Number("atUnityMs");
                     NonEmpty(payload.String("clockSampleId"), "clockSampleId");
+                    // Unity captures touch, mouse, pen and keyboard itself. The camera is TypeScript/WebView only and reaches Unity as a
+                    // NormalizedSwing (no modality), so a Unity message that says 'camera' is refused on purpose (ruling R-9).
                     Require(OneOf(payload.String("pointer"), "touch", "mouse", "pen", "keyboard"),
                         "pointer type is unsupported.");
                     return;
@@ -469,15 +473,16 @@ namespace Vande.Practice.Bridge
                 case "host.clock_selected":
                     RequireExactFields(payload, "sampleId"); return;
                 case "host.scene":
-                    RequireExactFields(payload, "ball", "batterPosition", "bowler", "conditions", "field",
-                        "fieldIntent", "handedness", "trainingObjective"); return;
+                    RequireExactFieldsWithOptional(payload, "chase", "ball", "batterPosition", "bowler",
+                        "conditions", "field", "fieldIntent", "handedness", "trainingObjective"); return;
                 case "host.delivery":
                     RequireExactFields(payload, "ballIndex", "flight", "overIndex", "plan",
                         "presentation", "seed"); return;
                 case "host.provisional_swing":
                     RequireExactFields(payload, "atPerfMs", "calibrationMs", "swing"); return;
                 case "host.result":
-                    RequireExactFields(payload, "record", "replayDigest", "result", "score"); return;
+                    RequireExactFieldsWithOptional(payload, "chase", "record", "replayDigest", "result",
+                        "score"); return;
                 case "host.dead_ball_ui":
                     RequireExactFields(payload, "primaryAction", "primaryLabel", "reason", "recommendation",
                         "replayDigest", "secondaryAction", "secondaryLabel"); return;
@@ -711,7 +716,7 @@ namespace Vande.Practice.Bridge
             }
         }
 
-        private static void ValidateResolution(StrictJsonObject resolution)
+        private static void ValidateResolution(StrictJsonObject resolution, bool allowChase = true)
         {
             var record = resolution.Object("record");
             var result = resolution.Object("result");
@@ -739,6 +744,61 @@ namespace Vande.Practice.Bridge
                 "record plan does not match result flight.");
             Require(string.Equals(record.Raw("swing"), result.Raw("swing"), StringComparison.Ordinal),
                 "record swing does not match result swing.");
+            if (resolution.Contains("chase"))
+            {
+                Require(allowChase, "A score-inert demonstration cannot carry a chase.");
+                ValidateChase(resolution.Object("chase"), score);
+            }
+        }
+
+        /// <summary>
+        /// The Target Chase block (contract v7), on its own in a scene (score is null) or against the score of the resolution
+        /// that carries it. Mirrors chaseBlock in src/contracts/unityPractice.ts rule for rule. The host's outcome is checked,
+        /// never derived: Unity does not decide a chase. Which of lost_wicket and lost_balls a wicket on the last ball is called is
+        /// the host's choice, so neither is forced.
+        /// </summary>
+        internal static void ValidateChase(StrictJsonObject chase, StrictJsonObject score)
+        {
+            RequireExactFields(chase, "ballsLeft", "maxBalls", "outcome", "requiredRateX100", "runsNeeded", "target");
+            var target = chase.Integer("target");
+            var maxBalls = chase.Integer("maxBalls");
+            var runsNeeded = chase.Integer("runsNeeded");
+            var ballsLeft = chase.Integer("ballsLeft");
+            Require(target >= 1 && target <= BridgeConstants.MaxChaseTarget, "chase.target is outside the contract.");
+            Require(maxBalls >= 1 && maxBalls <= BridgeConstants.MaxChaseBalls, "chase.maxBalls is outside the contract.");
+            Require(runsNeeded >= 0 && runsNeeded <= target, "chase.runsNeeded is outside the contract.");
+            Require(ballsLeft >= 0 && ballsLeft <= maxBalls, "chase.ballsLeft is outside the contract.");
+            var outcome = chase.String("outcome");
+            Require(OneOf(outcome, "in_progress", "won", "lost_wicket", "lost_balls"), "chase.outcome is unsupported.");
+            if (outcome == "in_progress")
+            {
+                Require(runsNeeded >= 1 && ballsLeft >= 1, "A chase in progress needs runs and balls.");
+                Require(!chase.IsNull("requiredRateX100") &&
+                        chase.Integer("requiredRateX100") == RequiredRateX100(runsNeeded, ballsLeft),
+                    "chase.requiredRateX100 does not match the runs and balls needed.");
+            }
+            else
+            {
+                Require(chase.IsNull("requiredRateX100"), "A decided chase has no required rate.");
+                Require(outcome == "won" ? runsNeeded == 0 : runsNeeded >= 1,
+                    "chase.runsNeeded does not match the outcome.");
+                Require(outcome != "lost_balls" || ballsLeft == 0, "chase.ballsLeft does not match the outcome.");
+            }
+
+            if (score == null) return;
+            var runs = score.Integer("runs");
+            var balls = score.Integer("balls");
+            var wickets = score.Integer("wickets");
+            Require(runsNeeded == Math.Max(0L, target - runs) && ballsLeft == maxBalls - balls,
+                "chase does not match the score.");
+            Require(outcome != "lost_wicket" || wickets == 1, "chase.outcome lost_wicket needs a wicket in the score.");
+            Require(outcome != "in_progress" || wickets == 0, "chase.outcome in_progress needs no wicket in the score.");
+        }
+
+        /// <summary>Required runs per over in hundredths, half up, integers only: the same figure as unityPracticeRequiredRateX100.</summary>
+        internal static long RequiredRateX100(long runsNeeded, long ballsLeft)
+        {
+            return (runsNeeded * 1200L + ballsLeft) / (2L * ballsLeft);
         }
 
         private static void ValidateDeliveryRecord(StrictJsonObject record)
@@ -1294,6 +1354,15 @@ namespace Vande.Practice.Bridge
         private static void RequireExactFields(StrictJsonObject value, params string[] expected)
         {
             Require(value.Count == expected.Length, "Payload contains missing or unsupported fields.");
+            for (var index = 0; index < expected.Length; index++)
+                Require(value.Contains(expected[index]), "Payload is missing " + expected[index] + ".");
+        }
+
+        /// <summary>The exact field set, plus one optional field that may be present or absent (never null-valued by omission).</summary>
+        private static void RequireExactFieldsWithOptional(StrictJsonObject value, string optional, params string[] expected)
+        {
+            var optionalCount = value.Contains(optional) ? 1 : 0;
+            Require(value.Count == expected.Length + optionalCount, "Payload contains missing or unsupported fields.");
             for (var index = 0; index < expected.Length; index++)
                 Require(value.Contains(expected[index]), "Payload is missing " + expected[index] + ".");
         }

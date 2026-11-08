@@ -492,6 +492,7 @@ namespace Vande.Practice.Presentation
             if (scene == null || scene.Fielders == null || scene.Fielders.Length != 11)
                 throw new BridgeValidationException("A complete field is required.");
 
+            ClearResultMoment();
             var mirror = WorldReflectionFor(scene.Handedness);
             var lateral = mirror * (float)scene.BatterLateralM;
             strikerPresentationReference = new Vector3(
@@ -621,6 +622,7 @@ namespace Vande.Practice.Presentation
             // Any optional dead-ball follow ends at the next run-up. Every
             // playable ball begins from the same learned rear-shoulder view.
             RestoreStableCameraComposition();
+            ClearResultMoment();
             RestoreNominalBatterRoot();
             canonicalBatterRootOffset = Vector3.zero;
             ResetBatterCarry();
@@ -1023,6 +1025,8 @@ namespace Vande.Practice.Presentation
             DirectorUndoHeadPasses();
             CanonicalTraceValidator.Validate(result.Trace);
             ValidateCanonicalBatterBodyFrame(result.BatterBodyFrame);
+            // UNI-07: a replay of the deciding ball starts from the stance again, not from the clip the live ball left held.
+            ClearResultMoment();
             AcceptResultTimings.Mark(0);
 
             // UNITY-7 B: the arms' elbow memory is the frame on screen's. The solves AcceptResult makes between frames (the stroke's
@@ -1183,6 +1187,8 @@ namespace Vande.Practice.Presentation
             {
                 batterCarryAccepting = false;
             }
+            // UNI-07: the deciding ball of a Target Chase plans the striker's and the bowler's result moments (nothing for ordinary Practice).
+            PrepareResultMoment(result);
             if (elbowMemory != null) batterRig.RestoreElbowMemory(elbowMemory);
             state = WorldState.Resolved;
             SetQuiet(true);
@@ -1247,6 +1253,7 @@ namespace Vande.Practice.Presentation
         {
             EndBenchmarkWorkload();
             state = WorldState.Idle;
+            ClearResultMoment();
             playback = null;
             acceptedTrace = null;
             feedbackLookaheadCursor = 0;
@@ -1289,6 +1296,7 @@ namespace Vande.Practice.Presentation
         private void TickCore(double deltaSeconds)
         {
             presentationClock += deltaSeconds;
+            AdvanceMomentClock(deltaSeconds);
             if (batterRig != null) batterRig.PresentationClockSeconds = presentationClock;
             // The non-striker's grip arm goes through the same batter solve and remembers its elbow the same way.
             if (nonStrikerRig != null) nonStrikerRig.PresentationClockSeconds = presentationClock;
@@ -1315,17 +1323,21 @@ namespace Vande.Practice.Presentation
                 PresentBatters(deltaSeconds);
                 FinishNonStrikerFrame((float)deltaSeconds);
                 strikerIdleClock += deltaSeconds;
-                if (!strikerRunning && batterRig != null)
+                if (!strikerRunning && batterRig != null && !StrikerMomentOwnsBody)
                 {
                     // Between balls he stands in his own live stance, not the last stroke's physics body frame.
                     batterRig.ClearCanonicalBatterBodyFrame();
                     batterRig.SetCanonicalBatterPosture(0f);
                     PresentStrikerAnticipation(strikerIdleClock, false);
                 }
+                PresentStrikerResultMoment();
                 FinishStrikerFrame((float)deltaSeconds);
                 PresentFieldersAmbient(deltaSeconds);
                 PresentBowlerWalkBack(deltaSeconds);
+                PresentBowlerResultMoment();
                 ApplyFootLocks((float)deltaSeconds);
+                RecaptureStrikerSourceAfterFootLocks();
+                FinishBowlerMomentFrame((float)deltaSeconds);
                 UpdateFieldPip();
                 return;
             }
@@ -1388,6 +1400,8 @@ namespace Vande.Practice.Presentation
                         playback.Time + deltaSeconds * playbackSpeed));
                     using (TraceMarker.Auto()) playback.Advance(deltaSeconds * playbackSpeed);
                     timeline = playback.Time;
+                    // The result moments' clock is the trace clock while the ball is played (it runs in real time after it, AdvanceMomentClock).
+                    if (momentPending) momentClock = playback.Time;
                     if (!strikerRunning && runningPlan.Runs > 0 && playback.Time >= runningPlan.FirstStartT)
                     {
                         strikerRunning = true;
@@ -1539,10 +1553,14 @@ namespace Vande.Practice.Presentation
                 PresentBatters(deltaSeconds);
                 FinishNonStrikerFrame((float)deltaSeconds);
                 PlantStrikerOnPhysicsPads((float)deltaSeconds);
+                PresentStrikerResultMoment();
                 FinishStrikerFrame((float)deltaSeconds);
                 PresentFieldersAmbient(deltaSeconds);
                 if (state == WorldState.Recovery || state == WorldState.Outcome) PresentBowlerWalkBack(deltaSeconds);
+                PresentBowlerResultMoment();
                 ApplyFootLocks((float)deltaSeconds);
+                RecaptureStrikerSourceAfterFootLocks();
+                FinishBowlerMomentFrame((float)deltaSeconds);
                 UpdateCamera((float)deltaSeconds);
                 ApplyHorizontalFieldOfView();
                 UpdateBallReadabilityProjection();
@@ -1562,7 +1580,8 @@ namespace Vande.Practice.Presentation
             // The batters on the gait (running between the wickets, walking back): planted feet held too (the
             // thin-edge striker's ankle slid 10.9 cm as he pulled up after his runs, UNITY-2 r3).
             ProductionFootLock idle;
-            if (batterRig != null && (strikerRunning || state == WorldState.Idle)) ApplyFootLock(batterRig, deltaSeconds);
+            // UNI-07: the result moments' clips are authored without foot slide (the web holds no planted foot on them either); a lock would re-step their feet.
+            if (batterRig != null && (strikerRunning || state == WorldState.Idle) && !StrikerMomentOwnsBody) ApplyFootLock(batterRig, deltaSeconds);
             else if (batterRig != null && footLocks.TryGetValue(batterRig, out idle)) idle.Reset();
             if (nonStrikerRig != null && !nonStrikerPackActive) ApplyFootLock(nonStrikerRig, deltaSeconds);
             else if (nonStrikerRig != null && footLocks.TryGetValue(nonStrikerRig, out idle)) idle.Reset();
@@ -1571,6 +1590,12 @@ namespace Vande.Practice.Presentation
             {
                 ProductionFootLock bowlerLock;
                 if (footLocks.TryGetValue(bowlerRig, out bowlerLock)) bowlerLock.Reset();
+                return;
+            }
+            if (BowlerMomentOwnsBody)
+            {
+                ProductionFootLock momentLock;
+                if (footLocks.TryGetValue(bowlerRig, out momentLock)) momentLock.Reset();
                 return;
             }
             ApplyFootLock(bowlerRig, deltaSeconds);
@@ -3738,6 +3763,12 @@ namespace Vande.Practice.Presentation
         private void PlantStrikerOnPhysicsPads(float deltaSeconds)
         {
             if (batterRig == null || strikerRunning || state == WorldState.Idle && strikerRunning) return;
+            // UNI-07: the result moment's clip owns the striker's body; his feet are not fitted to the physics pads any more (the body fit is released).
+            if (StrikerMomentOwnsBody)
+            {
+                strikerFootLock?.Reset();
+                return;
+            }
             var t = playback != null && state != WorldState.RunUp && state != WorldState.Flight ? playback.Time : timeline;
             var frontStance = StrikerPadGround(strikerStanceBody.FrontPad);
             var backStance = StrikerPadGround(strikerStanceBody.BackPad);
@@ -4608,7 +4639,10 @@ namespace Vande.Practice.Presentation
             // is with the bat in five frames.
             var liveStrokeStart = strokeSwitched && liveStrokeStartPending;
             if (strokeSwitched) liveStrokeStartPending = false;
-            if ((strikerPackActive != strikerPackWasActive || runStarted || strokeSwitched) && strikerSourceCaptured)
+            // UNI-07: the result moment's clip took the striker over in this frame: the whole body, the bat and the bottom hand leave the pose on screen inertially.
+            var momentSwitched = momentStrikerSwitched;
+            momentStrikerSwitched = false;
+            if ((strikerPackActive != strikerPackWasActive || runStarted || strokeSwitched || momentSwitched) && strikerSourceCaptured)
             {
                 strikerTransitionActive = true;
                 strikerTransitionElapsed = 0f;
@@ -4622,6 +4656,13 @@ namespace Vande.Practice.Presentation
                 strikerTransitionMovesBat = !canonicalBat && double.IsNaN(touchDownT) || IdleHandOverMovesBat && state == WorldState.Idle;
                 // ... and over longer than a pose-source change in play: the bat turns 140 degrees on its way to the waiting stance, and the arms that hold it keep up with it.
                 if (IdleHandOverMovesBat && state == WorldState.Idle) strikerTransitionDuration = Mathf.Max(strikerTransitionDuration, IdleHandOverSeconds);
+                if (momentSwitched)
+                {
+                    // Into the clip: its own hand-over (260 ms; slower into Reduced Motion's held frame), the bat carried with the body (the physics bat is done).
+                    strikerTransitionBodyOnly = false;
+                    strikerTransitionDuration = (float)(momentStriker != null ? momentStriker.HandOverSeconds : ResultMomentHandOverSeconds());
+                    strikerTransitionMovesBat = true;
+                }
             }
             if (strikerTransitionActive)
             {
@@ -4631,7 +4672,7 @@ namespace Vande.Practice.Presentation
                 var x = omega * strikerTransitionElapsed;
                 var weight = strikerTransitionElapsed >= strikerTransitionDuration ? 1f : 1f - (1f + x) * Mathf.Exp(-x);
                 batterRig.ApplyHeroTransitionBlend(weight, strikerTransitionBodyOnly);
-                if (strikerTransitionMovesBat && (!canonicalBat || state == WorldState.Idle) && batterRig.Bat != null && weight < 1f)
+                if (strikerTransitionMovesBat && (!canonicalBat || state == WorldState.Idle || StrikerMomentOwnsBody) && batterRig.Bat != null && weight < 1f)
                 {
                     batterRig.Bat.SetPositionAndRotation(
                         Vector3.Lerp(strikerTransitionBatPosition, batterRig.Bat.position, weight),

@@ -1214,6 +1214,25 @@ namespace Vande.Practice.Presentation.Production.Characters
             governedStamp = double.NaN;
         }
 
+        /// <summary>The batter's arms stood still since their last solve (a held follow-through): see ProductionHeroSkeletonInstance.HoldArmMemory.</summary>
+        internal void HoldArmMemory(double frameSeconds)
+        {
+            ThrowIfDisposed();
+            if (bakedCharacter != null && bakedCharacter.HeroSkeleton != null) bakedCharacter.HeroSkeleton.HoldArmMemory(PresentationClockSeconds, frameSeconds);
+        }
+
+        /// <summary>
+        /// Forgets only the torso governor's last frame (the arms keep their elbow memory): the root frame it was measured in is gone because
+        /// the root itself was moved or turned to another (a result moment's clip took the striker over on its own anchor), so the apparent
+        /// change of every torso bone's root-relative rotation is the root's, not the torso's.
+        /// </summary>
+        internal void ResetTorsoRateGovernor()
+        {
+            governedHasNow = false;
+            governedHasPrevious = false;
+            governedStamp = double.NaN;
+        }
+
         // ---- The visible torso's angular speed (MOTION-SPEC section 9: hips, spine and chest 600, neck and head 720 degrees/s) ----
         //
         // A pose-source change (the anticipation to a stroke) is a pose difference of up to ~100 degrees at the hips and chest;

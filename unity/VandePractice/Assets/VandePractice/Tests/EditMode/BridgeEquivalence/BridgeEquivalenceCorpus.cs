@@ -425,7 +425,8 @@ namespace Vande.Practice.Tests.Equivalence
             }
             foreach (var spelling in new[]
             {
-                "5", "7", "6.0", "6.5", "\"6\"", "-6", "0", "2147483648", "4294967302", "1e0", "9007199254740991", "6e0", "06"
+                // 6 is the stale contract (v7 added the chase block, 2026-11-08): refused. 7 is the current one: the control case.
+                "5", "6", "7", "6.0", "6.5", "\"6\"", "-6", "0", "2147483648", "4294967302", "1e0", "9007199254740991", "6e0", "06"
             })
             {
                 var value = spelling;

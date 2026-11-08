@@ -29,6 +29,33 @@ namespace Vande.Practice.Presentation
         public float PixelsPerDp { get; set; }
     }
 
+    /// <summary>The host's verdict on a Target Chase (bridge contract v7). Unity displays it and never derives it.</summary>
+    public enum PracticeChaseOutcome
+    {
+        InProgress,
+        Won,
+        LostWicket,
+        LostBalls
+    }
+
+    /// <summary>
+    /// The Target Chase situation after a ball (or at the start, in a scene), already validated against the score it travelled
+    /// with. Text-free: the HUD composes its own localized lines from these integers. Null on the scene and result of ordinary Practice.
+    /// </summary>
+    public sealed class PracticeChasePresentation
+    {
+        public int Target { get; set; }
+        public int MaxBalls { get; set; }
+        public int RunsNeeded { get; set; }
+        public int BallsLeft { get; set; }
+        public PracticeChaseOutcome Outcome { get; set; }
+        /// <summary>Required runs per over in hundredths (half up); null once the chase is decided.</summary>
+        public int? RequiredRateX100 { get; set; }
+
+        public bool Decided => Outcome != PracticeChaseOutcome.InProgress;
+        public bool Won => Outcome == PracticeChaseOutcome.Won;
+    }
+
     public sealed class PracticeScenePresentation
     {
         public string Conditions { get; set; }
@@ -46,6 +73,8 @@ namespace Vande.Practice.Presentation
         public double BatterLateralM { get; set; }
         public double BatterCreaseOffsetM { get; set; }
         public PracticeFielderPresentation[] Fielders { get; set; }
+        /// <summary>The chase situation when this scene was established; null for ordinary Practice.</summary>
+        public PracticeChasePresentation Chase { get; set; }
     }
 
     public sealed class PracticeFielderPresentation
@@ -130,6 +159,8 @@ namespace Vande.Practice.Presentation
         public string ContactKind { get; set; }
         public string ContactTiming { get; set; }
         public string OutcomeFielderId { get; set; }
+        /// <summary>The chase situation after this ball; null for ordinary Practice. Present on a replay as on its result.</summary>
+        public PracticeChasePresentation Chase { get; set; }
     }
 
     public sealed class PracticeDemonstrationPresentation
@@ -216,7 +247,36 @@ namespace Vande.Practice.Presentation
                 Handedness = value.handedness,
                 BatterLateralM = value.batterPosition.lateralM,
                 BatterCreaseOffsetM = value.batterPosition.creaseOffsetM,
-                Fielders = fielders
+                Fielders = fielders,
+                Chase = ChaseOf(envelope.ParsedPayload())
+            };
+        }
+
+        /// <summary>The validated chase block of a scene payload or a resolution, or null when it carries none.</summary>
+        internal static PracticeChasePresentation ChaseOf(StrictJsonObject owner)
+        {
+            if (!owner.Contains("chase")) return null;
+            var chase = owner.Object("chase");
+            PracticeChaseOutcome outcome;
+            switch (chase.String("outcome"))
+            {
+                case "in_progress": outcome = PracticeChaseOutcome.InProgress; break;
+                case "won": outcome = PracticeChaseOutcome.Won; break;
+                case "lost_wicket": outcome = PracticeChaseOutcome.LostWicket; break;
+                case "lost_balls": outcome = PracticeChaseOutcome.LostBalls; break;
+                default: throw new BridgeValidationException("chase.outcome is unsupported.");
+            }
+
+            return new PracticeChasePresentation
+            {
+                Target = CheckedInt(chase.Integer("target"), "chase.target"),
+                MaxBalls = CheckedInt(chase.Integer("maxBalls"), "chase.maxBalls"),
+                RunsNeeded = CheckedInt(chase.Integer("runsNeeded"), "chase.runsNeeded"),
+                BallsLeft = CheckedInt(chase.Integer("ballsLeft"), "chase.ballsLeft"),
+                Outcome = outcome,
+                RequiredRateX100 = chase.IsNull("requiredRateX100")
+                    ? (int?)null
+                    : CheckedInt(chase.Integer("requiredRateX100"), "chase.requiredRateX100")
             };
         }
 
@@ -406,7 +466,8 @@ namespace Vande.Practice.Presentation
                 RecordBallIndex = CheckedInt(record.Integer("ballIndex"), "record.ballIndex"),
                 ContactKind = result.Object("contact").String("kind"),
                 ContactTiming = result.Object("contact").String("timing"),
-                OutcomeFielderId = outcome.String("fielderId", true)
+                OutcomeFielderId = outcome.String("fielderId", true),
+                Chase = ChaseOf(resolution)
             };
         }
 

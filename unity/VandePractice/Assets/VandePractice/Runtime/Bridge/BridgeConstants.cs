@@ -2,7 +2,9 @@ namespace Vande.Practice.Bridge
 {
     public static class BridgeConstants
     {
-        public const int ContractVersion = 6;
+        // v7 (2026-11-08): the optional Target Chase block on host.scene and on the resolution. See
+        // release/product-sequence/stage-3-chase/UNITY/BRIDGE-V7.md. Every receiver tests the version for equality.
+        public const int ContractVersion = 7;
         public const int SimulationVersion = 3;
         public const int TraceVersion = 2;
 
@@ -36,6 +38,9 @@ namespace Vande.Practice.Bridge
         public const int MaxBenchmarkIntervals = 1_200;
         public const int MaxBenchmarkWarmupFrames = 300;
         public const int MaxProtectedRegions = 6;
+        // A chase target is bounded like score.runs (ten overs of sixes); its balls like score.balls (ten overs).
+        public const int MaxChaseTarget = 360;
+        public const int MaxChaseBalls = 60;
         public const int MaxProtectedRegionViewportPixels = 32_768;
 
         // Kill-switch for the background decode of large packets (UnityPracticeBridgeSession.EnableBackgroundDecode; the threading

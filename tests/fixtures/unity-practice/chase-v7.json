@@ -1,0 +1,367 @@
+{
+  "baseFixture": {
+    "file": "practice-v3.json",
+    "payloadSha256": "b3a1fa5560e306edeb84243818ce32397eab745e0f5e0dad50e82c0230b0433a"
+  },
+  "contractVersion": 7,
+  "fixtureVersion": 1,
+  "note": "Compact companion to practice-v3.json for the optional Target Chase block (bridge contract v7). No result packet is stored: each scenario is a text recipe on a base packet (insert the chase block, replace the score, seal with SHA-256) and the recorded size and SHA-256 of the packet it makes. Wire examples, not played chases. vectors is a hand-written rule table for the chase validator; chase and score are JSON texts.",
+  "payloadSha256": "92a5c676b4d32a6e2250e9602bae61dabe8252e354ab1ef9d3287fbbd7b87cd7",
+  "recipe": {
+    "canonicalChase": "sorted keys, no spaces: ballsLeft, maxBalls, outcome, requiredRateX100, runsNeeded, target",
+    "replay": "the same score replacement, then insert \"chase\":<after>, immediately after \"resolution\":{",
+    "result": "replace the one \"score\":{...} object by the scenario score, then insert \"chase\":<after>, immediately after \"payload\":{",
+    "scene": "insert \"chase\":<start>, immediately before \"conditions\":\" in the base scene body",
+    "seal": "sha256 of the UTF-8 body; bodyLength is the body length in UTF-16 code units (the bodies are ASCII)"
+  },
+  "scenarios": [
+    {
+      "after": {
+        "ballsLeft": 11,
+        "maxBalls": 12,
+        "outcome": "in_progress",
+        "requiredRateX100": 1200,
+        "runsNeeded": 22,
+        "target": 22
+      },
+      "baseCase": "early-attack",
+      "id": "in-progress",
+      "replay": null,
+      "result": {
+        "bodyLength": 278987,
+        "sha256": "6e10f008f1d1a00bd844721786b78151c8a5370b953e391288fc590b7b4e5ffe"
+      },
+      "scene": {
+        "bodyLength": 1319,
+        "sha256": "2302f2054cb104078a0f52f8787a976ed456585abf9b8fc69ab923bf0d93b0da"
+      },
+      "score": {
+        "balls": 1,
+        "maxOvers": 10,
+        "runs": 0,
+        "wickets": 0
+      },
+      "start": {
+        "ballsLeft": 12,
+        "maxBalls": 12,
+        "outcome": "in_progress",
+        "requiredRateX100": 1100,
+        "runsNeeded": 22,
+        "target": 22
+      },
+      "target": 22
+    },
+    {
+      "after": {
+        "ballsLeft": 9,
+        "maxBalls": 12,
+        "outcome": "won",
+        "requiredRateX100": null,
+        "runsNeeded": 0,
+        "target": 6
+      },
+      "baseCase": "deliberate-loft",
+      "id": "won",
+      "replay": {
+        "bodyLength": 367162,
+        "sha256": "761156d0f1023fb6e8fbc9bd9ed583dab098985d9d18574c428aefa73ee3d8a4"
+      },
+      "result": {
+        "bodyLength": 367116,
+        "sha256": "9931a285fe467b11cf8b8a24848ff4ae401776668101b3bded0554209f97cc73"
+      },
+      "scene": {
+        "bodyLength": 1322,
+        "sha256": "3fa03d6d8b3576259b206941978cfc20fb876747ffe7d9a84cb59933ebb9ca55"
+      },
+      "score": {
+        "balls": 3,
+        "maxOvers": 10,
+        "runs": 6,
+        "wickets": 0
+      },
+      "start": {
+        "ballsLeft": 12,
+        "maxBalls": 12,
+        "outcome": "in_progress",
+        "requiredRateX100": 300,
+        "runsNeeded": 6,
+        "target": 6
+      },
+      "target": 6
+    },
+    {
+      "after": {
+        "ballsLeft": 0,
+        "maxBalls": 12,
+        "outcome": "lost_balls",
+        "requiredRateX100": null,
+        "runsNeeded": 5,
+        "target": 22
+      },
+      "baseCase": "complete-miss",
+      "id": "lost-balls",
+      "replay": null,
+      "result": {
+        "bodyLength": 284329,
+        "sha256": "f1d27ea3a707e41768d598d84abda7ddb8295e694fc1ea01fec23351d20ea3a5"
+      },
+      "scene": {
+        "bodyLength": 1321,
+        "sha256": "989a1d5059cf214a8e27354030af3ba51a977474c69f7b40e2eca6b8ef7024f6"
+      },
+      "score": {
+        "balls": 12,
+        "maxOvers": 10,
+        "runs": 17,
+        "wickets": 0
+      },
+      "start": {
+        "ballsLeft": 12,
+        "maxBalls": 12,
+        "outcome": "in_progress",
+        "requiredRateX100": 1100,
+        "runsNeeded": 22,
+        "target": 22
+      },
+      "target": 22
+    }
+  ],
+  "schema": "vande.practice.unity-golden.chase",
+  "vectors": [
+    {
+      "accept": true,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":12,\"outcome\":\"in_progress\",\"requiredRateX100\":1100}",
+      "id": "start 22 off 12",
+      "score": ""
+    },
+    {
+      "accept": true,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":14,\"ballsLeft\":9,\"outcome\":\"in_progress\",\"requiredRateX100\":933}",
+      "id": "14 off 9 asks 9.33",
+      "score": ""
+    },
+    {
+      "accept": true,
+      "chase": "{\"target\":6,\"maxBalls\":12,\"runsNeeded\":1,\"ballsLeft\":1,\"outcome\":\"in_progress\",\"requiredRateX100\":600}",
+      "id": "1 off 1 asks 6.00",
+      "score": ""
+    },
+    {
+      "accept": true,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":0,\"ballsLeft\":3,\"outcome\":\"won\",\"requiredRateX100\":null}",
+      "id": "won with 3 balls left",
+      "score": ""
+    },
+    {
+      "accept": true,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":0,\"ballsLeft\":0,\"outcome\":\"won\",\"requiredRateX100\":null}",
+      "id": "won on the last ball",
+      "score": ""
+    },
+    {
+      "accept": true,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":9,\"ballsLeft\":7,\"outcome\":\"lost_wicket\",\"requiredRateX100\":null}",
+      "id": "lost_wicket early",
+      "score": ""
+    },
+    {
+      "accept": true,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":9,\"ballsLeft\":0,\"outcome\":\"lost_wicket\",\"requiredRateX100\":null}",
+      "id": "lost_wicket on the last ball",
+      "score": ""
+    },
+    {
+      "accept": true,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":9,\"ballsLeft\":0,\"outcome\":\"lost_balls\",\"requiredRateX100\":null}",
+      "id": "lost_balls",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":12,\"outcome\":\"in_progress\",\"requiredRateX100\":1101}",
+      "id": "a wrong rate",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":12,\"outcome\":\"in_progress\",\"requiredRateX100\":null}",
+      "id": "no rate while in progress",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":0,\"ballsLeft\":12,\"outcome\":\"in_progress\",\"requiredRateX100\":0}",
+      "id": "in progress with nothing needed",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":0,\"outcome\":\"in_progress\",\"requiredRateX100\":0}",
+      "id": "in progress with no balls left",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":0,\"ballsLeft\":3,\"outcome\":\"won\",\"requiredRateX100\":0}",
+      "id": "a rate on a won chase",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":1,\"ballsLeft\":3,\"outcome\":\"won\",\"requiredRateX100\":null}",
+      "id": "won while runs are needed",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":0,\"ballsLeft\":7,\"outcome\":\"lost_wicket\",\"requiredRateX100\":null}",
+      "id": "lost needing nothing",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":9,\"ballsLeft\":1,\"outcome\":\"lost_balls\",\"requiredRateX100\":null}",
+      "id": "lost on balls with balls left",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":23,\"ballsLeft\":12,\"outcome\":\"in_progress\",\"requiredRateX100\":1}",
+      "id": "runs needed above the target",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":13,\"outcome\":\"in_progress\",\"requiredRateX100\":1100}",
+      "id": "balls left above the balls",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":0,\"maxBalls\":12,\"runsNeeded\":0,\"ballsLeft\":12,\"outcome\":\"in_progress\",\"requiredRateX100\":1100}",
+      "id": "target 0",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":361,\"maxBalls\":12,\"runsNeeded\":361,\"ballsLeft\":12,\"outcome\":\"in_progress\",\"requiredRateX100\":1100}",
+      "id": "target 361",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":0,\"runsNeeded\":22,\"ballsLeft\":0,\"outcome\":\"in_progress\",\"requiredRateX100\":1100}",
+      "id": "zero balls",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":61,\"runsNeeded\":22,\"ballsLeft\":61,\"outcome\":\"in_progress\",\"requiredRateX100\":1100}",
+      "id": "61 balls",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":12,\"outcome\":\"tied\",\"requiredRateX100\":1100}",
+      "id": "an unknown outcome",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":12,\"outcome\":\"in_progress\",\"requiredRateX100\":1100,\"spare\":1}",
+      "id": "an extra key",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":12,\"outcome\":\"in_progress\",\"requiredRateX100\":1100}",
+      "id": "a missing key",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22.5,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":12,\"outcome\":\"in_progress\",\"requiredRateX100\":1100}",
+      "id": "a fractional target",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":\"22\",\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":12,\"outcome\":\"in_progress\",\"requiredRateX100\":1100}",
+      "id": "a number written as a string",
+      "score": ""
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":-1,\"outcome\":\"in_progress\",\"requiredRateX100\":1100}",
+      "id": "a negative balls left",
+      "score": ""
+    },
+    {
+      "accept": true,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":11,\"outcome\":\"in_progress\",\"requiredRateX100\":1200}",
+      "id": "in progress agrees with its score",
+      "score": "{\"balls\":1,\"maxOvers\":10,\"runs\":0,\"wickets\":0}"
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":11,\"outcome\":\"in_progress\",\"requiredRateX100\":1200}",
+      "id": "runs needed disagrees with the score",
+      "score": "{\"balls\":1,\"maxOvers\":10,\"runs\":1,\"wickets\":0}"
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":11,\"outcome\":\"in_progress\",\"requiredRateX100\":1200}",
+      "id": "balls left disagrees with the score",
+      "score": "{\"balls\":2,\"maxOvers\":10,\"runs\":0,\"wickets\":0}"
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":11,\"outcome\":\"in_progress\",\"requiredRateX100\":1200}",
+      "id": "in progress with a wicket in the score",
+      "score": "{\"balls\":1,\"maxOvers\":10,\"runs\":0,\"wickets\":1}"
+    },
+    {
+      "accept": true,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":10,\"outcome\":\"lost_wicket\",\"requiredRateX100\":null}",
+      "id": "lost_wicket agrees with its score",
+      "score": "{\"balls\":2,\"maxOvers\":10,\"runs\":0,\"wickets\":1}"
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":22,\"ballsLeft\":10,\"outcome\":\"lost_wicket\",\"requiredRateX100\":null}",
+      "id": "lost_wicket with no wicket in the score",
+      "score": "{\"balls\":2,\"maxOvers\":10,\"runs\":0,\"wickets\":0}"
+    },
+    {
+      "accept": true,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":5,\"ballsLeft\":0,\"outcome\":\"lost_balls\",\"requiredRateX100\":null}",
+      "id": "lost_balls agrees with its score",
+      "score": "{\"balls\":12,\"maxOvers\":10,\"runs\":17,\"wickets\":0}"
+    },
+    {
+      "accept": true,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":5,\"ballsLeft\":0,\"outcome\":\"lost_balls\",\"requiredRateX100\":null}",
+      "id": "lost_balls on a wicket ball is allowed",
+      "score": "{\"balls\":12,\"maxOvers\":10,\"runs\":17,\"wickets\":1}"
+    },
+    {
+      "accept": true,
+      "chase": "{\"target\":6,\"maxBalls\":12,\"runsNeeded\":0,\"ballsLeft\":9,\"outcome\":\"won\",\"requiredRateX100\":null}",
+      "id": "won agrees with its score",
+      "score": "{\"balls\":3,\"maxOvers\":10,\"runs\":6,\"wickets\":0}"
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":6,\"maxBalls\":12,\"runsNeeded\":0,\"ballsLeft\":9,\"outcome\":\"won\",\"requiredRateX100\":null}",
+      "id": "won short of the target",
+      "score": "{\"balls\":3,\"maxOvers\":10,\"runs\":5,\"wickets\":0}"
+    },
+    {
+      "accept": false,
+      "chase": "{\"target\":22,\"maxBalls\":12,\"runsNeeded\":5,\"ballsLeft\":0,\"outcome\":\"lost_balls\",\"requiredRateX100\":null}",
+      "id": "more balls faced than the chase has",
+      "score": "{\"balls\":13,\"maxOvers\":10,\"runs\":17,\"wickets\":0}"
+    }
+  ]
+}
