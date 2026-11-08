@@ -62,4 +62,16 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Android 13+: asked only after a meaningful moment (never on first launch), see src/platform/push.ts. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+        Optional camera batting (docs/PRACTICE_CAMERA_INPUT.md). The camera is asked for only after the player chooses Camera, once they
+        have read the consent screen. Frames stay on the phone and are never stored or sent. Nothing here is required: aapt2 would turn the
+        CAMERA permission alone into a required camera feature (Play would then hide the app from phones without a back camera), so the
+        three camera features are declared not required, and scripts/check-android-release-compat.mjs fails a build that drops them.
+        No microphone permission: RECORD_AUDIO would add a required microphone feature and nothing here records sound.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 </manifest>

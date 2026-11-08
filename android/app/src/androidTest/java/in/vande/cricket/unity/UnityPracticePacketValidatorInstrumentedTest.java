@@ -121,8 +121,8 @@ public final class UnityPracticePacketValidatorInstrumentedTest {
     }
 
     @Test
-    public void contractV6DemonstrationsAreHostToUnityAndDeliveryScoped() throws Exception {
-        assertEquals(6, CONTRACT_VERSION);
+    public void contractV7DemonstrationsAreHostToUnityAndDeliveryScoped() throws Exception {
+        assertEquals(7, CONTRACT_VERSION);
         assertEquals("host.demonstration", UnityPracticePacketValidator.validate(
             packet(body("host", "host.demonstration", "delivery", 20, CONTRACT_VERSION, SIM_VERSION)),
             UnityPracticePacketValidator.Direction.HOST

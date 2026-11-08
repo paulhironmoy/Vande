@@ -12,10 +12,12 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
+import in.vande.cricket.plugins.CameraAccessPlugin;
 import in.vande.cricket.plugins.GateAEvidencePlugin;
 import in.vande.cricket.plugins.GoogleSignInPlugin;
 import in.vande.cricket.plugins.InstallReferrerPlugin;
 import in.vande.cricket.plugins.SecureStoragePlugin;
+import in.vande.cricket.plugins.SystemGesturesPlugin;
 import in.vande.cricket.plugins.UnityPracticePlugin;
 import in.vande.cricket.unity.UnityPracticeHost;
 
@@ -29,6 +31,8 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(GoogleSignInPlugin.class);
         registerPlugin(UnityPracticePlugin.class);
         registerPlugin(GateAEvidencePlugin.class);
+        registerPlugin(CameraAccessPlugin.class);
+        registerPlugin(SystemGesturesPlugin.class);
         super.onCreate(savedInstanceState);
         configureFullDisplayViewport();
         preserveWebViewSafeAreaInsets();

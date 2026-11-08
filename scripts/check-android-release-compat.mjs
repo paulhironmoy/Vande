@@ -36,6 +36,39 @@ const DEFAULT_AAB = 'android/app/build/outputs/bundle/release/app-release.aab';
 const ALLOWED_REQUIRED_FEATURES = new Set(['android.hardware.faketouch']);
 const REQUIRED_SCREEN_BUCKETS = Object.freeze(['small', 'normal', 'large', 'xlarge']);
 
+/**
+ * Optional camera batting. aapt2 turns the CAMERA permission alone into a required back-camera feature (and Android's
+ * documentation says it implies a required autofocus), which would hide the app from phones without one. So when the
+ * permission is declared, all three camera features must be declared and not required. Nothing records sound: RECORD_AUDIO
+ * would add a required microphone feature and is refused outright.
+ */
+export const CAMERA_PERMISSION = 'android.permission.CAMERA';
+export const CAMERA_FEATURES = Object.freeze([
+  'android.hardware.camera',
+  'android.hardware.camera.front',
+  'android.hardware.camera.autofocus',
+]);
+export const FORBIDDEN_CAPTURE_PERMISSIONS = Object.freeze(['android.permission.RECORD_AUDIO']);
+
+/**
+ * Optional payloads that only the owner's sideload "everything" build may carry (docs/ANDROID_RELEASE.md, scripts/build-android.sh
+ * --everything): the camera pack (pose engine, worker and model, downloaded on demand in a store build) and the baked venue's GLB
+ * files. They live in the web payload under assets/public (APK) or base/assets/public (AAB). A default build must carry none, so
+ * the first-ball install stays free of them.
+ */
+export const OPTIONAL_PAYLOADS = Object.freeze({
+  camera: /^(?:base\/)?assets\/public\/(?:.*\/)?(?:models\/pose\/|vision_wasm[^/]*$|[^/]+\.task$)/u,
+  venue: /^(?:base\/)?assets\/public\/(?:.*\/)?[^/]+\.glb$/u,
+});
+
+/** The entries of an archive that belong to each optional payload (empty arrays for a default build). */
+export function findOptionalPayloads(entries) {
+  return Object.fromEntries(Object.entries(OPTIONAL_PAYLOADS).map(([name, pattern]) => [
+    name,
+    entries.filter((entry) => pattern.test(entry)),
+  ]));
+}
+
 function usage() {
   return `Usage: node scripts/check-android-release-compat.mjs [options]
 
@@ -48,6 +81,8 @@ Options:
   --aapt2 PATH            Android aapt2 executable
   --zipalign PATH         Android zipalign executable
   --unzip PATH            unzip executable (default: unzip on PATH)
+  --allow-camera-payload  the artifact may carry the camera pack (only the sideload --everything build passes this)
+  --allow-venue-payload   the artifact may carry the baked venue GLB files (only the sideload --everything build passes this)
   --json                  emit machine-readable JSON
   --help                  show this help
 
@@ -72,6 +107,8 @@ export function parseArgs(argv) {
     aapt2: undefined,
     zipalign: undefined,
     unzip: 'unzip',
+    allowCameraPayload: false,
+    allowVenuePayload: false,
     json: false,
     help: false,
   };
@@ -102,6 +139,8 @@ export function parseArgs(argv) {
       continue;
     }
     if (argument === '--json') options.json = true;
+    else if (argument === '--allow-camera-payload') options.allowCameraPayload = true;
+    else if (argument === '--allow-venue-payload') options.allowVenuePayload = true;
     else if (argument === '--help' || argument === '-h') options.help = true;
     else throw new Error(`unknown option '${argument}'`);
   }
@@ -128,6 +167,7 @@ export function parseBadging(stdout) {
     minSdk: null,
     maxSdk: null,
     targetSdk: null,
+    permissions: [],
     requiredFeatures: [],
     impliedFeatures: [],
     optionalFeatures: [],
@@ -148,7 +188,10 @@ export function parseBadging(stdout) {
   for (const rawLine of stdout.split(/\r?\n/u)) {
     const line = rawLine.trim();
     if (line.startsWith('package:')) result.packageId = line.match(/\bname='([^']+)'/u)?.[1] ?? null;
-    else if (line.startsWith('minSdkVersion:')) result.minSdk = Number(quotedValues(line)[0]);
+    else if (line.startsWith('uses-permission:') || line.startsWith('uses-permission-sdk-23:')) {
+      const name = line.match(/\bname='([^']+)'/u)?.[1];
+      if (name) result.permissions.push(name);
+    } else if (line.startsWith('minSdkVersion:')) result.minSdk = Number(quotedValues(line)[0]);
     else if (line.startsWith('maxSdkVersion:')) result.maxSdk = Number(quotedValues(line)[0]);
     else if (line.startsWith('targetSdkVersion:')) result.targetSdk = Number(quotedValues(line)[0]);
     else if (line.startsWith('uses-feature:')) {
@@ -186,7 +229,7 @@ export function parseBadging(stdout) {
     }
   }
 
-  for (const key of ['requiredFeatures', 'impliedFeatures', 'optionalFeatures', 'glRequirements',
+  for (const key of ['permissions', 'requiredFeatures', 'impliedFeatures', 'optionalFeatures', 'glRequirements',
     'textureRequirements', 'screenBuckets', 'compatibleScreens', 'nativeCode', 'requiredSharedLibraries',
     'requiredNativeLibraries', 'optionalNativeLibraries', 'launchableActivities']) {
     result[key] = [...new Set(result[key])];
@@ -207,6 +250,11 @@ export function evaluateBadging(badging, policy = {}) {
   const missingScreens = REQUIRED_SCREEN_BUCKETS.filter((bucket) => !badging.screenBuckets.includes(bucket));
   const sdkValuesValid = Number.isInteger(badging.minSdk) && Number.isInteger(badging.targetSdk);
   const expectedLauncher = `${packageId}.MainActivity`;
+  const declaresCamera = badging.permissions.includes(CAMERA_PERMISSION);
+  const cameraFeaturesNotOptional = declaresCamera
+    ? CAMERA_FEATURES.filter((feature) => !badging.optionalFeatures.includes(feature))
+    : [];
+  const forbiddenCapture = badging.permissions.filter((permission) => FORBIDDEN_CAPTURE_PERMISSIONS.includes(permission));
 
   const checks = [
     makeCheck('package-id', badging.packageId === packageId, packageId, badging.packageId ?? 'missing'),
@@ -236,6 +284,11 @@ export function evaluateBadging(badging, policy = {}) {
     `exactly one: ${expectedLauncher}`,
     badging.launchableActivities.length ? badging.launchableActivities : 'missing'),
     makeCheck('not-debuggable', !badging.debuggable, false, badging.debuggable),
+    makeCheck('camera-permission-shape', cameraFeaturesNotOptional.length === 0 && forbiddenCapture.length === 0,
+      'CAMERA only with camera, camera.front and camera.autofocus declared not required; no RECORD_AUDIO',
+      cameraFeaturesNotOptional.length === 0 && forbiddenCapture.length === 0
+        ? (declaresCamera ? 'CAMERA declared; the three camera features are not required' : 'no CAMERA permission')
+        : { cameraFeaturesNotDeclaredOptional: cameraFeaturesNotOptional, forbiddenPermissions: forbiddenCapture }),
   ];
   return { pass: checks.every((check) => check.pass), checks };
 }
@@ -437,7 +490,20 @@ export function nativeCodeConsistency(badgingNativeCode, archiveAbis) {
     'aapt2 native-code matches packaged lib ABIs', { onlyBadging, onlyArchive });
 }
 
-function inspectArchive(label, archive, unzip, requiredAbis) {
+/** One check per optional payload: a default build carries none; the sideload build may, when it says so. */
+export function payloadChecks(label, entries, allowed = {}) {
+  const found = findOptionalPayloads(entries);
+  return Object.entries(found).map(([name, matches]) => {
+    const permitted = Boolean(allowed[name]);
+    const observed = matches.length === 0
+      ? 'none'
+      : `${matches.length} file${matches.length === 1 ? '' : 's'}${permitted ? ' (allowed: sideload build)' : ''}: ${matches.slice(0, 3).join(', ')}${matches.length > 3 ? ', ...' : ''}`;
+    return makeCheck(`${label}-${name}-payload`, matches.length === 0 || permitted,
+      permitted ? `${name} payload allowed for this sideload build` : `no ${name} payload in a default build`, observed);
+  });
+}
+
+function inspectArchive(label, archive, unzip, requiredAbis, allowedPayloads = {}) {
   const entries = listArchive(unzip, archive);
   const natives = nativeEntries(entries);
   const scratch = mkdtempSync(join(tmpdir(), 'vande-android-compat-'));
@@ -469,7 +535,7 @@ function inspectArchive(label, archive, unzip, requiredAbis) {
     abis: [...new Set(natives.map((item) => item.abi))].sort(),
     partialLibraryCoverage: partialLibraryCoverage(natives, requiredAbis),
     libraries,
-    checks: [...abiChecks, alignmentCheck],
+    checks: [...abiChecks, alignmentCheck, ...payloadChecks(label, entries, allowedPayloads)],
   };
 }
 
@@ -507,9 +573,10 @@ export function run(argv) {
   const zipalign = options.zipalign ?? discoverBuildTool('zipalign');
   const badging = badgingFor(aapt2, apk);
   const manifestEvaluation = evaluateBadging(badging, options);
+  const allowedPayloads = { camera: options.allowCameraPayload, venue: options.allowVenuePayload };
   const archives = [
-    inspectArchive('apk', apk, options.unzip, options.requiredAbis),
-    inspectArchive('aab', aab, options.unzip, options.requiredAbis),
+    inspectArchive('apk', apk, options.unzip, options.requiredAbis, allowedPayloads),
+    inspectArchive('aab', aab, options.unzip, options.requiredAbis, allowedPayloads),
   ];
   const apkNativeShape = new Set(archives[0].libraries.map((item) => `${item.abi}/${item.library}`));
   const aabNativeShape = new Set(archives[1].libraries.map((item) => `${item.abi}/${item.library}`));
@@ -522,6 +589,7 @@ export function run(argv) {
       maxMinSdk: options.maxMinSdk,
       requiredAbis: options.requiredAbis,
       allowedRequiredFeatures: [...ALLOWED_REQUIRED_FEATURES],
+      allowedOptionalPayloads: Object.entries(allowedPayloads).filter(([, allowed]) => allowed).map(([name]) => name),
       minimumElfLoadAlignment: MIN_16_KB_ALIGNMENT,
     },
     tools: { aapt2, zipalign, unzip: options.unzip },

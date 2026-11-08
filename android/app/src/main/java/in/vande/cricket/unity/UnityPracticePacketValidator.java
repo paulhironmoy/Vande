@@ -20,7 +20,7 @@ import org.json.JSONObject;
  * native bridge as an unchecked, unbounded message pipe.
  */
 final class UnityPracticePacketValidator {
-    static final int CONTRACT_VERSION = 6;
+    static final int CONTRACT_VERSION = 7;
     static final int SIM_VERSION = 3;
     static final int MAX_BODY_BYTES = 1024 * 1024;
     /** JSON string escaping can approach 2x the canonical body; the extra 4 KiB covers the checksum/envelope. */

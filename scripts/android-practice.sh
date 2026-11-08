@@ -32,6 +32,8 @@ BOOT_TIMEOUT_SEC="${BOOT_TIMEOUT_SEC:-180}"
 EMULATOR_PORT="${EMULATOR_PORT:-5554}"
 export JAVA_HOME="${JAVA_HOME:-/Applications/Android Studio.app/Contents/jbr/Contents/Home}"
 UNITY="${UNITY:-0}"
+CAMERA_BUNDLE="${CAMERA_BUNDLE:-0}"
+VENUE_BAKE="${VENUE_BAKE:-0}"
 SKIP_BUILD="${SKIP_BUILD:-0}"
 HOOKS="${HOOKS:-0}"
 ARTIFACT_MODE="${ARTIFACT_MODE:-debug}"
@@ -41,6 +43,13 @@ if [ "$UNITY" != 0 ] && [ "$UNITY" != 1 ]; then
   echo "UNITY must be exactly 0 or 1 (received '$UNITY')." >&2
   exit 2
 fi
+for flag_name in CAMERA_BUNDLE VENUE_BAKE; do
+  flag_value="${!flag_name}"
+  if [ "$flag_value" != 0 ] && [ "$flag_value" != 1 ]; then
+    echo "$flag_name must be exactly 0 or 1 (received '$flag_value'): 1 packages the camera pack / the baked venue in the DEBUG test build only." >&2
+    exit 2
+  fi
+done
 if [ "$SKIP_BUILD" != 0 ] && [ "$SKIP_BUILD" != 1 ]; then
   echo "SKIP_BUILD must be exactly 0 or 1 (received '$SKIP_BUILD')." >&2
   exit 2
@@ -208,7 +217,7 @@ cleanup() {
       CLEAN_BUILD_ID="$(scripts/build-id.sh)"
       nice -n 15 env -u VITE_PRACTICE_TEST_HOOKS -u VITE_API_URL -u VITE_API_LOCAL -u VITE_COMMUNITY_API_URL \
         BUILD_ID="$CLEAN_BUILD_ID" VITE_BUILD_TARGET=android VITE_UNITY_PRACTICE=0 \
-        VITE_UNITY_PRACTICE_ENGINEERING_PREVIEW=0 \
+        VITE_UNITY_PRACTICE_ENGINEERING_PREVIEW=0 VITE_CAMERA_BUNDLED=0 VITE_VENUE_BAKED=0 \
         npx vite build --outDir dist-android --emptyOutDir >/dev/null
     fi
     CAP_WEB_DIR=dist-android env -u CAP_WEBVIEW_DEBUG -u CAP_LOCAL_HTTP npx cap sync android >/dev/null
@@ -363,23 +372,23 @@ if [ "$SKIP_BUILD" != 1 ]; then
     if [ "${HOOKS:-0}" = 1 ]; then
       nice -n 15 env -u VITE_API_URL -u VITE_API_LOCAL -u VITE_COMMUNITY_API_URL VITE_BUILD_TARGET=android \
         BUILD_ID="$EVIDENCE_BUILD_ID" VITE_PRACTICE_TEST_HOOKS=1 VITE_UNITY_PRACTICE=1 \
-        VITE_UNITY_PRACTICE_ENGINEERING_PREVIEW=1 \
+        VITE_UNITY_PRACTICE_ENGINEERING_PREVIEW=1 VITE_CAMERA_BUNDLED="$CAMERA_BUNDLE" VITE_VENUE_BAKED="$VENUE_BAKE" \
         npx vite build --outDir dist-android --emptyOutDir >/dev/null
     else
       nice -n 15 env -u VITE_PRACTICE_TEST_HOOKS -u VITE_API_URL -u VITE_API_LOCAL -u VITE_COMMUNITY_API_URL \
         BUILD_ID="$EVIDENCE_BUILD_ID" VITE_BUILD_TARGET=android VITE_UNITY_PRACTICE=1 \
-        VITE_UNITY_PRACTICE_ENGINEERING_PREVIEW=1 \
+        VITE_UNITY_PRACTICE_ENGINEERING_PREVIEW=1 VITE_CAMERA_BUNDLED="$CAMERA_BUNDLE" VITE_VENUE_BAKED="$VENUE_BAKE" \
         npx vite build --outDir dist-android --emptyOutDir >/dev/null
     fi
   elif [ "${HOOKS:-0}" = 1 ]; then
     nice -n 15 env -u VITE_API_URL -u VITE_API_LOCAL -u VITE_COMMUNITY_API_URL \
       BUILD_ID="$EVIDENCE_BUILD_ID" VITE_BUILD_TARGET=android VITE_PRACTICE_TEST_HOOKS=1 VITE_UNITY_PRACTICE=0 \
-      VITE_UNITY_PRACTICE_ENGINEERING_PREVIEW=0 \
+      VITE_UNITY_PRACTICE_ENGINEERING_PREVIEW=0 VITE_CAMERA_BUNDLED="$CAMERA_BUNDLE" VITE_VENUE_BAKED="$VENUE_BAKE" \
       npx vite build --outDir dist-android --emptyOutDir >/dev/null
   else
     nice -n 15 env -u VITE_PRACTICE_TEST_HOOKS -u VITE_API_URL -u VITE_API_LOCAL -u VITE_COMMUNITY_API_URL \
       BUILD_ID="$EVIDENCE_BUILD_ID" VITE_BUILD_TARGET=android VITE_UNITY_PRACTICE=0 \
-      VITE_UNITY_PRACTICE_ENGINEERING_PREVIEW=0 \
+      VITE_UNITY_PRACTICE_ENGINEERING_PREVIEW=0 VITE_CAMERA_BUNDLED="$CAMERA_BUNDLE" VITE_VENUE_BAKED="$VENUE_BAKE" \
       npx vite build --outDir dist-android --emptyOutDir >/dev/null
   fi
   CAP_WEB_DIR=dist-android CAP_WEBVIEW_DEBUG=1 npx cap sync android >/dev/null
