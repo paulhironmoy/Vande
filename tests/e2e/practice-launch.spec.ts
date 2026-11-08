@@ -10,7 +10,7 @@ import { GPU_ARGS, configure, openPractice, play, playFromSetup, seen, state, wa
 
 test.use({ viewport: { width: 915, height: 412 }, hasTouch: true, ...GPU_ARGS });
 
-test('a start at the root is Practice: two choices, Random Over first, then the setup and the first ball', async ({
+test('a start at the root is Practice: Random Over first, Predefined Over, Chase, then the setup and the first ball', async ({
   page,
 }) => {
   // Seeded at the longest run-up (owner decision 2026-11-04), so the budget is met in the worst case, not by luck: the
@@ -21,7 +21,19 @@ test('a start at the root is Practice: two choices, Random Over first, then the 
   await openPractice(page, { tier: 'full', timeScale: 1, seed: 'e2e-launch-0' });
   await expect(page.getByTestId('practice-random')).toContainText('Random Over');
   await expect(page.getByTestId('practice-predefined')).toContainText('Predefined Over');
-  // Nothing of the legacy app, and no Chase teaser, on the way in.
+  // Target Chase (owner decision 2026-11-08) is a third, quiet choice: its name and one line, in that order, after the
+  // other two, with no badge. The legacy app's Chase teaser (`launch-chase`) and its age screen are still not here.
+  await expect(page.getByTestId('practice-chase')).toContainText('Chase');
+  await expect(page.getByTestId('practice-chase')).toContainText('One wicket');
+  const order = await page
+    .getByTestId('practice-menu')
+    .locator('[data-testid^="practice-"][data-testid$="e"], button')
+    .evaluateAll((els) =>
+      els
+        .map((e) => e.getAttribute('data-testid'))
+        .filter((id) => ['practice-random', 'practice-predefined', 'practice-chase'].includes(id ?? '')),
+    );
+  expect(order).toEqual(['practice-random', 'practice-predefined', 'practice-chase']);
   expect(await seen(page, 'age-screen')).toBeNull();
   expect(await seen(page, 'launch-chase')).toBeNull();
   await page.getByTestId('practice-random').click();

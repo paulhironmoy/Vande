@@ -18,6 +18,8 @@ export interface PracticeTestConfig {
   benchmarkMs?: number;
   /** A dead innings ball continues by itself (production always waits for the player). */
   autoNext?: boolean;
+  /** The pool seed ("c000" to "c255") of the Chase the page opens, instead of a random one. */
+  chaseSeed?: string;
 }
 
 export type Swing =
@@ -157,6 +159,20 @@ export interface HookState {
   notice: string | null;
   ttfdMs: number | null;
   overKind: string | null;
+  /** The Target Chase as shown (null outside one). */
+  chase: {
+    seed: string;
+    difficulty: string;
+    target: number;
+    result: string;
+    runs: number;
+    ballsFaced: number;
+    ballsLeft: number;
+    runsNeeded: number;
+    requiredRate: number | null;
+    deciding: string | null;
+    previous: { result: string; runs: number } | null;
+  } | null;
   over: { source: string; family: string; shuffled: boolean; variations: string[]; lengths: number[] } | null;
   /** The timing help (ms) each innings ball was played with, by over. */
   tolerances: number[][];

@@ -54,6 +54,9 @@ test('a first session on the real device check: Play at once, the demonstration,
   // The first-run demonstration comes first, on a stage that is ready; then the first ball.
   await waitFor(page, ['intro'], 120_000);
   expect((await state(page)).stageReady).toBe(true);
+  // Then the first-ball lesson waits for the player (src/practice/ui/lesson): ball 1 starts when they choose to bowl.
+  await waitFor(page, ['lesson'], 120_000);
+  await page.getByTestId('lesson-bowl').click();
   await batOver(page);
 
   let st = await state(page);
